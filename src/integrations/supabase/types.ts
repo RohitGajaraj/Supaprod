@@ -3680,6 +3680,7 @@ export type Database = {
       missions: {
         Row: {
           archived_at: string | null
+          auto_trigger_source: string | null
           completed_at: string | null
           created_at: string
           current_agent_id: string | null
@@ -3695,6 +3696,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          auto_trigger_source?: string | null
           completed_at?: string | null
           created_at?: string
           current_agent_id?: string | null
@@ -3710,6 +3712,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          auto_trigger_source?: string | null
           completed_at?: string | null
           created_at?: string
           current_agent_id?: string | null
