@@ -7,6 +7,7 @@ import {
   handoffEvidenceGateEnforced,
   enqueueHandoff,
   HandoffRejectedError,
+  maybeCompleteMission,
 } from "./handoff.server";
 
 // Scripted mock: each "attempt" in consumeInboundHandoff does one SELECT (the
@@ -293,5 +294,100 @@ describe("enqueueHandoff: the evidence gate is a RUNTIME invariant (throw before
     );
     expect(inserts.agent_messages).toBe(1);
     expect(inserts.agent_runs).toBe(1);
+  });
+});
+
+// Generic chain mock: every chain method (.eq/.is/.in/.order/.limit) returns
+// the same node, and the node is both awaitable (.then) and .maybeSingle()-
+// able, so it works regardless of where maybeCompleteMission's real call
+// chain terminates. Per-table call count picks the right scripted response
+// when the same table is queried more than once in one invocation.
+function buildMissionCloseClient(opts: {
+  unconsumedCount?: number;
+  liveRunsCount?: number;
+  stepRows?: { status: string }[];
+  orchRuns?: { status: string }[];
+  missionRow?: Record<string, unknown> | null;
+  decisionsExisting?: number;
+  lastRun?: { output?: string; agent_slug?: string } | null;
+}) {
+  const calls: Record<string, number> = {};
+  let updatePayload: Record<string, unknown> | null = null;
+
+  function chain(result: unknown) {
+    const node: Record<string, unknown> = {
+      eq: () => node,
+      is: () => node,
+      in: () => node,
+      order: () => node,
+      limit: () => node,
+      select: () => node,
+      maybeSingle: async () => result,
+      then: (resolve: (v: unknown) => void) => resolve(result),
+    };
+    return node;
+  }
+
+  const client = {
+    from: (table: string) => ({
+      select: () => {
+        const n = (calls[table] = (calls[table] ?? 0) + 1);
+        if (table === "agent_messages") return chain({ count: opts.unconsumedCount ?? 0 });
+        if (table === "mission_steps") return chain({ data: opts.stepRows ?? [] });
+        if (table === "agent_runs") {
+          if (n === 1) return chain({ count: opts.liveRunsCount ?? 0 });
+          if (n === 2) return chain({ data: opts.orchRuns ?? [] });
+          return chain({ data: opts.lastRun ?? null });
+        }
+        if (table === "decisions") return chain({ count: opts.decisionsExisting ?? 0 });
+        return chain({ data: null, count: 0 });
+      },
+      update: (payload: Record<string, unknown>) => {
+        updatePayload = payload;
+        return chain({ data: opts.missionRow ?? null });
+      },
+      insert: async () => ({ data: null, error: null }),
+    }),
+  } as unknown as SupabaseClient;
+
+  return { client, getUpdatePayload: () => updatePayload };
+}
+
+describe("maybeCompleteMission: zero-mission_steps finalization (2026-07-01 fix)", () => {
+  test("a terminal orchestrator run that COMPLETED (direct delegation, no DAG) finalizes the mission as completed, not failed", async () => {
+    const { client, getUpdatePayload } = buildMissionCloseClient({
+      stepRows: [],
+      orchRuns: [{ status: "completed" }],
+      missionRow: {
+        id: "m1",
+        user_id: "u1",
+        workspace_id: "w1",
+        title: "Delegate to OpenHands",
+        goal: "g",
+      },
+      decisionsExisting: 0,
+      lastRun: { output: "Delegated to OpenHands; accepted.", agent_slug: "orchestrator" },
+    });
+    await maybeCompleteMission(client, "m1");
+    expect(getUpdatePayload()?.status).toBe("completed");
+  });
+
+  test("a terminal orchestrator run that FAILED/HALTED to plan still finalizes the mission as failed", async () => {
+    const { client, getUpdatePayload } = buildMissionCloseClient({
+      stepRows: [],
+      orchRuns: [{ status: "halted" }],
+      missionRow: { id: "m2", user_id: "u1", workspace_id: "w1", title: "x", goal: "g" },
+    });
+    await maybeCompleteMission(client, "m2");
+    expect(getUpdatePayload()?.status).toBe("failed");
+  });
+
+  test("no terminal orchestrator run yet: leaves the mission running (still planning)", async () => {
+    const { client, getUpdatePayload } = buildMissionCloseClient({
+      stepRows: [],
+      orchRuns: [{ status: "queued" }],
+    });
+    await maybeCompleteMission(client, "m3");
+    expect(getUpdatePayload()).toBeNull();
   });
 });
