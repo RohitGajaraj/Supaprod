@@ -26,6 +26,21 @@
 > ---
 
 > [!IMPORTANT]
+> ## 👋 PICK UP HERE TOMORROW — session closed 2026-07-01 ~03:30 (main, founder live-test session)
+>
+> **Founder ran a real end-to-end BLD-04 live test tonight (OpenHands on Railway, two delegations, both accepted).** The mission still closed out `failed`, not the `blocked` the founder first reported. Diagnosed live against the real DB (Lovable MCP, not assumption): `maybeCompleteMission` blanket-marked any terminal orchestrator run with zero `mission_steps` as failed, which is wrong for a direct `delegate.openhands` call that legitimately never writes a steps DAG. **Fixed and pushed** (`src/lib/ai/handoff.server.ts`, commits `9143d446` + `fae06cbb`, tsc 0 / 22 tests pass).
+>
+> **What's still open, pick up here first:**
+> 1. **Apply the `delegate-poll-tick` cron migration** (`supabase/migrations/20260630000100_delegate_poll_cron.sql`) via Lovable. Confirmed missing from the live `cron.job` table (only 7 of 8 expected jobs are scheduled). Without it, OpenHands job completions never auto-fold back into `mission_steps`. This is the one remaining blocker to closing BLD-04 to ✅.
+> 2. **Re-run the live-test sequence once more** after the cron is live (evidence-gathering steps, then an explicit "delegate to OpenHands" request) and confirm `mission_steps` actually receives the folded terminal result this time.
+> 3. **Leave alone, not a bug:** several test missions from earlier pre-fix attempts tonight (`a01f2f9c…`, `75e0960e…`, etc.) are stuck `blocked`/`halted` on a genuinely-pending, never-decided `studio.commit` fallback approval. They predate tonight's fix and are debugging debris, not evidence of a live issue.
+> 4. **Known, unrelated, still broken:** `scripts/sync-pcv4.sh` warns `Project-Cadence-v4` not found — a path/casing mismatch against the real `project_cadence_v4` directory, flagged by a parallel session tonight, not yet fixed. Breaks the mandatory "every push syncs PCV4" rule until resolved.
+>
+> Full write-up: [`bld04-delegate-out.md`](../features/bld04-delegate-out.md) (verification checklist updated), [`feature-dashboard.md`](./feature-dashboard.md) row 6 ([~70%]), `plan.md` §4 (2026-07-01 entry). Also corrected this session: `AGENTS.md` §0 now routes ALL Supabase/DB facts through the Lovable MCP only, never a direct Supabase OAuth/token request (the founder does not hold that credential).
+>
+> ---
+
+> [!IMPORTANT]
 > ## ✅ 2026-06-30 — SIGNAL FABRIC & SENSE ENGINE: all autonomous slices shipped (Lane 1, board dry)
 >
 > **Founder directive:** build the outside-in + inside-out **signal ingestion engine** — the USP's "Sense continuously" pillar (v11 moat pillar #2). Canonical spec: [`../features/signal-fabric.md`](../features/signal-fabric.md). Dashboard group: [`feature-dashboard.md`](./feature-dashboard.md).
