@@ -1,14 +1,28 @@
 #!/usr/bin/env bash
-# sync-pcv4.sh — Pull origin/main into Project-Cadence-v4.
+# sync-pcv4.sh — Pull origin/main into project_cadence_v4, the shared local
+# viewing checkout (also the git-dir host for the cadence-lane-N worktrees).
+#
+# Corrected 2026-07-01/02: this script pointed at "Project-Cadence-v4"
+# (capitalized), a path that no longer exists — every call silently hit the
+# "not found, skipping" branch and exited 0, so this has been a no-op for an
+# unknown stretch of time despite being called after every push. Also,
+# despite the header comment below, lane.sh does not actually invoke this —
+# that claim was stale too; call it explicitly after pushing, as documented
+# in AGENTS.md / CLAUDE.md.
+#
+# `project_cadence_v4` and every `cadence-lane-N` worktree of it were
+# repointed to `project_cadence_v5` (the repo Lovable is actually connected
+# to) on 2026-07-01/02 — see AGENTS.md § "Canonical repo law". This script
+# still only refreshes the local project_cadence_v4 viewing checkout to
+# match whatever was just pushed to that shared origin (now v5).
 #
 # MANDATORY: run this after EVERY git push from any lane.
 # `post-push` is not a real git hook, so this must be called explicitly.
-# The lane.sh push wrapper calls this automatically.
 #
 # Usage:  bash scripts/sync-pcv4.sh
 # Exit 0 always — sync failure is a warning, not a blocker.
 
-V4="/Users/rohitgajaraj/Projects/My Projects/My Builds/Project-Cadence-v4"
+V4="/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v4"
 
 if [[ ! -d "$V4" ]]; then
   echo "[sync-pcv4] WARN: $V4 not found — skipping"
