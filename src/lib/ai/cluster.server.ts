@@ -3,6 +3,34 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { computeNovelty } from "@/lib/brain/novelty.server";
 
+export type ThemeCandidate = {
+  title: string;
+  summary?: string;
+  severity?: number;
+  confidence?: number;
+  members?: number[];
+};
+
+/**
+ * Normalize a callModel() `json` result into the theme array cluster.server.ts expects, or
+ * `undefined` when the shape is genuinely unusable.
+ *
+ * Live-verified 2026-07-01 (cluster-tick incident): google/gemini-2.5-pro, called with
+ * responseFormat=json_object and the exact same system/user prompt, sometimes drops the
+ * documented `{"themes": [...]}` wrapper and returns the bare array of theme objects
+ * directly instead — most reproducibly seen on small signal batches (2 unclustered
+ * signals reproduced it twice in a row live). The raw text is valid, parseable JSON either
+ * way (parseModelJson/JSON.parse succeed on both shapes); this was never a JSON-parsing
+ * problem. The actual bug was downstream: casting the parsed value to `{ themes?: [...] }`
+ * and reading `.themes` off a top-level array is always `undefined`, so a perfectly valid,
+ * on-schema response was discarded and thrown away as "invalid JSON". Accept either shape.
+ */
+export function extractThemesJson(rawJson: unknown): ThemeCandidate[] | undefined {
+  if (Array.isArray(rawJson)) return rawJson as ThemeCandidate[];
+  const themes = (rawJson as { themes?: unknown } | null | undefined)?.themes;
+  return Array.isArray(themes) ? (themes as ThemeCandidate[]) : undefined;
+}
+
 /**
  * Core signal-clustering logic, shared by the user-triggered `clusterSignals`
  * server fn (RLS-scoped, user session) and the `cluster-tick` cron hook
@@ -78,17 +106,9 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       { role: "user", content: user },
     ],
   });
-  const parsed = (result.json ?? {}) as {
-    themes?: Array<{
-      title: string;
-      summary?: string;
-      severity?: number;
-      confidence?: number;
-      members?: number[];
-    }>;
-  };
-  if (!parsed.themes) throw new Error("AI returned invalid JSON");
-  const themes = (parsed.themes ?? []).slice(0, 10);
+  const themesArray = extractThemesJson(result.json);
+  if (!themesArray) throw new Error("AI returned invalid JSON");
+  const themes = themesArray.slice(0, 10);
 
   let created = 0;
   for (const t of themes) {

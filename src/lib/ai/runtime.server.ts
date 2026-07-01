@@ -252,6 +252,13 @@ async function logGovernanceHalt(
       parent_event_id: opts.parentEventId ?? null,
       surface: opts.surface,
       surface_ref: opts.surface_ref ?? null,
+      // ai_events.workspace_id defaults to current_user_default_workspace(), which resolves
+      // via auth.uid() — NULL for a service-role caller (a cron tick), so the default used to
+      // throw (cascading into a NOT NULL violation on accounts.owner_id) and this insert was
+      // silently swallowed by the catch below on every cron-driven halt. Pass the workspace we
+      // already have explicitly so the DEFAULT (only correct for a real user session) is never
+      // relied on here; omit the key when null so that path is unaffected.
+      ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
       provider: "governance",
       via: "gateway",
       model: opts.model,
@@ -772,6 +779,9 @@ async function insertBlockedCreditEvent(
       parent_event_id: opts.parentEventId ?? null,
       surface: opts.surface,
       surface_ref: opts.surface_ref ?? null,
+      // See the same note in logGovernanceHalt: pass the workspace explicitly so a
+      // service-role (cron) caller never relies on the auth.uid()-based column default.
+      ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
       provider: "credits",
       via: "gateway",
       model: opts.model,
@@ -1383,6 +1393,12 @@ export async function callModel(
         parent_event_id: opts.parentEventId ?? null,
         surface: opts.surface,
         surface_ref: opts.surface_ref ?? null,
+        // See the note on logGovernanceHalt above: never rely on the auth.uid()-based
+        // column default for a service-role (cron) call — pass the workspace explicitly
+        // when we have one. This was silently dropping every cron-driven ai_events row
+        // (cluster-tick, sense-tick, steward-tick, …), which is why the JSON-shape bug
+        // below produced zero DB evidence until this was fixed.
+        ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
         provider,
         via,
         model: modelUsed,
@@ -1975,6 +1991,8 @@ export async function callModelStream(
               parent_event_id: opts.parentEventId ?? null,
               surface: opts.surface,
               surface_ref: opts.surface_ref ?? null,
+              // See the note on logGovernanceHalt above.
+              ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
               provider,
               via,
               model: modelUsed,
