@@ -432,7 +432,19 @@ If you hit the same friction twice, add a row here before the third time. The co
 
 ---
 
-### Worktree / primary-checkout law (permanent, founder ruling 2026-06-26)
+### Canonical repo law (permanent, corrected 2026-07-01 — supersedes the 2026-06-26 ruling below)
+
+> [!IMPORTANT]
+> **`project_cadence_v5` (this repo, GitHub `RohitGajaraj/project_cadence_v5`, branch `main`) is the ONLY repository connected to Lovable.** Confirmed live 2026-07-01 via Lovable's own Git settings page (Repository connection: `RohitGajaraj/project_cadence_v5`, branch `main`, status Connected) and by observing Lovable auto-pick-up a push within seconds. **`Project-Cadence-v4` (and any `cadence-lane-N` worktree cloned from it) is NOT connected to anything live** — pushes there never reach the published app, however confident a session feels about it.
+>
+> **Before pushing ANYTHING from ANY worktree, run `git remote -v` and confirm the URL is `project_cadence_v5`.** If it says `Project-Cadence-v4`, you are in the wrong repo — finish your work there if you must (e.g. mid-flight in a `cadence-lane-N` parallel session), but it is NOT shipped until the same change is ported into `project_cadence_v5` directly and pushed from there. Do not report a feature as "live" or "pushed to main" on the strength of a `Project-Cadence-v4` push alone.
+>
+> **Why this happened:** the 2026-06-26 ruling below (kept for its historical context, but its central claims are now false) assumed `Project-Cadence-v4` was both the founder's viewing checkout AND the one Lovable deploys from, and assumed `cadence-lane-0..4` were git worktrees sharing one `.git`, auto-synced by a `post-push` hook. Neither holds anymore: at some point `cadence-lane-1` was reinitialized as a standalone repo (no longer `git worktree list`-visible from `Project-Cadence-v4`), and — separately — Lovable's own GitHub integration was pointed at `project_cadence_v5` instead, likely when this project moved workspaces. A session spent an entire night (2026-07-01) chasing a "Lovable won't sync" ghost that was actually just "wrong repo the whole time," including asking Lovable's own AI agent to debug its GitHub connection (it correctly reported the sandbox couldn't reach any commit pushed to v4 — that was never a bug, just confirmation the connection was fine and pointed elsewhere).
+>
+> **What to actually do going forward:** treat `project_cadence_v5` as the one and only push target for anything that needs to reach the live app. If your session is a `cadence-lane-N` worktree of `Project-Cadence-v4` (parallel-session tooling still uses that structure for now), finish the unit of work there as normal, then before calling it done, `cd` to `project_cadence_v5`, apply the same change (diff/reconcile if it has independently diverged — it does have its own ongoing direct-session work, don't blind-overwrite), verify (`tsc` + tests), commit, and `git push origin main`. Lovable picks it up automatically within seconds of a push to the correct repo; no reconnect, no republish-only action needed. See [`docs/operations/signal-fabric-connector-setup.md`](./docs/operations/signal-fabric-connector-setup.md) for a worked example of exactly this port (SF-MCP + a runtime fix, ported from v4 to v5 the night this was discovered).
+
+<details>
+<summary>Original 2026-06-26 ruling (kept for history — its central claims are superseded above)</summary>
 
 **`Project-Cadence-v4` on branch `main` is the founder's ONE source of truth.** He views code, reads the feature dashboard, and judges progress from there — not from any lane directory.
 
@@ -442,6 +454,8 @@ If you hit the same friction twice, add a row here before the third time. The co
 - **Every agent / session must push to `origin/main` after every commit** (already the standard). The post-push hook then keeps the founder's view live automatically.
 - **CRITICAL — always use the explicit refspec:** `git push origin parallel/lane-N:main` (where N is your lane number). **Never** run bare `git push origin` — without the `:main` destination git defaults to pushing to `origin/parallel/lane-N` (the lane's own remote branch), which is NOT visible in `Project-Cadence-v4`. This is exactly what caused the gap: lane-1 pushed `origin/parallel/lane-1` instead of `origin/main` and the work sat invisible for the whole session.
 - Never tell the founder to run `git pull`. If the hook fails for any reason (dirty tree, conflict), the hook prints a one-line warning so the session notices.
+
+</details>
 
 ### Stale redirect rot (absolute `file://` links to other repos)
 
