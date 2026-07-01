@@ -3426,6 +3426,50 @@ export type Database = {
           },
         ]
       }
+      mcp_connections: {
+        Row: {
+          calls_today: number
+          calls_window_started_at: string
+          created_at: string
+          id: string
+          last_called_at: string | null
+          last_error: string | null
+          server_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          calls_today?: number
+          calls_window_started_at?: string
+          created_at?: string
+          id?: string
+          last_called_at?: string | null
+          last_error?: string | null
+          server_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          calls_today?: number
+          calls_window_started_at?: string
+          created_at?: string
+          id?: string
+          last_called_at?: string | null
+          last_error?: string | null
+          server_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcp_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mcp_tokens: {
         Row: {
           created_at: string | null
