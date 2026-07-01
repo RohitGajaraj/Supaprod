@@ -10,6 +10,7 @@
  * `.server.ts` — runs only in the Worker; never bundled to the client.
  */
 import { callModel } from "@/lib/ai/runtime.server";
+import { asPlainObject } from "@/lib/ai/json-shape";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { loadDecisionPrecedent, type PrecedentMatch } from "@/lib/ai/decision-precedent.server";
 import {
@@ -220,7 +221,11 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
         { role: "user", content: userContent },
       ],
     });
-    const parsed = (result.json ?? {}) as Partial<CriticReview>;
+    // A malformed shape (e.g. Gemini returning a bare array) must not silently
+    // produce a fabricated default review; treat it the same as any other
+    // failure (return null - see the docstring above).
+    const parsed = asPlainObject<Partial<CriticReview>>(result.json);
+    if (!parsed) return null;
     const verdict =
       parsed.verdict === "ship" || parsed.verdict === "kill" || parsed.verdict === "revise"
         ? parsed.verdict

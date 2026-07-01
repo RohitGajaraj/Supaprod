@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
+import { asPlainObject } from "@/lib/ai/json-shape";
 import { applyWorkspaceScope } from "@/lib/workspace-scope";
 
 export const listMeetings = createServerFn({ method: "GET" })
@@ -150,7 +151,7 @@ Rules: be terse, no markdown fences, no prose outside JSON.`;
         },
       ],
     });
-    const parsed = (result.json ?? null) as ExtractResult | null;
+    const parsed = asPlainObject<ExtractResult>(result.json);
     if (!parsed) throw new Error("AI returned invalid JSON");
 
     // Persist preview on meeting row

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
+import { extractArrayField } from "@/lib/ai/json-shape";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { runCritic } from "@/lib/ai/critic.server";
 import { recordLineage } from "@/lib/lineage.functions";
@@ -134,8 +135,8 @@ Be concrete and buildable. Only tasks the spec actually implies - do not invent 
       throw new Error(e instanceof Error ? e.message : "Planner failed");
     }
 
-    const parsed = (result.json ?? {}) as { tasks?: unknown[] };
-    const tasks = (Array.isArray(parsed.tasks) ? parsed.tasks.slice(0, 20) : []).map((t, i) => {
+    const tasksRaw = extractArrayField(result.json, "tasks") ?? [];
+    const tasks = tasksRaw.slice(0, 20).map((t, i) => {
       const o = (t ?? {}) as Record<string, unknown>;
       const seq = Number.isFinite(Number(o.seq)) ? Number(o.seq) : i + 1;
       return {

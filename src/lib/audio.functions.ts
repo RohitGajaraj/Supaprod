@@ -25,6 +25,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { extractArrayField } from "@/lib/ai/json-shape";
 
 const ASSEMBLYAI_BASE = "https://api.assemblyai.com/v2";
 
@@ -324,14 +325,21 @@ Only include real commitments, not vague discussion points.`;
         ],
       });
 
+      // Gemini sometimes returns the bare action-items array instead of the
+      // documented {action_items: [...]} wrapper; accept either shape.
+      const withActionItemsWrapper = (raw: unknown) => {
+        const items = extractArrayField(raw, "action_items");
+        return items ? { action_items: items } : raw;
+      };
+
       let actionItems: ActionItem[] = [];
       try {
-        const parsed = ACTION_ITEM_SCHEMA.parse(res.json);
+        const parsed = ACTION_ITEM_SCHEMA.parse(withActionItemsWrapper(res.json));
         actionItems = parsed.action_items;
       } catch {
         // Fallback: try to parse res.output as JSON
         try {
-          const parsed = ACTION_ITEM_SCHEMA.parse(JSON.parse(res.output));
+          const parsed = ACTION_ITEM_SCHEMA.parse(withActionItemsWrapper(JSON.parse(res.output)));
           actionItems = parsed.action_items;
         } catch {
           actionItems = [];

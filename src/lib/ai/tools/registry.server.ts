@@ -10,6 +10,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { extractArrayField } from "@/lib/ai/json-shape";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import { FANOUT_MAX_CHILDREN, fanoutDepthOf, canSpawnAtDepth } from "@/lib/ai/fanout";
@@ -2083,16 +2084,15 @@ const researchSynthesize = def({
         { role: "user", content: corpus },
       ],
     });
-    const parsed = (res.json ?? safeJson(res.output)) as {
-      themes?: Array<{
+    const rawJson = res.json ?? safeJson(res.output);
+    const themes =
+      extractArrayField<{
         title: string;
         summary: string;
         severity?: number;
         confidence?: number;
         signal_indices?: number[];
-      }>;
-    } | null;
-    const themes = parsed?.themes ?? [];
+      }>(rawJson, "themes") ?? [];
     if (!themes.length)
       return { themes_created: 0, signals_linked: 0, reason: "model returned no themes" };
 
@@ -2307,16 +2307,15 @@ const backlogPrioritize = def({
         { role: "user", content: JSON.stringify(payload) },
       ],
     });
-    const parsed = (res.json ?? safeJson(res.output)) as {
-      scores?: Array<{
+    const rawJson = res.json ?? safeJson(res.output);
+    const scores =
+      extractArrayField<{
         id: string;
         impact: number;
         confidence: number;
         ease: number;
         rationale?: string;
-      }>;
-    } | null;
-    const scores = parsed?.scores ?? [];
+      }>(rawJson, "scores") ?? [];
     if (!scores.length) return { rescored: 0, ranked: [], reason: "model returned no scores" };
 
     let rescored = 0;

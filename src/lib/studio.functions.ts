@@ -28,6 +28,7 @@ import {
 } from "@/lib/ai/studio-hunks";
 import { summarizeInspection } from "@/lib/ai/studio-inspection";
 import { callModel } from "@/lib/ai/runtime.server";
+import { asPlainObject } from "@/lib/ai/json-shape";
 import { humanizeText } from "@/lib/ai/humanize";
 import { revertChangesetToRevision } from "@/lib/ai/studio-revert.server";
 import { runRollbackRelease, ghHeaders } from "@/lib/studio-rollbacks";
@@ -1510,7 +1511,7 @@ export const generateLaunchKit = createServerFn({ method: "POST" })
     });
     if (result.status !== "ok") throw new Error(result.error || "Launch-kit generation failed.");
 
-    const parsed = (result.json ?? {}) as Record<string, unknown>;
+    const parsed = asPlainObject<Record<string, unknown>>(result.json) ?? {};
     const pick = (k: string) => humanizeText(String(parsed[k] ?? "").trim());
     const kit: LaunchKit = {
       changelog: pick("changelog"),
