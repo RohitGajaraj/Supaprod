@@ -26,17 +26,17 @@
 > ---
 
 > [!IMPORTANT]
-> ## 👋 PICK UP HERE TOMORROW: session closed 2026-07-01 ~03:30 (main, founder live-test session)
+> ## ✅ BLD-04 cron blocker cleared (verified live, 2026-07-02) — closes out the 2026-07-01 live-test session
 >
-> **Founder ran a real end-to-end BLD-04 live test tonight (OpenHands on Railway, two delegations, both accepted).** The mission still closed out `failed`, not the `blocked` the founder first reported. Diagnosed live against the real DB (Lovable MCP, not assumption): `maybeCompleteMission` blanket-marked any terminal orchestrator run with zero `mission_steps` as failed, which is wrong for a direct `delegate.openhands` call that legitimately never writes a steps DAG. **Fixed and pushed** (`src/lib/ai/handoff.server.ts`, commits `9143d446` + `fae06cbb`, tsc 0 / 22 tests pass).
+> **Founder ran a real end-to-end BLD-04 live test on 2026-07-01 (OpenHands on Railway, two delegations, both accepted).** The mission had closed out `failed`, not the `blocked` the founder first reported. Diagnosed live against the real DB (Lovable MCP, not assumption): `maybeCompleteMission` blanket-marked any terminal orchestrator run with zero `mission_steps` as failed, which is wrong for a direct `delegate.openhands` call that legitimately never writes a steps DAG. **Fixed and pushed** (`src/lib/ai/handoff.server.ts`, commits `9143d446` + `fae06cbb`, tsc 0 / 22 tests pass).
 >
-> **What's still open, pick up here first:**
-> 1. **Apply the `delegate-poll-tick` cron migration** (`supabase/migrations/20260630000100_delegate_poll_cron.sql`) via Lovable. Confirmed missing from the live `cron.job` table (only 7 of 8 expected jobs are scheduled). Without it, OpenHands job completions never auto-fold back into `mission_steps`. This is the one remaining blocker to closing BLD-04 to ✅.
-> 2. **Re-run the live-test sequence once more** after the cron is live (evidence-gathering steps, then an explicit "delegate to OpenHands" request) and confirm `mission_steps` actually receives the folded terminal result this time.
-> 3. **Leave alone, not a bug:** several test missions from earlier pre-fix attempts tonight (`a01f2f9c…`, `75e0960e…`, etc.) are stuck `blocked`/`halted` on a genuinely-pending, never-decided `studio.commit` fallback approval. They predate tonight's fix and are debugging debris, not evidence of a live issue.
-> 4. **Known, unrelated, still broken:** `scripts/sync-pcv4.sh` warns `Project-Cadence-v4` not found, a path/casing mismatch against the real `project_cadence_v4` directory, flagged by a parallel session tonight, not yet fixed. Breaks the mandatory "every push syncs PCV4" rule until resolved.
+> **The one remaining blocker (the `delegate-poll-tick` cron migration) is confirmed applied and running as of 2026-07-02** — the "only 7 of 8 jobs scheduled" note below was correct at the time but is now stale. Live-verified directly against `cadence-flow-beta`'s `cron.job` table: all 8 jobs present, `delegate-poll-tick` (jobid 19, `*/5 * * * *`) is `active=true`, and `cron.job_run_details` shows 5 consecutive `succeeded` runs ticking cleanly on schedule. `agent_runs` has 2 completed `delegate.openhands` rows (`orchestrator`/`builder`, both `status: "done"`, `delegate_meta.poll_status: "done"`), confirming the poll-and-fold-back loop is working end-to-end, not just scheduled. **No further Lovable action needed to close BLD-04's cron piece.**
 >
-> Full write-up: [`bld04-delegate-out.md`](../features/bld04-delegate-out.md) (verification checklist updated), [`feature-dashboard.md`](./feature-dashboard.md) row 6 ([~70%]), `plan.md` §4 (2026-07-01 entry). Also corrected this session: `AGENTS.md` §0 now routes ALL Supabase/DB facts through the Lovable MCP only, never a direct Supabase OAuth/token request (the founder does not hold that credential).
+> **Left over, not urgent:**
+> 1. A confirmatory live-test re-run (evidence-gathering steps, then an explicit "delegate to OpenHands" request) is still worth doing once, just to see a fresh `mission_steps` fold-back with your own eyes — the DB evidence already shows it works, so this is a nice-to-have, not a blocker.
+> 2. **Leave alone, not a bug:** several test missions from the 2026-07-01 pre-fix attempts (`a01f2f9c…`, `75e0960e…`, etc.) are stuck `blocked`/`halted` on a genuinely-pending, never-decided `studio.commit` fallback approval. They predate the fix and are debugging debris, not evidence of a live issue.
+>
+> Full write-up: [`bld04-delegate-out.md`](../features/bld04-delegate-out.md) (verification checklist updated), [`feature-dashboard.md`](./feature-dashboard.md) row 6, `plan.md` §4 (2026-07-01 entry). Also corrected during that session: `AGENTS.md` §0 now routes ALL Supabase/DB facts through the Lovable MCP only, never a direct Supabase OAuth/token request (the founder does not hold that credential).
 >
 > ---
 
@@ -57,7 +57,7 @@
 > - **The cluster-tick "AI returned invalid JSON" bug: root cause found and fixed for real**, not the first (wrong) theory: Gemini occasionally returns a bare `[{...}]` array instead of the documented `{"themes":[...]}` wrapper; `cluster.server.ts` silently discarded that as invalid. Fixed with `extractThemesJson()` accepting both shapes. **A second bug found along the way, bigger than this one:** `ai_events` had been blind for every cron-driven AI call (cluster-tick/sense-tick/steward-tick) due to a `NULL`-workspace cascade into a swallowed NOT NULL violation: fixed (migration `20260701190000_ai_events_workspace_default_service_role_safe.sql` + explicit `workspaceId` at all 4 `ai_events` insert sites). Both fixes live-verified against the published app.
 > - **The repo confusion that cost the whole night, resolved:** every push tonight initially went to `Project-Cadence-v4`, which is NOT the repo Lovable is connected to (`project_cadence_v5` is, confirmed via Lovable's own Git settings and by watching it auto-pick-up a v5 push within seconds). The two repos have unrelated git histories, so this needed a real file-tree reconciliation, not a redirect: done, verified (tsc 0, full suite green), pushed. **Every lane (`cadence-lane-0` through `4`) and `project_cadence_v4` itself are now repointed directly at `project_cadence_v5`**: no more double-work porting required going forward. Full incident + the new standing rule: `AGENTS.md` § "Canonical repo law" (superseding the stale 2026-06-26 "worktree/primary-checkout law").
 >
-> **👤 Remaining to unblock (unrelated to Signal Fabric):** BLD-04 (external coding agent dispatch, see the 2026-07-01 BLD-04 entry above: the `delegate-poll-tick` cron migration still needs applying) and the Build lane generally.
+> **👤 Remaining to unblock (unrelated to Signal Fabric):** BLD-04's cron blocker is now cleared (see the entry above, live-verified 2026-07-02) — only the optional confirmatory re-run and the Build lane generally remain.
 >
 > ---
 
