@@ -6,9 +6,9 @@
 -- persist its ai_events row, with the insert error silently swallowed by the
 -- `catch (e) { console.error("ai_events insert failed:", e); }` in runtime.server.ts. This
 -- left zero DB evidence for a real, separate bug (cluster.server.ts mis-shaping a valid
--- model response as "invalid JSON" — fixed in src/lib/ai/cluster.server.ts) and, more
+-- model response as "invalid JSON", fixed in src/lib/ai/cluster.server.ts) and, more
 -- broadly, blinds observability for every cron-driven AI surface (cluster-tick, sense-tick,
--- steward-tick, the scheduled brief, …), not just this one.
+-- steward-tick, the scheduled brief, and so on), not just this one.
 --
 -- Root cause: ai_events.workspace_id is NOT NULL, defaulting to
 -- current_user_default_workspace() -> ensure_user_default_workspace(auth.uid()). The
@@ -16,23 +16,23 @@
 -- for a real user session (auth.uid() resolves) but not for a service-role caller
 -- (auth.uid() is null). ensure_user_default_workspace(NULL) did not short-circuit: it fell
 -- through to `INSERT INTO workspaces (owner_id, name) VALUES (NULL, 'My Workspace')`, whose
--- own trigger cascades into `INSERT INTO accounts (owner_id) VALUES (NULL)` — and
+-- own trigger cascades into `INSERT INTO accounts (owner_id) VALUES (NULL)`, and
 -- accounts.owner_id is NOT NULL, so the whole ai_events insert aborted with a nested
 -- constraint violation. Reproduced live via a direct probe insert (see the cluster-tick
 -- incident notes) before this fix.
 --
 -- This migration:
 --   1. Makes ensure_user_default_workspace(NULL) return NULL immediately instead of
---      cascading into that crash — a NULL caller has no personal workspace to provision,
+--      cascading into that crash. A NULL caller has no personal workspace to provision,
 --      full stop.
 --   2. Drops the NOT NULL constraint on ai_events.workspace_id, since a system/service-role
 --      event genuinely may have no resolvable workspace (the column default can now safely
---      evaluate to NULL for that case) — analytics on this column already tolerate NULL
+--      evaluate to NULL for that case). Analytics on this column already tolerate NULL
 --      (see WM-F1's identical pattern on the agent-memory tables).
 --
 -- The app-side fix (runtime.server.ts) additionally passes opts.workspaceId explicitly into
 -- every ai_events insert when the caller already has one (cluster-tick does), so the DEFAULT
--- is only ever relied on for the real user-session path where auth.uid() is meaningful — this
+-- is only ever relied on for the real user-session path where auth.uid() is meaningful. This
 -- migration is the safety net for callers that still hit the default with no auth context.
 
 CREATE OR REPLACE FUNCTION public.ensure_user_default_workspace(_user_id uuid)

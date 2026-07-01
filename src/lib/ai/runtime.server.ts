@@ -253,7 +253,7 @@ async function logGovernanceHalt(
       surface: opts.surface,
       surface_ref: opts.surface_ref ?? null,
       // ai_events.workspace_id defaults to current_user_default_workspace(), which resolves
-      // via auth.uid() — NULL for a service-role caller (a cron tick), so the default used to
+      // via auth.uid(), NULL for a service-role caller (a cron tick), so the default used to
       // throw (cascading into a NOT NULL violation on accounts.owner_id) and this insert was
       // silently swallowed by the catch below on every cron-driven halt. Pass the workspace we
       // already have explicitly so the DEFAULT (only correct for a real user session) is never
@@ -1394,9 +1394,9 @@ export async function callModel(
         surface: opts.surface,
         surface_ref: opts.surface_ref ?? null,
         // See the note on logGovernanceHalt above: never rely on the auth.uid()-based
-        // column default for a service-role (cron) call — pass the workspace explicitly
+        // column default for a service-role (cron) call: pass the workspace explicitly
         // when we have one. This was silently dropping every cron-driven ai_events row
-        // (cluster-tick, sense-tick, steward-tick, …), which is why the JSON-shape bug
+        // (cluster-tick, sense-tick, steward-tick, and so on), which is why the JSON-shape bug
         // below produced zero DB evidence until this was fixed.
         ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
         provider,

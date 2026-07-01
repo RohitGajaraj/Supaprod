@@ -4,7 +4,7 @@ import { extractThemesJson } from "./cluster.server";
 // Regression coverage for the 2026-07-01 cluster-tick incident: google/gemini-2.5-pro
 // (called with responseFormat=json_object) sometimes returns the bare array of theme
 // objects instead of the documented `{"themes": [...]}` wrapper. That response is valid,
-// parseable JSON — the bug was clusterSignalsCore reading `.themes` off a top-level array
+// parseable JSON: the bug was clusterSignalsCore reading `.themes` off a top-level array
 // (always undefined) and discarding a perfectly good response as "invalid JSON".
 describe("extractThemesJson", () => {
   test("accepts the documented {themes: [...]} wrapper shape", () => {

@@ -18,7 +18,7 @@ export type ThemeCandidate = {
  * Live-verified 2026-07-01 (cluster-tick incident): google/gemini-2.5-pro, called with
  * responseFormat=json_object and the exact same system/user prompt, sometimes drops the
  * documented `{"themes": [...]}` wrapper and returns the bare array of theme objects
- * directly instead — most reproducibly seen on small signal batches (2 unclustered
+ * directly instead, most reproducibly seen on small signal batches (2 unclustered
  * signals reproduced it twice in a row live). The raw text is valid, parseable JSON either
  * way (parseModelJson/JSON.parse succeed on both shapes); this was never a JSON-parsing
  * problem. The actual bug was downstream: casting the parsed value to `{ themes?: [...] }`
