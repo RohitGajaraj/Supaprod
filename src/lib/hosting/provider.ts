@@ -4,27 +4,35 @@
  * One swappable abstraction for "Cadence hosts a user's app end to end (DB,
  * auth, deploy), no external account required". The plan
  * (`docs/planning/byo-p5-managed-runtime-plan.md`) recommends Cloudflare
- * Workers for Platforms plus one pooled, Cadence-owned Supabase project as
- * the first adapter (`cloudflare-wfp`); `neon-silo` and
+ * Workers for Platforms as the production target; `neon-silo` and
  * `supabase-for-platforms` are reserved ids for a future per-tenant silo
  * adapter, wired only if a specific tenant trips an isolation graduation
- * trigger (plan Section 1.2).
+ * trigger (plan Section 1.2). `deno-deploy` is a proof-of-concept adapter
+ * (P5a-poc, 2026-07-02), validating this interface's shape against a real
+ * provider at $0 before any Cloudflare spend; see
+ * `deno-deploy.server.ts`. It is NOT the production adapter (no isolation
+ * model, no DB layer, minimal method coverage), and Cloudflare stays the
+ * plan's primary recommendation until a founder call between the two.
  *
- * The whole capability is DORMANT: this file ships only the contract, the
- * shared types, and the {@link nullAppRuntimeProvider} floor (P5a). No
- * adapter exists yet, and none should until the founder opens a
- * directly-owned Cloudflare account and a directly-owned Supabase account
- * scoped to this layer (the plan's Section 1.1 precondition); wiring
- * `cloudflare-wfp` for real is P5b/P5c, a separate increment.
+ * The `cloudflare-wfp` capability itself is still DORMANT: this file ships
+ * only the contract, the shared types, and the {@link nullAppRuntimeProvider}
+ * floor for it (P5a). No Cloudflare adapter exists yet, and none should
+ * until the founder opens a directly-owned Cloudflare account scoped to
+ * this layer (the plan's Section 1.1 precondition); wiring `cloudflare-wfp`
+ * for real is P5b/P5c, a separate increment.
  *
  * This module is PURE (no env, no I/O), mirroring `delegate/provider.ts`:
- * the contract, the null floor, and the shared types only. A future
- * `cloudflare-wfp.server.ts` adapter plugs in behind this interface without
- * changing it.
+ * the contract, the null floor, and the shared types only. Live adapters
+ * (`deno-deploy.server.ts`, a future `cloudflare-wfp.server.ts`) plug in
+ * behind this interface without changing it.
  */
 
 /** Every app-hosting backend named in the plan, wired or not. */
-export type AppRuntimeProviderId = "cloudflare-wfp" | "neon-silo" | "supabase-for-platforms";
+export type AppRuntimeProviderId =
+  | "cloudflare-wfp"
+  | "deno-deploy"
+  | "neon-silo"
+  | "supabase-for-platforms";
 
 /** Identifies one hosted app: which tenant, which product, which app. */
 export interface AppRuntimeRef {
@@ -159,14 +167,15 @@ export const nullAppRuntimeProvider: AppRuntimeProvider = {
 };
 
 /**
- * Backends named in the plan but not yet wired to a real adapter. Every id
- * lives here today, including `cloudflare-wfp` (the plan's recommended
- * first adapter), because P5a ships the contract only, with zero live
- * provisioning. Listed here so a future resolver and the docs stay the
- * single source of "what can plug in", with nobody hard-coding a provider
- * id elsewhere. `cloudflare-wfp` moves out of this list the moment its
- * adapter ships (P5b), mirroring how `RESERVED_DELEGATE_PROVIDER_IDS`
- * excludes `openhands` once that adapter was wired.
+ * Backends named in the plan but not yet wired to a real adapter. `deno-deploy`
+ * is excluded: it has a real (proof-of-concept) adapter, see
+ * `deno-deploy.server.ts`. `cloudflare-wfp` stays reserved because P5a ships
+ * only the contract for it, zero live provisioning, and moves out of this
+ * list the moment its own adapter ships (P5b), mirroring how
+ * `RESERVED_DELEGATE_PROVIDER_IDS` excludes `openhands` once that adapter
+ * was wired. Listed here so a future resolver and the docs stay the single
+ * source of "what can plug in", with nobody hard-coding a provider id
+ * elsewhere.
  */
 export const RESERVED_APP_RUNTIME_PROVIDER_IDS: readonly AppRuntimeProviderId[] = [
   "cloudflare-wfp",
