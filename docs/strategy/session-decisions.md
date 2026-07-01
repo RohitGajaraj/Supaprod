@@ -1,6 +1,6 @@
 # Strategic Decisions Log
 
-> _Created: 2026-06-03 · Last updated: 2026-06-20_
+> _Created: 2026-06-03 · Last updated: 2026-07-02_
 
 > **What this is.** A running record of major strategic decisions, tradeoffs evaluated, and facts presented during development sessions. Not a transcript, only decisions that shaped the product direction, architecture, or operating model.
 >
@@ -1747,3 +1747,17 @@ _This log is maintained as part of the closed documentation loop. Every session 
 **Status:** Phase 0 (`SF-0`, the `writeSignals` keystone + `source_kind`) shipped (Lane 1, 2026-06-30, tsc 0 / 12 tests). The detailed phased plan is under refinement in Ultraplan; the remaining rows (`SF-SCOUT`/`SF-INTERCOM`/`SF-FOCUS`/`SF-CONNECTORS`/`SF-INSIGHT-HEAD` Tier-1, `SF-MCP`/`SF-AUTOTRIGGER` Gated) build next. Spec: [`docs/features/signal-fabric.md`](../features/signal-fabric.md).
 
 **Ties to:** SEN-* (Sense lane), CONNECTORS-V11, BRAIN-UX-V11 (the intelligence head extends it), the CHOKEPOINT pin.
+
+## 2026-07-01/02: `project_cadence_v5` is the canonical repo; every lane repointed to it directly
+
+**Decision:** `project_cadence_v5` (GitHub `RohitGajaraj/project_cadence_v5`, branch `main`) is the one repository Lovable is connected to, and therefore the only one that matters for "is this actually live." Every lane worktree (`cadence-lane-0` through `4`) and the shared `project_cadence_v4` git-dir they're worktrees of had their `origin` repointed there directly, and every branch reset onto its `main`: not left pushing to `Project-Cadence-v4` with a manual port-after step. `AGENTS.md`'s 2026-06-26 "worktree/primary-checkout law" (which named `Project-Cadence-v4` as the founder's one source of truth, and claimed a `post-push` hook auto-synced it) is superseded by a new "Canonical repo law" section, in all 4 local copies of `AGENTS.md`.
+
+**Why.** An entire night (2026-07-01) was spent live-testing Signal Fabric, pushing every fix to `Project-Cadence-v4`, and repeatedly asking "why won't Lovable pick this up": including asking Lovable's own AI agent to debug its GitHub connection. It correctly reported its sandbox couldn't reach any commit pushed to v4; that was never a bug, it was confirmation the connection was fine and pointed at a different repo entirely. Confirmed conclusively via Lovable's own Git settings page (Repository connection: `project_cadence_v5`, status Connected) and by watching Lovable auto-pick-up a push within seconds once pushed to the right place. Root cause of the drift: at some point `cadence-lane-1` was reinitialized as a standalone repo (no longer worktree-visible from `Project-Cadence-v4`'s git-dir), and separately, Lovable's own GitHub integration got pointed at `project_cadence_v5` instead of v4: likely when this project moved workspaces. Neither change was documented anywhere a session would see it before tonight.
+
+**The two repos have unrelated git histories** (v5's HEAD commit isn't an object in v4's repo at all: not a shared-then-diverged fork), so reconciling them wasn't a `git merge` or a remote redirect. It required a direct file-tree diff (74 files existed only in v4, mostly Signal Fabric work from tonight and BYO-P5 docs from a concurrent lane; 27 files differed, most already independently resolved on each side) and hand-porting the genuine gaps while deliberately leaving v5's own newer, independent work untouched (its BLD-04 fix, its `AGENTS.md` Supabase-access correction). Full incident narrative + the worked port example: `docs/operations/signal-fabric-connector-setup.md` and `plan.md`'s 2026-07-01/02 entry.
+
+**Tradeoffs considered:** repointing `origin` alone without resetting local branches, rejected: v4-rooted branch history pushed to v5 would fail on "unrelated histories," and the only way to force it through (`--force`) would have destroyed v5's real, independent commits. Confirmed every lane was clean with zero unique commits before resetting, specifically to make this safe rather than assumed-safe.
+
+**Impact:** going forward, any lane's normal `git push origin <branch>:main` reaches Lovable directly: no more push-to-wrong-repo-then-port double work. A `pre-push` hook was added to every v4-side `.git` (fires a loud warning, does not block, since `Project-Cadence-v4` may still be used as a mid-session working copy) in case a future clone or worktree ever points back at v4 by mistake. `scripts/sync-pcv4.sh` had the same stale-capitalized-path bug (targeting a `Project-Cadence-v4` directory that no longer has a working `.git`) and had been silently a no-op for an unknown stretch of time despite being mandatory after every push; fixed to target the real `project_cadence_v4` path.
+
+**Ties to:** the Signal Fabric live-test session entry (`plan.md`, 2026-07-01/02), `AGENTS.md` § "Canonical repo law", the git-discipline standing rule (`docs/operations/commits.md`).
