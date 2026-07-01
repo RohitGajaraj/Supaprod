@@ -59,7 +59,9 @@ describe("provisionApp", () => {
   test("throws with the response body on a non-ok status (e.g. slug conflict)", async () => {
     process.env.DENO_DEPLOY_TOKEN = "ddo_x";
     globalThis.fetch = (async () =>
-      new Response(JSON.stringify({ code: "SLUG_ALREADY_IN_USE" }), { status: 409 })) as typeof fetch;
+      new Response(JSON.stringify({ code: "SLUG_ALREADY_IN_USE" }), {
+        status: 409,
+      })) as typeof fetch;
 
     await expect(denoDeployProvider.provisionApp(REF, { dedicatedDb: false })).rejects.toThrow(
       "409",
@@ -132,7 +134,8 @@ describe("readDeployments (regression: the API returns a bare array, not {items:
 describe("readHealth", () => {
   test("healthy true with the constructed production URL on a 200", async () => {
     process.env.DENO_DEPLOY_TOKEN = "ddo_x";
-    globalThis.fetch = (async () => new Response(JSON.stringify({ id: "app-uuid" }), { status: 200 })) as typeof fetch;
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify({ id: "app-uuid" }), { status: 200 })) as typeof fetch;
 
     const health = await denoDeployProvider.readHealth(HANDLE);
     expect(health.healthy).toBe(true);
