@@ -43,16 +43,28 @@ async function fetchRecentEvidence(
       .order("created_at", { ascending: false })
       .limit(MAX_EVIDENCE_ROWS),
   ]);
-  const signals = ((signalsRes.data ?? []) as { id: string; title: string | null; content: string }[]).map(
-    (s) => ({ kind: "signal" as const, id: s.id, text: `${s.title ?? ""}: ${s.content}`.slice(0, 400) }),
-  );
-  const learnings = ((learningsRes.data ?? []) as { id: string; summary: string; verdict: string }[]).map(
-    (l) => ({ kind: "learning" as const, id: l.id, text: `[${l.verdict}] ${l.summary}`.slice(0, 400) }),
-  );
+  const signals = (
+    (signalsRes.data ?? []) as { id: string; title: string | null; content: string }[]
+  ).map((s) => ({
+    kind: "signal" as const,
+    id: s.id,
+    text: `${s.title ?? ""}: ${s.content}`.slice(0, 400),
+  }));
+  const learnings = (
+    (learningsRes.data ?? []) as { id: string; summary: string; verdict: string }[]
+  ).map((l) => ({
+    kind: "learning" as const,
+    id: l.id,
+    text: `[${l.verdict}] ${l.summary}`.slice(0, 400),
+  }));
   return [...signals, ...learnings].slice(0, MAX_EVIDENCE_ROWS);
 }
 
-export type WatchVerdict = { contradicted: boolean; evidenceIndex: number | null; rationale: string };
+export type WatchVerdict = {
+  contradicted: boolean;
+  evidenceIndex: number | null;
+  rationale: string;
+};
 
 /** Pure: turns the model's raw judge JSON into a safe verdict. An out-of-range or
  *  missing evidence_index can never be trusted as a real contradiction. Exported for

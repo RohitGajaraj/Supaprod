@@ -47,7 +47,11 @@ export const Route = createFileRoute("/api/public/hooks/assumption-watch-tick")(
             }
           }
 
-          return json({ ok: true, processed: workspaces?.length ?? 0, challenged: totalChallenged });
+          return json({
+            ok: true,
+            processed: workspaces?.length ?? 0,
+            challenged: totalChallenged,
+          });
         });
       },
     },

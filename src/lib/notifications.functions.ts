@@ -290,8 +290,11 @@ export const updateNotificationPreferences = createServerFn({ method: "POST" })
  *  Falls back to UTC on an invalid timezone string rather than throwing. */
 export function localHourInTimezone(nowUtc: Date, timezone: string): number {
   try {
-    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "numeric", hour12: false })
-      .formatToParts(nowUtc);
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour: "numeric",
+      hour12: false,
+    }).formatToParts(nowUtc);
     const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10);
     return Number.isFinite(h) ? h % 24 : nowUtc.getUTCHours();
   } catch {
@@ -302,7 +305,11 @@ export function localHourInTimezone(nowUtc: Date, timezone: string): number {
 /** Pure: whether `localHour` falls outside the user's working hours. Handles a
  *  window that wraps past midnight (start > end). A degenerate start===end
  *  config (never set) is treated as never-quiet, not always-quiet. */
-export function isQuietHours(localHour: number, workingHoursStart: number, workingHoursEnd: number): boolean {
+export function isQuietHours(
+  localHour: number,
+  workingHoursStart: number,
+  workingHoursEnd: number,
+): boolean {
   if (workingHoursStart === workingHoursEnd) return false;
   if (workingHoursStart < workingHoursEnd) {
     return localHour < workingHoursStart || localHour >= workingHoursEnd;
@@ -315,7 +322,20 @@ export function isQuietHours(localHour: number, workingHoursStart: number, worki
  *  user cannot be resolved, so a lookup failure degrades to a silent no-send. */
 async function resolveUserEmail(supabase: SupabaseClient, userId: string): Promise<string | null> {
   try {
-    const admin = (supabase as unknown as { auth: { admin?: { getUserById: (id: string) => Promise<{ data: { user: { email?: string | null } | null } | null; error: unknown }> } } }).auth.admin;
+    const admin = (
+      supabase as unknown as {
+        auth: {
+          admin?: {
+            getUserById: (
+              id: string,
+            ) => Promise<{
+              data: { user: { email?: string | null } | null } | null;
+              error: unknown;
+            }>;
+          };
+        };
+      }
+    ).auth.admin;
     if (!admin) return null;
     const { data } = await admin.getUserById(userId);
     return data?.user?.email ?? null;
@@ -476,7 +496,8 @@ export async function generateDigest(
   const content = `Hello,\n\nHere is your ${frequency} digest from Cadence:\n\n${digestItems.join("\n")}\n\nReview detailed logs in your Cadence Cockpit dashboard.`;
 
   const to = await resolveUserEmail(supabase, userId);
-  if (!to) return { generated: true, reason: "could not resolve recipient email", subject, content };
+  if (!to)
+    return { generated: true, reason: "could not resolve recipient email", subject, content };
 
   const { sent, reason } = await sendEmail({ to, subject, text: content });
   return { generated: true, reason: sent ? "sent" : reason, subject, content };
@@ -518,12 +539,14 @@ export async function sendDueDigests(
     .select("id,timezone,working_hours_start,working_hours_end")
     .in("id", userIds);
   const profileById = new Map(
-    ((profileRows ?? []) as {
-      id: string;
-      timezone: string | null;
-      working_hours_start: number;
-      working_hours_end: number;
-    }[]).map((p) => [p.id, p]),
+    (
+      (profileRows ?? []) as {
+        id: string;
+        timezone: string | null;
+        working_hours_start: number;
+        working_hours_end: number;
+      }[]
+    ).map((p) => [p.id, p]),
   );
 
   let sent = 0;

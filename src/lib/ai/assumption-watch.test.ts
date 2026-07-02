@@ -3,7 +3,10 @@ import { deriveWatchVerdict } from "./assumption-watch.server";
 
 describe("deriveWatchVerdict (FS-02)", () => {
   test("a clean contradiction with a valid index passes through", () => {
-    const v = deriveWatchVerdict({ contradicted: true, evidence_index: 1, rationale: "Usage dropped." }, 3);
+    const v = deriveWatchVerdict(
+      { contradicted: true, evidence_index: 1, rationale: "Usage dropped." },
+      3,
+    );
     expect(v.contradicted).toBe(true);
     expect(v.evidenceIndex).toBe(1);
     expect(v.rationale).toBe("Usage dropped.");

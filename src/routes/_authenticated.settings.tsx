@@ -1339,7 +1339,14 @@ function ByoKeysSection() {
 
   const mTestKey = useMutation({
     mutationFn: () =>
-      fTestKey({ data: { provider: keyProv, api_key: keyValue, base_url: keyBase || null, model: keyModelId || undefined } }),
+      fTestKey({
+        data: {
+          provider: keyProv,
+          api_key: keyValue,
+          base_url: keyBase || null,
+          model: keyModelId || undefined,
+        },
+      }),
     onSuccess: (r) => {
       setTestResult(r);
       if (r.ok) toast.success(`Key works (${r.latency_ms}ms)`);
@@ -1386,8 +1393,9 @@ function ByoKeysSection() {
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 4 }}>Bring your own AI keys</MonoLabel>
       <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-        Connect any AI provider — Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter, and more.
-        Stored encrypted per user. Add a Base URL for providers with custom endpoints (Qwen, Ollama, custom).
+        Connect any AI provider — Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
+        OpenRouter, and more. Stored encrypted per user. Add a Base URL for providers with custom
+        endpoints (Qwen, Ollama, custom).
       </p>
 
       <form
@@ -1429,7 +1437,7 @@ function ByoKeysSection() {
             placeholder="Base URL (Qwen, Ollama, custom…)"
           />
         </div>
-        {(keyProv === "custom" || keyBase.trim()) ? (
+        {keyProv === "custom" || keyBase.trim() ? (
           <input
             className="input"
             style={{ marginTop: 4, width: "100%" }}

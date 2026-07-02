@@ -19,7 +19,10 @@ const RESEND_URL = "https://api.resend.com/emails";
 
 /** Read once per request; `process.env` is only populated inside a server-fn / route handler. */
 export function readEmailConfig(): EmailConfig {
-  const env = (typeof process !== "undefined" ? process.env : {}) as Record<string, string | undefined>;
+  const env = (typeof process !== "undefined" ? process.env : {}) as Record<
+    string,
+    string | undefined
+  >;
   const apiKey = env.RESEND_API_KEY?.trim() || null;
   return {
     apiKey,

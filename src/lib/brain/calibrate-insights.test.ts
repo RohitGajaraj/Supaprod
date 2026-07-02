@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { computeBrierScore, summarizeResolutions, shouldThrottle } from "./calibrate-insights.server";
+import {
+  computeBrierScore,
+  summarizeResolutions,
+  shouldThrottle,
+} from "./calibrate-insights.server";
 
 describe("computeBrierScore (FS-01)", () => {
   test("a confident hit scores near zero", () => {
@@ -37,11 +41,7 @@ describe("summarizeResolutions (FS-01)", () => {
   });
 
   test("counts hits vs misses into a hit rate and a quotable label", () => {
-    const rows = [
-      { resolution: "hit" },
-      { resolution: "hit" },
-      { resolution: "miss" },
-    ];
+    const rows = [{ resolution: "hit" }, { resolution: "hit" }, { resolution: "miss" }];
     const s = summarizeResolutions(rows, "risk");
     expect(s.resolved).toBe(3);
     expect(s.hits).toBe(2);
@@ -52,7 +52,9 @@ describe("summarizeResolutions (FS-01)", () => {
 
 describe("shouldThrottle (FS-01)", () => {
   test("does not throttle below the minimum sample size", () => {
-    expect(shouldThrottle({ kind: "prediction", resolved: 2, hits: 0, hitRate: 0, recentLabel: "" })).toBe(false);
+    expect(
+      shouldThrottle({ kind: "prediction", resolved: 2, hits: 0, hitRate: 0, recentLabel: "" }),
+    ).toBe(false);
   });
 
   test("throttles a kind whose hit rate is below the floor with enough samples", () => {

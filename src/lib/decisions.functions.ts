@@ -196,7 +196,10 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
       .eq("id", data.id);
 
     if (data.action === "dismiss") {
-      await supabase.from("assumptions").update({ status: "standing" }).eq("id", challenge.assumption_id);
+      await supabase
+        .from("assumptions")
+        .update({ status: "standing" })
+        .eq("id", challenge.assumption_id);
       return { ok: true };
     }
 
@@ -208,7 +211,11 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
     const decisionId = (assumption?.decision_id as string | undefined) ?? null;
     if (decisionId) {
       await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
-      const parent_kind = challenge.signal_id ? "signal" : challenge.learning_id ? "learning" : null;
+      const parent_kind = challenge.signal_id
+        ? "signal"
+        : challenge.learning_id
+          ? "learning"
+          : null;
       const parent_id = challenge.signal_id ?? challenge.learning_id ?? null;
       if (parent_kind && parent_id) {
         try {

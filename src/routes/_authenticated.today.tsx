@@ -176,7 +176,14 @@ function Dashboard() {
     onSuccess: (_res, vars) => {
       // Cross-object sync (OBS-04.md §5 step 9): the whole screen and the
       // linked mission rewrite with no reload.
-      for (const key of ["needs-you", "runs", "loop-pulse", "learnings", "dashboard", "studio-sessions"]) {
+      for (const key of [
+        "needs-you",
+        "runs",
+        "loop-pulse",
+        "learnings",
+        "dashboard",
+        "studio-sessions",
+      ]) {
         qc.invalidateQueries({ queryKey: [key] });
       }
       setClearedSession((c) => c + 1);
@@ -194,7 +201,8 @@ function Dashboard() {
   // FS-02: a separate mutation — resolveAssumptionChallenge, not resolveApproval,
   // since a challenge id is not an approval id.
   const decideChallenge = useMutation({
-    mutationFn: (data: { id: string; action: "confirm" | "dismiss" }) => mResolveChallenge({ data }),
+    mutationFn: (data: { id: string; action: "confirm" | "dismiss" }) =>
+      mResolveChallenge({ data }),
     onSuccess: (_res, vars) => {
       for (const key of ["needs-you", "decisions"]) qc.invalidateQueries({ queryKey: [key] });
       showToast(
@@ -214,7 +222,8 @@ function Dashboard() {
     const onKey = (e: KeyboardEvent) => {
       if (!currentCallId) return;
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
+        return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toLowerCase();
       if (key === "a") {
@@ -239,13 +248,20 @@ function Dashboard() {
 
   const lp = loopPulse.data;
   const runRows = runs.data?.runs ?? [];
-  const workingCount = runRows.filter((r) => (r as { status?: string }).status === "running").length;
+  const workingCount = runRows.filter(
+    (r) => (r as { status?: string }).status === "running",
+  ).length;
 
   const learningRows = learnings.data?.learnings ?? [];
   const whatChangedItems: WhatChangedItem[] = rescoresOf(learningRows)
     .slice(0, 4)
     .map((r) => ({
-      dot: r.verdict === "validated" ? "var(--moss)" : r.verdict === "missed" ? "var(--madder)" : "var(--glacier)",
+      dot:
+        r.verdict === "validated"
+          ? "var(--moss)"
+          : r.verdict === "missed"
+            ? "var(--madder)"
+            : "var(--glacier)",
       text: `A ${r.verdict} outcome moved ${r.opportunity_title ?? "a priority"}: ICE ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
       cause: "LEARNING · RE-RANKED",
     }));
@@ -283,7 +299,14 @@ function Dashboard() {
   const autonomyPct = autonomy.data?.ratio != null ? Math.round(autonomy.data.ratio * 100) : null;
   const loopScore =
     acceptPct != null && autonomyPct != null ? Math.round((acceptPct + autonomyPct) / 2) : null;
-  const loopHue = loopScore == null ? "healthy" : loopScore >= 60 ? "healthy" : loopScore >= 35 ? "attention" : "failing";
+  const loopHue =
+    loopScore == null
+      ? "healthy"
+      : loopScore >= 60
+        ? "healthy"
+        : loopScore >= 35
+          ? "attention"
+          : "failing";
   const loopNote =
     loopScore == null
       ? "Not enough data yet · keep the loop running."
@@ -303,7 +326,11 @@ function Dashboard() {
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]} />
       <Surface>
         {needsYouLoaded ? (
-          <Hero greeting={greeting.data?.greeting ?? "Hello"} userName={userName} pendingCalls={callCount} />
+          <Hero
+            greeting={greeting.data?.greeting ?? "Hello"}
+            userName={userName}
+            pendingCalls={callCount}
+          />
         ) : (
           <div
             aria-hidden="true"
@@ -321,7 +348,10 @@ function Dashboard() {
           workingCount={workingCount}
           onGo={goSurface}
         />
-        <div className="grid" style={{ gridTemplateColumns: "1.7fr 1fr", gap: 20, alignItems: "start" }}>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: "1.7fr 1fr", gap: 20, alignItems: "start" }}
+        >
           <div className="flex flex-col" style={{ gap: 14 }}>
             {!needsYouLoaded ? (
               <div
@@ -350,7 +380,10 @@ function Dashboard() {
                     margin: "0 0 6px",
                   }}
                 >
-                  All clear. <em style={{ fontStyle: "italic", color: "var(--moss)" }}>Enjoy the quiet roadmap.</em>
+                  All clear.{" "}
+                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
+                    Enjoy the quiet roadmap.
+                  </em>
                 </h2>
                 <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
                   The loop is running itself. New calls will find you here first.
@@ -502,7 +535,9 @@ function Dashboard() {
                   {dash.data.brief.summary}
                 </p>
               ) : (
-                <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-muted)", margin: 0 }}>
+                <p
+                  style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-muted)", margin: 0 }}
+                >
                   Drafting your brief from this workspace · about a minute.
                 </p>
               )}

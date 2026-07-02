@@ -227,13 +227,19 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       const [signalRows, learningRows] = await Promise.all([
         signalIds.length
           ? supabase.from("signals").select("id,title,content").in("id", signalIds)
-          : Promise.resolve({ data: [] as { id: string; title: string | null; content: string }[] }),
+          : Promise.resolve({
+              data: [] as { id: string; title: string | null; content: string }[],
+            }),
         learningIds.length
           ? supabase.from("learnings").select("id,summary").in("id", learningIds)
           : Promise.resolve({ data: [] as { id: string; summary: string }[] }),
       ]);
       const evidenceTextById = new Map<string, string>();
-      for (const s of (signalRows.data ?? []) as { id: string; title: string | null; content: string }[]) {
+      for (const s of (signalRows.data ?? []) as {
+        id: string;
+        title: string | null;
+        content: string;
+      }[]) {
         evidenceTextById.set(s.id, s.title || s.content.slice(0, 140));
       }
       for (const l of (learningRows.data ?? []) as { id: string; summary: string }[]) {

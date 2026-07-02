@@ -88,8 +88,7 @@ export const Route = createFileRoute("/api/public/hooks/approvals-tick")({
                   severity: "action",
                   title: `Approval expiring soon: ${a.tool_name}`,
                   detail:
-                    a.rationale ??
-                    `${a.agent_slug} is waiting on your decision before it expires.`,
+                    a.rationale ?? `${a.agent_slug} is waiting on your decision before it expires.`,
                 });
               } catch (e) {
                 console.error("expiring-gate email failed (non-fatal):", e);
