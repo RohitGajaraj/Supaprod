@@ -218,4 +218,33 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 
 ---
 
+## OBS-09 · Engine Room ported (✅ 2026-07-02, lane4, adversarial-reviewed)
+
+**What shipped:** `/engine-room` (`src/routes/_authenticated.engine-room.tsx`), additive alongside the untouched parchment `/govern`. The glance (`EngineRoomSurface.tsx`): a Newsreader hero with the one glacier-italic word "glance", a 2x2 `RoomCard` grid (Spend/Quality/Safety/Record), and a `ConnectionStrip`. Each card's state (moss HEALTHY / marigold WATCH) and verdict line come from a pure view-model, `src/lib/engine-room-glance.ts`'s `buildGlance()`, fed by nine read-only queries that intentionally reuse each existing panel's exact query key (`budget_overview`, `eval_suites`, `drift_overview`, `guardrails`, `incidents`, `analytics-overview`, `traces`, `ledger-seal`) so the cache is shared, not duplicated. Opening a room swaps the glance for `RoomDetail.tsx` (question header, verdict-first, mono sub-tabs, back affordance, `Esc` returns to the glance) with a room-specific body under `src/components/engine-room/rooms/`: `SpendRoom` (TREND aurora / BY AGENT / CAPS), `QualityRoom` (SCORE aurora / DRIFT / SUITES), `SafetyRoom` (RULES / INCIDENTS), `RecordRoom` (TRACES / LEDGER). Rows drill into existing detail surfaces (`/govern?tab=...`, `/traces/$traceId`) rather than a new fifth depth level. Zero writes anywhere; zero rebuilt primitives (consumes `VerdictChip`/`AuroraCard`/`Button`/`MonoLabel`/`Surface`); zero approvals/controls/attention-queue leakage (that machinery stays on Today, per the founder's absolute ruling in the spec).
+
+**Two honest data-derivation calls, documented since they are not literal 1:1 server-fn reads:**
+
+- **Spend's "trending" figure** compares this week's cost (`getAnalyticsOverview({days:7})`) against the trailing 14-day total minus this week (`getAnalyticsOverview({days:14})`) as a previous-week estimate, since no dedicated range-offset server fn exists. Documented inline in `engine-room-glance.ts`.
+- **Record's ledger check** computes `getLedgerSeal()` then immediately re-verifies that exact fingerprint via `verifyLedgerSeal()` in `RecordRoom.tsx`. This is a same-instant self-check (a genuine, if narrow, integrity signal: a mismatch means the record changed in the gap between the two calls), not a historical audit against a previously-saved seal - that arrives with the deferred write-time persistence.
+
+**Adversarial review (fresh-eyes code-reviewer) findings, all resolved:**
+
+- **0 blocking bugs.** Field names, shapes, and scales were cross-checked line-by-line against every consumed server-fn source file (including the eval-score-scale mismatch risk: `eval_suites.last_run.avg_score` is 0-100, `eval-health`'s `passRate` is a 0-1 fraction - both handled correctly).
+- **2 low-severity nits fixed:** a literal `#B5AFA6` hex swapped for the existing `var(--text-body)` token (`RoomDetail.tsx`); the room-detail route branch swapped its hand-rolled container chrome for the shared `Surface` component it was already duplicating (`_authenticated.engine-room.tsx`).
+- **1 accepted product-level note, not fixed (data-model limitation, not a port bug):** `getIncidents()` has no open/resolved concept - it is a flat, capped historical log - so the Safety room's WATCH state can only clear when the last incident ages out of that window, not on real resolution. Worth a founder look if it reads as sticky in practice; out of scope for a read-only port to fix the underlying data model.
+- **Circular import confirmed safe:** `RoomDetail.tsx` exports shared `Row`/`EmptyRow`/`VerdictSentence` helpers that the four `rooms/*.tsx` files import back; verified this resolves cleanly because all four are hoisted function declarations referenced only inside render bodies, never at module-evaluation time.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout - this worktree's `vite dev` hits the known node20/ESM `lovable-tagger` failure, see hub §11), open `/engine-room`.
+2. Glance: four room cards, each a real `<button>`, showing a HEALTHY/WATCH chip, question, and verdict line; the connection strip shows the live moss pulse.
+3. Open any room: the glance swaps for the room-detail in place (no modal), sub-tabs are keyboard/arrow-reachable (`role="tablist"`), `Esc` returns to the glance.
+4. Spend/TREND and Quality/SCORE each render exactly one aurora card; Safety and Record lead with a plain-words sentence.
+5. Confirm `/govern` still renders unchanged at its own URL - this port added a surface, it did not touch or redirect the legacy one.
+6. Grayscale screenshot the glance: every state still reads by its word, not just its color.
+
+**Gates at ship:** `tsc --noEmit` 0 (only pre-existing, unrelated Stripe module-resolution errors present) · `bun test` 14/14 new tests pass (`engine-room-glance.test.ts` threshold + empty-input-fallback coverage, `room-card.test.tsx` real-button + grayscale-safe state words) on top of the existing suite, untouched · adversarial code-reviewer pass (0 blocking, 2 low fixed, 1 accepted note above) · humanized-output clean (zero em/en dashes across all new files, including doc comments; two UI fallback placeholders normalized from an initial em dash to the house "-" convention before commit).
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._
