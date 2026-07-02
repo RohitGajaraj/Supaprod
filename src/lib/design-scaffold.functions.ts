@@ -174,6 +174,44 @@ async function buildDesignScaffoldHtml(
   return { html, generatedAt: new Date().toISOString() };
 }
 
+/**
+ * DSN-03: "scaffold derives from flow" — the lineage edge DSN-03 documented as a
+ * real follow-up once scaffold persistence existed (it now does, via AGT-03).
+ * Fires only when the PRD already has a generated `prd_flows` row; a spec with
+ * no flow yet (or one that never generated one) gets no edge, never invented.
+ * Non-fatal: matches `flows.functions.ts`'s own `artifact_lineage` write, wrapped
+ * in its own try/catch so a lineage-write failure never blocks scaffold persistence.
+ */
+async function recordScaffoldDerivedFromFlow(
+  supabase: SupabaseClient,
+  userId: string,
+  prdId: string,
+  scaffoldId: string,
+): Promise<void> {
+  try {
+    const { data: flow } = await supabase
+      .from("prd_flows")
+      .select("id")
+      .eq("prd_id", prdId)
+      .maybeSingle();
+    if (!flow) return;
+    await supabase.from("artifact_lineage").upsert(
+      {
+        user_id: userId,
+        parent_kind: "prd_flow",
+        parent_id: (flow as { id: string }).id,
+        child_kind: "prd_scaffold",
+        child_id: scaffoldId,
+        relation: "derived-from",
+        created_by_agent: null,
+      },
+      { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+    );
+  } catch (e) {
+    console.error("recordScaffoldDerivedFromFlow failed (non-fatal):", e);
+  }
+}
+
 async function persistScaffold(
   supabase: SupabaseClient,
   userId: string,
@@ -182,16 +220,22 @@ async function persistScaffold(
   try {
     const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
     if (!workspaceId) return;
-    await supabase.from("prd_scaffolds").upsert(
-      {
-        workspace_id: workspaceId,
-        prd_id: data.prdId,
-        html: data.html,
-        source: data.source,
-        generated_by: userId,
-      },
-      { onConflict: "prd_id" },
-    );
+    const { data: row, error } = await supabase
+      .from("prd_scaffolds")
+      .upsert(
+        {
+          workspace_id: workspaceId,
+          prd_id: data.prdId,
+          html: data.html,
+          source: data.source,
+          generated_by: userId,
+        },
+        { onConflict: "prd_id" },
+      )
+      .select("id")
+      .single();
+    if (error || !row) return;
+    await recordScaffoldDerivedFromFlow(supabase, userId, data.prdId, (row as { id: string }).id);
   } catch (e) {
     console.error("persistScaffold failed (non-fatal):", e);
   }

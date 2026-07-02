@@ -1,6 +1,6 @@
 # DSN-03 — Flow before screens
 
-> Status · Shipped 2026-07-03 (partial, see Known limits) · Route(s) `/prds/$id` (Flow tab) · Owner: Define (`src/lib/flows.functions.ts`)
+> Status · Shipped 2026-07-03 · Route(s) `/prds/$id` (Flow tab) · Owner: Define (`src/lib/flows.functions.ts`, `src/lib/design-scaffold.functions.ts`)
 
 ## What it does
 
@@ -51,6 +51,12 @@ ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12
   (`parent_kind: "prd"`, `child_kind: "prd_flow"`, `relation: "derived-from"`, the same direction
   convention `competitor-tick.ts`'s signal-to-brief edges use), so the Brain graph can walk from a
   spec to its flow like any other derived artifact.
+- **"Scaffold derives from flow" (2026-07-03, closed)** — now that AGT-03 shipped scaffold
+  persistence (`prd_scaffolds`), `persistScaffold` (`design-scaffold.functions.ts`) writes a second
+  edge on every scaffold save: `parent_kind: "prd_flow"`, `child_kind: "prd_scaffold"`,
+  `relation: "derived-from"`, only when the PRD already has a generated flow — a spec with no flow
+  yet gets no edge, never invented, same discipline as the PRD-to-flow edge above. Fires for both
+  the manual `generateDesignScaffold` path and AGT-03's speculative `prepareScaffoldSpeculative`.
 - **Rendering** — `FlowDiagram.tsx` (`src/components/product/`, matching its siblings
   `OutcomeContractPanel`/`DesignScaffoldPanel`, the parchment Ember Editorial surface `/prds/$id`
   still uses per OBS-10's documented fold boundary) renders nodes as a vertical timeline rather
@@ -78,15 +84,11 @@ ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12
 
 ## Known limits / out of scope
 
-- **"Scaffold derives from flow" is not built, and needs a real prerequisite first.** The spec
-  calls for a second lineage edge fired when a scaffold (DEF-04) is generated FROM a flow.
-  `design-scaffold.functions.ts`/`DesignScaffoldPanel.tsx` were DSN-01's actively-claimed files
-  when this shipped; once DSN-01 released them mid-session, checked whether the edge was a quick
-  close and found it is not: `generateDesignScaffold` never persists a scaffold anywhere (it
-  returns raw HTML the client renders and discards on navigation), so there is no scaffold row
-  with an `id` for a lineage edge to point at. Wiring this for real needs scaffold persistence to
-  exist first, a genuine DEF-04-scope prerequisite this ticket should not improvise into the
-  schema. Real follow-up, not silently dropped.
+- **The scaffold-derives-from-flow edge only fires forward in time.** It is written when a
+  scaffold is persisted, checking for an already-existing flow at that moment — if a scaffold was
+  generated BEFORE the flow, no edge exists retroactively. Regenerating the scaffold afterward
+  (a normal, already-supported action) creates it then, since `persistScaffold` re-checks for a
+  flow on every save; not worth a backfill migration for a same-session-old gap.
 - **No auto-layout diagram.** The timeline rendering is a deliberately simple vertical list with
   branch lines underneath each node, not a real graph-layout diagram (no new charting/diagramming
   dependency was introduced for this). It is honest about every step and edge, just not spatially
