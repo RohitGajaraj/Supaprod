@@ -111,7 +111,34 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               outcome: unknown;
               outcome_suggestion: { confidence_tier?: string; generated_at?: string } | null;
             };
-            const pendingRows = (pending ?? []) as PendingPrd[];
+            let pendingRows = (pending ?? []) as PendingPrd[];
+
+            // JNY-04: a PRD with an armed launch plan (launch_plans.check_by)
+            // is not evaluated before that outcome window closes, so a
+            // suggestion is not drafted from a few hours of post-ship noise.
+            // A PRD with no launch plan (or no check_by set) is unaffected —
+            // this only ever narrows the RF-01 pass, never widens it.
+            if (pendingRows.length) {
+              const { data: plans } = await admin
+                .from("launch_plans")
+                .select("prd_id,check_by")
+                .in(
+                  "prd_id",
+                  pendingRows.map((p) => p.id),
+                );
+              const checkByPrdId = new Map(
+                ((plans ?? []) as Array<{ prd_id: string; check_by: string | null }>).map((p) => [
+                  p.prd_id,
+                  p.check_by,
+                ]),
+              );
+              const nowMs = Date.now();
+              pendingRows = pendingRows.filter((p) => {
+                const checkBy = checkByPrdId.get(p.id);
+                return !checkBy || new Date(checkBy).getTime() <= nowMs;
+              });
+            }
+
             if (pendingRows.length) {
               const workspaceIds = [
                 ...new Set(pendingRows.map((p) => p.workspace_id).filter((v): v is string => !!v)),

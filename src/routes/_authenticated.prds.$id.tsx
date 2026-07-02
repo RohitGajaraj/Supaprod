@@ -16,6 +16,7 @@ import {
   Gavel,
   FileCheck2,
   Workflow,
+  Rocket,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { LoopThread } from "@/components/cadence/LoopThread";
@@ -37,6 +38,7 @@ import { CitationsCard, type Citation } from "@/components/product/CitationsCard
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
 import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
 import { FlowDiagram } from "@/components/product/FlowDiagram";
+import { LaunchPlanPanel } from "@/components/product/LaunchPlanPanel";
 import { listTasks } from "@/lib/tasks.functions";
 import { TaskGraphPanel } from "@/components/product/TaskGraphPanel";
 import { DesignReadinessPanel } from "@/components/product/DesignReadinessPanel";
@@ -45,7 +47,7 @@ import { listLinearTeams, createLinearIssuesFromTasks } from "@/lib/linear.funct
 import { dispatchStudioSession } from "@/lib/studio.functions";
 import { createDecision } from "@/lib/decisions.functions";
 
-const MODE_TABS = ["edit", "preview", "contract", "flow"] as const;
+const MODE_TABS = ["edit", "preview", "contract", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/prds/$id")({
@@ -298,6 +300,13 @@ function PrdEditor() {
             >
               <Workflow className="h-3 w-3" /> Flow
             </button>
+            <button
+              onClick={() => setMode("launch")}
+              className={`px-3 py-1.5 text-xs inline-flex items-center gap-1 ${mode === "launch" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+              title="Positioning, launch checklist, and the armed outcome-check window"
+            >
+              <Rocket className="h-3 w-3" /> Launch
+            </button>
           </div>
           <button
             onClick={() => save.mutate()}
@@ -494,8 +503,10 @@ function PrdEditor() {
             contract={(prdQ.data.prd as { contract?: OutcomeContract | null }).contract}
             invalidateKey={["prd", id]}
           />
-        ) : (
+        ) : mode === "flow" ? (
           <FlowDiagram prdId={id} />
+        ) : (
+          <LaunchPlanPanel prdId={id} />
         )}
 
         <div className="mt-6">
