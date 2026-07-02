@@ -3,6 +3,8 @@
 > _Created: 2026-06-23 · Status: **CURRENT standing canon (the guiding star).** This is the single document to read first for direction. It consolidates the whole strategy stack (v7 positioning, v8 structure, v9 wedge, v10 blueprint, moat.md) with a fresh, code-and-live-database-verified ground-truth audit, an outsider pressure-test, the core-user lens, the agent operating model, the consumer-grade design layer, the orchestration economics, and the full reasoning behind every decision in the 2026-06-23 strategy session. **When this doc and an older strategy doc disagree on direction, v11 wins.** The older docs remain valid for their detailed reference role._
 
 > **For agents and future sessions:** the build items live in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the *why*; the dashboard carries the *what/when*. The doc map is §0.3.
+>
+> **2026-07-02 forward pointer:** the v11 front is COMPLETE (all 21 shipped 2026-06-25). The next depth layer under this star is **[v12: The Self-Improving OS](./v12-self-improving-os.md)** (the learning loop, foresight, the memory OS, the design leg, the Outcome Contract / ARD conventions, the journey's two ends; dashboard group G15). v12 wins on those build plans; this doc still wins direction.
 
 ---
 
