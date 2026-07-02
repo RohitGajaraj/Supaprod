@@ -465,13 +465,18 @@ export const triggerDeploy = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<DeployResult> => {
     const { supabase, userId } = context;
 
-    // Admin gate
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan_tier")
-      .eq("id", userId)
-      .single();
-    if (!profile || profile.plan_tier !== "admin") {
+    // Admin gate. Was `profiles.plan_tier === "admin"` until 2026-07-02: `profiles`
+    // has no `plan_tier` column at all (only `workspaces`/`accounts` do, for the
+    // billing tier), so that check always failed closed for every caller — this
+    // deploy trigger has never worked for anyone. Fixed to the real mechanism
+    // (`user_roles`), the same one `amIAdmin`/the `/admin/*` layout use.
+    const { data: adminRow } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!adminRow) {
       return { ok: false, reason: "forbidden", message: "Admin role required to trigger a deploy." };
     }
 

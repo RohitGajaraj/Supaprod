@@ -33,3 +33,21 @@ Cycle: `git fetch` + rebase (22 commits behind → caught up) → `lane.sh reap`
 Live ledger (`lane.sh board`): lane1 holds `OBS-02` (shell, 10m in), lane2 holds `OBS-03` (primitives, 6m in) — both actively building the exact foundation that unblocks 04-10. Lanes 0 and 4 are also idle for the same reason. Building any of 04-10 now would mean coding against primitives that don't exist yet (rework risk, contradicts "surgical changes only").
 
 **Not forcing premature work. Long-polling per protocol** (`docs/operations/autonomous-build-loop.md` §15.6 — a hard dependency stated in the row text is the documented "another lane's area" skip case, not a lazy "looks dry" judgment). Recheck in ~25 min: once `OBS-03` lands, `OBS-04` through `OBS-09` become genuinely parallelizable across lanes 0/3/4.
+
+## 2026-07-02 16:35 — BYO-P5 P5b: Deno Deploy PoC (founder-directed pick while OBS-02/03 in flight)
+
+Board was genuinely dry for autonomous Tier-1/3 work (all 8 eligible items hard-blocked on lane1/lane2's OBS-02/OBS-03 foundation). Founder, present in-session, directed picking up BYO-P5's P5b slice instead of long-polling: he chose the Deno Deploy path (P5a-poc already proved it live at $0) over Cloudflare (still blocked on a founder-owned account).
+
+**Shipped:** `src/lib/hosting/hosting-poc.{ts,functions.ts,test.ts}` — `provisionHostingPoc`, a founder-only server fn that deploys a real, minimal static shell for one of the admin's own Products via the existing `denoDeployProvider`. RLS (`auth.uid() = user_id` on `projects`) means it can only ever target a project the caller themselves owns. 8 new tests.
+
+**Adversarial review (3 parallel lenses: security, correctness, doctrine) — 2 real findings, both fixed:**
+1. Correctness: a bare `catch{}` around `provisionApp` was swallowing ANY failure (bad token, quota, outage), not just the intended "already provisioned" conflict; `deploy()` itself was unguarded against a thrown error. Fixed — a real failure's message now survives if the retry-deploy also fails.
+2. Security (byproduct, not this feature's own bug): the admin gate this code first mirrored — `triggerDeploy` in `build.functions.ts`, the existing K1-deploy button — checks `profiles.plan_tier`, a column that doesn't exist on `profiles` at all (only `workspaces`/`accounts` have it). That button has never worked for anyone since it shipped. Fixed both this new code and `triggerDeploy` to gate via `user_roles` (the mechanism `amIAdmin`/`/admin/*` actually use). Extended my ledger claim (by hand-editing the ledger's own meta file, not git-tracked) to cover the opportunistic `build.functions.ts` fix.
+
+**Not yet wired to a UI.** `src/routes/_authenticated.admin.platform.tsx` (the natural home, mirrors its `DeployPanel`) overlaps lane1's active `OBS-02` claim on `src/routes/_authenticated.*.tsx` — a mechanical block, not a decision. Next buildable slice once that clears.
+
+**Gates:** `bunx tsc --noEmit` 0 / `bun test` 1883/1883 (150 files). Committed + pushed to main; claim released (BYO-P5 → ◐, named remainder). Dashboard tally recomputed: 239/260 = 91.9% strict / 239.95/260 = 92.3% weighted.
+
+**Note (session correction):** confirmed via the live `CLAUDE.md` on disk that the post-push `sync-pcv4.sh` step was retired 2026-07-02 (v5 is now the sole canonical repo push target); stopped running it after this point. The earlier 3 pushes this session ran it harmlessly (a no-op local mirror refresh) before this was caught.
+
+**Returning to the lane loop:** re-checking `lane.sh next` for OBS-02/OBS-03 completion.
