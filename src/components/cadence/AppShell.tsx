@@ -43,11 +43,23 @@ import {
 // only the presentation is reskinned. The shell is now HOISTED ONCE into
 // `_authenticated.tsx` (it no longer wraps each page individually).
 
-function NavRow({ item, active, badge }: { item: NavItemDef; active: boolean; badge?: number }) {
+function NavRow({
+  item,
+  active,
+  badge,
+  badgeAnchor,
+}: {
+  item: NavItemDef;
+  active: boolean;
+  badge?: number;
+  /** OBS-14: a stable hook the Today coach mark anchors to on first landing. */
+  badgeAnchor?: string;
+}) {
   return (
     <Link
       to={item.to}
       search={item.search as never}
+      data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
       className={`flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)] ${
         active
           ? "bg-[#1A1A1E] font-semibold text-[var(--text-primary)]"
@@ -63,6 +75,7 @@ function NavRow({ item, active, badge }: { item: NavItemDef; active: boolean; ba
       <span className="flex-1 truncate">{item.label}</span>
       {badge ? (
         <span
+          data-coach-anchor={badgeAnchor}
           className="inline-flex items-center justify-center"
           style={{
             fontFamily: "var(--font-mono)",
@@ -581,6 +594,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   item={n}
                   active={isItemActive(n)}
                   badge={n.label === "Today" ? callCount : undefined}
+                  badgeAnchor={n.label === "Today" ? "today-badge" : undefined}
                 />
               ))}
             </nav>

@@ -283,6 +283,12 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 00:05 (OBS-14 Onboarding golden path shipped, lane1)
+
+Built the five-screen Obsidian onboarding (Arrival choreography, track pick, one connection or seeded demo, point the Critic, land on Today with one coach mark), replacing the parchment `OnboardingFlow` and deleting its now-orphaned helpers. Two honest deviations from the literal spec, both documented on the row and in `docs/features/obsidian-port.md`: the Critic screen pre-fills from a real seeded opportunity (since `runCriticReview` takes a target id, not free text), and one minimal new read-only server fn (`isDemoSeedEnabled`) was added since the spec's own acceptance criteria require gating the demo action on the seed flag and no client-visible check existed.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 2070/2070 pass. Claim released.
+
 ### 2026-07-02 22:50 (FS-03 The reach channel shipped, lane4 — the third and last v12 FORESEE item this lane picked)
 
 Built the v12 FORESEE program's third item, closing out the founder's three-item pick (FS-01, FS-02, FS-03) on this lane. `src/lib/email.server.ts` already existed as a WM-F5 invite-email seam that was a permanent no-op with the vendor named in its own comment ("when an email provider is wired, send here"); wired it for real via Resend's REST API (no SDK, mirroring the observability facade's style in `src/lib/observability/errors.ts`), env-gated no-op without `RESEND_API_KEY`, never throws. `sendInviteEmail` now uses it too, closing that TODO in the same change rather than leaving a second, divergent Resend integration to appear later.

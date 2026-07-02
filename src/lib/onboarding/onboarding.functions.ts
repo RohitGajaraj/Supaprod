@@ -43,3 +43,14 @@ export const triggerWorkspaceSeed = createServerFn({ method: "POST" })
     await seedWorkspace(workspaceId, userId);
     return { ok: true };
   });
+
+/**
+ * OBS-14 - the onboarding connection screen's "Use demo data instead" action
+ * needs to know ahead of the click whether the seed is live, so it can show
+ * the seed-unavailable line instead of a click that silently no-ops. A read
+ * of the same env gate `seedWorkspace` already checks; no auth required,
+ * this reveals nothing but a boolean.
+ */
+export const isDemoSeedEnabled = createServerFn({ method: "GET" }).handler(async () => {
+  return { enabled: process.env.ONBOARDING_SEED_ENABLED === "1" };
+});

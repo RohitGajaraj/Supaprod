@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { ObsidianOnboarding } from "@/components/onboarding/ObsidianOnboarding";
 
-// Screen 8 (F-DESIGN-EMBER) — first-run onboarding. Full-viewport, no shell;
-// the _authenticated gate routes accounts with profiles.onboarded=false here.
+// OBS-14 - first-run onboarding, ported to the Obsidian five-screen golden
+// path. Full-viewport, no shell; the _authenticated gate routes accounts
+// with profiles.onboarded=false here.
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
@@ -10,5 +11,5 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 });
 
 function OnboardingPage() {
-  return <OnboardingFlow />;
+  return <ObsidianOnboarding />;
 }

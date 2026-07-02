@@ -211,7 +211,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 ### OBS-11 · ⌘K palette + capability catalog (extensions §1) - ✅ shipped 2026-07-02 (lane1)
 ### OBS-12 · Ask (⌘J) panel (extensions §2) - ✅ shipped 2026-07-02 (lane1)
 ### OBS-13 · Settings four panes + Admin door (extensions §3) - ◐ shipped-partial 2026-07-02 (lane1, [~70%] - see feature-dashboard.md row + docs/features/obsidian-port.md for what remains)
-### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live)
+### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live) - ✅ shipped 2026-07-03 (lane1 - see feature-dashboard.md row + docs/features/obsidian-port.md)
 ### OBS-15 · Chart grammar adoption (extensions §6; rides with 05/08/09)
 
 For 11-15 the spec IS the extensions file section; each becomes a normal

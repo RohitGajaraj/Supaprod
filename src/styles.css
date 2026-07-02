@@ -1972,6 +1972,19 @@ html[data-motion="off"] .agent-live {
   }
 }
 
+/* OBS-14 — the onboarding Arrival butterfly's one-shot fly-in, before it
+ * settles into the cadFlutter idle rest. */
+@keyframes cadArrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Slide-over entrance from the right */
 @keyframes cadSlideIn {
   from {

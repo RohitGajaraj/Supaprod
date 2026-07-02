@@ -25,6 +25,11 @@ import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
 import type { CriticReview } from "@/lib/discovery.functions";
+import {
+  TodayCoachMark,
+  todayCoachMarkDismissed,
+  shouldShowCoachMark,
+} from "@/components/onboarding/TodayCoachMark";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: Dashboard,
@@ -83,6 +88,15 @@ function Dashboard() {
   const navigate = useNavigate();
   const showToast = useToast();
   const { activeWorkspace } = useWorkspace();
+
+  // OBS-14 - the one coach mark the product shows: only right after the
+  // onboarding flow hands off, and never again once dismissed.
+  const [showCoachMark, setShowCoachMark] = useState(false);
+  useEffect(() => {
+    const justLanded = window.sessionStorage.getItem("cadence.onboarding.justLanded") === "1";
+    if (shouldShowCoachMark(justLanded, todayCoachMarkDismissed())) setShowCoachMark(true);
+    window.sessionStorage.removeItem("cadence.onboarding.justLanded");
+  }, []);
 
   const fetchProjects = useServerFn(listProjects);
   const fetchGreeting = useServerFn(getGreeting);
@@ -324,6 +338,7 @@ function Dashboard() {
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]} />
+      {showCoachMark ? <TodayCoachMark onDismiss={() => setShowCoachMark(false)} /> : null}
       <Surface>
         {needsYouLoaded ? (
           <Hero
