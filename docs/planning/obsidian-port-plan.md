@@ -7,6 +7,17 @@ surface to the v3 "Obsidian" design system, per the founder's 2026-07-02
 doctrine ruling. The design definition is DONE; this is the execution plan.
 Any lane can pick an unblocked ID cold.
 
+> **Finest-grain layer (2026-07-02).** Each ID now has a **self-contained
+> build+implementation spec** in [`obsidian-port/`](./obsidian-port/): open
+> [`obsidian-port/OBS-0X.md`](./obsidian-port/README.md#8-the-per-item-index)
+> for the complete package - what, why, how (step by step), the structure, the
+> exact design elements, and every rename/restructure/modification - written so
+> an agent picks it cold and needs no other file. The shared design DNA, the
+> current-codebase map, the dependency graph, and the IA route-fold target live
+> once in [`obsidian-port/README.md`](./obsidian-port/README.md) (the foundation
+> hub). **This file stays the fast one-paragraph-per-ID index; the folder is the
+> depth.** The dashboard G14 rows link straight to each spec.
+
 **The doctrine chain (load before any ID):** invoke the `cadence-design`
 skill, which loads [`/DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (the law)
 + [`design-reference/obsidian-v3/`](../../design-reference/obsidian-v3/)
