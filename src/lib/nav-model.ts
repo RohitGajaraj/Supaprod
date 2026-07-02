@@ -11,11 +11,17 @@
  * doctrine: calm front, deep engine behind one door). The dock is gone — Calendar
  * is reached from the Brain surface and the ⌘K palette.
  *
- * OBS-02: the Obsidian iconography law has no icon set — the nav is a mono
+ * OBS-02: the Obsidian iconography law has no icon set - the nav is a mono
  * numeral index (01-05), not lucide glyphs. `icon` is replaced by `index`.
  * Ask leaves the rail (it returns as the ⌘J panel, OBS-12); Discover and Plan
- * are added as first-class destinations (route targets are interim until
- * OBS-10 folds the routes and adds redirects — see the module doc below).
+ * are added as first-class destinations.
+ *
+ * OBS-10: Discover/Plan now target their real shipped routes (`/discover`,
+ * `/plan`), no longer the interim `/product?tab=`. The Engine Room door now
+ * targets `/engine-room` (OBS-09's new ported glance), not `/govern` - the
+ * spec's default assumption inverted here exactly as its own step 1 warns it
+ * might: `/govern` remains a real, live detail layer the new rooms drill into
+ * (see `legacy-redirects.ts`'s module doc), not the canonical door itself.
  *
  * PURE: data + active-state math only, no JSX. The shell renders these; the
  * invariants (the destinations are flat + unique, no engine-room surface is
@@ -30,22 +36,16 @@ export type NavItemDef = {
 };
 
 /**
- * The primary destinations — ONE flat, outcome-named list (no "Loop"/"Workspace"
+ * The primary destinations - ONE flat, outcome-named list (no "Loop"/"Workspace"
  * labels, no NavGroup indirection). These are the calm front of the product.
  *
- * Discover and Plan point at the nearest existing surface (`/product`) until
- * OBS-10 renames the routes to `/discover` and `/plan` and adds redirects —
- * do NOT point Plan at `/roadmap`, which redirects to `/product?tab=opportunities`
- * (Discover's tab), not the roadmap tab. Discover is pinned to its own
- * `tab: "signals"` scope (the route's own default tab) rather than left bare,
- * so the two interim destinations never both read "active" at once when the
- * live tab is "roadmap" (navItemActive treats a bare `to` match as active
- * regardless of tab).
+ * OBS-10: all five now point at their real canonical routes (Discover/Plan no
+ * longer share the interim `/product?tab=` scope).
  */
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   { to: "/today", label: "Today", index: "01" },
-  { to: "/product", label: "Discover", index: "02", search: { tab: "signals" } },
-  { to: "/product", label: "Plan", index: "03", search: { tab: "roadmap" } },
+  { to: "/discover", label: "Discover", index: "02" },
+  { to: "/plan", label: "Plan", index: "03" },
   { to: "/build", label: "Build", index: "04" },
   { to: "/knowledge", label: "Brain", index: "05" },
 ];
@@ -53,9 +53,12 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
 /**
  * The single recessed door into the engine room. Carries the live approvals
  * badge; clicking it reveals ENGINE_ROOM_LINKS on demand.
+ *
+ * OBS-10: targets the new ported glance `/engine-room` (OBS-09), not the
+ * parchment `/govern` - see the module doc above.
  */
 export const ENGINE_ROOM_DOOR: NavItemDef = {
-  to: "/govern",
+  to: "/engine-room",
   label: "Engine Room",
   index: "G",
 };
@@ -66,17 +69,29 @@ export const ENGINE_ROOM_DOOR: NavItemDef = {
  * the row never orphans a destination (Trust Ledger + Connectors are not indexed
  * by the ⌘K palette, so they must stay reachable from the door). Obsidian has no
  * icon set, so the door's menu is plain text rows.
+ *
+ * OBS-10: Approvals is dropped (approvals are Calls on Today, never in the
+ * door - contract §8). Spend and the bare Engine Room link now point at the
+ * new `/engine-room` glance + its Spend room, not `/govern`.
  */
 export const ENGINE_ROOM_LINKS: readonly NavItemDef[] = [
-  { to: "/govern", label: "Approvals", index: "", search: { tab: "approvals" } },
-  { to: "/govern", label: "Spend", index: "", search: { tab: "budgets" } },
-  { to: "/govern", label: "Engine Room", index: "" },
+  { to: "/engine-room", label: "Spend", index: "", search: { room: "spend" } },
+  { to: "/engine-room", label: "Engine Room", index: "" },
   { to: "/trust-ledger", label: "Trust Ledger", index: "" },
   { to: "/sync", label: "Connectors", index: "" },
 ];
 
-/** Paths that live inside the engine room (drive the door's active state). */
-export const ENGINE_ROOM_PATHS: readonly string[] = ["/govern", "/trust-ledger", "/sync"];
+/**
+ * Paths that live inside the engine room (drive the door's active state).
+ * OBS-10: `/engine-room` is the door's own destination; `/govern` stays too
+ * since it is still a real, live detail layer the rooms drill into.
+ */
+export const ENGINE_ROOM_PATHS: readonly string[] = [
+  "/engine-room",
+  "/govern",
+  "/trust-ledger",
+  "/sync",
+];
 
 /**
  * PURE active-state for a primary destination. A bare item is active on an exact

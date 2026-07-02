@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// /learn mothballed by F-V5-MOTHBALL (v5); code preserved in git history;
-// reverse by restoring from the pre-v5 commit. Learn folds into /knowledge
-// (its tabs have no Knowledge equivalents, so no search params carry over).
+// /learn folds into Brain's Learnings tab per OBS-10 (IA consolidation).
+// Fixed a pre-existing bug here: this redirected to tab=calendar, not
+// tab=learnings - landing every /learn bookmark on the wrong tab.
 export const Route = createFileRoute("/_authenticated/learn")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "calendar" } });
+    throw redirect({ to: "/knowledge", search: { tab: "learnings" } });
   },
 });
