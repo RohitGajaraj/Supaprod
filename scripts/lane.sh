@@ -57,42 +57,101 @@ _flip_dashboard_row() {
   local reg; reg="$(_register_path)"
   local root; root="$(_repo_root)"
   [ -f "$reg" ] || return 0
-
-  # 1) Update the file in the current worktree (for the lane branch's local state)
-  local tmp; tmp="${reg}.lane_tmp.$$"
-  awk -F'|' -v OFS='|' -v want="$id" -v ns=" $new_status " '
+  local row_awk='
     /^\| [0-9]+ \|/{
       v=$4; gsub(/^[ \t]+|[ \t]+$/,"",v);
       if (v==want) { $3=ns }
     }
     { print }
-  ' "$reg" > "$tmp" && mv "$tmp" "$reg" || { rm -f "$tmp"; return 1; }
+  '
+
+  # 1) Update the file in the current worktree too (so the lane branch's own
+  #    local state matches immediately, e.g. if this call's push below fails
+  #    and a human inspects the working copy). This copy is NEVER what gets
+  #    pushed (see step 2) — it can be stale relative to origin/main between
+  #    fetches, and blindly shipping a stale copy is exactly the bug fixed
+  #    below.
+  local tmp; tmp="${reg}.lane_tmp.$$"
+  awk -F'|' -v OFS='|' -v want="$id" -v ns=" $new_status " "$row_awk" \
+    "$reg" > "$tmp" && mv "$tmp" "$reg" || rm -f "$tmp"
 
   # 2) PUSH the dashboard change to origin/main in a temp worktree so the founder's
   #    view is updated immediately — not deferred to the lane branch's next merge.
   #    This is the permanent fix for "main dashboard stays stale while lanes build."
+  #
+  #    BUG HISTORY (2026-07-02, founder-reported: claims silently never showed up
+  #    on the dashboard, across every lane, repeatedly): the `git commit` call
+  #    below placed `-q` AFTER the `-- "$rel_reg"` pathspec separator, so git
+  #    parsed `-q` as a literal filename ("pathspec '-q' did not match any
+  #    file(s)") and the commit failed on EVERY SINGLE claim. The `2>/dev/null`
+  #    on that line, plus this function's old unconditional `return 0`, hid the
+  #    failure completely — callers always saw "PUSHED TO MAIN" whether or not
+  #    anything actually landed. Fixed: `-q` moved before `--`, both push
+  #    attempts are now checked, and the function returns non-zero (so the
+  #    caller's existing WARN fallback actually fires) when the push did not
+  #    land. Also dropped the `-q` on `worktree remove` (unsupported by this
+  #    git version — "unknown switch `q'" — which broke cleanup and could
+  #    orphan worktree registrations over many claims).
+  #
+  #    SECOND BUG (found immediately after fixing the first, by actually
+  #    exercising the push for the first time ever): this step used to `cp
+  #    "$reg"` — the LOCAL working-copy file from step 1 — into the temp
+  #    worktree and commit THAT. If the caller's local file was behind
+  #    origin/main (any other lane pushed a row change since this lane's last
+  #    fetch — routine in a multi-lane setup), that stale snapshot overwrote
+  #    every row the other lane had just landed, a silent lost-update race.
+  #    It clobbered a real completed row within minutes of first being
+  #    exercised. Fixed: the awk row-edit now runs directly against the temp
+  #    worktree's copy (checked out fresh off origin/main), so this call only
+  #    ever touches its own row and can never regress anyone else's.
+  local pushed=1
   if [ -n "$commit_msg" ] && git -C "$root" rev-parse --git-dir >/dev/null 2>&1; then
     git -C "$root" fetch -q origin main 2>/dev/null || true
-    local tmp_wt; tmp_wt=$(mktemp -d 2>/dev/null) || return 0
+    local tmp_wt; tmp_wt=$(mktemp -d 2>/dev/null) || return 1
     local rel_reg; rel_reg="${reg#$root/}"
-    # Add worktree on main (detached), copy dashboard, commit, push, clean up
+    # Add worktree on main (detached), edit ITS OWN fresh copy, commit, push, clean up
     if git -C "$root" worktree add --detach "$tmp_wt" origin/main -q 2>/dev/null; then
-      cp "$reg" "$tmp_wt/$rel_reg"
-      git -C "$tmp_wt" add "$rel_reg" 2>/dev/null
-      git -C "$tmp_wt" -c user.name="lane.sh" -c user.email="lane@cadence.local" \
-        commit --no-verify -m "$commit_msg" -- "$rel_reg" -q 2>/dev/null
-      # Push; retry once on failure after a fresh fetch
-      if ! git -C "$tmp_wt" push origin HEAD:refs/heads/main -q 2>/dev/null; then
-        git -C "$tmp_wt" fetch -q origin main 2>/dev/null || true
-        git -C "$tmp_wt" rebase origin/main -q 2>/dev/null || true
-        git -C "$tmp_wt" push origin HEAD:refs/heads/main -q 2>/dev/null || true
+      local wtmp; wtmp="$tmp_wt/$rel_reg.wt_tmp.$$"
+      if [ -f "$tmp_wt/$rel_reg" ] && \
+        awk -F'|' -v OFS='|' -v want="$id" -v ns=" $new_status " "$row_awk" \
+          "$tmp_wt/$rel_reg" > "$wtmp"; then
+        mv "$wtmp" "$tmp_wt/$rel_reg"
+      else
+        rm -f "$wtmp"
       fi
-      git -C "$root" worktree remove --force "$tmp_wt" -q 2>/dev/null || rm -rf "$tmp_wt"
+      git -C "$tmp_wt" add "$rel_reg" 2>/dev/null
+      if git -C "$tmp_wt" -c user.name="lane.sh" -c user.email="lane@cadence.local" \
+        commit --no-verify -q -m "$commit_msg" -- "$rel_reg" 2>/dev/null; then
+        # Push; retry once on failure after a fresh fetch + re-apply the row edit
+        # (a rebase would replay the commit's OLD snapshot verbatim, reintroducing
+        # the exact lost-update race this function exists to prevent).
+        if git -C "$tmp_wt" push origin HEAD:refs/heads/main -q 2>/dev/null; then
+          pushed=0
+        else
+          git -C "$tmp_wt" reset -q --hard origin/main 2>/dev/null
+          git -C "$tmp_wt" fetch -q origin main 2>/dev/null || true
+          git -C "$tmp_wt" reset -q --hard origin/main 2>/dev/null
+          if [ -f "$tmp_wt/$rel_reg" ] && \
+            awk -F'|' -v OFS='|' -v want="$id" -v ns=" $new_status " "$row_awk" \
+              "$tmp_wt/$rel_reg" > "$wtmp"; then
+            mv "$wtmp" "$tmp_wt/$rel_reg"
+            git -C "$tmp_wt" add "$rel_reg" 2>/dev/null
+            if git -C "$tmp_wt" -c user.name="lane.sh" -c user.email="lane@cadence.local" \
+              commit --no-verify -q -m "$commit_msg" -- "$rel_reg" 2>/dev/null && \
+              git -C "$tmp_wt" push origin HEAD:refs/heads/main -q 2>/dev/null; then
+              pushed=0
+            fi
+          else
+            rm -f "$wtmp"
+          fi
+        fi
+      fi
+      git -C "$root" worktree remove --force "$tmp_wt" 2>/dev/null || rm -rf "$tmp_wt"
     else
       rm -rf "$tmp_wt"
     fi
   fi
-  return 0
+  return "$pushed"
 }
 _sync_board() { :; }   # retired 2026-06-21 as a SEPARATE board file; dashboard writes now go through _flip_dashboard_row above
 
