@@ -106,6 +106,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | DSN-01 | Design memory (workspace design language as standing, supersedable decisions; binds into DEF-04 scaffolds) | ✅ Shipped 2026-07-03 (Lane 1) | `/knowledge?tab=design` · PRD detail (DEF-04 panel) | [`design-memory.md`](./design-memory.md) |
 | CNV-03 | The ARD (publishing the Outcome Contract as a versioned public standard: schema, spec page, MCP `get_ard`, export/import) | ✅ Shipped 2026-07-03 (Lane 4) | `/ard` · `/api/public/ard/schema` · `/prds/$id?tab=contract` (Export/Import ARD) | [`outcome-contract.md`](./outcome-contract.md#cnv-03-the-ard-publishing-the-outcome-contract-as-a-standard-v12-sec-74) |
 | FS-01 / FS-04 | Foresight generators + calibration; risk composed into the Today brief and InsightRail | ✅ Shipped 2026-07-02 / 2026-07-03 (Lane 4) | `/today` | [`foresight-generators.md`](./foresight-generators.md) |
+| DSN-04 | The design contract rides into Build (design memory + flow graph fold into the mission goal; a lightweight return-side parity check) | ✅ Shipped 2026-07-03 (Lane 4) | dispatch-time only, no route | [`design-contract-rides-build.md`](./design-contract-rides-build.md) |
 
 ## Rules
 

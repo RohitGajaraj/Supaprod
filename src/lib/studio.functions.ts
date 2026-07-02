@@ -35,6 +35,11 @@ import { runRollbackRelease, ghHeaders } from "@/lib/studio-rollbacks";
 import { pickChangesetForPrd } from "@/lib/studio-ship";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { execGateFromChecks, type ExecGate } from "@/lib/exec/provider";
+import {
+  getActiveDesignMemoryForWorkspace,
+  formatDesignMemoryContext,
+} from "@/lib/design-memory.functions";
+import { formatFlowContext, type PrdFlowRow } from "@/lib/design-parity.functions";
 
 export type StudioChangesetSummary = {
   id: string;
@@ -208,6 +213,22 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       const m = prd.github_issue_url?.match(/\/issues\/(\d+)/);
       if (m) {
         sections.push(`Linked GitHub issue: #${m[1]} — include "Closes #${m[1]}" in the PR body.`);
+      }
+
+      // DSN-04: the design contract rides into Build. The workspace's standing
+      // design language (DSN-01) and this PRD's flow graph (DSN-03) travel
+      // into the mission goal alongside the spec body, so the building agent
+      // sees the same design contract a human reviewer would.
+      if (prd.workspace_id) {
+        const [designMemory, flowRow] = await Promise.all([
+          getActiveDesignMemoryForWorkspace(supabase, prd.workspace_id),
+          supabase.from("prd_flows").select("steps,edges").eq("prd_id", prd.id).maybeSingle(),
+        ]);
+        const designContext = formatDesignMemoryContext(designMemory);
+        if (designContext) sections.push(designContext);
+        const flow = (flowRow.data as PrdFlowRow | null) ?? null;
+        const flowContext = formatFlowContext(flow);
+        if (flowContext) sections.push(flowContext);
       }
     }
 
