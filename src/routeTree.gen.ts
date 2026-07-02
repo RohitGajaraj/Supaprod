@@ -87,6 +87,7 @@ import { Route as AuthenticatedMissionsMissionIdRouteImport } from './routes/_au
 import { Route as AuthenticatedMeetingsIdRouteImport } from './routes/_authenticated.meetings.$id'
 import { Route as AuthenticatedBuildMissionIdRouteImport } from './routes/_authenticated.build.$missionId'
 import { Route as AuthenticatedAdminWorkspacesRouteImport } from './routes/_authenticated.admin.workspaces'
+import { Route as AuthenticatedAdminProofRouteImport } from './routes/_authenticated.admin.proof'
 import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authenticated.admin.pricing'
 import { Route as AuthenticatedAdminPlatformRouteImport } from './routes/_authenticated.admin.platform'
 import { Route as AuthenticatedAdminPeopleRouteImport } from './routes/_authenticated.admin.people'
@@ -524,6 +525,11 @@ const AuthenticatedAdminWorkspacesRoute =
     path: '/workspaces',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminProofRoute = AuthenticatedAdminProofRouteImport.update({
+  id: '/proof',
+  path: '/proof',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminPricingRoute =
   AuthenticatedAdminPricingRouteImport.update({
     id: '/pricing',
@@ -790,6 +796,7 @@ export interface FileRoutesByFullPath {
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
+  '/admin/proof': typeof AuthenticatedAdminProofRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -901,6 +908,7 @@ export interface FileRoutesByTo {
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/admin/pricing': typeof AuthenticatedAdminPricingRoute
+  '/admin/proof': typeof AuthenticatedAdminProofRoute
   '/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -1016,6 +1024,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/_authenticated/admin/platform': typeof AuthenticatedAdminPlatformRoute
   '/_authenticated/admin/pricing': typeof AuthenticatedAdminPricingRoute
+  '/_authenticated/admin/proof': typeof AuthenticatedAdminProofRoute
   '/_authenticated/admin/workspaces': typeof AuthenticatedAdminWorkspacesRoute
   '/_authenticated/build/$missionId': typeof AuthenticatedBuildMissionIdRoute
   '/_authenticated/meetings/$id': typeof AuthenticatedMeetingsIdRoute
@@ -1131,6 +1140,7 @@ export interface FileRouteTypes {
     | '/admin/people'
     | '/admin/platform'
     | '/admin/pricing'
+    | '/admin/proof'
     | '/admin/workspaces'
     | '/build/$missionId'
     | '/meetings/$id'
@@ -1242,6 +1252,7 @@ export interface FileRouteTypes {
     | '/admin/people'
     | '/admin/platform'
     | '/admin/pricing'
+    | '/admin/proof'
     | '/admin/workspaces'
     | '/build/$missionId'
     | '/meetings/$id'
@@ -1356,6 +1367,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/people'
     | '/_authenticated/admin/platform'
     | '/_authenticated/admin/pricing'
+    | '/_authenticated/admin/proof'
     | '/_authenticated/admin/workspaces'
     | '/_authenticated/build/$missionId'
     | '/_authenticated/meetings/$id'
@@ -2001,6 +2013,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminWorkspacesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/proof': {
+      id: '/_authenticated/admin/proof'
+      path: '/proof'
+      fullPath: '/admin/proof'
+      preLoaderRoute: typeof AuthenticatedAdminProofRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/pricing': {
       id: '/_authenticated/admin/pricing'
       path: '/pricing'
@@ -2248,6 +2267,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPeopleRoute: typeof AuthenticatedAdminPeopleRoute
   AuthenticatedAdminPlatformRoute: typeof AuthenticatedAdminPlatformRoute
   AuthenticatedAdminPricingRoute: typeof AuthenticatedAdminPricingRoute
+  AuthenticatedAdminProofRoute: typeof AuthenticatedAdminProofRoute
   AuthenticatedAdminWorkspacesRoute: typeof AuthenticatedAdminWorkspacesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -2258,6 +2278,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPeopleRoute: AuthenticatedAdminPeopleRoute,
   AuthenticatedAdminPlatformRoute: AuthenticatedAdminPlatformRoute,
   AuthenticatedAdminPricingRoute: AuthenticatedAdminPricingRoute,
+  AuthenticatedAdminProofRoute: AuthenticatedAdminProofRoute,
   AuthenticatedAdminWorkspacesRoute: AuthenticatedAdminWorkspacesRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }

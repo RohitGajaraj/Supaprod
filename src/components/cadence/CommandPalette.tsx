@@ -80,19 +80,19 @@ export function CommandPalette() {
                   icon={Home}
                   label="Today · Mission Control"
                   hint="1"
-                  onSelect={() => go("/")}
+                  onSelect={() => go("/today")}
                 />
                 <Item
                   icon={Telescope}
                   label="Discover · signals, opportunities, specs"
                   hint="2"
-                  onSelect={() => go("/product", { tab: "discover" })}
+                  onSelect={() => go("/discover")}
                 />
                 <Item
                   icon={Hammer}
                   label="Plan · roadmaps and execution"
                   hint="3"
-                  onSelect={() => go("/product", { tab: "roadmap" })}
+                  onSelect={() => go("/plan")}
                 />
                 <Item
                   icon={Hammer}

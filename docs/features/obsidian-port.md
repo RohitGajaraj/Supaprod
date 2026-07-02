@@ -288,4 +288,45 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
+## OBS-10 · IA consolidation (◐ shipped-partial, 2026-07-02, lane1)
+
+**What shipped:** `src/lib/legacy-redirects.ts` (new) - the single source of truth mapping every legacy path to its canonical fold target, plus `CANONICAL_PATHS` (the six primary destinations) and `DOOR_INTERNAL_PATHS` (Settings/Admin/onboarding/Trust Ledger/Connectors and the surfaces this pass deliberately kept live, see below). `legacy-redirects.test.ts` (new) asserts every target resolves to a canonical or door-internal path, never another legacy key (no 404s, no chains). `nav-model.ts` reshaped: Discover -> `/discover`, Plan -> `/plan` (both off the interim `/product?tab=` scope OBS-02/06/07 carried until this landed); the Engine Room door -> `/engine-room`; `ENGINE_ROOM_LINKS` drops Approvals (Calls live on Today only) and points Spend + the bare Engine Room link at the new glance's Spend room. `nav-model.test.ts` updated for the final-state invariants (5 unique canonical routes, no `/chat`, door + links resolve live). `CommandPalette.tsx`'s hardcoded Navigate entries re-pointed. `_authenticated.today.tsx`'s `LOOP_SURFACE_TO` map fixed - its LoopStrip pills were silently still targeting `/product?tab=` after OBS-06/07 had already shipped the real `/discover`/`/plan` routes.
+
+**Canonical-path inversion, confirmed against the real shipped code (spec step 1's own contingency, both branches fired):** the spec's default assumption was Brain = `/brain` and Engine Room (door) = `/govern`. Neither holds. OBS-08 reskinned `/knowledge` in place - no `/brain` route was ever created. OBS-09 built a NEW route `/engine-room` "additive alongside the untouched parchment `/govern`" (its own file comment), and every room's `onOpen` still navigates into `/govern?tab=X` for the deeper drill - so `/govern` is not legacy cruft to fold away, it is a live detail layer the new glance itself depends on.
+
+**~25 already-stub legacy routes re-pointed to their final canonical target or flattened off a stale 2-hop chain:** `/discovery`, `/opportunities` -> `/discover`; `/prds` (bare), `/roadmap` -> `/plan`; `/memory`, `/docs`, `/learn`, `/outcome`, `/calendar`, `/meetings` (+ `$id`) -> `/knowledge`; `/tasks`, `/inbox` -> `/today`; `/evals`, `/eval-health`, `/drift`, `/guardrails`, `/budgets`, `/analytics`, `/observe`, `/prompts` -> `/engine-room` (room-specific where a room maps cleanly - Quality for evals/drift, Safety for guardrails, Spend for budgets/analytics). `/cockpit`, `/agents`, `/swarm`, `/governance`, `/studio` (+ `$missionId`), `/notifications`, `/briefing`, `/integrations` were already correct - no change needed.
+
+**Two real, pre-existing bugs fixed along the way (not part of the spec's own scope, found during the re-point pass):**
+
+- `/learn` redirected to `/knowledge?tab=calendar` instead of `?tab=learnings` - a copy-paste drift from `/calendar`'s own redirect, silently sending every `/learn` bookmark to the wrong tab since whenever it was introduced.
+- `/outcome` chained through `/learn` and, because `/learn`'s own redirect hardcoded its tab, silently dropped `/outcome`'s own `tab=outcomes` param entirely. Both bugs compounded on each other. Fixed by flattening `/outcome` directly to `/knowledge?tab=learnings`.
+
+**`/eval-health` converted from a full render to a stub** (the one genuine `[render→stub]` conversion this pass completed) after verifying it was safe: `QualityRoom`'s Score view reads the exact same `getEvalHealth()` query (pass rate, trend, verdict) and its Suites view lists every suite with a trend arrow; the one piece of eval-health.tsx's content not reproduced there (the flaky-suite % breakdown) is still reachable one click deeper at `/govern?tab=evals`, which `QualityRoom`'s own Suites rows already navigate into.
+
+**Deliberately NOT folded - `[~25%]` of the spec's mapping table remains, each verified against the real shipped code, not assumed from the spec's abstract table, to carry live functionality its Obsidian replacement does not yet have:**
+
+- `/product` - `DiscoverSurface`'s own file comment says it is explicitly additive; capture, bulk import, cluster, promote, draft-spec, lineage, and delete all still live only on `/product`. Folding it would delete every write action Discover lacks.
+- `/prds/$id` - the full PRD editor (AI assist, GitHub issue creation, task graphs, design scaffolding, Linear issue creation, Studio dispatch). Plan's `SpecDetail` is explicitly read-only and itself links here ("Open full spec ->").
+- `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates here for trace detail; `/govern?tab=traces` is a second live consumer.
+- `/missions` (bare) - hosts `LoopHealthBanner`, `MissionsCostGlance`, and `ReliabilityGlance`; none of the three exist on `/build` yet.
+- `/missions/$missionId` - 1399 lines vs `/build/$missionId`'s 530; not a verified duplicate, likely carries content the newer page lacks.
+- `/stakeholder` - audience-specific pack generation (exec/eng/board tabs, copy/download); Plan's roadmap view has no equivalent.
+- `/impact` - the impact-ledger detail view; not verified redundant with Brain's simpler `BrainStatTrio` export, despite sharing the same `getImpactLedger` data source.
+- `/changelog` - Brain has no "record"/changelog-equivalent tab yet.
+- `/fleet`, `/delegate` - agent-capacity and delegation-queue views with no Build equivalent.
+- `/chat` - the Ask panel (OBS-12) does not exist yet. Redirecting this away now would delete AI chat with no replacement; OBS-12 owns this fold.
+
+**FOUNDER-GATE (per OBS-10.md §13, URL renames):** the renames that DID land are live now (`/discovery`→`/discover?tab=`, `/roadmap`+`/prds`→`/plan`, several engine-adjacent routes→`/engine-room`). The eleven surfaces above are deliberately still on their old parchment URLs pending feature parity - flagged here for founder review; folding them is real feature work (giving Discover/Plan/Build/Brain the missing capability first), not wiring, and is explicitly out of OBS-10's charter per its own §3 Scope OUT.
+
+**How to verify (repeatable):**
+
+1. `bun run dev`, paste each re-pointed legacy URL into the address bar (e.g. `/discovery`, `/roadmap`, `/learn`, `/outcome`, `/tasks`, `/evals`) and confirm a single-hop landing on the correct destination/room with no flash, no 404.
+2. Confirm the rail shows exactly five destinations (Today/Discover/Plan/Build/Brain) + the recessed Engine Room door, and pressing `g` opens `/engine-room` (not `/govern`).
+3. On Today, click each LoopStrip pill and confirm Discover/Define now land on `/discover`/`/plan`, not `/product`.
+4. Confirm the eleven surfaces listed above still render their full legacy content at their old URLs (no accidental redirect was introduced for them).
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 2008/2008 pass (25 new: 5 in `legacy-redirects.test.ts` + the updated `nav-model.test.ts`) · humanized-output clean · manual crawl of every re-pointed route confirmed one-hop, no 404, no chain.
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

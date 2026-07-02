@@ -48,10 +48,12 @@ export const Route = createFileRoute("/_authenticated/today")({
 // below), not silently dropped: the Obsidian Call object model has no defer
 // verb.
 
+// OBS-10: re-pointed at the real Discover/Plan destinations (was the interim
+// /product?tab= scope, from before OBS-06/07 shipped their own routes).
 const LOOP_SURFACE_TO: Record<LoopSurface, { to: string; search?: Record<string, string> }> = {
-  discover: { to: "/product" },
+  discover: { to: "/discover" },
   today: { to: "/today" },
-  define: { to: "/product", search: { tab: "roadmap" } },
+  define: { to: "/plan" },
   build: { to: "/build" },
   brain: { to: "/knowledge" },
 };
