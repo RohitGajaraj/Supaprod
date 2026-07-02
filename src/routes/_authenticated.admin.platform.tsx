@@ -21,6 +21,11 @@ import {
   type AuditRow,
 } from "@/lib/admin-platform.functions";
 import { getMemoryExpiryEnabled, adminSetMemoryExpiryEnabled } from "@/lib/pricing.functions";
+import { listProjects } from "@/lib/projects.functions";
+import {
+  provisionHostingPoc,
+  type ProvisionHostingPocResult,
+} from "@/lib/hosting/hosting-poc.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,
@@ -33,6 +38,7 @@ function AdminPlatform() {
         Pull kill switches · post banners · trigger deploys · read the audit trail
       </p>
       <DeployPanel />
+      <HostingPocPanel />
       <BannerPanel />
       <FlagsPanel />
       <MemoryExpiryPanel />
@@ -85,6 +91,73 @@ function DeployPanel() {
           {deploy.isPending ? "Deploying..." : "Trigger deploy"}
         </button>
       </div>
+    </div>
+  );
+}
+
+/** BYO-P5 P5b: deploys a real, minimal shell for one of the admin's own Products to Deno Deploy. */
+function HostingPocPanel() {
+  const fListProjects = useServerFn(listProjects);
+  const fProvision = useServerFn(provisionHostingPoc);
+  const projectsQuery = useQuery({
+    queryKey: ["admin-hosting-poc-projects"],
+    queryFn: () => fListProjects({ data: {} }),
+  });
+  const projects: Array<{ id: string; name: string }> = (projectsQuery.data?.projects ?? []).map(
+    (p) => ({ id: p.id, name: p.name }),
+  );
+
+  const [projectId, setProjectId] = useState("");
+  const [lastUrl, setLastUrl] = useState<string | null>(null);
+
+  const deploy = useMutation({
+    mutationFn: () => fProvision({ data: { projectId } }),
+    onSuccess: (result: ProvisionHostingPocResult) => {
+      if (result.ok) {
+        setLastUrl(result.url);
+        toast.success("Deployed. Live at the URL below.");
+      } else if (result.reason === "not_configured") {
+        toast.error("DENO_DEPLOY_TOKEN is not set. Add it as a wrangler secret to activate.");
+      } else {
+        toast.error(result.message);
+      }
+    },
+  });
+
+  return (
+    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
+      <div className="mono-label">Cadence-hosted · proof of concept</div>
+      <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
+        Deploys a minimal static shell for one of your own Products to Deno Deploy. Not user-facing;
+        safe to click more than once for the same Product.
+      </p>
+      <div style={{ display: "flex", gap: 8 }}>
+        <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={input(260)}>
+          <option value="">
+            {projectsQuery.isLoading ? "Loading projects…" : "Select a Product"}
+          </option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <button
+          className="btn btn-primary btn-sm"
+          disabled={!projectId || deploy.isPending}
+          onClick={() => deploy.mutate()}
+        >
+          {deploy.isPending ? "Deploying…" : "Deploy Cadence-hosted PoC"}
+        </button>
+      </div>
+      {lastUrl ? (
+        <p style={{ fontSize: 12.5, margin: 0 }}>
+          Live at:{" "}
+          <a href={lastUrl} target="_blank" rel="noreferrer">
+            {lastUrl}
+          </a>
+        </p>
+      ) : null}
     </div>
   );
 }

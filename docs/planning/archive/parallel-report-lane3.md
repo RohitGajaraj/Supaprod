@@ -51,3 +51,9 @@ Board was genuinely dry for autonomous Tier-1/3 work (all 8 eligible items hard-
 **Note (session correction):** confirmed via the live `CLAUDE.md` on disk that the post-push `sync-pcv4.sh` step was retired 2026-07-02 (v5 is now the sole canonical repo push target); stopped running it after this point. The earlier 3 pushes this session ran it harmlessly (a no-op local mirror refresh) before this was caught.
 
 **Returning to the lane loop:** re-checking `lane.sh next` for OBS-02/OBS-03 completion.
+
+## 2026-07-02 17:20 — BYO-P5 P5b: UI wiring lands (the deferred slice)
+
+Once OBS-02 shipped (lane1) and released its broad `src/routes/_authenticated.*.tsx` claim, re-claimed `BYO-P5` for just `_authenticated.admin.platform.tsx` and wired `HostingPocPanel` (Product picker + deploy button + live-URL link, mirrors `DeployPanel`). Gates: tsc 0 / bun test 1901/1901. P5b is now fully complete; BYO-P5 stays ◐ overall (P5c onward needs the founder's own Cloudflare/Supabase account, explicitly gated — not this lane's call to proceed on unprompted).
+
+Marked `lane.sh done BYO-P5` (no autonomous slice remains for this lane right now). Returning to the mechanical loop.

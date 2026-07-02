@@ -477,12 +477,15 @@ export const triggerDeploy = createServerFn({ method: "POST" })
       .eq("role", "admin")
       .maybeSingle();
     if (!adminRow) {
-      return { ok: false, reason: "forbidden", message: "Admin role required to trigger a deploy." };
+      return {
+        ok: false,
+        reason: "forbidden",
+        message: "Admin role required to trigger a deploy.",
+      };
     }
 
     // Resolve hook URL: Cloudflare first, Lovable as fallback
-    const hookUrl =
-      process.env.CLOUDFLARE_DEPLOY_HOOK_URL ?? process.env.LOVABLE_DEPLOY_HOOK_URL;
+    const hookUrl = process.env.CLOUDFLARE_DEPLOY_HOOK_URL ?? process.env.LOVABLE_DEPLOY_HOOK_URL;
     if (!hookUrl) {
       return {
         ok: false,
