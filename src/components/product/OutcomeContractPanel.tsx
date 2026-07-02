@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileCheck2, Pencil, Sparkles, X } from "lucide-react";
+import {
+  Beaker,
+  CheckSquare,
+  FileCheck2,
+  GitCommitVertical,
+  Pencil,
+  Sparkles,
+  Square,
+  X,
+} from "lucide-react";
 import { toast } from "@/lib/notify";
 import {
+  compileContractOracles,
   draftContractFromPrd,
   savePrd,
   supersedeContractClause,
+  toggleUatChecklistItem,
   type ContractClause,
   type OutcomeContract,
 } from "@/lib/discovery.functions";
@@ -28,6 +39,7 @@ export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }:
   const qc = useQueryClient();
   const fDraft = useServerFn(draftContractFromPrd);
   const fSave = useServerFn(savePrd);
+  const fCompile = useServerFn(compileContractOracles);
   const [draft, setDraft] = useState<OutcomeContract | null>(null);
 
   const draftMut = useMutation({
@@ -42,6 +54,29 @@ export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }:
       setDraft(null);
       qc.invalidateQueries({ queryKey: invalidateKey });
       toast.success("Contract applied");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // CNV-02: compile every unclassified success-metric clause into a real
+  // oracle (eval case, CI label, UAT checklist, or a watched assumption).
+  const compileMut = useMutation({
+    mutationFn: () => fCompile({ data: { id: prdId } }),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: invalidateKey });
+      const parts = [
+        r.eval_cases_created > 0
+          ? `${r.eval_cases_created} eval case${r.eval_cases_created === 1 ? "" : "s"}`
+          : null,
+        r.ci_count > 0 ? `${r.ci_count} covered by CI` : null,
+        r.uat_count > 0 ? `${r.uat_count} UAT item${r.uat_count === 1 ? "" : "s"}` : null,
+        r.assumptions_filed > 0
+          ? `${r.assumptions_filed} watched assumption${r.assumptions_filed === 1 ? "" : "s"}`
+          : null,
+      ].filter((p): p is string => !!p);
+      toast.success(
+        parts.length > 0 ? `Compiled: ${parts.join(", ")}` : "Every metric already has an oracle",
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -106,9 +141,30 @@ export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }:
     );
   }
 
+  const uncompiledCount = (contract?.success_metrics ?? []).filter(
+    (c) => c.status === "standing" && !c.oracle_kind,
+  ).length;
+
   return (
     <div className="rounded-lg border hairline bg-card/60 p-6">
-      <div className="mono-label mb-3">Outcome Contract</div>
+      <div className="mono-label mb-3 flex items-center justify-between">
+        <span>Outcome Contract</span>
+        {(contract?.success_metrics ?? []).some((c) => c.status === "standing") ? (
+          <button
+            onClick={() => compileMut.mutate()}
+            disabled={compileMut.isPending || uncompiledCount === 0}
+            className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 disabled:opacity-50 normal-case tracking-normal"
+            title="Compile every success metric into an eval case, a CI label, a UAT checklist item, or a watched assumption"
+          >
+            <Beaker className="h-3 w-3" />
+            {compileMut.isPending
+              ? "Compiling…"
+              : uncompiledCount === 0
+                ? "Oracles compiled"
+                : `Compile ${uncompiledCount} oracle${uncompiledCount === 1 ? "" : "s"}`}
+          </button>
+        ) : null}
+      </div>
       <ContractBody
         contract={contract as OutcomeContract}
         prdId={prdId}
@@ -142,6 +198,7 @@ function ContractBody({
         label="Success metrics"
         clauses={contract.success_metrics}
         section="success_metrics"
+        showOracle
         prdId={prdId}
         invalidateKey={invalidateKey}
       />
@@ -188,12 +245,14 @@ function ClauseList({
   label,
   clauses,
   section,
+  showOracle,
   prdId,
   invalidateKey,
 }: {
   label: string;
   clauses: ContractClause[];
   section: "success_metrics" | "non_goals";
+  showOracle?: boolean;
   prdId?: string;
   invalidateKey?: readonly unknown[];
 }) {
@@ -210,6 +269,7 @@ function ClauseList({
             key={c.id}
             clause={c}
             section={section}
+            showOracle={showOracle}
             prdId={prdId}
             invalidateKey={invalidateKey}
           />
@@ -236,16 +296,19 @@ function ClauseList({
 function ClauseRow({
   clause,
   section,
+  showOracle,
   prdId,
   invalidateKey,
 }: {
   clause: ContractClause;
   section: "success_metrics" | "non_goals";
+  showOracle?: boolean;
   prdId?: string;
   invalidateKey?: readonly unknown[];
 }) {
   const qc = useQueryClient();
   const fSupersede = useServerFn(supersedeContractClause);
+  const fToggleUat = useServerFn(toggleUatChecklistItem);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(clause.text);
 
@@ -258,6 +321,15 @@ function ClauseRow({
       setEditing(false);
       if (invalidateKey) qc.invalidateQueries({ queryKey: invalidateKey });
       toast.success("Clause superseded");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleUat = useMutation({
+    mutationFn: (checked: boolean) =>
+      fToggleUat({ data: { id: prdId as string, clause_id: clause.id, checked } }),
+    onSuccess: () => {
+      if (invalidateKey) qc.invalidateQueries({ queryKey: invalidateKey });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -295,7 +367,24 @@ function ClauseRow({
 
   return (
     <li className="text-sm leading-relaxed flex items-start gap-2 group">
-      <span className="flex-1">{clause.text}</span>
+      {showOracle && clause.oracle_kind === "uat" ? (
+        <button
+          onClick={() => toggleUat.mutate(!clause.uat_checked)}
+          disabled={toggleUat.isPending || !prdId}
+          className="shrink-0 mt-0.5 text-muted-foreground hover:text-foreground"
+          title={clause.uat_checked ? "Mark not verified" : "Mark verified"}
+        >
+          {clause.uat_checked ? (
+            <CheckSquare className="h-3.5 w-3.5" />
+          ) : (
+            <Square className="h-3.5 w-3.5" />
+          )}
+        </button>
+      ) : null}
+      <span className={`flex-1 ${clause.uat_checked ? "line-through text-muted-foreground" : ""}`}>
+        {clause.text}
+      </span>
+      {showOracle ? <OracleBadge clause={clause} /> : null}
       {prdId ? (
         <button
           onClick={() => setEditing(true)}
@@ -306,5 +395,35 @@ function ClauseRow({
         </button>
       ) : null}
     </li>
+  );
+}
+
+const ORACLE_LABEL: Record<NonNullable<ContractClause["oracle_kind"]>, string> = {
+  eval: "eval",
+  ci: "ci",
+  uat: "uat",
+  unverifiable: "watched",
+};
+
+/** CNV-02: shows how a success-metric clause is verified, once compiled. */
+function OracleBadge({ clause }: { clause: ContractClause }) {
+  if (!clause.oracle_kind) return null;
+  const title =
+    clause.oracle_kind === "eval"
+      ? "Compiled to an eval case, graded by the evals engine"
+      : clause.oracle_kind === "ci"
+        ? clause.oracle_ref || "Covered by the standard CI gate"
+        : clause.oracle_kind === "uat"
+          ? "Manual checklist item, tick when verified"
+          : "Not falsifiable as written — filed as a watched assumption (FS-02)";
+  return (
+    <span
+      title={title}
+      className="mono-label shrink-0 text-[9px] px-1.5 py-0.5 rounded border hairline text-muted-foreground inline-flex items-center gap-1"
+    >
+      {clause.oracle_kind === "eval" ? <Beaker className="h-2.5 w-2.5" /> : null}
+      {clause.oracle_kind === "ci" ? <GitCommitVertical className="h-2.5 w-2.5" /> : null}
+      {ORACLE_LABEL[clause.oracle_kind]}
+    </span>
   );
 }

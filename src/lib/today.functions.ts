@@ -203,19 +203,44 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       const assumptionIds = [...new Set(challengeRows.map((c) => c.assumption_id))];
       const { data: assumptionRows } = await supabase
         .from("assumptions")
-        .select("id,statement,decision_id")
+        .select("id,statement,decision_id,prd_id")
         .in("id", assumptionIds);
       const assumptionById = new Map(
-        ((assumptionRows ?? []) as { id: string; statement: string; decision_id: string }[]).map(
-          (a) => [a.id, a],
-        ),
+        (
+          (assumptionRows ?? []) as {
+            id: string;
+            statement: string;
+            decision_id: string | null;
+            prd_id: string | null;
+          }[]
+        ).map((a) => [a.id, a]),
       );
-      const decisionIds = [...new Set([...assumptionById.values()].map((a) => a.decision_id))];
-      const { data: decisionRows } = decisionIds.length
-        ? await supabase.from("decisions").select("id,title").in("id", decisionIds)
-        : { data: [] as { id: string; title: string }[] };
+      const decisionIds = [
+        ...new Set(
+          [...assumptionById.values()].map((a) => a.decision_id).filter((x): x is string => !!x),
+        ),
+      ];
+      // CNV-02: an unverifiable spec clause files as an assumption with no
+      // decision_id (prd_id instead) — source both so the Today card names
+      // the right origin ("A past decision" vs "A spec") instead of guessing.
+      const prdIds = [
+        ...new Set(
+          [...assumptionById.values()].map((a) => a.prd_id).filter((x): x is string => !!x),
+        ),
+      ];
+      const [decisionRows, prdRows] = await Promise.all([
+        decisionIds.length
+          ? supabase.from("decisions").select("id,title").in("id", decisionIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        prdIds.length
+          ? supabase.from("prds").select("id,title").in("id", prdIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      ]);
       const decisionTitleById = new Map(
-        ((decisionRows ?? []) as { id: string; title: string }[]).map((d) => [d.id, d.title]),
+        ((decisionRows.data ?? []) as { id: string; title: string }[]).map((d) => [d.id, d.title]),
+      );
+      const prdTitleById = new Map(
+        ((prdRows.data ?? []) as { id: string; title: string }[]).map((p) => [p.id, p.title]),
       );
 
       const signalIds = [
@@ -250,7 +275,11 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         .map((c) => {
           const assumption = assumptionById.get(c.assumption_id);
           if (!assumption) return null;
-          const decisionTitle = decisionTitleById.get(assumption.decision_id) ?? "A past decision";
+          const decisionTitle = assumption.decision_id
+            ? (decisionTitleById.get(assumption.decision_id) ?? "A past decision")
+            : assumption.prd_id
+              ? `Spec: ${prdTitleById.get(assumption.prd_id) ?? "a spec"}`
+              : "A past decision";
           const evidenceId = c.signal_id ?? c.learning_id;
           return {
             id: c.id,

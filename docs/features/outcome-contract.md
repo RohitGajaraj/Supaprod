@@ -1,6 +1,6 @@
-# The Outcome Contract (CNV-01/CNV-04, v12 sec 7.4)
+# The Outcome Contract (CNV-01/CNV-04/CNV-02, v12 sec 7.4)
 
-> _Created: 2026-07-02 · Last updated: 2026-07-03 (CNV-04)_
+> _Created: 2026-07-02 · Last updated: 2026-07-03 (CNV-02)_
 
 The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside the existing markdown narrative (`body_md`). It is the first piece of the v12 Program CONVENTIONS build: the artifact formerly known as the PRD, split into a human view (unchanged) and a machine view an agent can consume directly instead of re-parsing prose.
 
@@ -52,8 +52,36 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 - The retrieved RAG context is concatenated into the prompt the same way `generatePrd`'s existing brief flow already does (not through `retrieve()`'s `formatContextBlock` injection-quarantine wrapper). This is pre-existing exposure shared with `generatePrd`, not a regression introduced here (security-reviewed); batch-hardening both call sites is a follow-up, not blocking.
 - The old multi-line "brief → PRD" flow (`generatePrd`) is untouched and still used by the opportunity-promotion path (`OpportunitiesPanel.tsx`); only the Specs tab's standalone composer was replaced.
 
+## CNV-02: the requirement-to-oracle compiler (v12 sec 7.2)
+
+**Why this exists:** v12's standing rule, stated directly — "a requirement without an oracle is an assumption, and assumptions get watched, not asserted." Every success-metric clause CNV-01/CNV-04 draft is, until compiled, an unverified claim. This closes that: "agents built it, and here is proof it does what we agreed" becomes a sentence the product can actually say.
+
+### What ships
+
+- **`compileContractOracles`** (`src/lib/discovery.functions.ts`) — classifies every uncompiled `success_metrics` clause on a spec's contract into one of four real oracles, reusing existing engines rather than inventing new ones:
+  - **`eval`** — a qualitative/behavioral claim an LLM judge can grade. Creates (or reuses) one `eval_suites` row per PRD (new `prd_id` column) and one `eval_cases` row per clause (`rubric` = the clause text itself), so it shows up in the existing Eval Harness (`/evals`) like any other suite.
+  - **`ci`** — inherently covered by the standard CI gate (type-check, lint, automated tests). No new artifact: Cadence cannot mint a GitHub check per clause, so this is an inline label on the clause (`oracle_ref` = a fixed sentence). Classified narrowly — only claims that are actually about code/build health, not product behavior.
+  - **`uat`** — needs a human to manually verify. Inline too: the clause gets a real checkbox (`uat_checked`/`uat_checked_at`), rendered in the Contract tab next to the clause text.
+  - **`unverifiable`** — not falsifiable as written. Auto-files as a **watched assumption** (FS-02): the existing `assumptions` table gained a nullable `prd_id` (alongside the existing `decision_id`, both optional but at least one required via a CHECK constraint), so the existing `assumption-watch` cron picks up spec-sourced assumptions with zero changes to the watcher itself — it only ever reads `id`/`statement`/`workspace_id`/`status`, never `decision_id` directly.
+  - Idempotent per clause: only unclassified (`oracle_kind === null`) standing clauses are ever touched, so re-running after adding new metrics only compiles what's new. Classification-response parsing is pure and unit-tested (`deriveOracleClassifications`, 6 tests, same pattern as FS-02's `deriveWatchVerdict`).
+- **`toggleUatChecklistItem`** — ticks/unticks a `uat` clause's checkbox.
+- Since a spec-sourced assumption's confirmed challenge has no `decision_id` to reopen, `resolveAssumptionChallenge` (`decisions.functions.ts`) now branches on whichever source is present: reopens the decision (`status: "pending"`) or the spec (`status: "review"`), and the `artifact_lineage` contradiction edge points at whichever one actually exists. `today.functions.ts`'s "Needs you" assumption-challenge card was also fixed to label the source correctly ("Spec: <title>" vs "A past decision") instead of defaulting every non-decision assumption to a wrong label.
+- **UI**: `OutcomeContractPanel.tsx` gained a **Compile N oracles** button (only shown once a contract has standing success metrics), and every compiled clause now renders a small oracle badge (`eval` / `ci` / `uat` with a live checkbox / `watched`).
+
+### How to use / verify
+
+1. Open a spec's Contract tab with at least one standing success metric → **Compile N oracles**.
+2. Each clause gets a badge. Click a `uat` clause's checkbox to tick it off (persists, survives reload).
+3. Check `/evals` → a new suite named "Spec acceptance: <title>" with one case per `eval`-classified clause.
+4. Check `/today` — if any clause classified `unverifiable`, it's now a real row in `assumptions` (workspace-scoped, `prd_id` set); once the `assumption-watch` cron runs and finds a contradicting signal, a "Needs you" card appears labeled "Spec: <title>", and confirming it flips the spec's status back to `review`.
+
+### Scope notes (what this does NOT do)
+
+- Re-classifying an already-compiled clause requires superseding it first (CNV-01's mechanic clears `oracle_kind` implicitly since a superseded clause's replacement is a fresh clause with `oracle_kind: null`) — there's no separate "re-compile this one clause" action.
+- One accepted, precedented asymmetry (security-reviewed, not a new tradeoff): `prds` RLS is strictly owner-only while `decisions`/`assumptions` are workspace-shared, so a confirmed challenge on a spec-sourced assumption silently no-ops the `prds.status` reopen if the confirming user isn't the spec's owner — the same shape the decision-reopening branch already had.
+
 ## Related
 
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7 — the pressure test, the three-lifetime design, the command grammar, and the full CNV/AGT build list.
 - [`critic-agent.md`](./critic-agent.md) — the DEF-03 spec red-team lens, run inline by both `draftContractFromPrd` (on apply) and `draftContractFromIntent` (on create).
-- CNV-02 (the requirement-to-oracle compiler) builds directly on this schema, filling in every clause's `oracle_kind`/`oracle_ref`.
+- CNV-01/CNV-04/CNV-02 together close the full Outcome Contract loop: draft it, author it in seconds, prove it.

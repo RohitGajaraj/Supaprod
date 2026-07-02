@@ -205,27 +205,39 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
 
     const { data: assumption } = await supabase
       .from("assumptions")
-      .select("decision_id")
+      .select("decision_id,prd_id")
       .eq("id", challenge.assumption_id)
       .maybeSingle();
     const decisionId = (assumption?.decision_id as string | undefined) ?? null;
-    if (decisionId) {
-      await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
+    // CNV-02: an unverifiable spec clause files as an assumption with a
+    // prd_id instead of a decision_id (no decision exists yet). A confirmed
+    // challenge reopens whichever one it actually stands under, mirroring
+    // the decision path so a spec's stale acceptance criterion gets the same
+    // "reopened for review" treatment a stale decision already gets.
+    const prdId = decisionId ? null : ((assumption?.prd_id as string | undefined) ?? null);
+    if (decisionId || prdId) {
+      if (decisionId) {
+        await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
+      } else if (prdId) {
+        await supabase.from("prds").update({ status: "review" }).eq("id", prdId);
+      }
       const parent_kind = challenge.signal_id
         ? "signal"
         : challenge.learning_id
           ? "learning"
           : null;
       const parent_id = challenge.signal_id ?? challenge.learning_id ?? null;
-      if (parent_kind && parent_id) {
+      const child_kind = decisionId ? "decision" : "prd";
+      const child_id = decisionId ?? prdId;
+      if (parent_kind && parent_id && child_id) {
         try {
           await supabase.from("artifact_lineage").upsert(
             {
               user_id: userId,
               parent_kind,
               parent_id,
-              child_kind: "decision",
-              child_id: decisionId,
+              child_kind,
+              child_id,
               relation: "contradicts",
               rationale: challenge.rationale,
               created_by_agent: "assumption-watcher",

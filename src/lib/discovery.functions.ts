@@ -514,10 +514,15 @@ const ContractClauseSchema = z.object({
   text: z.string().min(1).max(2000),
   status: z.enum(["standing", "superseded"]),
   superseded_by: z.string().uuid().nullable(),
-  // Filled in later by CNV-02's requirement-to-oracle compiler; every clause
-  // starts unclassified.
+  // Filled in by CNV-02's requirement-to-oracle compiler; every clause starts
+  // unclassified. oracle_ref points at the eval_case id ("eval"), the
+  // assumption id ("unverifiable"), or an inline label/checklist text
+  // ("ci"/"uat" — no separate row needed for those two kinds).
   oracle_kind: z.enum(["eval", "ci", "uat", "unverifiable"]).nullable(),
-  oracle_ref: z.string().max(200).nullable(),
+  oracle_ref: z.string().max(2000).nullable(),
+  // "uat" clauses only: a real checklist item the human ticks off.
+  uat_checked: z.boolean().optional(),
+  uat_checked_at: z.string().nullable().optional(),
   created_at: z.string(),
 });
 export type ContractClause = z.infer<typeof ContractClauseSchema>;
@@ -856,6 +861,258 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
     );
 
     const updatedContract = { ...contract, [data.section]: clauses };
+    const { data: updated, error: upErr } = await supabase
+      .from("prds")
+      .update({ contract: updatedContract, updated_at: nowIso })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (upErr) throw new Error(upErr.message);
+    if (!updated) throw new Error("Spec not found");
+    return { contract: updatedContract };
+  });
+
+// ---------- CNV-02: the requirement-to-oracle compiler ----------
+// v12 sec 7.2: "a requirement without an oracle is an assumption, and
+// assumptions get watched, not asserted." Compiles each success-metric
+// clause into whichever real oracle already exists for its kind: an eval
+// case (evals engine, LLM-judged), the standard CI gate (inline label, no
+// new artifact — Cadence cannot mint a GitHub check per clause), a UAT
+// checklist item (inline, human-ticked), or — when a clause is not
+// falsifiable as written — a watched assumption (FS-02), so it is tracked
+// against contradicting signals instead of silently asserted.
+
+const ORACLE_CLASSIFY_SYSTEM = `You are the Cadence oracle compiler. For each acceptance-criteria clause from a spec's Outcome Contract, classify how it can be verified.
+Rules:
+- "eval": a qualitative or behavioral claim an LLM judge can grade against the spec's intent. Most product claims land here.
+- "ci": already covered by the standard CI gate (type-check, lint, automated tests) with no new artifact needed. Use ONLY for claims that are inherently about code correctness or build health, not product behavior.
+- "uat": requires a human to manually verify (visual or design judgment, external system state, anything an LLM cannot check from text alone).
+- "unverifiable": not falsifiable as written — vague, unmeasurable, or opinion, and cannot become a real oracle without rewriting the clause itself.
+- Exactly one classification per clause, indexed to match the input.
+- No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
+- Output ONLY valid JSON: {"classifications": [{"index": 0, "oracle_kind": "eval" | "ci" | "uat" | "unverifiable", "rationale": "max 140 chars"}]}`;
+
+type OracleKind = "eval" | "ci" | "uat" | "unverifiable";
+
+/**
+ * Pure: turn the model's raw classification JSON into a validated
+ * index -> oracle_kind map. An out-of-range or malformed entry is dropped
+ * rather than trusted. Exported for unit tests (same pattern as
+ * assumption-watch.server.ts's deriveWatchVerdict).
+ */
+export function deriveOracleClassifications(
+  raw: unknown[],
+  count: number,
+): Map<number, OracleKind> {
+  const kindByIndex = new Map<number, OracleKind>();
+  for (const r of raw) {
+    const o = (r ?? {}) as Record<string, unknown>;
+    const idx = Number(o.index);
+    const kind = o.oracle_kind;
+    if (
+      Number.isInteger(idx) &&
+      idx >= 0 &&
+      idx < count &&
+      (kind === "eval" || kind === "ci" || kind === "uat" || kind === "unverifiable")
+    ) {
+      kindByIndex.set(idx, kind);
+    }
+  }
+  return kindByIndex;
+}
+
+/**
+ * Compile every unclassified success-metric clause on a spec's contract into
+ * a real oracle. Idempotent per clause: already-classified clauses are
+ * skipped, so re-running after adding new metrics only compiles the new
+ * ones. Best-effort on the assumption-filing half (a failed insert still
+ * leaves the clause correctly classified "unverifiable"; only the pointer
+ * back to the assumption row is missing).
+ */
+export const compileContractOracles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .select("id,title,workspace_id,contract")
+      .eq("id", data.id)
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+
+    const contract = OutcomeContractSchema.partial().parse(prd.contract ?? {});
+    const metrics = contract.success_metrics ?? [];
+    const uncompiled = metrics.filter((c) => c.status === "standing" && !c.oracle_kind);
+    if (uncompiled.length === 0) {
+      return { contract, eval_cases_created: 0, ci_count: 0, uat_count: 0, assumptions_filed: 0 };
+    }
+
+    const res = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: "oracle_compile",
+      model: "google/gemini-2.5-flash",
+      workspaceId: prd.workspace_id,
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: ORACLE_CLASSIFY_SYSTEM },
+        { role: "user", content: uncompiled.map((c, i) => `[${i}] ${c.text}`).join("\n") },
+      ],
+    });
+    const raw = extractArrayField(res.json, "classifications") ?? [];
+    const kindByIndex = deriveOracleClassifications(raw, uncompiled.length);
+    const kindFor = (clauseId: string): OracleKind => {
+      const idx = uncompiled.findIndex((u) => u.id === clauseId);
+      return idx === -1 ? "unverifiable" : (kindByIndex.get(idx) ?? "unverifiable");
+    };
+
+    const evalTargets = uncompiled.filter((c) => kindFor(c.id) === "eval");
+    const oracleRefByClauseId = new Map<string, string>();
+    let evalCasesCreated = 0;
+
+    if (evalTargets.length > 0) {
+      const { data: existingSuite } = await supabase
+        .from("eval_suites")
+        .select("id")
+        .eq("prd_id", data.id)
+        .maybeSingle();
+      let suiteId = (existingSuite?.id as string | undefined) ?? null;
+      if (!suiteId) {
+        const { data: newSuite, error: suiteErr } = await supabase
+          .from("eval_suites")
+          .insert({
+            user_id: userId,
+            name: `Spec acceptance: ${prd.title}`.slice(0, 200),
+            description: "Compiled from this spec's Outcome Contract success metrics (CNV-02).",
+            surface: "prd-acceptance",
+            prompt_key: `prd:${data.id}`,
+            prd_id: data.id,
+          })
+          .select("id")
+          .single();
+        if (suiteErr || !newSuite) {
+          throw new Error(suiteErr?.message ?? "Could not create the eval suite");
+        }
+        suiteId = newSuite.id;
+      }
+
+      const { data: newCases, error: caseErr } = await supabase
+        .from("eval_cases")
+        .insert(
+          evalTargets.map((c) => ({
+            user_id: userId,
+            suite_id: suiteId,
+            name: c.text.slice(0, 200),
+            input:
+              `Spec: ${prd.title}\n\nDoes the implementation satisfy this acceptance criterion?\n${c.text}`.slice(
+                0,
+                20000,
+              ),
+            rubric: c.text.slice(0, 4000),
+          })),
+        )
+        // A single multi-row INSERT's RETURNING preserves the VALUES order,
+        // so zipping by index against evalTargets is safe here.
+        .select("id");
+      if (caseErr || !newCases) throw new Error(caseErr?.message ?? "Could not create eval cases");
+      evalTargets.forEach((c, i) => {
+        const row = newCases[i];
+        if (row) oracleRefByClauseId.set(c.id, row.id);
+      });
+      evalCasesCreated = newCases.length;
+    }
+
+    const unverifiableTargets = uncompiled.filter((c) => kindFor(c.id) === "unverifiable");
+    let assumptionsFiled = 0;
+    if (unverifiableTargets.length > 0) {
+      const { data: newAssumptions, error: aErr } = await supabase
+        .from("assumptions")
+        .insert(
+          unverifiableTargets.map((c) => ({
+            user_id: userId,
+            workspace_id: prd.workspace_id,
+            prd_id: data.id,
+            statement: c.text.slice(0, 500),
+          })),
+        )
+        .select("id");
+      if (!aErr && newAssumptions) {
+        unverifiableTargets.forEach((c, i) => {
+          const row = newAssumptions[i];
+          if (row) oracleRefByClauseId.set(c.id, row.id);
+        });
+        assumptionsFiled = newAssumptions.length;
+      }
+    }
+
+    let ciCount = 0;
+    let uatCount = 0;
+    const updatedMetrics = metrics.map((c) => {
+      if (c.status !== "standing" || c.oracle_kind) return c;
+      const kind = kindFor(c.id);
+      if (kind === "ci") {
+        ciCount++;
+        return {
+          ...c,
+          oracle_kind: "ci" as const,
+          oracle_ref: "Covered by the standard CI gate (type-check, lint, automated tests).",
+        };
+      }
+      if (kind === "uat") {
+        uatCount++;
+        return { ...c, oracle_kind: "uat" as const, oracle_ref: c.text, uat_checked: false };
+      }
+      return { ...c, oracle_kind: kind, oracle_ref: oracleRefByClauseId.get(c.id) ?? null };
+    });
+
+    const updatedContract = { ...contract, success_metrics: updatedMetrics };
+    const { error: upErr } = await supabase
+      .from("prds")
+      .update({ contract: updatedContract, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (upErr) throw new Error(upErr.message);
+
+    return {
+      contract: updatedContract,
+      eval_cases_created: evalCasesCreated,
+      ci_count: ciCount,
+      uat_count: uatCount,
+      assumptions_filed: assumptionsFiled,
+    };
+  });
+
+/** Tick or untick a "uat" clause's manual checklist item. */
+export const toggleUatChecklistItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({ id: z.string().uuid(), clause_id: z.string().uuid(), checked: z.boolean() })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .select("contract")
+      .eq("id", data.id)
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+
+    const contract = OutcomeContractSchema.partial().parse(prd.contract ?? {});
+    const metrics = contract.success_metrics ?? [];
+    const idx = metrics.findIndex((c) => c.id === data.clause_id);
+    if (idx === -1) throw new Error("Clause not found");
+    if (metrics[idx].oracle_kind !== "uat") throw new Error("Not a UAT checklist clause");
+
+    const nowIso = new Date().toISOString();
+    const updatedMetrics = [...metrics];
+    updatedMetrics[idx] = {
+      ...updatedMetrics[idx],
+      uat_checked: data.checked,
+      uat_checked_at: data.checked ? nowIso : null,
+    };
+
+    const updatedContract = { ...contract, success_metrics: updatedMetrics };
     const { data: updated, error: upErr } = await supabase
       .from("prds")
       .update({ contract: updatedContract, updated_at: nowIso })
