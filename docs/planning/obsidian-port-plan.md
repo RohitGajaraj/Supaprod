@@ -103,7 +103,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Verify:** dev server; toggle reduced motion; grep no new hexes outside
   the token block.
 
-### OBS-02 · The app shell (rail + top bar + keyboard)
+### OBS-02 · The app shell (rail + top bar + keyboard) — ✅ shipped 2026-07-02 (lane1)
 - **Context:** the current shell is parchment with lucide icons; the target is
   `components.md` § Shell + the prototype.
 - **Files:** `src/components/cadence/AppShell.tsx` (or successor),
@@ -121,7 +121,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   the ONLY ember in the chrome is the Today badge (+ active nav index).
 - **Verify:** side-by-side with `obsidian-v3/design-reference/cadence-app.html`.
 
-### OBS-03 · Core primitives (🔨 lane2, 2026-07-02 - library shipped, specimen route deferred)
+### OBS-03 · Core primitives — ✅ shipped 2026-07-02 (lane2, library + specimen route both done)
 - **Files:** `src/components/obsidian/` (Button, StatusDot, VerdictChip,
   MonoLabel, Toast, SlideOver chassis, CallCard, MissionRow, AuroraCard,
   Citation chip, PencilNote) - a NEW folder, parallel to the parchment
@@ -136,11 +136,11 @@ the URLs change) and OBS-14's demo-seed dependency.
   in every state (hover/focus/active/empty/loading/error where applicable).
   The 11 primitives + barrel shipped gate-green (tsc 0, 1889 tests, 5-lens
   adversarial review + verify pass, every confirmed finding fixed). The dev
-  specimen route (the storybook substitute) is deferred: its file conflicts
-  with OBS-02's active shell claim on `src/routes/_authenticated.*.tsx`;
-  ships as a follow-up once that claim releases. Full detail:
-  [`../features/obsidian-port.md`](../features/obsidian-port.md) OBS-03
-  section.
+  specimen route (`src/routes/_authenticated.obsidian-specimen.tsx`) shipped
+  once OBS-02 released the `_authenticated.*.tsx` glob it had conflicted
+  with; renders every primitive in every state (tsc 0, 1892 total tests).
+  Full detail: [`../features/obsidian-port.md`](../features/obsidian-port.md)
+  OBS-02 + OBS-03 sections.
 - **Verify:** grayscale screenshot still reads; tsc + tests.
 
 ### OBS-04 · Today (the ritual)

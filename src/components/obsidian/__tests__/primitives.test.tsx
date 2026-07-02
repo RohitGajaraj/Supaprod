@@ -57,7 +57,11 @@ describe("StatusDot state -> style map", () => {
       glow: "0 0 8px 1px rgba(127,191,142,0.5)",
       animation: null,
     });
-    expect(STATUS_STYLES.queued).toEqual({ color: "var(--text-faint)", glow: null, animation: null });
+    expect(STATUS_STYLES.queued).toEqual({
+      color: "var(--text-faint)",
+      glow: null,
+      animation: null,
+    });
   });
 
   test("gate and waiting share the WAITING ON YOU word; done and shipped share SHIPPED", () => {

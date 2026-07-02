@@ -40,6 +40,7 @@ import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.p
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
+import { Route as AuthenticatedObsidianSpecimenRouteImport } from './routes/_authenticated.obsidian-specimen'
 import { Route as AuthenticatedObserveRouteImport } from './routes/_authenticated.observe'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated.memory'
@@ -273,6 +274,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedObsidianSpecimenRoute =
+  AuthenticatedObsidianSpecimenRouteImport.update({
+    id: '/obsidian-specimen',
+    path: '/obsidian-specimen',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedObserveRoute = AuthenticatedObserveRouteImport.update({
   id: '/observe',
   path: '/observe',
@@ -720,6 +727,7 @@ export interface FileRoutesByFullPath {
   '/memory': typeof AuthenticatedMemoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
+  '/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
@@ -826,6 +834,7 @@ export interface FileRoutesByTo {
   '/memory': typeof AuthenticatedMemoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
+  '/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
@@ -934,6 +943,7 @@ export interface FileRoutesById {
   '/_authenticated/memory': typeof AuthenticatedMemoryRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/observe': typeof AuthenticatedObserveRoute
+  '/_authenticated/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
@@ -1043,6 +1053,7 @@ export interface FileRouteTypes {
     | '/memory'
     | '/notifications'
     | '/observe'
+    | '/obsidian-specimen'
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
@@ -1149,6 +1160,7 @@ export interface FileRouteTypes {
     | '/memory'
     | '/notifications'
     | '/observe'
+    | '/obsidian-specimen'
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
@@ -1256,6 +1268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/memory'
     | '/_authenticated/notifications'
     | '/_authenticated/observe'
+    | '/_authenticated/obsidian-specimen'
     | '/_authenticated/onboarding'
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
@@ -1593,6 +1606,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/obsidian-specimen': {
+      id: '/_authenticated/obsidian-specimen'
+      path: '/obsidian-specimen'
+      fullPath: '/obsidian-specimen'
+      preLoaderRoute: typeof AuthenticatedObsidianSpecimenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/observe': {
@@ -2212,6 +2232,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedObserveRoute: typeof AuthenticatedObserveRoute
+  AuthenticatedObsidianSpecimenRoute: typeof AuthenticatedObsidianSpecimenRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
@@ -2264,6 +2285,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedObserveRoute: AuthenticatedObserveRoute,
+  AuthenticatedObsidianSpecimenRoute: AuthenticatedObsidianSpecimenRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
@@ -2342,13 +2364,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
