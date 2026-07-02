@@ -45,6 +45,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | R3 | Notifications (in-app Attention feed) | ✅ Shipped 2026-06-20 | `/govern?tab=attention` | [`r3-notifications.md`](./r3-notifications.md) |
 | U6 | Workspace data export (data portability) | ◐ Core shipped 2026-06-18 | `/settings?section=data` | [`u6-data-export.md`](./u6-data-export.md) |
 | SUBPROC-DISCLOSURE | Sub-processor disclosure ("Where your data goes") | ◐ Backend + Settings UI shipped 2026-06-20 | `/settings?section=data` | [`subprocessor-disclosure.md`](./subprocessor-disclosure.md) |
+| BRN-02 | "Where your brain lives" card (substrate, ownership, archive/delete/forget, integrity seal) | ✅ Shipped 2026-07-03 (lane 3) | `/settings?section=data` | [`data-substrate.md`](./data-substrate.md) |
 | APP-HEALTH | App-level health/readiness endpoint (uptime monitors / LBs) | ◐ Endpoint shipped 2026-06-20 | `GET /api/public/health` | [`app-health.md`](./app-health.md) |
 | RELIABILITY-SLO | AI-surface SLO / error budget (availability · latency · budget burn) | ◐ Backend + read fn + Missions glance shipped 2026-06-21 (lane 1) | `getReliabilitySlo`; calm glance on the Missions header | [`reliability-slo.md`](./reliability-slo.md) |
 | RUNAWAY-DETECT | Runaway / loop mission detector (the inverse of the stall monitor) | ◐ Detector + read fn + Missions glance + Incidents source shipped 2026-06-21 (lane 1) | `getRunawayMissions`; Missions glance + `runaway` incidents in `/govern?tab=incidents` | [`runaway-detection.md`](./runaway-detection.md) |

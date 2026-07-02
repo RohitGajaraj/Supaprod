@@ -61,6 +61,7 @@ import { getPricingCatalog } from "@/lib/pricing.functions";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { DataExportCard } from "@/components/settings/DataExportCard";
 import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
+import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
 import { HealthCard } from "@/components/settings/HealthCard";
 import { NotificationsTab } from "@/components/settings/NotificationsTab";
 import { RedeemCodeCard } from "@/components/settings/RedeemCodeCard";
@@ -311,6 +312,7 @@ function SettingsPage() {
           {active === "health" && <HealthCard />}
           {active === "data" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <DataSubstrateCard />
               <DataExportCard workspaceId={activeWorkspace?.id} />
               <SubprocessorsCard />
             </div>

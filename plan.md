@@ -283,6 +283,14 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (BRN-02 "Where your brain lives" card shipped, lane3, overnight autonomous build)
+
+Founder started an overnight autonomous run across all four lanes: pick from the ranked dashboard, claim before any code, build, gate, close, roam, never idle. The mechanically-next Tier-1 item was DSN-02 (the Design Critic lens), but its design-memory-consistency half is genuinely blocked on DSN-01, claimed by lane1 only minutes earlier (`design-memory.functions.ts` did not exist on `main` yet). Surfaced that tradeoff, the founder confirmed picking a fully self-contained item instead and then removed the need for further check-ins for the rest of the run, so this and every following pick this session is autonomous.
+
+Picked BRN-02 ("Where your brain lives" card, v12 sec 5.1): a Settings > Data card that names the DB substrate, an ownership statement, the archive/delete/forget model, and the TRUST-VERIFY integrity seal, the answer to a data-custody question that already existed in the codebase but was not legible anywhere in-product. Found the Settings > Data pane already had a `data` `SectionId` with two cards (`DataExportCard`, `SubprocessorsCard`) but nothing naming the substrate or the archive/delete/forget model. Built `DataSubstrateCard.tsx`: mostly-static copy (substrate, ownership, a three-tier archive/delete/forget explainer sourced from `docs/decisions/memory-on-delete.md`) plus one live section reusing the already-shipped `getLedgerSeal` (TRUST-VERIFY) and `shortHead` to show the current integrity fingerprint with a link to `/trust-ledger`, sharing that route's `["ledger-seal"]` query key so the two screens share cache. Zero new server fn, migration, or CallSurface; zero chokepoint touch.
+
+**Gates:** `bunx tsc --noEmit` 0 · `bun test` 2111/2111 pass (no new tests needed; the card composes only already-unit-tested reads). `bun run build` hits the known pre-existing node20-vs-ESM `lovable-tagger` failure in this worktree (unrelated, every prior Obsidian-era item in this lane has hit the same); `tsc` + `bun test` are the real gates here. Dashboard row 33 flipped to ✅, tally recomputed (265/292 = 90.8% strict / 91.4% weighted), SSOT cursor updated. Lane claim released via `lane.sh done BRN-02`. Spec: `docs/features/data-substrate.md`.
+
 ### 2026-07-03 00:50 (CNV-02 The requirement-to-oracle compiler shipped, lane3 — closes the three-item founder pick CNV-01/CNV-04/CNV-02)
 
 Built the v12 CONVENTIONS program's third and final item on this pick. The standing rule from v12 sec 7.2 is stated directly: "a requirement without an oracle is an assumption, and assumptions get watched, not asserted." Every success metric CNV-01/CNV-04 draft was, until this, an unverified claim sitting in a jsonb column — this closes that.
