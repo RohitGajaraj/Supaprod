@@ -13,6 +13,7 @@
  * the PURE core: the registry + station selection + per-outcome ranking, unit-verifiable with
  * no db/network/AI. The server adapter joins it to live runs.
  */
+import type { AgentStation } from "@/lib/agent-vocabulary";
 
 export type PlaybookStation =
   | "discovery"
@@ -209,4 +210,36 @@ export function rankPlaybooksByOutcome(
     validated,
     winRate,
   }));
+}
+
+/**
+ * RF-05: maps the six-phase `AgentStation` mission spine (sense/decide/define/
+ * build/ship/learn, src/lib/agent-vocabulary.ts) to the PM-method
+ * `PlaybookStation` taxonomy above. Only mapped where a station genuinely has
+ * a PM method to pick between: `build`/`ship` are execution/delivery phases
+ * with no playbook to choose, and `learn` is outcome-recording (RF-01/RF-04's
+ * territory), not a pre-work method choice. `positioning`/`validation` stay
+ * reachable via direct `getPlaybooks()`/`recordPlaybookRun()` (manual
+ * application) even though no mission station auto-selects them.
+ */
+export const AGENT_TO_PLAYBOOK_STATION: Partial<Record<AgentStation, PlaybookStation>> = {
+  sense: "discovery",
+  decide: "prioritization",
+  define: "prd",
+};
+
+/**
+ * PURE. The top-ranked playbook for a mission step's `AgentStation`, or null
+ * when that station has no bound `PlaybookStation` (build/ship/learn) or the
+ * station's registry is empty. Ties break by registry order via
+ * `rankPlaybooksByOutcome`'s own stable sort.
+ */
+export function pickPlaybookForAgentStation(
+  agentStation: AgentStation | null | undefined,
+  runs: readonly PlaybookRun[],
+): PlaybookRanking | null {
+  const station = agentStation ? AGENT_TO_PLAYBOOK_STATION[agentStation] : undefined;
+  if (!station) return null;
+  const ranked = rankPlaybooksByOutcome(station, runs);
+  return ranked[0] ?? null;
 }

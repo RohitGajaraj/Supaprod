@@ -32,6 +32,7 @@ import {
 } from "./handoff.server";
 import { recallMemoryRefs } from "./memory.server";
 import { DEFAULT_MAX_ATTEMPTS, nextRetryAtIso, shouldRetryStep } from "./retry";
+import { recordPlaybookRunInternal } from "@/lib/playbooks.functions";
 
 export type MissionLite = {
   id: string;
@@ -51,9 +52,13 @@ type MissionStepRow = {
   run_id: string | null;
   rationale: string | null;
   dispatched_at: string | null;
+  workspace_id: string;
+  user_id: string;
   /** Retry-tracking columns — absent until the P1 migration applies. */
   attempts?: number | null;
   max_attempts?: number | null;
+  /** RF-05: the playbook mission.plan bound to this step, if its station has one. */
+  playbook_id?: string | null;
 };
 
 /** A step claimed (status='dispatched') but left with no run_id this long is
@@ -136,10 +141,24 @@ async function failOrRequeueStep(
       .eq("id", step.id);
     return "retry";
   }
-  await supabase
+  // CAS on the pre-read status — see the "completed" branch above for why:
+  // only the caller that actually wins this transition may record the run.
+  const { data: won } = await supabase
     .from("mission_steps")
     .update({ status: "failed", error: err, completed_at: new Date().toISOString() })
-    .eq("id", step.id);
+    .eq("id", step.id)
+    .eq("status", step.status)
+    .select("id");
+  // RF-05: a station run happened (it ran to a genuine terminal failure, not
+  // a lost dispatch that will retry) — record it so the playbook registry
+  // learns from misses, not just wins.
+  if (won?.length && step.playbook_id) {
+    await recordPlaybookRunInternal(supabase, {
+      userId: step.user_id,
+      workspaceId: step.workspace_id,
+      playbookId: step.playbook_id,
+    });
+  }
   return "failed";
 }
 
@@ -221,14 +240,33 @@ export async function reflectStepStatusFromRuns(
     if (run.status === "running" && row.status !== "running") {
       await supabase.from("mission_steps").update({ status: "running" }).eq("id", row.id);
     } else if (run.status === "completed") {
-      await supabase
+      // CAS on the pre-read status: this function is documented as callable
+      // from both the admin-client sweeper and a user-client `advanceMission`,
+      // so overlapping calls on the same mission are a designed-for scenario.
+      // Before RF-05 a duplicate concurrent UPDATE here was harmless (same
+      // terminal values); RF-05 attaches a non-idempotent playbook_runs INSERT
+      // to this transition, so only the call that actually WINS the status
+      // flip (0 rows if another caller already flipped it) may record it.
+      const { data: won } = await supabase
         .from("mission_steps")
         .update({
           status: "done",
           result: run.output ? { output: run.output } : null,
           completed_at: new Date().toISOString(),
         })
-        .eq("id", row.id);
+        .eq("id", row.id)
+        .eq("status", row.status)
+        .select("id");
+      // RF-05: auto-record the station run so rankPlaybooksByOutcome has a
+      // live track record to rank against (verdict stamping is a separate,
+      // not-yet-wired mechanism — see docs/features/playbook-selection.md).
+      if (won?.length && row.playbook_id) {
+        await recordPlaybookRunInternal(supabase, {
+          userId: row.user_id,
+          workspaceId: row.workspace_id,
+          playbookId: row.playbook_id,
+        });
+      }
     } else if (run.status === "halted" || run.status === "failed") {
       await failOrRequeueStep(
         supabase,

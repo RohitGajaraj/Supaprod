@@ -31,6 +31,7 @@ import {
   resolveStationTotal,
   type AgentStation,
 } from "@/lib/agent-vocabulary";
+import { pickPlaybookForAgentStation, type PlaybookRun } from "@/lib/playbooks/registry";
 
 // Re-export the same helper signature the registry uses.
 function def<S extends z.ZodTypeAny>(d: ToolDef<S>) {
@@ -221,6 +222,24 @@ export const missionPlan = def({
       );
       return near.length === 1 ? near[0].slug : null;
     };
+
+    // RF-05: this workspace's recorded playbook applications, so each step
+    // can bind to the win-rate leader for its station instead of a static
+    // registry default. Best-effort: pre-migration (or a read error) the
+    // table is absent, so the plan still succeeds with every step unbound
+    // (pickPlaybookForAgentStation degrades to registry order on empty runs).
+    let playbookRuns: PlaybookRun[] = [];
+    try {
+      const res = await supabase
+        .from("playbook_runs")
+        .select("playbook_id,verdict")
+        .eq("workspace_id", workspaceId)
+        .limit(5000);
+      if (!res.error) playbookRuns = (res.data ?? []) as PlaybookRun[];
+    } catch {
+      // playbook_runs absent pre-migration — steps simply plan unbound.
+    }
+
     const rows = plan.steps.map((s, i) => {
       const resolved = resolveSlug(s.agent_slug);
       if (!resolved) {
@@ -229,6 +248,7 @@ export const missionPlan = def({
         );
       }
       const deps = (s.depends_on ?? []).filter((d) => Number.isInteger(d) && d >= 0 && d < i);
+      const picked = pickPlaybookForAgentStation(resolveStationTotal(resolved), playbookRuns);
       return {
         mission_id: missionId,
         user_id: userId,
@@ -239,10 +259,29 @@ export const missionPlan = def({
         depends_on: deps,
         rationale: s.rationale ? String(s.rationale).slice(0, 1000) : null,
         status: "planned",
+        playbook_id: picked?.playbook.id ?? null,
       };
     });
 
-    const { error: insErr } = await supabase.from("mission_steps").insert(rows);
+    let insErr = (await supabase.from("mission_steps").insert(rows)).error;
+    // Pre-migration tolerant (the governance.functions.ts listGovernApprovals
+    // precedent, and mission-advance.server.ts's hasRetryColumns): RF-05's
+    // `playbook_id` column may not have landed yet on this deploy (schema
+    // application is decoupled from code deploy). Retry once without it so a
+    // planning mission never hard-fails on a lagging migration. Matches
+    // hasRetryColumns's stricter check (code + a specific message shape), not
+    // a bare column-name substring match, so a genuine unrelated error (e.g.
+    // a future constraint whose name happens to mention playbook_id) is never
+    // masked by silently dropping the field and re-inserting.
+    if (insErr) {
+      const code = (insErr as { code?: string }).code;
+      const missingColumn =
+        code === "42703" || code === "PGRST204" || /column .*playbook_id.* does not exist/i.test(insErr.message);
+      if (missingColumn) {
+        const bare = rows.map(({ playbook_id: _drop, ...r }) => r);
+        insErr = (await supabase.from("mission_steps").insert(bare)).error;
+      }
+    }
     if (insErr) throw new Error(`mission.plan: persist failed — ${insErr.message}`);
 
     return {
@@ -254,6 +293,7 @@ export const missionPlan = def({
         agent_slug: r.agent_slug,
         sub_goal: r.sub_goal,
         depends_on: r.depends_on,
+        playbook_id: r.playbook_id,
       })),
     };
   },

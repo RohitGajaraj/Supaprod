@@ -100,5 +100,43 @@ export const recordPlaybookRun = createServerFn({ method: "POST" })
     return { ok: true, id: ((res.data as { id?: string } | null)?.id as string) ?? null };
   });
 
+/**
+ * RF-05: server-internal counterpart to `recordPlaybookRun`, for the
+ * deterministic mission-advance engine (src/lib/ai/mission-advance.server.ts)
+ * — NOT a createServerFn, since it runs admin-client-side from another
+ * server module, not from an authenticated client request, so `workspace_id`
+ * and `user_id` must be passed explicitly rather than defaulted at the DB
+ * layer (there is no `auth.uid()` under the admin client). Never throws: a
+ * best-effort analytics write must not break the deterministic mission loop.
+ */
+export async function recordPlaybookRunInternal(
+  supabase: SupabaseClient,
+  params: { userId: string; workspaceId: string; playbookId: string; decisionId?: string | null },
+): Promise<void> {
+  const def = findPlaybook(params.playbookId);
+  if (!def) return; // unknown/stale playbook id — silently skip, never break the caller
+  try {
+    const { error } = await supabase.from("playbook_runs").insert({
+      user_id: params.userId,
+      workspace_id: params.workspaceId,
+      playbook_id: def.id,
+      playbook_version: def.version,
+      station: def.station,
+      decision_id: params.decisionId ?? null,
+    });
+    // Supabase-js resolves DB-level failures (RLS denial, missing table
+    // pre-migration, constraint violation) as {error}, it does not throw for
+    // them — so this check is load-bearing, not the catch below. Logged, not
+    // thrown: a best-effort analytics write must not break mission advancement,
+    // but a silently-failing insert forever (e.g. an RLS misconfiguration)
+    // must not be invisible either.
+    if (error) console.error("recordPlaybookRunInternal insert failed:", error.message);
+  } catch (e) {
+    // Genuine thrown exception (e.g. a network-layer failure before the
+    // promise settles) — same non-fatal posture, still logged.
+    console.error("recordPlaybookRunInternal threw:", e);
+  }
+}
+
 /** Re-export the registry for client surfaces that render method detail. */
 export { PLAYBOOK_REGISTRY };

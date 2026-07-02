@@ -4,6 +4,8 @@ import {
   selectPlaybooksForStation,
   findPlaybook,
   rankPlaybooksByOutcome,
+  pickPlaybookForAgentStation,
+  AGENT_TO_PLAYBOOK_STATION,
   type PlaybookRun,
 } from "./registry";
 
@@ -85,5 +87,43 @@ describe("rankPlaybooksByOutcome — per-outcome learning", () => {
   it("never throws on malformed runs", () => {
     const r = rankPlaybooksByOutcome("prd", [null as unknown as PlaybookRun, { playbook_id: "prd-spine" }]);
     expect(r.find((x) => x.playbook.id === "prd-spine")?.runs).toBe(1);
+  });
+});
+
+describe("pickPlaybookForAgentStation — RF-05 mission-plan-time selection", () => {
+  it("maps sense/decide/define to discovery/prioritization/prd", () => {
+    expect(AGENT_TO_PLAYBOOK_STATION.sense).toBe("discovery");
+    expect(AGENT_TO_PLAYBOOK_STATION.decide).toBe("prioritization");
+    expect(AGENT_TO_PLAYBOOK_STATION.define).toBe("prd");
+  });
+
+  it("returns null for stations with no bound playbook (build/ship/learn)", () => {
+    expect(pickPlaybookForAgentStation("build", [])).toBeNull();
+    expect(pickPlaybookForAgentStation("ship", [])).toBeNull();
+    expect(pickPlaybookForAgentStation("learn", [])).toBeNull();
+  });
+
+  it("returns null for an unknown or missing station", () => {
+    expect(pickPlaybookForAgentStation("nope", [])).toBeNull();
+    expect(pickPlaybookForAgentStation(null, [])).toBeNull();
+    expect(pickPlaybookForAgentStation(undefined, [])).toBeNull();
+  });
+
+  it("with no runs, picks the first registry-order playbook for a mapped station", () => {
+    const picked = pickPlaybookForAgentStation("sense", []);
+    expect(picked?.playbook.id).toBe(selectPlaybooksForStation("discovery")[0]!.id);
+    expect(picked?.winRate).toBeNull();
+  });
+
+  it("picks the win-rate leader once a station has a track record", () => {
+    const runs: PlaybookRun[] = [
+      { playbook_id: "discovery-interview", verdict: "validated" },
+      { playbook_id: "discovery-interview", verdict: "validated" },
+      { playbook_id: "jtbd", verdict: "validated" },
+      { playbook_id: "jtbd", verdict: "missed" },
+    ];
+    const picked = pickPlaybookForAgentStation("sense", runs);
+    expect(picked?.playbook.id).toBe("discovery-interview");
+    expect(picked?.winRate).toBe(1);
   });
 });
