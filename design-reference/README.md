@@ -1,7 +1,7 @@
 # design-reference/ — the design of record
 
 This folder holds the **frozen, runnable reference designs** for Cadence. Nothing
-here is production code and none of it is imported by the app — it exists so
+here is production code and none of it is imported by the app; it exists so
 humans and AI builders can see precisely how every screen should look and
 behave before implementing it in `src/`.
 
