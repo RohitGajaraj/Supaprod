@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Target } from "lucide-react";
+import { Target, Sparkles } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { recordOutcome, checkPrdShipped, suggestOutcomeVerdict } from "@/lib/outcome.functions";
 import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
@@ -19,12 +19,25 @@ export type PrdOutcome = {
   new_ice?: number | null;
 };
 
+/** RF-01 — shape of the `prds.outcome_suggestion` jsonb payload written by
+ *  generateOutcomeSuggestion (outcome-tick's second pass). */
+export type PrdOutcomeSuggestion = {
+  verdict: Verdict;
+  summary: string;
+  predicted?: string;
+  metric_label?: string | null;
+  metric_value?: string | null;
+  confidence: number;
+  confidence_tier: "high" | "low";
+};
+
 export type OutcomePrd = {
   id: string;
   status: string;
   github_issue_url?: string | null;
   shipped_at?: string | null;
   outcome?: PrdOutcome | null;
+  outcome_suggestion?: PrdOutcomeSuggestion | null;
 };
 
 type Props = {
@@ -55,6 +68,50 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
   const [metricLabel, setMetricLabel] = useState("");
   const [metricValue, setMetricValue] = useState("");
   const [predicted, setPredicted] = useState<string | null>(null);
+
+  // RF-01 — seed the manual form from an auto-drafted outcome suggestion once
+  // per PRD, so a low-confidence suggestion reads as "already drafted, review
+  // it" instead of forcing the operator to click "Draft with Historian" cold.
+  // `touchedRef` tracks whether the operator has already started editing THIS
+  // prd's form — a suggestion can arrive mid-flight (the hourly cron runs
+  // while the card is open) and must never clobber in-progress typing, so the
+  // seed is skipped once touched, not just once already-seeded.
+  const seededPrdId = useRef<string | null>(null);
+  const touchedRef = useRef<{ prdId: string | null; touched: boolean }>({
+    prdId: null,
+    touched: false,
+  });
+  if (touchedRef.current.prdId !== prd.id) {
+    touchedRef.current = { prdId: prd.id, touched: false };
+  }
+  const markTouched = () => {
+    touchedRef.current.touched = true;
+  };
+  useEffect(() => {
+    const s = prd.outcome_suggestion;
+    if (!s || prd.outcome) return;
+    if (seededPrdId.current === prd.id) return;
+    if (touchedRef.current.prdId === prd.id && touchedRef.current.touched) return;
+    seededPrdId.current = prd.id;
+    setVerdict(s.verdict);
+    setSummary(s.summary);
+    setMetricLabel(s.metric_label ?? "");
+    setMetricValue(s.metric_value ?? "");
+    setPredicted(s.predicted ?? null);
+  }, [prd.id, prd.outcome, prd.outcome_suggestion]);
+
+  const onOutcomeRecorded = (r: Awaited<ReturnType<typeof fRecord>>) => {
+    if (r.opportunity) {
+      toast.success(
+        `Opportunity re-scored: ${Number(r.opportunity.prior_ice).toFixed(1)} → ${Number(
+          r.opportunity.new_ice,
+        ).toFixed(1)}`,
+      );
+    }
+    qc.invalidateQueries({ queryKey: invalidateKey });
+    qc.invalidateQueries({ queryKey: ["learnings"] });
+    qc.invalidateQueries({ queryKey: ["opportunities"] });
+  };
 
   const check = useMutation({
     mutationFn: () => fCheck({ data: { prdId: prd.id } }),
@@ -91,16 +148,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
     },
     onSuccess: (r) => {
       toast.success("Learning recorded");
-      if (r.opportunity) {
-        toast.success(
-          `Opportunity re-scored: ${Number(r.opportunity.prior_ice).toFixed(1)} → ${Number(
-            r.opportunity.new_ice,
-          ).toFixed(1)}`,
-        );
-      }
-      qc.invalidateQueries({ queryKey: invalidateKey });
-      qc.invalidateQueries({ queryKey: ["learnings"] });
-      qc.invalidateQueries({ queryKey: ["opportunities"] });
+      onOutcomeRecorded(r);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -143,6 +191,18 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
         <RecordedOutcome outcome={outcome} />
       ) : shipped ? (
         <div className="space-y-3">
+          {prd.outcome_suggestion && (
+            // "Confirm outcome" fires the SAME record mutation as the manual
+            // form below (reads current verdict/summary/metric state, not the
+            // raw suggestion object) — so an edit made before confirming is
+            // never silently dropped in favor of the original draft.
+            <OutcomeSuggestionBanner
+              suggestion={prd.outcome_suggestion}
+              onConfirm={() => record.mutate()}
+              confirming={record.isPending}
+              disabled={!verdict || !summary.trim()}
+            />
+          )}
           <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] text-muted-foreground">
               Score this bet against what you predicted.
@@ -163,7 +223,14 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
           )}
           <div className="flex items-center gap-2">
             {VERDICT_ORDER.map((v) => (
-              <button key={v} onClick={() => setVerdict(v)} title={`Record as ${v}`}>
+              <button
+                key={v}
+                onClick={() => {
+                  markTouched();
+                  setVerdict(v);
+                }}
+                title={`Record as ${v}`}
+              >
                 <VerdictChip
                   tone={VERDICT_TONES[v]}
                   selected={verdict === v}
@@ -176,20 +243,29 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
           </div>
           <textarea
             value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            onChange={(e) => {
+              markTouched();
+              setSummary(e.target.value);
+            }}
             placeholder="What actually happened?"
             className="w-full min-h-[80px] rounded-md border hairline bg-background px-3 py-2 text-sm outline-none focus:border-foreground resize-y"
           />
           <div className="flex flex-wrap gap-2">
             <input
               value={metricLabel}
-              onChange={(e) => setMetricLabel(e.target.value)}
+              onChange={(e) => {
+                markTouched();
+                setMetricLabel(e.target.value);
+              }}
               placeholder="Metric label (optional)"
               className="flex-1 min-w-[160px] rounded-md border hairline bg-background px-3 py-1.5 text-xs outline-none focus:border-foreground"
             />
             <input
               value={metricValue}
-              onChange={(e) => setMetricValue(e.target.value)}
+              onChange={(e) => {
+                markTouched();
+                setMetricValue(e.target.value);
+              }}
               placeholder="Metric value (optional)"
               className="flex-1 min-w-[160px] rounded-md border hairline bg-background px-3 py-1.5 text-xs outline-none focus:border-foreground"
             />
@@ -255,6 +331,57 @@ function RecordedOutcome({ outcome }: { outcome: PrdOutcome }) {
             View opportunities
           </Link>
         </p>
+      )}
+    </div>
+  );
+}
+
+/** RF-01 — shows the auto-drafted suggestion (chained from outcome-tick +
+ *  the Historian + SEN-05 usage deltas + the BYO-P3 changeset join). A
+ *  high-confidence suggestion gets a one-click "Confirm outcome"; a
+ *  low-confidence one is shown for context only — the form beneath it is
+ *  already pre-filled from the same suggestion for the operator to review. */
+function OutcomeSuggestionBanner({
+  suggestion,
+  onConfirm,
+  confirming,
+  disabled,
+}: {
+  suggestion: PrdOutcomeSuggestion;
+  onConfirm: () => void;
+  confirming: boolean;
+  disabled: boolean;
+}) {
+  const highConfidence = suggestion.confidence_tier === "high";
+  return (
+    <div className="rounded-md border hairline bg-background/60 p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5">
+          <Sparkles className="h-3 w-3" />
+          {highConfidence ? "Suggested outcome" : "Suggested — review before recording"}
+        </span>
+        <VerdictChip tone={VERDICT_TONES[suggestion.verdict]}>{suggestion.verdict}</VerdictChip>
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed">{suggestion.summary}</p>
+      {(suggestion.metric_label || suggestion.metric_value) && (
+        <p className="text-xs text-muted-foreground">
+          {suggestion.metric_label ?? "Metric"}
+          {suggestion.metric_value ? (
+            <>
+              : <span className="tabular-nums text-foreground">{suggestion.metric_value}</span>
+            </>
+          ) : null}
+        </p>
+      )}
+      {highConfidence && (
+        <button
+          onClick={onConfirm}
+          disabled={disabled || confirming}
+          className="btn-pill px-3 py-1 text-xs disabled:opacity-50"
+          title="Record this outcome in one click"
+        >
+          {confirming ? "Confirming…" : "Confirm outcome"}
+        </button>
       )}
     </div>
   );

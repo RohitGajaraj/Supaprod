@@ -382,6 +382,91 @@ const HISTORIAN_SYSTEM =
   "'validated' = the bet paid off; 'missed' = it did not; 'mixed' = partial or unclear. " +
   "If the actual is unknown, base the verdict on the available signal and say it is provisional. Be honest, specific, and concise; no preamble.";
 
+export type OutcomeVerdict = "validated" | "missed" | "mixed";
+
+/**
+ * Historian draft core: restates the PREDICTION (the opportunity's problem /
+ * hypothesis / expected ICE) against the ACTUAL signal (a metric and/or
+ * notes) and proposes a verdict + summary. Only drafts — never writes.
+ * Factored out of `suggestOutcomeVerdict` (RF-01) so the same drafting logic
+ * is reusable from a cron context (no live request/session) as well as the
+ * human-triggered "Draft with Historian" button.
+ */
+export async function draftOutcomeVerdict(
+  db: SupabaseClient,
+  userId: string,
+  data: { prdId: string; metricLabel?: string; metricValue?: string; notes?: string },
+): Promise<{ predicted: string; verdict: OutcomeVerdict; summary: string }> {
+  const { data: prd, error: prdErr } = await db
+    .from("prds")
+    .select("id, title, opportunity_id, workspace_id")
+    .eq("id", data.prdId)
+    .single();
+  if (prdErr) throw new Error(prdErr.message);
+
+  // The prediction substrate = the linked opportunity. select("*") keeps this
+  // pre-migration tolerant for the H2 roadmap_outcome/roadmap_measure columns.
+  let opp: Record<string, unknown> | null = null;
+  if (prd.opportunity_id) {
+    const { data: o } = await db
+      .from("opportunities")
+      .select("*")
+      .eq("id", prd.opportunity_id)
+      .maybeSingle();
+    opp = (o as Record<string, unknown> | null) ?? null;
+  }
+
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const predictionParts: string[] = [];
+  if (str(prd.title)) predictionParts.push(`Spec: ${prd.title}.`);
+  if (opp) {
+    if (str(opp.problem)) predictionParts.push(`Problem: ${opp.problem}.`);
+    if (str(opp.hypothesis)) predictionParts.push(`Hypothesis: ${opp.hypothesis}.`);
+    if (str(opp.roadmap_outcome)) predictionParts.push(`Committed outcome: ${opp.roadmap_outcome}.`);
+    if (str(opp.roadmap_measure)) predictionParts.push(`Committed measure: ${opp.roadmap_measure}.`);
+    if (opp.ice_score != null) {
+      predictionParts.push(
+        `Predicted ICE ${Number(opp.ice_score).toFixed(1)} (impact ${opp.impact}, confidence ${opp.confidence}, ease ${opp.ease}).`,
+      );
+    }
+  }
+  const prediction = predictionParts.join(" ") || "No recorded prediction.";
+
+  const actualParts: string[] = [];
+  if (data.metricLabel || data.metricValue) {
+    actualParts.push(`Metric — ${data.metricLabel ?? "value"}: ${data.metricValue ?? "(no value)"}.`);
+  }
+  if (str(data.notes)) actualParts.push(`Operator notes: ${data.notes!.trim()}.`);
+  const actual = actualParts.join(" ") || "No actual result captured yet.";
+
+  const result = await callModel(db as never, userId, {
+    surface: "judge",
+    surface_ref: `historian:outcome:${prd.id}`,
+    model: HISTORIAN_MODEL,
+    responseFormat: "json_object",
+    workspaceId: (prd.workspace_id as string | null) ?? null,
+    messages: [
+      { role: "system", content: HISTORIAN_SYSTEM },
+      { role: "user", content: `PREDICTION:\n${prediction}\n\nACTUAL:\n${actual}` },
+    ],
+  });
+
+  const parsed = (result.json ?? {}) as {
+    predicted?: string;
+    verdict?: string;
+    summary?: string;
+  };
+  const verdict =
+    parsed.verdict === "validated" || parsed.verdict === "missed" || parsed.verdict === "mixed"
+      ? parsed.verdict
+      : ("mixed" as const);
+  return {
+    predicted: (parsed.predicted ?? "").slice(0, 280),
+    verdict,
+    summary: (parsed.summary ?? "").slice(0, 2000),
+  };
+}
+
 export const suggestOutcomeVerdict = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -395,81 +480,8 @@ export const suggestOutcomeVerdict = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const { userId } = context;
     const db = context.supabase as unknown as SupabaseClient;
-
-    const { data: prd, error: prdErr } = await db
-      .from("prds")
-      .select("id, title, opportunity_id, workspace_id")
-      .eq("id", data.prdId)
-      .single();
-    if (prdErr) throw new Error(prdErr.message);
-
-    // The prediction substrate = the linked opportunity. select("*") keeps this
-    // pre-migration tolerant for the H2 roadmap_outcome/roadmap_measure columns.
-    let opp: Record<string, unknown> | null = null;
-    if (prd.opportunity_id) {
-      const { data: o } = await db
-        .from("opportunities")
-        .select("*")
-        .eq("id", prd.opportunity_id)
-        .maybeSingle();
-      opp = (o as Record<string, unknown> | null) ?? null;
-    }
-
-    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
-    const predictionParts: string[] = [];
-    if (str(prd.title)) predictionParts.push(`Spec: ${prd.title}.`);
-    if (opp) {
-      if (str(opp.problem)) predictionParts.push(`Problem: ${opp.problem}.`);
-      if (str(opp.hypothesis)) predictionParts.push(`Hypothesis: ${opp.hypothesis}.`);
-      if (str(opp.roadmap_outcome))
-        predictionParts.push(`Committed outcome: ${opp.roadmap_outcome}.`);
-      if (str(opp.roadmap_measure))
-        predictionParts.push(`Committed measure: ${opp.roadmap_measure}.`);
-      if (opp.ice_score != null) {
-        predictionParts.push(
-          `Predicted ICE ${Number(opp.ice_score).toFixed(1)} (impact ${opp.impact}, confidence ${opp.confidence}, ease ${opp.ease}).`,
-        );
-      }
-    }
-    const prediction = predictionParts.join(" ") || "No recorded prediction.";
-
-    const actualParts: string[] = [];
-    if (data.metricLabel || data.metricValue) {
-      actualParts.push(
-        `Metric — ${data.metricLabel ?? "value"}: ${data.metricValue ?? "(no value)"}.`,
-      );
-    }
-    if (str(data.notes)) actualParts.push(`Operator notes: ${data.notes!.trim()}.`);
-    const actual = actualParts.join(" ") || "No actual result captured yet.";
-
-    const result = await callModel(db as never, userId, {
-      surface: "judge",
-      surface_ref: `historian:outcome:${prd.id}`,
-      model: HISTORIAN_MODEL,
-      responseFormat: "json_object",
-      workspaceId: (prd.workspace_id as string | null) ?? null,
-      messages: [
-        { role: "system", content: HISTORIAN_SYSTEM },
-        { role: "user", content: `PREDICTION:\n${prediction}\n\nACTUAL:\n${actual}` },
-      ],
-    });
-
-    const parsed = (result.json ?? {}) as {
-      predicted?: string;
-      verdict?: string;
-      summary?: string;
-    };
-    const verdict =
-      parsed.verdict === "validated" || parsed.verdict === "missed" || parsed.verdict === "mixed"
-        ? parsed.verdict
-        : ("mixed" as const);
-    return {
-      predicted: (parsed.predicted ?? "").slice(0, 280),
-      verdict,
-      summary: (parsed.summary ?? "").slice(0, 2000),
-    };
+    return draftOutcomeVerdict(db, context.userId, data);
   });
 
 /** Latest 50 learnings, newest first (workspace-scoped via RLS). Each row carries
