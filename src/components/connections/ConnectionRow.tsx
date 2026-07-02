@@ -56,7 +56,7 @@ function ConnectButton({
   );
 }
 
-/** Quiet mono "setup required" — the registry setupHint rides in the title tooltip. */
+/** Quiet mono "coming soon" — the registry setupHint rides in the title tooltip. */
 function SetupRequired({
   hint,
   onConnect,
@@ -80,7 +80,7 @@ function SetupRequired({
         }}
       >
         <StepDot status="planned" />
-        setup required
+        coming soon
       </span>
       <ConnectButton onConnect={onConnect} busy={busy} disabled title={hint} />
     </>

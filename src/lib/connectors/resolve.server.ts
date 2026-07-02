@@ -79,13 +79,15 @@ function admin(): SupabaseClient {
  * member could point a binding at ANOTHER account's connection; resolveProviderAuth
  * loads that connection via the service-role client (RLS off), so it must itself
  * confirm the bound connection's owner belongs to the binding's workspace before
- * materializing the credential. Policy: block only a DEFINITIVELY cross-tenant
- * owner (lookup succeeded, owner not a member); fail OPEN on any lookup error so a
- * transient failure can never break a legitimate integration (the RLS migration is
- * the airtight backstop). Exported for unit testing.
+ * materializing the credential. Policy: fail CLOSED — only an affirmatively
+ * confirmed member (lookup succeeded, owner IS a member) is allowed; a lookup
+ * error is treated the same as "not a member," matching the tier gate's fail-closed
+ * policy above. A transient lookup failure degrades to "credential unavailable"
+ * (the caller's existing fallback chain), never to a materialized cross-tenant
+ * credential. Exported for unit testing.
  */
 export function bindingConnectionAllowed(lookup: { errored: boolean; isMember: boolean }): boolean {
-  if (lookup.errored) return true;
+  if (lookup.errored) return false;
   return lookup.isMember;
 }
 
