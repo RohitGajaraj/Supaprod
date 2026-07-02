@@ -9,18 +9,21 @@ behave before implementing it in `src/`.
 > ## CURRENT: the v3 "Obsidian" system (adopted 2026-07-02)
 >
 > The design contract for ALL authenticated app surfaces is
-> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (repo root). Its committed
-> visual specimen is [`obsidian-specimen.html`](./obsidian-specimen.html)
-> (founder-approved; when in doubt about how something should look, open it).
-> The full handoff package (README + read order, `tokens/*.css` custom
-> properties to copy verbatim, `components.md` anatomies,
-> `implementation-notes.md` behaviors, the runnable six-surface prototype
-> `design-reference/cadence-app.html`, and the Butterfly mark SVGs) lives in
-> the local `Latest Design System - v3/` dump; start at its `README.md`.
+> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (repo root, the law). The full
+> frozen handoff package is committed at [`obsidian-v3/`](./obsidian-v3/):
+> its `README.md` read order, `tokens/*.css` custom properties (copy verbatim),
+> `components.md` anatomies, `implementation-notes.md` behaviors, the Butterfly
+> mark SVGs, and the runnable references (`design-reference/cadence-app.html`
+> six-surface prototype, `design-reference/obsidian-specimen.html` the
+> founder-approved specimen, `design-reference/ui-kit-shell.html`). The agent
+> entry point is the **`cadence-design` skill** (`.claude/skills/cadence-design/`),
+> which every design task invokes first. The founder's design brief and intent
+> live in [`AI_Product_Design_Constitution.md`](./AI_Product_Design_Constitution.md).
 > **Everything below this callout (the parchment prototype, the v2 Platform
 > Design Blueprint, `cadence/tokens.css`) is SUPERSEDED for app surfaces** and
 > kept as the landing-page contract + historical record. Do not port parchment
-> styles to any app surface.
+> styles to any app surface, and do not source design inputs from the
+> superseded material; improve on top of v3 only.
 
 ## Rule for builders (human or AI)
 

@@ -1,18 +1,12 @@
 ---
 version: 3.0 "Obsidian" (design-system lineage: v1 tokens, v2 Ember Editorial parchment, v3 Obsidian dark · distilled from the founder-approved Design Strategy DOCUMENT v4)
 created: 2026-07-02
-updated: 2026-07-02 (repo amendments, see the Amendments section at the end;
-  each clarification is sourced from this package's own tokens and prototype)
 name: cadence-obsidian
 status: THE design contract for the product app (supersedes the Ember Editorial
   parchment system for all authenticated surfaces; the public landing page is
   out of scope and untouched)
-specimen: design-reference/obsidian-v3/design-reference/obsidian-specimen.html
-  (the founder-approved visual specimen, committed in-repo; when in doubt about
-  how something should look, open it. The full frozen handoff package incl.
-  tokens, component anatomies, implementation notes, and the runnable
-  six-surface prototype lives at design-reference/obsidian-v3/; agent entry
-  point is the cadence-design skill)
+specimen: "Cadence Design Strategy.dc.html" (the founder-approved visual
+  specimen; when in doubt about how something should look, open it)
 ---
 
 # Cadence Design v3 · "Obsidian" · Source of truth
@@ -51,9 +45,8 @@ that genuinely needs a human. Three laws answer everything:
   label accent, status pulses.
 - Royal violet #C77DFF: exists ONLY inside the shimmer gradient and the
   working butterfly. Never a standalone accent.
-- Blossom #E5BDDF (depth Fuchsia #C2337E): information. Links, citation
-  chips (superscript). (Focus rings are glacier and selection is ember;
-  see §11 and the tokens. Amended 2026-07-02.)
+- Blossom #E5BDDF (depth Fuchsia #C2337E): information. Links, focus rings,
+  selection, citation chips (superscript).
 - Moss #7FBF8E: outcomes only, positive (validated, shipped, kept).
 - Madder #E06557: outcomes only, negative (missed, failed, killed).
 - Light tints for small mono-caps labels: glacier standard, blush #F3C1C1
@@ -95,10 +88,6 @@ Named families, each with one home; a family never moonlights:
 
 - 4px grid; rhythm 8/12/16/24/40. Radii: 8 controls, 12 cards, 14 panels,
   99 pills. Density: comfortable and compact modes, set once.
-- Interaction states (every control answers the cursor): hover lifts the
-  background one surface step and brightens the hairline; live elements add
-  their role-color glow. Press: ember darkens to its deep #C2571F. Focus:
-  2px glacier outline, offset 2. Selection: ember at 28%.
 - One easing cubic-bezier(0.23, 1, 0.32, 1); durations 140/200/280ms.
 - Only three things move on their own: the live pulse on working agents, step
   progress, and the arrival of something new. Decoration never animates.
@@ -123,13 +112,6 @@ working = royal violet wings + breathing violet halo + slow flutter;
 call waiting = full ember wings + brightest pulsing ember halo.
 Arrival choreography (splash/loading): flies in, four quick wing beats,
 lands, settles to slow two-wing rest. Glow intensity IS the signal.
-
-Iconography (amended 2026-07-02, codifying what the prototype practices):
-there is NO icon set. The nav uses the mono numeral index (01-05), a
-deliberate signature (mono index, not icon soup). The Butterfly is the only
-pictorial element; never redraw it (use assets/). Affordances are unicode
-characters in mono: →, ⌘K, and the middot · as the separator everywhere.
-Status is communicated by 6px glowing dots plus mono-caps words, never icons.
 
 ## 8. Information architecture
 
@@ -218,24 +200,3 @@ Five destinations + summonable AI + one door. Features NEVER add nav items.
 7. Motion and glow only with meaning; one easing; reduced-motion gated.
 8. Every object renders with its canonical anatomy; extend it for everyone.
 9. Obey the restraint budget and pass the grayscale test before shipping.
-
-## Amendments (2026-07-02, repo-side clarifications)
-
-Adopted with the contract; every clarification is resolved FROM this
-package's own files, never from the superseded parchment system:
-
-1. Focus ring is glacier (2px, offset 2) and selection is ember at 28%.
-   Source: this package's `tokens/colors.css` (`--focus-ring`, `--selection`),
-   §11, and the prototype's `:focus-visible` / `::selection` rules. §2's
-   original blossom line briefly claimed focus and selection; the tokens win.
-2. Interaction states codified in §6 (hover lifts one surface step + brighter
-   hairline, press = ember deep, focus = glacier ring). Source: `components.md`
-   button and row anatomies and the prototype's hover/press values.
-3. Iconography law codified in §7 (no icon set; mono numeral index; the
-   Butterfly as the only pictorial element; unicode affordances; dots + words
-   for status). Source: the prototype and `components.md`, which use no icon
-   set anywhere.
-4. The committed home of this system: the contract lives at the repo root
-   (this file, the law); the full frozen handoff package (tokens, anatomies,
-   notes, runnable prototype, specimen) lives at `design-reference/obsidian-v3/`;
-   the agent entry point is the `cadence-design` skill (`.claude/skills/`).
