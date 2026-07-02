@@ -242,3 +242,19 @@ Founder directive: run autonomously overnight, priority order untouched → part
 - **AGT-03** (speculative reversible prep) — dispatched a research agent first: confirmed AGT-02 is NOT a blocker and the write side (staging a prep cache when a contract is drafted) is fully buildable outside the 5 pinned chokepoint files. But the actual latency-overlap benefit the spec describes can only be realized by having `runAgentLoop` (pinned) consult that cache instead of doing its own fresh fetch — without that, a "prep" write-path with no real consumer is closer to busywork than a shipped feature. Judged this not worth a shallow/dishonest partial ship; recommend re-scoping AGT-03 as attended-chokepoint work (same class as AGT-01/AGT-02) rather than autonomously forcing it tonight.
 
 **Long-polling per doctrine** (`ScheduleWakeup`, ~25 min) rather than hard-stopping — other lanes may open new Tier-1/3 rows, or a founder-gated item may get unblocked by a fresh look in the morning.
+
+## 2026-07-03 (03:xx) — Scheduled recheck: DSN-03 closed, board dry again
+
+**276/292 done (94.5% strict / 96.1% weighted) at last recompute.**
+
+Woke from the scheduled long-poll to a formatting-only diff on the DSN-01/DSN-02 files (editor format-on-save, no logic change; committed as a trivial cleanup) and a real code refactor from another lane: AGT-03 (speculative reversible prep) had landed, adding scaffold persistence (`prd_scaffolds`) via `persistScaffold`/`getPersistedScaffold`/`prepareScaffoldSpeculative` in `design-scaffold.functions.ts`. That was a substantive rebase conflict (a real refactor, not a formatting collision) — took the incoming version wholesale since it was a strict superset of my prior DSN-02 code plus the new persistence layer.
+
+**That scaffold-persistence landing directly unblocked DSN-03's own documented remainder.** DSN-03 (flow before screens, lane2) had shipped its flow-generation half earlier this session but explicitly could not wire the "scaffold derives from flow" `artifact_lineage` edge because no scaffold row existed to point an edge at — a genuine, honestly-documented prerequisite gap, not a lane-collision block. With AGT-03's `prd_scaffolds` table now real, re-claimed DSN-03 and closed it: added `recordScaffoldDerivedFromFlow` to `persistScaffold`, writing a second lineage edge (`prd_flow` derived-from `prd_scaffold`) whenever a scaffold is saved and the PRD already has a generated flow. Fires for both the manual generate path and AGT-03's speculative prep path. Non-fatal, matches the existing PRD-to-flow edge's discipline exactly.
+
+Concurrently, lane4 shipped DSN-04 (the design contract rides into Build) in the same rebase window — **the full v12 design leg (DSN-01 through DSN-04) is now closed**, spanning three different lanes across one overnight session.
+
+**Gates:** tsc 0 throughout; `bun test` climbed 2175 → 2197 as concurrent lane tests merged in.
+
+**Board re-scanned exhaustively before long-polling again**, not just taken on `lane.sh next`'s word: every remaining ⬜/◐ row was checked against its own documented remainder. All of them are genuine, already-investigated founder blockers — OBS-PORT/OBS-10/OBS-13/OBS-15 (Obsidian-port remainders, previously closed out to their honest ceiling), JNY-05 (its last 15% needs a registered Slack OAuth connector and a Business-tier write-back ruling this session has no standing to make), SANDBOX/BYO-P5 (founder-gated infra), and the rest (WM-M9, CMD, RF-06/07, AGT-01/02, DSN-05) explicitly Gated. No shallow or forced work taken to manufacture activity.
+
+**Long-polling again** per doctrine.
