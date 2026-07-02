@@ -239,3 +239,8 @@ package's own files, never from the superseded parchment system:
    (this file, the law); the full frozen handoff package (tokens, anatomies,
    notes, runnable prototype, specimen) lives at `design-reference/obsidian-v3/`;
    the agent entry point is the `cadence-design` skill (`.claude/skills/`).
+5. The surfaces the handoff deliberately stubbed (the ⌘K palette UI, the Ask
+   panel, Settings, onboarding, Engine Room room details, chart grammar,
+   density modes, micro-interaction recipes, the empty-state catalog) are
+   specified in `design-reference/obsidian-extensions.md`, composed entirely
+   from this contract's tokens and laws. This contract wins on any conflict.

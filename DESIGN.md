@@ -150,6 +150,8 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 ## Component contracts (must match the prototype)
 
+> **App surfaces: SUPERSEDED.** These parchment component contracts apply to the public landing page and the historical record only. App components follow [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) §9 and `design-reference/obsidian-v3/components.md`.
+
 | Component | Contract |
 |---|---|
 | Approval card | Who wants which tool, in which mission · evidence summary · expiry · consequence-labeled approve/reject · open-mission link |
@@ -167,6 +169,8 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 | Docs | Notion-style: click = preview, double-click = full editor (serif title/body, Push to Signals / Share / Delete / Save·syncs-to-brain). Knowledge opens with the "Company brain" strip |
 
 ## Inline verdict chips — annotate, don't bury (founder ruling 2026-06-12)
+
+> **App surfaces: SUPERSEDED.** The principle (verdicts annotate the row, never buried) carries into v3; the visual spec for app chips is [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) §9 (verdict chips). Below retained for the landing page + history.
 
 The annotation pattern from the founder's design-review reference: small
 mono-caps OUTLINE pills — `KEEP` `CORRECT` `ADD NEXT` — preceding the content
@@ -208,6 +212,8 @@ Where it applies today (and any new surface with a judgment): Critic reviews
 drift findings, review/feedback annotations, brief callouts, rescore deltas.
 
 ## Hand-sketched data marks (founder ruling 2026-06-12)
+
+> **App surfaces: SUPERSEDED.** The human-annotation idea lives on in v3 as pencil annotations (Caveat, max two per screen, [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) §9). Below retained for the landing page + history.
 
 **Every graph of data points — trend lines, sparklines, time-series bars,
 distributions — renders hand-sketched: a pencil-on-paper wobble, never a
@@ -255,6 +261,8 @@ weight never does.
 
 ## How to plan and build (instructions for any AI builder)
 
+> **STOP if you are building an app surface.** Any authenticated-app UI work follows [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (the v3 contract) via the `cadence-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
+
 **Backend, data, and auth come from Lovable, live.** Cadence is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
 
 1. **Read before designing:** this file, then `cadence/tokens.css`, then the
@@ -295,6 +303,8 @@ decoration (the aurora and cooking sweep are the only sanctioned washes).
 ---
 
 ## Production mapping (Project-Cadence-v4)
+
+> **Historical.** This mapping describes the parchment-era app implementation; the app design contract is now [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md). The live parchment tokens in `src/styles.css` remain only until surfaces are ported.
 
 > Appended when the Ember Editorial system was applied to the production app
 > (2026-06-12). The sections above are verbatim from

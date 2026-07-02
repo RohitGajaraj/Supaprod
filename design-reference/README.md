@@ -19,6 +19,10 @@ behave before implementing it in `src/`.
 > entry point is the **`cadence-design` skill** (`.claude/skills/cadence-design/`),
 > which every design task invokes first. The founder's design brief and intent
 > live in [`AI_Product_Design_Constitution.md`](./AI_Product_Design_Constitution.md).
+> The surfaces the handoff stubbed (⌘K palette, Ask panel, Settings, onboarding,
+> Engine Room details, chart grammar, density, micro-interactions, empty states)
+> are specified in [`obsidian-extensions.md`](./obsidian-extensions.md), composed
+> entirely from v3's own tokens and laws.
 > **Everything below this callout (the parchment prototype, the v2 Platform
 > Design Blueprint, `cadence/tokens.css`) is SUPERSEDED for app surfaces** and
 > kept as the landing-page contract + historical record. Do not port parchment

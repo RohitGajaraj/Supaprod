@@ -23,7 +23,11 @@ needs a human. Warm asks, cool works.
    status dots, verdict chips, aurora card, toast, buttons).
 4. [`/design-reference/obsidian-v3/implementation-notes.md`](../../../design-reference/obsidian-v3/implementation-notes.md)
    covers the state model, behaviors, keyboard map, routing suggestion, and a11y requirements.
-5. When in doubt about how anything should LOOK, open the founder-approved specimen
+5. [`/design-reference/obsidian-extensions.md`](../../../design-reference/obsidian-extensions.md)
+   specifies the surfaces the handoff stubbed: the ⌘K palette + capability catalog, the
+   Ask (⌘J) panel, Settings + Admin posture, onboarding, Engine Room room details, chart
+   grammar, micro-interaction recipes, density modes, and the empty-state catalog.
+6. When in doubt about how anything should LOOK, open the founder-approved specimen
    `design-reference/obsidian-v3/design-reference/obsidian-specimen.html` or the runnable
    six-surface prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`
    in a browser.
