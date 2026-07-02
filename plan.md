@@ -294,6 +294,13 @@ Migration `20260702230000_fs03_reach_channel.sql` adds `agent_approvals.expiry_n
 Instant sends stay reserved for exactly the two triggers the doctrine names, wired at their real call sites instead of a new standalone cron: `approvals-tick.ts` (existing, already runs every minute) now emails once when a pending approval is within 60 minutes of `expires_at`; `drift.server.ts`'s `detectIncidents` emails on a newly-opened `severity='critical'` incident. Both deliberately bypass quiet hours (an incident at 2am must still reach you, per the v12 audit's own "mute outside the app" verdict); only the scheduled digest respects them. `routeTree.gen.ts` regenerated via the `@tanstack/router-generator` API directly, diff additive-only.
 
 **Gates:** `bunx tsc --noEmit` 0 new errors (the same 4 pre-existing `stripe` package-missing errors, plus one new excess-property error on `agent_approvals.expiry_notified_at` fixed with the same eslint-disabled `as any` escape hatch `derive-tick.ts` already uses for a column ahead of the generated Supabase types). `bun test`: 2033 tests, 8 new/updated (all pass; `notifications.test.ts` rewritten to assert the preference-gating decision rather than a scaffold's fake "success", since a real send now genuinely no-ops without `RESEND_API_KEY` in any test environment), 0 regressions. Dashboard row 19 flipped to ✅, tally recomputed, `plan.md` updated in the same session. Lane claim released via `lane.sh done FS-03`. Ships dormant (an honest `sent:false` no-op) until the founder sets `RESEND_API_KEY`, matching the credit-engine/BLD-04 built-but-gated pattern.
+### 2026-07-02 23:10 (OBS-13 Settings four panes + Admin door shipped-partial, lane1)
+
+Rewrote `settings-sections.ts` to the four-pane model (You/Workspace/Connections/Plan, dropping the recessed Advanced fold); every `SectionId` and deep-link preserved. Re-skinned Settings' outer chrome to a quiet mono left index. Added the density toggle (`use-density.ts`), an Admin door gated on `amIAdmin`, and pulled `WorkspaceBindingsSection` (from `/sync`) into Connections as the "This workspace's" shelf, closing the three-places-to-connect gap. `ConnectionRow.tsx` and the Admin layout (`_authenticated.admin.tsx`) both re-skinned with zero lucide.
+
+Deliberately deferred, per this spec's own explicit allowance: the full §8 connection-card status anatomy (still uses the prior `StepDot`, not Obsidian's glowing `StatusDot`), the 7 admin sub-page bodies' own content (chrome-only pass), and the Plan pane's Billing/Credits card re-skin. Marked `◐ [~70%]`, not done.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 2056/2056 pass. Claim released.
 
 ### 2026-07-02 22:40 (OBS-12 Ask Cmd+J summonable panel shipped, lane1)
 

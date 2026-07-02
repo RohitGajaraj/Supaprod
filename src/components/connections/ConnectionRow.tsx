@@ -1,7 +1,31 @@
-import type { LucideIcon } from "lucide-react";
-import { Trash2, X } from "lucide-react";
 import { StepDot } from "@/components/cadence/Primitives";
 import type { ConnectionRow as AccountConnection } from "@/lib/connections.functions";
+
+// OBS-13 - the provider monogram tile: a mono initial on `--raised`, no
+// lucide icon set (iconography law). Kept local since this is the one
+// consumer that needs a from-label glyph.
+function Monogram({ label }: { label: string }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        width: 32,
+        height: 32,
+        borderRadius: "var(--radius-control)",
+        background: "var(--raised)",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--text-subtle)",
+        fontFamily: "var(--font-ui)",
+        fontSize: 13,
+        fontWeight: 600,
+        flexShrink: 0,
+      }}
+    >
+      {label.charAt(0).toUpperCase()}
+    </span>
+  );
+}
 
 // F-CONN Phase 2 — one quiet list row per provider inside the "Connected
 // accounts" group on Settings. Restyled quiet-Ember for screen 5 wave B
@@ -192,16 +216,15 @@ function ConnectionStatus({
         disabled={busy}
         title="Remove connection and its workspace bindings"
         aria-label="Remove connection"
-        style={{ color: "var(--rose)", padding: "4px 6px" }}
+        style={{ color: "var(--rose)", padding: "4px 6px", fontSize: 11 }}
       >
-        <Trash2 size={13} strokeWidth={1.75} />
+        Remove
       </button>
     </>
   );
 }
 
 export function ConnectionRow({
-  icon: Icon,
   label,
   description,
   configured,
@@ -216,7 +239,8 @@ export function ConnectionRow({
   onDisconnectAccount,
   onDetails,
 }: {
-  icon: LucideIcon;
+  /** Accepted for caller compatibility; OBS-13 replaced the lucide tile with a monogram (see Monogram above), so this is no longer rendered. */
+  icon?: unknown;
   label: string;
   description: string;
   configured: boolean;
@@ -241,21 +265,7 @@ export function ConnectionRow({
   return (
     <div style={configured ? undefined : { opacity: 0.6 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0" }}>
-        <span
-          style={{
-            display: "inline-flex",
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            background: "var(--soft-stone)",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--ink-subtle)",
-            flexShrink: 0,
-          }}
-        >
-          <Icon size={15} strokeWidth={1.75} />
-        </span>
+        <Monogram label={label} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>{label}</div>
           <div
@@ -342,9 +352,9 @@ export function ConnectionRow({
                 disabled={busy}
                 title="Disconnect this account"
                 aria-label="Disconnect this account"
-                style={{ padding: "2px 5px" }}
+                style={{ padding: "2px 5px", fontSize: 11 }}
               >
-                <X size={12} strokeWidth={1.75} />
+                ×
               </button>
             </div>
           ))}

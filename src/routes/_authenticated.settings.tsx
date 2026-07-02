@@ -12,15 +12,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
-import { Compass, SlidersHorizontal, Trash2 } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
-import {
-  MonoLabel,
-  StepDot,
-  SubTabs,
-  SurfaceHeader,
-  TabRow,
-} from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
+import { useDensity } from "@/hooks/use-density";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
@@ -43,6 +38,7 @@ import {
   AccountConnectionsSection,
   ConnectorDetail,
 } from "@/components/connections/AccountConnectionsSection";
+import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import { getBillingState, type BillingState } from "@/lib/billing.functions";
 import {
@@ -54,6 +50,7 @@ import {
   getCreditAttribution,
 } from "@/lib/payments.functions";
 import { planPresentation, type PlanTier } from "@/lib/entitlements";
+import { amIAdmin } from "@/lib/pricing.functions";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/billing/PaymentTestModeBanner";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -126,6 +123,108 @@ export const Route = createFileRoute("/_authenticated/settings")({
   ),
 });
 
+// OBS-13 - the quiet left index (mono 01-04 + label), the Settings nav
+// anatomy: a column inside the content area, NOT a second rail. Active row
+// bg #1A1A1E + ember index, per the OBS-02 nav anatomy this mirrors.
+function SettingsIndex({
+  activeGroup,
+  onSet,
+}: {
+  activeGroup: GroupId;
+  onSet: (id: GroupId) => void;
+}) {
+  return (
+    <div className="flex flex-col" style={{ gap: 2, width: 168, flexShrink: 0 }}>
+      {PRIMARY_GROUPS.map((g, i) => {
+        const isActive = g.id === activeGroup;
+        return (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => onSet(g.id)}
+            className="flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              gap: 10,
+              padding: "8px 10px",
+              borderRadius: "var(--radius-control)",
+              background: isActive ? "#1A1A1E" : "transparent",
+              textAlign: "left",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                color: isActive ? "var(--ember)" : "var(--text-faint)",
+              }}
+            >
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 13,
+                color: isActive ? "var(--text-primary)" : "var(--text-body)",
+              }}
+            >
+              {g.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DensityToggle() {
+  const [density, setDensity] = useDensity();
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <ObsidianMonoLabel tone="glacier">Density</ObsidianMonoLabel>
+      <div className="flex items-center" style={{ gap: 6, marginTop: 8 }}>
+        {(["comfortable", "compact"] as const).map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDensity(d)}
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: 12.5,
+              padding: "6px 12px",
+              borderRadius: "var(--radius-control)",
+              border: "1px solid var(--hairline)",
+              background: density === d ? "var(--raised)" : "transparent",
+              color: density === d ? "var(--text-primary)" : "var(--text-subtle)",
+              textTransform: "capitalize",
+            }}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
+        Compact drops one row of breathing room · type stays the same
+      </p>
+    </div>
+  );
+}
+
+function AdminDoor() {
+  const fAmIAdmin = useServerFn(amIAdmin);
+  const q = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fAmIAdmin() });
+  if (!q.data?.isAdmin) return null;
+  return (
+    <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
+      <ObsidianButton variant="quiet" onClick={() => (window.location.href = "/admin")}>
+        Admin console →
+      </ObsidianButton>
+      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
+        Members, roles, audit, and billing for the whole workspace
+      </p>
+    </div>
+  );
+}
+
 function SettingsPage() {
   const { section, connector, checkout } = Route.useSearch();
   const active = normalizeSection(section);
@@ -134,108 +233,89 @@ function SettingsPage() {
   const { activeWorkspace, activeProduct } = useWorkspace();
   const setTab = (id: string) => navigate({ search: { section: id } });
 
-  // Tier-1 grouping (SETTINGS-SEGREGATE): which group owns the active section,
-  // its member sections (for the tier-2 sub-row), and a group-click handler that
-  // lands on the group's primary section. The ?section= id stays the routing key.
+  // Pane grouping (SETTINGS-SEGREGATE / OBS-13): which pane owns the active
+  // section, its member sections (for the tier-2 sub-row), and a pane-click
+  // handler that lands on the pane's primary section. The ?section= id stays
+  // the routing key.
   const activeGroup = groupForSection(active);
   const groupMembers = findGroup(activeGroup)?.sections ?? [];
-  const setGroup = (gid: string) =>
-    navigate({ search: { section: primarySection(gid as GroupId) } });
+  const setGroup = (gid: GroupId) => navigate({ search: { section: primarySection(gid) } });
 
   const workspaceName = activeWorkspace?.name;
-  const sub = workspaceName
-    ? `${workspaceName}${activeProduct?.name ? ` · ${activeProduct.name}` : ""}. Connectors, models, and staff config.`
-    : "Connectors, models, and staff config.";
 
   return (
     <>
       <TopBar crumbs={[workspaceName ?? "Workspace", "Settings"]} />
       <div
         data-screen-label="Settings"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
+        className="flex"
+        style={{ padding: "36px 32px 64px", maxWidth: 960, margin: "0 auto", gap: 40 }}
       >
-        <SurfaceHeader kicker="Workspace" icon={SlidersHorizontal} title="Settings" sub={sub} />
+        <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
 
-        {/* Tier 1: 5 calm groups + one recessed Advanced door (SETTINGS-SEGREGATE
-            #13). The group tabs carry a one-line description; Advanced sits off to
-            the right, quiet, since it is diagnostics rather than daily settings. */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <TabRow
-              tabs={PRIMARY_GROUPS.map((g) => ({ id: g.id, label: g.label }))}
-              active={activeGroup}
-              onSet={setGroup}
-              desc={Object.fromEntries(PRIMARY_GROUPS.map((g) => [g.id, g.desc]))}
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 720 }}>
+          {/* Tier 2: the active pane's member sections — only shown when the pane
+              holds more than one section (single-section panes need no sub-row). */}
+          {groupMembers.length > 1 ? (
+            <div className="flex flex-wrap" style={{ gap: 4, marginBottom: 20 }}>
+              {groupMembers.map((s) => {
+                const isActive = s.id === active;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setTab(s.id)}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      padding: "5px 10px",
+                      borderRadius: "var(--radius-control)",
+                      background: isActive ? "var(--raised)" : "transparent",
+                      color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {active === "connections" && (
+            <ConnectionsTab
+              connector={activeConnector}
+              onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
+              onCloseDetail={() => navigate({ search: { section: "connections" } })}
             />
-          </div>
-          {RECESSED_GROUPS.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => setGroup(g.id)}
-              className="mono-label"
-              title={g.desc}
-              style={{
-                padding: "6px 12px",
-                marginTop: 4,
-                borderRadius: 99,
-                fontSize: 9.5,
-                whiteSpace: "nowrap",
-                color: activeGroup === g.id ? "var(--canvas)" : "var(--ink-faint)",
-                background: activeGroup === g.id ? "var(--primary-ink)" : "transparent",
-                border: `1px solid ${activeGroup === g.id ? "transparent" : "var(--hairline)"}`,
-                transition: "background var(--dur-fast), color var(--dur-fast)",
-              }}
-            >
-              {g.label}
-            </button>
-          ))}
+          )}
+          {active === "ai" && <ModelsTab />}
+          {active === "staff" && <StaffTab />}
+          {active === "workspace" && (
+            <>
+              <WorkspaceTab scrollToBrief={section === "brief"} />
+              <AdminDoor />
+            </>
+          )}
+          {active === "billing" && <BillingTab checkout={checkout} />}
+          {active === "credits" && <CreditsTab />}
+          {active === "interop" && <IntegrationsTab />}
+          {active === "profile" && (
+            <>
+              <ProfileTab />
+              <DensityToggle />
+            </>
+          )}
+          {active === "notifications" && <NotificationsTab />}
+          {active === "health" && <HealthCard />}
+          {active === "data" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <DataExportCard workspaceId={activeWorkspace?.id} />
+              <SubprocessorsCard />
+            </div>
+          )}
         </div>
-
-        {/* Tier 2: the active group's member sections — only shown when the group
-            holds more than one section (single-section groups need no sub-row). */}
-        {groupMembers.length > 1 ? (
-          <div style={{ marginTop: 4, marginBottom: 6 }}>
-            <SubTabs
-              tabs={groupMembers.map((s) => s.label)}
-              active={sectionLabel(active)}
-              onSet={(label) => {
-                const match = groupMembers.find((s) => s.label === label);
-                if (match) setTab(match.id);
-              }}
-            />
-          </div>
-        ) : null}
-
-        {active === "connections" && (
-          <ConnectionsTab
-            connector={activeConnector}
-            onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
-            onCloseDetail={() => navigate({ search: { section: "connections" } })}
-          />
-        )}
-        {active === "ai" && <ModelsTab />}
-        {active === "staff" && <StaffTab />}
-        {active === "workspace" && <WorkspaceTab scrollToBrief={section === "brief"} />}
-        {active === "billing" && <BillingTab checkout={checkout} />}
-        {active === "credits" && <CreditsTab />}
-        {active === "interop" && <IntegrationsTab />}
-        {active === "profile" && <ProfileTab />}
-        {active === "notifications" && <NotificationsTab />}
-        {active === "health" && <HealthCard />}
-        {active === "data" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <DataExportCard workspaceId={activeWorkspace?.id} />
-            <SubprocessorsCard />
-          </div>
-        )}
       </div>
     </>
   );
@@ -1127,7 +1207,17 @@ function ConnectionsTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <ObsidianMonoLabel tone="glacier">Yours</ObsidianMonoLabel>
       <AccountConnectionsSection onOpenDetail={onOpenDetail} />
+
+      {/* OBS-13: Connections is the only integrations home — the workspace-level
+          bindings shelf lifted in from /sync (until OBS-10 folds that route). */}
+      <div style={{ marginTop: 8 }}>
+        <ObsidianMonoLabel tone="glacier">This workspace's</ObsidianMonoLabel>
+        <div style={{ marginTop: 8 }}>
+          <WorkspaceBindingsSection />
+        </div>
+      </div>
 
       <div>
         <MonoLabel style={{ marginBottom: 4 }}>Workspace tool sync</MonoLabel>
@@ -1537,11 +1627,11 @@ function ByoKeysSection() {
               <button
                 className="btn btn-ghost btn-sm"
                 aria-label="Remove key"
-                style={{ color: "var(--rose)" }}
+                style={{ color: "var(--rose)", fontFamily: "var(--font-mono)", fontSize: 11 }}
                 disabled={mDelKey.isPending && mDelKey.variables === k.id}
                 onClick={() => mDelKey.mutate(k.id)}
               >
-                <Trash2 size={13} strokeWidth={1.75} />
+                Remove
               </button>
             </div>
           ))
@@ -1920,7 +2010,7 @@ function WorkspaceBriefSection({
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
         <div style={{ flex: 1 }}>
-          <MonoLabel icon={Compass} style={{ marginBottom: 4 }}>
+          <MonoLabel style={{ marginBottom: 4 }}>
             Strategic brief
             {activeWorkspace?.name ? ` · ${activeWorkspace.name}` : ""}
           </MonoLabel>

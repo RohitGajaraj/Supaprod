@@ -2,13 +2,19 @@
  * Admin layout. Gated by `has_role(auth.uid(),'admin')`. Non-admins see a
  * locked card with a one-time "claim admin" button that only succeeds when
  * the user_roles table has zero admins (the bootstrap path).
+ *
+ * OBS-13 - re-skinned to the room pattern (a role-gated door reached only
+ * from the Settings > Workspace pane, never a nav item): the question-style
+ * header, mono sub-tabs with an underline as the active signal, no lucide.
+ * The 7 sub-page bodies keep their existing data/logic unchanged; only this
+ * layout's chrome + labels change (Engine-Room Test: Observability -> Health,
+ * AI Costs -> Spend; Pricing/People/Workspaces/Platform/Proof already read
+ * as plain-words answers to "what does this room show").
  */
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Shield } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
-import { SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
 import { toast } from "@/lib/notify";
 
@@ -23,66 +29,75 @@ const TABS = [
   { id: "/admin/people", label: "People" },
   { id: "/admin/workspaces", label: "Workspaces" },
   { id: "/admin/platform", label: "Platform" },
-  { id: "/admin/observability", label: "Observability" },
-  { id: "/admin/ai-costs", label: "AI Costs" },
+  { id: "/admin/observability", label: "Health" },
+  { id: "/admin/ai-costs", label: "Spend" },
   { id: "/admin/proof", label: "Proof" },
 ] as const;
+
+function activeTabId(pathname: string): (typeof TABS)[number]["id"] {
+  const match = TABS.find((t) => t.id !== "/admin" && pathname.startsWith(t.id));
+  return match?.id ?? "/admin";
+}
 
 function AdminLayout() {
   const fAmI = useServerFn(amIAdmin);
   const me = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fAmI() });
   const loc = useLocation();
   const navigate = useNavigate();
+  const active = activeTabId(loc.pathname);
 
   return (
     <>
       <TopBar crumbs={["Admin"]} />
-      <div style={{ padding: "30px 44px 56px", maxWidth: 1100, margin: "0 auto" }}>
-        <SurfaceHeader
-          kicker="Operator"
-          icon={Shield}
-          title="Admin"
-          sub="Manage the credits engine, pricing catalog, and admin access."
-        />
+      <div style={{ padding: "36px 32px 64px", maxWidth: 1100, margin: "0 auto" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontWeight: 460,
+            fontSize: 20,
+            lineHeight: 1.3,
+            color: "var(--text-primary)",
+            marginBottom: 20,
+          }}
+        >
+          Who runs this workspace, and what is it costing?
+        </p>
         {me.isLoading ? (
-          <div className="bento" style={{ padding: 18, marginTop: 18 }}>
-            Checking access…
-          </div>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-faint)" }}>
+            reading…
+          </p>
         ) : me.data?.isAdmin ? (
           <>
-            <TabRow
-              tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
-              active={
-                loc.pathname.startsWith("/admin/people")
-                  ? "/admin/people"
-                  : loc.pathname.startsWith("/admin/workspaces")
-                    ? "/admin/workspaces"
-                    : loc.pathname.startsWith("/admin/platform")
-                      ? "/admin/platform"
-                      : loc.pathname.startsWith("/admin/observability")
-                        ? "/admin/observability"
-                        : loc.pathname.startsWith("/admin/ai-costs")
-                          ? "/admin/ai-costs"
-                          : loc.pathname.startsWith("/admin/proof")
-                            ? "/admin/proof"
-                            : loc.pathname === "/admin/pricing"
-                              ? "/admin/pricing"
-                              : "/admin"
-              }
-              onSet={(id) =>
-                navigate({
-                  to: id as
-                    | "/admin"
-                    | "/admin/pricing"
-                    | "/admin/people"
-                    | "/admin/workspaces"
-                    | "/admin/platform"
-                    | "/admin/observability"
-                    | "/admin/ai-costs"
-                    | "/admin/proof",
-                })
-              }
-            />
+            <div
+              className="flex flex-wrap"
+              style={{ gap: 4, borderBottom: "1px solid var(--hairline)", marginBottom: 20 }}
+            >
+              {TABS.map((t) => {
+                const isActive = t.id === active;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => navigate({ to: t.id })}
+                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9.5,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      padding: "8px 12px",
+                      color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                      borderBottom: isActive
+                        ? "2px solid var(--glacier)"
+                        : "2px solid transparent",
+                      marginBottom: -1,
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
             <Outlet />
           </>
         ) : (
@@ -110,25 +125,44 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
   });
 
   return (
-    <div className="bento" style={{ padding: 22, marginTop: 18, display: "grid", gap: 12 }}>
-      <div className="font-display" style={{ fontSize: 20 }}>
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "20px 22px",
+        display: "grid",
+        gap: 12,
+      }}
+    >
+      <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "var(--text-primary)" }}>
         Admin access required
       </div>
-      <p style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
-        The admin console manages the credits engine, plan and top-up catalog, and the admin list
-        itself. Ask a current admin to grant you access.
+      <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, maxWidth: 520 }}>
+        The admin console manages members, roles, audit, and workspace billing. Ask a current
+        admin to grant you access.
       </p>
       {!anyAdminExists ? (
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div className="flex items-center" style={{ gap: 10 }}>
           <button
-            className="btn btn-primary btn-sm"
+            type="button"
             disabled={claim.isPending}
             onClick={() => claim.mutate()}
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: 13,
+              fontWeight: 600,
+              padding: "9px 18px",
+              borderRadius: "var(--radius-control)",
+              background: "var(--ember)",
+              color: "var(--cta-ink, #0A0A0B)",
+              border: "none",
+            }}
           >
-            {claim.isPending ? "Claiming…" : "Claim admin · one-time bootstrap"}
+            {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </button>
-          <span style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)" }}>
-            No admin exists yet. Whoever clicks first becomes the first admin.
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-faint)" }}>
+            No admin exists yet. Whoever claims first becomes the first admin.
           </span>
         </div>
       ) : null}

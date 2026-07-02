@@ -387,4 +387,37 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
+## OBS-13 · Settings four panes + role-gated Admin door (◐ shipped-partial, 2026-07-02, lane1)
+
+**What shipped:** `src/lib/settings-sections.ts` rewritten from 5 groups + one recessed Advanced group to exactly four panes (`you` / `workspace` / `connections` / `plan`), per the Obsidian four-pane law (no recessed fold). Every original `SectionId` and the `?section=` deep-link contract, including the legacy `brief`/`calendar` aliases, are preserved byte-identical - `health` and `data` (formerly Advanced) now live in You; `ai` (AI & keys) moved into Workspace. `settings-sections.test.ts` rewritten for the four-pane invariants (18 tests).
+
+`_authenticated.settings.tsx`'s outer chrome re-skinned: a quiet left index inside the content column (mono `01`-`04` + label, active row `#1A1A1E` + ember index) replaces the parchment `TabRow` + recessed pill, with zero lucide in this route's chrome. Two small deep-inline lucide usages (a `Trash2` delete-key button, a `Compass` brief-label icon) were swapped for mono text/no-icon, since removing them didn't require touching the surrounding tab bodies.
+
+**New:** `src/hooks/use-density.ts` - the You-pane density toggle (Comfortable/Compact), writes `data-density` on the `[data-obsidian]` root and persists to `localStorage`, no server call. An `AdminDoor` component on the Workspace pane, gated by `useQuery(["am-i-admin"])`, rendering a quiet "Admin console →" link only when `amIAdmin` returns true.
+
+**Connections pane** now renders both shelves the spec calls for: **Yours** (`AccountConnectionsSection`, unchanged) and **This workspace's** (`WorkspaceBindingsSection`, lifted directly in from `/sync` - the spec's own explicit fallback for when OBS-10 hasn't folded that route yet, which it hasn't). `ConnectionRow.tsx` had its lucide icon tile replaced with a mono monogram and its `Trash2`/`X` icon buttons replaced with plain mono text ("Remove" / "×").
+
+`_authenticated.admin.tsx` re-skinned to the room pattern: a Newsreader question header ("Who runs this workspace, and what is it costing?"), mono sub-tabs with a glacier underline as the active signal (no lucide `Shield`, no parchment `SurfaceHeader`/`TabRow`), and 2 of 8 tab labels renamed to pass the Engine-Room Test (Observability → Health, AI Costs → Spend; Pricing/People/Workspaces/Platform/Proof already read as plain-words answers). The `amIAdmin` gate and the one-time bootstrap `NoAccessCard` are unchanged in logic, re-skinned to Obsidian tokens.
+
+**Deliberately NOT done, `[~30%]` remaining - each explicitly permitted to defer by this spec's own §13 risk note ("deep per-room redraw can ride the same pass if time allows, else note the remainder"):**
+
+- **The full §8 connection-card anatomy.** `ConnectionRow` still renders its prior parchment `StepDot` status indicator, not the Obsidian glowing `StatusDot` (moss/marigold/madder) plus the `SCOPE · OWNER · LAST SYNC · PERMISSIONS` mono metadata line the spec's card anatomy calls for. The row's data and every action (Connect/Verify/Disconnect/Remove, the calendar multi-account sub-rows) work exactly as before; only the visual anatomy is not yet a full match.
+- **The 7 admin sub-page bodies** (`admin.pricing`, `.people`, `.workspaces`, `.platform`, `.observability`, `.ai-costs`, `.proof`) keep their existing parchment-styled content untouched - per the spec's own explicit boundary ("No new admin capabilities... only their chrome and labels change"), and this pass only reached the shared layout, not each sub-page's own body.
+- **The Plan pane** (`BillingTab`/`CreditsTab`) is not re-skinned to Obsidian cards; it renders its existing content as-is inside the new pane layout.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout - this worktree hits the known node20/ESM `lovable-tagger` failure, confirmed again this session), open `/settings`.
+2. Confirm the left index shows exactly `01 You` / `02 Workspace` / `03 Connections` / `04 Plan`, and every legacy `?section=` value (including `brief`, `calendar`) still lands on its original content.
+3. In You, toggle density and reload - confirm it persists and the `[data-obsidian]` root's `data-density` attribute changes.
+4. In Workspace, confirm the "Admin console →" link is absent for a non-admin account and present (opening the re-skinned `/admin`) for an admin account.
+5. In Connections, confirm both "Yours" and "This workspace's" shelves render with their real data.
+6. Open `/admin` as an admin: confirm the question header, mono sub-tabs with the Health/Spend renamed labels, and that switching tabs still loads each sub-page's existing content.
+
+**Test-coverage note:** the Admin-door visibility logic (`if (!q.data?.isAdmin) return null`) and the density toggle's DOM/localStorage writes are not render-tested - this repo has no jsdom/React-Testing-Library dependency, the same constraint every other Obsidian component here documents. The pure grouping model (`settings-sections.ts`) has full coverage.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 2056/2056 pass (18 rewritten cases in `settings-sections.test.ts`) · humanized-output clean on every new/touched line · lucide grep clean on `_authenticated.settings.tsx`, `_authenticated.admin.tsx`, and `ConnectionRow.tsx`.
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

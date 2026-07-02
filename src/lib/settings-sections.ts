@@ -1,19 +1,15 @@
 /**
- * SETTINGS-SEGREGATE (v11 #13) — the pure grouping model for the Settings surface.
+ * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 - the pure grouping model for the
+ * Settings surface. OBS-13 collapses the prior 5 groups + one recessed
+ * Advanced group into exactly **four panes** (You · Workspace · Connections ·
+ * Plan) per the Obsidian IA law (contract §8: Settings is a quiet list, no
+ * recessed fold). Every original `SectionId` and the `?section=` deep-link
+ * contract are preserved unchanged - only the grouping presentation moved.
  *
- * Settings had 11 flat peer tabs (Accounts · Models · Staff · Workspace · Plan ·
- * Credits · Integrations · Profile · Notifications · Health · Data) — no
- * segmentation, three different places to "connect" (Accounts / Integrations /
- * `/sync`), and Models-vs-Staff read as confusing peers. This module collapses
- * the 11 sections into 5 calm groups + one recessed Advanced group WITHOUT
- * changing the `?section=` deep-link contract: every original section id is
- * preserved and still lands on the exact same content; the grouping is purely
- * how the nav is presented. The route renders the groups (tier 1) and, inside
- * the active group, that group's member sections (tier 2).
- *
- * PURE: no React / db / network. The route imports these to drive the two-tier
- * nav; the invariants (every section in exactly one group, primary-is-first,
- * legacy ids resolve, round-trip group derivation) are unit-verified.
+ * PURE: no React / db / network. The route imports these to drive the pane
+ * index (tier 1) and, inside the active pane, that pane's member sections
+ * (tier 2). The invariants (every section in exactly one pane, primary-is-
+ * first, legacy ids resolve, round-trip pane derivation) are unit-verified.
  */
 
 export type SectionId =
@@ -29,72 +25,57 @@ export type SectionId =
   | "data"
   | "notifications";
 
-export type GroupId = "account" | "workspace" | "connections" | "ai" | "billing" | "advanced";
+export type GroupId = "you" | "workspace" | "connections" | "plan";
 
 export type SettingsSection = { id: SectionId; label: string };
 
 export type SettingsGroup = {
   id: GroupId;
   label: string;
-  /** One-line description shown under the active group tab. */
+  /** One-line description shown under the active pane's index entry. */
   desc: string;
-  /** Member sections in display order. The FIRST is the group's landing section. */
+  /** Member sections in display order. The FIRST is the pane's landing section. */
   sections: SettingsSection[];
-  /** Advanced is recessed — off to the side, quiet (diagnostics, not daily use). */
-  recessed?: boolean;
 };
 
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
-    id: "account",
-    label: "Account",
-    desc: "Your profile and how Cadence reaches you.",
+    id: "you",
+    label: "You",
+    desc: "Your profile, notifications, data, and diagnostics.",
     sections: [
       { id: "profile", label: "Profile" },
       { id: "notifications", label: "Notifications" },
+      { id: "data", label: "Data" },
+      { id: "health", label: "Health" },
     ],
   },
   {
     id: "workspace",
     label: "Workspace",
-    desc: "The workspace brief, voice, and the staff who work in it.",
+    desc: "The workspace brief, voice, staff, and AI keys.",
     sections: [
       { id: "workspace", label: "Brief & voice" },
       { id: "staff", label: "Staff" },
+      { id: "ai", label: "AI & keys" },
     ],
   },
   {
     id: "connections",
     label: "Connections",
-    desc: "Connect your accounts and integrations, in one place.",
+    desc: "Connect your accounts and this workspace's sources, in one place.",
     sections: [
-      { id: "connections", label: "Accounts" },
-      { id: "interop", label: "Integrations" },
+      { id: "connections", label: "Yours" },
+      { id: "interop", label: "This workspace's" },
     ],
   },
   {
-    id: "ai",
-    label: "AI & keys",
-    desc: "Which models run your agents, and your own provider keys.",
-    sections: [{ id: "ai", label: "AI & keys" }],
-  },
-  {
-    id: "billing",
-    label: "Billing",
+    id: "plan",
+    label: "Plan",
     desc: "Your plan and credits.",
     sections: [
       { id: "billing", label: "Plan" },
       { id: "credits", label: "Credits" },
-    ],
-  },
-  {
-    id: "advanced",
-    label: "Advanced",
-    desc: "Diagnostics and data export.",
-    recessed: true,
-    sections: [
-      { id: "health", label: "Health" },
-      { id: "data", label: "Data" },
     ],
   },
 ];
@@ -105,12 +86,12 @@ export const ALL_SECTION_IDS: readonly SectionId[] = SETTINGS_GROUPS.flatMap((g)
 );
 
 /** Where a bare `/settings` (no `?section=`) lands. */
-export const DEFAULT_SECTION: SectionId = "connections";
+export const DEFAULT_SECTION: SectionId = "profile";
 
 /**
  * Legacy deep links still arrive with old `?section=` values; keep them landing.
- *   brief    -> workspace   (the strategic brief lives in the Workspace section)
- *   calendar -> connections (calendar accounts live under Accounts)
+ *   brief    -> workspace   (the strategic brief lives in the Workspace pane)
+ *   calendar -> connections (calendar accounts live under Yours)
  */
 export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
   brief: "workspace",
@@ -133,17 +114,17 @@ const SECTION_TO_GROUP = Object.fromEntries(
   SETTINGS_GROUPS.flatMap((g) => g.sections.map((s) => [s.id, g.id] as const)),
 ) as Record<SectionId, GroupId>;
 
-/** The group a section belongs to. */
+/** The pane a section belongs to. */
 export function groupForSection(section: SectionId): GroupId {
   return SECTION_TO_GROUP[section];
 }
 
-/** The group definition by id (returns undefined if unknown — never throws). */
+/** The pane definition by id (returns undefined if unknown - never throws). */
 export function findGroup(groupId: GroupId): SettingsGroup | undefined {
   return SETTINGS_GROUPS.find((g) => g.id === groupId);
 }
 
-/** The landing section for a group (its first member). */
+/** The landing section for a pane (its first member). */
 export function primarySection(groupId: GroupId): SectionId {
   return findGroup(groupId)?.sections[0]?.id ?? DEFAULT_SECTION;
 }
@@ -157,8 +138,8 @@ export function sectionLabel(section: SectionId): string {
   return section;
 }
 
-/** The primary (non-recessed) groups, for the main nav row. */
-export const PRIMARY_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS.filter((g) => !g.recessed);
+/** All four panes are primary - OBS-13 drops the recessed Advanced fold. */
+export const PRIMARY_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS;
 
-/** The recessed groups (Advanced), shown off to the side. */
-export const RECESSED_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS.filter((g) => g.recessed);
+/** No pane is recessed under the four-pane law. */
+export const RECESSED_GROUPS: readonly SettingsGroup[] = [];
