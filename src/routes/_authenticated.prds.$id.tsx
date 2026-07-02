@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Gavel,
   FileCheck2,
+  Workflow,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { LoopThread } from "@/components/cadence/LoopThread";
@@ -35,6 +36,7 @@ import { DecisionCurrencyBanner } from "@/components/decision/DecisionCurrencyBa
 import { CitationsCard, type Citation } from "@/components/product/CitationsCard";
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
 import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
+import { FlowDiagram } from "@/components/product/FlowDiagram";
 import { listTasks } from "@/lib/tasks.functions";
 import { TaskGraphPanel } from "@/components/product/TaskGraphPanel";
 import { DesignReadinessPanel } from "@/components/product/DesignReadinessPanel";
@@ -43,7 +45,7 @@ import { listLinearTeams, createLinearIssuesFromTasks } from "@/lib/linear.funct
 import { dispatchStudioSession } from "@/lib/studio.functions";
 import { createDecision } from "@/lib/decisions.functions";
 
-const MODE_TABS = ["edit", "preview", "contract"] as const;
+const MODE_TABS = ["edit", "preview", "contract", "flow"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/prds/$id")({
@@ -289,6 +291,13 @@ function PrdEditor() {
             >
               <FileCheck2 className="h-3 w-3" /> Contract
             </button>
+            <button
+              onClick={() => setMode("flow")}
+              className={`px-3 py-1.5 text-xs inline-flex items-center gap-1 ${mode === "flow" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+              title="The user flow this spec implies — steps, decisions, states"
+            >
+              <Workflow className="h-3 w-3" /> Flow
+            </button>
           </div>
           <button
             onClick={() => save.mutate()}
@@ -477,7 +486,7 @@ function PrdEditor() {
           <article className="rounded-lg border hairline bg-card p-10 prose prose-neutral max-w-none prose-headings:font-display prose-headings:tracking-tight prose-h1:text-3xl prose-h2:text-xl prose-h2:mt-10 prose-p:text-[15px] prose-p:leading-relaxed prose-li:text-[15px] prose-strong:text-foreground">
             <ReactMarkdown>{body || "_Empty PRD_"}</ReactMarkdown>
           </article>
-        ) : (
+        ) : mode === "contract" ? (
           <OutcomeContractPanel
             prdId={id}
             specTitle={prdQ.data.prd.title}
@@ -485,6 +494,8 @@ function PrdEditor() {
             contract={(prdQ.data.prd as { contract?: OutcomeContract | null }).contract}
             invalidateKey={["prd", id]}
           />
+        ) : (
+          <FlowDiagram prdId={id} />
         )}
 
         <div className="mt-6">
