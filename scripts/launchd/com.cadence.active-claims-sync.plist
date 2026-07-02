@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Keeps docs/planning/active-claims.live.md real-time from the lane ledger + origin/main.
+  Keeps THIS checkout's working tree (feature-dashboard.md and everything else) fast-forwarded
+  to origin/main every ACTIVE_CLAIMS_INTERVAL seconds (default 15s), so a human just reading the
+  file in an editor sees every lane's pushed status without ever running `git pull` by hand. See
+  scripts/active-claims-watch.sh for the ff-only safety logic (never overwrites real local work).
   Install:
     cp scripts/launchd/com.cadence.active-claims-sync.plist ~/Library/LaunchAgents/
     launchctl unload ~/Library/LaunchAgents/com.cadence.active-claims-sync.plist 2>/dev/null
@@ -15,7 +18,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/rohitgajaraj/Projects/My Projects/My Builds/Project-Cadence-v4/scripts/active-claims-watch.sh</string>
+    <string>/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v5/scripts/active-claims-watch.sh</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
