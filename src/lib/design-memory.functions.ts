@@ -182,7 +182,10 @@ export function parseExtractedItems(json: unknown): ExtractedDesignMemoryItem[] 
     const title = typeof e.title === "string" ? e.title.trim() : "";
     const content = typeof e.content === "string" ? e.content.trim() : "";
     if (!categorySet.has(category) || !title || !content) continue;
-    const rationale = typeof e.rationale === "string" && e.rationale.trim() ? e.rationale.trim().slice(0, 500) : null;
+    const rationale =
+      typeof e.rationale === "string" && e.rationale.trim()
+        ? e.rationale.trim().slice(0, 500)
+        : null;
     out.push({
       category: category as DesignMemoryCategory,
       title: title.slice(0, 200),
@@ -211,7 +214,10 @@ async function extractDesignMemoryItems(
       responseFormat: "json_object",
       messages: [
         { role: "system", content: EXTRACT_SYSTEM },
-        { role: "user", content: `SOURCE:\n${sourceText.slice(0, 12000)}\n\nExtract the design language entries.` },
+        {
+          role: "user",
+          content: `SOURCE:\n${sourceText.slice(0, 12000)}\n\nExtract the design language entries.`,
+        },
       ],
     });
     return parseExtractedItems(res.json ?? {});
@@ -386,7 +392,10 @@ export const importDesignMemoryFromUrl = createServerFn({ method: "POST" })
         // 3xx, so this falls through to the status-code error rather than being followed.
         redirect: "manual",
       });
-      if (!res.ok) throw new Error(`fetch failed with status ${res.status} - if this URL redirects, paste the final destination URL directly`);
+      if (!res.ok)
+        throw new Error(
+          `fetch failed with status ${res.status} - if this URL redirects, paste the final destination URL directly`,
+        );
       pageText = (await res.text()).slice(0, 30000);
     } catch (e) {
       throw new Error(
@@ -401,7 +410,13 @@ export const importDesignMemoryFromUrl = createServerFn({ method: "POST" })
       pageText,
       `design-memory-url-import`,
     );
-    const inserted = await insertDesignMemoryItems(supabase, userId, workspaceId, items, "url_import");
+    const inserted = await insertDesignMemoryItems(
+      supabase,
+      userId,
+      workspaceId,
+      items,
+      "url_import",
+    );
     return { inserted };
   });
 
@@ -432,7 +447,8 @@ const DEFAULT_DESIGN_MEMORY: ExtractedDesignMemoryItem[] = [
   {
     category: "type",
     title: "Type scale",
-    content: "One display size for headings, one body size, one small/mono label size. No in-between sizes.",
+    content:
+      "One display size for headings, one body size, one small/mono label size. No in-between sizes.",
     rationale: null,
   },
   {
@@ -444,7 +460,8 @@ const DEFAULT_DESIGN_MEMORY: ExtractedDesignMemoryItem[] = [
   {
     category: "principle",
     title: "One primary action per screen",
-    content: "Exactly one high-emphasis button per view; every other action is secondary or text-only.",
+    content:
+      "Exactly one high-emphasis button per view; every other action is secondary or text-only.",
     rationale: null,
   },
   {
@@ -528,7 +545,13 @@ export const recordDesignScaffoldFeedback = createServerFn({ method: "POST" })
         `SPEC EXCERPT:\n${data.specExcerpt}\n\n${verdictLine}\nExtract what this implies about the workspace's design language (if the spec/verdict is too thin to imply anything concrete, return no items).`,
         `design-memory-scaffold-feedback:${data.prdId}`,
       );
-      const learned = await insertDesignMemoryItems(supabase, userId, workspaceId, items, "learned");
+      const learned = await insertDesignMemoryItems(
+        supabase,
+        userId,
+        workspaceId,
+        items,
+        "learned",
+      );
       return { learned };
     } catch {
       return { learned: 0 };

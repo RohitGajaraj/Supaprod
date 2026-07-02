@@ -411,9 +411,7 @@ function AddDesignMemoryDialog({
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
           {mode === "url" ? (
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>
-                public page url
-              </MonoLabel>
+              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>public page url</MonoLabel>
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -433,9 +431,7 @@ function AddDesignMemoryDialog({
             </div>
           ) : mode === "paste" ? (
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>
-                design constitution
-              </MonoLabel>
+              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>design constitution</MonoLabel>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
@@ -459,8 +455,8 @@ function AddDesignMemoryDialog({
             </div>
           ) : (
             <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
-              Starts with a small generic set (type scale, spacing rhythm, one primary action,
-              two button styles, plain-worded copy) — approved automatically since they are safe
+              Starts with a small generic set (type scale, spacing rhythm, one primary action, two
+              button styles, plain-worded copy) — approved automatically since they are safe
               defaults, not a claim about your brand. Approve/reject on future mockups teaches it
               your actual language from there.
             </p>

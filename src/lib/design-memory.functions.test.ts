@@ -144,7 +144,12 @@ describe("isPublicHost (SSRF guard for importDesignMemoryFromUrl)", () => {
   });
 
   it("blocks internal-resolvable hostname suffixes", () => {
-    for (const host of ["printer.local", "gateway.lan", "svc.internal", "metadata.google.internal"]) {
+    for (const host of [
+      "printer.local",
+      "gateway.lan",
+      "svc.internal",
+      "metadata.google.internal",
+    ]) {
       expect(isPublicHost(host)).toBe(false);
     }
   });

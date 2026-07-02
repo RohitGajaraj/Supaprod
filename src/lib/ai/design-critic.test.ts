@@ -22,7 +22,11 @@ describe("parseDesignCriticReview", () => {
     const review = parseDesignCriticReview({
       verdict: "revise",
       findings: [
-        { issue: "Fourth button style introduced", principle: "consistency", standing_decision: "Button styles" },
+        {
+          issue: "Fourth button style introduced",
+          principle: "consistency",
+          standing_decision: "Button styles",
+        },
         { issue: "", principle: "hierarchy" },
         { issue: "No label on icon-only close button", principle: "accessibility" },
         { principle: "ia" },
@@ -35,7 +39,11 @@ describe("parseDesignCriticReview", () => {
         principle: "consistency",
         standing_decision: "Button styles",
       },
-      { issue: "No label on icon-only close button", principle: "accessibility", standing_decision: null },
+      {
+        issue: "No label on icon-only close button",
+        principle: "accessibility",
+        standing_decision: null,
+      },
     ]);
   });
 

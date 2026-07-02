@@ -20,7 +20,10 @@ import {
 import { formatGoverningDecisions } from "@/lib/ai/governing-decision";
 import { resolveGoverningForNodes } from "@/lib/ai/governing-decision.server";
 import { resolveSharedPremisePrecedent } from "@/lib/ai/shared-premise.server";
-import { getActiveDesignMemoryForWorkspace, formatDesignMemoryContext } from "@/lib/design-memory.functions";
+import {
+  getActiveDesignMemoryForWorkspace,
+  formatDesignMemoryContext,
+} from "@/lib/design-memory.functions";
 import { parseDesignCriticReview, type DesignCriticReview } from "@/lib/ai/design-critic";
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
 import { resolveLineageCols } from "@/lib/knowledge-graph-view.functions";
