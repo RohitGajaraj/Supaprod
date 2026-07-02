@@ -165,4 +165,31 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 
 ---
 
+## OBS-07 · Plan ported (✅ 2026-07-02, lane3, adversarial-reviewed)
+
+**What shipped:** the definition desk at `/plan` (additive — `/product`/`/prds` keep their current parchment behavior and share the exact same query keys until OBS-10 folds the routes), mounted via `Surface` (`wide`) at 1160px: the outcome-roadmap hero, a Now/Next/Later `RoadmapColumns` (each `BetCard` carrying its mono measure line, an ember `NEEDS OUTCOME` chip when the bet has no declared outcome+measure, and three quiet move controls), a `CommitCeremony` dialog that reuses `commitRoadmapItem`'s existing governance contract (states the promise when both fields are already set, collects them first otherwise), and a cited `SpecList` opening a read-only `SpecDetail` slide-over with inline `[n]` citation chips rendered at their exact position in the Newsreader-serif body (a `splitCitationMarkers` pure split feeding a custom `ReactMarkdown` paragraph renderer, reusing the OBS-03 `Citation` chip rather than a separate literal margin column).
+
+**Real defects caught by a 3-lens adversarial review (correctness / design-parity / accessibility) and fixed before commit, 6 total, 2 high-severity:**
+
+- **Accessibility, high — the focus ring was silently killed on the two most-used controls.** `BetCard`'s NOW/NEXT/LATER move buttons and `SpecList`'s full-row spec buttons each carried both a Tailwind `focus-visible:outline-2` class and an inline `style={{outline:"none"}}` — inline styles always win, so a keyboard user tabbing through either control saw zero focus indicator. Fixed by moving `outline-none` into the className so the `focus-visible` variant can take effect as intended.
+- **Accessibility — the commit ceremony's outcome/measure inputs had no accessible name**, only a placeholder (which is not reliably announced by all assistive tech and disappears once the user types). Fixed with visible mono `<label htmlFor>` elements.
+- **Accessibility — the three loading states (roadmap, spec list, spec detail) were silent to screen readers.** Fixed with `role="status"` + visually-hidden (`sr-only`) text alongside the existing ghost/shimmer skeletons (kept, per the spec's own no-spinner requirement).
+- **Design, high — `SpecDetail`'s error state was dead code.** `prd` is `undefined` during both loading and error, so `!prd` was true in both cases and the loading branch always won; a failed `getPrd` fetch showed an infinite shimmer with no error message and no way to retry. Fixed by checking `isError` first.
+- **Design — the spec-detail shimmer never actually animated.** `cadShimmer` only animates `background-position`; it needs to pair with `--shimmer-gradient` at `280% 100%` background-size (the pattern `AppShell.tsx` already establishes) — the skeleton bars had a flat `--hover` background with no gradient, so the "one shimmer budget" this surface is allotted rendered as three static gray bars. Fixed to match the token's documented pairing.
+- **Design — the page had no entrance animation.** The hand-rolled `className="cadRise"` container matched no CSS rule (only the bare `@keyframes cadRise` exists); the shared `Surface` primitive (built in OBS-02 for exactly this — the `wide` variant is 1160px for Discover/Plan) applies the animation correctly via inline style. Fixed by switching to `<Surface wide>`.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout — this worktree's `vite dev` hits the known node20/ESM `lovable-tagger` failure, see hub §11), open `/plan`.
+2. Now/Next/Later columns: Now has the ember header + ember-tinted card border; Next is neutral; Later is the deep `#0E0E10` card with dimmed ink. A bet with no declared outcome shows the ember `NEEDS OUTCOME` chip.
+3. Click `NOW` on a Next/Later bet: the commit ceremony opens; if outcome/measure are missing, both inputs (with visible labels) must be filled before `Commit to Now` enables; confirming refreshes the roadmap and shows the toast.
+4. Click `NEXT`/`LATER` on a bet: it moves immediately, no ceremony, with a toast.
+5. Click a spec row: the detail slide-over opens with the serif body, inline citation chips at their `[n]` position (hover/focus shows the verbatim quote + source), and a quiet `Open full spec →` link to the existing editor.
+6. Tab through the whole surface with a keyboard only: every move control, spec row, and dialog control shows a visible glacier focus ring.
+7. Confirm zero ember on the screen except the Now column tint, the `NEEDS OUTCOME` chip, and the ceremony's CTA; grayscale screenshot still reads every chip and measure by its text.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1988/1988 pass (15 new in `src/components/plan/format.test.ts`) · `eslint` 0 on all new files · humanized-output grep (em/en dash, banned words) clean · 3-lens adversarial review (correctness clean, design-parity found 3 - fixed, accessibility found 4 - fixed, re-verified above).
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

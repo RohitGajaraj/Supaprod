@@ -172,7 +172,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Acceptance:** Challenge fires the Critic flow + toast; quotes verbatim
   with sources; max two pencil marks.
 
-### OBS-07 · Plan (cited specs + outcome roadmap)
+### OBS-07 · Plan (cited specs + outcome roadmap) — ✅ shipped 2026-07-02 (lane3)
 - **Steps:** spec list (serif body in detail view, state chips, blossom cites
   count); NOW/NEXT/LATER columns (NOW ember-tinted, LATER dimmed), each bet
   carrying its mono measure line; commit-to-Now ceremony (a confirm with the
