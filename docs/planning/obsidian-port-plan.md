@@ -121,16 +121,26 @@ the URLs change) and OBS-14's demo-seed dependency.
   the ONLY ember in the chrome is the Today badge (+ active nav index).
 - **Verify:** side-by-side with `obsidian-v3/design-reference/cadence-app.html`.
 
-### OBS-03 · Core primitives
-- **Files:** `src/components/cadence/` (Button, StatusDot, VerdictChip,
+### OBS-03 · Core primitives (🔨 lane2, 2026-07-02 - library shipped, specimen route deferred)
+- **Files:** `src/components/obsidian/` (Button, StatusDot, VerdictChip,
   MonoLabel, Toast, SlideOver chassis, CallCard, MissionRow, AuroraCard,
-  Citation chip, PencilNote).
+  Citation chip, PencilNote) - a NEW folder, parallel to the parchment
+  `src/components/cadence/Primitives.tsx` (which stays live until OBS-10
+  folds the parchment routes; see OBS-03.md §6 for the reasoning).
 - **Steps:** build each to the `components.md` anatomy exactly (values are in
   the file); the SlideOver carries the a11y contract (role=dialog, aria-modal,
-  focus trap, restore-on-close, Esc, scrim click); Toast singleton (replaces,
+  focus trap, restore-on-close, Esc, scrim click) delegated to
+  `@radix-ui/react-dialog`, not hand-rolled; Toast singleton (replaces,
   never stacks); status dots always ship dot + mono word.
 - **Acceptance:** a storybook-style demo route or test renders each primitive
   in every state (hover/focus/active/empty/loading/error where applicable).
+  The 11 primitives + barrel shipped gate-green (tsc 0, 1889 tests, 5-lens
+  adversarial review + verify pass, every confirmed finding fixed). The dev
+  specimen route (the storybook substitute) is deferred: its file conflicts
+  with OBS-02's active shell claim on `src/routes/_authenticated.*.tsx`;
+  ships as a follow-up once that claim releases. Full detail:
+  [`../features/obsidian-port.md`](../features/obsidian-port.md) OBS-03
+  section.
 - **Verify:** grayscale screenshot still reads; tsc + tests.
 
 ### OBS-04 · Today (the ritual)

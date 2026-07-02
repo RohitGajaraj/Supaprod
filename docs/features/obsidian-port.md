@@ -43,6 +43,46 @@ Founder doctrine ruling 2026-07-02 (see `plan.md` §4 and `docs/strategy/session
 
 ## OBS-02 · App shell: pending
 
-## OBS-03 · Core primitives: pending
+## OBS-03 · Core primitives (🔨 lane2, 2026-07-02 - library shipped, one slice deferred)
+
+**What shipped:** the full Obsidian primitive set OBS-04..09 consume, in a new `src/components/obsidian/` folder (parallel to, not replacing, the parchment `cadence/Primitives.tsx`, which stays live for ~50 parchment routes until OBS-10 folds them):
+
+- `MonoLabel` + `Button` (`primitives.tsx`) - primary/secondary/quiet variants, press `scale(0.985)`/140ms, 2px glacier focus ring, loading state (label fades, width holds, no layout shift).
+- `StatusDot` (`status.tsx`) - 9 states (4 core + 3 contract aliases + 2 word-sharing pairs), always paired with its mono word (status never relies on color alone).
+- `VerdictChip` (`verdict.tsx`) - 10 tones, 12%-fill/45%-border formula, `PENDING` as the neutral no-verdict state.
+- `AuroraCard` (`aurora.tsx`) - the Loop-Health-class score card: two `aria-hidden` drifting blobs, Codystar numeral, hue prop (healthy/attention/failing).
+- `Citation` (`citation.tsx`) - keyboard-focusable superscript chip revealing a glass popover on hover AND focus.
+- `PencilNote` (`pencil.tsx`) - Caveat annotation, 3 inks, `role="note"` (read, not hidden).
+- `Toast` + `ToastProvider`/`useToast` (`toast.tsx`) - a framework-free singleton controller (`createToastController`, independently unit-testable): a new `show()` replaces the current message and resets the 3.6s timer, never stacks.
+- `SlideOver` (`slideover.tsx`) - the a11y-carrying chassis, built on `@radix-ui/react-dialog` (already vendored for `ui/sheet.tsx`) rather than a hand-rolled focus trap: Radix owns `role="dialog"` + `aria-modal`, focus trap, restore-on-close, Esc, and scrim-click-close.
+- `CallCard` (`callcard.tsx`) - the attention-queue atomic unit, full + compact (`YOUR CALL`) gate variant.
+- `MissionRow` (`missionrow.tsx`) - a real `<button>` row, exact cell order/widths.
+
+**Deliberately deferred (not part of this diff):** the dev-only `/obsidian-specimen` route. Its file (`src/routes/_authenticated.obsidian-specimen.tsx`) matches OBS-02's active shell claim glob (`src/routes/_authenticated.*.tsx`); the ledger's file-glob reservation correctly refused the overlap (`lane.sh claim` → exit 3, CONFLICT). This does not block downstream surfaces: OBS-04..09 only import `@/components/obsidian`, which is complete and gate-green.
+
+**Adversarial review (5-lens Workflow + skeptical verify pass) - confirmed fixes applied:**
+
+- `StatusDot`'s `queued` color was reading the wrong token (`--slate` = `#6E6A64`, a chart-axis color) instead of the spec-literal `#55524C` (`--text-faint`).
+- `Toast`'s live region was mounting/unmounting instead of staying persistently in the DOM - a real announcement-drop risk on VoiceOver/Safari and older NVDA/Firefox pairings, since some AT only reliably announces a live region that already existed before its content changed. Fixed: the `aria-live="polite"` wrapper is always mounted; only its text and opacity toggle.
+- `Citation`'s popover had no ARIA relationship to its trigger (`role="presentation"`, no `aria-describedby`) - a screen-reader user tabbing to `[1]` heard only "1, button." Fixed: stable `id` + `aria-describedby` on the button + `role="tooltip"` on the panel.
+- `SlideOver`'s chassis title now hardcodes the components.md-literal 21px for the Mission-slide-over anatomy (was reusing `CallCard`'s 20px `--text-card-title` token); the footer strip now reads the spec-literal 11px (was 11.5px, no matching token existed).
+- `VerdictChip`'s `PENDING` border switched from the general `--hairline` to `--hairline-faint` (the token's own doc comment is "faint dividers," matching the spec's "faint hairline" wording).
+- Two untokenized transition durations (`160ms`, Tailwind's `duration-150`) now read `var(--dur-control)` (140ms), the button/hover-motion token.
+- `CallCard`'s kind chip and `AuroraCard`'s label/note now compose the named `MonoLabel` primitive (added an `ember` tone) instead of hand-rolled spans, per the anatomy's own naming.
+- Three em dashes in code comments cleaned up in passing (Tier 2, non-blocking, but zero-cost since already touching those lines).
+
+**Left as a documented interpretation, not silently invented:** `AuroraCard`'s `attention`/`failing` backgrounds use `color-mix(in oklab, var(--ember|--madder) 12%, var(--surface-card-deep))` - the spec gives only a qualitative "ember-forward"/"madder-forward" with no literal hex, so this derives from the real role tokens rather than inventing a new hex. The glass-popover "8% white hairline" wording in README §5.1 has no matching token in the `[data-obsidian]` layer (only 5%/7%/9% exist); `Citation` uses the closest token (`--hairline-strong`, 9%) - flagged for the doc owner to reconcile, not resolved unilaterally in code.
+
+**Testing approach:** pure-logic / shallow-element tests only (`ComponentName.render(props, ref)` called directly, no DOM renderer) - this matches the codebase's existing convention (zero jsdom/happy-dom dependency exists anywhere in the repo). Visual and interactive verification (double-toast replace, slide-over Tab-trap + Esc-restore, reduced-motion kill) runs manually per the spec's own §5 test steps. Along the way, fixed a real tsconfig gap: `"exclude"` only listed `src/**/*.test.ts`, so this repo's first-ever `.test.tsx` file would have typechecked without `bun:test`'s ambient types; added `"src/**/*.test.tsx"` alongside it.
+
+**How to verify (repeatable):**
+
+1. `bunx tsc --noEmit` → 0 errors.
+2. `bun test src/components/obsidian/__tests__/primitives.test.tsx` → 15 pass (state maps, tone maps, Toast singleton replace + fake-timer auto-clear, MissionRow/CallCard structural real-button checks, SlideOver's `onOpenChange(false)` → `onClose` wiring).
+3. `bun test` (full suite) → 1889 pass, 0 fail.
+4. Grep every new file for a hex outside the token layer; every literal hex present traces to an exact spec value (e.g. `#FF8B52` for `VerdictChip`'s `REVISE` text, verbatim from `components.md`) or is derived from a real token via `rgba()`/`color-mix()`.
+5. Once OBS-02 lands and the specimen route follows: open `/obsidian-specimen` next to `design-reference/obsidian-v3/design-reference/cadence-app.html` at 1440px and walk the 8-point prototype-parity checklist per primitive.
+
+**Gates at ship:** tsc 0 · 15 new tests / 1889 total pass · `bun run build` not run in-worktree (pre-existing node20/ESM `lovable-tagger` error unrelated to this diff, per the hub's build-gate note) · humanized-output clean on every new UI-facing string.
 
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._
