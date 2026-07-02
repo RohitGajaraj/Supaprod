@@ -11,6 +11,7 @@ import { LoopStrip, type LoopSurface } from "@/components/obsidian/today/LoopStr
 import { WhatChanged, type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { MachineNow, type MachineNowRow } from "@/components/obsidian/today/MachineNow";
 import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
+import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -561,6 +562,7 @@ function Dashboard() {
           <div className="flex flex-col" style={{ gap: 14 }}>
             <LoopHealthCard score={loopScore} note={loopNote} hue={loopHue} />
             <MachineNow rows={machineNowRows} onOpenAll={() => navigate({ to: "/build" })} />
+            <StrategicBriefCard />
           </div>
         </div>
       </Surface>

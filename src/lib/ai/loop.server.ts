@@ -14,7 +14,12 @@ import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/reg
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
-import { renderBriefBlock, type WorkspaceBrief } from "@/lib/briefs.functions";
+import {
+  renderBriefBlock,
+  renderBriefItemsBlock,
+  type WorkspaceBrief,
+  type BriefItem,
+} from "@/lib/briefs.functions";
 import {
   getActiveHouseRulesForWorkspace,
   renderHouseRulesBlock,
@@ -313,6 +318,21 @@ export async function runAgentLoop(
       briefBlock = renderBriefBlock(brief as WorkspaceBrief | null);
     } catch (e) {
       console.error("brief load failed:", e);
+    }
+    // JNY-02: the structured brief items (vision/icp/positioning/top_bet)
+    // are a second, additive projection of the same operating context —
+    // appended to the same block, same non-fatal posture.
+    try {
+      const { data: items } = await supabase
+        .from("brief_items")
+        .select(
+          "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
+        )
+        .eq("workspace_id", workspaceId)
+        .eq("status", "standing");
+      briefBlock += renderBriefItemsBlock(items as BriefItem[] | null);
+    } catch (e) {
+      console.error("brief items load failed:", e);
     }
   }
 
@@ -1078,6 +1098,18 @@ export async function resumeAgentLoop(
         briefBlock = renderBriefBlock(brief as WorkspaceBrief | null);
       } catch (e) {
         console.error("brief load failed (resume):", e);
+      }
+      try {
+        const { data: items } = await supabase
+          .from("brief_items")
+          .select(
+            "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at",
+          )
+          .eq("workspace_id", run.workspace_id)
+          .eq("status", "standing");
+        briefBlock += renderBriefItemsBlock(items as BriefItem[] | null);
+      } catch (e) {
+        console.error("brief items load failed (resume):", e);
       }
     }
     let houseRulesBlock = "";

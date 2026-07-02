@@ -5,10 +5,21 @@
  * mission's system prompt (see src/lib/ai/loop.server.ts → buildBriefBlock).
  * Editing the brief visibly changes the next Discovery / Strategist output —
  * that is the verification target.
+ *
+ * JNY-02 (v12 §8): the free-text fields below stay as the legacy projection
+ * (dual projection, same pattern as CNV-01's contract jsonb alongside
+ * prds.body_md), and brief_items adds a structured, versioned decision
+ * cluster on top — vision / icp / positioning (singleton, edits supersede
+ * the prior standing row) and top_bet (a small portfolio). Each item gets
+ * its own watched assumptions via assumptions.brief_item_id (FS-02's watch
+ * cron reuse), so the workspace's highest-level calls get the same
+ * "standing until challenged" machinery every other decision already has.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { callModel } from "@/lib/ai/runtime.server";
 
 export type WorkspaceBrief = {
   id: string | null;
@@ -96,6 +107,233 @@ export const upsertBrief = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row as WorkspaceBrief;
   });
+
+// ---------------------------------------------------------------------------
+// JNY-02: structured brief items (vision / icp / positioning / top_bet).
+// ---------------------------------------------------------------------------
+
+export type BriefItemKind = "vision" | "icp" | "positioning" | "top_bet";
+
+export type BriefItem = {
+  id: string;
+  workspace_id: string;
+  kind: BriefItemKind;
+  title: string;
+  body: string;
+  status: "standing" | "superseded";
+  version: number;
+  supersedes_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const BRIEF_ITEM_COLUMNS =
+  "id,workspace_id,kind,title,body,status,version,supersedes_id,created_at,updated_at";
+
+/** Singleton kinds: an edit always supersedes the current standing row of the
+ *  same kind. top_bet is a portfolio — a new bet is additive unless the
+ *  caller explicitly names the bet it replaces (supersedesId). */
+const SINGLETON_BRIEF_KINDS: readonly BriefItemKind[] = ["vision", "icp", "positioning"];
+
+export const listBriefItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<BriefItem[]> => {
+    const { supabase } = context;
+    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
+    if (!workspaceId) return [];
+    const { data: rows } = await supabase
+      .from("brief_items")
+      .select(BRIEF_ITEM_COLUMNS)
+      .eq("workspace_id", workspaceId)
+      .eq("status", "standing")
+      .order("kind", { ascending: true })
+      .order("created_at", { ascending: true });
+    return (rows ?? []) as BriefItem[];
+  });
+
+const UpsertBriefItemSchema = z.object({
+  workspaceId: z.string().uuid().nullable().optional(),
+  kind: z.enum(["vision", "icp", "positioning", "top_bet"]),
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1).max(2000),
+  supersedesId: z.string().uuid().nullable().optional(),
+});
+
+export const upsertBriefItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof UpsertBriefItemSchema>) => UpsertBriefItemSchema.parse(d))
+  .handler(async ({ context, data }): Promise<BriefItem> => {
+    const { supabase, userId } = context;
+    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
+    if (!workspaceId) throw new Error("No workspace is available for this account.");
+
+    let priorId = data.supersedesId ?? null;
+    let nextVersion = 1;
+    if (!priorId && SINGLETON_BRIEF_KINDS.includes(data.kind)) {
+      const { data: existing } = await supabase
+        .from("brief_items")
+        .select("id,version")
+        .eq("workspace_id", workspaceId)
+        .eq("kind", data.kind)
+        .eq("status", "standing")
+        .maybeSingle();
+      if (existing) {
+        priorId = existing.id as string;
+        nextVersion = ((existing.version as number) ?? 1) + 1;
+      }
+    } else if (priorId) {
+      const { data: existing } = await supabase
+        .from("brief_items")
+        .select("version")
+        .eq("id", priorId)
+        .maybeSingle();
+      nextVersion = ((existing?.version as number) ?? 1) + 1;
+    }
+
+    if (priorId) {
+      await supabase.from("brief_items").update({ status: "superseded" }).eq("id", priorId);
+    }
+
+    const { data: row, error } = await supabase
+      .from("brief_items")
+      .insert({
+        workspace_id: workspaceId,
+        kind: data.kind,
+        title: data.title,
+        body: data.body,
+        version: nextVersion,
+        supersedes_id: priorId,
+        created_by: userId,
+      })
+      .select(BRIEF_ITEM_COLUMNS)
+      .single();
+    if (error) throw new Error(error.message);
+
+    await extractBriefAssumptions(
+      supabase,
+      userId,
+      workspaceId,
+      row.id as string,
+      data.title,
+      data.body,
+    );
+
+    return row as BriefItem;
+  });
+
+/** Retire a top_bet with no replacement (the portfolio just shrinks). Refuses
+ *  silently (no-op) on an already-superseded id so a double-click is safe. */
+export const retireBriefItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { error } = await supabase
+      .from("brief_items")
+      .update({ status: "superseded" })
+      .eq("id", data.id)
+      .eq("status", "standing");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const EXTRACT_BRIEF_ASSUMPTION_SYSTEM = `You are the Cadence strategy analyst. Given a strategic brief item's title and body, extract the standing assumptions it depends on.
+Rules:
+- Each assumption is a single falsifiable statement about the world that, if it stopped being true, would call this item into question.
+- Extract at most 3, most load-bearing first.
+- If the body is too thin to support a real assumption, return an empty list rather than inventing one.
+- Signal-first: state the assumption directly, no hedging.
+- No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
+- Output ONLY valid JSON: {"assumptions": ["...", "..."]}`;
+
+/**
+ * Fail-safe sibling of ai/assumptions.server.ts's extractAssumptions (FS-02),
+ * kept as a small local duplicate rather than a generalized shared function:
+ * the two other call sites (createDecision, compileContractOracles) live in
+ * files this ticket does not otherwise touch, and the insert shape (which
+ * foreign key gets populated) is the one thing that actually differs.
+ * Never throws into the caller (upsertBriefItem's write must still succeed
+ * even if the AI call or the assumptions insert fails).
+ */
+async function extractBriefAssumptions(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string,
+  briefItemId: string,
+  title: string,
+  body: string,
+): Promise<void> {
+  if (!body || body.trim().length < 20) return;
+  try {
+    const res = await callModel(supabase as never, userId, {
+      surface: "sense",
+      surface_ref: "extract_brief_assumptions",
+      model: "claude-haiku-4-5-20251001",
+      workspaceId,
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: EXTRACT_BRIEF_ASSUMPTION_SYSTEM },
+        {
+          role: "user",
+          content: `BRIEF ITEM: ${title.slice(0, 280)}\nBODY: ${body.slice(0, 1500)}\n\nExtract the assumptions.`,
+        },
+      ],
+    });
+    const j = (res.json ?? {}) as { assumptions?: unknown };
+    const raw = Array.isArray(j.assumptions) ? j.assumptions : [];
+    const statements = raw
+      .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      .slice(0, 3)
+      .map((s) => s.trim().slice(0, 500));
+    if (statements.length === 0) return;
+
+    await supabase.from("assumptions").insert(
+      statements.map((statement) => ({
+        user_id: userId,
+        workspace_id: workspaceId,
+        brief_item_id: briefItemId,
+        statement,
+      })),
+    );
+  } catch (e) {
+    console.error("extractBriefAssumptions failed (non-fatal):", e);
+  }
+}
+
+/**
+ * Server-side helper: render the standing structured brief items as a
+ * plain-text block suitable for injection into an agent's system prompt,
+ * appended alongside renderBriefBlock's legacy free-text output. Returns ""
+ * when there are no standing items (so we never inject noise pre-adoption).
+ */
+export function renderBriefItemsBlock(items: BriefItem[] | null | undefined): string {
+  if (!items || items.length === 0) return "";
+  const KIND_LABEL: Record<BriefItemKind, string> = {
+    vision: "Vision",
+    icp: "Target user (ICP)",
+    positioning: "Positioning",
+    top_bet: "Top bets",
+  };
+  const byKind = new Map<BriefItemKind, BriefItem[]>();
+  for (const it of items) {
+    const list = byKind.get(it.kind) ?? [];
+    list.push(it);
+    byKind.set(it.kind, list);
+  }
+  const sections: string[] = [];
+  for (const kind of ["vision", "icp", "positioning", "top_bet"] as BriefItemKind[]) {
+    const rows = byKind.get(kind);
+    if (!rows || rows.length === 0) continue;
+    const body =
+      kind === "top_bet" ? rows.map((r) => `- ${r.title}: ${r.body}`).join("\n") : rows[0].body;
+    sections.push(`${KIND_LABEL[kind]}:\n${body}`);
+  }
+  if (!sections.length) return "";
+  return `\n--- Strategic decisions (versioned, operator-approved) ---\n${sections.join("\n\n")}\n--- End strategic decisions ---\n`;
+}
 
 /**
  * Server-side helper: render a workspace brief as a plain-text block suitable

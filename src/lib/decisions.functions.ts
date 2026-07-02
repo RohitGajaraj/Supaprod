@@ -170,6 +170,10 @@ export const updateDecision = createServerFn({ method: "POST" })
 // reopens the decision for review and writes a real artifact_lineage
 // contradicts edge (the receipt the Decision Brain graph reasons over
 // later); dismissing just closes the Call and the assumption stands.
+// JNY-02: a brief_item-sourced assumption (no decision/prd exists yet) has
+// no natural "reopen for review" state of its own — the item just stays
+// standing, and Today's assumptionCalls surfacing already gives the operator
+// visibility regardless of source — so it only gets the lineage receipt.
 export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -205,7 +209,7 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
 
     const { data: assumption } = await supabase
       .from("assumptions")
-      .select("decision_id,prd_id")
+      .select("decision_id,prd_id,brief_item_id")
       .eq("id", challenge.assumption_id)
       .maybeSingle();
     const decisionId = (assumption?.decision_id as string | undefined) ?? null;
@@ -215,7 +219,10 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
     // the decision path so a spec's stale acceptance criterion gets the same
     // "reopened for review" treatment a stale decision already gets.
     const prdId = decisionId ? null : ((assumption?.prd_id as string | undefined) ?? null);
-    if (decisionId || prdId) {
+    // JNY-02: a brief_item source (see the comment above this handler).
+    const briefItemId =
+      decisionId || prdId ? null : ((assumption?.brief_item_id as string | undefined) ?? null);
+    if (decisionId || prdId || briefItemId) {
       if (decisionId) {
         await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
       } else if (prdId) {
@@ -227,8 +234,8 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
           ? "learning"
           : null;
       const parent_id = challenge.signal_id ?? challenge.learning_id ?? null;
-      const child_kind = decisionId ? "decision" : "prd";
-      const child_id = decisionId ?? prdId;
+      const child_kind = decisionId ? "decision" : prdId ? "prd" : "brief_item";
+      const child_id = decisionId ?? prdId ?? briefItemId;
       if (parent_kind && parent_id && child_id) {
         try {
           await supabase.from("artifact_lineage").upsert(
