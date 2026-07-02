@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-# sync-pcv4.sh — Pull origin/main into project_cadence_v4, the shared local
+# sync-pcv4.sh — RETIRED from push discipline (founder ruling 2026-07-02).
+# No longer mandatory after any push. project_cadence_v5 (this repo) + GitHub
+# v5 are canonical; the local project_cadence_v4 folder is a legacy viewing
+# copy. Keep only as an OPTIONAL manual refresh of that legacy folder until
+# it is deleted; direction is v5 GitHub -> local v4 folder, never a push.
+#
+# Original purpose: pull origin/main into project_cadence_v4, the shared local
 # viewing checkout (also the git-dir host for the cadence-lane-N worktrees).
 #
 # Corrected 2026-07-01/02: this script pointed at "Project-Cadence-v4"

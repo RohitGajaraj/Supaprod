@@ -77,11 +77,8 @@ You do not wait for the user to ask. "Simple" tasks do not skip this. Full proto
 **Every git interaction — commit, push, pull, merge — requires a clear one-line WHY.** See [`docs/operations/git-discipline.md`](./docs/operations/commits.md) for the canonical cross-tool standard. Hooks enforce this.
 
 - Use a commit skill — `gstack-ship`, `commit-commands:commit`, or similar if available. Always include the WHY in the message, not just the WHAT.
-- Push with explicit refspec AND sync PCV4 immediately after — **both steps are mandatory, every push, no exceptions:**
-  ```bash
-  git push origin parallel/lane-N:main && bash scripts/sync-pcv4.sh
-  ```
-  Bare `git push origin` pushes to the lane branch only (invisible to PCV4). `post-push` is not a real git hook so no automation fires — the sync MUST be explicit. Root cause of repeated stale-dashboard incidents (2026-06-26).
+- Push with explicit refspec, always: `git push origin <branch>:main`. Bare `git push origin` pushes to the lane branch only, invisible to `main`. The one remote is `https://github.com/RohitGajaraj/project_cadence_v5.git` (the repo Lovable reads); verify with `git remote -v` if ever in doubt.
+- **The post-push `sync-pcv4.sh` step is RETIRED (founder ruling 2026-07-02).** It existed for the era when `Project-Cadence-v4` was the canonical checkout (the 2026-06-26 stale-dashboard incidents); since the 2026-07-01 canonical-repo fix, this v5 folder + GitHub v5 are canonical, the legacy local v4 folder is a viewing copy nobody works in, and the mandated session-start `git pull origin main` keeps every checkout fresh. `scripts/sync-pcv4.sh` remains only as an optional manual utility until the legacy v4 folder is deleted; do not run it as part of push discipline.
 - Pull with intent: `git pull — syncing latest; checking active-task.md for conflicts`
 
 ## Conventions & gotchas (so you work faster)
