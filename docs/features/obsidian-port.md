@@ -358,4 +358,33 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
+## OBS-12 · Ask (⌘J) summonable AI panel (✅ 2026-07-02, lane1)
+
+**What shipped:** Ask is now a 420px right-docked panel over any screen, not the full-page `/chat` destination. `src/lib/ask-context.tsx` (`AskProvider`/`useAsk`): open/closed state, the `⌘J`/`Ctrl+J` toggle (a modifier combo, so it fires even with focus in an input, unlike the bare `1`-`5`/`g` rail shortcuts), and `contextForPath` - a pure mapper from the current route to a plain-words label ("Today", "Discover", "a mission" when `?mission=` is open on `/build`, "the Engine Room" for both `/engine-room` and `/govern`). `src/lib/ask-sse.ts` (`parseSseLine`): the pure half of the `/api/chat` SSE reader, split out specifically so the status/meta/delta routing is unit-testable without a mounted tree. `src/components/obsidian/AskPanel.tsx`: header (`ASK` mono label + glacier context chip + Close), the thread (`AskUserTurn` right-aligned on `--surface-card-deep`, `AskAiMessage` with `ChatMarkdown` body + blossom-cited sources + time/cost mono footer + "How I got this" expandable trace with the model id), the three-word shimmer-while-thinking status (never a spinner), and the composer (auto-growing textarea, Enter sends, Shift+Enter newlines, Esc closes the panel).
+
+**Data flow (strictly read-only, per spec):** `/api/chat`'s streaming protocol, the classifier, mission dispatch, and research pipeline are all consumed byte-identical - zero server changes. The panel mints one scratch `createConversation` per session (not surfaced in any threads list, since the panel has no threads rail - that was an explicit calm-front reduction, not an oversight).
+
+**Mounted once** in `_authenticated.tsx`, wrapping the existing provider stack with `AskProvider` and floating `AskPanel` as a sibling of the shell (excluded from onboarding, matching the existing `CommandPalette`/`GotoShortcuts` pattern). `AppShell.tsx`'s rail shimmer working line now reads `useAsk().isOpen` and yields while Ask is open, honoring the one-shimmer-per-screen restraint budget.
+
+**`/chat` retired:** `_authenticated.chat.tsx` (the 1558-line parchment page) converted to a `beforeLoad` redirect to `/today`; `/chat` moved from `legacy-redirects.ts`'s "deliberately not folded" list (where OBS-10 explicitly parked it, since this panel didn't exist yet) into the actual redirect map. `PRIMARY_NAV` already had no Ask entry - OBS-02/OBS-10 removed it ahead of this item, so no nav-model change was needed here.
+
+**A real regression caught and fixed before commit:** the first cut of `parseSseLine` treated a `JSON.parse` failure the same as "not a data line" (returned `null`), which would silently drop an event whose JSON payload was split across two stream `read()` calls - a real bug the original `chat.tsx` reader had explicitly guarded against (re-buffer the line and wait for more data). Fixed by giving parse failures their own `{ kind: "parse-error" }` variant, distinct from `null`, so `AskPanel`'s loop re-buffers exactly like the retired reader did.
+
+**Ember CTA:** stays dark in this port. `/api/chat` has no structured "the answer proposes action X" field, and inventing one would be server-side feature work outside this item's scope (flagged per OBS-12.md §13 as a future item). The one case that exists today - a dispatched mission - surfaces as a glacier "Track the mission →" link instead of an ember button, since the mission is already running and needs no further human gate.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout - this worktree hits the known node20/ESM `lovable-tagger` failure, confirmed again this session), press `⌘J`/`Ctrl+J` from Today, Discover, Plan, Build, Brain, and the Engine Room.
+2. Confirm the context chip reads "About: Today" / "About: Discover" / etc, and "About: a mission" when a mission slide-over (`?mission=`) is open on Build.
+3. Ask a real question; confirm a live shimmer status appears while thinking, then the answer streams in with source chips, time, and cost.
+4. Click "How I got this" and confirm the trace expands with the model id and sub-queries.
+5. Confirm `/chat` redirects to `/today` and the rail's "N agents working" shimmer disappears while the panel is open.
+6. Esc closes the panel and restores focus to whatever had it before.
+
+**Test-coverage note (repo constraint, not a gap, same pattern every other Obsidian slide-over documents):** `AskPanel` itself uses `useServerFn`/`useAsk`/DOM streaming and this repo has no jsdom/React-Testing-Library dependency, so component-level behaviors (⌘J toggle, Esc close, focus trap/restore, shimmer render) are the manual-check tier. All the pure logic is unit-tested: `ask-sse.test.ts` (status/meta/delta/done/ignored/parse-error routing) and `ask-context.test.ts` (every `contextForPath` mapping, including the mission and fallback cases).
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 2053/2053 pass (20 new) · humanized-output clean (zero em/en dashes, no banned words).
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

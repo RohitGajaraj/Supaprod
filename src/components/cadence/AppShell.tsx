@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useAsk } from "@/lib/ask-context";
 import { useMachineView } from "@/hooks/use-machine-view";
 import { MachineViewContainer } from "@/components/machine/MachineViewContainer";
 import { useEffect, useState } from "react";
@@ -88,6 +89,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const searchTab = useRouterState({
     select: (s) => (s.location.search as { tab?: string })?.tab ?? null,
   });
+  // OBS-12: one shimmer per screen - the rail's working line yields while
+  // Ask (Cmd+J) is open, since Ask carries its own thinking shimmer.
+  const { isOpen: askOpen } = useAsk();
 
   const {
     workspaces,
@@ -608,7 +612,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {pauseState.reason ? ` · ${pauseState.reason}` : ""}
               </Link>
             )}
-            {runningCount > 0 && (
+            {runningCount > 0 && !askOpen && (
               <Link
                 to="/missions"
                 search={{ tab: "missions" } as never}

@@ -209,7 +209,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Gate:** flag the URL renames to the founder in the ship report.
 
 ### OBS-11 · ⌘K palette + capability catalog (extensions §1) - ✅ shipped 2026-07-02 (lane1)
-### OBS-12 · Ask (⌘J) panel (extensions §2)
+### OBS-12 · Ask (⌘J) panel (extensions §2) - ✅ shipped 2026-07-02 (lane1)
 ### OBS-13 · Settings four panes + Admin door (extensions §3)
 ### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live)
 ### OBS-15 · Chart grammar adoption (extensions §6; rides with 05/08/09)

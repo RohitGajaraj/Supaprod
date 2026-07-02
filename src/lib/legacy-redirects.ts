@@ -53,7 +53,6 @@ export const DOOR_INTERNAL_PATHS = [
   "/changelog",
   "/fleet",
   "/delegate",
-  "/chat",
   "/product",
 ] as const;
 
@@ -83,8 +82,6 @@ export const DOOR_INTERNAL_PATHS = [
  * - `/changelog` - Brain has no "record"/changelog-equivalent tab yet.
  * - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with
  *   no Build equivalent.
- * - `/chat` - the Ask panel (OBS-12) does not exist yet; redirecting this
- *   away now would delete AI chat with no replacement. OBS-12 owns this.
  * - `/govern` - Engine Room's own detail/drill layer (`RoomDetail` and every
  *   `rooms/*.tsx` navigate here for the deeper view); still renders its own
  *   live tabs (traces/evals/drift/guardrails/budgets/team/approvals/etc).
@@ -118,6 +115,7 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Today --
   "/tasks": { to: "/today" },
   "/inbox": { to: "/today" },
+  "/chat": { to: "/today" }, // Ask is the Cmd+J panel now (OBS-12), not a page.
 
   // -- Engine Room (canonical /engine-room; /govern stays live as its detail layer) --
   "/agents": { to: "/govern", search: { tab: "team" } },
