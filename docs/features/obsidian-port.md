@@ -115,4 +115,33 @@ Founder doctrine ruling 2026-07-02 (see `plan.md` §4 and `docs/strategy/session
 
 **Gates at ship (OBS-03 complete, both slices):** tsc 0 · 15 new unit tests, 1892 total pass, 0 fail · `bun run build`/`vite dev` not runnable in-worktree (pre-existing node20/ESM `lovable-tagger` error unrelated to this diff; `routeTree.gen.ts` was instead regenerated via the `@tanstack/router-generator` API directly) · humanized-output clean on every new UI-facing string.
 
+---
+
+## OBS-04 · Today ported (✅ 2026-07-02, lane1, adversarial-reviewed)
+
+**What shipped:** the ritual screen, fully rewritten (`src/routes/_authenticated.today.tsx`) on the OBS-03 primitives: `Hero` (one ember/moss italic count word), `LoopStrip` (5 pills, DECIDE ember only when calls pend), the calls queue as canonical `CallCard`s, a calls-answered progress bar, `WhatChanged`, a reskinned daily-brief card, and on the right the screen's ONE `AuroraCard` (`LoopHealthCard`) plus `MachineNow` (up to 4 live/queued agent runs).
+
+**Cross-object sync:** `decide(id, ok)` invalidates `needs-you` / `runs` / `loop-pulse` / `learnings` / `dashboard` / `studio-sessions` in one `onSuccess`, so the queue, nav badge, hero count, progress bar, and the linked Build mission all rewrite with no reload. `A`/`S` answer the current (first-rendered) call, guarded against inputs/modifiers.
+
+**Real regressions caught by adversarial review and fixed before commit:**
+
+- **Dead mission deep link.** `MachineNow` rows navigated to a `/build?mission=` search param that the `/build` index route never reads (no matching `validateSearch`); every row click silently landed on the generic list. Fixed to the codebase's actual pattern: `navigate({ to: "/build/$missionId", params: { missionId } })`.
+- **Blind approvals.** The "worth building?" `CallCard`s (PRD/opportunity calls) hardcoded a generic body and passed `ev={[]}`, dropping the Critic's `summary`/`risks`/`missing_evidence` the pre-port `DecisionCard` surfaced - a PM would approve or reject with zero evidence. Fixed with a `criticEvidence()` mapper.
+- **Two panels dropped outside the spec's authorized drop list.** The daily brief (OBS-04.md §8 explicitly says `Keep ["dashboard"]`) and the old command-center Bottlenecks/Top-priorities tiles were both silently missing from the first pass. Reconciled: the brief is restored (a reskinned card, `dashboard` query + `generateDailyBrief` mutation back), and Bottlenecks/Top-priorities are confirmed genuinely out of the prototype's Today IA and documented as an intentional drop in the route's own header comment (not a silent gap).
+
+Also fixed: the parchment "Not now" session-local defer state was dead code (declared, filtered on, never actually set) - explicitly retired with a comment, since the Obsidian Call object model has no defer verb; and a missing loading guard that let the hero briefly flash a false "All clear." before `getNeedsYou` resolved on first paint.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout), open `/today`.
+2. With calls pending: the hero shows the count word in ember, DECIDE pill is ember, the queue renders `CallCard`s with real evidence rows for spec/opportunity calls.
+3. Answer a call (Approve or `A`): the card animates out, the hero count and progress bar update immediately, the nav badge ticks down, and if the call is linked to a Build mission, that mission's row updates too - no reload anywhere.
+4. Clear the queue to zero: the moss all-clear card appears, DECIDE pill goes quiet.
+5. Confirm exactly one aurora on the screen (Loop Health) and that Machine Right Now rows open the actual mission (`/build/$missionId`), not the bare list.
+6. Refresh the brief card and confirm the summary updates without a full page reload.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1909/1909 pass · adversarial TypeScript-reviewer pass (3 real bugs found and fixed, listed above) · humanized-output clean.
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

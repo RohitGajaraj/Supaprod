@@ -208,3 +208,13 @@ Long-polling ~25 min for new rows, founder unlock, or configuration push.
 Files: `src/lib/nav-model.ts`, `src/lib/nav-model.test.ts`, `src/components/cadence/AppShell.tsx`, `src/components/cadence/TopBar.tsx`, `src/components/cadence/CommandPalette.tsx`, `src/components/obsidian/Surface.tsx` (new), `src/routes/_authenticated.tsx`, 21 `src/routes/_authenticated.*.tsx` routes, `public/assets/butterfly-ember.svg` (new), `docs/planning/feature-dashboard.md`, `docs/features/obsidian-port.md`, `docs/strategy/session-decisions.md`, `plan.md`.
 
 Claim released (`lane.sh done OBS-02`) — unblocks lane 2's deferred `/obsidian-specimen` route (its glob was waiting on this one) and OBS-04..09. Continuing to the next eligible item.
+
+## 2026-07-02 (17:52) — OBS-04 ✅ shipped: Today ported to Obsidian (the ritual)
+
+Picked via `bash scripts/lane.sh next` (OBS-04, next in the Obsidian port front, unblocked once OBS-03's primitives shipped). Claimed with globs `src/routes/_authenticated.today.tsx,src/components/today/*`.
+
+Full rewrite of Today on the OBS-03 primitives: Hero, LoopStrip, the calls queue as canonical CallCards, a progress bar, WhatChanged, a reskinned brief, and the one Loop Health aurora + machine-right-now. Cross-object sync on answering a call rewrites the queue/badge/hero/progress/linked-mission with no reload. Mounted `ToastProvider` (Toast's first consumer) in the shared `_authenticated.tsx` layout.
+
+Adversarial review (dispatched TypeScript reviewer) caught 3 real bugs, all fixed before commit: a dead mission deep link (wrong route/search key), silently-dropped Critic evidence on spec/opportunity calls, and two panels (brief, bottlenecks) dropped outside the spec's authorized list — reconciled (brief restored, bottlenecks confirmed genuinely out of IA and documented).
+
+Gates: tsc 0, 1909/1909 tests. Claim released; unblocks OBS-05..09 (parallelize per lane) and OBS-14. Continuing.

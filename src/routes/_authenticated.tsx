@@ -7,6 +7,7 @@ import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
 import { BackendHealthBanner } from "@/components/system/BackendHealthBanner";
 import { BillingBanner } from "@/components/billing/BillingBanner";
+import { ToastProvider } from "@/components/obsidian/toast";
 
 export const Route = createFileRoute("/_authenticated")({
   // Disable SSR/prerender for the entire authenticated subtree. Without a
@@ -50,18 +51,20 @@ function AuthedLayout() {
     <div data-obsidian>
       <WorkspaceProvider>
         <FlowModeProvider>
-          {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
-          <BackendHealthBanner />
-          <BillingBanner />
-          <CommandPalette />
-          {!isOnboarding && <GotoShortcuts />}
-          {isOnboarding ? (
-            <Outlet />
-          ) : (
-            <AppShell>
+          <ToastProvider>
+            {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
+            <BackendHealthBanner />
+            <BillingBanner />
+            <CommandPalette />
+            {!isOnboarding && <GotoShortcuts />}
+            {isOnboarding ? (
               <Outlet />
-            </AppShell>
-          )}
+            ) : (
+              <AppShell>
+                <Outlet />
+              </AppShell>
+            )}
+          </ToastProvider>
         </FlowModeProvider>
       </WorkspaceProvider>
     </div>
