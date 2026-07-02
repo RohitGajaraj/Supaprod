@@ -225,6 +225,9 @@ These are permanent operating rules. The loop follows them without being reminde
 
 Everything here needs **no founder input** and can be built, gated offline, and flagged for publish-verify. Source: 2026-06-18 backlog reconciliation (cross-referenced canon vs `src/`).
 
+### NEW INITIATIVE (2026-07-02): the Obsidian v3 port (group G14, dashboard row OBS-PORT)
+The whole authenticated app ports to the v3 "Obsidian" design system. Build bible with per-ID cold-buildable specs `OBS-01..OBS-15`: [`obsidian-port-plan.md`](./obsidian-port-plan.md). Foundation `OBS-01→03` strictly ordered, surfaces `04..09` parallelize, IA consolidation `10` after them, extension surfaces `11..15` last. Doctrine chain: the `cadence-design` skill → `/DESIGN-OBSIDIAN.md` → `design-reference/obsidian-v3/` → `design-reference/obsidian-extensions.md`. Landing page stays parchment, out of scope.
+
 **Ordered by STRATEGIC IMPACT vs the current positioning** (workflow `cadence-strategic-build-rank`, 2026-06-18; founder ruling: highest-impact first, never buildability). Scoring lens = the current v10 milestone gate (Sprint P0: close the loop on REAL DATA + land the wedge). The catalog tables below are the buildable set; the strategic order + the pruned (off-milestone) set are at the end of this section.
 
 ### #1 (shipped this cycle), `F3-CRON` continuous auto-cluster (always-fresh SENSE)
