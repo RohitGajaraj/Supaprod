@@ -1255,6 +1255,20 @@ No live DB access in this environment to run `EXPLAIN ANALYZE`; the offline `bun
 
 ---
 
+### 2026-07-03 (RF-03 ✅: retrieval feedback writeback shipped, lane4 — closes the founder-assigned RF-01→RF-03 run)
+
+Founder-attended chokepoint edit (approved live in-session): `touchMemory` (src/lib/ai/memory.server.ts) only ever recorded that a memory was recalled, never whether the run that recalled it was actually useful. New migration `20260703010000_rf03_retrieval_feedback_writeback.sql` adds `memory_recall_log` (memory_id, trace_id, user_id, workspace_id, outcome default 'ignored') plus `bump_memory_importance(memory_id, delta)`, a SECURITY INVOKER atomic `UPDATE ... RETURNING` that clamps importance to agent_memory's own 1..5 CHECK.
+
+New `logMemoryRecall` in memory.server.ts (pinned) sits next to touchMemory and writes one recall_log row per recalled memory, keyed by the run's trace_id rather than any single event_id — a run's recall happens once and its lines are baked into the system prompt reused by every callModel call in executeLoop's per-step loop, so trace_id (shared across every event in the run) is the correct correlation key. loop.server.ts's (pinned) `recallMemory` wrapper now returns `{lines, refs}` instead of discarding refs; both call sites (runAgentLoop's fresh dispatch, resumeAgentLoop's cold-resume branch) call logMemoryRecall right after recall. executeLoop's per-step retry loop itself was deliberately not touched, keeping the highest-risk part of the file untouched.
+
+feedback.functions.ts's submitFeedback (not pinned) is the behavioral consumer: on a rating, atomically claims the trace's still-'ignored' recall rows (a single `UPDATE ... WHERE outcome='ignored' ... RETURNING`, not a SELECT-then-UPDATE) into 'used' or 'contradicted', then calls bump_memory_importance for each distinct memory touched — feeding RF-02's ranking through the importance term it already reads, no RF-02 change needed.
+
+A database-specialist review of the first draft found one real bug and confirmed everything else (RLS, trace-id linkage across resumes, blast radius on both chokepoint files, the CHECK constraint bounds): the original SELECT-then-UPDATE claim could double-apply the importance nudge under concurrent feedback on the same trace. Fixed with the atomic claim described above. Before shipping, I also caught my own bug: the importance-bump RPC was first drafted SECURITY DEFINER, which would have let any authenticated user bump ANY memory's importance by id, bypassing agent_memory's own RLS entirely — fixed to run as invoker so the existing "own agent_memory" policy gates it, exactly as if the caller wrote the UPDATE directly.
+
+Gates: `tsc --noEmit` 0 new errors, `bun test` 2098 pass, 0 regressions; offline `lint-migrations.ts` 0 fatal errors. Dashboard row 14 flipped to ✅, tally recomputed (263/292 = 90.1% strict / 265.00 = 90.8% weighted), `SOURCE-OF-TRUTH.md` §0 updated. Migration is code-complete and gate-verified but not yet applied to the live database. **This closes the founder-assigned RF-01 → RF-02 → RF-03 run** — all three claimed and shipped sequentially, one at a time, across this session.
+
+---
+
 ## 5. Legacy build log (retained — the previous source, for reuse)
 
 > This is the earlier build (the "vibe-coded" source). **It is a reuse reference, not the plan.** Mine it for what survives the stress-test; supersede entries as they're rebuilt into section 4. Do not treat anything here as current truth without checking the code.

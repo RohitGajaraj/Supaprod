@@ -170,6 +170,40 @@ export async function touchMemory(supabase: SupabaseClient, ids: string[]): Prom
 }
 
 /**
+ * RF-03 — extends the touchMemory seam: touchMemory only knows a memory was
+ * recalled, never whether the run that recalled it turned out useful. Call
+ * this alongside touchMemory at recall time with the run's traceId (not an
+ * eventId — one recall's lines are baked into the system prompt once and
+ * reused by every callModel call in the run's step loop, so traceId is the
+ * correct correlation key). Rows default to 'ignored'; feedback.functions.ts's
+ * submitFeedback upgrades them to 'used'/'contradicted' when a rating arrives
+ * for any event in the trace. Best-effort — never breaks the loop.
+ */
+export async function logMemoryRecall(
+  supabase: SupabaseClient,
+  args: {
+    memoryIds: string[];
+    traceId: string | null;
+    userId: string;
+    workspaceId: string | null;
+  },
+): Promise<void> {
+  if (!args.memoryIds.length || !args.traceId) return;
+  try {
+    await supabase.from("memory_recall_log").insert(
+      args.memoryIds.map((memory_id) => ({
+        memory_id,
+        trace_id: args.traceId,
+        user_id: args.userId,
+        workspace_id: args.workspaceId,
+      })),
+    );
+  } catch (e) {
+    console.error("logMemoryRecall failed:", e);
+  }
+}
+
+/**
  * Persist a recorded outcome as a durable, searchable, GLOBAL-scope memory so
  * EVERY future agent run recalls it (v6 Phase 2 — close the compounding loop).
  * Embedded so it surfaces via `match_agent_memory`; metadata entity-links the

@@ -11,7 +11,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel, GovernanceHaltError } from "./runtime.server";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
-import { recallMemoryRefs } from "./memory.server";
+import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { renderBriefBlock, type WorkspaceBrief } from "@/lib/briefs.functions";
@@ -131,16 +131,15 @@ async function recallMemory(
   agentSlug: string,
   query: string,
   workspaceId: string | null,
-): Promise<string[]> {
+): Promise<{ lines: string[]; refs: MemoryRef[] }> {
   // Delegates to the shared recall (memory.server). `touch: true` writes
   // last_used_at on the recalled memories — every recall is a use, feeding the
-  // decay sweep (v6 Phase 1). We keep only the lines for prompt injection;
-  // mid-loop handoffs thread the {id} refs separately at dispatch time.
-  // WM-F1: scope recall to the active workspace.
-  const { lines } = await recallMemoryRefs(supabase, userId, agentSlug, query, workspaceId, {
-    touch: true,
-  });
-  return lines;
+  // decay sweep (v6 Phase 1). Callers get both the lines (for prompt injection;
+  // mid-loop handoffs thread the {id} refs separately at dispatch time) and the
+  // refs (RF-03 — so the caller can log which memories fed this run's recall,
+  // for later retrieval-feedback writeback). WM-F1: scope recall to the active
+  // workspace.
+  return recallMemoryRefs(supabase, userId, agentSlug, query, workspaceId, { touch: true });
 }
 
 function xmlEscape(str: string): string {
@@ -283,7 +282,21 @@ export async function runAgentLoop(
     tools.map((t) => [t.tool_name as string, t.mode as string]),
   );
 
-  const memories = await recallMemory(supabase, userId, input.agentSlug, input.goal, workspaceId);
+  const { lines: memories, refs: memoryRefs } = await recallMemory(
+    supabase,
+    userId,
+    input.agentSlug,
+    input.goal,
+    workspaceId,
+  );
+  // RF-03 — link this run's trace to whichever memories fed its recall, so a
+  // later rating on any event in the trace can write back used/contradicted.
+  await logMemoryRecall(supabase, {
+    memoryIds: memoryRefs.map((r) => r.id),
+    traceId,
+    userId,
+    workspaceId,
+  });
   const voiceBlock = await loadVoiceAnchorBlock(supabase, userId);
 
   // Workspace Strategic Brief (Bundle 2 / C5) — shared operating context.
@@ -1037,7 +1050,7 @@ export async function resumeAgentLoop(
     recalledMemories = Array.isArray(st.recalledMemories) ? st.recalledMemories : [];
     injectedApprovalIds = Array.isArray(st.injectedApprovalIds) ? st.injectedApprovalIds : [];
   } else {
-    const memories = await recallMemory(
+    const { lines: memories, refs: memoryRefs } = await recallMemory(
       supabase,
       run.user_id,
       agent.slug,
@@ -1045,6 +1058,13 @@ export async function resumeAgentLoop(
       run.workspace_id ?? null,
     );
     recalledMemories = memories;
+    // RF-03 — same trace-linked recall log as the fresh-dispatch path above.
+    await logMemoryRecall(supabase, {
+      memoryIds: memoryRefs.map((r) => r.id),
+      traceId,
+      userId: run.user_id,
+      workspaceId: run.workspace_id ?? null,
+    });
     const voiceBlock = await loadVoiceAnchorBlock(supabase, run.user_id);
     // Workspace brief + inbound handoff (Bundle 2 + Bundle 4).
     let briefBlock = "";
