@@ -3,6 +3,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email.server";
+import { loadNewestDecisionBrief } from "@/lib/stakeholder-pack.functions";
+import { composeStakeholderPack, renderPackMarkdown, type PackAudience } from "@/lib/stakeholder-pack";
 
 // R3 · Notifications, one "what needs you" feed derived live from the loop's
 // own state: tool calls waiting on a human, spend nearing or over a cap, a
@@ -203,6 +205,8 @@ export type UserNotificationPreferences = {
   digest_budget: boolean;
   digest_drift: boolean;
   digest_frequency: "daily" | "weekly";
+  digest_stakeholder_update: boolean;
+  digest_stakeholder_audience: PackAudience;
   updated_at: string;
 };
 
@@ -233,6 +237,8 @@ export const getNotificationPreferences = createServerFn({ method: "GET" })
       digest_budget: true,
       digest_drift: true,
       digest_frequency: "daily",
+      digest_stakeholder_update: false,
+      digest_stakeholder_audience: "exec",
       updated_at: new Date().toISOString(),
     };
 
@@ -257,6 +263,8 @@ const PreferencesUpdateSchema = z.object({
   digest_budget: z.boolean().optional(),
   digest_drift: z.boolean().optional(),
   digest_frequency: z.enum(["daily", "weekly"]).optional(),
+  digest_stakeholder_update: z.boolean().optional(),
+  digest_stakeholder_audience: z.enum(["exec", "eng", "board"]).optional(),
 });
 
 export const updateNotificationPreferences = createServerFn({ method: "POST" })
@@ -483,17 +491,54 @@ export async function generateDigest(
     }
   }
 
+  // JNY-05: the ambient stakeholder loop. When enabled, the digest also carries the
+  // workspace's newest decision as an audience-tuned pack, so "keeping stakeholders
+  // in the loop" rides this same cron instead of a separate surface. Best-effort:
+  // no workspace, no decisions yet, or a lookup failure just skips this section.
+  // Uses ensure_user_default_workspace(_user_id) directly with the explicit userId,
+  // NOT current_user_default_workspace() (which wraps auth.uid()): this function runs
+  // under the service-role admin client from the digest-tick cron, where auth.uid() is
+  // null, the same class of service-role-vs-session-context bug already fixed for
+  // ai_events (see 20260701190000_ai_events_workspace_default_service_role_safe.sql).
+  let stakeholderSection: string | null = null;
+  if (prefs?.digest_stakeholder_update) {
+    try {
+      const { data: wsRpc } = await supabase.rpc("ensure_user_default_workspace", {
+        _user_id: userId,
+      });
+      const workspaceId = (wsRpc as string | null) ?? null;
+      if (workspaceId) {
+        const loaded = await loadNewestDecisionBrief(supabase, workspaceId);
+        if (loaded) {
+          const audience = (prefs.digest_stakeholder_audience ?? "exec") as PackAudience;
+          const pack = composeStakeholderPack(loaded.brief, audience);
+          stakeholderSection = renderPackMarkdown(pack, {
+            asOf: new Date().toISOString().slice(0, 10),
+          });
+        }
+      }
+    } catch {
+      stakeholderSection = null;
+    }
+  }
+
   await supabase
     .from("user_notification_preferences")
     .update({ last_digest_sent_at: new Date().toISOString() })
     .eq("user_id", userId);
 
-  if (digestItems.length === 0) {
+  if (digestItems.length === 0 && !stakeholderSection) {
     return { generated: false, reason: "No digest items found matching preferences." };
   }
 
   const subject = `Cadence ${frequency} digest`;
-  const content = `Hello,\n\nHere is your ${frequency} digest from Cadence:\n\n${digestItems.join("\n")}\n\nReview detailed logs in your Cadence Cockpit dashboard.`;
+  const sections = [
+    `Hello,\n\nHere is your ${frequency} digest from Cadence:`,
+    digestItems.length > 0 ? digestItems.join("\n") : null,
+    stakeholderSection ? `Stakeholder update:\n\n${stakeholderSection}` : null,
+    "Review detailed logs in your Cadence Cockpit dashboard.",
+  ].filter((s): s is string => !!s);
+  const content = sections.join("\n\n");
 
   const to = await resolveUserEmail(supabase, userId);
   if (!to)

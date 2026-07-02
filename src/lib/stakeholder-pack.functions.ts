@@ -67,6 +67,94 @@ function labelSource(kind: string | null): string | null {
   return map[k] ?? `a ${k}`;
 }
 
+/**
+ * Shared data-loading core: the decisions list (for a picker) plus the selected
+ * (or newest) decision's brief, built from lineage evidence + supersession standing
+ * + any recorded outcome. `getStakeholderPack` composes all three audience packs from
+ * it; JNY-05's digest composer (`notifications.functions.ts`) reuses it to compose
+ * just one audience for the scheduled email, without a second copy of this loading.
+ */
+export async function loadNewestDecisionBrief(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  wantId?: string | null,
+): Promise<{ decisions: { id: string; title: string }[]; brief: DecisionBrief } | null> {
+  const cols = "id,title,rationale,status,source_kind,prd_id,opportunity_id,decided_by_agent_slug,created_at";
+  const { data: decRows, error: decErr } = await supabase
+    .from("decisions")
+    .select(cols)
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (decErr) throw new Error(decErr.message);
+  const decisions = (decRows ?? []) as DecisionRow[];
+  if (decisions.length === 0) return null;
+
+  const selectedRow = (wantId && decisions.find((d) => d.id === wantId)) || decisions[0];
+
+  // Lineage for evidence + supersession standing, with the pre-migration valid_to fallback.
+  let edges: LineageEdgeLite[] = [];
+  {
+    const run = (sel: string) =>
+      supabase.from("artifact_lineage").select(sel).eq("workspace_id", workspaceId).limit(5000);
+    let res = await run("parent_kind,parent_id,child_kind,child_id,relation,valid_to");
+    const m = (res.error?.message ?? "").toLowerCase();
+    if (res.error && m.includes("does not exist") && m.includes("valid_to")) {
+      res = await run("parent_kind,parent_id,child_kind,child_id,relation");
+    }
+    if (!res.error) edges = (res.data ?? []) as unknown as LineageEdgeLite[];
+  }
+  const evidence = evidenceCounts(edges);
+  const superseded = supersededChildIds(edges);
+
+  // A recorded outcome linked to the selected decision (by prd or opportunity), if any.
+  let verdict: string | null = null;
+  let metricLabel: string | null = null;
+  let metricValue: string | null = null;
+  const linkFilter = selectedRow.prd_id
+    ? { col: "prd_id", val: selectedRow.prd_id }
+    : selectedRow.opportunity_id
+      ? { col: "opportunity_id", val: selectedRow.opportunity_id }
+      : null;
+  if (linkFilter) {
+    const { data: lrn } = await supabase
+      .from("learnings")
+      .select("verdict,metric_label,metric_value,created_at")
+      .eq("workspace_id", workspaceId)
+      .eq(linkFilter.col, linkFilter.val)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const row = (lrn ?? [])[0] as
+      | { verdict: string | null; metric_label: string | null; metric_value: string | null }
+      | undefined;
+    if (row) {
+      verdict = row.verdict ?? null;
+      metricLabel = row.metric_label ?? null;
+      metricValue = row.metric_value ?? null;
+    }
+  }
+
+  const brief: DecisionBrief = {
+    title: selectedRow.title,
+    rationale: selectedRow.rationale,
+    status: selectedRow.status,
+    actor: selectedRow.decided_by_agent_slug,
+    humanDecided: !(
+      typeof selectedRow.decided_by_agent_slug === "string" &&
+      selectedRow.decided_by_agent_slug.trim()
+    ),
+    occurredAt: selectedRow.created_at,
+    sourceLabel: labelSource(selectedRow.source_kind),
+    evidenceCount: evidence.get(selectedRow.id) ?? 0,
+    outcome: superseded.has(selectedRow.id) ? "superseded" : "standing",
+    verdict,
+    metricLabel,
+    metricValue,
+  };
+
+  return { decisions: decisions.map((d) => ({ id: d.id, title: d.title })), brief };
+}
+
 export const getStakeholderPack = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => Schema.parse(i ?? {}))
@@ -76,79 +164,9 @@ export const getStakeholderPack = createServerFn({ method: "GET" })
     const workspaceId = (wsRpc as string | null) ?? null;
     if (!workspaceId) return { decisions: [], selected: null };
 
-    const cols = "id,title,rationale,status,source_kind,prd_id,opportunity_id,decided_by_agent_slug,created_at";
-    const { data: decRows, error: decErr } = await supabase
-      .from("decisions")
-      .select(cols)
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (decErr) throw new Error(decErr.message);
-    const decisions = (decRows ?? []) as DecisionRow[];
-    if (decisions.length === 0) return { decisions: [], selected: null };
-
-    const wantId = data?.decisionId ?? null;
-    const selectedRow = (wantId && decisions.find((d) => d.id === wantId)) || decisions[0];
-
-    // Lineage for evidence + supersession standing, with the pre-migration valid_to fallback.
-    let edges: LineageEdgeLite[] = [];
-    {
-      const run = (sel: string) =>
-        supabase.from("artifact_lineage").select(sel).eq("workspace_id", workspaceId).limit(5000);
-      let res = await run("parent_kind,parent_id,child_kind,child_id,relation,valid_to");
-      const m = (res.error?.message ?? "").toLowerCase();
-      if (res.error && m.includes("does not exist") && m.includes("valid_to")) {
-        res = await run("parent_kind,parent_id,child_kind,child_id,relation");
-      }
-      if (!res.error) edges = (res.data ?? []) as unknown as LineageEdgeLite[];
-    }
-    const evidence = evidenceCounts(edges);
-    const superseded = supersededChildIds(edges);
-
-    // A recorded outcome linked to the selected decision (by prd or opportunity), if any.
-    let verdict: string | null = null;
-    let metricLabel: string | null = null;
-    let metricValue: string | null = null;
-    const linkFilter = selectedRow.prd_id
-      ? { col: "prd_id", val: selectedRow.prd_id }
-      : selectedRow.opportunity_id
-        ? { col: "opportunity_id", val: selectedRow.opportunity_id }
-        : null;
-    if (linkFilter) {
-      const { data: lrn } = await supabase
-        .from("learnings")
-        .select("verdict,metric_label,metric_value,created_at")
-        .eq("workspace_id", workspaceId)
-        .eq(linkFilter.col, linkFilter.val)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      const row = (lrn ?? [])[0] as
-        | { verdict: string | null; metric_label: string | null; metric_value: string | null }
-        | undefined;
-      if (row) {
-        verdict = row.verdict ?? null;
-        metricLabel = row.metric_label ?? null;
-        metricValue = row.metric_value ?? null;
-      }
-    }
-
-    const brief: DecisionBrief = {
-      title: selectedRow.title,
-      rationale: selectedRow.rationale,
-      status: selectedRow.status,
-      actor: selectedRow.decided_by_agent_slug,
-      humanDecided: !(
-        typeof selectedRow.decided_by_agent_slug === "string" &&
-        selectedRow.decided_by_agent_slug.trim()
-      ),
-      occurredAt: selectedRow.created_at,
-      sourceLabel: labelSource(selectedRow.source_kind),
-      evidenceCount: evidence.get(selectedRow.id) ?? 0,
-      outcome: superseded.has(selectedRow.id) ? "superseded" : "standing",
-      verdict,
-      metricLabel,
-      metricValue,
-    };
+    const loaded = await loadNewestDecisionBrief(supabase, workspaceId, data?.decisionId ?? null);
+    if (!loaded) return { decisions: [], selected: null };
+    const { decisions, brief } = loaded;
 
     const composed = composeAllPacks(brief);
     const asOf = isoDate();
@@ -157,8 +175,15 @@ export const getStakeholderPack = createServerFn({ method: "GET" })
       packs[a] = { pack: composed[a], markdown: renderPackMarkdown(composed[a], { asOf }) };
     }
 
+    // The picked decision's id: the newest when no decisionId was requested, or
+    // the requested one when it matched (loadNewestDecisionBrief falls back to
+    // newest on a miss, same as before this extraction).
+    const selectedId = (data?.decisionId && decisions.some((d) => d.id === data.decisionId)
+      ? data.decisionId
+      : decisions[0]?.id) as string;
+
     return {
-      decisions: decisions.map((d) => ({ id: d.id, title: d.title })),
-      selected: { decisionId: selectedRow.id, brief, packs },
+      decisions,
+      selected: { decisionId: selectedId, brief, packs },
     };
   });

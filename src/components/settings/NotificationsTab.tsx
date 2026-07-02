@@ -68,6 +68,8 @@ export function NotificationsTab() {
   const [email, setEmail] = useState<Record<string, boolean>>({});
   const [digest, setDigest] = useState<Record<string, boolean>>({});
   const [digestFrequency, setDigestFrequency] = useState<"daily" | "weekly">("daily");
+  const [stakeholderUpdate, setStakeholderUpdate] = useState(false);
+  const [stakeholderAudience, setStakeholderAudience] = useState<"exec" | "eng" | "board">("exec");
 
   useEffect(() => {
     const p = prefsQuery.data?.preferences;
@@ -91,6 +93,8 @@ export function NotificationsTab() {
       Drift: p.digest_drift,
     });
     setDigestFrequency(p.digest_frequency);
+    setStakeholderUpdate(p.digest_stakeholder_update ?? false);
+    setStakeholderAudience(p.digest_stakeholder_audience ?? "exec");
   }, [prefsQuery.data]);
 
   const handleSave = (e: React.FormEvent) => {
@@ -109,6 +113,8 @@ export function NotificationsTab() {
       digest_budget: digest.Budget,
       digest_drift: digest.Drift,
       digest_frequency: digestFrequency,
+      digest_stakeholder_update: stakeholderUpdate,
+      digest_stakeholder_audience: stakeholderAudience,
     });
   };
 
@@ -196,6 +202,41 @@ export function NotificationsTab() {
             How often email digests are aggregated and sent to you.
           </div>
         </label>
+      </div>
+
+      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+        <MonoLabel style={{ marginBottom: 12 }}>Stakeholder update</MonoLabel>
+        <label
+          style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: stakeholderUpdate ? 14 : 0 }}
+        >
+          <input
+            type="checkbox"
+            checked={stakeholderUpdate}
+            onChange={(e) => setStakeholderUpdate(e.target.checked)}
+            style={CHK}
+            aria-label="Include a stakeholder update in my digest"
+          />
+          <span style={{ fontSize: 13 }}>Include a stakeholder update in my digest</span>
+        </label>
+        <p style={{ fontSize: 11, color: "var(--ink-muted)", margin: stakeholderUpdate ? "0 0 14px" : 0 }}>
+          Your workspace's newest decision, framed for the audience you pick, riding the same email
+          above. No separate send.
+        </p>
+        {stakeholderUpdate ? (
+          <label style={{ display: "block", maxWidth: 320 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>Written for</div>
+            <select
+              className="input"
+              value={stakeholderAudience}
+              onChange={(e) => setStakeholderAudience(e.target.value as "exec" | "eng" | "board")}
+              style={{ width: "100%", padding: "6px 10px", borderRadius: 6 }}
+            >
+              <option value="exec">Executives</option>
+              <option value="eng">Engineering</option>
+              <option value="board">Board</option>
+            </select>
+          </label>
+        ) : null}
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>

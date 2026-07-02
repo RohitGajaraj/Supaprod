@@ -132,6 +132,83 @@ describe("Notification Preferences & Dispatch (FS-03)", () => {
     expect(res.content).toContain("Drift: 1 active");
     // Should NOT contain Budget since digest_budget is false
     expect(res.content).not.toContain("Budget:");
+    // digest_stakeholder_update is absent from mockUserPreferences (JNY-05, opt-in)
+    expect(res.content).not.toContain("Stakeholder update:");
+  });
+
+  test("generateDigest skips the stakeholder section gracefully when no workspace resolves", async () => {
+    const prefsWithStakeholder = { ...mockUserPreferences, digest_stakeholder_update: true };
+    const mockSupabaseForDigest = {
+      rpc: async () => ({ data: null, error: null }),
+      from: () => ({
+        update: () => ({ eq: async () => ({ data: null, error: null }) }),
+        select: () => ({
+          eq: () => ({
+            eq: async () => ({ data: null, error: null }),
+            in: () => ({ lt: async () => ({ count: 0, error: null }) }),
+            maybeSingle: async () => ({ data: prefsWithStakeholder, error: null }),
+          }),
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const res = await generateDigest(mockSupabaseForDigest, "test-user-id", "daily");
+    // Every operational category is off/empty in this mock, and the stakeholder
+    // section never resolves a workspace, so there is genuinely nothing to send.
+    expect(res.generated).toBe(false);
+  });
+
+  test("generateDigest includes the stakeholder pack when enabled and a decision exists", async () => {
+    const prefsWithStakeholder = {
+      ...mockUserPreferences,
+      digest_approvals: false,
+      digest_health: false,
+      digest_drift: false,
+      digest_stakeholder_update: true,
+      digest_stakeholder_audience: "exec",
+    };
+    const decisionRow = {
+      id: "dec-1",
+      title: "Ship the new pricing page",
+      rationale: "Converts better in tests",
+      status: "approved",
+      source_kind: "prd",
+      prd_id: null,
+      opportunity_id: null,
+      decided_by_agent_slug: null,
+      created_at: new Date().toISOString(),
+    };
+    const mockSupabaseForDigest = {
+      rpc: async () => ({ data: "workspace-1", error: null }),
+      from: (table: string) => ({
+        update: () => ({ eq: async () => ({ data: null, error: null }) }),
+        select: () => ({
+          eq: (col: string) => {
+            // decisions: .select().eq("workspace_id", id).order().limit()
+            if (table === "decisions") {
+              return {
+                order: () => ({
+                  limit: async () => ({ data: [decisionRow], error: null }),
+                }),
+              };
+            }
+            // artifact_lineage: .select().eq("workspace_id", id).limit()
+            if (table === "artifact_lineage") {
+              return { limit: async () => ({ data: [], error: null }) };
+            }
+            return {
+              eq: async () => ({ data: null, error: null }),
+              maybeSingle: async () => ({ data: prefsWithStakeholder, error: null }),
+            };
+          },
+        }),
+      }),
+    } as unknown as SupabaseClient;
+
+    const res = await generateDigest(mockSupabaseForDigest, "test-user-id", "daily");
+    expect(res.generated).toBe(true);
+    expect(res.content).toContain("Stakeholder update:");
+    expect(res.content).toContain("Ship the new pricing page");
   });
 });
 
