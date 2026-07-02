@@ -128,3 +128,7 @@ Re-verified every remaining `◐` row's own "NOT done" note fresh (not just re-t
 - **OBS-15, OBS-PORT:** unchanged, already confirmed no autonomous slice remains.
 
 Live claims at this recheck: DSN-04 (lane4), AGT-03 (lane2). `lane.sh next` still reports BOARD DRY. Every other open row is either one of the four `◐` above or 👤 founder-marked Gated. Nothing new to claim. Rescheduling another long-poll rather than hard-stopping.
+
+### 2026-07-03, ~25 min later — second recheck, still dry
+
+**DSN-04 and AGT-03 both closed** since the last recheck (dropped off the open register). Lane1 has now claimed the remainder of DSN-03 (`design-scaffold.functions.ts`), closing the "scaffold derives from flow" gap I'd noted as blocked earlier tonight. Re-confirmed each remaining `◐` row's blocker text is byte-identical to the last recheck (OBS-10, OBS-13, OBS-PORT, JNY-05) — no lane has touched them, nothing newly buildable. Also checked `src/lib/connectors/catalog.ts` fresh in case a Slack entry had been added since (it has not) — JNY-05's Slack gate stands. Still genuinely dry for this lane. Long-polling again.
