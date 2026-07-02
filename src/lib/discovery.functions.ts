@@ -527,7 +527,7 @@ const ContractClauseSchema = z.object({
 });
 export type ContractClause = z.infer<typeof ContractClauseSchema>;
 
-const OutcomeContractSchema = z.object({
+export const OutcomeContractSchema = z.object({
   version: z.number().int().min(1),
   intent: z.string().max(2000),
   evidence_links: z

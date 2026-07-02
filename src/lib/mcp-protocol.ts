@@ -113,6 +113,16 @@ export const MCP_TOOLS: McpTool[] = [
     },
   },
   {
+    name: "get_ard",
+    description:
+      "Fetch a spec's Outcome Contract as a portable, versioned ARD (Agent Requirements Document): intent, success metrics each tagged with their proof oracle, non-goals, and budget. This is the structured acceptance contract an external coding agent should receive on dispatch instead of re-parsing the spec's prose. Schema: /api/public/ard/schema.",
+    inputSchema: {
+      type: "object",
+      properties: { prd_id: { type: "string" } },
+      required: ["prd_id"],
+    },
+  },
+  {
     name: "get_roadmap",
     description:
       "Fetch the workspace roadmap: opportunities arranged into now / next / later buckets (plus unbucketed), highest ICE first.",

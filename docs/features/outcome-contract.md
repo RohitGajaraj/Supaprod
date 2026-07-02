@@ -1,6 +1,6 @@
-# The Outcome Contract (CNV-01/CNV-04/CNV-02, v12 sec 7.4)
+# The Outcome Contract (CNV-01/CNV-04/CNV-02/CNV-03, v12 sec 7.4)
 
-> _Created: 2026-07-02 · Last updated: 2026-07-03 (CNV-02)_
+> _Created: 2026-07-02 · Last updated: 2026-07-03 (CNV-03)_
 
 The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside the existing markdown narrative (`body_md`). It is the first piece of the v12 Program CONVENTIONS build: the artifact formerly known as the PRD, split into a human view (unchanged) and a machine view an agent can consume directly instead of re-parsing prose.
 
@@ -80,8 +80,37 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 - Re-classifying an already-compiled clause requires superseding it first (CNV-01's mechanic clears `oracle_kind` implicitly since a superseded clause's replacement is a fresh clause with `oracle_kind: null`) — there's no separate "re-compile this one clause" action.
 - One accepted, precedented asymmetry (security-reviewed, not a new tradeoff): `prds` RLS is strictly owner-only while `decisions`/`assumptions` are workspace-shared, so a confirmed challenge on a spec-sourced assumption silently no-ops the `prds.status` reopen if the confirming user isn't the spec's owner — the same shape the decision-reopening branch already had.
 
+## CNV-03: the ARD, publishing the Outcome Contract as a standard (v12 sec 7.4)
+
+**Why this exists:** v12 sec 7.4, stated directly — "a standard needs consumers; the first consumers are the coding agents Cadence dispatches to." Every prior CNV step built and refined the Outcome Contract *inside* Cadence. Nothing outside Cadence could read it in a stable, versioned shape. CNV-03 closes that: the same contract, published.
+
+### What ships
+
+- **The name.** "ARD" (Agent Requirements Document) is the public name of the standard; the mechanics underneath are the unchanged Outcome Contract. No renaming inside the app, no new internal type — `ard-schema.ts` only wraps and republishes what CNV-01/02/04 already built.
+- **`src/lib/ard-schema.ts`** (pure, no DB) — `ARD_SCHEMA_VERSION` ("0.1"), `buildArdJsonSchema(origin)` (the formal JSON Schema, draft 2020-12, mirroring `OutcomeContractSchema` field-for-field), `buildArdDocument(origin, specId, specTitle, contract)` (the export envelope: `{ ard_version, schema_url, spec_id, spec_title, exported_at, contract }`), and `parseArdDocument(json)` (the import gate — validates via the same `OutcomeContractSchema.safeParse` the draft/apply flow already enforces, so an imported contract can never be less strict than an agent-drafted one; accepts either a full envelope or a bare contract object).
+- **Public schema endpoint**: `GET /api/public/ard/schema` (`src/routes/api/public/ard.schema.ts`) — unauthenticated, cached, CORS-open, same pattern as the A2A agent card route.
+- **Public spec page**: `/ard` (`src/routes/ard.tsx`) — what the ARD is, why, the schema link, and how to fetch/export/import one, with a worked example. Parchment tokens (public page, not the authenticated Obsidian app).
+- **MCP tool `get_ard`** (`src/lib/mcp-protocol.ts` catalog, `src/lib/mcp.functions.ts`'s `getArdDocument`, wired in `src/routes/api/mcp.ts`) — given a `prd_id`, returns the spec's contract wrapped as an ARD document. This is the dispatch-time read path: `get_prd` predates CNV-01 and never exposed `contract`; `get_ard` is the one MCP call that hands a dispatched agent the identical acceptance contract Cadence checks a build against.
+- **UI**: `OutcomeContractPanel.tsx` gained **Export ARD** (downloads the current contract as a portable `.ard.json` file, client-side, no server round trip beyond the data already loaded) and **Import ARD JSON** (paste a document, validated by `parseArdDocument`, applied through the exact same `savePrd` mutation as "Apply contract" — the empty-state card offers it as an alternative to drafting from scratch).
+- **Discovery surfaces updated**: `llms.txt`, `agents.txt`, and the A2A agent card's `read_tools` list all now mention `get_ard` and the `/ard` / `/api/public/ard/schema` URLs, so an agent that only ever reads `llms.txt` still finds the standard.
+
+### How to use / verify
+
+1. `curl https://<origin>/api/public/ard/schema` — returns the versioned JSON Schema.
+2. Visit `/ard` — the public explainer, unauthenticated.
+3. Open any spec with a populated contract → Contract tab → **Export ARD** → downloads `<spec-title>.ard.json`.
+4. Paste that same file's contents into another spec's Contract tab → **Import ARD JSON** → **Parse and apply** → the contract is adopted via the standard `savePrd` path.
+5. Call `get_ard` over `POST /api/mcp` with a `prd_id` (bearer token from Settings > Interop) → returns the same envelope.
+
+### Scope notes (what this does NOT do)
+
+- **No new write scope.** Import goes through the existing `savePrd({ id, contract })` call, gated by the caller's own session/ownership like any other spec edit — there is no MCP write tool for import (dispatch is read-only; a future write-back is Phase 4b territory, not CNV-03's).
+- **Publish timing is a founder call, not a code gate.** The schema and pages ship live with this build (same as the A2A card and `llms.txt`); the founder decides when/whether to actively promote `/ard` externally (blog post, dev outreach). Nothing here is soft-launched or feature-flagged — it is simply not yet announced.
+- `BuildSpec` (the ARD's documented "child," `docs/strategy/build-driver-and-dispatch.md`) does not exist in code yet — it belongs to the founder-gated `BUILD-DRIVER` initiative. The relationship is documented, not wired.
+
 ## Related
 
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7 — the pressure test, the three-lifetime design, the command grammar, and the full CNV/AGT build list.
 - [`critic-agent.md`](./critic-agent.md) — the DEF-03 spec red-team lens, run inline by both `draftContractFromPrd` (on apply) and `draftContractFromIntent` (on create).
-- CNV-01/CNV-04/CNV-02 together close the full Outcome Contract loop: draft it, author it in seconds, prove it.
+- [`../../src/lib/a2a-card.ts`](../../src/lib/a2a-card.ts), [`../../public/llms.txt`](../../public/llms.txt), [`../../public/agents.txt`](../../public/agents.txt) — the other machine-discovery surfaces CNV-03 extends.
+- CNV-01/CNV-04/CNV-02/CNV-03 together close the full Outcome Contract loop: draft it, author it in seconds, prove it, publish it.

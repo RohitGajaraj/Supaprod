@@ -187,6 +187,7 @@ describe("result builders", () => {
       "search_decisions",
       "search_prds",
       "get_prd",
+      "get_ard",
       "get_roadmap",
       "export_skillpack",
       "get_governing_decision",
@@ -224,8 +225,8 @@ describe("result builders", () => {
 });
 
 describe("MCP_TOOLS catalog integrity", () => {
-  test("exactly nine (read-only) tools, each well-formed", () => {
-    expect(MCP_TOOLS).toHaveLength(9);
+  test("exactly ten (read-only) tools, each well-formed", () => {
+    expect(MCP_TOOLS).toHaveLength(10);
     for (const t of MCP_TOOLS) {
       expect(typeof t.name).toBe("string");
       expect(t.name.length).toBeGreaterThan(0);

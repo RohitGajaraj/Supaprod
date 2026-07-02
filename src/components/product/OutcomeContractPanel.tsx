@@ -4,11 +4,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beaker,
   CheckSquare,
+  Download,
   FileCheck2,
   GitCommitVertical,
   Pencil,
   Sparkles,
   Square,
+  Upload,
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
@@ -21,13 +23,129 @@ import {
   type ContractClause,
   type OutcomeContract,
 } from "@/lib/discovery.functions";
+import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
 
 type Props = {
   prdId: string;
+  specTitle: string;
   bodyMd: string;
   contract: OutcomeContract | null | undefined;
   invalidateKey: readonly unknown[];
 };
+
+/** CNV-03: download the current contract as a portable ARD JSON file. */
+function downloadArd(prdId: string, specTitle: string, contract: OutcomeContract) {
+  const doc = buildArdDocument(window.location.origin, prdId, specTitle, contract);
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${
+    specTitle
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .slice(0, 60) || "spec"
+  }.ard.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * CNV-03: paste a schema-conformant ARD document (or a bare Outcome Contract)
+ * to adopt it directly. Validation is `parseArdDocument` (the same
+ * `OutcomeContractSchema` the draft/apply flow already enforces); on success
+ * it saves through the exact same `savePrd` path as "Apply contract", so an
+ * imported contract can never skip a check an agent-drafted one passes.
+ */
+function ArdImportControl({
+  prdId,
+  invalidateKey,
+  onApplied,
+}: {
+  prdId: string;
+  invalidateKey: readonly unknown[];
+  onApplied?: () => void;
+}) {
+  const qc = useQueryClient();
+  const fSave = useServerFn(savePrd);
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const importMut = useMutation({
+    mutationFn: (c: OutcomeContract) => fSave({ data: { id: prdId, contract: c } }),
+    onSuccess: () => {
+      setOpen(false);
+      setText("");
+      setError(null);
+      qc.invalidateQueries({ queryKey: invalidateKey });
+      toast.success("ARD imported");
+      onApplied?.();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5"
+      >
+        <Upload className="h-3 w-3" />
+        Import ARD JSON
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      <textarea
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          setError(null);
+        }}
+        placeholder="Paste an ARD document or a bare Outcome Contract JSON"
+        className="w-full min-h-[120px] rounded-md border hairline bg-background px-2 py-1.5 text-xs font-mono outline-none focus:border-foreground resize-y"
+        autoFocus
+      />
+      {error ? <p className="mt-1.5 text-xs text-destructive">{error}</p> : null}
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          onClick={() => {
+            let json: unknown;
+            try {
+              json = JSON.parse(text);
+            } catch {
+              setError("Not valid JSON");
+              return;
+            }
+            const result = parseArdDocument(json);
+            if (!result.ok) {
+              setError(result.error);
+              return;
+            }
+            importMut.mutate(result.contract);
+          }}
+          disabled={importMut.isPending || !text.trim()}
+          className="btn-pill px-3 py-1 text-[11px] disabled:opacity-50"
+        >
+          {importMut.isPending ? "Importing…" : "Parse and apply"}
+        </button>
+        <button
+          onClick={() => {
+            setOpen(false);
+            setText("");
+            setError(null);
+          }}
+          className="btn-pill-outline px-2 py-1 text-[11px]"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * CNV-01 machine view: the typed Outcome Contract projection of a spec,
@@ -35,7 +153,7 @@ type Props = {
  * has never been structured — the lazy-migration entry point (v12: "AI
  * structures on open, human confirms").
  */
-export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }: Props) {
+export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, invalidateKey }: Props) {
   const qc = useQueryClient();
   const fDraft = useServerFn(draftContractFromPrd);
   const fSave = useServerFn(savePrd);
@@ -94,15 +212,20 @@ export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }:
           The AI reads what is already written and drafts a typed contract (intent, success metrics,
           non-goals, budget). You review before anything is saved.
         </p>
-        <button
-          onClick={() => draftMut.mutate()}
-          disabled={draftMut.isPending || !bodyMd.trim()}
-          className="btn-pill px-4 py-1.5 text-xs disabled:opacity-50 inline-flex items-center gap-1.5"
-          title={!bodyMd.trim() ? "Write the spec body first" : undefined}
-        >
-          <Sparkles className="h-3 w-3" />
-          {draftMut.isPending ? "Drafting…" : "Draft contract from this spec"}
-        </button>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <button
+            onClick={() => draftMut.mutate()}
+            disabled={draftMut.isPending || !bodyMd.trim()}
+            className="btn-pill px-4 py-1.5 text-xs disabled:opacity-50 inline-flex items-center gap-1.5"
+            title={!bodyMd.trim() ? "Write the spec body first" : undefined}
+          >
+            <Sparkles className="h-3 w-3" />
+            {draftMut.isPending ? "Drafting…" : "Draft contract from this spec"}
+          </button>
+        </div>
+        <div className="mt-3 text-left">
+          <ArdImportControl prdId={prdId} invalidateKey={invalidateKey} />
+        </div>
       </div>
     );
   }
@@ -147,23 +270,33 @@ export function OutcomeContractPanel({ prdId, bodyMd, contract, invalidateKey }:
 
   return (
     <div className="rounded-lg border hairline bg-card/60 p-6">
-      <div className="mono-label mb-3 flex items-center justify-between">
+      <div className="mono-label mb-3 flex items-center justify-between gap-2 flex-wrap">
         <span>Outcome Contract</span>
-        {(contract?.success_metrics ?? []).some((c) => c.status === "standing") ? (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => compileMut.mutate()}
-            disabled={compileMut.isPending || uncompiledCount === 0}
-            className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 disabled:opacity-50 normal-case tracking-normal"
-            title="Compile every success metric into an eval case, a CI label, a UAT checklist item, or a watched assumption"
+            onClick={() => downloadArd(prdId, specTitle, contract as OutcomeContract)}
+            className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 normal-case tracking-normal"
+            title="Download this contract as a portable ARD JSON file"
           >
-            <Beaker className="h-3 w-3" />
-            {compileMut.isPending
-              ? "Compiling…"
-              : uncompiledCount === 0
-                ? "Oracles compiled"
-                : `Compile ${uncompiledCount} oracle${uncompiledCount === 1 ? "" : "s"}`}
+            <Download className="h-3 w-3" />
+            Export ARD
           </button>
-        ) : null}
+          {(contract?.success_metrics ?? []).some((c) => c.status === "standing") ? (
+            <button
+              onClick={() => compileMut.mutate()}
+              disabled={compileMut.isPending || uncompiledCount === 0}
+              className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 disabled:opacity-50 normal-case tracking-normal"
+              title="Compile every success metric into an eval case, a CI label, a UAT checklist item, or a watched assumption"
+            >
+              <Beaker className="h-3 w-3" />
+              {compileMut.isPending
+                ? "Compiling…"
+                : uncompiledCount === 0
+                  ? "Oracles compiled"
+                  : `Compile ${uncompiledCount} oracle${uncompiledCount === 1 ? "" : "s"}`}
+            </button>
+          ) : null}
+        </div>
       </div>
       <ContractBody
         contract={contract as OutcomeContract}

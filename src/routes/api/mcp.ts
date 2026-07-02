@@ -7,6 +7,7 @@ import {
   searchDecisions,
   searchPRDs,
   getPRD,
+  getArdDocument,
   getRoadmap,
   exportSkillpack,
   ingestSignal,
@@ -183,6 +184,7 @@ async function dispatchTool(
   workspace_id: string,
   params: Record<string, unknown>,
   user_id = "",
+  origin = "",
 ): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
     switch (method) {
@@ -238,6 +240,16 @@ async function dispatchTool(
         }
 
         const data = await getPRD(supabase, workspace_id, prd_id);
+        return { success: true, data };
+      }
+
+      case "get_ard": {
+        const prd_id = params.prd_id as string;
+        if (!prd_id) {
+          return { success: false, error: "Missing required parameter: prd_id" };
+        }
+
+        const data = await getArdDocument(supabase, workspace_id, prd_id, origin);
         return { success: true, data };
       }
 
@@ -621,6 +633,7 @@ export const Route = createFileRoute("/api/mcp")({
               workspace_id,
               dispatch.args,
               tokenUserId,
+              new URL(request.url).origin,
             );
             await logMCPCall(
               {
@@ -650,6 +663,7 @@ export const Route = createFileRoute("/api/mcp")({
             workspace_id,
             mcpReq.params || {},
             tokenUserId,
+            new URL(request.url).origin,
           );
 
           // 6. Log the call (success or failure)

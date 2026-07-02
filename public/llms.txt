@@ -23,7 +23,8 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 - **A2A Agent Card**: `/.well-known/agent.json` — machine-readable agent manifest, capability list, A2A endpoint discovery
 - **llms.txt**: this file at `/llms.txt` — site context for LLM crawlers
 - **agents.txt**: `/agents.txt` — agent access policy (robots.txt equivalent for the agentic era): allowed paths, auth requirements, rate limits, content tiers, write scopes, MCP tool catalog
-- **MCP Server**: live at `POST /api/mcp` — JSON-RPC 2.0 with 9 read tools (search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history) + 1 governed write tool (ingest_signal, requires write:signal scope). Bearer token required — issue in Settings > Interop > API tokens. MCP protocol versions: 2025-06-18, 2025-03-26, 2024-11-05
+- **MCP Server**: live at `POST /api/mcp` — JSON-RPC 2.0 with 10 read tools (search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_ard, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history) + 1 governed write tool (ingest_signal, requires write:signal scope). Bearer token required — issue in Settings > Interop > API tokens. MCP protocol versions: 2025-06-18, 2025-03-26, 2024-11-05
+- **ARD (Agent Requirements Document)**: `/ard` — the published wire format for a spec's Outcome Contract (intent, success metrics with their proof oracle, non-goals, budget). JSON Schema at `/api/public/ard/schema`. Fetch a spec's ARD via the `get_ard` MCP tool; this is the structured acceptance contract an external coding agent receives on dispatch instead of re-parsed prose.
 
 ## Core surfaces (authenticated workspace)
 
@@ -49,6 +50,8 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 | `/.well-known/agent.json` | Machine-readable agent manifest |
 | `/agents.txt` | Agent access policy: allowed paths, auth, rate limits, write scopes |
 | `/api/public/health` | App health and readiness endpoint |
+| `/ard` | The ARD (Agent Requirements Document) standard: what it is, the schema, how to fetch/export/import one |
+| `/api/public/ard/schema` | The ARD JSON Schema (versioned) |
 
 ## Technical profile
 
@@ -57,7 +60,8 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 - All AI flows through a single governed chokepoint (`src/lib/ai/runtime.server.ts`)
 - A2A (Agent-to-Agent) protocol supported: message/send, stream, tasks endpoints
 - Auth: Supabase Auth + OAuth 2.1 (GitHub, Lovable connector gateway)
-- MCP server live at `POST /api/mcp` (JSON-RPC 2.0): 9 read tools + 1 write tool (ingest_signal); bearer token required; see Settings > Interop > API tokens
+- MCP server live at `POST /api/mcp` (JSON-RPC 2.0): 10 read tools + 1 write tool (ingest_signal); bearer token required; see Settings > Interop > API tokens
+- ARD (Agent Requirements Document): the public spec at `/ard`, JSON Schema at `/api/public/ard/schema`, versioned (`ard_version`)
 
 ## For AI agents querying this page
 

@@ -480,6 +480,7 @@ function PrdEditor() {
         ) : (
           <OutcomeContractPanel
             prdId={id}
+            specTitle={prdQ.data.prd.title}
             bodyMd={body}
             contract={(prdQ.data.prd as { contract?: OutcomeContract | null }).contract}
             invalidateKey={["prd", id]}

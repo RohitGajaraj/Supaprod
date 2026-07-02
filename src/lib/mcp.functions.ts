@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildSkillpack, clampSkillpackLimit, type SkillpackLessonInput } from "./skillpack";
 import { supersededChildIds, type LineageEdgeLite } from "./trust-ledger.functions";
 import { screenIngestText, INGEST_REVIEW_TAG } from "./ingest-guardrails";
+import { OutcomeContractSchema } from "./discovery.functions";
+import { buildArdDocument } from "./ard-schema";
 
 /**
  * Q1-MCP · Read-only MCP (Model Context Protocol) server functions.
@@ -327,6 +329,40 @@ export async function getPRD(supabaseClient: any, workspace_id: string, prd_id: 
 
   if (prdError) throw new Error("PRD not found");
   return prd;
+}
+
+/**
+ * CNV-03 · fetch a spec's Outcome Contract wrapped as a portable ARD document.
+ * The dispatch-time counterpart to `get_prd`: `get_prd` never exposed
+ * `contract` (it predates CNV-01), so this is the one MCP read path that
+ * hands a dispatched agent the same structured acceptance contract Cadence
+ * itself checks a build against, instead of the narrative body.
+ */
+export async function getArdDocument(
+  supabaseClient: any,
+  workspace_id: string,
+  prd_id: string,
+  origin: string,
+) {
+  const { data: prd, error } = await supabaseClient
+    .from("prds")
+    .select("id, title, contract")
+    .eq("workspace_id", workspace_id)
+    .eq("id", prd_id)
+    .single();
+
+  if (error) throw new Error("PRD not found");
+  // `.partial()` first (same defensive idiom discovery.functions.ts uses for
+  // every other `prds.contract` read): an empty `{}` default must not throw,
+  // it means "not structured yet". Only once `intent` is present do we know a
+  // real contract was applied (CNV-01/04's write path always stamps every
+  // required field atomically), so the full parse below is safe.
+  const partial = OutcomeContractSchema.partial().safeParse(prd.contract ?? {});
+  if (!partial.success || !partial.data.intent?.trim()) {
+    throw new Error("This spec has no Outcome Contract yet");
+  }
+  const contract = OutcomeContractSchema.parse(partial.data);
+  return buildArdDocument(origin, prd.id, prd.title, contract);
 }
 
 /**

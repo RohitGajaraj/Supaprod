@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ArdRouteImport } from './routes/ard'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TSlugRouteImport } from './routes/t.$slug'
@@ -120,6 +121,7 @@ import { Route as ApiPublicHooksAssumptionWatchTickRouteImport } from './routes/
 import { Route as ApiPublicHooksApprovalsTickRouteImport } from './routes/api/public/hooks/approvals-tick'
 import { Route as ApiPublicHooksAgentTickRouteImport } from './routes/api/public/hooks/agent-tick'
 import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/public/hooks/admin-expiry-tick'
+import { Route as ApiPublicArdSchemaRouteImport } from './routes/api/public/ard.schema'
 import { Route as ApiPublicA2aTasksRouteImport } from './routes/api/public/a2a.tasks'
 import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api/public/connect/github/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
@@ -159,6 +161,11 @@ const LoginRoute = LoginRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArdRoute = ArdRouteImport.update({
+  id: '/ard',
+  path: '/ard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -720,6 +727,11 @@ const ApiPublicHooksAdminExpiryTickRoute =
     path: '/api/public/hooks/admin-expiry-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicArdSchemaRoute = ApiPublicArdSchemaRouteImport.update({
+  id: '/api/public/ard/schema',
+  path: '/api/public/ard/schema',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicA2aTasksRoute = ApiPublicA2aTasksRouteImport.update({
   id: '/api/public/a2a/tasks',
   path: '/api/public/a2a/tasks',
@@ -751,6 +763,7 @@ const ApiPublicA2aAgentsCadenceCardRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -834,6 +847,7 @@ export interface FileRoutesByFullPath {
   '/prds/': typeof AuthenticatedPrdsIndexRoute
   '/studio/': typeof AuthenticatedStudioIndexRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
+  '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
@@ -868,6 +882,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -949,6 +964,7 @@ export interface FileRoutesByTo {
   '/prds': typeof AuthenticatedPrdsIndexRoute
   '/studio': typeof AuthenticatedStudioIndexRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
+  '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
@@ -985,6 +1001,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
@@ -1068,6 +1085,7 @@ export interface FileRoutesById {
   '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
   '/_authenticated/studio/': typeof AuthenticatedStudioIndexRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
+  '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
@@ -1104,6 +1122,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ard'
     | '/forgot-password'
     | '/login'
     | '/pricing'
@@ -1187,6 +1206,7 @@ export interface FileRouteTypes {
     | '/prds/'
     | '/studio/'
     | '/api/public/a2a/tasks'
+    | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
@@ -1221,6 +1241,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ard'
     | '/forgot-password'
     | '/login'
     | '/pricing'
@@ -1302,6 +1323,7 @@ export interface FileRouteTypes {
     | '/prds'
     | '/studio'
     | '/api/public/a2a/tasks'
+    | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
@@ -1337,6 +1359,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ard'
     | '/forgot-password'
     | '/login'
     | '/pricing'
@@ -1420,6 +1443,7 @@ export interface FileRouteTypes {
     | '/_authenticated/prds/'
     | '/_authenticated/studio/'
     | '/api/public/a2a/tasks'
+    | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
@@ -1456,6 +1480,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ArdRoute: typeof ArdRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
@@ -1474,6 +1499,7 @@ export interface RootRouteChildren {
   ApiPublicIngestSignalsRoute: typeof ApiPublicIngestSignalsRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiPublicA2aTasksRoute: typeof ApiPublicA2aTasksRoute
+  ApiPublicArdSchemaRoute: typeof ApiPublicArdSchemaRoute
   ApiPublicHooksAdminExpiryTickRoute: typeof ApiPublicHooksAdminExpiryTickRoute
   ApiPublicHooksAgentTickRoute: typeof ApiPublicHooksAgentTickRoute
   ApiPublicHooksApprovalsTickRoute: typeof ApiPublicHooksApprovalsTickRoute
@@ -1556,6 +1582,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ard': {
+      id: '/ard'
+      path: '/ard'
+      fullPath: '/ard'
+      preLoaderRoute: typeof ArdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -2286,6 +2319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAdminExpiryTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ard/schema': {
+      id: '/api/public/ard/schema'
+      path: '/api/public/ard/schema'
+      fullPath: '/api/public/ard/schema'
+      preLoaderRoute: typeof ApiPublicArdSchemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/a2a/tasks': {
       id: '/api/public/a2a/tasks'
       path: '/api/public/a2a/tasks'
@@ -2505,6 +2545,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ArdRoute: ArdRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
@@ -2523,6 +2564,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicIngestSignalsRoute: ApiPublicIngestSignalsRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiPublicA2aTasksRoute: ApiPublicA2aTasksRoute,
+  ApiPublicArdSchemaRoute: ApiPublicArdSchemaRoute,
   ApiPublicHooksAdminExpiryTickRoute: ApiPublicHooksAdminExpiryTickRoute,
   ApiPublicHooksAgentTickRoute: ApiPublicHooksAgentTickRoute,
   ApiPublicHooksApprovalsTickRoute: ApiPublicHooksApprovalsTickRoute,

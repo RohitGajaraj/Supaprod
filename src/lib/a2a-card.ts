@@ -34,6 +34,7 @@ export function buildAgentCard(origin: string): Record<string, unknown> {
         "search_decisions",
         "search_prds",
         "get_prd",
+        "get_ard",
         "get_roadmap",
         "export_skillpack",
         "get_governing_decision",
