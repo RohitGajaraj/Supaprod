@@ -34,3 +34,31 @@ export type { CallCardProps, CallCardEvidence } from "./callcard";
 
 export { MissionRow } from "./missionrow";
 export type { MissionRowProps, MissionRowStatus } from "./missionrow";
+
+export {
+  ChartFrame,
+  Axes,
+  SeriesLine,
+  Benchmark,
+  NeedsHumanPoint,
+  Sparkline,
+  ChartTooltip,
+} from "./chart";
+export type {
+  ChartFrameProps,
+  AxesProps,
+  SeriesLineProps,
+  BenchmarkProps,
+  NeedsHumanPointProps,
+  SparklineProps,
+  ChartTooltipRow,
+  ChartTooltipProps,
+} from "./chart";
+
+export { PencilCircle, PencilArrow, PencilUnderline, PencilLabel } from "./pencil-mark";
+export type {
+  PencilCircleProps,
+  PencilArrowProps,
+  PencilUnderlineProps,
+  PencilLabelProps,
+} from "./pencil-mark";

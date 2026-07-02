@@ -294,6 +294,15 @@ Clarifying questions are not just a toast — they're prepended into the narrati
 Security review caught one real bug: `clarifying_questions` had no per-string length cap (unlike every other AI-controlled field, which mirrors CNV-01's bounding pattern), and the narrative's `.slice(0, 8000)` ran before the questions were prepended, so the final persisted body could exceed its own documented cap. Fixed both. The review also flagged that the RAG context gets concatenated into the prompt without going through `retrieve()`'s `formatContextBlock` injection-quarantine wrapper — confirmed this is byte-for-byte the same pattern `generatePrd` already uses, not a new regression, and left as documented follow-up debt rather than expanding this ticket's scope to touch an unrelated existing function.
 
 **Gates:** `tsc --noEmit` 0 · `bun run lint` 0 (one pre-existing unrelated warning) · `bun test` 2069/2069 pass, 0 regressions. Dashboard row 23 flipped to ✅, tally recomputed (260/292 = 89.0% strict), `plan.md` updated in the same session, merged cleanly with OBS-14 ✅ and RF-01 ✅ landing concurrently (git auto-dropped the redundant local dashboard-flip commit on rebase, already upstream). Lane claim released via `lane.sh done CNV-04`. Spec: `docs/features/outcome-contract.md`. Next: CNV-02, the requirement-to-oracle compiler, closing out the three-item pick.
+### 2026-07-03 01:00 (OBS-15 Chart grammar adoption shipped-partial, lane1 - closes the OBS-10 to OBS-15 founder-directed range)
+
+Built the full chart grammar module: `src/components/obsidian/chart.tsx` (the precise machine-data grammar - `Axes`, `SeriesLine`, `Benchmark`, `NeedsHumanPoint`, `Sparkline`, `ChartTooltip`) and `src/components/obsidian/pencil-mark.tsx` (the pencil layer - `PencilCircle`/`PencilArrow`/`PencilUnderline`/`PencilLabel`, reusing `Sketch.tsx`'s deterministic jitter engine reduced to one rough pass). Both barrel-exported and tested (17 new tests).
+
+Did not convert the three named surfaces, because none of them currently draws a chart: verified by reading the real code that Build's cost view is a plain list, Brain's stat trio is plain numeral cells, and Engine Room's actual chart components all live under `/govern`, which is still fully parchment (out of this item's own explicit scope). Marked `◐ [~55%]`, not done - the reusable grammar is real and ready for the next surface that needs a trend line.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 2099/2099 pass. Claim released.
+
+This closes the founder-directed OBS-10 through OBS-15 range (all six items now shipped or shipped-partial by this lane, each with its own honest account on its row).
 
 ### 2026-07-03 00:05 (OBS-14 Onboarding golden path shipped, lane1)
 
