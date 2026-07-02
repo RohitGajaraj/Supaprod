@@ -16,6 +16,13 @@
  * `docs/planning/byo-p5-managed-runtime-plan.md`'s 2026-07-02 addendum for
  * why Deno Deploy is being evaluated as a genuine long-term candidate
  * alongside Cloudflare Workers for Platforms, not just a free test stand-in.
+ *
+ * DORMANT BY DESIGN (RF-08, 2026-07-02): its only production caller is
+ * `hosting-poc.functions.ts` -> `provisionHostingPoc`, an admin-role-gated
+ * server function rendered solely by the admin-only PoC panel on
+ * `_authenticated.admin.platform.tsx`. No customer-facing or scheduled flow
+ * imports this file. A future audit finding zero non-admin importers is
+ * expected, not a regression to fix.
  */
 
 import type {

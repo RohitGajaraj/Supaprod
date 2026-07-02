@@ -156,7 +156,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   and the linked mission row without reload; all-clear state is the designed
   moss card; restraint budget audited.
 
-### OBS-05 · Build (one cockpit)
+### OBS-05 · Build (one cockpit) — ✅ shipped 2026-07-02 (lane3)
 - **Steps:** mission list rows per anatomy (status dot · title · verdict chip
   when done · step label · cost); the mission slide-over (numbered steps,
   live pulses, inline gate as compressed CallCard, trace toggle with mono log

@@ -382,8 +382,7 @@ export function AccountConnectionsSection({
           </div>
           {anySetupRequired && (
             <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 8 }}>
-              Greyed providers need a one-time admin OAuth app registration — checklist in
-              active-task.md.
+              Grayed providers are coming soon. An admin can register the OAuth app to turn one on.
             </p>
           )}
         </>
@@ -397,7 +396,9 @@ export function AccountConnectionsSection({
    onto real data. Rendered by the settings route when ?connector= is set; it
    replaces the whole Connections tab body. Three states: setup required
    (env missing), configured-but-not-connected (real Connect flow), and
-   connected (stat row + workspace bindings + per-account table). Reads the
+   connected (stat row + workspace bindings + per-account table); the first
+   renders as "coming soon" (RF-08) rather than an implied Connect promise.
+   Reads the
    SAME query keys as the list (["connections"], ["workspace-bindings"],
    ["calendar-connections"]) so the cache is shared. Reference elements with
    no production data source are omitted per the no-filler law — see the
@@ -493,7 +494,7 @@ export function ConnectorDetail({
         <DrillHeader
           onBack={onBack}
           backLabel="All connections"
-          kicker="Connector · setup required"
+          kicker="Connector · coming soon"
           title={spec.label}
         />
         <div
