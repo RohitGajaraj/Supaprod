@@ -138,6 +138,22 @@ nothing dead-ends (§8: "every row drills into detail with sub-tabs").
 - **Sparklines** (rows, stat trios): single series, 1.5px, no axes, no dots
   except the last value (3px, the family color). Stat trio anatomy stays
   contract §9 (Brain): Newsreader numeral + mono micro-label.
+- **The pencil layer (founder input, 2026-07-02): the machine draws exact,
+  the human draws pencil.** Machine series stay precise vectors; every HUMAN
+  mark on a chart is hand-drawn in character: a Caveat label, a rough circle
+  around the data point that matters, a hand arrow, a wavy underline. Pencil
+  marks use only the pencil inks (`--pencil-lime`, `--pencil-blossom`,
+  `--pencil-apricot`), render as rough SVG paths (slight point jitter, about
+  1.5px stroke, one pass, no fill), and count inside the two-pencil-marks
+  budget per screen. Pencil never touches axes, grids, or the series
+  themselves; it annotates, it does not plot. This is the chart-level
+  expression of the contract's pencil-annotation ink: the PM's own hand on
+  the machine's exact work.
+- **Abstract washes:** the aurora treatment (drifting radial blobs + Codystar
+  numeral) stays the ONLY sanctioned abstract element. A chart card may take
+  it only when the chart IS a score moment (loop health, teardown confidence,
+  outcome score); ordinary data charts stay flat obsidian. No other abstract
+  or decorative art enters a chart.
 - **Empty chart:** the instruction law, not a ghost chart: "No spend yet.
   The first mission draws this line."
 

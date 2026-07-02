@@ -44,7 +44,7 @@ fi
 if git -C "$V4" merge --ff-only origin/main -q 2>/dev/null; then
   [[ $STASHED -eq 1 ]] && git -C "$V4" stash pop -q 2>/dev/null
   SHORT=$(git -C "$V4" rev-parse --short HEAD 2>/dev/null)
-  printf "\033[32m[sync-pcv4]\033[0m Project-Cadence-v4 synced to %s\n" "$SHORT"
+  printf "\033[32m[sync-pcv4]\033[0m local v4 checkout fast-forwarded FROM origin project_cadence_v5 to %s (direction: v5 GitHub -> local v4 folder; nothing is pushed to any v4 repo)\n" "$SHORT"
 else
   [[ $STASHED -eq 1 ]] && git -C "$V4" stash pop -q 2>/dev/null
   printf "\033[33m[sync-pcv4]\033[0m WARN: could not fast-forward. Run manually:\n"
