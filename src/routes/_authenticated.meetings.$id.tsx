@@ -1,8 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// /meetings/$id lands on /knowledge?tab=calendar&meeting=<id> (Phase 1d).
+// /meetings/$id folds directly into Brain's Calendar tab per OBS-10 (IA
+// consolidation), flattening a 2-hop chain (meetings/$id -> calendar ->
+// knowledge) and preserving the meeting id.
 export const Route = createFileRoute("/_authenticated/meetings/$id")({
   beforeLoad: ({ params }) => {
-    throw redirect({ to: "/calendar", search: { meeting: params.id } });
+    throw redirect({ to: "/knowledge", search: { tab: "calendar", meeting: params.id } });
   },
 });

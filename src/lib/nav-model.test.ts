@@ -7,22 +7,19 @@ import {
   navItemActive,
   engineRoomActive,
 } from "./nav-model";
+import { CANONICAL_PATHS } from "./legacy-redirects";
 
 /**
- * IA-NAV-V11 (v11 #12) → OBS-02 — the nav must collapse the four competing
- * metaphors into one calm flat list + one engine-room door, WITHOUT orphaning
- * any destination the old 5-icon Trust row exposed. These tests lock both.
- *
- * OBS-02: Obsidian has no icon set (mono numeral index 01-05 instead), Ask
- * leaves the rail, and Discover/Plan are added. Discover and Plan share the
- * interim `/product` route (differentiated by `search.tab`) until OBS-10
- * renames the routes and adds redirects — the old "routes are unique" /
- * "nothing is tab-scoped" invariants are relaxed to match that interim state.
+ * IA-NAV-V11 (v11 #12) -> OBS-02 -> OBS-10 - the nav must collapse the four
+ * competing metaphors into one calm flat list + one engine-room door, WITHOUT
+ * orphaning any destination the old 5-icon Trust row exposed. These tests
+ * lock both, plus OBS-10's final-state invariant: exactly five unique
+ * canonical routes, no shared interim `/product` tab-scoping, no `/chat`.
  */
 
-describe("nav-model — the calm front (primary destinations)", () => {
-  it("is one flat list of outcome-named destinations", () => {
-    expect(PRIMARY_NAV.length).toBeGreaterThanOrEqual(5);
+describe("nav-model - the calm front (primary destinations)", () => {
+  it("is one flat list of exactly five outcome-named destinations", () => {
+    expect(PRIMARY_NAV.length).toBe(5);
     const labels = PRIMARY_NAV.map((n) => n.label);
     expect(labels).toEqual(["Today", "Discover", "Plan", "Build", "Brain"]);
   });
@@ -47,58 +44,57 @@ describe("nav-model — the calm front (primary destinations)", () => {
     }
   });
 
-  it("destinations are unique by route+tab (interim: Discover/Plan share /product until OBS-10)", () => {
-    const keys = PRIMARY_NAV.map((n) => `${n.to}?${n.search?.tab ?? ""}`);
-    expect(new Set(keys).size).toBe(keys.length);
+  it("the five `to` values equal the canonical set (OBS-10: no more shared /product)", () => {
+    const targets = PRIMARY_NAV.map((n) => n.to);
+    expect(new Set(targets).size).toBe(targets.length);
+    for (const t of targets) {
+      expect((CANONICAL_PATHS as readonly string[])).toContain(t);
+    }
   });
 
-  it("Ask is not a rail destination (it returns as the ⌘J panel, OBS-12)", () => {
+  it("no entry is /chat (Ask is not a rail destination - it returns as the ⌘J panel, OBS-12)", () => {
     expect(PRIMARY_NAV.some((n) => n.label === "Ask")).toBe(false);
     expect(PRIMARY_NAV.some((n) => n.to === "/chat")).toBe(false);
   });
-
-  it("Discover and Plan (interim /product siblings) are never both active for the same tab", () => {
-    const discover = PRIMARY_NAV.find((n) => n.label === "Discover")!;
-    const plan = PRIMARY_NAV.find((n) => n.label === "Plan")!;
-    for (const tab of ["signals", "opportunities", "roadmap", "specs", "releases", null]) {
-      const activeCount = [discover, plan].filter((n) =>
-        navItemActive(n, "/product", tab),
-      ).length;
-      expect(activeCount).toBeLessThanOrEqual(1);
-    }
-  });
 });
 
-describe("nav-model — the engine room door (deep engine behind one door)", () => {
-  it("the door points at the engine room and is labelled Engine Room", () => {
-    expect(ENGINE_ROOM_DOOR.to).toBe("/govern");
+describe("nav-model - the engine room door (deep engine behind one door)", () => {
+  it("the door points at the new ported glance /engine-room and is labelled Engine Room", () => {
+    expect(ENGINE_ROOM_DOOR.to).toBe("/engine-room");
     expect(ENGINE_ROOM_DOOR.label).toBe("Engine Room");
   });
 
-  it("reveals every surface the old Trust row exposed — nothing is orphaned", () => {
-    const targets = ENGINE_ROOM_LINKS.map((l) => l.to);
-    // Trust Ledger and Connectors are NOT in the ⌘K palette, so the door is their
-    // only sidebar path — they must be present.
-    expect(targets).toContain("/trust-ledger");
-    expect(targets).toContain("/sync");
-    // Approvals + Spend live as tabs on /govern.
-    const approvals = ENGINE_ROOM_LINKS.find((l) => l.label === "Approvals");
-    expect(approvals?.to).toBe("/govern");
-    expect(approvals?.search?.tab).toBe("approvals");
-    const spend = ENGINE_ROOM_LINKS.find((l) => l.label === "Spend");
-    expect(spend?.search?.tab).toBe("budgets");
+  it("Approvals is not in the door links (approvals are Calls on Today, never in the door)", () => {
+    expect(ENGINE_ROOM_LINKS.some((l) => l.label === "Approvals")).toBe(false);
   });
 
-  it("keeps all five engine-room destinations", () => {
-    expect(ENGINE_ROOM_LINKS.length).toBe(5);
+  it("reveals every surface the old Trust row exposed - nothing is orphaned", () => {
+    const targets = ENGINE_ROOM_LINKS.map((l) => l.to);
+    // Trust Ledger and Connectors are NOT in the ⌘K palette, so the door is their
+    // only sidebar path - they must be present.
+    expect(targets).toContain("/trust-ledger");
+    expect(targets).toContain("/sync");
+    const spend = ENGINE_ROOM_LINKS.find((l) => l.label === "Spend");
+    expect(spend?.to).toBe("/engine-room");
+    expect(spend?.search?.room).toBe("spend");
+  });
+
+  it("every door link resolves to a live path (canonical or door-internal)", () => {
+    for (const l of ENGINE_ROOM_LINKS) {
+      expect(l.to === "/engine-room" || l.to === "/trust-ledger" || l.to === "/sync").toBe(true);
+    }
+  });
+
+  it("keeps four engine-room door links (Approvals dropped)", () => {
+    expect(ENGINE_ROOM_LINKS.length).toBe(4);
   });
 });
 
-describe("nav-model — active-state math", () => {
+describe("nav-model - active-state math", () => {
   it("navItemActive matches an exact bare path and rejects others", () => {
     expect(navItemActive({ to: "/" }, "/", null)).toBe(true);
-    expect(navItemActive({ to: "/product" }, "/product", null)).toBe(true);
-    expect(navItemActive({ to: "/product" }, "/build", null)).toBe(false);
+    expect(navItemActive({ to: "/discover" }, "/discover", null)).toBe(true);
+    expect(navItemActive({ to: "/discover" }, "/build", null)).toBe(false);
   });
 
   it("navItemActive respects a tab scope when the item declares one", () => {
@@ -109,17 +105,24 @@ describe("nav-model — active-state math", () => {
   });
 
   it("engineRoomActive is true anywhere inside the engine room, false outside", () => {
+    expect(engineRoomActive("/engine-room")).toBe(true);
+    expect(engineRoomActive("/engine-room/anything")).toBe(true);
     expect(engineRoomActive("/govern")).toBe(true);
     expect(engineRoomActive("/govern/anything")).toBe(true);
     expect(engineRoomActive("/trust-ledger")).toBe(true);
     expect(engineRoomActive("/sync")).toBe(true);
     expect(engineRoomActive("/")).toBe(false);
-    expect(engineRoomActive("/product")).toBe(false);
+    expect(engineRoomActive("/discover")).toBe(false);
     // a path that merely starts with a prefix string but isn't a sub-route stays out
     expect(engineRoomActive("/governance-board")).toBe(false);
   });
 
   it("ENGINE_ROOM_PATHS covers exactly the door's deep surfaces", () => {
-    expect([...ENGINE_ROOM_PATHS].sort()).toEqual(["/govern", "/sync", "/trust-ledger"]);
+    expect([...ENGINE_ROOM_PATHS].sort()).toEqual([
+      "/engine-room",
+      "/govern",
+      "/sync",
+      "/trust-ledger",
+    ]);
   });
 });

@@ -195,7 +195,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Acceptance:** every room card opens; nothing dead-ends; Engine-Room Test
   passes on every label.
 
-### OBS-10 · IA consolidation (routes into five destinations)
+### OBS-10 · IA consolidation (routes into five destinations) - ◐ shipped-partial 2026-07-02 (lane1, [~75%] - see feature-dashboard.md row + docs/features/obsidian-port.md for the full account of what folded and what was deliberately left live)
 - **Context:** current routes (`/prds`, `/roadmap`, `/discovery`, `/agents`,
   `/traces`, `/evals`, `/guardrails`, `/drift`, …) must fold into Today /
   Discover / Plan / Build / Brain / Engine Room per contract §8.

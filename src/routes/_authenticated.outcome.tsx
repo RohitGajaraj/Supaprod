@@ -1,9 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// /outcome folded into /learn (Phase 1d, F-IA-V4). Releases moved to /product
-// in Phase 1c; Outcomes/Support/Learnings live as Learn tabs.
+// /outcome folds directly into Brain's Learnings tab per OBS-10 (IA
+// consolidation), flattening a 2-hop chain (outcome -> learn -> knowledge)
+// that also silently dropped this route's own tab=outcomes param.
 export const Route = createFileRoute("/_authenticated/outcome")({
   beforeLoad: () => {
-    throw redirect({ to: "/learn", search: { tab: "outcomes" } });
+    throw redirect({ to: "/knowledge", search: { tab: "learnings" } });
   },
 });

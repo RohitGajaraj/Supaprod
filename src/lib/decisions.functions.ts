@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { track } from "@/lib/observability";
+import { extractAssumptions } from "@/lib/ai/assumptions.server";
 
 export type DecisionSource = "meeting" | "mission" | "prd" | "manual";
 
@@ -115,6 +116,34 @@ export const createDecision = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     void track("decision_made", context.userId, { prd_id: data.prd_id ?? undefined });
+
+    // FS-02: extract the assumptions this decision stands on. Fail-safe —
+    // the decision is already recorded above, so an extraction error never
+    // loses the write, matching the recordOutcome/inferDirectEdge convention.
+    if (row?.id) {
+      try {
+        const { data: member } = await context.supabase
+          .from("workspace_members")
+          .select("workspace_id")
+          .eq("user_id", context.userId)
+          .limit(1)
+          .maybeSingle();
+        const workspaceId = (member?.workspace_id as string | undefined) ?? null;
+        if (workspaceId) {
+          await extractAssumptions(
+            context.supabase,
+            context.userId,
+            workspaceId,
+            row.id as string,
+            data.title,
+            data.rationale ?? null,
+          );
+        }
+      } catch (e) {
+        console.error("extractAssumptions failed (non-fatal):", e);
+      }
+    }
+
     return { decision: row };
   });
 
@@ -134,5 +163,72 @@ export const updateDecision = createServerFn({ method: "POST" })
       .update({ status: data.status })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// FS-02: the human decision on a supersession-candidate Call. Confirming
+// reopens the decision for review and writes a real artifact_lineage
+// contradicts edge (the receipt the Decision Brain graph reasons over
+// later); dismissing just closes the Call and the assumption stands.
+export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ id: z.string().uuid(), action: z.enum(["confirm", "dismiss"]) }).parse(input),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: challenge, error } = await supabase
+      .from("assumption_challenges")
+      .select("id,assumption_id,signal_id,learning_id,rationale,status")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!challenge || challenge.status !== "open") return { ok: true };
+
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from("assumption_challenges")
+      .update({
+        status: data.action === "confirm" ? "confirmed" : "dismissed",
+        decided_at: nowIso,
+        decided_by: userId,
+      })
+      .eq("id", data.id);
+
+    if (data.action === "dismiss") {
+      await supabase.from("assumptions").update({ status: "standing" }).eq("id", challenge.assumption_id);
+      return { ok: true };
+    }
+
+    const { data: assumption } = await supabase
+      .from("assumptions")
+      .select("decision_id")
+      .eq("id", challenge.assumption_id)
+      .maybeSingle();
+    const decisionId = (assumption?.decision_id as string | undefined) ?? null;
+    if (decisionId) {
+      await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
+      const parent_kind = challenge.signal_id ? "signal" : challenge.learning_id ? "learning" : null;
+      const parent_id = challenge.signal_id ?? challenge.learning_id ?? null;
+      if (parent_kind && parent_id) {
+        try {
+          await supabase.from("artifact_lineage").upsert(
+            {
+              user_id: userId,
+              parent_kind,
+              parent_id,
+              child_kind: "decision",
+              child_id: decisionId,
+              relation: "contradicts",
+              rationale: challenge.rationale,
+              created_by_agent: "assumption-watcher",
+            },
+            { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+          );
+        } catch (e) {
+          console.error("artifact_lineage upsert failed (non-fatal):", e);
+        }
+      }
+    }
     return { ok: true };
   });
