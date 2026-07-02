@@ -110,6 +110,7 @@ import { Route as ApiPublicHooksDeriveTickRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksDelegatePollTickRouteImport } from './routes/api/public/hooks/delegate-poll-tick'
 import { Route as ApiPublicHooksCreditTickRouteImport } from './routes/api/public/hooks/credit-tick'
 import { Route as ApiPublicHooksClusterTickRouteImport } from './routes/api/public/hooks/cluster-tick'
+import { Route as ApiPublicHooksCalibrateTickRouteImport } from './routes/api/public/hooks/calibrate-tick'
 import { Route as ApiPublicHooksApprovalsTickRouteImport } from './routes/api/public/hooks/approvals-tick'
 import { Route as ApiPublicHooksAgentTickRouteImport } from './routes/api/public/hooks/agent-tick'
 import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/public/hooks/admin-expiry-tick'
@@ -656,6 +657,12 @@ const ApiPublicHooksClusterTickRoute =
     path: '/api/public/hooks/cluster-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCalibrateTickRoute =
+  ApiPublicHooksCalibrateTickRouteImport.update({
+    id: '/api/public/hooks/calibrate-tick',
+    path: '/api/public/hooks/calibrate-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksApprovalsTickRoute =
   ApiPublicHooksApprovalsTickRouteImport.update({
     id: '/api/public/hooks/approvals-tick',
@@ -788,6 +795,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
+  '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
@@ -896,6 +904,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
+  '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
@@ -1008,6 +1017,7 @@ export interface FileRoutesById {
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
   '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
+  '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
@@ -1120,6 +1130,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
+    | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
@@ -1228,6 +1239,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
+    | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
@@ -1339,6 +1351,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/admin-expiry-tick'
     | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
+    | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
@@ -1388,6 +1401,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAdminExpiryTickRoute: typeof ApiPublicHooksAdminExpiryTickRoute
   ApiPublicHooksAgentTickRoute: typeof ApiPublicHooksAgentTickRoute
   ApiPublicHooksApprovalsTickRoute: typeof ApiPublicHooksApprovalsTickRoute
+  ApiPublicHooksCalibrateTickRoute: typeof ApiPublicHooksCalibrateTickRoute
   ApiPublicHooksClusterTickRoute: typeof ApiPublicHooksClusterTickRoute
   ApiPublicHooksCreditTickRoute: typeof ApiPublicHooksCreditTickRoute
   ApiPublicHooksDelegatePollTickRoute: typeof ApiPublicHooksDelegatePollTickRoute
@@ -2122,6 +2136,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksClusterTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/calibrate-tick': {
+      id: '/api/public/hooks/calibrate-tick'
+      path: '/api/public/hooks/calibrate-tick'
+      fullPath: '/api/public/hooks/calibrate-tick'
+      preLoaderRoute: typeof ApiPublicHooksCalibrateTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/approvals-tick': {
       id: '/api/public/hooks/approvals-tick'
       path: '/api/public/hooks/approvals-tick'
@@ -2379,6 +2400,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAdminExpiryTickRoute: ApiPublicHooksAdminExpiryTickRoute,
   ApiPublicHooksAgentTickRoute: ApiPublicHooksAgentTickRoute,
   ApiPublicHooksApprovalsTickRoute: ApiPublicHooksApprovalsTickRoute,
+  ApiPublicHooksCalibrateTickRoute: ApiPublicHooksCalibrateTickRoute,
   ApiPublicHooksClusterTickRoute: ApiPublicHooksClusterTickRoute,
   ApiPublicHooksCreditTickRoute: ApiPublicHooksCreditTickRoute,
   ApiPublicHooksDelegatePollTickRoute: ApiPublicHooksDelegatePollTickRoute,

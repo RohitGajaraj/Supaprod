@@ -16,7 +16,24 @@ export type DerivedInsight = {
   recommendedAction: { agent_slug: string; goal: string } | null;
   score: number;
   confidence: number | null;
+  claim: string | null;
+  horizonDate: string | null;
 };
+
+// FS-01: predictions and risk insights are falsifiable claims scored later by
+// calibrate-tick. 30-90 day horizon matches the derivation prompt's own window.
+const MIN_HORIZON_DAYS = 30;
+const MAX_HORIZON_DAYS = 90;
+
+export function clampHorizonDays(raw: unknown): number {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n)) return MIN_HORIZON_DAYS;
+  return Math.min(MAX_HORIZON_DAYS, Math.max(MIN_HORIZON_DAYS, Math.round(n)));
+}
+
+function horizonDateFrom(days: number): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+}
 
 type ThemeRow = {
   id: string;
@@ -56,6 +73,8 @@ function toDerivedInsight(
       ra && ra.goal ? { agent_slug: ra.agent_slug ?? "strategist", goal: ra.goal } : null,
     score: typeof row.score === "number" ? row.score : score,
     confidence: (row.confidence as number | null) ?? null,
+    claim: (row.claim as string | null) ?? null,
+    horizonDate: (row.horizon_date as string | null) ?? null,
   };
 }
 
@@ -114,11 +133,26 @@ novelty: ${t.novelty ?? "unknown (treat as new)"}
 score: ${s.toFixed(3)}`;
 }
 
+async function isThrottled(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  column: "prediction_throttle_until" | "risk_throttle_until",
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("workspaces")
+    .select(column)
+    .eq("id", workspaceId)
+    .maybeSingle();
+  const until = (data as Record<string, string | null> | null)?.[column] ?? null;
+  return !!until && new Date(until).getTime() > Date.now();
+}
+
 export async function derivePrediction(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string,
 ): Promise<DerivedInsight | null> {
+  if (await isThrottled(supabase, workspaceId, "prediction_throttle_until")) return null;
   const ranked = await fetchRankedThemes(supabase, workspaceId);
   const top = ranked[0];
   if (!top || top.s < MIN_SCORE) return null;
@@ -149,14 +183,16 @@ export async function derivePrediction(
         content: `EMERGING THEME (top-ranked, score ${top.s.toFixed(3)}):
 ${themeContext(top.t, top.s)}
 
-Given this emerging theme, what is the most likely outcome or market shift in the next 30-90 days if this pattern continues?
-Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug":"strategist","goal":"..."}}`,
+Given this emerging theme, what is the most likely outcome or market shift in the next 30-90 days if this pattern continues? State it as a single falsifiable claim someone could check later and say "true" or "false" about, plus how many days out it resolves.
+Output JSON: {"headline":"...","detail":"...","claim":"a single checkable statement, e.g. 'X will happen by the horizon date'","horizon_days":30-90,"recommended_action":{"agent_slug":"strategist","goal":"..."}}`,
       },
     ],
   });
   const j = (res.json ?? {}) as {
     headline?: string;
     detail?: string;
+    claim?: string;
+    horizon_days?: number;
     recommended_action?: { agent_slug?: string; goal?: string };
   };
   if (!j.headline) return null;
@@ -174,6 +210,8 @@ Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug"
     score: top.s,
     title: top.t.title,
   };
+  const horizonDays = clampHorizonDays(j.horizon_days);
+  const claim = (j.claim ?? j.headline).slice(0, 500);
 
   const { data: row } = await supabase
     .from("insights")
@@ -190,6 +228,8 @@ Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug"
         confidence: Number(top.t.confidence),
         status: "open",
         dedup_key: dedupKey,
+        claim,
+        horizon_date: horizonDateFrom(horizonDays),
       },
       { onConflict: "workspace_id,dedup_key" },
     )
@@ -204,6 +244,7 @@ export async function deriveRisk(
   userId: string,
   workspaceId: string,
 ): Promise<DerivedInsight | null> {
+  if (await isThrottled(supabase, workspaceId, "risk_throttle_until")) return null;
   const ranked = await fetchRankedThemes(supabase, workspaceId);
   const top = ranked[0];
   if (!top || top.s < MIN_SCORE) return null;
@@ -234,14 +275,16 @@ export async function deriveRisk(
         content: `EMERGING THEME (top-ranked, score ${top.s.toFixed(3)}):
 ${themeContext(top.t, top.s)}
 
-Given this emerging theme, what is the biggest risk if the team does NOT act on it? Be concrete.
-Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug":"researcher","goal":"..."}}`,
+Given this emerging theme, what is the biggest risk if the team does NOT act on it? Be concrete. State it as a single falsifiable claim someone could check later and say "true" or "false" about, plus how many days out it resolves.
+Output JSON: {"headline":"...","detail":"...","claim":"a single checkable statement, e.g. 'X will happen by the horizon date'","horizon_days":30-90,"recommended_action":{"agent_slug":"researcher","goal":"..."}}`,
       },
     ],
   });
   const j = (res.json ?? {}) as {
     headline?: string;
     detail?: string;
+    claim?: string;
+    horizon_days?: number;
     recommended_action?: { agent_slug?: string; goal?: string };
   };
   if (!j.headline) return null;
@@ -259,6 +302,8 @@ Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug"
     score: top.s,
     title: top.t.title,
   };
+  const horizonDays = clampHorizonDays(j.horizon_days);
+  const claim = (j.claim ?? j.headline).slice(0, 500);
 
   const { data: row } = await supabase
     .from("insights")
@@ -275,6 +320,8 @@ Output JSON: {"headline":"...","detail":"...","recommended_action":{"agent_slug"
         confidence: Number(top.t.confidence),
         status: "open",
         dedup_key: dedupKey,
+        claim,
+        horizon_date: horizonDateFrom(horizonDays),
       },
       { onConflict: "workspace_id,dedup_key" },
     )
