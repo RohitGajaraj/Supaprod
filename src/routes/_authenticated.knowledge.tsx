@@ -20,6 +20,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { MemoryList } from "@/components/memory/MemoryList";
 import { DecisionsPanel } from "@/components/knowledge/DecisionsPanel";
+import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { CompoundingPanel } from "@/components/knowledge/CompoundingPanel";
 import { DecisionDetail } from "@/components/knowledge/DecisionDetail";
 import { LearningDetail } from "@/components/knowledge/LearningDetail";
@@ -35,8 +36,25 @@ import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
 // feed (the tab kept id "memory" until this restructure — now re-id'd to
 // "learnings" so the agent-recall tab can own "memory"). Founder ruling
 // 2026-06-16: Knowledge→Brain, /chat→Ask, /memory folds in here.
-type Tab = "insights" | "calendar" | "memory" | "learnings" | "decisions" | "graph" | "docs";
-const TABS: Tab[] = ["insights", "calendar", "memory", "learnings", "decisions", "graph", "docs"];
+type Tab =
+  | "insights"
+  | "calendar"
+  | "memory"
+  | "learnings"
+  | "decisions"
+  | "design"
+  | "graph"
+  | "docs";
+const TABS: Tab[] = [
+  "insights",
+  "calendar",
+  "memory",
+  "learnings",
+  "decisions",
+  "design",
+  "graph",
+  "docs",
+];
 
 const KNOWLEDGE_DESC: Record<string, string> = {
   insights:
@@ -47,6 +65,8 @@ const KNOWLEDGE_DESC: Record<string, string> = {
   learnings:
     "What your team recorded: re-scored opportunities and outcome memos, each with a verdict.",
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
+  design:
+    "Your workspace's design language, learned not configured: tokens, type, spacing, principles, voice, patterns. Every mockup binds to what you approve here.",
   graph:
     "Trace why anything exists: the live map of how signals, specs, and decisions connect. Click a node to walk its provenance.",
   docs: "Workspace pages. Import from Google Docs or Notion, edit inline.",
@@ -303,6 +323,7 @@ function KnowledgePage() {
             { id: "memory", label: "Memory" },
             { id: "learnings", label: "Learnings" },
             { id: "decisions", label: "Decisions" },
+            { id: "design", label: "Design" },
             { id: "graph", label: "Graph" },
             { id: "docs", label: "Docs" },
           ]}
@@ -317,6 +338,7 @@ function KnowledgePage() {
         {tab === "learnings" &&
           (learning ? <LearningDetail id={learning} /> : <CompoundingPanel />)}
         {tab === "decisions" && (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+        {tab === "design" && <DesignMemoryPanel />}
         {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
         {tab === "docs" && <DocsPanel />}
       </Surface>

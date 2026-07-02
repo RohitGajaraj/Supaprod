@@ -1,19 +1,38 @@
 // DEF-04 (generative half) — AI-drafted design scaffold from a PRD spec.
 // Shown below DesignReadinessPanel on the PRD detail page.
 // Renders the generated HTML in a sandboxed iframe (null origin, no CDN deps).
+// DSN-01: approve/reject writes back a design-memory learning candidate.
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, AlertCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { generateDesignScaffold } from "@/lib/design-scaffold.functions";
+import { recordDesignScaffoldFeedback } from "@/lib/design-memory.functions";
+import { toast } from "@/lib/notify";
 
 export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBody: string }) {
   const [scaffold, setScaffold] = useState<{ html: string; generatedAt: string } | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<"approved" | "rejected" | null>(null);
   const fGenerate = useServerFn(generateDesignScaffold);
+  const fFeedback = useServerFn(recordDesignScaffoldFeedback);
 
   const mutation = useMutation({
     mutationFn: () => fGenerate({ data: { prdId, specBody } }),
-    onSuccess: (data) => setScaffold(data),
+    onSuccess: (data) => {
+      setScaffold(data);
+      setFeedbackGiven(null);
+    },
+  });
+
+  const feedback = useMutation({
+    mutationFn: (approved: boolean) =>
+      fFeedback({ data: { prdId, specExcerpt: specBody.slice(0, 4000), approved } }),
+    onSuccess: (res, approved) => {
+      setFeedbackGiven(approved ? "approved" : "rejected");
+      toast.success(
+        res.learned > 0 ? "Noted. Added to the workspace's design memory for review." : "Noted.",
+      );
+    },
   });
 
   // Silent when the spec is too short to scaffold (< 40 chars — same threshold as server)
@@ -70,10 +89,36 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             className="w-full rounded-lg border border-slate-200 bg-white"
             style={{ height: 540 }}
           />
-          <p className="mt-2 text-xs text-slate-400 text-right">
-            Generated {new Date(scaffold.generatedAt).toLocaleTimeString()} · AI-drafted — review
-            before use
-          </p>
+          <div className="mt-2 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => feedback.mutate(true)}
+                disabled={feedback.isPending || feedbackGiven !== null}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                <ThumbsUp
+                  className={
+                    feedbackGiven === "approved" ? "h-3 w-3 text-emerald-600" : "h-3 w-3"
+                  }
+                />
+                Good fit
+              </button>
+              <button
+                type="button"
+                onClick={() => feedback.mutate(false)}
+                disabled={feedback.isPending || feedbackGiven !== null}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                <ThumbsDown className={feedbackGiven === "rejected" ? "h-3 w-3 text-red-500" : "h-3 w-3"} />
+                Not a fit
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">
+              Generated {new Date(scaffold.generatedAt).toLocaleTimeString()} · AI-drafted, review
+              before use
+            </p>
+          </div>
         </div>
       )}
 

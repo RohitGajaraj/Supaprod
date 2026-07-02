@@ -101,6 +101,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | RF-04 | House-rules distillation (weekly steward pass -> approval-gated, supersedable operating rules injected at the chokepoint) | ✅ Shipped 2026-07-03 (Lane 2) | `/govern?tab=house-rules` · `/api/public/hooks/house-rules-tick` | [`house-rules.md`](./house-rules.md) |
 | CNV-02 | The requirement-to-oracle compiler (acceptance criteria → eval cases / CI / UAT / watched assumptions) | ✅ Shipped 2026-07-03 (Lane 3) | `/prds/$id?tab=contract` (Compile oracles), `/evals`, `/today` | [`outcome-contract.md`](./outcome-contract.md#cnv-02-the-requirement-to-oracle-compiler-v12-sec-72) |
 | RF-05 | Playbook selection by win rate (mission-plan-time station->playbook binding + auto-recorded playbook_runs) | ✅ Shipped 2026-07-03 (Lane 2) | engine-only, rides `mission.plan` | [`playbook-selection.md`](./playbook-selection.md) |
+| DSN-01 | Design memory (workspace design language as standing, supersedable decisions; binds into DEF-04 scaffolds) | ✅ Shipped 2026-07-03 (Lane 1) | `/knowledge?tab=design` · PRD detail (DEF-04 panel) | [`design-memory.md`](./design-memory.md) |
 
 ## Rules
 

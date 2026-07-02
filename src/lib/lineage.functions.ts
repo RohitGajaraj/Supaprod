@@ -15,6 +15,7 @@ export const ARTIFACT_KINDS = [
   "decision",
   "mission",
   "house_rule",
+  "design_memory",
 ] as const;
 export type ArtifactKind = (typeof ARTIFACT_KINDS)[number];
 
@@ -75,6 +76,7 @@ const TITLE_COLUMN: Record<ArtifactKind, string> = {
   decision: "title",
   mission: "title",
   house_rule: "rule_text",
+  design_memory: "title",
 };
 
 const TABLE: Record<ArtifactKind, string> = {
@@ -88,6 +90,7 @@ const TABLE: Record<ArtifactKind, string> = {
   decision: "decisions",
   mission: "missions",
   house_rule: "house_rules",
+  design_memory: "design_memory",
 };
 
 async function hydrateTitles(

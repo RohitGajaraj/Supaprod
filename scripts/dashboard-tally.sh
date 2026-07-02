@@ -22,7 +22,14 @@ awk -F'|' '/^\| [0-9]+ \|/{
     # collapse a "🔨 In Dev (...)" status to the bare 🔨 token for weighting/counting
     if (s ~ /^🔨/) s="🔨";
     c[s]++; t++;
-    w=(s=="✅")?1:(s=="◐")?(match($0,/\[~[0-9]+%\]/)?substr($0,RSTART+2,RLENGTH-4)/100:0.5):(s=="⏸️"||s=="🔨")?0.5:0;
+    # BUG FIX (2026-07-03, lane1): the old exact-match check on the bare partial
+    # symbol meant a bracket-annotated row (symbol plus a [~80%]-style suffix) never
+    # equaled it and silently fell through to weight 0 (a known quirk the
+    # feature-dashboard.md By-status table footnote had been hand-correcting around).
+    # Fixed to a prefix match so a bare-or-bracketed partial both reach the match()
+    # branch below, which already extracts the real percentage when present and
+    # falls back to 0.5 otherwise.
+    w=(s=="✅")?1:(s ~ /^◐/)?(match($0,/\[~[0-9]+%\]/)?substr($0,RSTART+2,RLENGTH-4)/100:0.5):(s=="⏸️"||s=="🔨")?0.5:0;
     W+=w
   } END {
     for(k in c) printf "  %s = %d\n", k, c[k];

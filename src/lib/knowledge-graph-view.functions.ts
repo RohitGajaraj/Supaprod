@@ -48,6 +48,7 @@ const TITLE_TABLE: Record<GraphNodeKind, { table: string; col: string }> = {
   meeting: { table: "meetings", col: "title" },
   decision: { table: "decisions", col: "title" },
   mission: { table: "missions", col: "title" },
+  design_memory: { table: "design_memory", col: "title" },
 };
 
 const LINEAGE_COLS = "id,parent_kind,parent_id,child_kind,child_id,relation,rationale,created_at";

@@ -25,6 +25,7 @@ export const GRAPH_NODE_KINDS = [
   "meeting",
   "decision",
   "mission",
+  "design_memory",
 ] as const;
 export type GraphNodeKind = (typeof GRAPH_NODE_KINDS)[number];
 

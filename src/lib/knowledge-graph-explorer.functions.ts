@@ -19,6 +19,7 @@ const TITLE_COLUMN: Record<ArtifactKind, string> = {
   decision: "title",
   mission: "title",
   house_rule: "rule_text",
+  design_memory: "title",
 };
 
 const TABLE: Record<ArtifactKind, string> = {
@@ -32,6 +33,7 @@ const TABLE: Record<ArtifactKind, string> = {
   decision: "decisions",
   mission: "missions",
   house_rule: "house_rules",
+  design_memory: "design_memory",
 };
 
 /**
