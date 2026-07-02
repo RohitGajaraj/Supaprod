@@ -56,6 +56,7 @@ import { Route as AuthenticatedGovernRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated.fleet'
 import { Route as AuthenticatedEvalsRouteImport } from './routes/_authenticated.evals'
 import { Route as AuthenticatedEvalHealthRouteImport } from './routes/_authenticated.eval-health'
+import { Route as AuthenticatedEngineRoomRouteImport } from './routes/_authenticated.engine-room'
 import { Route as AuthenticatedDriftRouteImport } from './routes/_authenticated.drift'
 import { Route as AuthenticatedDocsRouteImport } from './routes/_authenticated.docs'
 import { Route as AuthenticatedDiscoveryRouteImport } from './routes/_authenticated.discovery'
@@ -356,6 +357,11 @@ const AuthenticatedEvalsRoute = AuthenticatedEvalsRouteImport.update({
 const AuthenticatedEvalHealthRoute = AuthenticatedEvalHealthRouteImport.update({
   id: '/eval-health',
   path: '/eval-health',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEngineRoomRoute = AuthenticatedEngineRoomRouteImport.update({
+  id: '/engine-room',
+  path: '/engine-room',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDriftRoute = AuthenticatedDriftRouteImport.update({
@@ -719,6 +725,7 @@ export interface FileRoutesByFullPath {
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
   '/drift': typeof AuthenticatedDriftRoute
+  '/engine-room': typeof AuthenticatedEngineRoomRoute
   '/eval-health': typeof AuthenticatedEvalHealthRoute
   '/evals': typeof AuthenticatedEvalsRoute
   '/fleet': typeof AuthenticatedFleetRoute
@@ -827,6 +834,7 @@ export interface FileRoutesByTo {
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
   '/drift': typeof AuthenticatedDriftRoute
+  '/engine-room': typeof AuthenticatedEngineRoomRoute
   '/eval-health': typeof AuthenticatedEvalHealthRoute
   '/evals': typeof AuthenticatedEvalsRoute
   '/fleet': typeof AuthenticatedFleetRoute
@@ -937,6 +945,7 @@ export interface FileRoutesById {
   '/_authenticated/discovery': typeof AuthenticatedDiscoveryRoute
   '/_authenticated/docs': typeof AuthenticatedDocsRoute
   '/_authenticated/drift': typeof AuthenticatedDriftRoute
+  '/_authenticated/engine-room': typeof AuthenticatedEngineRoomRoute
   '/_authenticated/eval-health': typeof AuthenticatedEvalHealthRoute
   '/_authenticated/evals': typeof AuthenticatedEvalsRoute
   '/_authenticated/fleet': typeof AuthenticatedFleetRoute
@@ -1048,6 +1057,7 @@ export interface FileRouteTypes {
     | '/discovery'
     | '/docs'
     | '/drift'
+    | '/engine-room'
     | '/eval-health'
     | '/evals'
     | '/fleet'
@@ -1156,6 +1166,7 @@ export interface FileRouteTypes {
     | '/discovery'
     | '/docs'
     | '/drift'
+    | '/engine-room'
     | '/eval-health'
     | '/evals'
     | '/fleet'
@@ -1265,6 +1276,7 @@ export interface FileRouteTypes {
     | '/_authenticated/discovery'
     | '/_authenticated/docs'
     | '/_authenticated/drift'
+    | '/_authenticated/engine-room'
     | '/_authenticated/eval-health'
     | '/_authenticated/evals'
     | '/_authenticated/fleet'
@@ -1730,6 +1742,13 @@ declare module '@tanstack/react-router' {
       path: '/eval-health'
       fullPath: '/eval-health'
       preLoaderRoute: typeof AuthenticatedEvalHealthRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/engine-room': {
+      id: '/_authenticated/engine-room'
+      path: '/engine-room'
+      fullPath: '/engine-room'
+      preLoaderRoute: typeof AuthenticatedEngineRoomRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/drift': {
@@ -2237,6 +2256,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDiscoveryRoute: typeof AuthenticatedDiscoveryRoute
   AuthenticatedDocsRoute: typeof AuthenticatedDocsRoute
   AuthenticatedDriftRoute: typeof AuthenticatedDriftRoute
+  AuthenticatedEngineRoomRoute: typeof AuthenticatedEngineRoomRoute
   AuthenticatedEvalHealthRoute: typeof AuthenticatedEvalHealthRoute
   AuthenticatedEvalsRoute: typeof AuthenticatedEvalsRoute
   AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
@@ -2291,6 +2311,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDiscoveryRoute: AuthenticatedDiscoveryRoute,
   AuthenticatedDocsRoute: AuthenticatedDocsRoute,
   AuthenticatedDriftRoute: AuthenticatedDriftRoute,
+  AuthenticatedEngineRoomRoute: AuthenticatedEngineRoomRoute,
   AuthenticatedEvalHealthRoute: AuthenticatedEvalHealthRoute,
   AuthenticatedEvalsRoute: AuthenticatedEvalsRoute,
   AuthenticatedFleetRoute: AuthenticatedFleetRoute,
