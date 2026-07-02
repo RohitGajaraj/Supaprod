@@ -75,3 +75,21 @@ Picked OBS-05 next in rank once OBS-02/OBS-03 both shipped and unblocked the who
 **Note:** received a duplicate/stale replay of an earlier BYO-P5 instruction mid-session (that work was already committed, pushed, and verified several turns prior) — confirmed via `git log`/`git grep` before taking any action, did not redo it.
 
 **Returning to the lane loop:** checking `lane.sh next` for the next eligible OBS surface (OBS-06 is claimed by lane2; OBS-07/08/09 or the v12 front items are candidates).
+
+## 2026-07-02 (session interrupted, recovered, then held) — OBS-05 rebase recovery + OBS-07: Plan ported to Obsidian
+
+**Recovery:** this session's editor was accidentally reloaded mid-`git rebase`, right after OBS-05's dashboard merge conflict had been hand-resolved in the working tree but never `git add`ed / `rebase --continue`d / pushed / released. Verified the prior session's OBS-05 build + its claimed 4 adversarial-review fixes were real (independently re-confirmed each against the actual code via a parallel verification workflow, not just trusted the doc write-up), fixed one small real drift (the dashboard's "Total features" summary line was one recompute behind), completed the rebase, re-gated (tsc 0 / 1944 tests), rebased a second time onto origin/main (which had moved again — lane4 claimed OBS-09 mid-recovery), pushed clean, released the OBS-05 claim. Full detail in `plan.md`'s OBS-05 entry (unchanged from the original build) and this file's own 18:35 entry above.
+
+**OBS-07:** picked up next in rank (OBS-PORT is the umbrella tracking row, not individually buildable, per its own row text). Built the Now/Next/Later outcome roadmap + the cited spec list at `/plan`. **Adversarial review (3 lenses) — 6 real findings, 2 high-severity, all fixed:**
+1. **Accessibility, high:** `BetCard`'s move controls and `SpecList`'s spec rows each had an inline `style={{outline:"none"}}` silently overriding their own `focus-visible:outline-2` Tailwind class (inline always wins) — a keyboard user got zero focus indicator on the surface's two most-used controls. Fixed by moving `outline-none` into the className.
+2. **Accessibility:** ceremony outcome/measure inputs had no accessible label beyond a placeholder. Fixed with visible mono labels.
+3. **Accessibility:** the three loading states were silent to screen readers. Fixed with `role="status"` + sr-only text.
+4. **Design, high:** `SpecDetail`'s error branch was dead code (`!prd` true during both loading and error, loading always won). Fixed by checking `isError` first.
+5. **Design:** the spec-detail shimmer never actually animated (missing the `--shimmer-gradient` background the keyframe needs). Fixed.
+6. **Design:** the page's entrance animation was a dead `className="cadRise"` with no matching CSS rule. Fixed by switching to the shared `Surface` primitive.
+
+**Gates:** tsc 0 / bun test 1988/1988 / eslint 0 / humanized-output clean. Committed, merged cleanly with lane1/2/4's concurrent OBS-06/08/09 ships (only `routeTree.gen.ts` overlapped, auto-merged), pushed as a fast-forward, claim released (OBS-07 → ✅). Dashboard tally: 246/292 = 84.2% strict / 247.50/292 = 84.8% weighted.
+
+**Founder instruction received mid-session:** stop auto-picking the next item after this closure — repeated multi-lane collisions have been burning cost, and manual task assignment is starting. Recorded in memory (`feedback_manual-task-assignment-only.md`) and in `SOURCE-OF-TRUTH.md`'s LIVE CURSOR.
+
+**This lane is now HOLDING. Not running `lane.sh next` / not claiming another item. Waiting for explicit manual assignment.**
