@@ -4,6 +4,18 @@
 
 ---
 
+### ▶ 2026-07-02 16:50 — OBS-03 shipped (primitive library), board dry on real dependency, long-polling
+
+**Shipped this cycle:** OBS-03, the Obsidian v3 core primitive library. Claimed atomically (`lane.sh claim OBS-03`, precise file globs to avoid OBS-02's `_authenticated.*.tsx` overlap), built all 11 primitives + barrel in `src/components/obsidian/` (Button, MonoLabel, StatusDot, VerdictChip, AuroraCard, Citation, PencilNote, Toast singleton, SlideOver on `@radix-ui/react-dialog`, CallCard, MissionRow), wrote 15 pure-logic/shallow-element unit tests (this repo has zero jsdom/happy-dom, so tests call `Component.render(props, ref)` directly rather than adding new DOM-test infra). Ran a 5-lens adversarial-review Workflow (token-purity, restraint-budget, a11y, humanized-output, prototype-parity) + a skeptical verify pass; fixed every confirmed finding (wrong `StatusDot` queued-state token, `Toast`'s live region mounting/unmounting instead of staying persistent, `Citation`'s missing `aria-describedby`, a couple of off-token pixel values, `MonoLabel` reuse). Fixed a real tsconfig gap along the way (`*.test.tsx` wasn't excluded like `*.test.ts`, so the repo's first `.test.tsx` file would've typechecked without `bun:test`'s ambient types). Gates: tsc 0, 15 new / 1889 total tests pass. Committed + fast-forward pushed to `origin/main` (`6bb01ca121`), verified landed by `git cat-file -e origin/main:src/components/obsidian/index.ts`. Full detail: `docs/features/obsidian-port.md` OBS-03 section, `plan.md` §4.
+
+**Deliberately deferred, not skipped:** the dev-only `/obsidian-specimen` route. Its file (`src/routes/_authenticated.obsidian-specimen.tsx`) matches OBS-02's active claim glob on `src/routes/_authenticated.*.tsx`; `lane.sh claim` correctly refused it (exit 3, CONFLICT). Claim stays held (lane2, heartbeat fresh) until OBS-02 releases that glob, then the specimen route is a small follow-up. This does not block OBS-04..09 — they only need `@/components/obsidian`, which is complete.
+
+**Board check after landing OBS-03:** `bash scripts/lane.sh next` returns `OBS-PORT, OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09, OBS-10` — mechanically eligible, but verified by hand that every one is still genuinely blocked, not just formally: `src/components/obsidian/Surface.tsx` (OBS-02's own claimed file) does not exist yet, and `src/routes/_authenticated.tsx` does not carry `[data-obsidian]` anywhere. OBS-02 (lane1) has held its claim 79+ minutes without shipping. Building any surface (04-09) now would mean rendering it outside the Obsidian scope entirely (unstyled/wrong theme) since the shell that applies the attribute doesn't exist. `OBS-PORT` is the umbrella tracking row, not directly buildable (its sub-items are). This matches lane3's own board-dry log from ~65 minutes ago (`eafaa9f8ec`, "OBS 04-10 all hard-blocked on OBS-02/03 foundation") — still true even though OBS-03 itself is now done, because the remaining real blocker was always OBS-02.
+
+**Long-polling.** No genuinely buildable Tier-1/3 item exists right now beyond what's already claimed by other lanes. Rechecking in ~25 minutes for OBS-02 to land (or any other eligible item to appear).
+
+---
+
 ### ▶ BOARD DRY — long-polling (2026-06-25, new session start)
 
 `bash scripts/lane.sh next` → exit 2: "BOARD DRY: no eligible Tier-1/Tier-3 ⬜/◐ item unclaimed + not done"
