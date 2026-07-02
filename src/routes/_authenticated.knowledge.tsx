@@ -13,12 +13,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Brain, Sparkles } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { MemoryList } from "@/components/memory/MemoryList";
 import { DecisionsPanel } from "@/components/knowledge/DecisionsPanel";
@@ -76,7 +74,7 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
   component: KnowledgePage,
   head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 8 }}>knowledge · failed to load</MonoLabel>
@@ -88,14 +86,14 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
   notFoundComponent: () => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <p style={{ fontSize: 13, color: "var(--ink-subtle)" }}>Not found.</p>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -103,10 +101,6 @@ function KnowledgePage() {
   const { tab, meeting, decision, learning, focusKind, focusId } = Route.useSearch();
   const navigate = useNavigate({ from: "/knowledge" });
   const { activeWorkspace } = useWorkspace();
-
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-
   const fBrain = useServerFn(getBrainStatus);
   const brain = useQuery({ queryKey: ["brain-status"], queryFn: () => fBrain() });
   const fStats = useServerFn(getCompanyBrainStats);
@@ -131,7 +125,7 @@ function KnowledgePage() {
       : null;
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
       <div
         data-screen-label="Brain"
@@ -205,6 +199,6 @@ function KnowledgePage() {
         {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
         {tab === "docs" && <DocsPanel />}
       </div>
-    </AppShell>
+    </>
   );
 }

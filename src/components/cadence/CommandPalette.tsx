@@ -16,6 +16,7 @@ import {
   Activity,
   Calendar as CalIcon,
 } from "lucide-react";
+import { PRIMARY_NAV, ENGINE_ROOM_DOOR } from "@/lib/nav-model";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -78,56 +79,39 @@ export function CommandPalette() {
                 <Item
                   icon={Home}
                   label="Today · Mission Control"
-                  hint="G D"
+                  hint="1"
                   onSelect={() => go("/")}
                 />
-                <Item icon={MessageCircle} label="Ask" hint="G C" onSelect={() => go("/chat")} />
                 <Item
-                  icon={Bot}
-                  label="Team · the agent roster"
-                  hint="G A"
-                  onSelect={() => go("/govern", { tab: "team" })}
+                  icon={Telescope}
+                  label="Discover · signals, opportunities, specs"
+                  hint="2"
+                  onSelect={() => go("/product", { tab: "discover" })}
+                />
+                <Item
+                  icon={Hammer}
+                  label="Plan · roadmaps and execution"
+                  hint="3"
+                  onSelect={() => go("/product", { tab: "roadmap" })}
+                />
+                <Item
+                  icon={Hammer}
+                  label="Build · sessions, changesets, gates"
+                  hint="4"
+                  onSelect={() => go("/build")}
+                />
+                <Item
+                  icon={Brain}
+                  label="Brain · memory, learnings, decisions, docs"
+                  hint="5"
+                  onSelect={() => go("/knowledge")}
                 />
                 <Item
                   icon={CalIcon}
                   label="Calendar · events & meetings"
                   onSelect={() => go("/knowledge", { tab: "calendar" })}
                 />
-                <Item
-                  icon={Telescope}
-                  label="Product · signals, opportunities, specs"
-                  hint="G I"
-                  onSelect={() => go("/product")}
-                />
-                <Item
-                  icon={Hammer}
-                  label="Build · sessions, changesets, gates"
-                  hint="G B"
-                  onSelect={() => go("/build")}
-                />
-                <Item
-                  icon={Brain}
-                  label="Brain · memory, learnings, decisions, docs"
-                  hint="G M"
-                  onSelect={() => go("/knowledge")}
-                />
-                <Item icon={ListTodo} label="Tasks" hint="G T" onSelect={() => go("/product")} />
-                <Item
-                  icon={Activity}
-                  label="Missions · live agents and runs"
-                  onSelect={() => go("/missions")}
-                />
-                <Item
-                  icon={ShieldAlert}
-                  label="Engine Room · approvals, safety, spend, activity"
-                  onSelect={() => go("/govern")}
-                />
-                <Item
-                  icon={Settings}
-                  label="Settings & profile"
-                  hint="G S"
-                  onSelect={() => go("/settings")}
-                />
+                <Item icon={MessageCircle} label="Ask AI anything…" onSelect={() => go("/chat")} />
               </Command.Group>
               <Command.Group
                 heading="Quick actions"
@@ -170,47 +154,31 @@ function Item({
   );
 }
 
-// Vim-style g-prefix shortcut handler — mount once at app root.
+// OBS-02 — the Obsidian keyboard map: `1`-`5` switch the five rail
+// destinations (single press, no chord), `g` opens the Engine Room. This
+// supersedes the legacy `g`-then-letter chord (its discovery role moves to
+// the ⌘K palette, OBS-11). Esc-closes-overlay stays where it already lives
+// (CommandPalette's own Escape handler above). Mount once at app root.
 export function GotoShortcuts() {
   const navigate = useNavigate();
   useEffect(() => {
-    let waiting = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
         return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (!waiting && e.key.toLowerCase() === "g") {
-        waiting = true;
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => (waiting = false), 800);
+      const key = e.key;
+      if (key >= "1" && key <= "5") {
+        const item = PRIMARY_NAV[Number(key) - 1];
+        if (item) {
+          e.preventDefault();
+          navigate({ to: item.to, search: item.search as never });
+        }
         return;
       }
-      if (waiting) {
-        waiting = false;
-        if (timer) clearTimeout(timer);
-        // /agents and /learn are mothballed (F-V5-MOTHBALL); the Tasks surface
-        // was deleted (v6 Phase 0 / W1, task capture moved to Today) — point at
-        // their live homes so shortcuts never land on a redirect.
-        const map: Record<string, string> = {
-          d: "/",
-          c: "/chat",
-          a: "/missions",
-          b: "/build",
-          t: "/",
-          s: "/settings",
-          p: "/product",
-          k: "/knowledge",
-          m: "/knowledge",
-          l: "/knowledge",
-          v: "/govern",
-        };
-        const to = map[e.key.toLowerCase()];
-        if (to) {
-          e.preventDefault();
-          navigate({ to });
-        }
+      if (key.toLowerCase() === "g") {
+        e.preventDefault();
+        navigate({ to: ENGINE_ROOM_DOOR.to });
       }
     };
     window.addEventListener("keydown", onKey);

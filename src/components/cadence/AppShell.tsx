@@ -1,28 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useMachineView } from "@/hooks/use-machine-view";
 import { MachineViewContainer } from "@/components/machine/MachineViewContainer";
-import {
-  Settings,
-  LogOut,
-  ShieldAlert,
-  ChevronDown,
-  PauseCircle,
-  Sun,
-  Moon,
-  Search,
-  Plus,
-  Trash2,
-  Pencil,
-  LogOut as LeaveIcon,
-} from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/notify";
-import { BudgetBar } from "./BudgetBar";
-import { FlowWidget } from "./FlowWidget";
-import { CadenceMark } from "./Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useTheme } from "@/hooks/use-theme";
+import { FlowWidget } from "./FlowWidget";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
@@ -49,45 +33,47 @@ import {
   type NavItemDef,
 } from "@/lib/nav-model";
 
-// IA-NAV-V11 (#12): the nav model — one flat list of outcome-named destinations
-// (PRIMARY_NAV) + one recessed Engine Room door that reveals the governance
-// surfaces on demand (ENGINE_ROOM_DOOR / ENGINE_ROOM_LINKS) — now lives in the
-// pure, unit-tested @/lib/nav-model module. This collapses the four old nav
-// metaphors (Workspace rail · "Loop" NavGroup · 5-icon Trust row · floating
-// QuickAccessDock) into the calm front + one door (engine-room doctrine).
-type NavItem = NavItemDef;
+// OBS-02 — the Obsidian app shell: a 236px mono-index rail (NO icons — the
+// iconography law is a mono numeral index 01-05 + the Butterfly mark only),
+// a 52px top bar (TopBar.tsx), and this rail's footer trio (shimmer working
+// line, the one Engine Room door, the user chip). Data hooks and workspace/
+// dropdown handlers are unchanged from the pre-Obsidian shell (consumed
+// read-only, per the OBS-02 spec's "no feature work rides along" boundary) —
+// only the presentation is reskinned. The shell is now HOISTED ONCE into
+// `_authenticated.tsx` (it no longer wraps each page individually).
 
-function NavRow({ item, active, badge }: { item: NavItem; active: boolean; badge?: number }) {
-  const Icon = item.icon;
+function NavRow({ item, active, badge }: { item: NavItemDef; active: boolean; badge?: number }) {
   return (
     <Link
       to={item.to}
       search={item.search as never}
-      className={`group relative flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] ${
+      className={`flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)] ${
         active
-          ? "bg-secondary text-foreground font-medium"
-          : "text-ink-muted hover:text-foreground hover:bg-secondary/60"
+          ? "bg-[#1A1A1E] font-semibold text-[var(--text-primary)]"
+          : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
       }`}
     >
-      {active && (
-        <span
-          aria-hidden
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-foreground"
-        />
-      )}
-      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+      <span
+        className={`shrink-0 ${active ? "text-[var(--ember)]" : "text-[var(--text-faint)]"}`}
+        style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}
+      >
+        {item.index}
+      </span>
       <span className="flex-1 truncate">{item.label}</span>
       {badge ? (
         <span
-          className="inline-flex items-center justify-center rounded-full px-1"
+          className="inline-flex items-center justify-center"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            fontWeight: 600,
-            background: "var(--coral)",
-            color: "oklch(0.99 0.005 60)",
+            fontSize: 9.5,
+            fontWeight: 700,
+            background: "var(--ember)",
+            color: "var(--cta-ink)",
+            borderRadius: 99,
             minWidth: 17,
-            height: 17,
+            height: 16,
+            padding: "0 5px",
+            boxShadow: "0 0 10px rgba(255,107,44,0.4)",
           }}
         >
           {badge}
@@ -97,7 +83,7 @@ function NavRow({ item, active, badge }: { item: NavItem; active: boolean; badge
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode; projects?: unknown }) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const searchTab = useRouterState({
     select: (s) => (s.location.search as { tab?: string })?.tab ?? null,
@@ -152,8 +138,8 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
   const isAdmin = !!adminInfo?.isAdmin;
   const noAdminsYet = adminInfo ? !adminInfo.anyAdminExists : false;
 
-  // Pending-calls badge (Approvals) — shares the "needs-you" cache key with
-  // the Today page, so no extra fetch when both are mounted.
+  // The one Today badge — shares the "needs-you" cache key with the Today
+  // page, so no extra fetch when both are mounted. Hidden at zero.
   const fetchNeedsYou = useServerFn(getNeedsYou);
   const { data: needsYou } = useQuery({
     queryKey: ["needs-you"],
@@ -165,9 +151,9 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
     (needsYou?.prdCalls.length ?? 0) +
     (needsYou?.oppCalls.length ?? 0);
 
-  // Running-agents line above the Trust row (DESIGN.md status-placement
-  // contract). Dedicated unbounded count — listAgentRuns' 20-row window can
-  // drop a long-running run, and a "live" line must never under-report.
+  // The shimmer working line — a dedicated unbounded count (listAgentRuns'
+  // 20-row window can drop a long-running run, and a "live" line must never
+  // under-report).
   const fetchLiveCounts = useServerFn(getLiveRunCounts);
   const { data: liveCounts } = useQuery({
     queryKey: ["live-run-counts"],
@@ -396,46 +382,75 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
   }
 
   // Active-state is the pure nav-model rule: exact path match, tab-scoped when
-  // the item declares a tab. PRIMARY_NAV destinations are all bare paths.
-  const isItemActive = (n: NavItem) => navItemActive(n, path, searchTab);
+  // the item declares a tab. PRIMARY_NAV destinations are all bare paths
+  // except the interim Plan entry.
+  const isItemActive = (n: NavItemDef) => navItemActive(n, path, searchTab);
 
   return (
     <MachineViewContainer
       machineContent={buildMachineContent()}
       title={`Cadence · ${activeWorkspace?.name ?? "workspace"}`}
     >
-      <div className="min-h-screen flex bg-background text-foreground relative">
-        <aside className="hidden lg:flex h-screen sticky top-0 w-[232px] shrink-0 flex-col border-r hairline bg-sidebar">
-          {/* Workspace switcher — butterfly + Cadence wordmark, per shell.jsx */}
-          <div className="shrink-0 border-b hairline" style={{ padding: "14px 14px 10px" }}>
+      <div className="flex min-h-screen">
+        <aside
+          className="hidden lg:flex h-screen sticky top-0 shrink-0 flex-col"
+          style={{
+            width: 236,
+            background: "var(--rail)",
+            borderRight: "1px solid var(--hairline)",
+          }}
+        >
+          {/* Header — Butterfly mark + wordmark + workspace name. The
+            workspace-switcher DropdownMenu is unchanged behaviorally; every
+            menu item drops its lucide glyph for a plain text row (the
+            iconography law: no icon set outside the Butterfly). */}
+          <div
+            style={{
+              padding: "16px 16px 12px",
+              borderBottom: "1px solid var(--hairline-faint)",
+            }}
+          >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="w-full flex items-center gap-[9px] text-left group"
+                  className="w-full flex items-center text-left outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+                  style={{ gap: 11 }}
                   aria-label="Workspace switcher"
                 >
-                  <span className="inline-flex h-7 w-7 items-center justify-center text-foreground shrink-0">
-                    <CadenceMark size={26} />
-                  </span>
+                  <img
+                    src="/assets/butterfly-ember.svg"
+                    width={24}
+                    height={24}
+                    alt=""
+                    aria-hidden="true"
+                    className="shrink-0"
+                    style={{
+                      filter: "drop-shadow(0 0 6px rgba(255,107,44,0.4))",
+                      animation: "cadFlutter 3.4s ease-in-out infinite",
+                      transformOrigin: "12px 12px",
+                    }}
+                  />
                   <span className="flex-1 min-w-0">
                     <span
-                      className="block font-display"
+                      className="block truncate"
                       style={{
-                        fontSize: 14.5,
-                        fontWeight: 500,
-                        lineHeight: 1.2,
+                        fontSize: 13.5,
+                        fontWeight: 700,
                         letterSpacing: "-0.01em",
+                        color: "var(--text-primary)",
                       }}
                     >
                       Cadence
                     </span>
-                    <span className="block text-[11px] text-ink-subtle truncate">
+                    <span
+                      className="block truncate"
+                      style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                    >
                       {activeWorkspace?.name || "Select workspace"}
                       {activeProduct ? ` · ${activeProduct.name}` : ""}
                     </span>
                   </span>
-                  <ChevronDown className="h-3 w-3 text-ink-faint group-hover:text-foreground shrink-0 transition" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-52" align="start">
@@ -457,9 +472,8 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
                   <div className="px-2 py-1.5 text-xs text-ink-faint italic">No workspaces yet</div>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={createWorkspace} className="cursor-pointer gap-2">
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>New workspace</span>
+                <DropdownMenuItem onClick={createWorkspace} className="cursor-pointer">
+                  New workspace
                 </DropdownMenuItem>
                 {/* Products — context switcher inside the workspace switcher (IA-DEPTH-V11) */}
                 <DropdownMenuSeparator />
@@ -479,40 +493,29 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
                 {products.length === 0 && (
                   <div className="px-2 py-1.5 text-xs text-ink-faint italic">No products yet</div>
                 )}
-                <DropdownMenuItem onClick={createProduct} className="cursor-pointer gap-2">
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>New product</span>
+                <DropdownMenuItem onClick={createProduct} className="cursor-pointer">
+                  New product
                 </DropdownMenuItem>
                 {activeWorkspace && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="mono-label">Manage</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={renameActiveWorkspace}
-                      className="cursor-pointer gap-2"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                      <span>Rename</span>
+                    <DropdownMenuItem onClick={renameActiveWorkspace} className="cursor-pointer">
+                      Rename
                     </DropdownMenuItem>
                     <Link to="/settings">
-                      <DropdownMenuItem className="cursor-pointer gap-2">
-                        <Settings className="h-3.5 w-3.5" />
-                        <span>Workspace settings</span>
+                      <DropdownMenuItem className="cursor-pointer">
+                        Workspace settings
                       </DropdownMenuItem>
                     </Link>
-                    <DropdownMenuItem
-                      onClick={leaveActiveWorkspace}
-                      className="cursor-pointer gap-2"
-                    >
-                      <LeaveIcon className="h-3.5 w-3.5" />
-                      <span>Leave</span>
+                    <DropdownMenuItem onClick={leaveActiveWorkspace} className="cursor-pointer">
+                      Leave
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={deleteActiveWorkspace}
-                      className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                      className="cursor-pointer text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      <span>Delete workspace</span>
+                      Delete workspace
                     </DropdownMenuItem>
                   </>
                 )}
@@ -520,163 +523,192 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
                   <>
                     <DropdownMenuSeparator />
                     <Link to="/admin">
-                      <DropdownMenuItem className="cursor-pointer gap-2">
-                        <ShieldAlert className="h-3.5 w-3.5" />
-                        <span>{isAdmin ? "Admin console" : "Claim admin"}</span>
+                      <DropdownMenuItem className="cursor-pointer">
+                        {isAdmin ? "Admin console" : "Claim admin"}
                       </DropdownMenuItem>
                     </Link>
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="cursor-pointer gap-2">
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>Sign out</span>
+                <Link to="/settings">
+                  <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="cursor-pointer"
+                >
+                  {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          {/* ⌘K search — opens the command palette */}
-          <div style={{ padding: "10px 12px 4px" }}>
+          {/* Search affordance — opens the command palette. */}
+          <div style={{ padding: "10px 10px 4px" }}>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="flex w-full items-center gap-2 rounded-md border hairline bg-surface-1 px-2.5 py-1.5 text-[12.5px] text-ink-faint hover:text-ink-muted transition"
+              className="flex w-full items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+              style={{
+                gap: 8,
+                border: "1px solid var(--hairline)",
+                background: "var(--card)",
+                borderRadius: 8,
+                padding: "7px 10px",
+                fontSize: 12,
+                color: "var(--text-subtle)",
+              }}
             >
-              <Search className="h-[13px] w-[13px]" strokeWidth={1.75} />
-              <span className="flex-1 text-left">Jump to…</span>
-              <span className="mono-label" style={{ fontSize: 10 }}>
-                ⌘K
-              </span>
+              <span className="flex-1 text-left">Search</span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘K</span>
             </button>
           </div>
 
-          {/* Scrollable middle: nav + products */}
-          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-3 pb-3">
-            <nav className="flex flex-col">
-              {/* IA-NAV-V11: one flat, calm list of outcome-named destinations — no
-                "Workspace"/"Loop" labels, no NavGroup indirection. The engine room
-                lives behind the single door in the footer below. */}
-              <div className="flex flex-col gap-0.5 pt-1.5">
-                {PRIMARY_NAV.map((n) => (
-                  <NavRow key={n.to} item={n} active={isItemActive(n)} />
-                ))}
-              </div>
+          {/* Nav — five outcome-named destinations, mono index 01-05, no icons. */}
+          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
+            <nav className="flex flex-col" style={{ padding: "8px 10px", gap: 2 }}>
+              {PRIMARY_NAV.map((n) => (
+                <NavRow
+                  key={`${n.to}-${n.label}`}
+                  item={n}
+                  active={isItemActive(n)}
+                  badge={n.label === "Today" ? callCount : undefined}
+                />
+              ))}
             </nav>
           </div>
 
-          {/* Fixed footer: alerts, budget, trust row, mission mode, sign out, theme */}
-          <div className="shrink-0 border-t hairline px-3 py-3 space-y-2 bg-sidebar">
+          {/* Footer — workspace-paused notice (when live), the shimmer working
+            line, the Engine Room door, the user chip. */}
+          <div
+            className="shrink-0 flex flex-col"
+            style={{
+              borderTop: "1px solid var(--hairline-faint)",
+              padding: "12px 14px",
+              gap: 10,
+            }}
+          >
             {pauseState?.paused && (
               <Link
                 to="/govern"
                 search={{ tab: "controls" }}
-                className="block rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive hover:bg-destructive/15 transition"
+                className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+                style={{
+                  border: "1px solid var(--hairline-strong)",
+                  padding: "7px 10px",
+                  fontSize: 11,
+                  color: "var(--madder)",
+                }}
               >
-                <div className="flex items-center gap-2">
-                  <PauseCircle className="h-4 w-4 shrink-0" />
-                  <div className="leading-tight overflow-hidden">
-                    <div className="text-[11px] font-medium truncate">
-                      {pauseState.systemPaused ? "System paused" : "Workspace paused"}
-                    </div>
-                    {pauseState.reason && (
-                      <div className="text-[10px] opacity-80 truncate">{pauseState.reason}</div>
-                    )}
-                  </div>
-                </div>
+                {pauseState.systemPaused ? "System paused" : "Workspace paused"}
+                {pauseState.reason ? ` · ${pauseState.reason}` : ""}
               </Link>
             )}
-            {/* Running status lives at the sidebar bottom, above Trust
-              (contract). Indigo pulsing line while agents run, with queued
-              depth as a quiet suffix; queued-only shows a static quiet line
-              (queued is live state, not "running" — never a fake pulse). */}
-            {runningCount > 0 ? (
+            {runningCount > 0 && (
               <Link
                 to="/missions"
                 search={{ tab: "missions" } as never}
-                className="mono-label flex items-center gap-[7px] px-1 pb-1"
-                style={{ color: "var(--action-blue)", fontSize: 9.5 }}
-              >
-                <span className="dot dot-running" style={{ width: 5, height: 5 }} />
-                {runningCount} agent{runningCount === 1 ? "" : "s"} running
-                {queuedCount > 0 && (
-                  <span style={{ color: "var(--ink-subtle)" }}>· {queuedCount} queued</span>
-                )}{" "}
-                →
-              </Link>
-            ) : queuedCount > 0 ? (
-              <Link
-                to="/missions"
-                search={{ tab: "missions" } as never}
-                className="mono-label flex items-center gap-[7px] px-1 pb-1"
-                style={{ color: "var(--ink-subtle)", fontSize: 9.5 }}
+                className="flex items-center"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 9.5,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  gap: 7,
+                }}
               >
                 <span
+                  aria-hidden="true"
+                  className="shrink-0"
                   style={{
                     width: 5,
                     height: 5,
                     borderRadius: 99,
-                    background: "var(--ink-faint)",
+                    background: "var(--glacier)",
+                    animation: "cadPulse 2s ease-in-out infinite",
                   }}
                 />
-                {queuedCount} queued →
+                <span
+                  style={{
+                    backgroundImage: "var(--shimmer-gradient)",
+                    backgroundSize: "280% 100%",
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    color: "transparent",
+                    animation: "cadShimmer 5s linear infinite",
+                  }}
+                >
+                  {runningCount} agent{runningCount === 1 ? "" : "s"} working
+                </span>
+                {queuedCount > 0 && (
+                  <span style={{ color: "var(--text-faint)" }}>· {queuedCount} queued</span>
+                )}
               </Link>
-            ) : null}
-            {/* IA-NAV-V11: the engine room behind ONE recessed door. The old 5-icon
-              Trust row collapses into a single quiet door carrying the live
-              approvals badge; clicking reveals the governance surfaces on demand
-              (engine-room doctrine: deep engine, surfaced only when asked). Every
-              surface the old row exposed is preserved in ENGINE_ROOM_LINKS, so
-              nothing is orphaned (Trust Ledger + Connectors aren't in ⌘K). */}
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label={callCount > 0 ? `Engine Room · ${callCount} pending` : "Engine Room"}
-                  className={`relative flex w-full items-center gap-2.5 rounded-md border hairline px-3 py-1.5 text-[12.5px] transition ${
-                    engineRoomActive(path)
-                      ? "bg-secondary text-foreground font-medium"
-                      : "text-ink-subtle hover:text-foreground hover:bg-secondary/60"
+                  className={`flex w-full items-center outline-none transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)] ${
+                    engineRoomActive(path) ? "bg-[#1A1A1E]" : "hover:bg-[var(--raised)]"
                   }`}
+                  style={{
+                    gap: 10,
+                    border: engineRoomActive(path)
+                      ? "1px solid var(--glacier)"
+                      : "1px solid var(--hairline)",
+                    borderRadius: 8,
+                    padding: "7px 10px",
+                    fontSize: 12,
+                    color: engineRoomActive(path) ? "var(--glacier)" : "var(--text-muted)",
+                  }}
                 >
-                  <ENGINE_ROOM_DOOR.icon
-                    className="h-[14px] w-[14px] shrink-0"
-                    strokeWidth={1.75}
-                  />
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9.5,
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    G
+                  </span>
                   <span className="flex-1 text-left">{ENGINE_ROOM_DOOR.label}</span>
-                  {callCount > 0 && (
-                    <span
-                      className="dot-gate inline-flex items-center justify-center rounded-full px-[3px]"
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: 8.5,
-                        fontWeight: 700,
-                        background: "var(--coral)",
-                        color: "oklch(0.99 0.005 60)",
-                        minWidth: 14,
-                        height: 14,
-                      }}
-                    >
-                      {callCount}
-                    </span>
-                  )}
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 8.5,
+                      letterSpacing: "0.08em",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    {callCount > 0 ? callCount : "ALL CLEAR"}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-52">
                 <DropdownMenuLabel className="mono-label">Engine Room</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {ENGINE_ROOM_LINKS.map((t) => {
-                  const Icon = t.icon;
                   const showBadge = t.label === "Approvals" && callCount > 0;
                   return (
                     <Link key={t.label} to={t.to} search={t.search as never}>
-                      <DropdownMenuItem className="cursor-pointer gap-2">
-                        <Icon className="h-3.5 w-3.5" />
-                        <span className="flex-1">{t.label}</span>
+                      <DropdownMenuItem className="cursor-pointer flex items-center justify-between">
+                        <span>{t.label}</span>
                         {showBadge && (
                           <span
-                            className="mono-label tabular-nums"
-                            style={{ color: "var(--coral)", fontSize: 10, fontWeight: 700 }}
+                            className="tabular-nums"
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "var(--ember)",
+                            }}
                           >
                             {callCount}
                           </span>
@@ -687,53 +719,52 @@ export function AppShell({ children }: { children: React.ReactNode; projects?: u
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="flex items-center gap-2 px-0.5">
-              <BudgetBar />
-              <span className="flex-1" />
-              <FlowWidget />
-              <button
-                type="button"
-                aria-label="Toggle theme"
-                title="Toggle theme"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="flex p-1 text-ink-subtle hover:text-foreground transition"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-[13px] w-[13px]" strokeWidth={1.75} />
-                ) : (
-                  <Moon className="h-[13px] w-[13px]" strokeWidth={1.75} />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center gap-[9px] pt-0.5">
+
+            <div className="flex items-center" style={{ gap: 9 }}>
               <span
-                className="inline-flex items-center justify-center rounded-full bg-soft-stone text-foreground"
-                style={{ width: 26, height: 26, fontSize: 10.5, fontWeight: 600 }}
+                className="inline-flex shrink-0 items-center justify-center rounded-full"
+                style={{
+                  width: 24,
+                  height: 24,
+                  background: "var(--hover)",
+                  border: "1px solid rgba(255,107,44,0.45)",
+                  color: "var(--text-primary)",
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                }}
               >
                 {userInitials}
               </span>
-              <span className="flex-1 truncate text-[12.5px] text-ink-muted">{userName}</span>
-              <Link
-                to="/settings"
-                title="Settings"
-                aria-label="Settings"
-                className={`flex transition ${path === "/settings" ? "text-foreground" : "text-ink-subtle hover:text-foreground"}`}
+              <span
+                className="flex-1 truncate"
+                style={{ fontSize: 12, color: "var(--text-muted)" }}
               >
-                <Settings className="h-[13px] w-[13px]" strokeWidth={1.75} />
-              </Link>
-              <span className="dot dot-completed" title="All systems normal" />
+                {userName}
+              </span>
+              {/* Flow mode's only entry point in the app — kept reachable (not
+                reskinned; OBS-03 owns primitives) rather than orphaned. Quiet
+                by design: a single small icon, no label, degrades via the
+                OBS-01 semantic bridge instead of dark-on-dark. */}
+              <FlowWidget />
+              <span
+                className="shrink-0 rounded-full"
+                aria-hidden="true"
+                title="Signed in"
+                style={{
+                  width: 6,
+                  height: 6,
+                  background: "var(--moss)",
+                  boxShadow: "0 0 7px rgba(127,191,142,0.6)",
+                }}
+              />
             </div>
           </div>
         </aside>
 
         <main className="flex-1 min-w-0 flex flex-col min-h-screen">
-          {/* CookingBanner + ConstructionPill moved into TopBar (founder
-            top-chrome review 2026-06-12): the pill is in-flow in the bar's
-            center slot (a fixed overlay covered the ticker), the banner is
-            the row below the bar — the reference chrome order. */}
           {/* Flex column so full-height screens (Chat) can pin to the viewport
-            with internal scroll, per the reference app.jsx main wrapper.
-            Block screens are unaffected — they stretch and scroll the page. */}
+            with internal scroll. Block screens are unaffected — they stretch
+            and scroll the page. */}
           <div className="flex-1 min-w-0 min-h-0 flex flex-col">{children}</div>
         </main>
       </div>

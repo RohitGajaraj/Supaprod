@@ -22,7 +22,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { EmptyState, MonoLabel, SurfaceHeader } from "@/components/cadence/Primitives";
 import { ModelSwitcher } from "@/components/chat/ModelSwitcher";
@@ -43,7 +42,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { listPrds } from "@/lib/discovery.functions";
 import {
   dispatchStudioSession,
@@ -60,7 +58,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
   head: () => ({ meta: [{ title: "Build · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: 24, maxWidth: 560 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
@@ -74,7 +72,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -386,18 +384,13 @@ function SessionRow({
   );
 }
 
-function BuildPage() {
-  const fProjects = useServerFn(listProjects);
-  const fList = useServerFn(listStudioSessions);
+function BuildPage() {  const fList = useServerFn(listStudioSessions);
   const fArchive = useServerFn(setStudioSessionArchived);
   const fDelete = useServerFn(deleteStudioSession);
   const qc = useQueryClient();
   const { activeWorkspace } = useWorkspace();
   const [showArchived, setShowArchived] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<StudioSessionListItem | null>(null);
-
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-  const sessions = useQuery({
+  const [deleteTarget, setDeleteTarget] = useState<StudioSessionListItem | null>(null);  const sessions = useQuery({
     queryKey: ["studio-sessions", showArchived],
     queryFn: () => fList({ data: { includeArchived: showArchived } }),
     refetchInterval: 5000,
@@ -427,7 +420,7 @@ function BuildPage() {
   const isEmpty = !sessions.isLoading && !sessions.isError && rows.length === 0;
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Build"]} />
       <div
         data-screen-label="Build"
@@ -561,6 +554,6 @@ function BuildPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppShell>
+    </>
   );
 }

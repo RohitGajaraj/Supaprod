@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Megaphone, Copy, Check, Download } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -58,7 +57,7 @@ function StakeholderPackPage() {
   }
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Stakeholder Pack"]} />
       <div data-screen-label="Stakeholder Pack" style={{ padding: "30px 44px 56px", maxWidth: 880, margin: "0 auto" }}>
         <SurfaceHeader
@@ -169,6 +168,6 @@ function StakeholderPackPage() {
           </>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

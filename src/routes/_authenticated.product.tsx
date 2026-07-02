@@ -15,11 +15,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Compass } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { SignalsPanel } from "@/components/product/SignalsPanel";
 import { SignalDetail } from "@/components/product/SignalDetail";
 import { OpportunitiesPanel } from "@/components/product/OpportunitiesPanel";
@@ -73,7 +71,7 @@ export const Route = createFileRoute("/_authenticated/product")({
   component: ProductPage,
   head: () => ({ meta: [{ title: "Product · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: 24 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
@@ -87,14 +85,14 @@ export const Route = createFileRoute("/_authenticated/product")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
   notFoundComponent: () => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <p style={{ fontSize: 13, color: "var(--ink-subtle)" }}>Not found.</p>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -102,14 +100,10 @@ function ProductPage() {
   const { tab, signal, opp } = Route.useSearch();
   const navigate = useNavigate({ from: "/product" });
   const { activeWorkspace } = useWorkspace();
-
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-
   const setTab = (next: string) => navigate({ search: { tab: next as Tab } });
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Product"]} />
       <div
         data-screen-label="Product"
@@ -139,6 +133,6 @@ function ProductPage() {
           </>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

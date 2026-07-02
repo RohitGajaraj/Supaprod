@@ -9,7 +9,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Shield } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SubTabs, SurfaceHeader, TabRow, type TabRowItem } from "@/components/cadence/Primitives";
 import {
@@ -21,7 +20,6 @@ import {
   type EngineRoomTab,
 } from "@/lib/engine-room-bands";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { listTraces } from "@/lib/traces.functions";
 import { getDriftOverview } from "@/lib/drift.functions";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
@@ -113,7 +111,7 @@ export const Route = createFileRoute("/_authenticated/govern")({
   component: GovernPage,
   head: () => ({ meta: [{ title: "Engine Room · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: 24 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
@@ -127,14 +125,14 @@ export const Route = createFileRoute("/_authenticated/govern")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
   notFoundComponent: () => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <p style={{ fontSize: 13, color: "var(--ink-subtle)" }}>Not found.</p>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -142,10 +140,6 @@ function GovernPage() {
   const { tab, suite, agent, surface } = Route.useSearch();
   const navigate = useNavigate({ from: "/govern" });
   const { activeWorkspace } = useWorkspace();
-
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-
   // Lightweight badge counts for the run-side tabs — a production affordance
   // the reference lacks; they ride the TabRow badge prop as quiet mono counts.
   const fTraces = useServerFn(listTraces);
@@ -191,7 +185,7 @@ function GovernPage() {
   };
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Engine Room"]} />
       <div
         data-screen-label="Govern"
@@ -229,6 +223,6 @@ function GovernPage() {
         {tab === "incidents" && <IncidentsPanel />}
         {tab === "support" && <SupportSignalsPanel />}
       </div>
-    </AppShell>
+    </>
   );
 }

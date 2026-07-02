@@ -7,7 +7,6 @@ import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/rea
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Shield } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
@@ -35,7 +34,7 @@ function AdminLayout() {
   const navigate = useNavigate();
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={["Admin"]} />
       <div style={{ padding: "30px 44px 56px", maxWidth: 1100, margin: "0 auto" }}>
         <SurfaceHeader
@@ -86,7 +85,7 @@ function AdminLayout() {
           <NoAccessCard anyAdminExists={!!me.data?.anyAdminExists} />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
 

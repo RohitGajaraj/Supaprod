@@ -20,7 +20,6 @@ import {
   Webhook,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { ProductBindingsSection } from "@/components/connections/ProductBindingsSection";
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
@@ -94,7 +93,7 @@ function SyncInboxPage() {
   const supported = (p: string) => p === "google_docs" || p === "notion" || p === "linear";
 
   return (
-    <AppShell>
+    <>
       <div className="max-w-4xl mx-auto px-8 py-10">
         <div className="flex items-center gap-3 mb-1">
           <Inbox className="h-5 w-5 text-violet-400" />
@@ -288,7 +287,7 @@ function SyncInboxPage() {
 
         <WebhookIngestCard />
       </div>
-    </AppShell>
+    </>
   );
 }
 

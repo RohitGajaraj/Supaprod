@@ -8,11 +8,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Activity } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { MissionsPanel } from "@/components/cockpit/MissionsPanel";
 import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
 import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
@@ -30,12 +28,8 @@ export const Route = createFileRoute("/_authenticated/missions/")({
 
 function MissionsPage() {
   const { activeWorkspace } = useWorkspace();
-
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Missions"]} />
       <div
         data-screen-label="Missions"
@@ -64,6 +58,6 @@ function MissionsPage() {
             relay on each mission. */}
         <MissionsPanel />
       </div>
-    </AppShell>
+    </>
   );
 }

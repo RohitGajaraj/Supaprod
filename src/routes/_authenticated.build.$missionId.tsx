@@ -13,11 +13,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Send } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import {
   getStudioSession,
   steerStudioSession,
@@ -56,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
   component: BuildSessionPage,
   head: () => ({ meta: [{ title: "Build · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: 24, maxWidth: 560 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
@@ -70,7 +68,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -306,9 +304,7 @@ function BuildSessionPage() {
   const qc = useQueryClient();
   const { activeWorkspace } = useWorkspace();
 
-  const fProjects = useServerFn(listProjects);
   const fGet = useServerFn(getStudioSession);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
 
   const session = useQuery({
     queryKey: ["studio-session", missionId],
@@ -354,7 +350,7 @@ function BuildSessionPage() {
   const activeTabLabel = TAB_DISPLAY.find(([id]) => id === tab)?.[1] ?? "Changes";
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar
         crumbs={[
           activeWorkspace?.name ?? "Workspace",
@@ -529,6 +525,6 @@ function BuildSessionPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

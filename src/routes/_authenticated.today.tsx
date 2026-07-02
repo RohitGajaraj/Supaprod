@@ -18,14 +18,12 @@ import {
   ArrowDownRight,
   Minus,
 } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { ShareStatusButton } from "@/components/today/StatusUpdateDialog";
 import { CadenceMark, MonoLabel } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { listTasks, createTask, updateTask, deleteTask } from "@/lib/tasks.functions";
-import { listProjects } from "@/lib/projects.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
 import { listAgentRuns } from "@/lib/agents.functions";
 import { LoopStations } from "@/components/product/LoopStations";
@@ -64,7 +62,6 @@ function Dashboard() {
   const qc = useQueryClient();
   const fetchDashboard = useServerFn(getDashboard);
   const fetchTasks = useServerFn(listTasks);
-  const fetchProjects = useServerFn(listProjects);
   const fetchRuns = useServerFn(listAgentRuns);
   const fetchGreeting = useServerFn(getGreeting);
   const fetchNeedsYou = useServerFn(getNeedsYou);
@@ -86,7 +83,6 @@ function Dashboard() {
 
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: () => fetchDashboard() });
   const tasks = useQuery({ queryKey: ["tasks"], queryFn: () => fetchTasks() });
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const runs = useQuery({ queryKey: ["runs"], queryFn: () => fetchRuns() });
   const needsYou = useQuery({ queryKey: ["needs-you"], queryFn: () => fetchNeedsYou() });
   // SF-FOCUS: the one ranked "Focus on this next" insight. Cheap when cold (no themes -> null).
@@ -322,7 +318,7 @@ function Dashboard() {
   const taskRows = tasks.data?.tasks ?? [];
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar
         crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]}
         actions={
@@ -1029,7 +1025,7 @@ function Dashboard() {
           <LastBuildStamp />
         </footer>
       </div>
-    </AppShell>
+    </>
   );
 }
 

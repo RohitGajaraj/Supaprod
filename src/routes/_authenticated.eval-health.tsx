@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -50,7 +49,7 @@ function EvalHealthPage() {
   const pct = (n: number | null) => (n === null ? "-" : `${Math.round(n * 100)}%`);
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Eval Health"]} />
       <div
         data-screen-label="Eval Health"
@@ -170,6 +169,6 @@ function EvalHealthPage() {
           </>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }

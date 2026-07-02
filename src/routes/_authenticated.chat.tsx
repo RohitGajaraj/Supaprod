@@ -25,7 +25,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { CadenceMark, MonoLabel, StepDot, StatusBadge } from "@/components/cadence/Primitives";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
@@ -53,7 +52,6 @@ import {
 } from "@/lib/conversations.functions";
 import { getBrainStatus, rememberMessage } from "@/lib/brain.functions";
 import { createDecision } from "@/lib/decisions.functions";
-import { listProjects } from "@/lib/projects.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getProfile } from "@/lib/profile.functions";
@@ -96,19 +94,14 @@ function detectMentionQuery(value: string, caret: number): string | null {
 }
 
 function ChatPage() {
-  const qc = useQueryClient();
-  const fProjects = useServerFn(listProjects);
-  const fAgents = useServerFn(listAgents);
+  const qc = useQueryClient();  const fAgents = useServerFn(listAgents);
   const fProfile = useServerFn(getProfile);
   const fList = useServerFn(listConversations);
   const fGet = useServerFn(getConversation);
   const fCreate = useServerFn(createConversation);
   const fDelete = useServerFn(deleteConversation);
   const fRename = useServerFn(renameConversation);
-  const { activeWorkspace } = useWorkspace();
-
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-  const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
+  const { activeWorkspace } = useWorkspace();  const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
   const convs = useQuery({ queryKey: ["conversations"], queryFn: () => fList() });
 
@@ -431,7 +424,7 @@ function ChatPage() {
   const activeTitle = active.data?.conversation?.title ?? null;
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar
         crumbs={[
           activeWorkspace?.name ?? "Workspace",
@@ -868,7 +861,7 @@ function ChatPage() {
           </div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
 

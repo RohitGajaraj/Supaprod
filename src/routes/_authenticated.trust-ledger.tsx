@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   AlertTriangle,
 } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader, TabRow, EmptyState, MonoLabel } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -459,7 +458,7 @@ function TrustLedgerPage() {
   );
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Trust Ledger"]} />
       <div
         data-screen-label="Trust Ledger"
@@ -576,6 +575,6 @@ function TrustLedgerPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -1,6 +1,7 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { CommandPalette, GotoShortcuts } from "@/components/cadence/CommandPalette";
+import { AppShell } from "@/components/cadence/AppShell";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
 import { needsOnboarding } from "@/lib/onboarding-gate";
@@ -35,16 +36,34 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Onboarding is documented full-viewport, no-shell (_authenticated.onboarding.tsx)
+  // and must stay that way after the OBS-02 hoist: wrapping it in <AppShell>
+  // would expose all five nav destinations + the 1-5/g shortcuts before the
+  // account has finished onboarding.
+  const isOnboarding = pathname.startsWith("/onboarding");
+
   return (
-    <WorkspaceProvider>
-      <FlowModeProvider>
-        {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
-        <BackendHealthBanner />
-        <BillingBanner />
-        <CommandPalette />
-        <GotoShortcuts />
-        <Outlet />
-      </FlowModeProvider>
-    </WorkspaceProvider>
+    // OBS-02: data-obsidian scopes the Obsidian token layer (OBS-01) to the
+    // whole authenticated app. The shell is hoisted here ONCE — pages no
+    // longer wrap <AppShell> individually (the old ~21-route pattern).
+    <div data-obsidian>
+      <WorkspaceProvider>
+        <FlowModeProvider>
+          {/* Ambient time/weather moved into the per-page TopBar (shell port). */}
+          <BackendHealthBanner />
+          <BillingBanner />
+          <CommandPalette />
+          {!isOnboarding && <GotoShortcuts />}
+          {isOnboarding ? (
+            <Outlet />
+          ) : (
+            <AppShell>
+              <Outlet />
+            </AppShell>
+          )}
+        </FlowModeProvider>
+      </WorkspaceProvider>
+    </div>
   );
 }

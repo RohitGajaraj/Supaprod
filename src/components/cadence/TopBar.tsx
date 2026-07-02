@@ -1,27 +1,31 @@
-// TopBar — ported from design-reference/cadence/shell.jsx: breadcrumbs left,
-// date + ambient weather right (54px, hairline bottom, canvas). Production
-// addition: an `actions` slot so page-level controls (Start mission, …)
-// keep a home — the reference topbar itself carries no actions.
-// Founder top-chrome review (2026-06-12): the ConstructionPill now lives
-// IN-FLOW in this bar's center slot (it was a fixed overlay that covered the
-// ticker text), and the CookingBanner renders as the row BELOW the bar —
-// the reference's chrome order (bar first, ticker second). Both still appear
-// on every screen because every rendered route mounts TopBar.
+// TopBar — OBS-02: a 52px Obsidian bar. The left crumb trail collapses to a
+// surface title (from the last crumb) + an optional subtitle (the
+// penultimate crumb); no lucide chevrons. Right side keeps the `actions`
+// slot, then a mono-caps date and a workspace pill. The auxiliary widgets
+// (AttentionBell, MachineViewToggle, ConstructionPill, CookingBanner,
+// LoopThread, AmbientChip) keep their current markup — their reskin rides
+// with later OBS items (scope OUT of this one).
 import { useEffect, useState, type ReactNode } from "react";
-import { Calendar, ChevronRight } from "lucide-react";
 import { AmbientChip } from "./AmbientChip";
 import { AttentionBell } from "./AttentionBell";
 import { CookingBanner, ConstructionPill } from "./CookingBanner";
 import { LoopThread } from "./LoopThread";
 import { MachineViewToggle } from "./MachineViewToggle";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactNode }) {
-  const [today, setToday] = useState("");
+  const [date, setDate] = useState("");
+  const { activeWorkspace } = useWorkspace();
   useEffect(() => {
-    setToday(
-      new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
-    );
+    const d = new Date()
+      .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+      .toUpperCase()
+      .replace(",", " ·");
+    setDate(d);
   }, []);
+
+  const title = crumbs[crumbs.length - 1];
+  const subtitle = crumbs.length > 1 ? crumbs[crumbs.length - 2] : null;
 
   return (
     <>
@@ -29,47 +33,33 @@ export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactN
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 16,
+          gap: 14,
           padding: "0 28px",
-          height: 54,
+          height: 52,
           flexShrink: 0,
-          borderBottom: "1px solid var(--hairline)",
+          borderBottom: "1px solid var(--hairline-faint)",
           background: "var(--canvas)",
           position: "sticky",
           top: 0,
           zIndex: 30,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 12.5,
-            color: "var(--ink-subtle)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-        >
-          {crumbs.map((c, i) => (
-            <span key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {i > 0 && (
-                <ChevronRight size={11} strokeWidth={1.75} style={{ color: "var(--ink-faint)" }} />
-              )}
-              <span
-                style={{
-                  color: i === crumbs.length - 1 ? "var(--ink)" : undefined,
-                  fontWeight: i === crumbs.length - 1 ? 500 : 400,
-                }}
-              >
-                {c}
-              </span>
+        <div className="min-w-0 flex flex-col justify-center" style={{ overflow: "hidden" }}>
+          <span
+            className="truncate"
+            style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}
+          >
+            {title}
+          </span>
+          {subtitle && (
+            <span className="truncate" style={{ fontSize: 12, color: "var(--text-faint)" }}>
+              {subtitle}
             </span>
-          ))}
+          )}
         </div>
-        {/* Twin spacers center the pill between the crumb and date clusters;
-            being in-flow, it can never overlap either (it ellipsizes, then
-            hides under 1100px via its own media query). */}
+        {/* Twin spacers center the pill between the title and date/actions
+            clusters; being in-flow, it can never overlap either (it
+            ellipsizes, then hides under 1100px via its own media query). */}
         <span style={{ flex: 1 }} />
         <ConstructionPill />
         <span style={{ flex: 1 }} />
@@ -77,12 +67,34 @@ export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactN
         <MachineViewToggle />
         <AttentionBell />
         <span
-          className="mono-label"
-          style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            color: "var(--text-muted)",
+            whiteSpace: "nowrap",
+          }}
         >
-          <Calendar size={11} strokeWidth={1.75} />
-          {today}
+          {date}
         </span>
+        {activeWorkspace?.name && (
+          <span
+            className="truncate"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9,
+              letterSpacing: "0.1em",
+              color: "var(--text-muted)",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: 99,
+              padding: "3px 10px",
+              maxWidth: 140,
+              textTransform: "uppercase",
+            }}
+          >
+            {activeWorkspace.name}
+          </span>
+        )}
         <AmbientChip inline />
       </header>
       <LoopThread />

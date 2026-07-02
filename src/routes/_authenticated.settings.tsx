@@ -13,7 +13,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { Compass, SlidersHorizontal, Trash2 } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import {
   MonoLabel,
@@ -23,7 +22,6 @@ import {
   TabRow,
 } from "@/components/cadence/Primitives";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { listProjects } from "@/lib/projects.functions";
 import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
@@ -110,7 +108,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <AppShell>
+    <>
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div className="bento" style={{ padding: 24 }}>
           <div className="mono-label" style={{ color: "var(--rose)" }}>
@@ -124,7 +122,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
           </button>
         </div>
       </div>
-    </AppShell>
+    </>
   ),
 });
 
@@ -134,10 +132,6 @@ function SettingsPage() {
   const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
   const navigate = useNavigate({ from: "/settings" });
   const { activeWorkspace, activeProduct } = useWorkspace();
-
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-
   const setTab = (id: string) => navigate({ search: { section: id } });
 
   // Tier-1 grouping (SETTINGS-SEGREGATE): which group owns the active section,
@@ -154,7 +148,7 @@ function SettingsPage() {
     : "Connectors, models, and staff config.";
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[workspaceName ?? "Workspace", "Settings"]} />
       <div
         data-screen-label="Settings"
@@ -243,7 +237,7 @@ function SettingsPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }
 

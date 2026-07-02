@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Send } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -141,7 +140,7 @@ function DelegatePage() {
   const desk = query.data?.desk;
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Delegate"]} />
       <div
         data-screen-label="Delegate"
@@ -182,6 +181,6 @@ function DelegatePage() {
           </>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }

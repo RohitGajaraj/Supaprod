@@ -15,10 +15,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { ExternalLink, FileText, Shield } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
-import { listProjects } from "@/lib/projects.functions";
 import { getTrace } from "@/lib/traces.functions";
 import { relTime } from "@/components/product/format";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -804,16 +802,13 @@ export function TraceDetail({ id }: { id: string }) {
   );
 }
 
-/* ---------- Route shell — AppShell + TopBar around the drill body. ---------- */
+/* ---------- Route shell — TopBar around the drill body (rail is hoisted). ---------- */
 
 function TraceReplayPage() {
-  const { traceId } = Route.useParams();
-  const fProjects = useServerFn(listProjects);
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-  const { activeWorkspace } = useWorkspace();
+  const { traceId } = Route.useParams();  const { activeWorkspace } = useWorkspace();
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Traces", traceId.slice(0, 8)]} />
       <div
         data-screen-label="Trace replay"
@@ -821,6 +816,6 @@ function TraceReplayPage() {
       >
         <TraceDetail id={traceId} />
       </div>
-    </AppShell>
+    </>
   );
 }

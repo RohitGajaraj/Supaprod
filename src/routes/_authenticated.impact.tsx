@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Award, Copy, Check, Download } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { SurfaceHeader } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -75,7 +74,7 @@ function ImpactPage() {
   const iceSign = ledger && ledger.iceShiftTotal >= 0 ? "+" : "";
 
   return (
-    <AppShell>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Impact Ledger"]} />
       <div
         data-screen-label="Impact Ledger"
@@ -240,6 +239,6 @@ function ImpactPage() {
           </>
         ) : null}
       </div>
-    </AppShell>
+    </>
   );
 }

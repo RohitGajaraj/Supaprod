@@ -23,7 +23,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/cadence/Primitives";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
@@ -32,7 +31,6 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionDiff } from "@/components/missions/MissionDiff";
 import { MODELS } from "@/lib/ai/models";
-import { listProjects } from "@/lib/projects.functions";
 import { getMission, cancelMission, type MissionDetail } from "@/lib/missions.functions";
 import {
   listMissionSteps,
@@ -671,19 +669,14 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
 
 function MissionDetailPage() {
   const { missionId } = Route.useParams();
-  const navigate = useNavigate();
-  const fProjects = useServerFn(listProjects);
-  const fGet = useServerFn(getMission);
+  const navigate = useNavigate();  const fGet = useServerFn(getMission);
   const fSteps = useServerFn(listMissionSteps);
   const fAdvance = useServerFn(advanceMission);
   const fStart = useServerFn(startOrchestratedMission);
   const fCancel = useServerFn(cancelMission);
   const confirm = useConfirm();
   const qc = useQueryClient();
-  const { activeWorkspace } = useWorkspace();
-
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-  const m = useQuery({
+  const { activeWorkspace } = useWorkspace();  const m = useQuery({
     queryKey: ["mission", missionId],
     queryFn: () => fGet({ data: { missionId } }),
     refetchInterval: (q) => {
@@ -810,7 +803,7 @@ function MissionDetailPage() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar
         crumbs={[
           activeWorkspace?.name ?? "Workspace",
@@ -1401,6 +1394,6 @@ function MissionDetailPage() {
           ) : null}
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

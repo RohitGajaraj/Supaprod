@@ -9,33 +9,63 @@ import {
 } from "./nav-model";
 
 /**
- * IA-NAV-V11 (v11 #12) — the nav must collapse the four competing metaphors into
- * one calm flat list + one engine-room door, WITHOUT orphaning any destination
- * the old 5-icon Trust row exposed. These tests lock both.
+ * IA-NAV-V11 (v11 #12) → OBS-02 — the nav must collapse the four competing
+ * metaphors into one calm flat list + one engine-room door, WITHOUT orphaning
+ * any destination the old 5-icon Trust row exposed. These tests lock both.
+ *
+ * OBS-02: Obsidian has no icon set (mono numeral index 01-05 instead), Ask
+ * leaves the rail, and Discover/Plan are added. Discover and Plan share the
+ * interim `/product` route (differentiated by `search.tab`) until OBS-10
+ * renames the routes and adds redirects — the old "routes are unique" /
+ * "nothing is tab-scoped" invariants are relaxed to match that interim state.
  */
 
 describe("nav-model — the calm front (primary destinations)", () => {
   it("is one flat list of outcome-named destinations", () => {
     expect(PRIMARY_NAV.length).toBeGreaterThanOrEqual(5);
     const labels = PRIMARY_NAV.map((n) => n.label);
-    expect(labels).toEqual(["Today", "Ask", "Product", "Build", "Brain"]);
+    expect(labels).toEqual(["Today", "Discover", "Plan", "Build", "Brain"]);
   });
 
-  it("every destination has a route, a label, and an icon", () => {
+  it("every destination has a route, a label, and a mono index", () => {
     for (const n of PRIMARY_NAV) {
       expect(n.to.startsWith("/")).toBe(true);
       expect(n.label.length).toBeGreaterThan(0);
-      expect(n.icon).toBeDefined();
+      expect(n.index).toMatch(/^0[1-5]$/);
     }
   });
 
-  it("destination routes are unique (no two nav items point to the same path)", () => {
-    const tos = PRIMARY_NAV.map((n) => n.to);
-    expect(new Set(tos).size).toBe(tos.length);
+  it("indices are 01-05, in order, and unique", () => {
+    const indices = PRIMARY_NAV.map((n) => n.index);
+    expect(indices).toEqual(["01", "02", "03", "04", "05"]);
+    expect(new Set(indices).size).toBe(indices.length);
   });
 
-  it("primary destinations are flat — none is tab-scoped (no NavGroup indirection)", () => {
-    for (const n of PRIMARY_NAV) expect(n.search).toBeUndefined();
+  it("no lucide icon field survives on a primary destination", () => {
+    for (const n of PRIMARY_NAV) {
+      expect((n as { icon?: unknown }).icon).toBeUndefined();
+    }
+  });
+
+  it("destinations are unique by route+tab (interim: Discover/Plan share /product until OBS-10)", () => {
+    const keys = PRIMARY_NAV.map((n) => `${n.to}?${n.search?.tab ?? ""}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("Ask is not a rail destination (it returns as the ⌘J panel, OBS-12)", () => {
+    expect(PRIMARY_NAV.some((n) => n.label === "Ask")).toBe(false);
+    expect(PRIMARY_NAV.some((n) => n.to === "/chat")).toBe(false);
+  });
+
+  it("Discover and Plan (interim /product siblings) are never both active for the same tab", () => {
+    const discover = PRIMARY_NAV.find((n) => n.label === "Discover")!;
+    const plan = PRIMARY_NAV.find((n) => n.label === "Plan")!;
+    for (const tab of ["signals", "opportunities", "roadmap", "specs", "releases", null]) {
+      const activeCount = [discover, plan].filter((n) =>
+        navItemActive(n, "/product", tab),
+      ).length;
+      expect(activeCount).toBeLessThanOrEqual(1);
+    }
   });
 });
 

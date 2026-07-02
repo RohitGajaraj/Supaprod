@@ -2,16 +2,14 @@
 // shipped, grouped by product. Entries are materialized from merged studio
 // changesets (the studio_changeset_to_changelog trigger + the durable
 // publishChangelogEntry path), so a merge surfaces here automatically. Ember
-// chrome matches the Build surface (AppShell + SurfaceHeader + bento rows).
+// chrome matches the Build surface (the shell + SurfaceHeader + bento rows).
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, GitPullRequest, History, ScrollText } from "lucide-react";
-import { AppShell } from "@/components/cadence/AppShell";
 import { TopBar } from "@/components/cadence/TopBar";
 import { EmptyState, SurfaceHeader } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listProjects } from "@/lib/projects.functions";
 import { listChangelog, type ChangelogEntry } from "@/lib/changelog.functions";
 
 export const Route = createFileRoute("/_authenticated/changelog")({
@@ -40,13 +38,8 @@ function groupByProduct(
 
 function ChangelogPage() {
   const { activeWorkspace } = useWorkspace();
-  const fProjects = useServerFn(listProjects);
   const fChangelog = useServerFn(listChangelog);
 
-  const projects = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => fProjects({ data: {} }),
-  });
   const changelog = useQuery({
     queryKey: ["changelog", activeWorkspace?.id],
     queryFn: () => fChangelog({ data: { workspaceId: activeWorkspace?.id } }),
@@ -56,7 +49,7 @@ function ChangelogPage() {
   const groups = groupByProduct(entries);
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Changelog"]} />
       <div
         data-screen-label="Changelog"
@@ -157,6 +150,6 @@ function ChangelogPage() {
           </Link>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

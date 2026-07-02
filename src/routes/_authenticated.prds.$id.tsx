@@ -16,9 +16,7 @@ import {
   Gavel,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
-import { AppShell } from "@/components/cadence/AppShell";
 import { LoopThread } from "@/components/cadence/LoopThread";
-import { listProjects } from "@/lib/projects.functions";
 import {
   getPrd,
   savePrd,
@@ -50,17 +48,12 @@ export const Route = createFileRoute("/_authenticated/prds/$id")({
 function PrdEditor() {
   const { id } = useParams({ from: "/_authenticated/prds/$id" });
   const qc = useQueryClient();
-  const navigate = useNavigate();
-  const fProjects = useServerFn(listProjects);
-  const fGet = useServerFn(getPrd);
+  const navigate = useNavigate();  const fGet = useServerFn(getPrd);
   const mSave = useServerFn(savePrd);
   const mAssist = useServerFn(prdAssist);
   const mDispatchStudio = useServerFn(dispatchStudioSession);
   const mCreateIssue = useServerFn(createGithubIssueForPrd);
-  const mCaptureDecision = useServerFn(createDecision);
-
-  const projects = useQuery({ queryKey: ["projects"], queryFn: () => fProjects() });
-  const prdQ = useQuery({ queryKey: ["prd", id], queryFn: () => fGet({ data: { id } }) });
+  const mCaptureDecision = useServerFn(createDecision);  const prdQ = useQuery({ queryKey: ["prd", id], queryFn: () => fGet({ data: { id } }) });
 
   // O1 (provenance): "why is this spec being built?" — walk the lineage graph up
   // to the root source signals the spec ultimately rests on. Reuses getProvenance
@@ -189,19 +182,19 @@ function PrdEditor() {
 
   if (prdQ.isLoading)
     return (
-      <AppShell>
+      <>
         <div className="p-10 text-sm text-muted-foreground">Loading…</div>
-      </AppShell>
+      </>
     );
   if (!prdQ.data?.prd)
     return (
-      <AppShell>
+      <>
         <div className="p-10 text-sm text-muted-foreground">PRD not found.</div>
-      </AppShell>
+      </>
     );
 
   return (
-    <AppShell projects={projects.data?.projects ?? []}>
+    <>
       <LoopThread />
       <div className="px-6 lg:px-10 py-8 max-w-[1100px] mx-auto">
         <Link
@@ -512,6 +505,6 @@ function PrdEditor() {
           <OutcomeCard prd={prdQ.data.prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }
