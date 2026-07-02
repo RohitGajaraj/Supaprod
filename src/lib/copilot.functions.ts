@@ -2,7 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
-import { summarizeGateStakes, describeStakes } from "@/lib/copilot-brief";
+import { summarizeGateStakes, describeStakes, describeRisk } from "@/lib/copilot-brief";
+import { summarizeCalibration } from "@/lib/brain/calibrate-insights.server";
 
 const MODEL = "google/gemini-2.5-flash";
 
@@ -30,6 +31,17 @@ export async function ensureTodayBrief(
 
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
+  // FS-04: resolve the workspace so the brief can fold in the top open `risk`
+  // insight + its FS-01 calibration hit rate (both workspace-scoped, unlike
+  // the mostly-RLS-inferred queries above).
+  const { data: member } = await supabase
+    .from("workspace_members")
+    .select("workspace_id")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
+  const workspaceId = (member?.workspace_id as string | undefined) ?? null;
+
   const [
     { data: tasks },
     { data: meetings },
@@ -38,6 +50,8 @@ export async function ensureTodayBrief(
     { data: reviewPrds },
     { data: agentRuns },
     { data: learnings },
+    { data: openRiskRows },
+    calibration,
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -70,17 +84,42 @@ export async function ensureTodayBrief(
       .select("verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at")
       .order("created_at", { ascending: false })
       .limit(6),
+    // FS-04: the single highest-scored open FS-01 `risk` insight, folded into
+    // the brief's stakes lead below.
+    workspaceId
+      ? supabase
+          .from("insights")
+          .select("headline,detail")
+          .eq("workspace_id", workspaceId)
+          .eq("kind", "risk")
+          .eq("status", "open")
+          .order("score", { ascending: false, nullsFirst: false })
+          .limit(1)
+      : Promise.resolve({ data: null }),
+    workspaceId
+      ? summarizeCalibration(supabase, workspaceId, "risk")
+      : Promise.resolve({
+          kind: "risk" as const,
+          resolved: 0,
+          hits: 0,
+          hitRate: null,
+          recentLabel: "",
+        }),
   ]);
 
   const gateStakes = summarizeGateStakes(pendingGates ?? []);
+  const topRisk =
+    ((openRiskRows ?? [])[0] as { headline: string; detail: string } | undefined) ?? null;
+  const riskLine = describeRisk(topRisk, calibration);
   const prompt = `Write a calm daily brief for ${profile?.display_name ?? "the user"}. Avoid emojis. Address the user by first name.
 Structure, in order:
-1. Lead with the STAKES of the operator's calls today, not a raw count — name the most consequential pending call and whether it can be undone (use PENDING CALLS verbatim for what is at risk), then the specs awaiting review (by title — at most 3). Imperative voice ("Approve...", "Review..."). If the queue is clear, say so plainly and move on. Never invent urgency.
+1. Lead with the STAKES of the operator's calls today, not a raw count — name the most consequential pending call and whether it can be undone (use PENDING CALLS verbatim for what is at risk), then the specs awaiting review (by title — at most 3). Immediately after, if OPEN RISK names one, fold it in as the one thing worth watching (cite its calibration line verbatim if present, never invent a hit rate); if OPEN RISK says none, skip it silently. Imperative voice ("Approve...", "Review..."). If the queue is clear, say so plainly and move on. Never invent urgency.
 2. One line on what agents completed overnight.
 3. What the loop LEARNED recently (the insight memo): if RECENT LEARNINGS is non-empty, add one or two lines naming the priority or spec that moved and why. Cite the outcome verdict and the ICE shift (prior_ice to new_ice), for example "the off-hours bet proved out, so its priority rose." If RECENT LEARNINGS is empty, skip this step entirely; never invent a learning.
 4. One concrete focus for the day, based on the meetings and deep-work tasks.
 
 PENDING CALLS (lead with these stakes, not a count): ${describeStakes(gateStakes)}
+OPEN RISK (the biggest foresight risk right now, credibility-checked against past calls): ${riskLine}
 SPECS AWAITING REVIEW: ${JSON.stringify(reviewPrds ?? [])}
 OVERNIGHT AGENT RUNS: ${JSON.stringify(agentRuns ?? [])}
 RECENT LEARNINGS (closed-loop outcomes, what the product LEARNED; each has a verdict, a summary, and the ICE shift from prior_ice to new_ice): ${JSON.stringify(learnings ?? [])}

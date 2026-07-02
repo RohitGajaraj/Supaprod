@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import { summarizeGateStakes, describeStakes } from "./copilot-brief";
+import { summarizeGateStakes, describeStakes, describeRisk } from "./copilot-brief";
 
 describe("summarizeGateStakes — pending gates into a stakes summary", () => {
   // Catalogue ground truth (tool-consequences.ts): prd.draft=reversible,
@@ -43,7 +43,9 @@ describe("describeStakes — deterministic plain-language lead", () => {
     expect(describeStakes(summarizeGateStakes([]))).toContain("queue is clear");
   });
   test("leads with the most consequential call + an honest breakdown", () => {
-    const line = describeStakes(summarizeGateStakes([{ tool_name: "prd.draft" }, { tool_name: "prd.draft" }]));
+    const line = describeStakes(
+      summarizeGateStakes([{ tool_name: "prd.draft" }, { tool_name: "prd.draft" }]),
+    );
     expect(line).toContain("Most consequential:");
     expect(line).toMatch(/2 calls await you/);
     expect(line).toContain("reversible");
@@ -51,5 +53,38 @@ describe("describeStakes — deterministic plain-language lead", () => {
   test("singular phrasing for one call", () => {
     const line = describeStakes(summarizeGateStakes([{ tool_name: "prd.draft" }]));
     expect(line).toMatch(/1 call await you/);
+  });
+});
+
+describe("describeRisk (FS-04) — the brief's risk lead, credibility-checked", () => {
+  test("honest when there is no open risk (no fabricated urgency)", () => {
+    expect(describeRisk(null, null)).toBe("No open risk flagged.");
+  });
+
+  test("leads with the risk, no calibration clause when nothing has resolved yet", () => {
+    const line = describeRisk(
+      { headline: "Churn risk in the onboarding cohort", detail: "Signups drop after step 3." },
+      { resolved: 0, recentLabel: "Not enough resolved calls yet" },
+    );
+    expect(line).toBe("Watch: Churn risk in the onboarding cohort. Signups drop after step 3.");
+    expect(line).not.toContain("resolved calls yet");
+  });
+
+  test("cites the calibration hit rate once at least one call has resolved", () => {
+    const line = describeRisk(
+      { headline: "Churn risk in the onboarding cohort", detail: "Signups drop after step 3." },
+      { resolved: 9, recentLabel: "Cadence called 7 of the last 9" },
+    );
+    expect(line).toContain("Cadence called 7 of the last 9");
+  });
+
+  test("never invents a hit rate when calibration is null", () => {
+    const line = describeRisk({ headline: "Risk", detail: "Detail." }, null);
+    expect(line).not.toContain("called");
+  });
+
+  test("handles an empty detail without a dangling space", () => {
+    const line = describeRisk({ headline: "Risk with no detail", detail: "" }, null);
+    expect(line).toBe("Watch: Risk with no detail.");
   });
 });

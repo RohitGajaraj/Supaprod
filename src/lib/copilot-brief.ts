@@ -6,7 +6,12 @@
 // stakes summary (reversibility + blast radius, via the static `tool-consequences`
 // catalogue — never model output, so the claim never outruns the wiring) that the
 // brief prompt leads with. The AI then grounds its lead in real stakes, not a tally.
-import { toolConsequence, toolRisk, type Reversibility, type ToolRisk } from "@/lib/tool-consequences";
+import {
+  toolConsequence,
+  toolRisk,
+  type Reversibility,
+  type ToolRisk,
+} from "@/lib/tool-consequences";
 
 export type PendingGate = { tool_name: string | null; agent_slug?: string | null };
 
@@ -48,7 +53,14 @@ export function summarizeGateStakes(gates: PendingGate[] | null | undefined): Ga
       top = { toolName: tool, effect: c.effect, reversibility: c.reversible, risk };
     }
   }
-  return { total: irreversible + partial + reversible, irreversible, partial, reversible, highRisk, top };
+  return {
+    total: irreversible + partial + reversible,
+    irreversible,
+    partial,
+    reversible,
+    highRisk,
+    top,
+  };
 }
 
 /**
@@ -71,4 +83,26 @@ export function describeStakes(s: GateStakes): string {
   if (s.reversible) breakdown.push(`${s.reversible} reversible`);
   parts.push(`${s.total} call${s.total === 1 ? "" : "s"} await you: ${breakdown.join(", ")}.`);
   return parts.join(" ");
+}
+
+// FS-04 — Risk in the brief (v12 sec 4). Today is not a dashboard: foresight
+// (FS-01's `deriveRisk` + its calibration hit rate) lands directly in the
+// brief's existing stakes lead, not a new panel. `describeRisk` mirrors
+// `describeStakes`'s shape (pure, honest-when-empty) so the brief prompt
+// composes both the same way.
+export type OpenRisk = { headline: string; detail: string } | null;
+export type RiskCalibration = { resolved: number; recentLabel: string } | null;
+
+/**
+ * PURE. A deterministic risk-lead line for the brief prompt: the single
+ * highest-scored open `risk` insight, credibility-checked against FS-01's
+ * calibration hit rate. Never invents a hit rate — the calibration clause is
+ * omitted entirely until there is at least one resolved call to cite.
+ */
+export function describeRisk(risk: OpenRisk, calibration: RiskCalibration): string {
+  if (!risk) return "No open risk flagged.";
+  const headline = risk.headline.trim().replace(/[.!?]?$/, ".");
+  const detail = risk.detail.trim();
+  const track = calibration && calibration.resolved > 0 ? ` (${calibration.recentLabel}.)` : "";
+  return `Watch: ${headline}${detail ? ` ${detail}` : ""}${track}`;
 }

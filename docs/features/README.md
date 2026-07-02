@@ -104,6 +104,8 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | JNY-05 | The ambient stakeholder loop (scheduled, audience-tuned digest) | ◐ Email leg shipped 2026-07-03 (Lane 3); Slack write-back founder-gated | `/settings?section=notifications` | [`stakeholder-digest.md`](./stakeholder-digest.md) |
 | RF-05 | Playbook selection by win rate (mission-plan-time station->playbook binding + auto-recorded playbook_runs) | ✅ Shipped 2026-07-03 (Lane 2) | engine-only, rides `mission.plan` | [`playbook-selection.md`](./playbook-selection.md) |
 | DSN-01 | Design memory (workspace design language as standing, supersedable decisions; binds into DEF-04 scaffolds) | ✅ Shipped 2026-07-03 (Lane 1) | `/knowledge?tab=design` · PRD detail (DEF-04 panel) | [`design-memory.md`](./design-memory.md) |
+| CNV-03 | The ARD (publishing the Outcome Contract as a versioned public standard: schema, spec page, MCP `get_ard`, export/import) | ✅ Shipped 2026-07-03 (Lane 4) | `/ard` · `/api/public/ard/schema` · `/prds/$id?tab=contract` (Export/Import ARD) | [`outcome-contract.md`](./outcome-contract.md#cnv-03-the-ard-publishing-the-outcome-contract-as-a-standard-v12-sec-74) |
+| FS-01 / FS-04 | Foresight generators + calibration; risk composed into the Today brief and InsightRail | ✅ Shipped 2026-07-02 / 2026-07-03 (Lane 4) | `/today` | [`foresight-generators.md`](./foresight-generators.md) |
 
 ## Rules
 

@@ -11,6 +11,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server"; // imported (called), never edited
 import { scoreTheme } from "@/lib/brain/score";
+import { summarizeCalibration } from "@/lib/brain/calibrate-insights.server";
 
 const MODEL = "claude-haiku-4-5-20251001" as const; // same as getBrainAnalysis
 const MIN_SCORE = 0.12; // calm gate: below this, there is no clear "next" → return null
@@ -215,9 +216,20 @@ export type InsightRailItem = {
   confidence: number | null;
   themeId: string | null;
   createdAt: string;
+  /**
+   * FS-04: FS-01's rolling calibration hit rate for this kind ("Cadence
+   * called N of the last M"), so the card reads as earned trust rather than
+   * an unchecked claim. Only set for `prediction`/`risk` (the calibrated
+   * kinds) and only once at least one call has resolved — never a fabricated
+   * "not enough data yet" filler on every card.
+   */
+  calibrationLabel: string | null;
 };
 
-function toInsightRailItem(row: Record<string, unknown>): InsightRailItem {
+function toInsightRailItem(
+  row: Record<string, unknown>,
+  calibrationLabel: string | null = null,
+): InsightRailItem {
   const ra = (row.recommended_action ?? null) as { agent_slug?: string; goal?: string } | null;
   return {
     id: String(row.id),
@@ -231,6 +243,7 @@ function toInsightRailItem(row: Record<string, unknown>): InsightRailItem {
     confidence: (row.confidence as number | null) ?? null,
     themeId: (row.theme_id as string | null) ?? null,
     createdAt: String(row.created_at ?? ""),
+    calibrationLabel,
   };
 }
 
@@ -259,5 +272,23 @@ export const getInsightRail = createServerFn({ method: "GET" })
       .order("score", { ascending: false, nullsFirst: false })
       .limit(6);
 
-    return ((rows ?? []) as Record<string, unknown>[]).map(toInsightRailItem);
+    const items = (rows ?? []) as Record<string, unknown>[];
+
+    // FS-04: one calibration lookup per calibrated kind actually present
+    // (never per-row), so a full rail never costs more than two extra reads.
+    const calibratedKinds = Array.from(
+      new Set(items.map((r) => r.kind as string).filter((k) => k === "prediction" || k === "risk")),
+    ) as Array<"prediction" | "risk">;
+    const labelByKind = new Map<"prediction" | "risk", string | null>(
+      await Promise.all(
+        calibratedKinds.map(async (kind) => {
+          const summary = await summarizeCalibration(supabase, workspaceId, kind);
+          return [kind, summary.resolved > 0 ? summary.recentLabel : null] as const;
+        }),
+      ),
+    );
+
+    return items.map((row) =>
+      toInsightRailItem(row, labelByKind.get(row.kind as "prediction" | "risk") ?? null),
+    );
   });
