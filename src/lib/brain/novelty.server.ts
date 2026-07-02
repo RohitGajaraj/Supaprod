@@ -53,8 +53,17 @@ export async function computeNovelty(
       }),
     ]);
 
-    const memTop = (mem.data ?? [])[0] as { id: string; similarity: number } | undefined;
-    const thmTop = (thm.data ?? [])[0] as { id: string; similarity: number } | undefined;
+    // RF-02: match_agent_memory's row order is no longer pure-similarity (it
+    // reranks by outcome/importance/recency too), so the max-similarity row is
+    // found explicitly rather than assumed to be row [0].
+    type SimRow = { id: string; similarity: number };
+    const maxBySimilarity = (rows: SimRow[]): SimRow | undefined =>
+      rows.reduce<SimRow | undefined>(
+        (best, r) => (!best || r.similarity > best.similarity ? r : best),
+        undefined,
+      );
+    const memTop = maxBySimilarity((mem.data ?? []) as SimRow[]);
+    const thmTop = maxBySimilarity((thm.data ?? []) as SimRow[]);
     const maxMemorySim = memTop?.similarity ?? null;
     const maxThemeSim = thmTop?.similarity ?? null;
     const maxSim = Math.max(maxMemorySim ?? -1, maxThemeSim ?? -1);
