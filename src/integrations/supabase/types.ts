@@ -879,7 +879,7 @@ export type Database = {
           ttft_ms: number | null
           user_id: string
           via: string
-          workspace_id: string
+          workspace_id: string | null
         }
         Insert: {
           cache_hit?: boolean
@@ -908,7 +908,7 @@ export type Database = {
           ttft_ms?: number | null
           user_id: string
           via?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Update: {
           cache_hit?: boolean
@@ -937,7 +937,7 @@ export type Database = {
           ttft_ms?: number | null
           user_id?: string
           via?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
