@@ -13,16 +13,16 @@ needs a human. Warm asks, cool works.
 
 ## Read order (do this first)
 
-1. [`/DESIGN-OBSIDIAN.md`](../../../DESIGN-OBSIDIAN.md) — THE design contract. Its 9
+1. [`/DESIGN-OBSIDIAN.md`](../../../DESIGN-OBSIDIAN.md): THE design contract. Its 9
    standing instructions (§12) are mandatory. When anything else disagrees, the contract wins.
 2. [`/design-reference/obsidian-v3/tokens/`](../../../design-reference/obsidian-v3/tokens/)
-   — copy these custom properties verbatim (`colors.css`, `typography.css`, `geometry.css`,
-   `motion.css`, `fonts.css`). Never invent a hex, a duration, or an easing.
+   holds the custom properties (`colors.css`, `typography.css`, `geometry.css`,
+   `motion.css`, `fonts.css`): copy them verbatim. Never invent a hex, a duration, or an easing.
 3. [`/design-reference/obsidian-v3/components.md`](../../../design-reference/obsidian-v3/components.md)
-   — exact component anatomies and states (CallCard, Mission row, slide-over, status dots,
-   verdict chips, aurora card, toast, buttons).
+   gives the exact component anatomies and states (CallCard, Mission row, slide-over,
+   status dots, verdict chips, aurora card, toast, buttons).
 4. [`/design-reference/obsidian-v3/implementation-notes.md`](../../../design-reference/obsidian-v3/implementation-notes.md)
-   — state model, behaviors, keyboard map, routing suggestion, a11y requirements.
+   covers the state model, behaviors, keyboard map, routing suggestion, and a11y requirements.
 5. When in doubt about how anything should LOOK, open the founder-approved specimen
    `design-reference/obsidian-v3/design-reference/obsidian-specimen.html` or the runnable
    six-surface prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`
