@@ -1,4 +1,4 @@
-// CompoundingPanel — Brain → Learnings tab landing (MOAT-VIS).
+// CompoundingPanel — Brain -> Learnings tab landing (MOAT-VIS).
 //
 // "Make the compounding visible": the outcome loop (recordOutcome) re-scores an
 // opportunity's ICE from a real-world verdict and records WHY in a `learnings`
@@ -8,23 +8,23 @@
 // happened), each row drilling to ?learning= for the full detail.
 //
 // Reads getCompounding (today.functions.ts) which shares the pure summarizer in
-// moat-vis.ts, so this feed and Today's "what changed" line never drift. Calm
-// front: the VerdictChip carries the only role color; the ICE delta is neutral
-// ink with a sign, not a loud green/red. Replaces the old MemoryPanel learnings
-// landing on this tab, leading with the aggregate compounding line it lacked
-// (the separate "memory" tab still renders agent recall via MemoryList).
+// moat-vis.ts, so this feed and Today's "what changed" line never drift.
+//
+// OBS-08: ported to Obsidian — the Obsidian VerdictChip carries the tone, and
+// the "what it moved" line is the machine voice in glacier mono (README law:
+// the moved-line states what changed, in the machine's own voice).
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { RefreshCw } from "lucide-react";
 import { getCompounding } from "@/lib/today.functions";
 import { describeCompounding } from "@/lib/moat-vis";
-import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/obsidian/primitives";
+import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 
-const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone> = {
-  validated: "moss",
-  missed: "madder",
-  mixed: "ember",
+export const VERDICT_TONE: Record<"validated" | "missed" | "mixed", VerdictTone> = {
+  validated: "VALIDATED",
+  missed: "MISSED",
+  mixed: "REVISE",
 };
 
 /** Same "when" rhythm as LearningDetail: time today, "Yesterday", else "Jun 9". */
@@ -38,6 +38,21 @@ function whenOf(iso: string): string {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "16px 18px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function CompoundingPanel() {
   const fetchCompounding = useServerFn(getCompounding);
   const q = useQuery({ queryKey: ["compounding"], queryFn: () => fetchCompounding() });
@@ -48,55 +63,46 @@ export function CompoundingPanel() {
 
   if (q.isLoading) {
     return (
-      <div
-        className="bento"
-        style={{ padding: "16px var(--card-pad)", color: "var(--ink-subtle)" }}
-      >
-        <MonoLabel icon={RefreshCw}>Compounding</MonoLabel>
-        <p style={{ fontSize: 12.5, marginTop: 8 }}>Reading the outcome loop…</p>
-      </div>
+      <Card>
+        <MonoLabel>LOADING</MonoLabel>
+      </Card>
     );
   }
 
   if (q.isError) {
-    // A load failure must read as a failure, not as "the loop produced nothing"
-    // (mirrors DecisionsPanel's error contract). Otherwise a transient server-fn
-    // error would be disguised as a proven-empty compounding story.
+    // A load failure must read as a failure, not as "the loop produced
+    // nothing" (mirrors DecisionsPanel's error contract).
     return (
-      <div className="bento" style={{ padding: "16px var(--card-pad)" }}>
-        <MonoLabel icon={RefreshCw}>Compounding · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginTop: 8 }}>
+      <Card>
+        <MonoLabel>Compounding · failed to load</MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 8 }}>
           {(q.error as Error)?.message ?? "Unknown error"}
         </p>
-      </div>
+      </Card>
     );
   }
 
   if (!rescores.length) {
-    // Quiet, honest empty state: the loop has not re-scored anything yet.
     return (
-      <div className="bento" style={{ padding: "16px var(--card-pad)" }}>
-        <MonoLabel icon={RefreshCw}>Compounding</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", marginTop: 8, lineHeight: 1.5 }}>
+      <Card>
+        <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.55, margin: 0 }}>
           No decision has been re-scored from a real outcome yet. When you record what a shipped bet
           actually did, memory moves its priority and the change shows up here.
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bento" style={{ padding: "16px var(--card-pad)" }}>
-      <MonoLabel icon={RefreshCw}>Compounding</MonoLabel>
-
-      {/* The moat made visible: one honest line + a calm stat row. */}
+    <Card>
       {headline && (
         <p
           style={{
-            fontFamily: "var(--font-serif, Georgia, serif)",
+            fontFamily: "var(--font-serif)",
             fontSize: 15,
-            color: "var(--ink)",
-            margin: "10px 0 4px",
+            fontWeight: 450,
+            color: "var(--text-primary)",
+            margin: "0 0 4px",
             lineHeight: 1.4,
           }}
         >
@@ -104,36 +110,61 @@ export function CompoundingPanel() {
         </p>
       )}
       {summary && (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 14 }}>
+        <p
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+            color: "var(--text-faint)",
+            marginBottom: 14,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+          }}
+        >
           {summary.movedUp} moved up · {summary.movedDown} moved down · {summary.validatedCount}{" "}
           validated · {summary.missedCount} missed
         </p>
       )}
 
-      {/* The cause-carrying feed: each re-score and what drove it. */}
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div className="flex flex-col">
         {rescores.map((r, i) => (
           <Link
             key={r.id}
             to="/knowledge"
             search={{ tab: "learnings", learning: r.id }}
+            className="block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
             style={{
-              display: "block",
               textDecoration: "none",
               color: "inherit",
               padding: "12px 0",
               borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <VerdictChip tone={VERDICT_TONE[r.verdict]}>{r.verdict}</VerdictChip>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+            <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+              <VerdictChip tone={VERDICT_TONE[r.verdict]} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                 {r.opportunity_title ?? "a priority"}
               </span>
-              <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
-                ICE {r.priorIce.toFixed(1)} {r.delta > 0 ? "↑" : "↓"} {r.newIce.toFixed(1)}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  color: "var(--glacier)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {r.opportunity_title ? "RE-RANKED " : ""}
+                {r.delta >= 0 ? "+" : ""}
+                {r.delta.toFixed(1)} ICE
               </span>
-              <span style={{ fontSize: 11, color: "var(--ink-subtle)", marginLeft: "auto" }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-faint)",
+                  marginLeft: "auto",
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
                 {whenOf(r.created_at)}
               </span>
             </div>
@@ -141,7 +172,7 @@ export function CompoundingPanel() {
               <p
                 style={{
                   fontSize: 12,
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-subtle)",
                   marginTop: 6,
                   lineHeight: 1.45,
                   overflow: "hidden",
@@ -157,6 +188,6 @@ export function CompoundingPanel() {
           </Link>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -12,9 +12,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Brain, Sparkles } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
-import { MonoLabel, SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
+import { Surface } from "@/components/obsidian/Surface";
+import { MonoLabel } from "@/components/obsidian/primitives";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
@@ -27,6 +27,7 @@ import { DocsPanel } from "@/components/knowledge/DocsPanel";
 import { CalendarPanel } from "@/components/knowledge/CalendarPanel";
 import { GraphPanel } from "@/components/knowledge/GraphPanel";
 import { InsightsPanel } from "@/components/knowledge/InsightsPanel";
+import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
 
 // Brain (formerly Knowledge) — the product's brain: one substrate of everything
 // it knows. The "memory" tab is the compounding agent-recall (the moat, folded
@@ -38,7 +39,8 @@ type Tab = "insights" | "calendar" | "memory" | "learnings" | "decisions" | "gra
 const TABS: Tab[] = ["insights", "calendar", "memory", "learnings", "decisions", "graph", "docs"];
 
 const KNOWLEDGE_DESC: Record<string, string> = {
-  insights: "Human lenses on the brain: what still stands, what you have learned, and how it accrued.",
+  insights:
+    "Human lenses on the brain: what still stands, what you have learned, and how it accrued.",
   calendar: "Events and meeting transcripts. Open a meeting to capture and extract.",
   memory:
     "What the loop recalls: reflections agents wrote and outcomes they distilled, the compounding product memory.",
@@ -49,6 +51,61 @@ const KNOWLEDGE_DESC: Record<string, string> = {
     "Trace why anything exists: the live map of how signals, specs, and decisions connect. Click a node to walk its provenance.",
   docs: "Workspace pages. Import from Google Docs or Notion, edit inline.",
 };
+
+// OBS-08 — the Obsidian tab row (no Obsidian TabRow primitive exists yet in
+// OBS-03, so this is a scoped, spec-literal replacement for the parchment
+// TabRow, which painted an ember underline on every active tab). Active: bg
+// --raised, text --text-primary; inactive: transparent, --text-subtle; hover
+// inactive -> --hover (OBS-08.md §7 interaction states).
+function BrainTabRow({
+  tabs,
+  active,
+  onSet,
+  desc,
+}: {
+  tabs: { id: Tab; label: string }[];
+  active: Tab;
+  onSet: (id: Tab) => void;
+  desc?: Record<string, string>;
+}) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div className="flex flex-wrap" style={{ gap: 2, borderBottom: "1px solid var(--hairline)" }}>
+        {tabs.map((t) => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => onSet(t.id)}
+              className={
+                isActive
+                  ? "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  : "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
+              }
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "7px 13px",
+                borderRadius: "var(--radius-control) var(--radius-control) 0 0",
+                background: isActive ? "var(--raised)" : "transparent",
+                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                border: "none",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+      {desc?.[active] ? (
+        <p style={{ fontSize: 12, color: "var(--text-faint)", marginTop: 8 }}>{desc[active]}</p>
+      ) : null}
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/knowledge")({
   validateSearch: (
@@ -74,26 +131,40 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
   component: KnowledgePage,
   head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>knowledge · failed to load</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
-            {(error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button className="btn btn-ghost btn-sm" onClick={reset}>
-            Retry · reloads this surface
-          </button>
-        </div>
+    <Surface>
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          padding: "16px 18px",
+        }}
+      >
+        <MonoLabel style={{ marginBottom: 8 }}>Brain · failed to load</MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+          {(error as Error)?.message ?? "Unknown error"}
+        </p>
+        <button
+          type="button"
+          onClick={reset}
+          className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--glacier)",
+            background: "transparent",
+            border: "none",
+          }}
+        >
+          Retry · reloads this surface
+        </button>
       </div>
-    </>
+    </Surface>
   ),
   notFoundComponent: () => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <p style={{ fontSize: 13, color: "var(--ink-subtle)" }}>Not found.</p>
-      </div>
-    </>
+    <Surface>
+      <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>Not found.</p>
+    </Surface>
   ),
 });
 
@@ -127,55 +198,105 @@ function KnowledgePage() {
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
-      <div
-        data-screen-label="Brain"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
-      >
-        <SurfaceHeader
-          kicker="Loop · Brain"
-          icon={Brain}
-          title="Brain"
-          sub="Your product's brain. Memory, learnings, decisions, docs, and calendar in one place."
-        />
+      <Surface>
+        {/* OBS-08 — the Obsidian hero: one ember italic word, mono kicker, no icon. */}
+        <div style={{ marginBottom: 8 }}>
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9.5,
+              letterSpacing: "0.14em",
+              color: "var(--text-subtle)",
+              textTransform: "uppercase",
+              marginBottom: 10,
+            }}
+          >
+            Loop · Brain
+          </div>
+          <h1
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 430,
+              fontSize: "var(--text-hero)",
+              lineHeight: 1.15,
+              letterSpacing: "-0.015em",
+              color: "var(--text-primary)",
+              margin: "0 0 8px",
+            }}
+          >
+            Your <em style={{ fontStyle: "italic", color: "var(--ember)" }}>record</em>.
+          </h1>
+          <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 18px" }}>
+            Every call you made, what it became, and how belief moved.
+          </p>
+        </div>
+
+        <BrainStatTrio />
 
         {/* Company brain strip — one consolidated substrate, queryable from Chat. */}
         <div
-          className="band-stone"
+          className="flex flex-wrap items-center"
           style={{
-            display: "flex",
-            alignItems: "center",
             gap: 18,
+            background: "var(--surface-card-deep)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
             padding: "12px 18px",
             marginBottom: 18,
-            flexWrap: "wrap",
           }}
         >
-          <MonoLabel icon={Sparkles} style={{ color: "var(--ink)" }}>
-            Product brain
-          </MonoLabel>
+          <MonoLabel>Product brain</MonoLabel>
           {brainStats ? (
             brainStats.map(([l, v]) => (
-              <span key={l} className="mono-label" style={{ fontSize: 9 }}>
-                <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
+              <span
+                key={l}
+                className="flex items-center"
+                style={{
+                  gap: 5,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 9,
+                  color: "var(--text-muted)",
+                }}
+              >
+                {l === "connectors" ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "var(--glacier)",
+                      boxShadow: "0 0 10px rgba(127,209,220,0.6)",
+                      animation: "cadPulse 2s ease-in-out infinite",
+                    }}
+                  />
+                ) : null}
+                <strong
+                  className="tabular-nums"
+                  style={{
+                    color: l === "connectors" ? "var(--glacier)" : "var(--text-primary)",
+                    fontWeight: 600,
+                  }}
+                >
                   {v}
                 </strong>{" "}
                 {l}
               </span>
             ))
           ) : (
-            <span className="mono-label" style={{ fontSize: 9 }}>
-              loading…
-            </span>
+            <MonoLabel>LOADING</MonoLabel>
           )}
-          <span style={{ flex: 1 }}></span>
-          <span className="mono-label" style={{ fontSize: 8.5 }}>
-            everything here is what Ask reasons over — one brain
+          <span style={{ flex: 1 }} />
+          <span
+            style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, color: "var(--text-faint)" }}
+          >
+            everything here is what Ask reasons over · one brain
           </span>
         </div>
 
         <MemoryUpgradeNudge />
 
-        <TabRow
+        <BrainTabRow
           tabs={[
             { id: "insights", label: "Insights" },
             { id: "calendar", label: "Calendar" },
@@ -198,7 +319,7 @@ function KnowledgePage() {
         {tab === "decisions" && (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
         {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
         {tab === "docs" && <DocsPanel />}
-      </div>
+      </Surface>
     </>
   );
 }

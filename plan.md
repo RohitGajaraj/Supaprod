@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-02 23:59 (OBS-08 Brain shipped, lane1; 6 spec-compliance violations found and fixed post-adversarial-review)
+
+Closed OBS-08 (Brain the record surface port). Built the Knowledge/Brain surface on the OBS-03 primitives and spec OBS-08.md: stat trio (Newsreader numerals + mono micro-labels) + "Export my record" button, decisions panel with outcome verdicts (VerdictChip KEPT/KILL/PENDING), learnings panel with what-they-moved lines in glacier mono, and the belief-graph tab reusing existing data. Ported LogDecisionDialog to Obsidian (Button secondary + MonoLabel + proper tokens, no parchment classes); added "Go to Today →" link to empty-record instruction; BrainTabRow (local Obsidian-styled inline tab bar, no TabRow primitive exists in OBS-03); connector count includes cadPulse 2s glacier glow dot + glacier tone; GraphPanel toggle has hover:--hover on inactive buttons.
+
+**Adversarial review found 6 spec-compliance violations (all real, all fixed before commit):**
+- VIOLATION #1: TabRow parchment ember underline (undefined reference) → fixed, use local BrainTabRow with correct Obsidian styling.
+- VIOLATION #2: LogDecisionDialog parchment chrome (.btn-primary/.btn-ghost/.input/.mono-label + --ink-subtle) → fixed, Obsidian Button/MonoLabel + proper tokens.
+- VIOLATION #3: empty-record missing "Go to Today →" link → fixed, added Link component with proper focus/hover.
+- VIOLATION #4: Product brain glacier misapplied, connector pulse missing → fixed, glacier tone on connector stat + cadPulse dot.
+- VIOLATION #5: test coverage gaps (no tone-mapping tests, no render tests) → fixed, exported OBS_STATUS_TONE + VERDICT_TONE, added 8 unit tests.
+- VIOLATION #6: GraphPanel hover missing on inactive buttons → fixed, added hover:[background-color:var(--hover)].
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 1923/1923 pass (including 8 new tone-mapping tests) · adversarial TypeScript+spec-compliance reviewer pass (6 violations found and fixed) · humanized-output clean. Updated docs: feature-dashboard.md (OBS-08 flipped to ✅), obsidian-port-plan.md (OBS-08 marked shipped), docs/features/obsidian-port.md (full OBS-08 completion section added). Dashboard tally updated. Lane claim released.
+
 ### 2026-07-02 17:15 (OBS-03 fully closed, lane2; OBS-02's stale dashboard row fixed)
 
 Resumed after OBS-02 (the Obsidian shell) landed on `main` (`dde8ef9deb`, lane1). Its dashboard row was still showing `⬜` despite the code being merged and gate-green, so before building on top of it, independently re-verified `tsc --noEmit` (0) and `bun test` (1892 pass / 0 fail) on the merged HEAD, confirmed `[data-obsidian]` is attached in `_authenticated.tsx` and `Surface.tsx` exists, then flipped the row to `✅` with the verification detail attached.
