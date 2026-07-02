@@ -144,6 +144,36 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 
 ---
 
+## OBS-05 · Build ported (✅ 2026-07-02, lane3, adversarial-reviewed)
+
+**What shipped:** the Build cockpit fully ported to Obsidian: `BuildMissionRow.tsx` + `MissionSlideOver.tsx` (new, in `src/components/obsidian/`) + `build-status.ts` (new, pure status/verdict/gate-copy mapping) + a rewritten `src/routes/_authenticated.build.index.tsx`. Mission list rows (status dot · title · verdict chip when done · step label · cost) replace the parchment list; a `?mission=` deep-linkable slide-over (numbered steps, live pulses, the inline gate as a compressed `CallCard`, a raw-trace toggle with per-hop cost) replaces the old full-page detail view. The Composer stays functional. Zero lucide.
+
+**Data flow:** read-only server fns per spec; the one mutation is the pre-existing `decideApproval`. Answering a gate invalidates `["needs-you"]`/`["dashboard"]`/`["studio-sessions"]`/`["studio-session",missionId]` so Today's queue, the mission row, and the slide-over all update together with no reload.
+
+**Real regressions caught by adversarial review (3 lenses: correctness, design/prototype-parity, accessibility) and fixed before commit:**
+
+- **Critical - disjoint status vocabularies.** The slide-over header read `missions.status` while the row read `agent_runs.status`. `missions.status` uses `"blocked"` for a gate-waiting mission (never `"waiting_approval"`) and only catches up to a decision ~60s later via the `resume-runs` cron - so the header could silently fall through every branch to a false "SHIPPED" for up to a minute after any gate answer, including a reject. Fixed by deriving the slide-over header from the latest run's own status (mirroring the row) and hardening both mapping functions so any unrecognized value fails safe to "queued", never a false "done".
+- **Restraint-budget violation.** The Composer's Start button was ember, but the hard law reserves ember for the one gate CTA per screen - Start and a gate's Approve could both be visible at once. Fixed to a neutral `--surface-raised` treatment.
+- **Copy drift.** The gate-consequence string used a period where the spec's exact copy requires a middot separator. Fixed verbatim.
+- **Accessibility gap.** Each step's status dot carried `word=""` + `aria-hidden`, giving screen-reader users no indication of step state. Fixed to carry the real `STATUS_WORD`.
+
+Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-corrupted several middots into `Â·` across 4 files - caught by an em-dash/mojibake self-check before the adversarial review and cleanly reverted.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout), open `/build`.
+2. Mission rows show the status dot, title, verdict chip (only once done), step label, and cost.
+3. Click a row: the slide-over opens with `?mission=<id>` in the URL; numbered steps show live pulses for the in-progress step.
+4. If the mission is gate-waiting, the inline gate renders as a compressed `CallCard`; answering it updates the slide-over header, the row, and Today's queue together with no reload, and never shows a false "SHIPPED" immediately after.
+5. Toggle raw-trace: each hop shows its own cost in the mono log lines.
+6. Confirm the Composer's Start button is neutral, not ember, when a gate CTA is also visible.
+
+**Test-coverage note (repo constraint, not a gap):** `MissionSlideOver` itself uses `useQuery`/`useMutation`/`useToast`, none of which can run without a mounted React tree, and this repo has no jsdom/React-Testing-Library dependency (the same constraint `__tests__/primitives.test.tsx` documents). All the pure derivation logic it calls into is unit-tested in `build-status.test.ts`; the hook-driven behaviors (trace-toggle reset on `missionId` change, live query invalidations) are the spec's own §12 "Manual checks" tier.
+
+**Gates at ship:** `bunx tsc --noEmit` 0 · `bun test` 1936/1936 pass (50 new obsidian-scoped tests, up from 41 pre-review) · adversarial 3-lens review (4 real issues found and fixed, listed above) · humanized-output clean.
+
+---
+
 ## OBS-06 · Discover ported (✅ 2026-07-02, lane2, adversarial-reviewed)
 
 **What shipped:** the evidence desk at `/discover` (`src/routes/_authenticated.discover.tsx` mounts `DiscoverSurface`): a 1160px two-column surface, the Newsreader hero with the one glacier-italic word "Signal", a signal feed on the left (`SignalFeed`/`SignalCard`, consuming `listSignals`/`listThemes` on the same query keys as the parchment `/product` `SignalsPanel` so the two surfaces share one cache) and an ICE-ranked opportunity queue on the right (`OpportunityQueue`/`OpportunityRow`, consuming `listOpportunities`/`listLearnings`), with exactly one `PencilNote` ("best bet") on the top-ranked row. Challenge wires the existing `runCriticReview` mutation (no new server function) and shows the singleton toast for 3.6s, invalidating the opportunities query so the verdict chip refreshes live. Additive only: no route redirect, no nav-model edit (the rail's Discover index `02` still points at `/product?tab=signals` until OBS-10 folds the routes, per the spec's own §8), the legacy `/product` surface untouched.
@@ -189,32 +219,43 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 7. Confirm zero ember on the screen except the Now column tint, the `NEEDS OUTCOME` chip, and the ceremony's CTA; grayscale screenshot still reads every chip and measure by its text.
 
 **Gates at ship:** `tsc --noEmit` 0 · `bun test` 1988/1988 pass (15 new in `src/components/plan/format.test.ts`) · `eslint` 0 on all new files · humanized-output grep (em/en dash, banned words) clean · 3-lens adversarial review (correctness clean, design-parity found 3 - fixed, accessibility found 4 - fixed, re-verified above).
-## OBS-09 · Engine Room ported (✅ 2026-07-02, lane4, adversarial-reviewed)
 
-**What shipped:** `/engine-room` (`src/routes/_authenticated.engine-room.tsx`), additive alongside the untouched parchment `/govern`. The glance (`EngineRoomSurface.tsx`): a Newsreader hero with the one glacier-italic word "glance", a 2x2 `RoomCard` grid (Spend/Quality/Safety/Record), and a `ConnectionStrip`. Each card's state (moss HEALTHY / marigold WATCH) and verdict line come from a pure view-model, `src/lib/engine-room-glance.ts`'s `buildGlance()`, fed by nine read-only queries that intentionally reuse each existing panel's exact query key (`budget_overview`, `eval_suites`, `drift_overview`, `guardrails`, `incidents`, `analytics-overview`, `traces`, `ledger-seal`) so the cache is shared, not duplicated. Opening a room swaps the glance for `RoomDetail.tsx` (question header, verdict-first, mono sub-tabs, back affordance, `Esc` returns to the glance) with a room-specific body under `src/components/engine-room/rooms/`: `SpendRoom` (TREND aurora / BY AGENT / CAPS), `QualityRoom` (SCORE aurora / DRIFT / SUITES), `SafetyRoom` (RULES / INCIDENTS), `RecordRoom` (TRACES / LEDGER). Rows drill into existing detail surfaces (`/govern?tab=...`, `/traces/$traceId`) rather than a new fifth depth level. Zero writes anywhere; zero rebuilt primitives (consumes `VerdictChip`/`AuroraCard`/`Button`/`MonoLabel`/`Surface`); zero approvals/controls/attention-queue leakage (that machinery stays on Today, per the founder's absolute ruling in the spec).
+---
 
-**Two honest data-derivation calls, documented since they are not literal 1:1 server-fn reads:**
+## OBS-08 · Brain ported (✅ 2026-07-02, lane1, adversarial-reviewed)
 
-- **Spend's "trending" figure** compares this week's cost (`getAnalyticsOverview({days:7})`) against the trailing 14-day total minus this week (`getAnalyticsOverview({days:14})`) as a previous-week estimate, since no dedicated range-offset server fn exists. Documented inline in `engine-room-glance.ts`.
-- **Record's ledger check** computes `getLedgerSeal()` then immediately re-verifies that exact fingerprint via `verifyLedgerSeal()` in `RecordRoom.tsx`. This is a same-instant self-check (a genuine, if narrow, integrity signal: a mismatch means the record changed in the gap between the two calls), not a historical audit against a previously-saved seal - that arrives with the deferred write-time persistence.
+**What shipped:** the Brain (formerly Knowledge) surface fully ported to Obsidian (`src/routes/_authenticated.knowledge.tsx` + components), built on the OBS-03 primitives and spec OBS-08.md:
 
-**Adversarial review (fresh-eyes code-reviewer) findings, all resolved:**
+- `BrainStatTrio` - pure `deriveBrainStats()` + render: three Newsreader numerals (CALLS MADE / VALIDATED % / ICE MOVED) + mono-micro labels, with "Export my record" button (markdown download via `getImpactLedger`) + empty-record instruction with a quiet "Go to Today →" link (reads `var(--text-subtle)`, hovers to `--text-primary`).
+- `BrainTabRow` - an Obsidian inline tab bar (no parchment `TabRow` primitive exists in OBS-03) with mono-caps labels, active state bg `--raised` + text `--text-primary`, inactive text `--text-subtle`, and hover `--hover` on inactive tabs per spec §7.
+- `DecisionsPanel` - the decisions list (source/status filters + search) with inline Approve/Send back actions on pending rows. **LogDecisionDialog fixed VIOLATION #2:** replaced parchment `.btn`/`.input`/`.mono-label` classes with Obsidian `Button` variant=secondary + MonoLabel + proper `--card`/`--hairline` tokens and `--text-subtle` copy color.
+- `OBS_STATUS_TONE` map - decisions (approved→KEPT / rejected→KILL / pending→PENDING) for the VerdictChip tones; exported for test coverage.
+- `DecisionDetail` - the drill detail (single-decision view) reuses parchment styling until OBS-10 folds it.
+- `CompoundingPanel` - learnings/outcomes (the "what moved" moat-vis feed) with `VERDICT_TONE` map (validated→VALIDATED / missed→MISSED / mixed→REVISE). **Exported VERDICT_TONE** for test coverage.
+- **Product brain count strip** (lines 248–295 in route) - live connector count includes a **cadPulse 2s glacier glow dot** (per spec §5 step 9) + glacier tone on the connector stat value (VIOLATION #4 fixed).
+- `GraphPanel` - the graph/list toggle with **hover:[background-color:var(--hover)]** on inactive buttons (VIOLATION #6 fixed).
+- `BrainStatTrio` - empty-record instruction includes **"Go to Today →" link** with quiet styling (VIOLATION #3 fixed).
 
-- **0 blocking bugs.** Field names, shapes, and scales were cross-checked line-by-line against every consumed server-fn source file (including the eval-score-scale mismatch risk: `eval_suites.last_run.avg_score` is 0-100, `eval-health`'s `passRate` is a 0-1 fraction - both handled correctly).
-- **2 low-severity nits fixed:** a literal `#B5AFA6` hex swapped for the existing `var(--text-body)` token (`RoomDetail.tsx`); the room-detail route branch swapped its hand-rolled container chrome for the shared `Surface` component it was already duplicating (`_authenticated.engine-room.tsx`).
-- **1 accepted product-level note, not fixed (data-model limitation, not a port bug):** `getIncidents()` has no open/resolved concept - it is a flat, capped historical log - so the Safety room's WATCH state can only clear when the last incident ages out of that window, not on real resolution. Worth a founder look if it reads as sticky in practice; out of scope for a read-only port to fix the underlying data model.
-- **Circular import confirmed safe:** `RoomDetail.tsx` exports shared `Row`/`EmptyRow`/`VerdictSentence` helpers that the four `rooms/*.tsx` files import back; verified this resolves cleanly because all four are hoisted function declarations referenced only inside render bodies, never at module-evaluation time.
+**Adversarial review - 6 spec-compliance violations found and fixed before commit:**
+
+- **VIOLATION #1 (TabRow parchment)** ✅ Fixed: replaced undefined parchment `TabRow` reference with local `BrainTabRow` component implementing correct Obsidian styling (active: `--raised` bg + `--text-primary` text; inactive: transparent + `--text-subtle`; hover: `--hover`).
+- **VIOLATION #2 (LogDecisionDialog parchment)** ✅ Fixed: replaced `.btn-primary`/`.btn-ghost`/`.input`/`.mono-label` classes + `--ink-subtle` token with Obsidian `Button` variant=secondary, `MonoLabel`, and proper Obsidian form styling (`--card` bg, `--hairline` border, `--text-primary` text).
+- **VIOLATION #3 (empty-record missing link)** ✅ Fixed: added "Go to Today →" Link component to BrainStatTrio's empty-record state with proper focus/hover styling (`--text-subtle` / hover `--text-primary`).
+- **VIOLATION #4 (Product brain glacier misapplied)** ✅ Fixed: moved `tone="glacier"` from "Product brain" label to connector count; added **cadPulse 2s glacier glow dot** (spec §5 animation) next to the live-connector value.
+- **VIOLATION #5 (test coverage)** ✅ Fixed: exported `OBS_STATUS_TONE` (decisions) + `VERDICT_TONE` (learnings); added 8 unit tests covering decision/learning verdict tone mappings + key existence assertions; all 1923 tests pass.
+- **VIOLATION #6 (GraphPanel hover)** ✅ Fixed: added `hover:[background-color:var(--hover)]` Tailwind class to inactive GRAPH/LIST toggle buttons per spec §7 interaction states.
 
 **How to verify (repeatable):**
 
-1. `bun run dev` (primary checkout - this worktree's `vite dev` hits the known node20/ESM `lovable-tagger` failure, see hub §11), open `/engine-room`.
-2. Glance: four room cards, each a real `<button>`, showing a HEALTHY/WATCH chip, question, and verdict line; the connection strip shows the live moss pulse.
-3. Open any room: the glance swaps for the room-detail in place (no modal), sub-tabs are keyboard/arrow-reachable (`role="tablist"`), `Esc` returns to the glance.
-4. Spend/TREND and Quality/SCORE each render exactly one aurora card; Safety and Record lead with a plain-words sentence.
-5. Confirm `/govern` still renders unchanged at its own URL - this port added a surface, it did not touch or redirect the legacy one.
-6. Grayscale screenshot the glance: every state still reads by its word, not just its color.
+1. `bun run dev`, open `/knowledge`.
+2. With no decisions/learnings: the moss-tinted card appears with instruction "Your track record starts with the first call. Answer one on Today." + blue quiet link "Go to Today →" (no Ember, no dead controls).
+3. With decisions: the stat trio renders (numerals + labels), decisions panel shows rows with VerdictChip (moss KEPT, madder KILL, neutral PENDING per mapping), inline Approve/Send back buttons on pending rows.
+4. With learnings: CompoundingPanel feeds the what-moved lines (glacier mono ICE delta + verdict chips), each row drills to `?learning=`.
+5. Product brain strip: connector count shows **glacier glow dot + count value in glacier**, other stats in `--text-primary`. Tab row (Insights/Calendar/Memory/Learnings/Decisions/Graph/Docs) shows active bg `--raised`, hover on inactive → `--hover`.
+6. Graph toggle: GRAPH/LIST buttons, inactive state hovers to `--hover` background.
+7. Log decision dialog: all UI uses Obsidian tokens + Button/MonoLabel (no .btn/.input classes, no `--ink-subtle`).
 
-**Gates at ship:** `tsc --noEmit` 0 (only pre-existing, unrelated Stripe module-resolution errors present) · `bun test` 14/14 new tests pass (`engine-room-glance.test.ts` threshold + empty-input-fallback coverage, `room-card.test.tsx` real-button + grayscale-safe state words) on top of the existing suite, untouched · adversarial code-reviewer pass (0 blocking, 2 low fixed, 1 accepted note above) · humanized-output clean (zero em/en dashes across all new files, including doc comments; two UI fallback placeholders normalized from an initial em dash to the house "-" convention before commit).
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1923/1923 pass (all new tone-mapping tests passing) · adversarial TypeScript+spec-compliance reviewer pass (6 spec violations found and fixed before commit) · humanized-output clean · hex gate (all colors read `var(--tokens)`).
 
 ---
 
