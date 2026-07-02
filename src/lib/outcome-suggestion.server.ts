@@ -99,7 +99,11 @@ export async function generateOutcomeSuggestion(
   const existing = prd.outcome_suggestion ?? null;
   if (!shouldRefresh(existing)) return existing;
 
-  type OppSignals = { problem: string | null; hypothesis: string | null; posthog_event: string | null };
+  type OppSignals = {
+    problem: string | null;
+    hypothesis: string | null;
+    posthog_event: string | null;
+  };
   let opp: OppSignals | null = null;
   if (prd.opportunity_id) {
     const { data: o } = await db

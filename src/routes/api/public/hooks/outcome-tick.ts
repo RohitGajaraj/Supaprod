@@ -127,7 +127,9 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                 ]),
               );
               for (const prd of pendingRows) {
-                const ownerId = prd.workspace_id ? ownerByWorkspace.get(prd.workspace_id) : undefined;
+                const ownerId = prd.workspace_id
+                  ? ownerByWorkspace.get(prd.workspace_id)
+                  : undefined;
                 if (!ownerId) continue;
                 try {
                   const suggestion = await generateOutcomeSuggestion(admin, ownerId, prd.id);

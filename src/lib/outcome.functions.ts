@@ -422,8 +422,10 @@ export async function draftOutcomeVerdict(
   if (opp) {
     if (str(opp.problem)) predictionParts.push(`Problem: ${opp.problem}.`);
     if (str(opp.hypothesis)) predictionParts.push(`Hypothesis: ${opp.hypothesis}.`);
-    if (str(opp.roadmap_outcome)) predictionParts.push(`Committed outcome: ${opp.roadmap_outcome}.`);
-    if (str(opp.roadmap_measure)) predictionParts.push(`Committed measure: ${opp.roadmap_measure}.`);
+    if (str(opp.roadmap_outcome))
+      predictionParts.push(`Committed outcome: ${opp.roadmap_outcome}.`);
+    if (str(opp.roadmap_measure))
+      predictionParts.push(`Committed measure: ${opp.roadmap_measure}.`);
     if (opp.ice_score != null) {
       predictionParts.push(
         `Predicted ICE ${Number(opp.ice_score).toFixed(1)} (impact ${opp.impact}, confidence ${opp.confidence}, ease ${opp.ease}).`,
@@ -434,7 +436,9 @@ export async function draftOutcomeVerdict(
 
   const actualParts: string[] = [];
   if (data.metricLabel || data.metricValue) {
-    actualParts.push(`Metric — ${data.metricLabel ?? "value"}: ${data.metricValue ?? "(no value)"}.`);
+    actualParts.push(
+      `Metric — ${data.metricLabel ?? "value"}: ${data.metricValue ?? "(no value)"}.`,
+    );
   }
   if (str(data.notes)) actualParts.push(`Operator notes: ${data.notes!.trim()}.`);
   const actual = actualParts.join(" ") || "No actual result captured yet.";
