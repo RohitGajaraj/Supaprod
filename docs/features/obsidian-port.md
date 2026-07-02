@@ -144,4 +144,25 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 
 ---
 
+## OBS-06 · Discover ported (✅ 2026-07-02, lane2, adversarial-reviewed)
+
+**What shipped:** the evidence desk at `/discover` (`src/routes/_authenticated.discover.tsx` mounts `DiscoverSurface`): a 1160px two-column surface, the Newsreader hero with the one glacier-italic word "Signal", a signal feed on the left (`SignalFeed`/`SignalCard`, consuming `listSignals`/`listThemes` on the same query keys as the parchment `/product` `SignalsPanel` so the two surfaces share one cache) and an ICE-ranked opportunity queue on the right (`OpportunityQueue`/`OpportunityRow`, consuming `listOpportunities`/`listLearnings`), with exactly one `PencilNote` ("best bet") on the top-ranked row. Challenge wires the existing `runCriticReview` mutation (no new server function) and shows the singleton toast for 3.6s, invalidating the opportunities query so the verdict chip refreshes live. Additive only: no route redirect, no nav-model edit (the rail's Discover index `02` still points at `/product?tab=signals` until OBS-10 folds the routes, per the spec's own §8), the legacy `/product` surface untouched.
+
+**Real spec-compliance defects caught by a 3-lens adversarial review (security / spec-compliance / humanized-output) and fixed before commit:**
+
+- **Two header labels used the wrong token.** `SignalFeed`'s "Live signal feed" and `OpportunityQueue`'s "The opportunity queue · ranked by ICE" both passed `MonoLabel tone="faint"` (resolves to `--text-faint` `#55524C`), but OBS-06.md §7 specifies `#7D786F` (`--text-subtle`) with `letter-spacing: 0.12em` for these labels. Fixed by omitting `tone` (MonoLabel's untoned default is already `--text-subtle`) and adding the `0.12em` override. (The security and humanized-output lenses found nothing.)
+- **The opportunity row's `sub` line didn't match the spec's composition.** OBS-06.md §5 step 5 calls for `sub` to read as `<signal count> · <spec/critic state> · <learning delta>` (e.g. `23 signals · spec in Critic review · +1.4 after the checkout learning`), but the shipped code rendered the opportunity's raw `problem` free-text field instead. Fixed within the spec's explicit "reuse the four existing queries" boundary (§3/§10): added a `listThemes` subscription (same `["themes", activeProductId]` key `SignalFeed` already uses, so no new query) to derive a real signal count via `opportunity.theme_id`, and a critic-state phrase derived from the already-fetched `critic_review`/status data (`verdictFor()`), since `listSpecs`/PRD status is not one of the four authorized queries.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout — this worktree's `vite dev` hits the known node20/ESM `lovable-tagger` failure, see hub §11), open `/discover`.
+2. Left column: verbatim signal cards (blossom source pill, mono timestamp, unaltered quote, theme line), newest first, with a live "N THIS WEEK" glacier count and the verbatim footer.
+3. Right column: opportunities ranked by ICE descending, each with the Newsreader score, title, the real `sub` line (signal count · critic state · rescore delta when present), a verdict chip colored per §7, and exactly one pencil ("best bet") on the top row.
+4. Click Challenge on any row: the button shows its loading state, the singleton toast reads "Critic engaged. The teardown lands on Today, receipts attached." for 3.6s, and the row's verdict chip refreshes once the review lands.
+5. Confirm zero ember on the screen except a REVISE verdict chip; grayscale screenshot still reads every verdict by its word.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1959/1959 pass (15 in `src/components/discover/`: `format.test.ts` + `OpportunityRow.test.tsx`) · 3-lens adversarial review (security clean, humanized-output clean, spec-compliance found 3 - all fixed and re-verified above).
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._

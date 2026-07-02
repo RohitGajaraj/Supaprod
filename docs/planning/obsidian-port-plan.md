@@ -180,7 +180,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Acceptance:** every bet shows a measure; the ceremony copy passes the
   voice rules.
 
-### OBS-08 · Brain (the record)
+### OBS-08 · Brain (the record) — ✅ shipped 2026-07-02 (lane1)
 - **Steps:** stat trio (Newsreader numerals + mono micro-labels) + "Export my
   record"; decisions with outcome verdicts; learnings with what-they-moved
   lines in glacier mono; belief-graph surface reuses the existing data flow.

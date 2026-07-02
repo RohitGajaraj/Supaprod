@@ -2,16 +2,18 @@
 // same artifact_lineage: "Graph" = the visual canvas (DBR-1 v1 / B+), "List" = the
 // indented downstream lineage tree. Both honor the same route focus, so "Center the
 // graph here" in the canvas feeds the tree (founder ruling 2026-06-20: keep both).
+//
+// OBS-08: the toggle is ported to Obsidian — mono-caps text, no icon set
+// (iconography law). GraphCanvasView / GraphTreeView data logic is UNCHANGED.
 import { useState } from "react";
-import { Share2, ListTree, type LucideIcon } from "lucide-react";
 import { GraphCanvasView } from "./GraphCanvasView";
 import { GraphTreeView } from "./GraphTreeView";
 
 type GraphView = "graph" | "list";
 
-const VIEWS: { id: GraphView; label: string; icon: LucideIcon }[] = [
-  { id: "graph", label: "Graph", icon: Share2 },
-  { id: "list", label: "List", icon: ListTree },
+const VIEWS: { id: GraphView; label: string }[] = [
+  { id: "graph", label: "GRAPH" },
+  { id: "list", label: "LIST" },
 ];
 
 export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
@@ -19,33 +21,37 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
   return (
     <div>
       <div
+        className="flex w-fit"
         style={{
-          display: "flex",
           gap: 2,
           marginBottom: 12,
           border: "1px solid var(--hairline)",
-          borderRadius: 7,
+          borderRadius: "var(--radius-control)",
           padding: 2,
-          width: "fit-content",
         }}
       >
-        {VIEWS.map(({ id, label, icon: Icon }) => (
+        {VIEWS.map(({ id, label }) => (
           <button
             key={id}
+            type="button"
             onClick={() => setView(id)}
-            className="mono-label"
+            className={
+              view === id
+                ? "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                : "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
+            }
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
+              fontFamily: "var(--font-mono)",
               fontSize: 9,
+              letterSpacing: "0.08em",
               padding: "4px 12px",
-              borderRadius: 5,
-              background: view === id ? "var(--surface-2)" : "transparent",
-              color: view === id ? "var(--ink)" : "var(--ink-subtle)",
+              borderRadius: 6,
+              background: view === id ? "var(--raised)" : "transparent",
+              color: view === id ? "var(--text-primary)" : "var(--text-subtle)",
+              border: "none",
             }}
           >
-            <Icon size={11} /> {label}
+            {label}
           </button>
         ))}
       </div>

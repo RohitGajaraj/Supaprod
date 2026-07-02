@@ -1,19 +1,17 @@
-// Decisions — Knowledge tab 3, ported from design-reference/cadence/loop.jsx
-// (KnowledgeScreen · Decisions): one bento table — Decision / Made by / When /
-// Why / chevron. Production functionality rides the reference table: source +
-// status filters, title search, the Log-decision dialog and approve/reject
-// quick actions. Screen-6 reconciliation (founder ruling: one detail surface;
-// reference layout wins, production mutations kept): the old side sheet is
-// gone — a row click drills to ?decision= on /knowledge, rendered by
-// DecisionDetail. The shared vocabulary (ageOf / SOURCE_LABEL / STATUS_TONE /
-// hasSource) lives in decisions-shared.ts; SourceLink is exported from here —
-// single source, no drift. Status is a rendered judgment → VerdictChip
-// (approved moss · rejected madder · pending ember = the human's call).
+// Decisions — Brain tab 5. One list: Decision / Made by / When / Why. Row
+// click drills to ?decision= on /knowledge, rendered by DecisionDetail. The
+// shared vocabulary (ageOf / SOURCE_LABEL / hasSource) lives in
+// decisions-shared.ts; SourceLink is exported from here — single source, no
+// drift. Status is a rendered judgment -> VerdictChip (approved KEPT/moss ·
+// rejected KILL/madder · pending PENDING/neutral, per the Obsidian verdict
+// law: a chip appears only on a real outcome, never as decoration).
+//
+// OBS-08: ported to Obsidian presentation; every mutation/filter/dialog
+// behavior below is unchanged from the pre-port panel.
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronRight, Gavel, Search } from "lucide-react";
 import { toast } from "@/lib/notify";
 import {
   listDecisions,
@@ -30,11 +28,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EmptyState, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
-import { ageOf, displayWho, SOURCE_LABEL, STATUS_TONE } from "./decisions-shared";
+import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
+import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
+
+// Obsidian-specific tone map (decisions-shared.ts's STATUS_TONE stays the
+// parchment mapping — DecisionDetail.tsx and other consumers still read it
+// until OBS-10 folds them).
+export const OBS_STATUS_TONE: Record<DecisionRow["status"], VerdictTone> = {
+  approved: "KEPT",
+  rejected: "KILL",
+  pending: "PENDING",
+};
 
 export function SourceLink({
   d,
@@ -91,6 +99,46 @@ export function SourceLink({
   return null;
 }
 
+function FilterGroup<T extends string>({
+  options,
+  value,
+  onChange,
+  labelOf,
+}: {
+  options: readonly T[];
+  value: T;
+  onChange: (v: T) => void;
+  labelOf: (v: T) => string;
+}) {
+  return (
+    <div
+      className="flex"
+      style={{ gap: 2, border: "1px solid var(--hairline)", borderRadius: 8, padding: 2 }}
+    >
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          onClick={() => onChange(o)}
+          className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9,
+            letterSpacing: "0.08em",
+            padding: "3px 10px",
+            borderRadius: 6,
+            background: value === o ? "var(--raised)" : "transparent",
+            color: value === o ? "var(--text-primary)" : "var(--text-subtle)",
+            border: "none",
+          }}
+        >
+          {labelOf(o)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function DecisionsPanel() {
   const [source, setSource] = useState<SourceFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -133,151 +181,118 @@ export function DecisionsPanel() {
   });
 
   const rows = decisions.data?.decisions ?? [];
-  const GRID = "1fr 150px 90px 200px 20px";
+  const GRID = "1fr 150px 90px 200px";
 
   return (
     <div>
-      {/* Production filters + search + capture ride above the reference table. */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div
+      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 12 }}>
+        <FilterGroup
+          options={["all", "meeting", "mission", "prd", "manual"] as const}
+          value={source}
+          onChange={setSource}
+          labelOf={(s) => (s === "all" ? "All" : SOURCE_LABEL[s])}
+        />
+        <FilterGroup
+          options={["all", "pending", "approved", "rejected"] as const}
+          value={status}
+          onChange={setStatus}
+          labelOf={(s) => s}
+        />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search titles"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
           style={{
-            display: "flex",
-            gap: 2,
+            flex: 1,
+            minWidth: 160,
+            maxWidth: 240,
+            background: "var(--card)",
             border: "1px solid var(--hairline)",
-            borderRadius: 7,
-            padding: 2,
+            borderRadius: 8,
+            padding: "7px 10px",
+            fontSize: 12,
+            color: "var(--text-primary)",
           }}
-        >
-          {(["all", "meeting", "mission", "prd", "manual"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSource(s)}
-              className="mono-label"
-              style={{
-                fontSize: 9,
-                padding: "3px 10px",
-                borderRadius: 5,
-                background: source === s ? "var(--surface-2)" : "transparent",
-                color: source === s ? "var(--ink)" : "var(--ink-subtle)",
-              }}
-            >
-              {s === "all" ? "All" : SOURCE_LABEL[s]}
-            </button>
-          ))}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            gap: 2,
-            border: "1px solid var(--hairline)",
-            borderRadius: 7,
-            padding: 2,
-          }}
-        >
-          {(["all", "pending", "approved", "rejected"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatus(s)}
-              className="mono-label"
-              style={{
-                fontSize: 9,
-                padding: "3px 10px",
-                borderRadius: 5,
-                background: status === s ? "var(--surface-2)" : "transparent",
-                color: status === s ? "var(--ink)" : "var(--ink-subtle)",
-              }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-        <span style={{ position: "relative", flex: 1, minWidth: 160, maxWidth: 240 }}>
-          <Search
-            size={12}
-            style={{
-              position: "absolute",
-              left: 9,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--ink-faint)",
-            }}
-          />
-          <input
-            className="input"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search titles"
-            style={{ paddingLeft: 28, fontSize: 12 }}
-          />
-        </span>
-        <button className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
-          Log decision · the swarm reads it
-        </button>
+        />
+        <Button variant="secondary" onClick={() => setOpen(true)}>
+          Log decision
+        </Button>
       </div>
 
       {decisions.isLoading ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
-          <span className="spinner" />
-          <span className="mono-label" style={{ fontSize: 9 }}>
-            loading…
-          </span>
+        <div style={{ padding: "18px 2px" }}>
+          <MonoLabel>LOADING</MonoLabel>
         </div>
       ) : decisions.isError ? (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>decisions · failed to load</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            padding: "16px 18px",
+          }}
+        >
+          <MonoLabel style={{ marginBottom: 8 }}>Decisions · failed to load</MonoLabel>
+          <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
             {(decisions.error as Error).message}
           </p>
-          <button className="btn btn-ghost btn-sm" onClick={() => void decisions.refetch()}>
-            Retry · reloads the log
-          </button>
+          <Button variant="secondary" onClick={() => void decisions.refetch()}>
+            Retry
+          </Button>
         </div>
       ) : rows.length === 0 ? (
-        <EmptyState
-          icon={Gavel}
-          title="No decisions yet"
-          body="Decisions land here automatically when missions complete, specs are approved, or meeting transcripts are extracted. Or log one manually."
-          cta="Log decision · the swarm reads it"
-          onCta={() => setOpen(true)}
-        />
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid rgba(127,191,142,0.3)",
+            borderRadius: "var(--radius-card)",
+            padding: "28px 26px",
+          }}
+        >
+          <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 12px" }}>
+            Decisions land here automatically when missions complete, specs are approved, or meeting
+            transcripts are extracted. Or log one manually.
+          </p>
+          <Button variant="secondary" onClick={() => setOpen(true)}>
+            Log decision
+          </Button>
+        </div>
       ) : (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            overflow: "hidden",
+          }}
+        >
           <div
-            className="mono-label"
             style={{
               display: "grid",
               gridTemplateColumns: GRID,
               gap: 12,
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 9,
+              color: "var(--text-faint)",
+              textTransform: "uppercase",
             }}
           >
             <span>Decision</span>
             <span>Made by</span>
             <span>When</span>
             <span>Why</span>
-            <span></span>
           </div>
           {rows.map((d, i) => (
-            <div
+            <button
               key={d.id}
-              role="button"
-              tabIndex={0}
+              type="button"
               onClick={() =>
                 navigate({ to: "/knowledge", search: { tab: "decisions", decision: d.id } })
               }
-              onKeyDown={(e) => {
-                if (e.key === "Enter")
-                  navigate({ to: "/knowledge", search: { tab: "decisions", decision: d.id } });
-              }}
+              className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
@@ -286,17 +301,17 @@ export function DecisionsPanel() {
                 alignItems: "baseline",
                 borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
                 fontSize: 13,
-                width: "100%",
-                textAlign: "left",
-                cursor: "pointer",
+                background: "transparent",
+                border: "none",
               }}
             >
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                  <VerdictChip tone={STATUS_TONE[d.status]}>{d.status}</VerdictChip>
+                <span className="flex items-center" style={{ gap: 8, minWidth: 0 }}>
+                  <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
                   <span
                     style={{
                       fontWeight: 500,
+                      color: "var(--text-primary)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -306,26 +321,42 @@ export function DecisionsPanel() {
                   </span>
                 </span>
                 {d.status === "pending" ? (
-                  <span style={{ display: "flex", gap: 6, marginTop: 7 }}>
+                  <span className="flex" style={{ gap: 6, marginTop: 7 }}>
                     <button
-                      className="btn btn-approve btn-sm"
-                      style={{ fontSize: 10.5 }}
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         update.mutate({ id: d.id, status: "approved" });
                       }}
+                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--moss)",
+                        background: "transparent",
+                        border: "1px solid rgba(127,191,142,0.35)",
+                        borderRadius: 6,
+                        padding: "3px 9px",
+                      }}
                     >
-                      Approve · on record
+                      Approve
                     </button>
                     <button
-                      className="btn btn-reject btn-sm"
-                      style={{ fontSize: 10.5 }}
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         update.mutate({ id: d.id, status: "rejected" });
                       }}
+                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      style={{
+                        fontSize: 11,
+                        color: "var(--madder)",
+                        background: "transparent",
+                        border: "1px solid rgba(224,101,87,0.35)",
+                        borderRadius: 6,
+                        padding: "3px 9px",
+                      }}
                     >
-                      Reject · off record
+                      Send back
                     </button>
                   </span>
                 ) : null}
@@ -333,15 +364,20 @@ export function DecisionsPanel() {
               <span
                 style={{
                   fontSize: 12.5,
-                  color: d.decided_by_agent_slug ? "var(--agent)" : "var(--ink-muted)",
+                  color: d.decided_by_agent_slug ? "var(--glacier)" : "var(--text-muted)",
                 }}
               >
                 {displayWho(d.decided_by_agent_slug)}
               </span>
-              <span className="mono-label tabular-nums">{ageOf(d.created_at)}</span>
+              <span
+                className="tabular-nums"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+              >
+                {ageOf(d.created_at)}
+              </span>
               <span
                 style={{
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-subtle)",
                   fontSize: 12.5,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -353,8 +389,7 @@ export function DecisionsPanel() {
                     ? `${SOURCE_LABEL[(d.source_kind ?? "manual") as DecisionSource]} · ${d.source_label}`
                     : "")}
               </span>
-              <ChevronRight size={11} style={{ color: "var(--ink-faint)", alignSelf: "center" }} />
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -398,50 +433,65 @@ function LogDecisionDialog({
           <DialogTitle className="font-display" style={{ fontSize: 19, fontWeight: 460 }}>
             Log decision
           </DialogTitle>
-          <DialogDescription style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+          <DialogDescription style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
             Capture a choice that should outlive this week. The swarm reads these.
           </DialogDescription>
         </DialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
-              title
-            </div>
+            <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>title</MonoLabel>
             <input
-              className="input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What was decided?"
               maxLength={280}
               autoFocus
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                width: "100%",
+                background: "var(--card)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 8,
+                padding: "7px 10px",
+                fontSize: 13,
+                color: "var(--text-primary)",
+              }}
             />
           </div>
           <div>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
-              rationale · optional
-            </div>
+            <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>rationale · optional</MonoLabel>
             <textarea
-              className="input"
               value={rationale}
               onChange={(e) => setRationale(e.target.value)}
               placeholder="Why this, and not the alternative."
               rows={4}
               maxLength={2000}
-              style={{ resize: "vertical", minHeight: 84 }}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                width: "100%",
+                resize: "vertical",
+                minHeight: 84,
+                background: "var(--card)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 8,
+                padding: "7px 10px",
+                fontSize: 13,
+                color: "var(--text-primary)",
+              }}
             />
           </div>
         </div>
         <DialogFooter>
-          <button className="btn btn-ghost btn-sm" onClick={() => onOpenChange(false)}>
-            Cancel · nothing logged
-          </button>
-          <button
-            className="btn btn-primary btn-sm"
+          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="secondary"
             disabled={!title.trim() || submitting}
             onClick={() => onSubmit(title.trim(), rationale.trim())}
           >
-            {submitting ? "Logging…" : "Log · on record"}
-          </button>
+            {submitting ? "Logging…" : "Log decision"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
