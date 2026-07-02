@@ -114,3 +114,17 @@ Every ship: `bunx tsc --noEmit` 0, full `bun test` suite green throughout (2116 
 - All remaining open rows are 👤 founder-marked Gated (SANDBOX, WM-M9, BYO-P5, CMD (H2), RF-06, RF-07, AGT-01, AGT-02, DSN-05) — genuinely need a founder call, not a shortcut avoided.
 
 **This lane is stopping here for now** (not hard-stopping — no new claim taken, nothing left mid-build, everything closed/pushed/verified). Recommend the founder's first look in the morning: (1) AGT-03's scope call (safe to build solo, or does it need to wait for founder-attended chokepoint time like RF-03/JNY-02 did), (2) whether to greenlight Slack connector registration for JNY-05's remaining 15%, (3) DSN-04 stays blocked until BuildSpec exists.
+
+### 2026-07-03, ~25 min later — scheduled recheck, board confirmed still dry
+
+Woke on the scheduled long-poll. Picked up and committed a stray Prettier auto-format diff on tonight's own touched files first (line-wrap only, no behavior change, `tsc`/tests unaffected). Then re-synced and re-scanned.
+
+**Correction to the prior note:** DSN-04 was NOT actually blocked on `BuildSpec` — lane4 claimed and is building it now (globs show a new `design-parity.functions.ts`), presumably scoping the "lightweight parity check" half against the PRD's existing contract/tokens/flow directly rather than waiting on a formal `BuildSpec` object. My earlier read was too conservative; noted for next time — a blocked-looking row is worth a second look once a sibling lane actually starts it. AGT-03 is also now claimed (lane2), which validates it was buildable after all; a different lane scoped around the chokepoint-adjacency concern I flagged rather than confirming it was a real blocker either way.
+
+Re-verified every remaining `◐` row's own "NOT done" note fresh (not just re-trusted from the summary above), since a partial always has to be actually re-read, never assumed closed:
+- **OBS-10 `[~25%]`:** the remaining routes (`/product`, `/prds/$id`) still carry live capabilities (capture/bulk-import/cluster/promote/lineage, the full PRD editor) their Obsidian replacements don't have yet — folding them now would delete working features. Genuinely gated behind other Obsidian-port surfaces landing first, not a quick close.
+- **OBS-13 `[~30%]`:** the remainder is a visual redraw (the full §8 connection-card anatomy + a verdict-first redraw of 7 admin sub-pages) that needs pixel/token-accurate visual verification against `DESIGN-OBSIDIAN.md`. This worktree's `bun run dev`/`build` hits the known node20/ESM `lovable-tagger` failure, so there is no way to actually render and check a design pass here tonight — correctly deferred, not avoided.
+- **DSN-03 `[~20%]`:** confirmed again — needs `generateDesignScaffold` to persist a scaffold row before a second lineage edge has anything to point at; a real DEF-04-scope prerequisite, not built here.
+- **OBS-15, OBS-PORT:** unchanged, already confirmed no autonomous slice remains.
+
+Live claims at this recheck: DSN-04 (lane4), AGT-03 (lane2). `lane.sh next` still reports BOARD DRY. Every other open row is either one of the four `◐` above or 👤 founder-marked Gated. Nothing new to claim. Rescheduling another long-poll rather than hard-stopping.
