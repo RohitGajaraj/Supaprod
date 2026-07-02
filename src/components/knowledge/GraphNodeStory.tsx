@@ -21,6 +21,7 @@ import {
   type SupersessionStory,
 } from "@/lib/knowledge-graph-view";
 import { KIND_COLOR, KIND_LABEL } from "./GraphExplorer";
+import { GraphNodeActions } from "./GraphNodeActions";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
 
@@ -99,6 +100,8 @@ export function GraphNodeStory({
       >
         <Crosshair size={11} style={{ marginRight: 5 }} /> Center the graph here
       </button>
+
+      <GraphNodeActions node={node} />
 
       {story.isLoading ? (
         <p className="mono-label" style={{ fontSize: 9, marginTop: 10 }}>

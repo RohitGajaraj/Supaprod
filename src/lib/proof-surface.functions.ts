@@ -11,10 +11,15 @@
  * yet", never an invented figure.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { isSupersessionRelation } from "@/lib/trust-ledger.functions";
 import { trendOf, type Trend } from "@/lib/gauntlet-metrics";
+
+// `insights.resolution`/`kind` (FS-01) predate the generated types; same
+// relaxed-typing pattern as sink.server.ts / scout's targets.server.ts.
+const db = supabaseAdmin as unknown as SupabaseClient;
 
 const DAY_MS = 86_400_000;
 const WEEK_MS = 7 * DAY_MS;
@@ -117,24 +122,25 @@ async function computeSupersessionsCaught(): Promise<SupersessionsCaught> {
   return { total: active.length, last30d, trend: trendOf(last30d, prior30d) };
 }
 
-// FS-01 (prediction contracts + calibration, docs/strategy/v12-self-improving-os.md
-// §4.2) is mid-build on another lane as of this writing — no `predictions` table
-// exists yet and its exact shape may still change. Probe the planned shape and
-// degrade to "not enough data yet" on ANY error (not just a missing-relation
-// code): a schema mismatch during active development must never crash this
-// panel. Once FS-01 ships, this card starts reading real numbers automatically
-// if the shape matches, or needs a one-line column-name update if it doesn't.
+// FS-01 (prediction contracts + calibration) shipped after this file was first
+// written: `calibrate-tick` scores expired `insights` rows (kind in
+// prediction/risk) into `insights.resolution` ('hit'|'miss'|'inconclusive').
+// Reads workspace-wide via supabaseAdmin, matching this file's other two
+// metrics, and still degrades to "not enough data yet" on any error (a
+// pre-migration environment, or a future shape change) rather than throwing.
 async function computePredictionHitRate(): Promise<PredictionHitRate> {
   try {
-    const { data, error } = await supabaseAdmin
-      .from("predictions" as never)
-      .select("outcome")
-      .not("outcome", "is", null)
-      .limit(2000);
+    const { data, error } = await db
+      .from("insights")
+      .select("resolution")
+      .in("kind", ["prediction", "risk"])
+      .not("resolution", "is", null)
+      .neq("resolution", "inconclusive")
+      .limit(5000);
     if (error) return { rate: null, hits: 0, total: 0, tableReady: false };
-    const rows = (data ?? []) as { outcome: string }[];
+    const rows = (data ?? []) as { resolution: string }[];
     const total = rows.length;
-    const hits = rows.filter((r) => r.outcome === "hit").length;
+    const hits = rows.filter((r) => r.resolution === "hit").length;
     return { rate: total > 0 ? hits / total : null, hits, total, tableReady: true };
   } catch {
     return { rate: null, hits: 0, total: 0, tableReady: false };

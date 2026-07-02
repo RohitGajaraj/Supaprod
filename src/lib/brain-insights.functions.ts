@@ -9,6 +9,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { LineageEdgeLite } from "@/lib/trust-ledger.functions";
 import { callModel } from "@/lib/ai/runtime.server";
+import {
+  summarizeCalibration,
+  type CalibrationSummary,
+} from "@/lib/brain/calibrate-insights.server";
 
 export type BrainBeliefs = { standing: number; superseded: number };
 
@@ -526,4 +530,38 @@ Volunteer 2-4 signals. Each must be genuinely useful to the PM owning this data.
     }
 
     return { signals, sparse: signals.length === 0 };
+  });
+
+// ---------------------------------------------------------------------------
+// BRN-01 / FS-01: forecast calibration read. FS-01 shipped the write side
+// (calibrate-tick scores expired predictions/risks into `insights.resolution`)
+// but no read-side server fn yet; this is that fn, reused by the Brain graph's
+// compounding strip and by the proof surface (PRF-01, `/admin/proof`).
+
+export type ForecastCalibration = {
+  prediction: CalibrationSummary;
+  risk: CalibrationSummary;
+};
+
+export const getForecastCalibration = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ForecastCalibration> => {
+    const supabase = context.supabase as SupabaseClient;
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
+    if (!workspaceId) {
+      const empty = {
+        kind: "prediction" as const,
+        resolved: 0,
+        hits: 0,
+        hitRate: null,
+        recentLabel: "Not enough resolved calls yet",
+      };
+      return { prediction: empty, risk: { ...empty, kind: "risk" } };
+    }
+    const [prediction, risk] = await Promise.all([
+      summarizeCalibration(supabase, workspaceId, "prediction"),
+      summarizeCalibration(supabase, workspaceId, "risk"),
+    ]);
+    return { prediction, risk };
   });

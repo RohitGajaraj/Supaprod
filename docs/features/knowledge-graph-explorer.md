@@ -77,6 +77,24 @@ Dormant-safe by construction: with zero supersession edges (the current state un
 - **Unit (`bun:test`) on the pure core:** node typing, degree/influence, bounding (`MAX_NODES` / `MAX_DEPTH` + `truncated`), the time filter, supersession-edge classification, the supersession-story builder (direction + ordering + dedup + fail-safe), deterministic layout, and the fail-safe empties.
 - **Server fn + UI:** `tsc --noEmit` + `bun run build` green; live-verify on publish (so the row lands `partial`).
 
+## BRN-01: the operable brain (shipped 2026-07-02, lane3)
+
+> Note: the live graph pair (`GraphCanvasView.tsx` and friends) reads from `src/lib/knowledge-graph-view.ts` / `.functions.ts`, a later module the sections above still name `knowledge-graph-explorer.*` (a separate, older pair that still exists in the repo). Not reconciled here; out of scope for this slice.
+
+Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §5.2: the graph rendered but did not operate. BRN-01 makes it operable, additive on the existing surface, no new nav, no schema change.
+
+- **Object-card actions** (`GraphNodeActions.tsx`, wired into `GraphNodeStory.tsx` below "Center the graph here"): one-click buttons that dispatch real work through the existing loop, kind-gated:
+  - `decision`: **Reopen** (`updateDecision` status -> `pending`) and **Share receipt** (reuses `getDecisionShareState` / `setDecisionShared`, the same public `/d/$slug` mechanism as `DecisionDetail.tsx`).
+  - `opportunity` / `prd`: **Run the Critic** (`runCriticReview`), toasts the verdict.
+  - every kind: **Start a mission from this** (`startOrchestratedMission`, goal seeded from the node's title), then deep-links to `/build?mission=<id>`.
+  - `watch this assumption` (FS-02) is intentionally not built: neither an `assumption` graph-node kind nor FS-02 itself exists yet (`GRAPH_NODE_KINDS` in `knowledge-graph-view.ts` has 9 kinds, none of them `assumption`/`outcome`/`learning`/`precedent`/`design token`). Adding those is a real ontology change, not a button; flagged as a follow-up, not silently faked.
+- **Contradiction hotspots overlay** (`GraphExplorer.tsx`): reuses the already-computed `computeContradictionDrift(graph).driftedKeys` (no new query) as a `hotKeys` prop; a small madder dot badges a node whose newest edge just revised it.
+- **The compounding metrics strip + growth read** (`GraphCompoundingStrip.tsx`, rendered above the canvas): composes `getMemoryCompounding` + `getMemoryLift` (both already shipped, Gauntlet) with the canvas's own `revisedCount` (supersessions caught, zero new query) and a new `getForecastCalibration` read (`src/lib/brain-insights.functions.ts`, a thin wrapper over FS-01's `summarizeCalibration` that FS-01 shipped without a read-side server fn). A weekly node-growth mini-bar is computed client-side from the already-fetched `graph.nodes[].createdAt`, no new query.
+- **Recall warmth overlay: not built.** Honest gap, not a scope cut hidden in the code: "which memories actually get recalled" needs a `last_used_at`-style counter per graph node, and today's graph nodes are `artifact_lineage` rows (signal/theme/opportunity/prd/...), not `agent_memory` rows, so there is no recall-frequency signal to read yet. Faking one (e.g. reusing edge count as a warmth proxy) would be exactly the invented number the humanized-output convention bans. Follow-up: instrument recall on the artifact kinds the graph shows, then wire the overlay for real.
+- **`getForecastCalibration` also retroactively fixes PRF-01**: the proof surface's FS-01 hit-rate card originally probed a guessed `predictions` table (FS-01 was mid-build when PRF-01 shipped); now that FS-01's real shape is known (`insights.resolution`), `proof-surface.functions.ts`'s `computePredictionHitRate` reads the real column directly (workspace-wide via `supabaseAdmin`, matching that file's other two metrics) rather than duplicating `getForecastCalibration`'s per-workspace scope.
+
+Gate: `tsc --noEmit` 0, `bun test` 2017 pass, lint clean on every touched file. No migration.
+
 ## Gate
 
 `bunx tsc --noEmit` + `bun run build` + the projector tests, all green -> adversarial self-review (RLS scope, SVG title-escaping, fail-safe paths) -> doc-loop -> commit explicit paths with a WHY -> fast-forward push.
