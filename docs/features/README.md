@@ -39,7 +39,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | DBR (H1) | The Decision Brain (typed decision knowledge graph; the moat engine) | 📋 Horizon bet 2026-06-20 · TOPMOST priority | engine + Brain surface (`/chat`, `/memory`) | [`decision-brain.md`](./decision-brain.md) |
 | DBR · inc 1 | Ambient Precedent (cross-platform proactive decision-precedent nudge) | 📋 Design spec 2026-06-20 (founder-approved; build next) | opportunity / spec / Critic seams (v1) | [`ambient-precedent.md`](./ambient-precedent.md) |
 | CMD (H2) | The Command Canvas (NL command bar + live preview) | 📋 Horizon bet 2026-06-20 · sequenced behind H1 | `⌘K` + canvas pane | [`command-canvas.md`](./command-canvas.md) |
-| SIGNAL-FABRIC | Signal Fabric & Sense Engine (outside-in + inside-out signal ingestion → "Focus on this next") | 🔨 In build 2026-06-30 (Lane 1; Phase 0 keystone) · founder-directed via `/plan` | Today (`/`) · `/product?tab=signals` · `/sync` | [`signal-fabric.md`](./signal-fabric.md) |
+| SIGNAL-FABRIC | Signal Fabric & Sense Engine (outside-in + inside-out signal ingestion → "Focus on this next" → weekly strategy briefs) | ✅ Phases 0-4 shipped (Phase 4 / JNY-01 2026-07-02, lane3) | Today (`/`) · `/product?tab=signals` · `/product?tab=strategy` · `/sync` | [`signal-fabric.md`](./signal-fabric.md) |
 | C4/E7 | Agent inspector (run history) | ◐ Core shipped 2026-06-18 | `/missions?tab=agents` | [`c4-e7-agent-inspector.md`](./c4-e7-agent-inspector.md) |
 | P7 | Incidents log (read-only) | ✅ Shipped 2026-06-20 | `/govern?tab=incidents` | [`p7-incidents.md`](./p7-incidents.md) |
 | R3 | Notifications (in-app Attention feed) | ✅ Shipped 2026-06-20 | `/govern?tab=attention` | [`r3-notifications.md`](./r3-notifications.md) |

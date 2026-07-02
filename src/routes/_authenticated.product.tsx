@@ -27,6 +27,7 @@ import { ReleasesPanel } from "@/components/product/ReleasesPanel";
 import { AnnouncementsManager } from "@/components/product/AnnouncementsManager";
 import { RoadmapBoard } from "@/components/product/RoadmapBoard";
 import { PortfolioBoard } from "@/components/product/PortfolioBoard";
+import { StrategyPanel } from "@/components/product/StrategyPanel";
 
 // v6 Phase 0 / W1: the Roadmap (sprint planner + capacity) and Tasks (To-Do/
 // Doing/Done kanban) tabs are deleted — they wear the clothes of a human-PM
@@ -35,7 +36,11 @@ import { PortfolioBoard } from "@/components/product/PortfolioBoard";
 // decomposed dependency graph, later. The `tasks` TABLE stays (Today's capture
 // list reads it); only the product-tab kanban + sprint planner are gone.
 // /roadmap + /tasks routes now redirect away (see those route files).
-type Tab = "signals" | "opportunities" | "roadmap" | "specs" | "releases";
+// JNY-01: adds a 6th tab, Strategy — the first visible surface for the
+// scout_targets watch list + competitor-tick's weekly briefs (both shipped
+// dark until now). Additive only; the 5 tabs above stay byte-identical to
+// the design-reference port.
+type Tab = "signals" | "opportunities" | "roadmap" | "specs" | "releases" | "strategy";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "signals", label: "Signals" },
@@ -43,6 +48,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "roadmap", label: "Roadmap" },
   { id: "specs", label: "Specs" },
   { id: "releases", label: "Releases" },
+  { id: "strategy", label: "Strategy" },
 ];
 
 // PRODUCT_DESC from the reference; Builder → Studio → Build per the
@@ -55,6 +61,7 @@ const PRODUCT_DESC: Record<Tab, string> = {
     "Commit opportunities to Now, Next, or Later with an outcome and a measure. ICE orders within each bucket.",
   specs: "Product requirement docs. Draft from a brief, hand off to GitHub or Build.",
   releases: "Build sessions that completed end-to-end, with duration and cost.",
+  strategy: "Tracked competitors and platform shifts, summarized weekly.",
 };
 
 export const Route = createFileRoute("/_authenticated/product")({
@@ -132,6 +139,7 @@ function ProductPage() {
             <ReleasesPanel />
           </>
         )}
+        {tab === "strategy" && <StrategyPanel />}
       </div>
     </>
   );
