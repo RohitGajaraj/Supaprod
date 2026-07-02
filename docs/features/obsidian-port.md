@@ -1,4 +1,4 @@
-# OBS-PORT (G14) — The Obsidian v3 port: how to verify, per ID
+# OBS-PORT (G14) · The Obsidian v3 port: how to verify, per ID
 
 > Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`../planning/obsidian-port-plan.md`](../planning/obsidian-port-plan.md)
 
@@ -41,8 +41,8 @@ Founder doctrine ruling 2026-07-02 (see `plan.md` §4 and `docs/strategy/session
 
 ---
 
-## OBS-02 · App shell — pending
+## OBS-02 · App shell: pending
 
-## OBS-03 · Core primitives — pending
+## OBS-03 · Core primitives: pending
 
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._
