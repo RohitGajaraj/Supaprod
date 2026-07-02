@@ -293,6 +293,12 @@ The Call surface: `getNeedsYou` (`src/lib/today.functions.ts`) gained a 4th `ass
 
 **Gates:** `bunx tsc --noEmit` 0 new errors (the same 4 pre-existing `stripe` package-missing errors). `bun test`: 2019 tests, 8 new (all pass, covering `deriveWatchVerdict`'s index-safety branches), 0 regressions. Dashboard row 18 flipped to ✅, tally recomputed, `plan.md` updated in the same session. Lane claim released via `lane.sh done FS-02`.
 
+### 2026-07-02 22:10 (OBS-11 command palette + capability catalog shipped, lane1)
+
+Rewrote `CommandPalette.tsx` from the parchment cmdk-based palette to the glass ⌘K palette on Radix `Dialog`. Four sections (JUMP/ACT/ASK/CATALOG) over one keyboard-navigable row list; new pure modules `palette-catalog.ts` (10 seeded capabilities + `filterCatalog`), `palette-sections.ts` (JUMP destinations mirroring `nav-model.ts`, ACT verbs), `palette-recents.ts` (client-only sessionStorage recents, no server fn). Zero lucide, zero `cmdk` in this file (package itself still used elsewhere, untouched). `GotoShortcuts` needed no fix since OBS-10 already corrected the underlying route map it reads.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 2032/2032 pass (9 new). Claim released.
+
 ### 2026-07-02 21:40 (OBS-10 IA consolidation shipped-partial, lane1)
 
 Closed OBS-10 to the extent it can be closed without doing feature work. Built `src/lib/legacy-redirects.ts` (the fold-target map + `CANONICAL_PATHS`/`DOOR_INTERNAL_PATHS`) and its test, reshaped `nav-model.ts` (Discover/Plan/Engine-Room-door now target their real routes, not the interim `/product?tab=`/`/govern`), re-pointed the CommandPalette's Navigate entries, and fixed Today's `LOOP_SURFACE_TO` map (its own LoopStrip pills were still silently pointing at `/product` after OBS-06/07 shipped).

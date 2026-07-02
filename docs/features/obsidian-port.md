@@ -329,4 +329,33 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
+## OBS-11 · ⌘K command palette + capability catalog (✅ 2026-07-02, lane1)
+
+**What shipped:** `src/components/cadence/CommandPalette.tsx` fully rewritten as the glass ⌘K palette, superseding the parchment cmdk-based one. Built on Radix `Dialog` (the same primitive `SlideOver.tsx` already vendors for the mission slide-over's focus-trap contract) rather than a hand-rolled trap. Four mono-caps sections in order - JUMP, ACT, ASK, CATALOG - over one flattened, arrow-key-navigable row list; `Enter` runs the active row, `Esc`/scrim-click closes, `⌘K`/`Ctrl+K` toggles, and the existing `cadence:open-cmdk` window event still opens it (the rail's "Jump to" affordance keeps working unchanged).
+
+**New pure modules (no JSX, no server import, unit-tested without React):**
+
+- `src/lib/palette-catalog.ts` - `CatalogEntry` type + `CATALOG` (10 seeded capabilities, each a plain-words pitch and a `run` target that is either a route or a client event, never a server call) + `filterCatalog(query)` (case-insensitive substring match, stable order).
+- `src/lib/palette-sections.ts` - `JUMP_DESTINATIONS` (mirrors `nav-model.ts`'s `PRIMARY_NAV` five canonical routes verbatim, read-only) and `ACT_VERBS` (Challenge a belief, Connect a source, Answer the current Call, Ask about this screen).
+- `src/lib/palette-recents.ts` - a client-only recents helper (`sessionStorage`, key `cadence:recents`, capped at 3, deduped by id). No recents source existed before this; per the spec's own risk note, shipping an empty/small recents slot is acceptable, adding a server fn for it is not.
+
+**Behavior:** empty query shows the 5 JUMP destinations plus up to 3 recents; typing filters JUMP/ACT/ASK/CATALOG live against the same query. Selecting a JUMP or CATALOG row navigates and closes the palette; selecting ACT/ASK dispatches a `window` `CustomEvent` (e.g. `cadence:open-ask`) before closing. The ASK row and the "Ask about this screen" ACT verb both fall back to `navigate({ to: "/today" })` since OBS-12 (the Ask panel) has not shipped yet and has no listener - the row is never a dead end. `GotoShortcuts` (same file, unchanged export) needed no route-map fix: OBS-10 had already corrected `nav-model.ts`'s `PRIMARY_NAV`/`ENGINE_ROOM_DOOR` to the canonical five + `/engine-room`, and `GotoShortcuts` reads those directly.
+
+**Restructuring:** deleted all 13 `lucide-react` icon imports and every `cmdk` `Command.*` usage from this file (the file now imports zero lucide). Confirmed `cmdk` the package is still genuinely used elsewhere (`src/components/ui/command.tsx`, consumed by `ProductBindingPicker.tsx`/`BindingPicker.tsx`), so only this file's usage was removed - the package itself was left untouched, per the spec's explicit scope boundary.
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout - this worktree hits the known node20/ESM `lovable-tagger` failure, confirmed again this session), press `⌘K`/`Ctrl+K` from any authenticated surface.
+2. Empty query: JUMP shows Today/Discover/Plan/Build/Brain with hints 1-5; up to 3 recents follow once any exist.
+3. Type a verb ("challenge", "connect", "ask") and confirm ACT/ASK rows appear; type a catalog word ("belief", "signals", "spend") and confirm a CATALOG row with a "Try it" action appears.
+4. Arrow keys move the active row (wrapping both directions); the active row shows `#1A1A1E` background, an ember mono index, and the glacier focus outline. `Enter` runs it.
+5. Type a nonsense string and confirm the exact instruction copy renders, never a blank panel.
+6. Confirm `Esc`, scrim click, and running any row all close the palette, and that the rail's own "Jump to" trigger (`cadence:open-cmdk`) still opens it.
+
+**Test-coverage note:** the component itself (Radix Dialog, keyboard wiring, DOM rendering) is not unit-tested - this repo has no jsdom/React-Testing-Library dependency, the same constraint every other Obsidian component doc in this file documents. All the pure logic it depends on (`filterCatalog`, the five-destination invariant, every catalog/JUMP route's validity, `ACT_VERBS` non-emptiness) is covered in `palette-catalog.test.ts`.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 2032/2032 pass (9 new) · humanized-output clean (zero em/en dashes, no banned words) · `cmdk`/lucide grep clean on the rewritten file.
+
+---
+
 _Sections are appended here as each ID ships, with the prototype-parity screenshots noted per the bible's 8-point checklist._
