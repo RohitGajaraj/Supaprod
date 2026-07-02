@@ -1,0 +1,246 @@
+/**
+ * OBS-05: the Build mission slide-over (depth 2). Consumes the OBS-03 `SlideOver` +
+ * `CallCard` chassis; the one mutation it calls is the pre-existing `decideApproval`
+ * (the same fn `ApprovalCard.tsx` calls) · answering a gate here invalidates the
+ * Today Call queue + the mission list so the decision ripples everywhere at once.
+ *
+ * Trace data gap (spec §13, pre-authorized, not a fabrication): `LoopStep` carries
+ * neither a per-step timestamp nor a per-step cost, only the prototype's static
+ * sample does. The trace toggle below renders the real tool/thought/final steps
+ * and their real status; it omits the timestamp and per-hop-cost columns the
+ * prototype shows rather than inventing values the data contract doesn't have.
+ */
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { SlideOver } from "./slideover";
+import { CallCard } from "./callcard";
+import { StatusDot, STATUS_WORD } from "./status";
+import { MonoLabel } from "./primitives";
+import { useToast } from "./toast";
+import {
+  studioToStatusState,
+  findPendingApproval,
+  stepDotState,
+  stepDescription,
+  gateTitle,
+  gateConsequence,
+} from "./build-status";
+import { getStudioSession, type StudioApproval } from "@/lib/studio.functions";
+import { decideApproval } from "@/lib/agent_loop.functions";
+import { fmtCost } from "@/components/studio/studio-format";
+import type { LoopStep } from "@/lib/ai/loop.server";
+
+export function MissionSlideOver({
+  missionId,
+  onClose,
+}: {
+  missionId: string | null;
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const showToast = useToast();
+  const fGet = useServerFn(getStudioSession);
+  const fDecide = useServerFn(decideApproval);
+  const [traceOpen, setTraceOpen] = useState(false);
+
+  useEffect(() => {
+    setTraceOpen(false);
+  }, [missionId]);
+
+  const session = useQuery({
+    queryKey: ["studio-session", missionId],
+    queryFn: () => fGet({ data: { missionId: missionId! } }),
+    enabled: !!missionId,
+    refetchInterval: 4000,
+  });
+
+  const decide = useMutation({
+    mutationFn: (vars: { approvalId: string; decision: "approve" | "reject" }) =>
+      fDecide({ data: vars }),
+    onSuccess: (_r, vars) => {
+      showToast(
+        vars.decision === "approve"
+          ? "Good call. The PR is open."
+          : "Sent back. It is revising now.",
+      );
+      qc.invalidateQueries({ queryKey: ["needs-you"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["studio-sessions"] });
+      qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
+    },
+  });
+
+  const data = session.data;
+  const mission = data?.mission as { title: string; status: string } | undefined;
+  const approvals = (data?.approvals ?? []) as StudioApproval[];
+  const pendingApproval = findPendingApproval(approvals) ?? null;
+  const runs = data?.runs ?? [];
+  const latestRun = runs.length ? runs[runs.length - 1] : null;
+  const steps: LoopStep[] = latestRun?.steps ?? [];
+  const totalCost = data?.total_cost_usd ?? 0;
+  // The run's own status (agent_runs), not mission.status (missions): the two
+  // are disjoint vocabularies (missions.status uses "blocked" for a
+  // gate-waiting mission, never "waiting_approval") and answering a gate only
+  // updates agent_approvals immediately, missions.status catches up on the
+  // next resume-runs cron tick (~60s) — reading mission.status here showed a
+  // false "SHIPPED" for up to a minute after every gate answer, including a
+  // reject (adversarial review finding). `run_status ?? status` mirrors
+  // exactly how BuildMissionRow derives the same mission's state, so the row
+  // and the slide-over never disagree.
+  const rawStatus = latestRun?.status ?? mission?.status ?? "queued";
+  const headerState = studioToStatusState(rawStatus, pendingApproval ? 1 : 0);
+
+  return (
+    <SlideOver
+      open={!!missionId}
+      onClose={onClose}
+      title={mission?.title ?? "Mission"}
+      footer="Every hop cites the memory it drew on · Esc closes"
+    >
+      {!mission ? (
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading mission…</p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <MonoLabel tone="muted">MISSION</MonoLabel>
+            <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
+            <span
+              className="ml-auto"
+              style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-faint)" }}
+            >
+              {fmtCost(totalCost)}
+            </span>
+          </div>
+
+          {missionId ? (
+            <Link
+              to="/build/$missionId"
+              params={{ missionId }}
+              style={{
+                alignSelf: "flex-start",
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.08em",
+                color: "var(--text-subtle)",
+                textDecoration: "none",
+              }}
+            >
+              Open full view →
+            </Link>
+          ) : null}
+
+          <div className="flex flex-col gap-2">
+            {steps.map((step, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    color: "var(--text-faint)",
+                    width: 20,
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <StatusDot
+                  state={stepDotState(step, approvals)}
+                  word={STATUS_WORD[stepDotState(step, approvals)]}
+                  style={{ width: 84, flexShrink: 0 }}
+                />
+                <span
+                  className="min-w-0 flex-1 truncate"
+                  style={{ fontFamily: "var(--font-ui)", fontSize: 13, color: "var(--text-body)" }}
+                >
+                  {stepDescription(step)}
+                </span>
+                {/* Real, not a placeholder: getStudioSession filters runs to
+                    agent_slug "builder" only, so every step in this array IS
+                    the builder agent's own step; there is no per-step agent
+                    variance to read from the data. */}
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 8,
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  BUILDER
+                </span>
+              </div>
+            ))}
+            {steps.length === 0 ? (
+              <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>No steps recorded yet.</p>
+            ) : null}
+          </div>
+
+          {pendingApproval ? (
+            <CallCard
+              compact
+              kind={pendingApproval.tool_name}
+              expiry={
+                pendingApproval.expires_at
+                  ? `Expires ${pendingApproval.expires_at.slice(0, 16).replace("T", " ")}`
+                  : "No expiry"
+              }
+              title={gateTitle(pendingApproval.tool_name)}
+              body={pendingApproval.rationale ?? `Approve to run ${pendingApproval.tool_name}.`}
+              ev={
+                pendingApproval.rationale ? [{ src: "WHY", text: pendingApproval.rationale }] : []
+              }
+              okLabel={decide.isPending ? "Deciding…" : "Approve"}
+              noLabel="Send back"
+              consequence={gateConsequence(pendingApproval.tool_name)}
+              onOk={() => decide.mutate({ approvalId: pendingApproval.id, decision: "approve" })}
+              onNo={() => decide.mutate({ approvalId: pendingApproval.id, decision: "reject" })}
+            />
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setTraceOpen((v) => !v)}
+            style={{
+              alignSelf: "flex-start",
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              letterSpacing: "0.1em",
+              color: "var(--glacier)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textTransform: "uppercase",
+            }}
+          >
+            {traceOpen ? "Hide the raw trace" : "Show the raw trace →"}
+          </button>
+          {traceOpen ? (
+            <div
+              style={{
+                backgroundColor: "#0B0B0D",
+                borderRadius: "var(--radius-control)",
+                padding: 12,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              {steps.map((step, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  {step.kind} · {stepDescription(step)}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </SlideOver>
+  );
+}

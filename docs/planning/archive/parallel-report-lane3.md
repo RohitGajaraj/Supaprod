@@ -57,3 +57,21 @@ Board was genuinely dry for autonomous Tier-1/3 work (all 8 eligible items hard-
 Once OBS-02 shipped (lane1) and released its broad `src/routes/_authenticated.*.tsx` claim, re-claimed `BYO-P5` for just `_authenticated.admin.platform.tsx` and wired `HostingPocPanel` (Product picker + deploy button + live-URL link, mirrors `DeployPanel`). Gates: tsc 0 / bun test 1901/1901. P5b is now fully complete; BYO-P5 stays ◐ overall (P5c onward needs the founder's own Cloudflare/Supabase account, explicitly gated — not this lane's call to proceed on unprompted).
 
 Marked `lane.sh done BYO-P5` (no autonomous slice remains for this lane right now). Returning to the mechanical loop.
+
+## 2026-07-02 18:35 — OBS-05: Build ported to Obsidian (mission rows + slide-over)
+
+Picked OBS-05 next in rank once OBS-02/OBS-03 both shipped and unblocked the whole OBS-04..09 tier. Full detail in `docs/planning/byo-p5-managed-runtime-plan.md`... wait, wrong doc — see `plan.md`'s 2026-07-02 OBS-05 entry and the dashboard row for the complete writeup.
+
+**Adversarial review (3 lenses) — 4 real findings, 1 critical, all fixed:**
+1. **Critical (correctness):** slide-over header read `missions.status`, row read `agent_runs.status` — disjoint vocabularies. `missions.status="blocked"` (the real gate-waiting value, never `"waiting_approval"`) fell through every branch of my mapping to a false "SHIPPED" for up to ~60s after every gate answer, including a reject. Fixed: derive from the latest run's status instead, hardened both mapping fns against `blocked`/`cancelled`/`completed_with_failures`/`proposed`/unknown (all now fail safe to "queued", never "done"). 2 new regression tests lock this exact scenario.
+2. **Design:** Start button was ember (restraint-budget violation — only the gate's Approve should be ember on this screen). Fixed to neutral `--surface-raised`.
+3. **Design:** gate-consequence copy drifted from the spec's exact middot-separated string. Fixed verbatim.
+4. **Accessibility:** step dots had `word=""` + `aria-hidden`, zero status indication for screen readers. Fixed to carry the real `STATUS_WORD`.
+
+**Self-caught mid-build:** a `perl -CSD` encoding slip mojibake-corrupted middots to `Â·` across 4 files during a humanized-output cleanup pass; caught by my own follow-up grep before the adversarial review ran, fixed cleanly with Python.
+
+**Gates:** tsc 0 / bun test 1936/1936 (153 files, 50 obsidian-scoped). Committed + pushed to main; claim released (OBS-05 → ✅). Dashboard tally: 242/292 = 82.9% strict / 243.50/292 = 83.4% weighted.
+
+**Note:** received a duplicate/stale replay of an earlier BYO-P5 instruction mid-session (that work was already committed, pushed, and verified several turns prior) — confirmed via `git log`/`git grep` before taking any action, did not redo it.
+
+**Returning to the lane loop:** checking `lane.sh next` for the next eligible OBS surface (OBS-06 is claimed by lane2; OBS-07/08/09 or the v12 front items are candidates).
