@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
 import { getNeedsYou, getLoopPulse } from "@/lib/today.functions";
 import { resolveApproval } from "@/lib/governance.functions";
+import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { rescoresOf } from "@/lib/moat-vis";
 import { listAgentRuns } from "@/lib/agents.functions";
@@ -91,6 +92,7 @@ function Dashboard() {
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
   const mResolveApproval = useServerFn(resolveApproval);
+  const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
   const mBrief = useServerFn(generateDailyBrief);
   const recordRitual = useServerFn(recordRitualSession);
 
@@ -151,7 +153,10 @@ function Dashboard() {
 
   const ny = needsYou.data;
   const callCount =
-    (ny?.approvals.length ?? 0) + (ny?.prdCalls.length ?? 0) + (ny?.oppCalls.length ?? 0);
+    (ny?.approvals.length ?? 0) +
+    (ny?.prdCalls.length ?? 0) +
+    (ny?.oppCalls.length ?? 0) +
+    (ny?.assumptionCalls.length ?? 0);
 
   // The parchment "Not now" session-local defer is explicitly retired, not
   // silently carried over: the Obsidian Call object model (OBS-04.md hub
@@ -160,6 +165,7 @@ function Dashboard() {
   const visibleApprovals = ny?.approvals ?? [];
   const visiblePrd = ny?.prdCalls ?? [];
   const visibleOpp = ny?.oppCalls ?? [];
+  const visibleAssumption = ny?.assumptionCalls ?? [];
 
   const [clearedSession, setClearedSession] = useState(0);
   const decideApproval = useMutation({
@@ -182,6 +188,21 @@ function Dashboard() {
   });
   const decide = (id: string, ok: boolean) =>
     decideApproval.mutate({ approvalId: id, decision: ok ? "approved" : "rejected" });
+
+  // FS-02: a separate mutation — resolveAssumptionChallenge, not resolveApproval,
+  // since a challenge id is not an approval id.
+  const decideChallenge = useMutation({
+    mutationFn: (data: { id: string; action: "confirm" | "dismiss" }) => mResolveChallenge({ data }),
+    onSuccess: (_res, vars) => {
+      for (const key of ["needs-you", "decisions"]) qc.invalidateQueries({ queryKey: [key] });
+      showToast(
+        vars.action === "confirm"
+          ? "Reopened for review. The decision is back in your queue."
+          : "Still holds. No change made.",
+      );
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
 
   // OBS-04.md §5 step 11: A/S answer the current (first-rendered) Call.
   // Ignored inside inputs/textareas and when a modifier is held — the 1-5/g
@@ -384,6 +405,21 @@ function Dashboard() {
                     consequence="Opens the pull request · nothing ships without you"
                     onOk={() => decide(a.id, true)}
                     onNo={() => decide(a.id, false)}
+                  />
+                ))}
+                {visibleAssumption.map((c) => (
+                  <CallCard
+                    key={c.id}
+                    kind="WORTH RE-EXAMINING?"
+                    expiry=""
+                    title={c.decisionTitle}
+                    body={`${c.assumptionStatement}. ${c.rationale}`}
+                    ev={c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : []}
+                    okLabel="Re-examine"
+                    noLabel="Still holds"
+                    consequence="Reopens the decision for review · nothing changes without you"
+                    onOk={() => decideChallenge.mutate({ id: c.id, action: "confirm" })}
+                    onNo={() => decideChallenge.mutate({ id: c.id, action: "dismiss" })}
                   />
                 ))}
               </>

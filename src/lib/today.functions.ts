@@ -51,6 +51,16 @@ export type NeedsYou = {
     critic_review: CriticReview | null;
     created_at: string;
   }[];
+  /** FS-02: open assumption-supersession challenges — a signal or learning
+   *  that appears to contradict a standing assumption behind a past decision. */
+  assumptionCalls: {
+    id: string;
+    decisionTitle: string;
+    assumptionStatement: string;
+    rationale: string;
+    evidenceText: string | null;
+    created_at: string;
+  }[];
   spendTodayUsd: number;
   /** Median minutes from gate raised to human decision, last 7 days.
    *  Null until at least one gate has been decided. Backs the Today
@@ -67,7 +77,15 @@ export const getNeedsYou = createServerFn({ method: "GET" })
 
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [approvals, prds, opps, events, decided] = await Promise.all([
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    const workspaceId = (member?.workspace_id as string | undefined) ?? null;
+
+    const [approvals, prds, opps, events, decided, challenges] = await Promise.all([
       supabase
         .from("agent_approvals")
         .select("id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id")
@@ -99,6 +117,15 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         .not("decided_at", "is", null)
         .gte("decided_at", weekAgo)
         .limit(200),
+      workspaceId
+        ? supabase
+            .from("assumption_challenges")
+            .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+            .eq("workspace_id", workspaceId)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
     ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(
@@ -159,10 +186,83 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         a.trace_id && costByTrace.has(a.trace_id) ? (costByTrace.get(a.trace_id) ?? null) : null,
     }));
 
+    // FS-02: hydrate each open challenge with the assumption's statement, the
+    // decision it stands under, and a short line naming the contradicting
+    // signal/learning — one batched round trip per kind, best-effort (a
+    // challenge that fails to hydrate is dropped, never shown half-blank).
+    const challengeRows = (challenges.data ?? []) as {
+      id: string;
+      assumption_id: string;
+      signal_id: string | null;
+      learning_id: string | null;
+      rationale: string;
+      created_at: string;
+    }[];
+    let assumptionCalls: NeedsYou["assumptionCalls"] = [];
+    if (challengeRows.length > 0) {
+      const assumptionIds = [...new Set(challengeRows.map((c) => c.assumption_id))];
+      const { data: assumptionRows } = await supabase
+        .from("assumptions")
+        .select("id,statement,decision_id")
+        .in("id", assumptionIds);
+      const assumptionById = new Map(
+        ((assumptionRows ?? []) as { id: string; statement: string; decision_id: string }[]).map(
+          (a) => [a.id, a],
+        ),
+      );
+      const decisionIds = [...new Set([...assumptionById.values()].map((a) => a.decision_id))];
+      const { data: decisionRows } = decisionIds.length
+        ? await supabase.from("decisions").select("id,title").in("id", decisionIds)
+        : { data: [] as { id: string; title: string }[] };
+      const decisionTitleById = new Map(
+        ((decisionRows ?? []) as { id: string; title: string }[]).map((d) => [d.id, d.title]),
+      );
+
+      const signalIds = [
+        ...new Set(challengeRows.map((c) => c.signal_id).filter((x): x is string => !!x)),
+      ];
+      const learningIds = [
+        ...new Set(challengeRows.map((c) => c.learning_id).filter((x): x is string => !!x)),
+      ];
+      const [signalRows, learningRows] = await Promise.all([
+        signalIds.length
+          ? supabase.from("signals").select("id,title,content").in("id", signalIds)
+          : Promise.resolve({ data: [] as { id: string; title: string | null; content: string }[] }),
+        learningIds.length
+          ? supabase.from("learnings").select("id,summary").in("id", learningIds)
+          : Promise.resolve({ data: [] as { id: string; summary: string }[] }),
+      ]);
+      const evidenceTextById = new Map<string, string>();
+      for (const s of (signalRows.data ?? []) as { id: string; title: string | null; content: string }[]) {
+        evidenceTextById.set(s.id, s.title || s.content.slice(0, 140));
+      }
+      for (const l of (learningRows.data ?? []) as { id: string; summary: string }[]) {
+        evidenceTextById.set(l.id, l.summary.slice(0, 140));
+      }
+
+      assumptionCalls = challengeRows
+        .map((c) => {
+          const assumption = assumptionById.get(c.assumption_id);
+          if (!assumption) return null;
+          const decisionTitle = decisionTitleById.get(assumption.decision_id) ?? "A past decision";
+          const evidenceId = c.signal_id ?? c.learning_id;
+          return {
+            id: c.id,
+            decisionTitle,
+            assumptionStatement: assumption.statement,
+            rationale: c.rationale,
+            evidenceText: evidenceId ? (evidenceTextById.get(evidenceId) ?? null) : null,
+            created_at: c.created_at,
+          };
+        })
+        .filter((c): c is NeedsYou["assumptionCalls"][number] => c !== null);
+    }
+
     return {
       approvals: enrichedApprovals,
       prdCalls: (prds.data ?? []) as NeedsYou["prdCalls"],
       oppCalls: (opps.data ?? []) as NeedsYou["oppCalls"],
+      assumptionCalls,
       spendTodayUsd,
       gateMedianMinutes,
     };
