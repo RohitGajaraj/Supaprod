@@ -19,3 +19,17 @@ Founder directed: "start with #23 - SANDBOX." The seam (`src/lib/exec/provider.t
 **Status: SANDBOX → ◐ (~70%).** Remaining (gated, NOT autonomous from this lane): the Cloudflare Sandbox SDK adapter (founder compute-spend, sourcing-map call #4) + routing the `studio.pr.merge` gate itself through the seam (`registry.server.ts` chokepoint, behaviour-identical today). Commit `7bb9947a90` (rebased + pushed to main).
 
 **Then: board dry.** `bash scripts/lane.sh next` reports no eligible Tier-1/Tier-3 ⬜/◐ item unclaimed + not done. The only non-Gated open row is DEF-04 (◐), whose autonomous slice is ledger-done and whose remainder is chokepoint-pinned + founder-spend-gated (the same gates). Lanes 1 & 2 are actively building (EMBED-CHOKEPOINT, CONN-STATUS-UX). Long-polling per protocol; recheck ~25 min.
+
+## 2026-07-02 15:42 — Board dry (dependency-blocked): OBS foundation in flight
+
+Cycle: `git fetch` + rebase (22 commits behind → caught up) → `lane.sh reap` → `lane.sh next`.
+
+`bash scripts/lane.sh next` returned 8 ids: `OBS-PORT, OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09, OBS-10` — the entire remaining Tier-1/Tier-3 open pool (Tier 2 OBS-11..15 and the 4 Gated rows are correctly excluded). None are actually buildable this cycle:
+
+- `OBS-PORT` is the initiative-tracking row only ("no feature work rides along ... this row tracks the initiative") — no distinct buildable slice.
+- `OBS-04` through `OBS-09` each state **"Needs OBS-03"** in the row text (core primitives: Button/StatusDot/VerdictChip/CallCard/MissionRow/etc.) — hard sequential dependency, not yet built.
+- `OBS-10` (IA consolidation) states **"After 04..09"** — depends transitively on the same block.
+
+Live ledger (`lane.sh board`): lane1 holds `OBS-02` (shell, 10m in), lane2 holds `OBS-03` (primitives, 6m in) — both actively building the exact foundation that unblocks 04-10. Lanes 0 and 4 are also idle for the same reason. Building any of 04-10 now would mean coding against primitives that don't exist yet (rework risk, contradicts "surgical changes only").
+
+**Not forcing premature work. Long-polling per protocol** (`docs/operations/autonomous-build-loop.md` §15.6 — a hard dependency stated in the row text is the documented "another lane's area" skip case, not a lazy "looks dry" judgment). Recheck in ~25 min: once `OBS-03` lands, `OBS-04` through `OBS-09` become genuinely parallelizable across lanes 0/3/4.
