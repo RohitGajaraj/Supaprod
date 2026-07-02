@@ -19,6 +19,7 @@ import { CallCard } from "./callcard";
 import { StatusDot, STATUS_WORD } from "./status";
 import { MonoLabel } from "./primitives";
 import { useToast } from "./toast";
+import { TestStationPanel } from "./TestStationPanel";
 import {
   studioToStatusState,
   findPendingApproval,
@@ -196,6 +197,8 @@ export function MissionSlideOver({
               onNo={() => decide.mutate({ approvalId: pendingApproval.id, decision: "reject" })}
             />
           ) : null}
+
+          {missionId ? <TestStationPanel missionId={missionId} /> : null}
 
           <button
             type="button"

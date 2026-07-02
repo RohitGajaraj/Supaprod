@@ -283,6 +283,18 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (JNY-03 the test station shipped, lane3, overnight autonomous build)
+
+Continuing the overnight run: `lane.sh next` only surfaces Tier 1/Tier 3 rows, so with DSN-01/JNY-02/CNV-03 all claimed by other lanes, roamed the whole board per the founder's standing pick-order rule (untouched over partial over autonomously-buildable, any tier) and picked JNY-03, the test station.
+
+Investigated the real join path before building: `missions` carries no `prd_id` column (verified against the original `CREATE TABLE public.missions`, never altered), so the actual link from a mission to its originating PRD is `studio_changesets.mission_id -> studio_changesets.prd_id`, the same join BYO-P3's `outcome.functions.ts` already relies on in production. Built `src/lib/test-station.functions.ts`: `getMissionTestPlan` resolves that join, reads CNV-02's oracle-classified `contract.success_metrics`, and groups compiled clauses into eval cases (latest `eval_case_results` per case id), CI expectations (satisfied when the mission's own run status is a successful terminal state), and a UAT checklist. `computeVerdict`/`ciGateStatus` are pure and fully unit tested (11 new tests, every branch). `recordTestStationVerdict` recomputes the plan server side (never trusts the client) and, only when genuinely passing, inserts one `artifact_lineage` edge onto the PRD's F-DECISIONS-CAPTURE decision with `relation: "test_verdict"`, no migration needed since `relation` already accepts arbitrary values; the Trust Ledger is a derived read over decisions/approvals/lineage, so the new edge surfaces there automatically.
+
+Self-review caught two real issues before commit: (1) a duplicate implementation of UAT-checklist toggling that CNV-02 had already shipped as `toggleUatChecklistItem` in `discovery.functions.ts`, deleted the duplicate and rewired the new `TestStationPanel.tsx` to reuse the existing one; (2) two `decisions` lookups used `.maybeSingle()` directly after an `.eq()` filter with no DB-enforced uniqueness on `prd_id`, which would throw if that invariant were ever violated, changed both to `.order().limit(1)` and take the first row.
+
+New `src/components/obsidian/TestStationPanel.tsx` wired into `MissionSlideOver.tsx`, silent when the mission has no linked compiled PRD, matching the calm-front doctrine.
+
+**Gates:** `bunx tsc --noEmit` 0 · `bun test` 2127/2127 pass (11 new). `bun run build` hits the known pre-existing node20-vs-ESM `lovable-tagger` failure in this worktree (unrelated); `tsc` + `bun test` are the real gates here. Dashboard row 37 flipped to ✅, tally recomputed (267/292 = 91.4% strict / 92.3% weighted). Lane claim released via `lane.sh done JNY-03`. Spec: `docs/features/test-station.md`. Merged with lane2's concurrent JNY-02 ship (the living strategy brief).
+
 ### 2026-07-03 (JNY-02 The living strategy brief shipped, lane2, overnight autonomous build)
 
 Picked JNY-02 off the ranked dashboard: the v12 journey audit graded "Vision and strategy" the one THIN stage at the top of the loop (free text, no formation flow, no watched assumptions, no supersession) while every other decision in the product — a PRD, a contract clause, a spec's acceptance criterion — had already graduated to typed, versioned, assumption-backed treatment. DSN-02 (mechanically next) stayed skipped, blocked on DSN-01, claimed by lane1 for the whole session.
