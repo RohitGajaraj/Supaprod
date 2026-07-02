@@ -14,6 +14,7 @@ import {
   Hammer,
   ExternalLink,
   Gavel,
+  FileCheck2,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { LoopThread } from "@/components/cadence/LoopThread";
@@ -24,6 +25,7 @@ import {
   createGithubIssueForPrd,
   generateTaskGraph,
   type CriticReview,
+  type OutcomeContract,
 } from "@/lib/discovery.functions";
 import { getProvenance } from "@/lib/lineage.functions";
 import { CriticBadge } from "@/components/governance/CriticBadge";
@@ -32,6 +34,7 @@ import { SharedPremiseNudge } from "@/components/decision/SharedPremiseNudge";
 import { DecisionCurrencyBanner } from "@/components/decision/DecisionCurrencyBanner";
 import { CitationsCard, type Citation } from "@/components/product/CitationsCard";
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
+import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
 import { listTasks } from "@/lib/tasks.functions";
 import { TaskGraphPanel } from "@/components/product/TaskGraphPanel";
 import { DesignReadinessPanel } from "@/components/product/DesignReadinessPanel";
@@ -48,12 +51,14 @@ export const Route = createFileRoute("/_authenticated/prds/$id")({
 function PrdEditor() {
   const { id } = useParams({ from: "/_authenticated/prds/$id" });
   const qc = useQueryClient();
-  const navigate = useNavigate();  const fGet = useServerFn(getPrd);
+  const navigate = useNavigate();
+  const fGet = useServerFn(getPrd);
   const mSave = useServerFn(savePrd);
   const mAssist = useServerFn(prdAssist);
   const mDispatchStudio = useServerFn(dispatchStudioSession);
   const mCreateIssue = useServerFn(createGithubIssueForPrd);
-  const mCaptureDecision = useServerFn(createDecision);  const prdQ = useQuery({ queryKey: ["prd", id], queryFn: () => fGet({ data: { id } }) });
+  const mCaptureDecision = useServerFn(createDecision);
+  const prdQ = useQuery({ queryKey: ["prd", id], queryFn: () => fGet({ data: { id } }) });
 
   // O1 (provenance): "why is this spec being built?" — walk the lineage graph up
   // to the root source signals the spec ultimately rests on. Reuses getProvenance
@@ -138,7 +143,7 @@ function PrdEditor() {
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [mode, setMode] = useState<"edit" | "preview" | "contract">("edit");
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -264,6 +269,13 @@ function PrdEditor() {
               className={`px-3 py-1.5 text-xs inline-flex items-center gap-1 ${mode === "preview" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
             >
               <Eye className="h-3 w-3" /> Preview
+            </button>
+            <button
+              onClick={() => setMode("contract")}
+              className={`px-3 py-1.5 text-xs inline-flex items-center gap-1 ${mode === "contract" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+              title="The typed Outcome Contract — the machine view of this spec"
+            >
+              <FileCheck2 className="h-3 w-3" /> Contract
             </button>
           </div>
           <button
@@ -449,10 +461,17 @@ function PrdEditor() {
             className="w-full min-h-[600px] rounded-lg border hairline bg-card p-6 text-sm font-mono outline-none focus:border-foreground resize-y leading-relaxed"
             spellCheck={false}
           />
-        ) : (
+        ) : mode === "preview" ? (
           <article className="rounded-lg border hairline bg-card p-10 prose prose-neutral max-w-none prose-headings:font-display prose-headings:tracking-tight prose-h1:text-3xl prose-h2:text-xl prose-h2:mt-10 prose-p:text-[15px] prose-p:leading-relaxed prose-li:text-[15px] prose-strong:text-foreground">
             <ReactMarkdown>{body || "_Empty PRD_"}</ReactMarkdown>
           </article>
+        ) : (
+          <OutcomeContractPanel
+            prdId={id}
+            bodyMd={body}
+            contract={(prdQ.data.prd as { contract?: OutcomeContract | null }).contract}
+            invalidateKey={["prd", id]}
+          />
         )}
 
         <div className="mt-6">

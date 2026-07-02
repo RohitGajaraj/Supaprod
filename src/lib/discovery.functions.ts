@@ -501,6 +501,231 @@ export const getPrd = createServerFn({ method: "GET" })
     return { prd: row };
   });
 
+// ---------- CNV-01: The Outcome Contract (typed dual projection) ----------
+// v12 sec 7.4: a typed contract (JSONB sections) alongside body_md, backward
+// compatible. body_md stays the human narrative; `contract` is the machine
+// view an agent can consume directly instead of re-parsing prose. Clauses
+// are individually supersedable using the same standing/superseded idiom
+// FS-02's `assumptions.status` already uses (an edit never overwrites a
+// clause in place; see supersedeContractClause below).
+
+const ContractClauseSchema = z.object({
+  id: z.string().uuid(),
+  text: z.string().min(1).max(2000),
+  status: z.enum(["standing", "superseded"]),
+  superseded_by: z.string().uuid().nullable(),
+  // Filled in later by CNV-02's requirement-to-oracle compiler; every clause
+  // starts unclassified.
+  oracle_kind: z.enum(["eval", "ci", "uat", "unverifiable"]).nullable(),
+  oracle_ref: z.string().max(200).nullable(),
+  created_at: z.string(),
+});
+export type ContractClause = z.infer<typeof ContractClauseSchema>;
+
+const OutcomeContractSchema = z.object({
+  version: z.number().int().min(1),
+  intent: z.string().max(2000),
+  evidence_links: z
+    .array(
+      z.object({
+        source_kind: z.string().max(40),
+        source_id: z.string().max(100),
+        title: z.string().max(200).nullable(),
+      }),
+    )
+    .default([]),
+  success_metrics: z.array(ContractClauseSchema).default([]),
+  non_goals: z.array(ContractClauseSchema).default([]),
+  budget: z
+    .object({
+      estimate: z.string().max(200).nullable(),
+      blast_radius: z.string().max(500).nullable(),
+    })
+    .nullable(),
+  ambiguity_policy: z.string().max(1000).nullable(),
+  drafted_by: z.enum(["agent", "human"]),
+  drafted_at: z.string(),
+});
+export type OutcomeContract = z.infer<typeof OutcomeContractSchema>;
+
+const CONTRACT_DRAFT_SYSTEM = `You are the Cadence contract analyst. Given a spec's title and markdown body, extract a structured Outcome Contract from what it already says.
+Rules:
+- intent: one tight paragraph, the core bet in plain language.
+- success_metrics: the acceptance criteria / success metrics as short, individually falsifiable statements (max 8, most load-bearing first).
+- non_goals: what is explicitly out of scope, as short statements (max 6).
+- budget_estimate and blast_radius: a rough cost/effort note and what breaks if this goes wrong, only if the text actually addresses them, else null.
+- ambiguity_policy: one sentence on how to resolve ambiguity, only if the text states or clearly implies one, else null.
+- Extract only what the text supports. Never invent a metric, non-goal, or policy it does not contain.
+- Signal-first: state each item directly, no hedging.
+- No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
+- Output ONLY valid JSON: {"intent": "...", "success_metrics": ["..."], "non_goals": ["..."], "budget_estimate": "..." or null, "blast_radius": "..." or null, "ambiguity_policy": "..." or null}`;
+
+function draftedClause(text: string, nowIso: string): ContractClause {
+  return {
+    id: crypto.randomUUID(),
+    text: text.slice(0, 2000),
+    status: "standing",
+    superseded_by: null,
+    oracle_kind: null,
+    oracle_ref: null,
+    created_at: nowIso,
+  };
+}
+
+function draftedStrings(v: unknown, max: number): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    .slice(0, max)
+    .map((s) => s.trim());
+}
+
+/**
+ * Pure: mark one clause superseded and append its replacement as a new
+ * standing clause. Never mutates a clause in place, so a machine reader can
+ * always see what a requirement used to say and why it changed. Exported for
+ * unit tests (same pattern as assumption-watch.server.ts's deriveWatchVerdict).
+ */
+export function supersedeClause(
+  clauses: ContractClause[],
+  clauseId: string,
+  newText: string,
+  nowIso: string,
+): ContractClause[] {
+  const idx = clauses.findIndex((c) => c.id === clauseId);
+  if (idx === -1) throw new Error("Clause not found");
+  if (clauses[idx].status === "superseded") throw new Error("That clause is already superseded");
+
+  const next = draftedClause(newText, nowIso);
+  const updated = [...clauses];
+  updated[idx] = { ...updated[idx], status: "superseded", superseded_by: next.id };
+  updated.push(next);
+  return updated;
+}
+
+/**
+ * AI: structure an existing PRD's narrative body into an Outcome Contract.
+ * Returns a DRAFT only — nothing is persisted here. The lazy-migration flow
+ * this backs (v12: "AI structures on open, human confirms") always ends with
+ * the human reviewing the draft and calling savePrd({ id, contract }) to
+ * apply it, same as any other spec edit.
+ */
+export const draftContractFromPrd = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .select("id,title,body_md,workspace_id")
+      .eq("id", data.id)
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+    if (!(prd.body_md ?? "").trim()) throw new Error("This spec has no content to structure yet");
+
+    const res = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: "contract_draft",
+      model: "google/gemini-2.5-flash",
+      workspaceId: prd.workspace_id,
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: CONTRACT_DRAFT_SYSTEM },
+        {
+          role: "user",
+          content: `TITLE: ${prd.title}\n\nBODY:\n${(prd.body_md ?? "").slice(0, 12000)}`,
+        },
+      ],
+    });
+    const j = (res.json ?? {}) as {
+      intent?: unknown;
+      success_metrics?: unknown;
+      non_goals?: unknown;
+      budget_estimate?: unknown;
+      blast_radius?: unknown;
+      ambiguity_policy?: unknown;
+    };
+
+    const nowIso = new Date().toISOString();
+    const intent = typeof j.intent === "string" ? j.intent.trim().slice(0, 2000) : "";
+    if (!intent) throw new Error("Could not extract a clear intent from this spec's content");
+
+    const budgetEstimate =
+      typeof j.budget_estimate === "string" ? j.budget_estimate.trim().slice(0, 200) : null;
+    const blastRadius =
+      typeof j.blast_radius === "string" ? j.blast_radius.trim().slice(0, 500) : null;
+
+    const contract: OutcomeContract = {
+      version: 1,
+      intent,
+      evidence_links: [],
+      success_metrics: draftedStrings(j.success_metrics, 8).map((t) => draftedClause(t, nowIso)),
+      non_goals: draftedStrings(j.non_goals, 6).map((t) => draftedClause(t, nowIso)),
+      budget:
+        budgetEstimate || blastRadius
+          ? { estimate: budgetEstimate, blast_radius: blastRadius }
+          : null,
+      ambiguity_policy:
+        typeof j.ambiguity_policy === "string" ? j.ambiguity_policy.trim().slice(0, 1000) : null,
+      drafted_by: "agent",
+      drafted_at: nowIso,
+    };
+    return { contract };
+  });
+
+/**
+ * Supersede one contract clause: the prior clause is marked superseded and
+ * points at its replacement, a new standing clause is appended. Never
+ * mutates a clause in place, so a machine reader can always see what a
+ * requirement used to say and why it changed.
+ */
+export const supersedeContractClause = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        section: z.enum(["success_metrics", "non_goals"]),
+        clause_id: z.string().uuid(),
+        new_text: z.string().min(1).max(2000),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .select("contract")
+      .eq("id", data.id)
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+
+    let contract: z.infer<ReturnType<typeof OutcomeContractSchema.partial>>;
+    try {
+      contract = OutcomeContractSchema.partial().parse(prd.contract ?? {});
+    } catch {
+      throw new Error("This spec's contract is in an unexpected shape and cannot be edited here");
+    }
+    const nowIso = new Date().toISOString();
+    const clauses = supersedeClause(
+      contract[data.section] ?? [],
+      data.clause_id,
+      data.new_text,
+      nowIso,
+    );
+
+    const updatedContract = { ...contract, [data.section]: clauses };
+    const { data: updated, error: upErr } = await supabase
+      .from("prds")
+      .update({ contract: updatedContract, updated_at: nowIso })
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
+    if (upErr) throw new Error(upErr.message);
+    if (!updated) throw new Error("Spec not found");
+    return { contract: updatedContract };
+  });
+
 export const savePrd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -510,6 +735,10 @@ export const savePrd = createServerFn({ method: "POST" })
         title: z.string().min(1).max(200).optional(),
         body_md: z.string().max(50_000).optional(),
         status: z.enum(["draft", "review", "approved", "shipped"]).optional(),
+        // CNV-01: the human's confirm step for a drafted/edited Outcome Contract.
+        // savePrd is the one write path for both projections (narrative + typed),
+        // so status-transition and history logic below never has to special-case it.
+        contract: OutcomeContractSchema.optional(),
       })
       .parse(i),
   )
@@ -525,9 +754,14 @@ export const savePrd = createServerFn({ method: "POST" })
       .eq("id", id)
       .maybeSingle();
 
+    const patch: Record<string, unknown> = { ...rest, updated_at: new Date().toISOString() };
+    if (rest.contract && rest.contract.intent.trim()) {
+      patch.contract_migrated_at = new Date().toISOString();
+    }
+
     const { data: row, error } = await supabase
       .from("prds")
-      .update({ ...rest, updated_at: new Date().toISOString() })
+      .update(patch)
       .eq("id", id)
       .select()
       .single();
