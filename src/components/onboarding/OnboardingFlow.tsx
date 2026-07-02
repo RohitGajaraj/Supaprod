@@ -355,7 +355,7 @@ export function OnboardingFlow() {
                 onClick={() => {
                   if (on) return;
                   if (!configured) {
-                    toast.info(spec.setupHint ?? `Admin setup pending for ${spec.label}.`);
+                    toast.info(`${spec.label} is coming soon.`);
                     return;
                   }
                   setConnectingId(spec.id);
@@ -400,9 +400,7 @@ export function OnboardingFlow() {
                     marginTop: 3,
                   }}
                 >
-                  {configured || on
-                    ? spec.description
-                    : "Admin setup required. Ask your workspace admin."}
+                  {configured || on ? spec.description : "Coming soon"}
                 </span>
               </button>
             );
