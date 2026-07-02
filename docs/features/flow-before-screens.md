@@ -78,12 +78,15 @@ ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12
 
 ## Known limits / out of scope
 
-- **"Scaffold derives from flow" is not built.** The spec calls for a second lineage edge fired
-  when a scaffold (DEF-04) is generated FROM a flow. `design-scaffold.functions.ts` and
-  `DesignScaffoldPanel.tsx` were DSN-01's actively-claimed files for the whole overnight session
-  this shipped in, so wiring the scaffold half in was avoided to prevent a same-session lane
-  collision, not silently dropped — it is real, well-scoped follow-up work (bind an optional
-  `flowId` onto scaffold generation, write the second edge).
+- **"Scaffold derives from flow" is not built, and needs a real prerequisite first.** The spec
+  calls for a second lineage edge fired when a scaffold (DEF-04) is generated FROM a flow.
+  `design-scaffold.functions.ts`/`DesignScaffoldPanel.tsx` were DSN-01's actively-claimed files
+  when this shipped; once DSN-01 released them mid-session, checked whether the edge was a quick
+  close and found it is not: `generateDesignScaffold` never persists a scaffold anywhere (it
+  returns raw HTML the client renders and discards on navigation), so there is no scaffold row
+  with an `id` for a lineage edge to point at. Wiring this for real needs scaffold persistence to
+  exist first, a genuine DEF-04-scope prerequisite this ticket should not improvise into the
+  schema. Real follow-up, not silently dropped.
 - **No auto-layout diagram.** The timeline rendering is a deliberately simple vertical list with
   branch lines underneath each node, not a real graph-layout diagram (no new charting/diagramming
   dependency was introduced for this). It is honest about every step and edge, just not spatially
