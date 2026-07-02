@@ -187,6 +187,7 @@ export type Database = {
           escalated_to: string | null
           escalation_state: string
           expires_at: string | null
+          expiry_notified_at: string | null
           id: string
           mission_id: string | null
           rationale: string | null
@@ -212,6 +213,7 @@ export type Database = {
           escalated_to?: string | null
           escalation_state?: string
           expires_at?: string | null
+          expiry_notified_at?: string | null
           id?: string
           mission_id?: string | null
           rationale?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           escalated_to?: string | null
           escalation_state?: string
           expires_at?: string | null
+          expiry_notified_at?: string | null
           id?: string
           mission_id?: string | null
           rationale?: string | null
@@ -879,7 +882,7 @@ export type Database = {
           ttft_ms: number | null
           user_id: string
           via: string
-          workspace_id: string
+          workspace_id: string | null
         }
         Insert: {
           cache_hit?: boolean
@@ -908,7 +911,7 @@ export type Database = {
           ttft_ms?: number | null
           user_id: string
           via?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Update: {
           cache_hit?: boolean
@@ -937,7 +940,7 @@ export type Database = {
           ttft_ms?: number | null
           user_id?: string
           via?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -1269,6 +1272,135 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "artifact_lineage_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assumption_challenges: {
+        Row: {
+          assumption_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          learning_id: string | null
+          rationale: string
+          signal_id: string | null
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          assumption_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          learning_id?: string | null
+          rationale: string
+          signal_id?: string | null
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          assumption_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          learning_id?: string | null
+          rationale?: string
+          signal_id?: string | null
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assumption_challenges_assumption_id_fkey"
+            columns: ["assumption_id"]
+            isOneToOne: false
+            referencedRelation: "assumptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assumption_challenges_learning_id_fkey"
+            columns: ["learning_id"]
+            isOneToOne: false
+            referencedRelation: "learnings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assumption_challenges_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "signals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assumption_challenges_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assumptions: {
+        Row: {
+          created_at: string
+          decision_id: string | null
+          id: string
+          last_watched_at: string | null
+          prd_id: string | null
+          statement: string
+          status: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision_id?: string | null
+          id?: string
+          last_watched_at?: string | null
+          prd_id?: string | null
+          statement: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          decision_id?: string | null
+          id?: string
+          last_watched_at?: string | null
+          prd_id?: string | null
+          statement?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assumptions_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "decisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assumptions_prd_id_fkey"
+            columns: ["prd_id"]
+            isOneToOne: false
+            referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assumptions_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2666,6 +2798,7 @@ export type Database = {
           model: string | null
           name: string
           pass_threshold: number
+          prd_id: string | null
           prompt_key: string | null
           schedule_cron: string | null
           surface: string | null
@@ -2683,6 +2816,7 @@ export type Database = {
           model?: string | null
           name: string
           pass_threshold?: number
+          prd_id?: string | null
           prompt_key?: string | null
           schedule_cron?: string | null
           surface?: string | null
@@ -2700,13 +2834,22 @@ export type Database = {
           model?: string | null
           name?: string
           pass_threshold?: number
+          prd_id?: string | null
           prompt_key?: string | null
           schedule_cron?: string | null
           surface?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "eval_suites_prd_id_fkey"
+            columns: ["prd_id"]
+            isOneToOne: false
+            referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_queue: {
         Row: {
@@ -2988,6 +3131,53 @@ export type Database = {
         }
         Relationships: []
       }
+      house_rules: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          rationale: string | null
+          rule_text: string
+          source_learning_ids: string[]
+          status: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          rationale?: string | null
+          rule_text: string
+          source_learning_ids?: string[]
+          status?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          rationale?: string | null
+          rule_text?: string
+          source_learning_ids?: string[]
+          status?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "house_rules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ice_adjustments: {
         Row: {
           adjusted_at: string
@@ -3156,16 +3346,21 @@ export type Database = {
       }
       insights: {
         Row: {
+          brier_score: number | null
+          claim: string | null
           confidence: number | null
           created_at: string
           dedup_key: string | null
           detail: string
           evidence: Json
           headline: string
+          horizon_date: string | null
           id: string
           kind: string
           product_id: string | null
           recommended_action: Json | null
+          resolution: string | null
+          resolved_at: string | null
           score: number | null
           status: string
           theme_id: string | null
@@ -3174,16 +3369,21 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          brier_score?: number | null
+          claim?: string | null
           confidence?: number | null
           created_at?: string
           dedup_key?: string | null
           detail?: string
           evidence?: Json
           headline: string
+          horizon_date?: string | null
           id?: string
           kind: string
           product_id?: string | null
           recommended_action?: Json | null
+          resolution?: string | null
+          resolved_at?: string | null
           score?: number | null
           status?: string
           theme_id?: string | null
@@ -3192,16 +3392,21 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          brier_score?: number | null
+          claim?: string | null
           confidence?: number | null
           created_at?: string
           dedup_key?: string | null
           detail?: string
           evidence?: Json
           headline?: string
+          horizon_date?: string | null
           id?: string
           kind?: string
           product_id?: string | null
           recommended_action?: Json | null
+          resolution?: string | null
+          resolved_at?: string | null
           score?: number | null
           status?: string
           theme_id?: string | null
@@ -3579,6 +3784,44 @@ export type Database = {
           },
         ]
       }
+      memory_recall_log: {
+        Row: {
+          created_at: string
+          id: string
+          memory_id: string
+          outcome: string
+          trace_id: string | null
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_id: string
+          outcome?: string
+          trace_id?: string | null
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_id?: string
+          outcome?: string
+          trace_id?: string | null
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_recall_log_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "agent_memory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -3642,6 +3885,7 @@ export type Database = {
           message_id: string | null
           mission_id: string
           next_retry_at: string | null
+          playbook_id: string | null
           rationale: string | null
           result: Json | null
           run_id: string | null
@@ -3665,6 +3909,7 @@ export type Database = {
           message_id?: string | null
           mission_id: string
           next_retry_at?: string | null
+          playbook_id?: string | null
           rationale?: string | null
           result?: Json | null
           run_id?: string | null
@@ -3688,6 +3933,7 @@ export type Database = {
           message_id?: string | null
           mission_id?: string
           next_retry_at?: string | null
+          playbook_id?: string | null
           rationale?: string | null
           result?: Json | null
           run_id?: string | null
@@ -3982,6 +4228,8 @@ export type Database = {
         Row: {
           body_md: string
           citations: Json | null
+          contract: Json
+          contract_migrated_at: string | null
           created_at: string
           critic_review: Json | null
           github_issue_url: string | null
@@ -3989,6 +4237,7 @@ export type Database = {
           model: string | null
           opportunity_id: string | null
           outcome: Json | null
+          outcome_suggestion: Json | null
           product_id: string | null
           project_id: string | null
           shipped_at: string | null
@@ -4001,6 +4250,8 @@ export type Database = {
         Insert: {
           body_md?: string
           citations?: Json | null
+          contract?: Json
+          contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
           github_issue_url?: string | null
@@ -4008,6 +4259,7 @@ export type Database = {
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
+          outcome_suggestion?: Json | null
           product_id?: string | null
           project_id?: string | null
           shipped_at?: string | null
@@ -4020,6 +4272,8 @@ export type Database = {
         Update: {
           body_md?: string
           citations?: Json | null
+          contract?: Json
+          contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
           github_issue_url?: string | null
@@ -4027,6 +4281,7 @@ export type Database = {
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
+          outcome_suggestion?: Json | null
           product_id?: string | null
           project_id?: string | null
           shipped_at?: string | null
@@ -6129,6 +6384,7 @@ export type Database = {
           in_app_budget: boolean
           in_app_drift: boolean
           in_app_health: boolean
+          last_digest_sent_at: string | null
           updated_at: string
           user_id: string
         }
@@ -6146,6 +6402,7 @@ export type Database = {
           in_app_budget?: boolean
           in_app_drift?: boolean
           in_app_health?: boolean
+          last_digest_sent_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -6163,6 +6420,7 @@ export type Database = {
           in_app_budget?: boolean
           in_app_drift?: boolean
           in_app_health?: boolean
+          last_digest_sent_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -6499,6 +6757,8 @@ export type Database = {
           owner_id: string
           plan_tier: string
           plan_updated_at: string | null
+          prediction_throttle_until: string | null
+          risk_throttle_until: string | null
           scout_daily_fetch_cap: number
           slug: string | null
           stripe_customer_id: string | null
@@ -6524,6 +6784,8 @@ export type Database = {
           owner_id: string
           plan_tier?: string
           plan_updated_at?: string | null
+          prediction_throttle_until?: string | null
+          risk_throttle_until?: string | null
           scout_daily_fetch_cap?: number
           slug?: string | null
           stripe_customer_id?: string | null
@@ -6549,6 +6811,8 @@ export type Database = {
           owner_id?: string
           plan_tier?: string
           plan_updated_at?: string | null
+          prediction_throttle_until?: string | null
+          risk_throttle_until?: string | null
           scout_daily_fetch_cap?: number
           slug?: string | null
           stripe_customer_id?: string | null
@@ -7114,6 +7378,10 @@ export type Database = {
         Returns: string
       }
       backfill_account_credits: { Args: never; Returns: Json }
+      bump_memory_importance: {
+        Args: { p_delta: number; p_memory_id: string }
+        Returns: number
+      }
       can_manage_account: { Args: { account: string }; Returns: boolean }
       can_manage_workspace: { Args: { ws: string }; Returns: boolean }
       check_mission_caps: {
@@ -7291,24 +7559,43 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      match_agent_memory: {
-        Args: {
-          for_account?: string
-          for_agent_slug?: string
-          for_user: string
-          for_workspace?: string
-          match_count?: number
-          query_embedding: string
-        }
-        Returns: {
-          agent_slug: string
-          content: string
-          id: string
-          importance: number
-          kind: string
-          similarity: number
-        }[]
-      }
+      match_agent_memory:
+        | {
+            Args: {
+              for_account?: string
+              for_agent_slug?: string
+              for_user: string
+              for_workspace?: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              agent_slug: string
+              content: string
+              id: string
+              importance: number
+              kind: string
+              similarity: number
+            }[]
+          }
+        | {
+            Args: {
+              for_account?: string
+              for_agent_slug?: string
+              for_user?: string
+              for_workspace?: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              agent_slug: string
+              content: string
+              id: string
+              importance: number
+              kind: string
+              similarity: number
+            }[]
+          }
       match_rag_chunks: {
         Args: {
           for_product?: string
@@ -7377,6 +7664,7 @@ export type Database = {
           message_id: string | null
           mission_id: string
           next_retry_at: string | null
+          playbook_id: string | null
           rationale: string | null
           result: Json | null
           run_id: string | null
@@ -7451,6 +7739,10 @@ export type Database = {
       seed_demo_workspace: { Args: { _user_id: string }; Returns: string }
       seed_orchestrator_agent: { Args: { p_user_id: string }; Returns: string }
       seed_pm_lifecycle_tools: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
+      seed_rf08_missing_agent_tools: {
         Args: { _user_id: string }
         Returns: undefined
       }
