@@ -19,6 +19,7 @@ import {
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { GraphExplorer, KIND_COLOR, KIND_LABEL } from "./GraphExplorer";
 import { GraphNodeStory } from "./GraphNodeStory";
+import { GraphCompoundingStrip } from "./GraphCompoundingStrip";
 
 export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
   const navigate = useNavigate();
@@ -151,6 +152,7 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
 
   return (
     <div>
+      <GraphCompoundingStrip nodes={graph.nodes} supersessionsCaught={revisedCount} />
       <div
         style={{
           display: "flex",
@@ -253,6 +255,7 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
             selectedKey={selectedKey}
             onSelect={setSelectedKey}
             staleKeys={staleness?.staleKeys}
+            hotKeys={contradictionDrift?.driftedKeys}
           />
         </div>
         <div style={{ width: 280, flexShrink: 0 }}>

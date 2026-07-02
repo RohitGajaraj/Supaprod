@@ -46,11 +46,14 @@ export function GraphExplorer({
   selectedKey,
   onSelect,
   staleKeys,
+  hotKeys,
 }: {
   graph: KnowledgeGraph;
   selectedKey: string | null;
   onSelect: (key: string) => void;
   staleKeys?: Set<string>;
+  /** BRN-01 contradiction hotspots: nodes whose newest edge just revised them. */
+  hotKeys?: Set<string>;
 }) {
   const [view, setView] = useState({ k: 1, x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
@@ -160,6 +163,16 @@ export function GraphExplorer({
                     strokeWidth={1}
                     strokeDasharray="2 2"
                     opacity={0.85}
+                  />
+                )}
+                {hotKeys?.has(n.key) && (
+                  <circle
+                    cx={r * 0.72}
+                    cy={-r * 0.72}
+                    r={3}
+                    fill="var(--madder, #b0573f)"
+                    stroke="#ffffff"
+                    strokeWidth={0.75}
                   />
                 )}
                 <text

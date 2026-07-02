@@ -89,6 +89,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | BUNDLE-4 | Agent-to-agent (A2A) handoff (E1→E5, multi-agent missions) | ✅ Shipped | `/missions`, `/missions/$id` | [`a2a-handoff.md`](./a2a-handoff.md) |
 | BUNDLE-6 | GitHub issue approval flow (lifecycle close to the eng system of record) | ✅ Shipped | `/prds` (Send to issue gate) | [`github-issue-approval-flow.md`](./github-issue-approval-flow.md) |
 | PRF-01 | The proof surface (moat metrics panel, composed for investor diligence) | ✅ Shipped 2026-07-02 | `/admin/proof` | [`proof-surface.md`](./proof-surface.md) |
+| O1 / BRN-01 | Knowledge-graph explorer + the operable brain (object-card actions, contradiction hotspots, compounding strip) | ✅ Shipped 2026-07-02 | `/knowledge?tab=graph` | [`knowledge-graph-explorer.md`](./knowledge-graph-explorer.md) |
 | F-V5-INGEST-WEBHOOK | Public continuous-ingest webhook door | ✅ Shipped 2026-06-11 (rate limiting 2026-06-16) | Public `/api/public/ingest` endpoint | [`ingest-webhook.md`](./ingest-webhook.md) |
 | Q1-MCP | Read-only Model Context Protocol (MCP) server | ◐ Phases 1-3 shipped 2026-06-17 (Phase 4 future) | MCP server · Settings (token UI) | [`q1-mcp.md`](./q1-mcp.md) |
 | AUTH | Authentication flows (sign in / up / recover / session) | ✅ Shipped | `/login`, `/signup` | [`auth-flows.md`](./auth-flows.md) |
