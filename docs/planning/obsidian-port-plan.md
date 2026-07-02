@@ -16,6 +16,21 @@ skill, which loads [`/DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (the law)
 micro-interactions, density, empty states).
 
 **Standing constraints (every ID):**
+- **THE PROTOTYPE IS THE FLOOR (founder ruling 2026-07-02, non-negotiable).**
+  The shipped surface must be visually and behaviorally indistinguishable
+  from `design-reference/obsidian-v3/design-reference/cadence-app.html` at
+  1440px: layout, spacing, hierarchy, type sizes, colors, glows, motion
+  timing, keyboard behavior, hover/press states, and the copy register.
+  Anything we add goes ON TOP; additions never move, remove, restyle, or
+  simplify what the prototype shows. "Close enough" or a reinterpretation is
+  an automatic FAIL: a previous handoff round shipped something that
+  diverged from the Claude Design reference and missed much of it; this rule
+  exists so that never repeats. The LAST gate of every surface ID is the
+  prototype opened side by side with the built surface, walking the parity
+  checklist below, with screenshots in the ship report. Where the prototype
+  and the contract text differ on a fine detail (a duration, a tint), the
+  prototype's rendering is the founder-approved outcome for that surface;
+  note the delta in the ship report so the contract can absorb it.
 - Dark-only on app surfaces; the landing page (`/`, `p.$slug`) keeps parchment
   and is out of scope here.
 - Surgical diffs; each ID gates on tsc 0 + build + tests + the grayscale test
@@ -27,6 +42,26 @@ micro-interactions, density, empty states).
   is coherent immediately.
 - No feature work rides along. A port ID changes presentation and IA wiring,
   never server functions or data flow, except where an ID says otherwise.
+
+## The prototype-parity checklist (run at the end of EVERY surface ID)
+
+Open the prototype and the built surface side by side at 1440px and check:
+
+1. Rail: 236px, mono index 01-05, active state bg #1A1A1E + ember index, the
+   ONE Today badge, working shimmer line, Engine Room door, user chip.
+2. Surface chrome: 52px top bar, container max-width (1060/1160), 36/32/64
+   padding, `cadRise` entrance.
+3. Type: hero Newsreader 34px with the one ember italic word; card titles
+   20px/460; UI 13px/1.55; mono labels 9-9.5px caps with middots.
+4. Color: zero hexes outside the tokens; ember only on needs-a-human moments;
+   glows match (badge 0 0 10px, gate dot 0 0 10px 2px, moss/glacier dots).
+5. Motion: hover 140ms one-step lift; slide-over `cadSlideIn` 240ms; screen
+   entry 260ms; pulses/glows only on live status; reduced-motion kills all.
+6. Behavior: keyboard map (1-5, g, Esc), call answering rewrites hero + badge
+   + progress + linked mission, slide-over gate sync, toast 3.6s singleton.
+7. Copy: the register matches (plain-words buttons, consequence helpers,
+   mono-caps metadata, no em dashes, no exclamation marks).
+8. Grayscale screenshot still reads; restraint budget audited.
 
 ## Sequencing
 

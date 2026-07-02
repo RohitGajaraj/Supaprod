@@ -30,7 +30,12 @@ needs a human. Warm asks, cool works.
 6. When in doubt about how anything should LOOK, open the founder-approved specimen
    `design-reference/obsidian-v3/design-reference/obsidian-specimen.html` or the runnable
    six-surface prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`
-   in a browser.
+   in a browser. **The prototype is the FLOOR, not inspiration (founder ruling
+   2026-07-02): a built app surface must be visually and behaviorally
+   indistinguishable from it before anything is added; additions only add,
+   never move, remove, restyle, or simplify what the prototype shows. Run the
+   prototype-parity checklist in `docs/planning/obsidian-port-plan.md` as the
+   last gate of any ported surface.**
 
 ## Hard laws (enforce in every output)
 
