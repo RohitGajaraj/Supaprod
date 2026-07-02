@@ -17,12 +17,23 @@
  * DSN-02: runScaffoldDesignCritic runs the Critic's design lens directly on a
  * generated scaffold's HTML (the "scaffolds" half of DSN-02's "PRDs and
  * scaffolds" scope; PRDs get the lens folded into runCritic itself).
+ *
+ * AGT-03: scaffolds are now persisted (`prd_scaffolds`, one per PRD,
+ * regenerate upserts in place — the same idiom `prd_flows`/`launch_plans`
+ * use), so a speculatively-prepped scaffold (`prepareScaffoldSpeculative`,
+ * fired fire-and-forget while the human reviews a freshly drafted contract)
+ * is sitting there ready by the time they open the Design panel, instead of
+ * a fresh generation call starting only once they click.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
-import { getActiveDesignMemoryForWorkspace, formatDesignMemoryContext } from "@/lib/design-memory.functions";
+import {
+  getActiveDesignMemoryForWorkspace,
+  formatDesignMemoryContext,
+} from "@/lib/design-memory.functions";
 import { runDesignCriticLens } from "@/lib/ai/critic.server";
 import type { DesignCriticReview } from "@/lib/ai/design-critic";
 
@@ -70,7 +81,7 @@ const MOCKUP_CSS = `
   .empty-state { text-align: center; padding: 48px 24px; color: #94a3b8; }
 `;
 
-function buildSystemPrompt(hasDesignMemory: boolean): string {
+export function buildSystemPrompt(hasDesignMemory: boolean): string {
   const base = `You are a UI/UX designer who writes clean, professional HTML mockups.
 
 Given a product spec, generate a COMPLETE self-contained HTML page that visually mockups the main user-facing screen described.
@@ -97,6 +108,95 @@ export type DesignScaffold = {
   generatedAt: string;
 };
 
+/**
+ * The core generation call, shared by the human-triggered `generateDesignScaffold`
+ * and the speculative `prepareScaffoldSpeculative`. Pure I/O (one AI call), no
+ * persistence — callers decide whether and how to save the result.
+ */
+async function buildDesignScaffoldHtml(
+  supabase: SupabaseClient,
+  userId: string,
+  data: { prdId: string; specBody: string },
+): Promise<DesignScaffold> {
+  // Fail-safe: a workspace-resolution or query error just means no memory
+  // block gets injected (byte-identical fallback), never a broken scaffold.
+  let designMemoryBlock = "";
+  try {
+    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+    if (workspaceId) {
+      const activeMemory = await getActiveDesignMemoryForWorkspace(supabase, workspaceId as string);
+      designMemoryBlock = formatDesignMemoryContext(activeMemory);
+    }
+  } catch {
+    designMemoryBlock = "";
+  }
+
+  const userMsg = [`Product spec to mockup:\n\n${data.specBody.slice(0, 8000)}`, designMemoryBlock]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const res = await callModel(supabase, userId, {
+    surface: "prd",
+    surface_ref: `design-scaffold:${data.prdId}`,
+    model: "google/gemini-2.5-flash",
+    fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+    messages: [
+      { role: "system", content: buildSystemPrompt(Boolean(designMemoryBlock)) },
+      { role: "user", content: userMsg },
+    ],
+  });
+
+  // Strip any accidental markdown code fences the model may add despite instructions
+  let html = (res.output ?? "").trim();
+  html = html
+    .replace(/^```html\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  // Remove any external CDN script/link tags the model may emit; inject our
+  // own controlled inline stylesheet so no external resources are loaded.
+  html = html.replace(/<script[^>]*src=[^>]*cdn[^>]*><\/script>/gi, "");
+  html = html.replace(/<link[^>]*cdn[^>]*>/gi, "");
+
+  const styleTag = `<style>${MOCKUP_CSS}</style>`;
+
+  if (html.toLowerCase().includes("<head>")) {
+    html = html.replace(/<head>/i, `<head>${styleTag}`);
+  } else if (html.toLowerCase().includes("<html")) {
+    // Bare html tag without head — inject after opening html tag
+    html = html.replace(/<html[^>]*>/i, (m) => `${m}<head>${styleTag}</head>`);
+  } else {
+    // Bare fragment — wrap in a minimal document
+    html = `<!DOCTYPE html><html><head>${styleTag}</head><body>${html}</body></html>`;
+  }
+
+  return { html, generatedAt: new Date().toISOString() };
+}
+
+async function persistScaffold(
+  supabase: SupabaseClient,
+  userId: string,
+  data: { prdId: string; html: string; source: "manual" | "speculative" },
+): Promise<void> {
+  try {
+    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+    if (!workspaceId) return;
+    await supabase.from("prd_scaffolds").upsert(
+      {
+        workspace_id: workspaceId,
+        prd_id: data.prdId,
+        html: data.html,
+        source: data.source,
+        generated_by: userId,
+      },
+      { onConflict: "prd_id" },
+    );
+  } catch (e) {
+    console.error("persistScaffold failed (non-fatal):", e);
+  }
+}
+
 export const generateDesignScaffold = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -110,65 +210,63 @@ export const generateDesignScaffold = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<DesignScaffold> => {
     const { supabase } = context;
     const userId = context.auth.user.id;
-
-    // Fail-safe: a workspace-resolution or query error just means no memory
-    // block gets injected (byte-identical fallback), never a broken scaffold.
-    let designMemoryBlock = "";
-    try {
-      const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
-      if (workspaceId) {
-        const activeMemory = await getActiveDesignMemoryForWorkspace(
-          supabase,
-          workspaceId as string,
-        );
-        designMemoryBlock = formatDesignMemoryContext(activeMemory);
-      }
-    } catch {
-      designMemoryBlock = "";
-    }
-
-    const userMsg = [`Product spec to mockup:\n\n${data.specBody.slice(0, 8000)}`, designMemoryBlock]
-      .filter(Boolean)
-      .join("\n\n");
-
-    const res = await callModel(supabase, userId, {
-      surface: "prd",
-      surface_ref: `design-scaffold:${data.prdId}`,
-      model: "google/gemini-2.5-flash",
-      fallbackModel: "anthropic/claude-haiku-4-5-20251001",
-      messages: [
-        { role: "system", content: buildSystemPrompt(Boolean(designMemoryBlock)) },
-        { role: "user", content: userMsg },
-      ],
+    const scaffold = await buildDesignScaffoldHtml(supabase, userId, data);
+    await persistScaffold(supabase, userId, {
+      prdId: data.prdId,
+      html: scaffold.html,
+      source: "manual",
     });
-
-    // Strip any accidental markdown code fences the model may add despite instructions
-    let html = (res.output ?? "").trim();
-    html = html
-      .replace(/^```html\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/i, "")
-      .trim();
-
-    // Remove any external CDN script/link tags the model may emit; inject our
-    // own controlled inline stylesheet so no external resources are loaded.
-    html = html.replace(/<script[^>]*src=[^>]*cdn[^>]*><\/script>/gi, "");
-    html = html.replace(/<link[^>]*cdn[^>]*>/gi, "");
-
-    const styleTag = `<style>${MOCKUP_CSS}</style>`;
-
-    if (html.toLowerCase().includes("<head>")) {
-      html = html.replace(/<head>/i, `<head>${styleTag}`);
-    } else if (html.toLowerCase().includes("<html")) {
-      // Bare html tag without head — inject after opening html tag
-      html = html.replace(/<html[^>]*>/i, (m) => `${m}<head>${styleTag}</head>`);
-    } else {
-      // Bare fragment — wrap in a minimal document
-      html = `<!DOCTYPE html><html><head>${styleTag}</head><body>${html}</body></html>`;
-    }
-
-    return { html, generatedAt: new Date().toISOString() };
+    return scaffold;
   });
+
+export type PersistedScaffold = DesignScaffold & { source: "manual" | "speculative" };
+
+export const getPersistedScaffold = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<PersistedScaffold | null> => {
+    const { supabase } = context;
+    const { data: row } = await supabase
+      .from("prd_scaffolds")
+      .select("html,source,updated_at")
+      .eq("prd_id", data.prdId)
+      .maybeSingle();
+    if (!row) return null;
+    return {
+      html: row.html as string,
+      generatedAt: row.updated_at as string,
+      source: row.source as "manual" | "speculative",
+    };
+  });
+
+/**
+ * AGT-03: speculative reversible prep. Called fire-and-forget (never
+ * awaited by its caller) right after a contract is drafted, while the human
+ * is still reviewing it — by the time they open the Design panel, a scaffold
+ * is already sitting there. Zero side effects beyond the idempotent
+ * `prd_scaffolds` upsert (the same row a later manual "Generate" overwrites);
+ * never throws into its caller.
+ */
+export async function prepareScaffoldSpeculative(
+  supabase: SupabaseClient,
+  userId: string,
+  data: { prdId: string; specBody: string },
+): Promise<void> {
+  if (!data.specBody || data.specBody.trim().length < 40) return;
+  try {
+    const scaffold = await buildDesignScaffoldHtml(supabase, userId, {
+      prdId: data.prdId,
+      specBody: data.specBody,
+    });
+    await persistScaffold(supabase, userId, {
+      prdId: data.prdId,
+      html: scaffold.html,
+      source: "speculative",
+    });
+  } catch (e) {
+    console.error("prepareScaffoldSpeculative failed (non-fatal):", e);
+  }
+}
 
 export type ScaffoldDesignCriticResult = { review: DesignCriticReview | null };
 

@@ -8,6 +8,7 @@ import { runCritic } from "@/lib/ai/critic.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
+import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
@@ -815,6 +816,13 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
     if (error || !prd) throw new Error(error?.message ?? "Could not create the spec");
 
     await runCritic(supabase, userId, { kind: "prd", id: prd.id });
+
+    // AGT-03: while the human reviews this freshly drafted contract, pre-stage
+    // a design scaffold in the background — fire-and-forget, never awaited,
+    // never lets a prep failure affect this response.
+    void prepareScaffoldSpeculative(supabase, userId, { prdId: prd.id, specBody: narrative }).catch(
+      () => {},
+    );
 
     return { prd, clarifying_questions: clarifyingQuestions };
   });

@@ -3,8 +3,8 @@
 // Renders the generated HTML in a sandboxed iframe (null origin, no CDN deps).
 // DSN-01: approve/reject writes back a design-memory learning candidate.
 // DSN-02: "Check design consistency" runs the Critic's design lens on the mockup.
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Sparkles,
@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import {
   generateDesignScaffold,
+  getPersistedScaffold,
   runScaffoldDesignCritic,
   type ScaffoldDesignCriticResult,
 } from "@/lib/design-scaffold.functions";
@@ -25,18 +26,36 @@ import { toast } from "@/lib/notify";
 
 export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBody: string }) {
   const [scaffold, setScaffold] = useState<{ html: string; generatedAt: string } | null>(null);
+  const [prestaged, setPrestaged] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<"approved" | "rejected" | null>(null);
   const [designReview, setDesignReview] = useState<ScaffoldDesignCriticResult["review"] | null>(
     null,
   );
   const fGenerate = useServerFn(generateDesignScaffold);
+  const fGetPersisted = useServerFn(getPersistedScaffold);
   const fFeedback = useServerFn(recordDesignScaffoldFeedback);
   const fDesignCritic = useServerFn(runScaffoldDesignCritic);
+
+  // AGT-03: a scaffold may already be sitting here, pre-staged while the
+  // operator was reviewing this spec's freshly drafted contract — load it
+  // instead of making them wait for a fresh generation call.
+  const persistedQ = useQuery({
+    queryKey: ["prd-scaffold", prdId],
+    queryFn: () => fGetPersisted({ data: { prdId } }),
+  });
+  useEffect(() => {
+    if (persistedQ.data && !scaffold) {
+      setScaffold({ html: persistedQ.data.html, generatedAt: persistedQ.data.generatedAt });
+      setPrestaged(persistedQ.data.source === "speculative");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persistedQ.data]);
 
   const mutation = useMutation({
     mutationFn: () => fGenerate({ data: { prdId, specBody } }),
     onSuccess: (data) => {
       setScaffold(data);
+      setPrestaged(false);
       setFeedbackGiven(null);
       setDesignReview(null);
     },
@@ -71,6 +90,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         <div className="flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
           <span className="text-xs font-semibold text-slate-700">Design mockup</span>
+          {prestaged && (
+            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
+              Pre-staged while you reviewed
+            </span>
+          )}
         </div>
         <button
           onClick={() => mutation.mutate()}
@@ -125,9 +149,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
               >
                 <ThumbsUp
-                  className={
-                    feedbackGiven === "approved" ? "h-3 w-3 text-emerald-600" : "h-3 w-3"
-                  }
+                  className={feedbackGiven === "approved" ? "h-3 w-3 text-emerald-600" : "h-3 w-3"}
                 />
                 Good fit
               </button>
@@ -137,7 +159,9 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 disabled={feedback.isPending || feedbackGiven !== null}
                 className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
               >
-                <ThumbsDown className={feedbackGiven === "rejected" ? "h-3 w-3 text-red-500" : "h-3 w-3"} />
+                <ThumbsDown
+                  className={feedbackGiven === "rejected" ? "h-3 w-3 text-red-500" : "h-3 w-3"}
+                />
                 Not a fit
               </button>
               <button
