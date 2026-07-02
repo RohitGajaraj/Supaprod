@@ -25,6 +25,7 @@ import { getDriftOverview } from "@/lib/drift.functions";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { AgentRosterPanel } from "@/components/governance/AgentRosterPanel";
 import { ApprovalsPanel } from "@/components/governance/ApprovalsPanel";
+import { HouseRulesPanel } from "@/components/governance/HouseRulesPanel";
 import { NotificationsPanel } from "@/components/governance/NotificationsPanel";
 import { IncidentsPanel } from "@/components/governance/IncidentsPanel";
 import { GuardrailsPanel } from "@/components/governance/GuardrailsPanel";
@@ -57,6 +58,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "attention", label: "Attention" },
   { id: "team", label: "Team" },
   { id: "approvals", label: "Approvals" },
+  { id: "house-rules", label: "House rules" },
   { id: "guardrails", label: "Safety" },
   { id: "budgets", label: "Spend" },
   { id: "prompts", label: "Prompts" },
@@ -75,6 +77,8 @@ const GOVERN_DESC: Record<Tab, string> = {
   team: "Your agents: who they are, what they are trusted to do, and what each has been up to.",
   controls: "Kill switch, mission caps, stuck approvals, auto-pipelines.",
   approvals: "Tool calls waiting on a human. Approve runs them; reject keeps them paused.",
+  "house-rules":
+    "Standing operating rules the weekly steward distills from validated learnings. Approve to put one to work at the chokepoint; reject to discard it.",
   guardrails: "Rules that block, warn, or redact text on every AI call.",
   budgets: "Spend caps per day, month, and AI surface. Over-cap calls are blocked.",
   prompts: "Version, A/B test, and roll back the system prompts powering every AI surface.",
@@ -212,6 +216,7 @@ function GovernPage() {
         {tab === "attention" && <NotificationsPanel />}
         {tab === "team" && <AgentRosterPanel workspaceId={activeWorkspace?.id ?? null} />}
         {tab === "approvals" && <ApprovalsPanel />}
+        {tab === "house-rules" && <HouseRulesPanel />}
         {tab === "guardrails" && <GuardrailsPanel />}
         {tab === "budgets" && <BudgetsPanel />}
         {tab === "prompts" && <PromptsPanel />}

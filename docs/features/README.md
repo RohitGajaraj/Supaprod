@@ -97,6 +97,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | MA-1 | Model-agnostic AI backend (any provider via base_url + key) + Perplexity-style capability routing + Auto mode | ✅ Engine shipped 2026-06-30 (Lane 2) | chokepoint · `ModelSwitcher` · `/settings?section=ai` | [`model-agnostic.md`](./model-agnostic.md) |
 | CNV-01 | The Outcome Contract type + dual projection (typed spec alongside the narrative) | ✅ Shipped 2026-07-02 (Lane 3) | `/prds/$id` (Contract tab) | [`outcome-contract.md`](./outcome-contract.md) |
 | CNV-04 | Agent-authored contracts (one-line intent → drafted Outcome Contract) | ✅ Shipped 2026-07-03 (Lane 3) | `/plan` (Specs tab composer) → `/prds/$id?tab=contract` | [`outcome-contract.md`](./outcome-contract.md#cnv-04-agent-authored-contracts-the-friction-killer-v12-sec-73) |
+| RF-04 | House-rules distillation (weekly steward pass -> approval-gated, supersedable operating rules injected at the chokepoint) | ✅ Shipped 2026-07-03 (Lane 2) | `/govern?tab=house-rules` · `/api/public/hooks/house-rules-tick` | [`house-rules.md`](./house-rules.md) |
 
 ## Rules
 

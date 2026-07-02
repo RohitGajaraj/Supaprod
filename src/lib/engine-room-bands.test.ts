@@ -15,14 +15,16 @@ import {
  * WITHOUT dropping or duplicating any tab, and the ?tab= routing contract (every
  * tab id) must be preserved. These lock both.
  * M1/LRN-01 increment 2 added "support" (quality-insight band): 13 -> 14 tabs.
+ * RF-04 added "house-rules" (needs-you band): 14 -> 15 tabs.
  */
 
-// The 14 tab ids the /govern route ships with — the routing contract.
+// The 15 tab ids the /govern route ships with — the routing contract.
 const ROUTE_TABS: EngineRoomTab[] = [
   "controls",
   "attention",
   "team",
   "approvals",
+  "house-rules",
   "guardrails",
   "budgets",
   "prompts",
@@ -36,7 +38,7 @@ const ROUTE_TABS: EngineRoomTab[] = [
 ];
 
 describe("engine-room-bands — the routing contract is preserved", () => {
-  it("covers exactly the 14 route tab ids (none added or dropped)", () => {
+  it("covers exactly the 15 route tab ids (none added or dropped)", () => {
     expect([...ALL_ENGINE_ROOM_TABS].sort()).toEqual([...ROUTE_TABS].sort());
   });
 
@@ -67,7 +69,7 @@ describe("engine-room-bands — band shape", () => {
   });
 
   it("puts the action-now surfaces in Needs you", () => {
-    expect(tabsInBand("needs-you")).toEqual(["controls", "attention", "approvals"]);
+    expect(tabsInBand("needs-you")).toEqual(["controls", "attention", "approvals", "house-rules"]);
   });
 
   it("the default tab lands in the FIRST band (so a bare /govern opens Needs you)", () => {
@@ -79,6 +81,7 @@ describe("engine-room-bands — band shape", () => {
 describe("engine-room-bands — derivations", () => {
   it("bandForTab maps representative tabs correctly", () => {
     expect(bandForTab("approvals")).toBe("needs-you");
+    expect(bandForTab("house-rules")).toBe("needs-you");
     expect(bandForTab("guardrails")).toBe("trust-safety");
     expect(bandForTab("incidents")).toBe("trust-safety");
     expect(bandForTab("traces")).toBe("quality-insight");

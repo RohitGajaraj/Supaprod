@@ -15,6 +15,7 @@ import { recallMemoryRefs } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { renderBriefBlock, type WorkspaceBrief } from "@/lib/briefs.functions";
+import { getActiveHouseRulesForWorkspace, renderHouseRulesBlock } from "@/lib/house-rules.functions";
 import { loadAgentArc, resolveApprovalMode, type Arc, type ToolMode } from "./trust.server";
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";
@@ -299,6 +300,19 @@ export async function runAgentLoop(
     }
   }
 
+  // RF-04 house rules — steward-distilled, approval-gated standing operating
+  // rules, injected right alongside the Strategic Brief. Read failures are
+  // non-fatal (same posture as the brief load above).
+  let houseRulesBlock = "";
+  if (workspaceId) {
+    try {
+      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId);
+      houseRulesBlock = renderHouseRulesBlock(activeRules);
+    } catch (e) {
+      console.error("house rules load failed:", e);
+    }
+  }
+
   // Inbound A2A handoff (Bundle 4 / E2-E3) — if this run is part of a mission,
   // consume the latest unread message addressed to this agent and inject the
   // structured payload as a handoff block, right after the brief.
@@ -320,6 +334,7 @@ export async function runAgentLoop(
     agent.system_prompt,
     voiceBlock,
     briefBlock,
+    houseRulesBlock,
     handoffBlock,
     memories.length
       ? `\nRelevant memories from past sessions:\n${memories.map((m) => `- ${m}`).join("\n")}`
@@ -1042,6 +1057,15 @@ export async function resumeAgentLoop(
         console.error("brief load failed (resume):", e);
       }
     }
+    let houseRulesBlock = "";
+    if (run.workspace_id) {
+      try {
+        const activeRules = await getActiveHouseRulesForWorkspace(supabase, run.workspace_id);
+        houseRulesBlock = renderHouseRulesBlock(activeRules);
+      } catch (e) {
+        console.error("house rules load failed (resume):", e);
+      }
+    }
     let handoffBlock = "";
     if (run.mission_id) {
       try {
@@ -1059,6 +1083,7 @@ export async function resumeAgentLoop(
       agent.system_prompt,
       voiceBlock,
       briefBlock,
+      houseRulesBlock,
       handoffBlock,
       memories.length
         ? `\nRelevant memories from past sessions:\n${memories.map((m) => `- ${m}`).join("\n")}`

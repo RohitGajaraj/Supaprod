@@ -18,6 +18,7 @@ const TITLE_COLUMN: Record<ArtifactKind, string> = {
   meeting: "title",
   decision: "title",
   mission: "title",
+  house_rule: "rule_text",
 };
 
 const TABLE: Record<ArtifactKind, string> = {
@@ -30,6 +31,7 @@ const TABLE: Record<ArtifactKind, string> = {
   meeting: "meetings",
   decision: "decisions",
   mission: "missions",
+  house_rule: "house_rules",
 };
 
 /**

@@ -18,6 +18,7 @@ export type EngineRoomTab =
   | "controls"
   | "team"
   | "approvals"
+  | "house-rules"
   | "guardrails"
   | "budgets"
   | "prompts"
@@ -44,7 +45,7 @@ export const ENGINE_ROOM_BANDS: readonly EngineRoomBand[] = [
     id: "needs-you",
     label: "Needs you",
     blurb: "What's waiting on you right now — controls, attention, and the approval queue.",
-    tabs: ["controls", "attention", "approvals"],
+    tabs: ["controls", "attention", "approvals", "house-rules"],
   },
   {
     id: "trust-safety",
