@@ -1,6 +1,6 @@
-# The Outcome Contract (CNV-01, v12 sec 7.4)
+# The Outcome Contract (CNV-01/CNV-04, v12 sec 7.4)
 
-> _Created: 2026-07-02_
+> _Created: 2026-07-02 · Last updated: 2026-07-03 (CNV-04)_
 
 The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside the existing markdown narrative (`body_md`). It is the first piece of the v12 Program CONVENTIONS build: the artifact formerly known as the PRD, split into a human view (unchanged) and a machine view an agent can consume directly instead of re-parsing prose.
 
@@ -24,14 +24,36 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 4. Hover any success metric or non-goal → the pencil icon → edit the text → **Save**. The prior clause moves into a collapsed "N superseded" `<details>` (struck through); the edited text appears as a new standing clause.
 5. Re-open the PRD elsewhere (task graph, Critic, GitHub export) — all unaffected; `body_md` is untouched by any of the above.
 
-## Scope notes (what this does NOT do yet)
+## Scope notes (what CNV-01 does NOT do)
 
-- `evidence_links` is wired in the type but not yet populated by `draftContractFromPrd` (it only reads the PRD's own body, not RAG citations) — filling it from `citations` is a natural follow-up, not blocking.
+- `evidence_links` is wired in the type but not populated by `draftContractFromPrd` (it only reads the PRD's own body, not RAG citations).
 - `oracle_kind` / `oracle_ref` per clause are the seam CNV-02 (the requirement-to-oracle compiler) fills in.
-- One-line-intent agent authorship (starting a spec from nothing but a sentence, not structuring an existing one) is CNV-04.
+
+## CNV-04: agent-authored contracts (the friction killer, v12 sec 7.3)
+
+**Why this exists:** v12 sec 7.3 names the command grammar directly — "the human authors a sentence, not a spec... the agent authors the contract in seconds... the human judges deltas, not blank pages." This inverts the market's shape: ChatPRD-style tools draft documents for humans to own; here the contract is the agent's plan-of-record the human governs.
+
+### What ships
+
+- **`draftContractFromIntent`** (`src/lib/discovery.functions.ts`) — takes a one-line intent (3-400 chars), pulls standing context + precedent from the same RAG index `generatePrd` already uses (`retrieve()`; prior PRDs are indexed as `source_kind: "prd"`, so precedent is real prior specs, not just docs/notes/meetings), and drafts a full contract in one AI call: intent, up to 6 success metrics, up to 5 non-goals, budget/blast radius, ambiguity policy, and **up to 5 clarifying questions asked in one batch** (empty if the intent is already unambiguous — the model is instructed not to invent friction).
+- **Creates the spec immediately** — unlike `draftContractFromPrd` (CNV-01, which only returns a preview the human must apply), this inserts the `prds` row right away: v12's "the agent authors the contract in seconds" means the human's first touch is a real row to edit deltas on, not a draft to confirm into existence. `runCritic` red-teams it inline, same as `generatePrd`.
+- Clarifying questions are prepended into the narrative body as a "## Open questions for you" section (durable — survives past the initial toast, visible in Edit/Preview too, not just a one-time notification) and also returned to the caller for an immediate toast.
+- **UI**: `SpecsPanel.tsx`'s spec-list composer (`/plan` → Specs tab) replaced the old multi-line "brief" box with a single-line intent input — "What do you want to build?" On submit, navigates straight to the new PRD's **Contract** tab (`/prds/$id?tab=contract`, via a new `validateSearch` on the route) so the human lands on judging deltas, not the narrative editor.
+
+### How to use / verify
+
+1. `/plan` → Specs tab → type one line into "What do you want to build?" → **Draft the contract**.
+2. Lands on `/prds/$id?tab=contract` with a populated contract (intent, metrics, non-goals, budget) and, if the model had a genuine open question, a toast plus a "## Open questions for you" section at the top of the Preview/Edit body.
+3. Edit any clause via its supersede pencil (same mechanic as CNV-01) instead of retyping the whole spec.
+4. Critic badge appears in the metadata row within seconds, same as any other generated spec.
+
+### Scope notes (what this does NOT do)
+
+- The retrieved RAG context is concatenated into the prompt the same way `generatePrd`'s existing brief flow already does (not through `retrieve()`'s `formatContextBlock` injection-quarantine wrapper). This is pre-existing exposure shared with `generatePrd`, not a regression introduced here (security-reviewed); batch-hardening both call sites is a follow-up, not blocking.
+- The old multi-line "brief → PRD" flow (`generatePrd`) is untouched and still used by the opportunity-promotion path (`OpportunitiesPanel.tsx`); only the Specs tab's standalone composer was replaced.
 
 ## Related
 
-- [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7 — the pressure test, the three-lifetime design, and the full CNV/AGT build list.
-- [`critic-agent.md`](./critic-agent.md) — the DEF-03 spec red-team lens, unaffected by this change (still reads `body_md`).
-- CNV-04 (agent-authored contracts) and CNV-02 (requirement-to-oracle compiler) build directly on this schema.
+- [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7 — the pressure test, the three-lifetime design, the command grammar, and the full CNV/AGT build list.
+- [`critic-agent.md`](./critic-agent.md) — the DEF-03 spec red-team lens, run inline by both `draftContractFromPrd` (on apply) and `draftContractFromIntent` (on create).
+- CNV-02 (the requirement-to-oracle compiler) builds directly on this schema, filling in every clause's `oracle_kind`/`oracle_ref`.

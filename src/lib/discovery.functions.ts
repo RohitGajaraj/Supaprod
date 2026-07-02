@@ -673,6 +673,147 @@ export const draftContractFromPrd = createServerFn({ method: "POST" })
     return { contract };
   });
 
+// ---------- CNV-04: agent-authored contracts (the friction killer) ----------
+
+const CONTRACT_FROM_INTENT_SYSTEM = `You are the Cadence contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
+Rules:
+- intent: restate the bet as one tight, sharpened paragraph (not the one-liner verbatim).
+- success_metrics: up to 6 falsifiable acceptance criteria / success metrics, most load-bearing first.
+- non_goals: up to 5 explicit out-of-scope statements.
+- budget_estimate: a rough size/effort note (e.g. "Size M, roughly 2-3 days"). Null if nothing in the intent or context supports an estimate.
+- blast_radius: what breaks or is at risk if this goes wrong. Null if genuinely unclear.
+- ambiguity_policy: one sentence on how to resolve ambiguity while building this — default to the reversible interpretation, log the assumption, escalate only if irreversible or over budget.
+- clarifying_questions: at most 5 questions, ONLY the ones that are genuinely load-bearing and cannot be inferred from the intent or context. Empty array if there is nothing that actually blocks starting.
+- narrative: a short Markdown body (## Problem, ## Approach, ## Success Metrics, ## Non-Goals, ## Budget & Risk), under 400 words, restating the same content for human reading. Cite context chunks inline as [n] where you draw from them.
+- Ground everything you can in the provided context. Where nothing supports a field, still fill intent/success_metrics/non_goals from the intent alone, but leave budget_estimate/blast_radius/ambiguity_policy null rather than inventing specifics.
+- Signal-first: state each item directly, no hedging.
+- No em dashes, no en dashes, no AI cliches (delve, leverage, unlock, game-changer, crucial).
+- Output ONLY valid JSON: {"intent": "...", "success_metrics": ["..."], "non_goals": ["..."], "budget_estimate": "..." or null, "blast_radius": "..." or null, "ambiguity_policy": "...", "clarifying_questions": ["..."], "narrative": "..."}`;
+
+/**
+ * AI: draft a full Outcome Contract from a one-line intent — standing
+ * context and precedent pulled from the same RAG index generatePrd already
+ * uses (prior PRDs are indexed as source_kind "prd", so precedent is real,
+ * not just workspace docs). Unlike draftContractFromPrd (which drafts a
+ * PREVIEW for an existing spec the human must apply), this creates the spec
+ * immediately: v12's "the agent authors the contract in seconds," so the
+ * human's first touch is judging deltas on a real row, not confirming a
+ * blank-page draft into existence.
+ */
+export const draftContractFromIntent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ intent: z.string().trim().min(3).max(400) }).parse(i))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    let chunks: Awaited<ReturnType<typeof retrieve>> = [];
+    try {
+      chunks = await retrieve(supabase, userId, { query: data.intent, k: 8, mmr: true });
+    } catch {
+      chunks = [];
+    }
+    const citations = chunks.map((c, i) => ({
+      n: i + 1,
+      source_kind: c.source_kind,
+      source_id: c.source_id,
+      title: c.title ?? null,
+      snippet: c.content.slice(0, 280),
+      score: Number((c.similarity ?? 0).toFixed(3)),
+    }));
+    const contextBlock =
+      chunks.length === 0
+        ? "\n\n(No standing context or precedent found for this intent — draft from the intent alone.)"
+        : `\n\nSTANDING CONTEXT + PRECEDENT (cite as [n] in the narrative if you draw from it):\n${chunks
+            .map(
+              (c, i) =>
+                `[${i + 1}] (${c.source_kind}${c.title ? ` · ${c.title.slice(0, 80)}` : ""}) ${c.content.slice(0, 600)}`,
+            )
+            .join("\n\n")}`;
+
+    const res = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: "contract_from_intent",
+      model: "google/gemini-2.5-pro",
+      fallbackModel: "google/gemini-2.5-flash",
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: CONTRACT_FROM_INTENT_SYSTEM },
+        { role: "user", content: `ONE-LINE INTENT: ${data.intent}${contextBlock}` },
+      ],
+    });
+    const j = (res.json ?? {}) as {
+      intent?: unknown;
+      success_metrics?: unknown;
+      non_goals?: unknown;
+      budget_estimate?: unknown;
+      blast_radius?: unknown;
+      ambiguity_policy?: unknown;
+      clarifying_questions?: unknown;
+      narrative?: unknown;
+    };
+
+    const nowIso = new Date().toISOString();
+    const intent =
+      typeof j.intent === "string" && j.intent.trim()
+        ? j.intent.trim().slice(0, 2000)
+        : data.intent;
+    const budgetEstimate =
+      typeof j.budget_estimate === "string" ? j.budget_estimate.trim().slice(0, 200) : null;
+    const blastRadius =
+      typeof j.blast_radius === "string" ? j.blast_radius.trim().slice(0, 500) : null;
+    const clarifyingQuestions = draftedStrings(j.clarifying_questions, 5).map((q) =>
+      q.slice(0, 300),
+    );
+
+    const contract: OutcomeContract = {
+      version: 1,
+      intent,
+      evidence_links: citations.map((c) => ({
+        source_kind: c.source_kind,
+        source_id: c.source_id ?? "",
+        title: c.title,
+      })),
+      success_metrics: draftedStrings(j.success_metrics, 6).map((t) => draftedClause(t, nowIso)),
+      non_goals: draftedStrings(j.non_goals, 5).map((t) => draftedClause(t, nowIso)),
+      budget:
+        budgetEstimate || blastRadius
+          ? { estimate: budgetEstimate, blast_radius: blastRadius }
+          : null,
+      ambiguity_policy:
+        typeof j.ambiguity_policy === "string" ? j.ambiguity_policy.trim().slice(0, 1000) : null,
+      drafted_by: "agent",
+      drafted_at: nowIso,
+    };
+
+    let narrative = typeof j.narrative === "string" ? j.narrative.trim() : "";
+    if (!narrative) narrative = `## Intent\n${intent}`;
+    if (clarifyingQuestions.length > 0) {
+      narrative = `## Open questions for you\n${clarifyingQuestions.map((q) => `- ${q}`).join("\n")}\n\n${narrative}`;
+    }
+    narrative = narrative.slice(0, 8000);
+
+    const title = data.intent.length <= 80 ? data.intent : `${data.intent.slice(0, 77)}…`;
+
+    const { data: prd, error } = await supabase
+      .from("prds")
+      .insert({
+        user_id: userId,
+        title,
+        body_md: narrative,
+        model: "google/gemini-2.5-pro",
+        citations,
+        contract,
+        contract_migrated_at: nowIso,
+      })
+      .select()
+      .single();
+    if (error || !prd) throw new Error(error?.message ?? "Could not create the spec");
+
+    await runCritic(supabase, userId, { kind: "prd", id: prd.id });
+
+    return { prd, clarifying_questions: clarifyingQuestions };
+  });
+
 /**
  * Supersede one contract clause: the prior clause is marked superseded and
  * points at its replacement, a new standing clause is appended. Never

@@ -43,13 +43,25 @@ import { listLinearTeams, createLinearIssuesFromTasks } from "@/lib/linear.funct
 import { dispatchStudioSession } from "@/lib/studio.functions";
 import { createDecision } from "@/lib/decisions.functions";
 
+const MODE_TABS = ["edit", "preview", "contract"] as const;
+type ModeTab = (typeof MODE_TABS)[number];
+
 export const Route = createFileRoute("/_authenticated/prds/$id")({
+  // Optional so existing links/navigates work without search; CNV-04 lands
+  // a freshly agent-authored spec straight on the Contract tab.
+  validateSearch: (search: Record<string, unknown>): { tab?: ModeTab } => {
+    const t = search.tab;
+    return {
+      tab: (MODE_TABS as readonly string[]).includes(t as string) ? (t as ModeTab) : undefined,
+    };
+  },
   component: PrdEditor,
   head: () => ({ meta: [{ title: "Spec · Cadence" }] }),
 });
 
 function PrdEditor() {
   const { id } = useParams({ from: "/_authenticated/prds/$id" });
+  const initialTab = Route.useSearch().tab;
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fGet = useServerFn(getPrd);
@@ -143,7 +155,7 @@ function PrdEditor() {
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [mode, setMode] = useState<"edit" | "preview" | "contract">("edit");
+  const [mode, setMode] = useState<ModeTab>(initialTab ?? "edit");
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

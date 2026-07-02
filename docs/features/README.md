@@ -96,6 +96,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | AFD | Analytics & Failure Detection (PostHog EU + Sentry EU + Better Stack + in-house views) | 📋 Plan 2026-06-25 (build pending; board G12, founder-gated) | `/admin/ai-costs` · `/admin/incidents` · `/admin/observability` · `status.cadence.app` | [`analytics-and-failure-detection.md`](./analytics-and-failure-detection.md) · façade [`observability-facade.md`](./observability-facade.md) |
 | MA-1 | Model-agnostic AI backend (any provider via base_url + key) + Perplexity-style capability routing + Auto mode | ✅ Engine shipped 2026-06-30 (Lane 2) | chokepoint · `ModelSwitcher` · `/settings?section=ai` | [`model-agnostic.md`](./model-agnostic.md) |
 | CNV-01 | The Outcome Contract type + dual projection (typed spec alongside the narrative) | ✅ Shipped 2026-07-02 (Lane 3) | `/prds/$id` (Contract tab) | [`outcome-contract.md`](./outcome-contract.md) |
+| CNV-04 | Agent-authored contracts (one-line intent → drafted Outcome Contract) | ✅ Shipped 2026-07-03 (Lane 3) | `/plan` (Specs tab composer) → `/prds/$id?tab=contract` | [`outcome-contract.md`](./outcome-contract.md#cnv-04-agent-authored-contracts-the-friction-killer-v12-sec-73) |
 
 ## Rules
 

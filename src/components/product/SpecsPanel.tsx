@@ -2,10 +2,11 @@
 // (ProductScreen, tab "Specs"): bento table with mono-label header
 // (Spec / State / Critic / Cites / Updated), StatusBadge state mapping and
 // Open + "Hand to Studio" actions (Builder → Studio rename). Production
-// functionality kept: brief→PRD composer, row navigation to /prds/$id,
-// create-GitHub-issue gate before Studio dispatch, rename / generate-tasks /
-// lineage / delete via a quiet overflow menu, CriticBadge in the Critic
-// column (real verdicts via listSpecs).
+// functionality kept: row navigation to /prds/$id, create-GitHub-issue gate
+// before Studio dispatch, rename / generate-tasks / lineage / delete via a
+// quiet overflow menu, CriticBadge in the Critic column (real verdicts via
+// listSpecs). CNV-04: the brief->PRD composer is now the one-line intent ->
+// agent-authored Outcome Contract composer (draftContractFromIntent).
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +27,7 @@ import { LineageDrawer } from "@/components/cadence/LineageDrawer";
 import {
   listSpecs,
   deletePrd,
-  generatePrd,
+  draftContractFromIntent,
   createGithubIssueForPrd,
   savePrd,
   type CriticReview,
@@ -60,7 +61,7 @@ export function SpecsPanel() {
   const navigate = useNavigate();
   const fSpecs = useServerFn(listSpecs);
   const mDelete = useServerFn(deletePrd);
-  const mGen = useServerFn(generatePrd);
+  const mDraftContract = useServerFn(draftContractFromIntent);
   const mTasks = useServerFn(promotePrdToTasks);
   const mCreateIssue = useServerFn(createGithubIssueForPrd);
   const mDispatch = useServerFn(dispatchStudioSession);
@@ -108,22 +109,31 @@ export function SpecsPanel() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const gen = useMutation({
-    mutationFn: (brief: string) => mGen({ data: { brief } }),
+  // CNV-04: the friction killer — one line in, a full agent-authored Outcome
+  // Contract out, in seconds. Lands the human on the Contract tab to judge
+  // deltas, not a blank page.
+  const draftContract = useMutation({
+    mutationFn: (intent: string) => mDraftContract({ data: { intent } }),
     onSuccess: (r) => {
       inv();
-      toast.success("PRD drafted. Critic reviewed it.");
-      if (r.prd?.id) navigate({ to: "/prds/$id", params: { id: r.prd.id } });
+      toast.success(
+        r.clarifying_questions.length > 0
+          ? `Contract drafted. ${r.clarifying_questions.length} open question${r.clarifying_questions.length === 1 ? "" : "s"} for you.`
+          : "Contract drafted. Critic reviewed it.",
+      );
+      if (r.prd?.id) {
+        navigate({ to: "/prds/$id", params: { id: r.prd.id }, search: { tab: "contract" } });
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const [brief, setBrief] = useState("");
+  const [intent, setIntent] = useState("");
   const [lineage, setLineage] = useState<{ id: string; title: string } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const briefRef = useRef<HTMLTextAreaElement>(null);
+  const intentRef = useRef<HTMLInputElement>(null);
   const all = prds.data?.prds ?? [];
 
   useEffect(() => {
@@ -163,28 +173,33 @@ export function SpecsPanel() {
   return (
     <>
       <div className="bento" style={{ padding: "14px 16px", marginBottom: 12 }}>
-        <div className="mono-label">Draft a spec from a brief</div>
-        <textarea
-          ref={briefRef}
-          className="input"
-          value={brief}
-          onChange={(e) => setBrief(e.target.value)}
-          placeholder="Describe the problem, who it's for, and any constraints. The AI will produce a structured PRD."
-          rows={3}
-          style={{ marginTop: 8, resize: "none" }}
-        />
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <div className="mono-label">What do you want to build?</div>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <input
+            ref={intentRef}
+            className="input"
+            style={{ flex: 1 }}
+            value={intent}
+            onChange={(e) => setIntent(e.target.value)}
+            placeholder="One line is enough — the agent drafts the full contract from it."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && intent.trim() && !draftContract.isPending) {
+                draftContract.mutate(intent.trim());
+                setIntent("");
+              }
+            }}
+          />
           <button
             className="btn btn-primary btn-sm"
-            disabled={gen.isPending || !brief.trim()}
+            disabled={draftContract.isPending || !intent.trim()}
             onClick={() => {
-              if (brief.trim()) {
-                gen.mutate(brief.trim());
-                setBrief("");
+              if (intent.trim()) {
+                draftContract.mutate(intent.trim());
+                setIntent("");
               }
             }}
           >
-            {gen.isPending ? "Drafting…" : "Generate PRD · Critic reviews it"}
+            {draftContract.isPending ? "Drafting…" : "Draft the contract"}
           </button>
         </div>
       </div>
@@ -204,9 +219,9 @@ export function SpecsPanel() {
         <EmptyState
           icon={FileText}
           title="No specs yet"
-          body="Draft one from a brief above, or generate a PRD from a ranked opportunity."
-          cta="Draft a spec · from your brief"
-          onCta={() => briefRef.current?.focus()}
+          body="Type one line above and the agent drafts the full contract, or generate a PRD from a ranked opportunity."
+          cta="Draft a spec · from one line"
+          onCta={() => intentRef.current?.focus()}
         />
       ) : (
         <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
