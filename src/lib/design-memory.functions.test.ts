@@ -164,4 +164,17 @@ describe("isPublicHost (SSRF guard for importDesignMemoryFromUrl)", () => {
   it("allows an IPv4-mapped IPv6 literal that embeds a PUBLIC address", () => {
     expect(isPublicHost(new URL("https://[::ffff:8.8.8.8]/").hostname)).toBe(true);
   });
+
+  it("blocks a trailing-dot bypass (the DNS root dot is resolver-equivalent to the bare name)", () => {
+    // new URL(...).hostname preserves a trailing dot verbatim (confirmed:
+    // new URL("http://localhost./x").hostname === "localhost."), so every
+    // check above must not be defeatable by appending "." to a blocked host.
+    expect(isPublicHost(new URL("https://localhost./x").hostname)).toBe(false);
+    expect(isPublicHost(new URL("https://metadata.google.internal./x").hostname)).toBe(false);
+    expect(isPublicHost(new URL("https://evil.internal./x").hostname)).toBe(false);
+    expect(isPublicHost(new URL("https://printer.local./x").hostname)).toBe(false);
+    // multiple trailing dots too, and a public host must still pass through unaffected.
+    expect(isPublicHost("localhost..")).toBe(false);
+    expect(isPublicHost(new URL("https://example.com./x").hostname)).toBe(true);
+  });
 });

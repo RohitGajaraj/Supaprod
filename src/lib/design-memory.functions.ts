@@ -613,7 +613,13 @@ function ipv4MappedToDotted(v6: string): string | null {
  * runtime with resolver control, neither of which exists here today.
  */
 export function isPublicHost(host: string): boolean {
-  const h = host.toLowerCase();
+  // A trailing dot denotes the DNS root and is resolver-equivalent to the
+  // bare name (`localhost.` resolves exactly like `localhost`), but every
+  // check below is an exact `===` or `.endsWith()` match, so an attacker
+  // could otherwise bypass the entire blocklist just by appending "." to
+  // any blocked host (localhost., metadata.google.internal., evil.internal.).
+  // Strip it before any comparison.
+  const h = host.toLowerCase().replace(/\.+$/, "");
   if (h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]") return false;
   if (h === "metadata" || h === "metadata.google.internal") return false;
   if (BLOCKED_HOST_SUFFIXES.some((s) => h.endsWith(s))) return false;
