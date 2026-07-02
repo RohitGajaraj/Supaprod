@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email.server";
 
 // R3 · Notifications, one "what needs you" feed derived live from the loop's
 // own state: tool calls waiting on a human, spend nearing or over a cap, a
@@ -279,19 +280,58 @@ export const updateNotificationPreferences = createServerFn({ method: "POST" })
     return { preferences: row as UserNotificationPreferences };
   });
 
-// --- Scaffolding for Email/Digest Dispatching ---
+// --- FS-03: the reach channel (real email, behind the Resend facade) ---
+// Engine-Room: dispatch/preference machinery -> Settings > Notifications ->
+// "Cadence reaches you when it matters." Instant sends are reserved for
+// expiring gates (approvals-tick) and critical incidents (drift.server.ts);
+// everything else waits for the user's own scheduled digest.
 
-/**
- * Scaffolding helper to simulate dispatch of an instant email notification.
- * This runs when an event fires and checks the user's specific email preferences.
- * Gated/dry-run only (no outbound email sending actually triggered).
- */
-export async function dispatchInstantEmailScaffold(
+/** Pure: the local hour-of-day (0-23) for a UTC instant in a given IANA timezone.
+ *  Falls back to UTC on an invalid timezone string rather than throwing. */
+export function localHourInTimezone(nowUtc: Date, timezone: string): number {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "numeric", hour12: false })
+      .formatToParts(nowUtc);
+    const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10);
+    return Number.isFinite(h) ? h % 24 : nowUtc.getUTCHours();
+  } catch {
+    return nowUtc.getUTCHours();
+  }
+}
+
+/** Pure: whether `localHour` falls outside the user's working hours. Handles a
+ *  window that wraps past midnight (start > end). A degenerate start===end
+ *  config (never set) is treated as never-quiet, not always-quiet. */
+export function isQuietHours(localHour: number, workingHoursStart: number, workingHoursEnd: number): boolean {
+  if (workingHoursStart === workingHoursEnd) return false;
+  if (workingHoursStart < workingHoursEnd) {
+    return localHour < workingHoursStart || localHour >= workingHoursEnd;
+  }
+  return localHour >= workingHoursEnd && localHour < workingHoursStart;
+}
+
+/** Best-effort recipient email lookup. Requires an admin (service-role) client;
+ *  returns null rather than throwing when the client lacks admin auth or the
+ *  user cannot be resolved, so a lookup failure degrades to a silent no-send. */
+async function resolveUserEmail(supabase: SupabaseClient, userId: string): Promise<string | null> {
+  try {
+    const admin = (supabase as unknown as { auth: { admin?: { getUserById: (id: string) => Promise<{ data: { user: { email?: string | null } | null } | null; error: unknown }> } } }).auth.admin;
+    if (!admin) return null;
+    const { data } = await admin.getUserById(userId);
+    return data?.user?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Dispatch a single instant email. Reserved for expiring gates and critical
+ *  incidents (the caller decides urgency; this only enforces the user's own
+ *  per-category preference and actually delivers via the Resend facade). */
+export async function dispatchInstantEmail(
   supabase: SupabaseClient,
   userId: string,
   notification: Pick<AppNotification, "kind" | "severity" | "title" | "detail">,
 ): Promise<{ sent: boolean; reason: string }> {
-  // Fetch preferences
   const { data: prefs } = await supabase
     .from("user_notification_preferences")
     .select("*")
@@ -321,23 +361,25 @@ export async function dispatchInstantEmailScaffold(
     };
   }
 
-  // Simulate email sending (scaffold logging)
-  console.log(`[Scaffold Email] Sending instant notification to user ${userId}:`, {
-    subject: `Cadence Alert: ${notification.title}`,
-    body: notification.detail,
-    severity: notification.severity,
-  });
+  const to = await resolveUserEmail(supabase, userId);
+  if (!to) return { sent: false, reason: "could not resolve recipient email" };
 
-  return { sent: true, reason: "Instant email scaffold dispatched successfully (dry-run)." };
+  const { sent, reason } = await sendEmail({
+    to,
+    subject: `Cadence: ${notification.title}`,
+    text: notification.detail,
+  });
+  return { sent, reason };
 }
 
 /**
- * Scaffolding helper to aggregate and compile a periodic email digest.
- * This aggregates pending alerts from multiple categories, checks user digest preferences,
- * and formats the digest summary.
- * Gated/dry-run only.
+ * Aggregate and compile a periodic email digest, then deliver it via the
+ * Resend facade if there is anything to report. Stamps `last_digest_sent_at`
+ * whenever the due-check completes (whether or not there were items to
+ * report), so an hourly digest-tick does not re-run these queries for a
+ * quiet workspace until the next window.
  */
-export async function generateDigestScaffold(
+export async function generateDigest(
   supabase: SupabaseClient,
   userId: string,
   frequency: "daily" | "weekly",
@@ -421,19 +463,81 @@ export async function generateDigestScaffold(
     }
   }
 
+  await supabase
+    .from("user_notification_preferences")
+    .update({ last_digest_sent_at: new Date().toISOString() })
+    .eq("user_id", userId);
+
   if (digestItems.length === 0) {
     return { generated: false, reason: "No digest items found matching preferences." };
   }
 
-  const subject = `Cadence Notification Digest (${frequency})`;
+  const subject = `Cadence ${frequency} digest`;
   const content = `Hello,\n\nHere is your ${frequency} digest from Cadence:\n\n${digestItems.join("\n")}\n\nReview detailed logs in your Cadence Cockpit dashboard.`;
 
-  console.log(`[Scaffold Digest] Compiled ${frequency} digest for user ${userId}`);
+  const to = await resolveUserEmail(supabase, userId);
+  if (!to) return { generated: true, reason: "could not resolve recipient email", subject, content };
 
-  return {
-    generated: true,
-    reason: "Digest scaffold generated successfully (dry-run).",
-    subject,
-    content,
-  };
+  const { sent, reason } = await sendEmail({ to, subject, text: content });
+  return { generated: true, reason: sent ? "sent" : reason, subject, content };
+}
+
+const DAILY_DUE_MS = 20 * 60 * 60 * 1000; // 20h, so an hourly tick lands once/day with slack
+const WEEKLY_DUE_MS = 6.5 * 24 * 60 * 60 * 1000;
+
+/** digest-tick: scans users with a notification-preferences row, sends the ones whose
+ *  digest is due and who are not currently in their own quiet hours. Quiet hours reuse
+ *  the profile's existing working_hours_start/end + timezone (no duplicate field, per
+ *  the data-minimalism rule) — outside working hours is quiet; instant sends bypass this
+ *  entirely by design (a critical incident at 2am must still reach you). */
+export async function sendDueDigests(
+  supabase: SupabaseClient,
+): Promise<{ scanned: number; sent: number }> {
+  const { data: prefRows } = await supabase
+    .from("user_notification_preferences")
+    .select("user_id,digest_frequency,last_digest_sent_at")
+    .limit(200);
+  const rows = (prefRows ?? []) as {
+    user_id: string;
+    digest_frequency: "daily" | "weekly";
+    last_digest_sent_at: string | null;
+  }[];
+  if (rows.length === 0) return { scanned: 0, sent: 0 };
+
+  const now = Date.now();
+  const due = rows.filter((r) => {
+    const last = r.last_digest_sent_at ? Date.parse(r.last_digest_sent_at) : null;
+    const dueMs = r.digest_frequency === "weekly" ? WEEKLY_DUE_MS : DAILY_DUE_MS;
+    return last === null || now - last >= dueMs;
+  });
+  if (due.length === 0) return { scanned: rows.length, sent: 0 };
+
+  const userIds = due.map((r) => r.user_id);
+  const { data: profileRows } = await supabase
+    .from("profiles")
+    .select("id,timezone,working_hours_start,working_hours_end")
+    .in("id", userIds);
+  const profileById = new Map(
+    ((profileRows ?? []) as {
+      id: string;
+      timezone: string | null;
+      working_hours_start: number;
+      working_hours_end: number;
+    }[]).map((p) => [p.id, p]),
+  );
+
+  let sent = 0;
+  const nowUtc = new Date(now);
+  for (const r of due) {
+    const profile = profileById.get(r.user_id);
+    const timezone = profile?.timezone || "UTC";
+    const start = profile?.working_hours_start ?? 9;
+    const end = profile?.working_hours_end ?? 18;
+    const localHour = localHourInTimezone(nowUtc, timezone);
+    if (isQuietHours(localHour, start, end)) continue; // defer to the next tick after quiet hours
+
+    const result = await generateDigest(supabase, r.user_id, r.digest_frequency);
+    if (result.generated && result.reason === "sent") sent++;
+  }
+  return { scanned: rows.length, sent };
 }

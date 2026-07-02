@@ -11,6 +11,7 @@
  * schedule from the drift-tick hook or invoked manually from the UI.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { dispatchInstantEmail } from "@/lib/notifications.functions";
 
 type EventRow = {
   surface: string;
@@ -324,6 +325,21 @@ export async function detectIncidents(
       .insert(toInsert.map((b) => ({ user_id: userId, ...b, detail: {} })));
     if (insErr) throw new Error(insErr.message);
     opened = toInsert.length;
+
+    // FS-03: the other instant-email trigger — a critical incident, not just an
+    // expiring gate. Fail-safe: a notification failure never blocks drift detection.
+    for (const b of toInsert.filter((x) => x.severity === "critical")) {
+      try {
+        await dispatchInstantEmail(supabase, userId, {
+          kind: "drift",
+          severity: "warning",
+          title: `Critical drift: ${b.metric} on ${b.surface}`,
+          detail: `${b.model} moved ${b.delta_pct > 0 ? "+" : ""}${b.delta_pct.toFixed(0)}% vs baseline.`,
+        });
+      } catch (e) {
+        console.error("critical-drift email failed (non-fatal):", e);
+      }
+    }
   }
 
   // Auto-resolve: open incidents whose metric no longer breaches

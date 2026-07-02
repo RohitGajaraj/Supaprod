@@ -3,11 +3,19 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { needsEscalationResolve } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
+import { dispatchInstantEmail } from "@/lib/notifications.functions";
+
+const EXPIRY_WARNING_MINUTES = 60;
 
 /**
  * Approvals tick — flips pending agent_approvals whose `expires_at` has
  * passed to `escalation_state='expired'` and marks the parent run halted
  * if applicable. Designed to be called by pg_cron once per minute.
+ *
+ * FS-03: also fires the one instant-email trigger reserved for "expiring
+ * gates" — a pending approval within EXPIRY_WARNING_MINUTES of its own
+ * expiry gets a single email (expiry_notified_at dedups so it fires once,
+ * not every minute of that final hour).
  *
  * BLD-GATE-SYNC: also reconciles stale escalation flags — an approval that
  * reached a decided/terminal status (failed/executed/denied/cancelled/
@@ -52,6 +60,51 @@ export const Route = createFileRoute("/api/public/hooks/approvals-tick")({
               expired++;
             }
 
+            // FS-03: expiring-gate instant email. Narrow window (not yet expired, but
+            // close), never notified before. One email, not a spam loop.
+            let notified = 0;
+            const soonIso = new Date(Date.now() + EXPIRY_WARNING_MINUTES * 60 * 1000).toISOString();
+            const { data: expiringSoon } = await supabaseAdmin
+              .from("agent_approvals")
+              .select("id,agent_slug,tool_name,rationale,user_id,expires_at")
+              .eq("escalation_state", "pending")
+              .eq("status", "pending")
+              .not("expires_at", "is", null)
+              .gt("expires_at", nowIso)
+              .lte("expires_at", soonIso)
+              .is("expiry_notified_at", null)
+              .limit(100);
+            for (const a of (expiringSoon ?? []) as {
+              id: string;
+              agent_slug: string;
+              tool_name: string;
+              rationale: string | null;
+              user_id: string;
+              expires_at: string;
+            }[]) {
+              try {
+                await dispatchInstantEmail(supabaseAdmin, a.user_id, {
+                  kind: "approval",
+                  severity: "action",
+                  title: `Approval expiring soon: ${a.tool_name}`,
+                  detail:
+                    a.rationale ??
+                    `${a.agent_slug} is waiting on your decision before it expires.`,
+                });
+              } catch (e) {
+                console.error("expiring-gate email failed (non-fatal):", e);
+              }
+              // expiry_notified_at predates the generated Supabase types (not yet
+              // regenerated against the live schema); same eslint-disabled `as any`
+              // escape hatch derive-tick.ts already uses for this exact situation.
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              await (supabaseAdmin as any)
+                .from("agent_approvals")
+                .update({ expiry_notified_at: nowIso })
+                .eq("id", a.id);
+              notified++;
+            }
+
             // BLD-GATE-SYNC: clear stale escalation flags on already-decided approvals so they
             // stop haunting the Needs-You surfaces. `needsEscalationResolve` is the source of
             // truth; the DB filter just narrows candidates (a genuinely-pending gate has
@@ -89,7 +142,7 @@ export const Route = createFileRoute("/api/public/hooks/approvals-tick")({
               resolved++;
             }
 
-            return new Response(JSON.stringify({ ok: true, expired, resolved }), {
+            return new Response(JSON.stringify({ ok: true, expired, resolved, notified }), {
               headers: { "Content-Type": "application/json" },
             });
           } catch (e) {

@@ -2129,6 +2129,9 @@ function ProfileTab() {
 
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Working hours</MonoLabel>
+        <p style={{ fontSize: 11, color: "var(--ink-faint)", margin: "0 0 12px" }}>
+          Also your quiet hours: your scheduled digest waits until this window opens.
+        </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="Start (24h)">
             <input
