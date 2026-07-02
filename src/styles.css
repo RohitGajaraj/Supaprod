@@ -582,16 +582,20 @@
     pointer-events: none;
   }
 
-  /* Brand mark — butterfly wings breathe in a slow flutter. */
+  /* Brand mark — butterfly wings breathe in a slow flutter.
+   * NOTE (OBS-01): the keyframes were renamed cadFlutter -> cadFlutterBrand
+   * (identical values, zero visual change) because the Obsidian v3 layer at
+   * the end of this file owns the canonical `cadFlutter` name (different
+   * amplitude, 0.72) and keyframe names are global in CSS. */
   .cad-flutter {
     transform-origin: 12px 12px;
-    animation: cadFlutter 3.2s ease-in-out infinite alternate;
+    animation: cadFlutterBrand 3.2s ease-in-out infinite alternate;
   }
   .cad-flutter-l {
     transform-origin: 12px 12px;
     animation: cadFlutterL 3.2s ease-in-out infinite alternate;
   }
-  @keyframes cadFlutter {
+  @keyframes cadFlutterBrand {
     from {
       transform: scaleX(1);
     }
@@ -1607,5 +1611,375 @@ html[data-motion="off"] .agent-live {
 @media (prefers-reduced-motion: reduce) {
   .agent-live {
     animation: none;
+  }
+}
+
+/* ===========================================================================
+ * Obsidian v3 · the app-scoped token layer (OBS-01, group G14)
+ * ---------------------------------------------------------------------------
+ * Source of truth: /DESIGN-OBSIDIAN.md + design-reference/obsidian-v3/tokens/
+ * (colors.css · typography.css · geometry.css · motion.css, ported VERBATIM).
+ *
+ * Scope: [data-obsidian]. The attribute is attached per ported surface (the
+ * OBS-02 shell first), never globally, so the port stays surface-by-surface
+ * and revertible. The public landing page (parchment, /DESIGN.md) never
+ * carries the attribute and is untouched.
+ *
+ * The SEMANTIC BRIDGE further down remaps the shadcn/parchment variable
+ * names to Obsidian values so any component rendered under the scope,
+ * ported or not, degrades to a coherent dark theme instead of unreadable
+ * dark-on-dark. Colors only from the tokens: never invent a hex outside
+ * this layer (grep gate: no new hexes outside the token block).
+ * =========================================================================== */
+
+[data-obsidian] {
+  color-scheme: dark;
+
+  /* === tokens/colors.css · Surfaces: depth from tint, not shadow === */
+  --canvas: #0a0a0b; /* page background */
+  --rail: #0d0d0f; /* sidebar */
+  --card: #111113; /* default card */
+  --raised: #17171a; /* raised surface, table header, secondary button */
+  --hover: #1d1d21; /* hover fill, avatar chip */
+  --surface-canvas: var(--canvas);
+  --surface-rail: var(--rail);
+  --surface-card: var(--card);
+  --surface-card-deep: #0e0e10; /* alternating rows, call-card base */
+  --surface-raised: var(--raised);
+  --surface-hover: var(--hover);
+
+  /* Hairlines replace shadows */
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.09);
+  --hairline-faint: rgba(255, 255, 255, 0.05);
+
+  /* === Ink === */
+  --text-primary: #f2f0ed;
+  --text-body: #b5afa6;
+  --text-muted: #9c978f;
+  --text-subtle: #7d786f;
+  --text-faint: #55524c;
+
+  /* === Role colors · each has exactly ONE job === */
+  /* Ember: needs a human. Calls, gates, the one primary CTA. Never decoration. */
+  --ember: #ff6b2c;
+  --ember-deep: #c2571f; /* pressed/active ember */
+  --ember-soft: #ffa477; /* tints, highlights, sparing */
+  /* Glacier: THE machine voice. Live state, agent presence, mono-label accent. */
+  --glacier: #7fd1dc;
+  /* Royal violet: ONLY inside the shimmer gradient and the working butterfly. */
+  --violet-shimmer: #c77dff;
+  /* Blossom: information. Links, citation chips. */
+  --blossom: #e5bddf;
+  --fuchsia: #c2337e; /* blossom's pressed depth */
+  /* Moss: outcomes only, positive (validated, shipped, kept). */
+  --moss: #7fbf8e;
+  --moss-bright: #8fd9a0; /* chip text on tinted fill */
+  /* Madder: outcomes only, negative (missed, failed, killed). */
+  --madder: #e06557;
+  --madder-bright: #ee7a6c;
+  /* Marigold: in-review status only. */
+  --marigold: #e8b44c;
+  /* Blush: alternate light tint for small mono-caps labels. */
+  --blush: #f3c1c1;
+
+  /* === Working palette · data only; role colors never plot data === */
+  /* Spend and cost */
+  --tangerine: #f97316;
+  --marigold-data: #e8a33d;
+  --melon: #ff9466;
+  /* Severity, Safety room only */
+  --scarlet: #e23d33;
+  --poppy: #f0533f;
+  /* User-behavior data */
+  --flamingo: #f26b8a;
+  --magenta: #c2337e;
+  --rose: #e89ab0; /* NOTE: data color here; parchment's alert role moved to --destructive/--madder */
+  /* Agent identity (one fixed shade per face) */
+  --mauve: #b78bc7;
+  --amethyst: #7e5aa6;
+  /* Benchmarks, baselines, comparisons */
+  --cornflower: #6b8afd;
+  --cobalt: #3b5bdb;
+  /* Chart annotations, calendar density */
+  --lemon: #f2e27a;
+  --daffodil: #f5d94e;
+  /* The machine's data series */
+  --teal: #2e9e8f;
+  /* Axes, grids, de-emphasized, disabled */
+  --pearl: #edeae4;
+  --ash: #a8a29a;
+  --slate: #6e6a64;
+
+  /* === Pencil annotations (the PM's own ink) === */
+  --pencil-lime: #cde07a; /* strongest bet */
+  --pencil-blossom: #e5bddf; /* pet feature */
+  --pencil-apricot: #ffb27a; /* scope creep */
+
+  /* === Semantic aliases === */
+  --cta: var(--ember);
+  --cta-pressed: var(--ember-deep);
+  --cta-ink: #0a0a0b; /* text on ember fill */
+  --machine: var(--glacier);
+  --link: var(--blossom);
+  --focus-ring: var(--glacier); /* 2px glacier focus ring */
+  --selection: rgba(255, 107, 44, 0.28);
+
+  /* === tokens/typography.css · three voices + two special inks === */
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-dotted: "Codystar", cursive; /* aurora numerals ONLY */
+  --font-pencil: "Caveat", cursive; /* pencil annotations ONLY */
+
+  --text-hero: 34px; /* Newsreader 420-440, -0.015em, 1.15 */
+  --text-h2: 28px; /* Newsreader 430-440 */
+  --text-card-title: 20px; /* Newsreader 450-460, 1.3 */
+  --text-score: 52px; /* Codystar, aurora cards only */
+  --text-base: 13px; /* Schibsted, 1.55 line height */
+  --text-sm: 12px;
+  --text-helper: 11.5px;
+  --text-mono-label: 9.5px; /* mono caps, 0.10-0.12em tracking */
+  --text-mono-micro: 8.5px;
+
+  --leading-body: 1.55;
+  --leading-display: 1.15;
+  --tracking-mono: 0.12em;
+  --tracking-display: -0.015em;
+
+  /* === tokens/geometry.css · 4px grid; rhythm 8/12/16/24/40 === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+  --radius-pill: 99px;
+  --radius-aurora: 16px;
+
+  /* === tokens/motion.css · one easing, three durations === */
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-control: 140ms;
+  --dur-panel: 200ms;
+  --dur-page: 280ms;
+  /* The AI shimmer: only on text/marks representing the machine actively
+   * working; at most ONE per screen. */
+  --shimmer-gradient: linear-gradient(
+    90deg,
+    #7fd1dc,
+    #5b7cfa,
+    #8b5cf6,
+    #c77dff,
+    #eaf6ff,
+    #3b5bdb,
+    #7fd1dc
+  );
+
+  /* === Density (extensions §8) · comfortable is the spec as written.
+   * Compact = rows lose one rhythm step; type NEVER changes; the loop strip
+   * and top bar are exempt (consumption rule for the components). === */
+  --density-row-pad-y: 14px;
+  --density-row-pad-x: 18px;
+  --density-card-pad: 20px;
+  --density-card-pad-lg: 22px;
+  --density-list-gap: 13px;
+
+  /* === SEMANTIC BRIDGE · shadcn + parchment names -> Obsidian values ===
+   * Keeps every existing component readable under the scope (coherent dark)
+   * while ported surfaces build on the raw tokens above. var() chains from
+   * the parchment :root (e.g. --coral -> var(--ember)) resolve at the usage
+   * element, so aliases inherit these values automatically. */
+  --background: var(--canvas);
+  --foreground: var(--text-primary);
+  --card-foreground: var(--text-primary);
+  --popover: var(--raised);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--ember);
+  --primary-foreground: var(--cta-ink);
+  --secondary: var(--raised);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--raised);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--madder);
+  --destructive-foreground: var(--cta-ink);
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--focus-ring);
+  --chart-1: var(--teal);
+  --chart-2: var(--cornflower);
+  --chart-3: var(--flamingo);
+  --chart-4: var(--marigold-data);
+  --chart-5: var(--mauve);
+  --sidebar: var(--rail);
+  --sidebar-foreground: var(--text-body);
+  --sidebar-primary: var(--text-primary);
+  --sidebar-primary-foreground: var(--rail);
+  --sidebar-accent: var(--hover);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--focus-ring);
+
+  /* Parchment legacy names, remapped so unported content stays readable. */
+  --ink: var(--text-primary);
+  --ink-muted: var(--text-body);
+  --ink-subtle: var(--text-subtle);
+  --ink-faint: var(--text-faint);
+  --paper: var(--canvas);
+  --paper-elevated: var(--card);
+  --surface-1: var(--card);
+  --surface-2: var(--raised);
+  --surface-3: var(--hover);
+  --soft-stone: var(--raised);
+  --pale-green: var(--raised);
+  --pale-blue: var(--raised);
+  --border-light: var(--hairline-faint);
+  --card-border: var(--hairline-faint);
+  --primary-ink: var(--pearl);
+  --deep-green: var(--pearl);
+  --action-blue: var(--cornflower);
+  --focus-blue: var(--focus-ring);
+  --form-focus: var(--focus-ring);
+  --saffron: var(--marigold);
+  --agent: var(--mauve);
+  --emerald: var(--moss);
+  --hero-bg: var(--surface-card-deep);
+  --hero-ink: var(--text-primary);
+  --dark-navy: var(--surface-card-deep);
+
+  /* Depth = hairlines, never shadows (contract: hairlines replace shadows). */
+  --shadow-glass: inset 0 1px 0 var(--hairline-faint);
+  --shadow-elevated: inset 0 1px 0 var(--hairline-faint);
+  --shadow-focus: 0 0 0 2px var(--focus-ring);
+}
+
+/* Obsidian base: jet-black cockpit, working voice, glacier focus, ember
+ * selection. Scoped; the landing page never matches these selectors. */
+[data-obsidian] {
+  background-color: var(--canvas);
+  color: var(--text-body);
+}
+[data-obsidian]::selection,
+[data-obsidian] ::selection {
+  background-color: var(--selection);
+  color: var(--text-primary);
+}
+[data-obsidian] :focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+/* Compact density: one rhythm step off the rows; type untouched. Set on the
+ * scope root or any subtree (Settings -> You, extensions §8). */
+[data-obsidian][data-density="compact"],
+[data-obsidian] [data-density="compact"] {
+  --density-row-pad-y: 10px;
+  --density-row-pad-x: 14px;
+  --density-card-pad: 16px;
+  --density-card-pad-lg: 18px;
+  --density-list-gap: 9px;
+}
+
+/* === tokens/motion.css · the eight cad* keyframes, VERBATIM ===
+ * Only three things ever move on their own: the live pulse on working
+ * agents, step progress, and the arrival of something new. Decoration never
+ * animates. The global prefers-reduced-motion block earlier in this file
+ * (animation-duration 0.001ms on *) already kills ALL of these; no second
+ * gate is needed. */
+
+/* Live pulse — working status dots */
+@keyframes cadPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.55);
+    opacity: 0.45;
+  }
+}
+
+/* Breathing glow — waiting-on-you, thinking */
+@keyframes cadGlow {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The AI shimmer drift (pair with --shimmer-gradient at 280% size) */
+@keyframes cadShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Butterfly wing flutter (transform-origin: 12px 12px) — the canonical v3
+ * name; the parchment brand mark uses cadFlutterBrand above. */
+@keyframes cadFlutter {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.72);
+  }
+}
+
+/* Aurora blob drift — score cards only */
+@keyframes cadDriftA {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(18px, 10px) scale(1.12);
+  }
+}
+@keyframes cadDriftB {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate(-16px, -9px) scale(1);
+  }
+}
+
+/* Arrival — transform-first entrance, staggered 30ms/row, max six rows */
+@keyframes cadRise {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Slide-over entrance from the right */
+@keyframes cadSlideIn {
+  from {
+    transform: translateX(60px);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }

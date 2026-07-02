@@ -121,6 +121,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap",
       },
+      {
+        // Obsidian v3 special inks (OBS-01) — Codystar (aurora numerals
+        // ONLY) + Caveat (pencil annotations ONLY). The three shared
+        // families load above; self-host later per implementation-notes.
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Codystar:wght@300;400&family=Caveat:wght@500;600;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,

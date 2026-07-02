@@ -85,6 +85,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | F-SCRIBE-CITATIONS | Scribe RAG citations (inline evidence in generated PRDs) | ✅ Shipped | `/prds/$id` (Citations card) | [`prd-rag-citations.md`](./prd-rag-citations.md) |
 | WEB-ACCESS | Web access for agents (governed Firecrawl tool set) | ✅ Shipped | Agent tools (search · map · fetch · crawl) | [`web-access.md`](./web-access.md) |
 | C6 | Agent trust score & autonomy dial | ✅ Shipped | `/agents` | [`trust-and-autonomy.md`](./trust-and-autonomy.md) |
+| OBS-PORT | Obsidian v3 port (all app surfaces to the v3 design system; per-ID verify manual) | 🔨 In progress (OBS-01 ✅ 2026-07-02) | All authenticated surfaces | [`obsidian-port.md`](./obsidian-port.md) |
 | BUNDLE-4 | Agent-to-agent (A2A) handoff (E1→E5, multi-agent missions) | ✅ Shipped | `/missions`, `/missions/$id` | [`a2a-handoff.md`](./a2a-handoff.md) |
 | BUNDLE-6 | GitHub issue approval flow (lifecycle close to the eng system of record) | ✅ Shipped | `/prds` (Send to issue gate) | [`github-issue-approval-flow.md`](./github-issue-approval-flow.md) |
 | F-V5-INGEST-WEBHOOK | Public continuous-ingest webhook door | ✅ Shipped 2026-06-11 (rate limiting 2026-06-16) | Public `/api/public/ingest` endpoint | [`ingest-webhook.md`](./ingest-webhook.md) |
