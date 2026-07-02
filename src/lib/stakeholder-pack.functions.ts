@@ -46,9 +46,11 @@ export type StakeholderPackResult = {
   /** Recent decisions for the picker (newest first). */
   decisions: { id: string; title: string }[];
   /** The selected decision's brief + all three rendered packs, or null when none exist. */
-  selected:
-    | { decisionId: string; brief: DecisionBrief; packs: Record<PackAudience, RenderedPack> }
-    | null;
+  selected: {
+    decisionId: string;
+    brief: DecisionBrief;
+    packs: Record<PackAudience, RenderedPack>;
+  } | null;
 };
 
 function isoDate(): string {
@@ -79,7 +81,8 @@ export async function loadNewestDecisionBrief(
   workspaceId: string,
   wantId?: string | null,
 ): Promise<{ decisions: { id: string; title: string }[]; brief: DecisionBrief } | null> {
-  const cols = "id,title,rationale,status,source_kind,prd_id,opportunity_id,decided_by_agent_slug,created_at";
+  const cols =
+    "id,title,rationale,status,source_kind,prd_id,opportunity_id,decided_by_agent_slug,created_at";
   const { data: decRows, error: decErr } = await supabase
     .from("decisions")
     .select(cols)
@@ -178,9 +181,11 @@ export const getStakeholderPack = createServerFn({ method: "GET" })
     // The picked decision's id: the newest when no decisionId was requested, or
     // the requested one when it matched (loadNewestDecisionBrief falls back to
     // newest on a miss, same as before this extraction).
-    const selectedId = (data?.decisionId && decisions.some((d) => d.id === data.decisionId)
-      ? data.decisionId
-      : decisions[0]?.id) as string;
+    const selectedId = (
+      data?.decisionId && decisions.some((d) => d.id === data.decisionId)
+        ? data.decisionId
+        : decisions[0]?.id
+    ) as string;
 
     return {
       decisions,

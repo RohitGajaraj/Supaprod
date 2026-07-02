@@ -4,7 +4,11 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email.server";
 import { loadNewestDecisionBrief } from "@/lib/stakeholder-pack.functions";
-import { composeStakeholderPack, renderPackMarkdown, type PackAudience } from "@/lib/stakeholder-pack";
+import {
+  composeStakeholderPack,
+  renderPackMarkdown,
+  type PackAudience,
+} from "@/lib/stakeholder-pack";
 
 // R3 · Notifications, one "what needs you" feed derived live from the loop's
 // own state: tool calls waiting on a human, spend nearing or over a cap, a
@@ -334,9 +338,7 @@ async function resolveUserEmail(supabase: SupabaseClient, userId: string): Promi
       supabase as unknown as {
         auth: {
           admin?: {
-            getUserById: (
-              id: string,
-            ) => Promise<{
+            getUserById: (id: string) => Promise<{
               data: { user: { email?: string | null } | null } | null;
               error: unknown;
             }>;

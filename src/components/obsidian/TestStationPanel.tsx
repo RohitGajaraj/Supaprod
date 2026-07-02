@@ -134,7 +134,11 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
               key={item.clauseId}
               type="button"
               onClick={() =>
-                toggleUat.mutate({ id: plan.prdId, clause_id: item.clauseId, checked: !item.checked })
+                toggleUat.mutate({
+                  id: plan.prdId,
+                  clause_id: item.clauseId,
+                  checked: !item.checked,
+                })
               }
               disabled={toggleUat.isPending}
               className="flex w-full items-center gap-3 text-left"

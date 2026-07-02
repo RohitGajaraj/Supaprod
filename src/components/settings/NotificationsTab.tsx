@@ -207,7 +207,12 @@ export function NotificationsTab() {
       <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Stakeholder update</MonoLabel>
         <label
-          style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: stakeholderUpdate ? 14 : 0 }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: stakeholderUpdate ? 14 : 0,
+          }}
         >
           <input
             type="checkbox"
@@ -218,7 +223,13 @@ export function NotificationsTab() {
           />
           <span style={{ fontSize: 13 }}>Include a stakeholder update in my digest</span>
         </label>
-        <p style={{ fontSize: 11, color: "var(--ink-muted)", margin: stakeholderUpdate ? "0 0 14px" : 0 }}>
+        <p
+          style={{
+            fontSize: 11,
+            color: "var(--ink-muted)",
+            margin: stakeholderUpdate ? "0 0 14px" : 0,
+          }}
+        >
           Your workspace's newest decision, framed for the audience you pick, riding the same email
           above. No separate send.
         </p>

@@ -43,7 +43,12 @@ export type EvalPlanItem = {
   result: "pending" | "passed" | "failed";
 };
 export type CiPlanItem = { clauseId: string; text: string };
-export type UatPlanItem = { clauseId: string; text: string; checked: boolean; checkedAt: string | null };
+export type UatPlanItem = {
+  clauseId: string;
+  text: string;
+  checked: boolean;
+  checkedAt: string | null;
+};
 
 export type TestPlanVerdict = "passing" | "blocked" | "pending";
 
@@ -114,7 +119,9 @@ async function loadMissionTestPlan(
   const metrics = Array.isArray(rawMetrics)
     ? rawMetrics
         .map((m) => ContractClauseSchema.safeParse(m))
-        .filter((r): r is { success: true; data: z.infer<typeof ContractClauseSchema> } => r.success)
+        .filter(
+          (r): r is { success: true; data: z.infer<typeof ContractClauseSchema> } => r.success,
+        )
         .map((r) => r.data)
     : [];
   const compiled = metrics.filter((c) => c.status === "standing" && c.oracle_kind);

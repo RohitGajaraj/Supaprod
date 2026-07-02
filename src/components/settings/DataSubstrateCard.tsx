@@ -52,8 +52,8 @@ export function DataSubstrateCard() {
           Ownership
         </div>
         <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 6, maxWidth: 520 }}>
-          This data is yours. Cadence does not train shared models on it or sell it. The full
-          export below is the same data you own, in one file, with no lock-in.
+          This data is yours. Cadence does not train shared models on it or sell it. The full export
+          below is the same data you own, in one file, with no lock-in.
         </p>
       </div>
 

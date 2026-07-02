@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { ciGateStatus, computeVerdict, type EvalPlanItem, type UatPlanItem } from "./test-station.functions";
+import {
+  ciGateStatus,
+  computeVerdict,
+  type EvalPlanItem,
+  type UatPlanItem,
+} from "./test-station.functions";
 
 describe("ciGateStatus", () => {
   test("done and completed are satisfied", () => {
