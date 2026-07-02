@@ -59,6 +59,7 @@ import { Route as AuthenticatedEvalHealthRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDriftRouteImport } from './routes/_authenticated.drift'
 import { Route as AuthenticatedDocsRouteImport } from './routes/_authenticated.docs'
 import { Route as AuthenticatedDiscoveryRouteImport } from './routes/_authenticated.discovery'
+import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated.discover'
 import { Route as AuthenticatedDelegateRouteImport } from './routes/_authenticated.delegate'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated.cockpit'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated.chat'
@@ -370,6 +371,11 @@ const AuthenticatedDocsRoute = AuthenticatedDocsRouteImport.update({
 const AuthenticatedDiscoveryRoute = AuthenticatedDiscoveryRouteImport.update({
   id: '/discovery',
   path: '/discovery',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDelegateRoute = AuthenticatedDelegateRouteImport.update({
@@ -709,6 +715,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AuthenticatedChatRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/delegate': typeof AuthenticatedDelegateRoute
+  '/discover': typeof AuthenticatedDiscoverRoute
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
   '/drift': typeof AuthenticatedDriftRoute
@@ -816,6 +823,7 @@ export interface FileRoutesByTo {
   '/chat': typeof AuthenticatedChatRoute
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/delegate': typeof AuthenticatedDelegateRoute
+  '/discover': typeof AuthenticatedDiscoverRoute
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
   '/drift': typeof AuthenticatedDriftRoute
@@ -925,6 +933,7 @@ export interface FileRoutesById {
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/delegate': typeof AuthenticatedDelegateRoute
+  '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
   '/_authenticated/discovery': typeof AuthenticatedDiscoveryRoute
   '/_authenticated/docs': typeof AuthenticatedDocsRoute
   '/_authenticated/drift': typeof AuthenticatedDriftRoute
@@ -1035,6 +1044,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/cockpit'
     | '/delegate'
+    | '/discover'
     | '/discovery'
     | '/docs'
     | '/drift'
@@ -1142,6 +1152,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/cockpit'
     | '/delegate'
+    | '/discover'
     | '/discovery'
     | '/docs'
     | '/drift'
@@ -1250,6 +1261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat'
     | '/_authenticated/cockpit'
     | '/_authenticated/delegate'
+    | '/_authenticated/discover'
     | '/_authenticated/discovery'
     | '/_authenticated/docs'
     | '/_authenticated/drift'
@@ -1741,6 +1753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDiscoveryRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/discover': {
+      id: '/_authenticated/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof AuthenticatedDiscoverRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/delegate': {
       id: '/_authenticated/delegate'
       path: '/delegate'
@@ -2214,6 +2233,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedDelegateRoute: typeof AuthenticatedDelegateRoute
+  AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
   AuthenticatedDiscoveryRoute: typeof AuthenticatedDiscoveryRoute
   AuthenticatedDocsRoute: typeof AuthenticatedDocsRoute
   AuthenticatedDriftRoute: typeof AuthenticatedDriftRoute
@@ -2267,6 +2287,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedDelegateRoute: AuthenticatedDelegateRoute,
+  AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
   AuthenticatedDiscoveryRoute: AuthenticatedDiscoveryRoute,
   AuthenticatedDocsRoute: AuthenticatedDocsRoute,
   AuthenticatedDriftRoute: AuthenticatedDriftRoute,

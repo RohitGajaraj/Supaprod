@@ -144,40 +144,24 @@ Also fixed: the parchment "Not now" session-local defer state was dead code (dec
 
 ---
 
-## OBS-08 · Brain ported (✅ 2026-07-02, lane1, adversarial-reviewed)
+## OBS-06 · Discover ported (✅ 2026-07-02, lane2, adversarial-reviewed)
 
-**What shipped:** the Brain (formerly Knowledge) surface fully ported to Obsidian (`src/routes/_authenticated.knowledge.tsx` + components), built on the OBS-03 primitives and spec OBS-08.md:
+**What shipped:** the evidence desk at `/discover` (`src/routes/_authenticated.discover.tsx` mounts `DiscoverSurface`): a 1160px two-column surface, the Newsreader hero with the one glacier-italic word "Signal", a signal feed on the left (`SignalFeed`/`SignalCard`, consuming `listSignals`/`listThemes` on the same query keys as the parchment `/product` `SignalsPanel` so the two surfaces share one cache) and an ICE-ranked opportunity queue on the right (`OpportunityQueue`/`OpportunityRow`, consuming `listOpportunities`/`listLearnings`), with exactly one `PencilNote` ("best bet") on the top-ranked row. Challenge wires the existing `runCriticReview` mutation (no new server function) and shows the singleton toast for 3.6s, invalidating the opportunities query so the verdict chip refreshes live. Additive only: no route redirect, no nav-model edit (the rail's Discover index `02` still points at `/product?tab=signals` until OBS-10 folds the routes, per the spec's own §8), the legacy `/product` surface untouched.
 
-- `BrainStatTrio` - pure `deriveBrainStats()` + render: three Newsreader numerals (CALLS MADE / VALIDATED % / ICE MOVED) + mono-micro labels, with "Export my record" button (markdown download via `getImpactLedger`) + empty-record instruction with a quiet "Go to Today →" link (reads `var(--text-subtle)`, hovers to `--text-primary`).
-- `BrainTabRow` - an Obsidian inline tab bar (no parchment `TabRow` primitive exists in OBS-03) with mono-caps labels, active state bg `--raised` + text `--text-primary`, inactive text `--text-subtle`, and hover `--hover` on inactive tabs per spec §7.
-- `DecisionsPanel` - the decisions list (source/status filters + search) with inline Approve/Send back actions on pending rows. **LogDecisionDialog fixed VIOLATION #2:** replaced parchment `.btn`/`.input`/`.mono-label` classes with Obsidian `Button` variant=secondary + MonoLabel + proper `--card`/`--hairline` tokens and `--text-subtle` copy color.
-- `OBS_STATUS_TONE` map - decisions (approved→KEPT / rejected→KILL / pending→PENDING) for the VerdictChip tones; exported for test coverage.
-- `DecisionDetail` - the drill detail (single-decision view) reuses parchment styling until OBS-10 folds it.
-- `CompoundingPanel` - learnings/outcomes (the "what moved" moat-vis feed) with `VERDICT_TONE` map (validated→VALIDATED / missed→MISSED / mixed→REVISE). **Exported VERDICT_TONE** for test coverage.
-- **Product brain count strip** (lines 248–295 in route) - live connector count includes a **cadPulse 2s glacier glow dot** (per spec §5 step 9) + glacier tone on the connector stat value (VIOLATION #4 fixed).
-- `GraphPanel` - the graph/list toggle with **hover:[background-color:var(--hover)]** on inactive buttons (VIOLATION #6 fixed).
-- `BrainStatTrio` - empty-record instruction includes **"Go to Today →" link** with quiet styling (VIOLATION #3 fixed).
+**Real spec-compliance defects caught by a 3-lens adversarial review (security / spec-compliance / humanized-output) and fixed before commit:**
 
-**Adversarial review - 6 spec-compliance violations found and fixed before commit:**
-
-- **VIOLATION #1 (TabRow parchment)** ✅ Fixed: replaced undefined parchment `TabRow` reference with local `BrainTabRow` component implementing correct Obsidian styling (active: `--raised` bg + `--text-primary` text; inactive: transparent + `--text-subtle`; hover: `--hover`).
-- **VIOLATION #2 (LogDecisionDialog parchment)** ✅ Fixed: replaced `.btn-primary`/`.btn-ghost`/`.input`/`.mono-label` classes + `--ink-subtle` token with Obsidian `Button` variant=secondary, `MonoLabel`, and proper Obsidian form styling (`--card` bg, `--hairline` border, `--text-primary` text).
-- **VIOLATION #3 (empty-record missing link)** ✅ Fixed: added "Go to Today →" Link component to BrainStatTrio's empty-record state with proper focus/hover styling (`--text-subtle` / hover `--text-primary`).
-- **VIOLATION #4 (Product brain glacier misapplied)** ✅ Fixed: moved `tone="glacier"` from "Product brain" label to connector count; added **cadPulse 2s glacier glow dot** (spec §5 animation) next to the live-connector value.
-- **VIOLATION #5 (test coverage)** ✅ Fixed: exported `OBS_STATUS_TONE` (decisions) + `VERDICT_TONE` (learnings); added 8 unit tests covering decision/learning verdict tone mappings + key existence assertions; all 1923 tests pass.
-- **VIOLATION #6 (GraphPanel hover)** ✅ Fixed: added `hover:[background-color:var(--hover)]` Tailwind class to inactive GRAPH/LIST toggle buttons per spec §7 interaction states.
+- **Two header labels used the wrong token.** `SignalFeed`'s "Live signal feed" and `OpportunityQueue`'s "The opportunity queue · ranked by ICE" both passed `MonoLabel tone="faint"` (resolves to `--text-faint` `#55524C`), but OBS-06.md §7 specifies `#7D786F` (`--text-subtle`) with `letter-spacing: 0.12em` for these labels. Fixed by omitting `tone` (MonoLabel's untoned default is already `--text-subtle`) and adding the `0.12em` override. (The security and humanized-output lenses found nothing.)
+- **The opportunity row's `sub` line didn't match the spec's composition.** OBS-06.md §5 step 5 calls for `sub` to read as `<signal count> · <spec/critic state> · <learning delta>` (e.g. `23 signals · spec in Critic review · +1.4 after the checkout learning`), but the shipped code rendered the opportunity's raw `problem` free-text field instead. Fixed within the spec's explicit "reuse the four existing queries" boundary (§3/§10): added a `listThemes` subscription (same `["themes", activeProductId]` key `SignalFeed` already uses, so no new query) to derive a real signal count via `opportunity.theme_id`, and a critic-state phrase derived from the already-fetched `critic_review`/status data (`verdictFor()`), since `listSpecs`/PRD status is not one of the four authorized queries.
 
 **How to verify (repeatable):**
 
-1. `bun run dev`, open `/knowledge`.
-2. With no decisions/learnings: the moss-tinted card appears with instruction "Your track record starts with the first call. Answer one on Today." + blue quiet link "Go to Today →" (no Ember, no dead controls).
-3. With decisions: the stat trio renders (numerals + labels), decisions panel shows rows with VerdictChip (moss KEPT, madder KILL, neutral PENDING per mapping), inline Approve/Send back buttons on pending rows.
-4. With learnings: CompoundingPanel feeds the what-moved lines (glacier mono ICE delta + verdict chips), each row drills to `?learning=`.
-5. Product brain strip: connector count shows **glacier glow dot + count value in glacier**, other stats in `--text-primary`. Tab row (Insights/Calendar/Memory/Learnings/Decisions/Graph/Docs) shows active bg `--raised`, hover on inactive → `--hover`.
-6. Graph toggle: GRAPH/LIST buttons, inactive state hovers to `--hover` background.
-7. Log decision dialog: all UI uses Obsidian tokens + Button/MonoLabel (no .btn/.input classes, no `--ink-subtle`).
+1. `bun run dev` (primary checkout — this worktree's `vite dev` hits the known node20/ESM `lovable-tagger` failure, see hub §11), open `/discover`.
+2. Left column: verbatim signal cards (blossom source pill, mono timestamp, unaltered quote, theme line), newest first, with a live "N THIS WEEK" glacier count and the verbatim footer.
+3. Right column: opportunities ranked by ICE descending, each with the Newsreader score, title, the real `sub` line (signal count · critic state · rescore delta when present), a verdict chip colored per §7, and exactly one pencil ("best bet") on the top row.
+4. Click Challenge on any row: the button shows its loading state, the singleton toast reads "Critic engaged. The teardown lands on Today, receipts attached." for 3.6s, and the row's verdict chip refreshes once the review lands.
+5. Confirm zero ember on the screen except a REVISE verdict chip; grayscale screenshot still reads every verdict by its word.
 
-**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1923/1923 pass (all new tone-mapping tests passing) · adversarial TypeScript+spec-compliance reviewer pass (6 spec violations found and fixed before commit) · humanized-output clean · hex gate (all colors read `var(--tokens)`).
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1959/1959 pass (15 in `src/components/discover/`: `format.test.ts` + `OpportunityRow.test.tsx`) · 3-lens adversarial review (security clean, humanized-output clean, spec-compliance found 3 - all fixed and re-verified above).
 
 ---
 
