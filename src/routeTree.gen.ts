@@ -111,6 +111,7 @@ import { Route as ApiPublicHooksDriftTickRouteImport } from './routes/api/public
 import { Route as ApiPublicHooksDeriveTickRouteImport } from './routes/api/public/hooks/derive-tick'
 import { Route as ApiPublicHooksDelegatePollTickRouteImport } from './routes/api/public/hooks/delegate-poll-tick'
 import { Route as ApiPublicHooksCreditTickRouteImport } from './routes/api/public/hooks/credit-tick'
+import { Route as ApiPublicHooksCompetitorTickRouteImport } from './routes/api/public/hooks/competitor-tick'
 import { Route as ApiPublicHooksClusterTickRouteImport } from './routes/api/public/hooks/cluster-tick'
 import { Route as ApiPublicHooksCalibrateTickRouteImport } from './routes/api/public/hooks/calibrate-tick'
 import { Route as ApiPublicHooksAssumptionWatchTickRouteImport } from './routes/api/public/hooks/assumption-watch-tick'
@@ -664,6 +665,12 @@ const ApiPublicHooksCreditTickRoute =
     path: '/api/public/hooks/credit-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCompetitorTickRoute =
+  ApiPublicHooksCompetitorTickRouteImport.update({
+    id: '/api/public/hooks/competitor-tick',
+    path: '/api/public/hooks/competitor-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksClusterTickRoute =
   ApiPublicHooksClusterTickRouteImport.update({
     id: '/api/public/hooks/cluster-tick',
@@ -819,6 +826,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
+  '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
@@ -931,6 +939,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
+  '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
@@ -1047,6 +1056,7 @@ export interface FileRoutesById {
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
+  '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
   '/api/public/hooks/delegate-poll-tick': typeof ApiPublicHooksDelegatePollTickRoute
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
@@ -1163,6 +1173,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
+    | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
     | '/api/public/hooks/derive-tick'
@@ -1275,6 +1286,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
+    | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
     | '/api/public/hooks/derive-tick'
@@ -1390,6 +1402,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
     | '/api/public/hooks/cluster-tick'
+    | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
     | '/api/public/hooks/delegate-poll-tick'
     | '/api/public/hooks/derive-tick'
@@ -1441,6 +1454,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAssumptionWatchTickRoute: typeof ApiPublicHooksAssumptionWatchTickRoute
   ApiPublicHooksCalibrateTickRoute: typeof ApiPublicHooksCalibrateTickRoute
   ApiPublicHooksClusterTickRoute: typeof ApiPublicHooksClusterTickRoute
+  ApiPublicHooksCompetitorTickRoute: typeof ApiPublicHooksCompetitorTickRoute
   ApiPublicHooksCreditTickRoute: typeof ApiPublicHooksCreditTickRoute
   ApiPublicHooksDelegatePollTickRoute: typeof ApiPublicHooksDelegatePollTickRoute
   ApiPublicHooksDeriveTickRoute: typeof ApiPublicHooksDeriveTickRoute
@@ -2181,6 +2195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksCreditTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/competitor-tick': {
+      id: '/api/public/hooks/competitor-tick'
+      path: '/api/public/hooks/competitor-tick'
+      fullPath: '/api/public/hooks/competitor-tick'
+      preLoaderRoute: typeof ApiPublicHooksCompetitorTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/cluster-tick': {
       id: '/api/public/hooks/cluster-tick'
       path: '/api/public/hooks/cluster-tick'
@@ -2467,6 +2488,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksAssumptionWatchTickRoute,
   ApiPublicHooksCalibrateTickRoute: ApiPublicHooksCalibrateTickRoute,
   ApiPublicHooksClusterTickRoute: ApiPublicHooksClusterTickRoute,
+  ApiPublicHooksCompetitorTickRoute: ApiPublicHooksCompetitorTickRoute,
   ApiPublicHooksCreditTickRoute: ApiPublicHooksCreditTickRoute,
   ApiPublicHooksDelegatePollTickRoute: ApiPublicHooksDelegatePollTickRoute,
   ApiPublicHooksDeriveTickRoute: ApiPublicHooksDeriveTickRoute,
