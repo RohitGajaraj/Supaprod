@@ -20,9 +20,56 @@ import {
 import { formatGoverningDecisions } from "@/lib/ai/governing-decision";
 import { resolveGoverningForNodes } from "@/lib/ai/governing-decision.server";
 import { resolveSharedPremisePrecedent } from "@/lib/ai/shared-premise.server";
+import { getActiveDesignMemoryForWorkspace, formatDesignMemoryContext } from "@/lib/design-memory.functions";
+import { parseDesignCriticReview, type DesignCriticReview } from "@/lib/ai/design-critic";
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
 import { resolveLineageCols } from "@/lib/knowledge-graph-view.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+const DESIGN_CRITIC_SYSTEM = `You are the Critic agent's design lens. Evaluate the given screen (a PRD's described UI, or a rendered mockup's HTML) for:
+- HIERARCHY - is there a clear primary action / visual priority, or does everything compete for attention?
+- ACCESSIBILITY FLOORS - missing labels, color-only status indicators, icon-only controls with no text/label, no visible focus state implied by the design.
+- IA LAWS - inconsistent navigation/structure, unclear information architecture, redundant destinations for the same task.
+- CONSISTENCY vs the workspace's standing design decisions, ONLY when a "Workspace design language" block is present below: does this introduce a pattern the workspace's own standing decisions already settled differently (e.g. a new button style when the standing pattern caps at two)?
+Return STRICT JSON only:
+{"verdict":"ship|revise|kill","findings":[{"issue":"what is wrong, be specific","principle":"the violated principle in a few words - hierarchy, accessibility, ia, or consistency","standing_decision":"the exact workspace design-memory entry title this violates, or null if it is a generic heuristic finding with no standing decision to cite"}]}
+"ship" only when no real violation exists; "kill" only when the surface is fundamentally broken (illegible or inaccessible); "revise" otherwise. Judge only what is actually shown or described - never invent requirements. No filler.`;
+
+/**
+ * DSN-02: run the Critic's design lens standalone. Fail-safe (never throws) so a
+ * missing/malformed design pass never blocks the base Critic verdict it augments,
+ * nor a scaffold review that calls it directly (design-scaffold.functions.ts).
+ */
+export async function runDesignCriticLens(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: { workspaceId: string | null; surfaceRef: string; subject: string },
+): Promise<DesignCriticReview | null> {
+  try {
+    let designMemoryBlock = "";
+    if (opts.workspaceId) {
+      const active = await getActiveDesignMemoryForWorkspace(supabase, opts.workspaceId);
+      designMemoryBlock = formatDesignMemoryContext(active);
+    }
+    const userContent = [opts.subject, designMemoryBlock].filter(Boolean).join("\n\n");
+    const result = await callModel(supabase, userId, {
+      surface: "judge",
+      surface_ref: opts.surfaceRef,
+      model: "google/gemini-2.5-flash",
+      fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: DESIGN_CRITIC_SYSTEM },
+        { role: "user", content: userContent },
+      ],
+    });
+    const parsed = asPlainObject<Record<string, unknown>>(result.json);
+    if (!parsed) return null;
+    return parseDesignCriticReview(parsed);
+  } catch {
+    return null;
+  }
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -72,6 +119,8 @@ export type CriticReview = {
   confidence: number;
   reviewer_model: string;
   reviewed_at: string;
+  /** DSN-02: the design lens, present only for target.kind==="prd" (never opportunities). */
+  design?: DesignCriticReview;
 };
 
 /**
@@ -244,6 +293,19 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
       reviewer_model: model,
       reviewed_at: new Date().toISOString(),
     };
+
+    // DSN-02: the design lens runs on PRDs only (per spec, scaffolds get their own
+    // entry point in design-scaffold.functions.ts). Best-effort - a failed design
+    // pass never drops the base spec red-team verdict above.
+    if (target.kind === "prd") {
+      const design = await runDesignCriticLens(supabase, userId, {
+        workspaceId: (row.workspace_id as string | null) ?? null,
+        surfaceRef: `design-critic:prd:${target.id}`,
+        subject: subject,
+      });
+      if (design) review.design = design;
+    }
+
     await supabase.from(table).update({ critic_review: review }).eq("id", target.id);
     return review;
   } catch {

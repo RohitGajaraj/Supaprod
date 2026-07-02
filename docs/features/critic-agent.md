@@ -1,10 +1,26 @@
-# Critic agent (F-CRITIC-AGENT, v4 stations DEC-02 · DEF-03)
+# Critic agent (F-CRITIC-AGENT, v4 stations DEC-02 · DEF-03 · v12 DSN-02)
 
-> _Created: 2026-06-11 · Last updated: 2026-06-19_
+> _Created: 2026-06-11 · Last updated: 2026-07-03_
 
 The Critic is an adversarial reviewer that red-teams every new opportunity and every freshly drafted PRD before it reaches a human approval gate. It is the demo moment the Strategist → operator-approval handoff needs: instead of approving a raw ICE score, the operator approves a score plus a verdict, top risks, kill criteria, and a list of missing evidence.
 
-**Two lenses (same infra).** Opportunities get the **bet-evaluation** lens (DEC-02). Specs get a **spec-specific red-team** lens (DEF-03): ambiguity, untestable/unmeasurable acceptance criteria, scope creep, unstated assumptions, and missing edge cases, guard-railed to judge only what the spec actually says, never to invent requirements.
+**Three lenses (same infra).** Opportunities get the **bet-evaluation** lens (DEC-02). Specs get a **spec-specific red-team** lens (DEF-03): ambiguity, untestable/unmeasurable acceptance criteria, scope creep, unstated assumptions, and missing edge cases, guard-railed to judge only what the spec actually says, never to invent requirements. PRDs and DEF-04 scaffolds additionally get the **design lens** (DSN-02, see below).
+
+## DSN-02 — the design lens
+
+The Critic gains a design dimension, folded onto the existing `CriticReview` shape as an optional `design` field:
+
+- **Heuristic evaluation**: hierarchy (a clear primary action or not), accessibility floors (missing labels, color-only status, icon-only controls with no text), IA laws (inconsistent navigation, redundant destinations).
+- **Consistency vs design memory** (DSN-01): when the target's workspace has approved design memory, the lens is handed the same `formatDesignMemoryContext` block DEF-04 scaffolds use, and flags a screen that introduces a pattern the workspace's own standing decisions already settled differently.
+- **Receipts**: each finding names the violated `principle` (hierarchy / accessibility / ia / consistency) and, for a consistency violation, the exact `standing_decision` title it conflicts with — never an opaque id.
+
+**Where it runs:**
+- **PRDs** — folded directly into `runCritic` (`src/lib/ai/critic.server.ts`): every PRD critic run (inline on `generatePrd`, or a manual re-run) also calls `runDesignCriticLens` and persists the result as `critic_review.design`. Best-effort: a failed design pass never drops the base spec red-team verdict.
+- **Scaffolds** — `runScaffoldDesignCritic` (`src/lib/design-scaffold.functions.ts`), a standalone server fn called from a "Check design consistency" button under a generated DEF-04 mockup (`DesignScaffoldPanel.tsx`). Scaffolds have no persisted row (DEF-04 is generate-on-demand), so this runs the lens directly on the mockup's HTML and returns the result to the client, non-persisted.
+
+**Cost note:** the design lens is a second, independent model call (`google/gemini-2.5-flash`, cheaper than the base Critic's `gemini-2.5-pro`) — every PRD critic run now makes two calls instead of one. Accepted as the cost of the feature the spec asked for; the scaffold path is opt-in (a button), so it never rides along uninvited.
+
+**UI:** `CriticBadge.tsx`'s sheet gains a "Design consistency" section (only rendered when `review.design` is present) listing each finding with its principle and standing-decision citation, using the exact same list styling as the existing risk/kill-criteria/missing-evidence sections.
 
 ## What ships
 

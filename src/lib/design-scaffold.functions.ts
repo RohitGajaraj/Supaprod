@@ -13,12 +13,18 @@
  * mockup comes back in THEIR product's language, not the generic indigo
  * default. Byte-identical prompt when the workspace has no design memory yet
  * (formatDesignMemoryContext returns "" and the guidance sentence is omitted).
+ *
+ * DSN-02: runScaffoldDesignCritic runs the Critic's design lens directly on a
+ * generated scaffold's HTML (the "scaffolds" half of DSN-02's "PRDs and
+ * scaffolds" scope; PRDs get the lens folded into runCritic itself).
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { getActiveDesignMemoryForWorkspace, formatDesignMemoryContext } from "@/lib/design-memory.functions";
+import { runDesignCriticLens } from "@/lib/ai/critic.server";
+import type { DesignCriticReview } from "@/lib/ai/design-critic";
 
 // Minimal CSS injected into every generated mockup. Avoids any external CDN
 // (cdn.tailwindcss.com is a dynamic JIT compiler; SRI hashes don't apply).
@@ -162,4 +168,37 @@ export const generateDesignScaffold = createServerFn({ method: "POST" })
     }
 
     return { html, generatedAt: new Date().toISOString() };
+  });
+
+export type ScaffoldDesignCriticResult = { review: DesignCriticReview | null };
+
+/** DSN-02: run the Critic's design lens on a generated scaffold's HTML directly. */
+export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        prdId: z.string().uuid(),
+        html: z.string().min(1).max(60000),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }): Promise<ScaffoldDesignCriticResult> => {
+    const { supabase } = context;
+    const userId = context.auth.user.id;
+
+    let workspaceId: string | null = null;
+    try {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    } catch {
+      workspaceId = null;
+    }
+
+    const review = await runDesignCriticLens(supabase, userId, {
+      workspaceId,
+      surfaceRef: `design-critic:scaffold:${data.prdId}`,
+      subject: `MOCKUP HTML (evaluate visually and structurally from the markup):\n${data.html.slice(0, 20000)}`,
+    });
+    return { review };
   });

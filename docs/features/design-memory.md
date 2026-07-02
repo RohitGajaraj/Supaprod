@@ -117,8 +117,8 @@ to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improv
   entries; not fixed here.
 - No brain-stat-strip count added (the `/knowledge` header's "signals / meetings / decisions /
   learnings" row) — out of this item's scope, a one-line follow-up if wanted.
-- DSN-02 (the Critic's design lens) is the next item; `formatDesignMemoryContext` is written to
-  be reused there unchanged.
+- DSN-02 (the Critic's design lens) is shipped: `formatDesignMemoryContext` is reused there
+  unchanged, exactly as planned — see [`critic-agent.md`](./critic-agent.md#dsn-02-the-design-lens).
 
 ## Related
 

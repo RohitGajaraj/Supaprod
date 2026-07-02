@@ -129,6 +129,31 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
               empty={labels.gaps.empty}
             />
 
+            {review.design ? (
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-2">
+                  Design consistency
+                </div>
+                {review.design.findings.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No hierarchy, accessibility, IA, or consistency issues flagged.
+                  </p>
+                ) : (
+                  <ul className="space-y-2 list-disc pl-4">
+                    {review.design.findings.map((f, i) => (
+                      <li key={i} className="text-sm leading-snug">
+                        {f.issue}
+                        <span className="block text-xs text-muted-foreground">
+                          {f.principle}
+                          {f.standing_decision ? ` · violates "${f.standing_decision}"` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : null}
+
             <button
               onClick={() => run.mutate()}
               disabled={run.isPending}

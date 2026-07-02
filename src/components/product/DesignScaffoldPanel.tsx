@@ -2,26 +2,53 @@
 // Shown below DesignReadinessPanel on the PRD detail page.
 // Renders the generated HTML in a sandboxed iframe (null origin, no CDN deps).
 // DSN-01: approve/reject writes back a design-memory learning candidate.
+// DSN-02: "Check design consistency" runs the Critic's design lens on the mockup.
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Sparkles, Loader2, RefreshCw, AlertCircle, ThumbsUp, ThumbsDown } from "lucide-react";
-import { generateDesignScaffold } from "@/lib/design-scaffold.functions";
+import {
+  Sparkles,
+  Loader2,
+  RefreshCw,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  ShieldCheck,
+} from "lucide-react";
+import {
+  generateDesignScaffold,
+  runScaffoldDesignCritic,
+  type ScaffoldDesignCriticResult,
+} from "@/lib/design-scaffold.functions";
 import { recordDesignScaffoldFeedback } from "@/lib/design-memory.functions";
 import { toast } from "@/lib/notify";
 
 export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBody: string }) {
   const [scaffold, setScaffold] = useState<{ html: string; generatedAt: string } | null>(null);
   const [feedbackGiven, setFeedbackGiven] = useState<"approved" | "rejected" | null>(null);
+  const [designReview, setDesignReview] = useState<ScaffoldDesignCriticResult["review"] | null>(
+    null,
+  );
   const fGenerate = useServerFn(generateDesignScaffold);
   const fFeedback = useServerFn(recordDesignScaffoldFeedback);
+  const fDesignCritic = useServerFn(runScaffoldDesignCritic);
 
   const mutation = useMutation({
     mutationFn: () => fGenerate({ data: { prdId, specBody } }),
     onSuccess: (data) => {
       setScaffold(data);
       setFeedbackGiven(null);
+      setDesignReview(null);
     },
+  });
+
+  const designCritic = useMutation({
+    mutationFn: () => fDesignCritic({ data: { prdId, html: scaffold?.html ?? "" } }),
+    onSuccess: (res) => {
+      setDesignReview(res.review);
+      if (!res.review) toast.error("Design review could not run — try again.");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const feedback = useMutation({
@@ -113,12 +140,50 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 <ThumbsDown className={feedbackGiven === "rejected" ? "h-3 w-3 text-red-500" : "h-3 w-3"} />
                 Not a fit
               </button>
+              <button
+                type="button"
+                onClick={() => designCritic.mutate()}
+                disabled={designCritic.isPending}
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                {designCritic.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-3 w-3" />
+                )}
+                {designCritic.isPending ? "Checking…" : "Check design consistency"}
+              </button>
             </div>
             <p className="text-xs text-slate-400">
               Generated {new Date(scaffold.generatedAt).toLocaleTimeString()} · AI-drafted, review
               before use
             </p>
           </div>
+
+          {designReview && (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="text-xs font-semibold text-slate-600 mb-2">
+                Design consistency · {designReview.verdict}
+              </div>
+              {designReview.findings.length === 0 ? (
+                <p className="text-xs text-slate-500">
+                  No hierarchy, accessibility, IA, or consistency issues flagged.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {designReview.findings.map((f, i) => (
+                    <li key={i} className="text-xs text-slate-600 leading-snug">
+                      {f.issue}
+                      <span className="block text-slate-400">
+                        {f.principle}
+                        {f.standing_decision ? ` · violates "${f.standing_decision}"` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
 
