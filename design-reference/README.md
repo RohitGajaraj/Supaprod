@@ -1,17 +1,35 @@
 # design-reference/ — the design of record
 
-This folder is the **frozen, runnable reference design** for Cadence: the full
-clickable prototype (every screen, drill-down, and interaction) exactly as
-approved in design review. It is NOT production code and is never imported by
-the app — it exists so humans and AI builders can see precisely how every
-screen should look and behave before implementing it in `src/`.
+This folder holds the **frozen, runnable reference designs** for Cadence. Nothing
+here is production code and none of it is imported by the app — it exists so
+humans and AI builders can see precisely how every screen should look and
+behave before implementing it in `src/`.
+
+> [!IMPORTANT]
+> ## CURRENT: the v3 "Obsidian" system (adopted 2026-07-02)
+>
+> The design contract for ALL authenticated app surfaces is
+> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (repo root). Its committed
+> visual specimen is [`obsidian-specimen.html`](./obsidian-specimen.html)
+> (founder-approved; when in doubt about how something should look, open it).
+> The full handoff package (README + read order, `tokens/*.css` custom
+> properties to copy verbatim, `components.md` anatomies,
+> `implementation-notes.md` behaviors, the runnable six-surface prototype
+> `design-reference/cadence-app.html`, and the Butterfly mark SVGs) lives in
+> the local `Latest Design System - v3/` dump; start at its `README.md`.
+> **Everything below this callout (the parchment prototype, the v2 Platform
+> Design Blueprint, `cadence/tokens.css`) is SUPERSEDED for app surfaces** and
+> kept as the landing-page contract + historical record. Do not port parchment
+> styles to any app surface.
 
 ## Rule for builders (human or AI)
 
-When implementing a screen that exists here: **port it**. Match layout,
-positioning, hierarchy, spacing, copy, and interaction. Do not redesign.
-Tokens come from the repo root `cadence/tokens.css` (the copy in
-`design-reference/cadence/tokens.css` is a snapshot so this folder runs
+When implementing a screen that exists in a CURRENT reference: **port it**.
+Match layout, positioning, hierarchy, spacing, copy, and interaction. Do not
+redesign. For app surfaces the tokens are the Obsidian `tokens/*.css` custom
+properties (copy verbatim; see the v3 package). For the legacy parchment
+material below, tokens come from the repo root `cadence/tokens.css` (the copy
+in `design-reference/cadence/tokens.css` is a snapshot so this folder runs
 standalone — treat the root one as the live source).
 
 ## Running it

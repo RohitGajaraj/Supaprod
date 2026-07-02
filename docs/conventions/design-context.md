@@ -1,18 +1,21 @@
 # Convention: design context loads by default
 
-> _Created: 2026-06-16 · Last updated: 2026-06-18_
+> _Created: 2026-06-16 · Last updated: 2026-07-02_
 
 **Status: standing rule, founder ruling 2026-06-16.** Any time we touch design work (a new surface, a redesign, a visual or interaction change), this context is loaded and considered automatically. It is the standing design brief, not re-litigated each time.
 
+> [!IMPORTANT]
+> **v3 "Obsidian" adoption (founder ruling 2026-07-02).** [`DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) is now THE design contract for every authenticated app surface (jet-black canvas, Ember #FF6B2C strictly needs-a-human, Glacier machine voice, restraint budget, grayscale test, 9 standing instructions). Ember Editorial parchment ([`../../DESIGN.md`](../../DESIGN.md)) remains the contract for the public landing page only. Where this file's details below say "parchment" or reference the old tokens, read them as landing-page-scoped or as history; the contract wins on every app-surface question. Handoff package (tokens, anatomies, prototypes): [`../../design-reference/README.md`](../../design-reference/README.md).
+
 ## Load these, every design task
 
-1. **The Ember Editorial system (the system of record):** [`../../DESIGN.md`](../../DESIGN.md) + `src/styles.css` tokens. Warm parchment canvas, espresso/cacao ink, the role-color law (ember = needs-human only; indigo = live/links; orchid = agent; moss/madder = outcomes), Newsreader serif display, Schibsted Grotesk UI, JetBrains Mono metadata, verdict chips, hand-sketched data marks. Reuse `.bento` / `.hero-editorial` / `.mono-label`; invent no colors.
+1. **The design contract (the system of record):** for ANY app surface, [`../../DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (Obsidian v3) + the handoff tokens (`design-reference/`, to be ported into `src/styles.css`); for the public landing page, [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial: warm parchment canvas, espresso/cacao ink, indigo = live/links, orchid = agent). Shared constants across both: the role-color law (ember = needs-human only; moss/madder = outcomes), Newsreader serif display, Schibsted Grotesk UI, JetBrains Mono metadata, verdict chips. Invent no colors. Until an app surface is ported to Obsidian, the live parchment tokens in `src/styles.css` are legacy, not license: new or redesigned app surfaces follow the Obsidian contract.
 2. **The design-craft skill toolkit (consult the WHOLE set, not one).** **Founder ruling 2026-06-20 (strengthened): on EVERY front-end build, actively INVOKE the fitting design skills, agents, and reference files, not merely `impeccable` and not merely reference them.** There are many strong design skills available; survey them and use the ones that fit the surface, so the product is right upfront instead of corrected later. Full authority to use whatever skill or agent fits. The standing per-build procedure is **"The frontend build protocol"** section below; the toolkit it draws on:
    - **Visual taste + direction:** `design-taste-frontend`, `high-end-visual-design`, `gpt-taste`, `stitch-design-taste`, `ecc:frontend-design-direction`, `frontend-design` (and `emil-design-eng` for design-engineering taste).
    - **Interaction + motion craft:** `emil-design-eng` (Emil Kowalski: easing, timing, restraint), `ecc:make-interfaces-feel-better`, and the motion skills `ecc:motion-foundations` / `ecc:motion-ui` / `ecc:motion-patterns` / `ecc:motion-advanced`.
    - **System + patterns:** `ecc:design-system`, `ecc:frontend-patterns`.
    - **Quality + review gate:** `impeccable` (the AI-slop bans: no identical card grids, no hero-metric template) is mandatory before commit; for significant surfaces also run a design-review (`gstack-design-review`, or the GAN evaluator loop) and accessibility (`ecc:accessibility` / the `ecc:a11y-architect` agent).
-   - **Off-brand style packs** (`minimalist-ui`, `industrial-brutalist-ui`, `liquid-glass-design`) are consulted for TECHNIQUE only; they never override the Ember Editorial system.
+   - **Off-brand style packs** (`minimalist-ui`, `industrial-brutalist-ui`, `liquid-glass-design`) are consulted for TECHNIQUE only; they never override the design contract (Obsidian v3 for the app; Ember Editorial for the landing page).
 3. **The reference north-stars (the founder's chosen bar):**
    - **interfacecraft.dev** - "designing with uncommon care", reduce until clear, timeless restraint, generous whitespace, color from a crafted object not from UI chrome. The bar for restraint.
    - **devouringdetails.com** (Rauno, Vercel) - the interaction-craft reference: near-white canvas, near-black ink, the orange `#fb7100` used scarcely (CTA + key marks), calm framed example blocks. "A touch of delay where it helps, no motion where it doesn't." The bar for motion as craft.
@@ -20,7 +23,7 @@
 
 ## The accent orange
 
-Ember is tuned brighter and cleaner toward the reference orange (`#fb7100`), while staying warm on parchment, not neon: light `--ember: oklch(0.65 0.18 50)`, dark `oklch(0.72 0.175 50)` (`src/styles.css`). Still needs-human only; a brighter ember strengthens the role-color law (the calls pop, everything else stays calm). Re-tune only with a founder ruling.
+Landing page (parchment): ember is tuned brighter and cleaner toward the reference orange (`#fb7100`), while staying warm on parchment, not neon: light `--ember: oklch(0.65 0.18 50)`, dark `oklch(0.72 0.175 50)` (`src/styles.css`). App (Obsidian v3): ember is exactly `#FF6B2C` (deep `#C2571F`, soft `#FFA477`) from `DESIGN-OBSIDIAN.md` §2; never invent a hex. In both systems ember stays needs-human only; a brighter ember strengthens the role-color law (the calls pop, everything else stays calm). Re-tune only with a founder ruling.
 
 ## The agent palette (per-agent identity, an extension of the role-color law)
 
@@ -28,13 +31,13 @@ Ember is tuned brighter and cleaner toward the reference orange (`#fb7100`), whi
 
 ## Motion is craft, not decoration and not absence
 
-**This explicitly replaces any earlier "remove animations / no animations" wording so it is never misread again.** Use subtle, purposeful, fast motion that makes the product feel considered: state changes (a call clearing, the ring filling), press / hover feedback, considered reveals, the right easing and timing (a touch of delay where it helps, none where it doesn't, per devouringdetails). Avoid the opposite failure: gratuitous or sluggish choreography, especially "every panel fades in on page load" on a surface opened 100+ times a day. The test is feel; all motion is gated by `data-motion="off"` + `prefers-reduced-motion`. Use the Ember easing `cubic-bezier(0.23,1,0.32,1)` at 140/180/260ms.
+**This explicitly replaces any earlier "remove animations / no animations" wording so it is never misread again.** Use subtle, purposeful, fast motion that makes the product feel considered: state changes (a call clearing, the ring filling), press / hover feedback, considered reveals, the right easing and timing (a touch of delay where it helps, none where it doesn't, per devouringdetails). Avoid the opposite failure: gratuitous or sluggish choreography, especially "every panel fades in on page load" on a surface opened 100+ times a day. The test is feel; all motion is gated by `data-motion="off"` + `prefers-reduced-motion`. One easing everywhere: `cubic-bezier(0.23,1,0.32,1)`. Durations: app surfaces 140/200/280ms per `DESIGN-OBSIDIAN.md` §6 (and its stronger law: only live pulses, step progress, and arrivals ever move on their own; decoration never animates); landing page keeps 140/180/260ms.
 
 ## The frontend build protocol (standing, run on EVERY front-end build)
 
 **Founder ruling 2026-06-20.** This is the durable, repeatable procedure for any FE screen, card, or surface, going forward, for every build, not just one feature. It reconciles the founder's reference files with standard practice and the design-skill toolkit.
 
-1. **Load the brand canon (always).** [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial, the system of record) + this file + [`engine-room-doctrine.md`](./engine-room-doctrine.md) (calm front, name the outcome) + [`home-and-today-ia.md`](./home-and-today-ia.md) (where it goes) + [`ui-voice.md`](./ui-voice.md) + [`humanized-output.md`](./humanized-output.md).
+1. **Load the brand canon (always).** [`../../DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (THE app design contract; its 9 standing instructions are mandatory) + this file + [`engine-room-doctrine.md`](./engine-room-doctrine.md) (calm front, name the outcome) + [`home-and-today-ia.md`](./home-and-today-ia.md) (where it goes) + [`ui-voice.md`](./ui-voice.md) + [`humanized-output.md`](./humanized-output.md). For landing-page work substitute [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial) as the visual contract.
 2. **Treat the reference files as INTENT, not gospel.** The founder's references (this file, the north-stars, the tuned orange) capture the brand intent, warm editorial calm, restraint, the role-color law. **They may be imperfect.** Where a reference detail conflicts with current standard UI / accessibility / interaction practice or a design skill's guidance, **follow the better practice and keep the brand intent**; note the deviation in the commit / report so the canon can be corrected. Standard practice + the skills win on technique; the brand intent wins on feel.
 3. **Invoke the fitting design skills at BUILD time (more than one).** Pick from the toolkit above by what the surface needs: a taste/direction skill for the visual, an interaction/motion skill for the feel, a system/patterns skill for structure. Do not default to `impeccable` alone, that is the gate, not the build.
 4. **Build to match the existing system.** Reuse Ember primitives (`.bento` / `.hero-editorial` / `.mono-label`, the role-color tokens, the `btn`/`input` classes); invent no colors; mirror a fully-wired sibling component's data-flow shape (server fn via `useServerFn` + TanStack Query, scoped `queryKey`, invalidate-on-success). Motion is craft per the rule above, gated by `data-motion`/`prefers-reduced-motion`.
@@ -55,4 +58,4 @@ At the start of any design work, hold all three (system + skills + references) i
 
 - [`home-and-today-ia.md`](./home-and-today-ia.md) · [`humanized-output.md`](./humanized-output.md) · [`ui-voice.md`](./ui-voice.md) · [`ui-chrome.md`](./ui-chrome.md).
 - [`../features/command-canvas.md`](../features/command-canvas.md) - the Command Canvas bet (NL command bar + live preview). Any work on it loads this brief + the Engine-Room Doctrine first: the split-pane layout and command interaction are new structural language for the design system to resolve (how the preview blocks obey Ember; motion as craft).
-- [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial system of record).
+- [`../../DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (Obsidian v3, THE app design contract) · [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial, landing page + history).

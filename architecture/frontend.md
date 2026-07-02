@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> TanStack Start patterns. Rules: [`AGENTS.md`](../AGENTS.md). UI/visual contract: [`DESIGN.md`](../DESIGN.md). Data: [`data.md`](./data.md).
+> TanStack Start patterns. Rules: [`AGENTS.md`](../AGENTS.md). UI/visual contract: [`DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (app surfaces, v3 "Obsidian", adopted 2026-07-02; the live parchment styles in `src/styles.css` are legacy until surfaces are ported) · [`DESIGN.md`](../DESIGN.md) (landing page). Data: [`data.md`](./data.md).
 
 ## Stack
 
