@@ -4,10 +4,17 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
 
 /**
- * Agent tick — finds agents whose `cron_schedule` is due and enqueues
- * a run for each. Full planner/executor loop lands in Phase 6.C; for
- * now this just stamps `last_scheduled_run_at` on due agents so the
- * Agents page can show "next run" timing.
+ * RF-08 (v12 audit §2.4, defect 3): per-agent cron scheduling is a dead
+ * feature, not a partially-built one. This stub never enqueues a run — it
+ * only stamps `last_scheduled_run_at` — and the one function that could ever
+ * set `agents.cron_schedule` (`updateAgentSchedule`) had zero callers (no
+ * Agents-page UI ever wired it), so it was removed as dead code. With no
+ * writer left, `cron_schedule` can never be non-null, so this handler's
+ * query always returns zero rows. Left unregistered in any cron migration
+ * (it always was) rather than scheduling a job that can only ever no-op.
+ * Kept as inert scaffold for a real per-agent scheduling feature if one is
+ * ever built; do not wire a cron to it without first restoring a way to set
+ * `cron_schedule`.
  */
 export const Route = createFileRoute("/api/public/hooks/agent-tick")({
   server: {

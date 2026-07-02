@@ -297,7 +297,7 @@ cmd_claim() {
   #      its own in-dev row is the umbrella-continue case.)
   if [ "${PINNED:-false}" != "true" ]; then
     local indev; indev="$(_indev_lane_of "$id" 2>/dev/null || true)"
-    if [ -n "$indev" ] && [ "$indev" != "$lane" ] && [ "$indev" != "lane $lane" ]; then
+    if [ -n "$indev" ] && [ "$indev" != "$lane" ] && [ "$indev" != "lane $lane" ] && [ "$indev" != "lane${lane}" ]; then
       rmdir "$dir" 2>/dev/null || rm -rf "$dir"   # back out my just-won mutex
       echo "IN-DEV $id is 🔨 In Dev by lane $indev on origin/main; pick another item"
       return 1

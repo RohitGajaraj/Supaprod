@@ -685,6 +685,31 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // specialists' real actions, not the orchestrator's planning/bookkeeping.
     const isControlFlow = ORCHESTRATION_CONTROL_FLOW_TOOLS.has(call.name);
 
+    // RF-08 (v12 audit §2.4, defect 2): enforce ENABLEMENT, not just registry
+    // membership, before a tool can run. Previously an unenabled tool's mode
+    // defaulted to "confirm" (`modeOf.get(...) ?? "confirm"`), which only
+    // gated write/planning categories — an unenabled read or memory tool ran
+    // unconditionally, and an unenabled write merely queued for human
+    // approval instead of being refused outright. `modeOf` is sourced from
+    // `agent_tools` filtered to this user + `enabled=true` + this agent's
+    // risk cap (see its build above), so absence here means "not enabled for
+    // this agent," not "no seeded default" — fail closed. Control-flow tools
+    // are exempt by design (no seeded mode, per the comment above).
+    if (!isControlFlow && !modeOf.has(call.name)) {
+      const msg = `Tool not enabled: ${call.name}`;
+      steps.push({
+        kind: "tool_call",
+        name: call.name,
+        args: call.args as Json,
+        ok: false,
+        error: msg,
+        status: "error",
+      });
+      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "user", content: `Tool error: ${msg}. Pick an enabled tool or finalize.` });
+      continue;
+    }
+
     // Safety floors (not overridable by the dial): high-risk tools force at
     // least `confirm`; Studio's merge gate is always `review` (v4 HITL canon).
     const rawToolMode = (modeOf.get(call.name) ?? "confirm") as ToolMode;

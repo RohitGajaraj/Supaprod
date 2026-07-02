@@ -148,29 +148,6 @@ export const runAgent = createServerFn({ method: "POST" })
     }
   });
 
-const ScheduleSchema = z.object({
-  agentId: z.string().uuid(),
-  cron_schedule: z.string().max(40).nullable(),
-  cron_input: z.string().max(2000).nullable().optional(),
-});
-
-export const updateAgentSchedule = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => ScheduleSchema.parse(i))
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("agents")
-      .update({
-        cron_schedule: data.cron_schedule,
-        cron_input: data.cron_input ?? null,
-      })
-      .eq("id", data.agentId)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
 // FND-0.5 — set a per-agent blast-radius cap (max_tool_risk). null clears the cap (unrestricted).
 // The agent loop drops any enabled tool whose tier exceeds this when dispatching the agent.
 const ToolCapSchema = z.object({
