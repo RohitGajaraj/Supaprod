@@ -125,7 +125,10 @@ async function distillWorkspace(
     (l) => !usedLearningIds.has(l.id),
   );
   if (candidates.length < MIN_LEARNINGS_TO_CLUSTER) {
-    return { drafted: 0, skipped: `only ${candidates.length} undistilled learnings (need ${MIN_LEARNINGS_TO_CLUSTER})` };
+    return {
+      drafted: 0,
+      skipped: `only ${candidates.length} undistilled learnings (need ${MIN_LEARNINGS_TO_CLUSTER})`,
+    };
   }
 
   const numbered = candidates

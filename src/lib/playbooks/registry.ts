@@ -15,12 +15,7 @@
  */
 import type { AgentStation } from "@/lib/agent-vocabulary";
 
-export type PlaybookStation =
-  | "discovery"
-  | "prioritization"
-  | "prd"
-  | "positioning"
-  | "validation";
+export type PlaybookStation = "discovery" | "prioritization" | "prd" | "positioning" | "validation";
 
 export type PlaybookDefinition = {
   id: string;

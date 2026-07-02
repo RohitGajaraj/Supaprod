@@ -27,8 +27,7 @@ export function HouseRulesPanel() {
   const inv = () => qc.invalidateQueries({ queryKey: ["house-rules"] });
 
   const decide = useMutation({
-    mutationFn: (v: { ruleId: string; decision: "approve" | "reject" }) =>
-      fDecide({ data: v }),
+    mutationFn: (v: { ruleId: string; decision: "approve" | "reject" }) => fDecide({ data: v }),
     onSuccess: (_r, v) => {
       toast.success(v.decision === "approve" ? "Approved · live at the chokepoint." : "Rejected.");
       inv();
@@ -61,7 +60,14 @@ export function HouseRulesPanel() {
 
   if (q.isLoading) {
     return (
-      <div style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "32px 0", textAlign: "center" }}>
+      <div
+        style={{
+          fontSize: 12.5,
+          color: "var(--ink-faint)",
+          padding: "32px 0",
+          textAlign: "center",
+        }}
+      >
         Loading house rules…
       </div>
     );
@@ -78,9 +84,16 @@ export function HouseRulesPanel() {
       </div>
 
       {all.length === 0 ? (
-        <div style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "32px 0", textAlign: "center" }}>
-          No house rules yet. The weekly steward pass drafts one once there is a real pattern
-          across your validated learnings.
+        <div
+          style={{
+            fontSize: 12.5,
+            color: "var(--ink-faint)",
+            padding: "32px 0",
+            textAlign: "center",
+          }}
+        >
+          No house rules yet. The weekly steward pass drafts one once there is a real pattern across
+          your validated learnings.
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -152,20 +165,27 @@ function HouseRuleCard({
           {r.rule_text}
         </p>
         {r.rationale ? (
-          <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "0 0 8px", lineHeight: 1.5 }}>
+          <p
+            style={{ fontSize: 12, color: "var(--ink-muted)", margin: "0 0 8px", lineHeight: 1.5 }}
+          >
             {r.rationale}
           </p>
         ) : null}
-        <span
-          className="mono-label"
-          style={{ color: "var(--ink-faint)", fontSize: 9.5 }}
-        >
+        <span className="mono-label" style={{ color: "var(--ink-faint)", fontSize: 9.5 }}>
           {r.source_learning_ids.length} learning{r.source_learning_ids.length === 1 ? "" : "s"}{" "}
           distilled
         </span>
 
         {resolvedLine ? (
-          <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <div
+            style={{
+              marginTop: 8,
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <span className="mono-label" style={{ color: resolvedLine.color }}>
               {resolvedLine.text}
             </span>
@@ -176,7 +196,15 @@ function HouseRuleCard({
             ) : null}
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+              marginTop: 8,
+            }}
+          >
             <button className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
               <Check size={11} />
               Approve · goes live at the chokepoint

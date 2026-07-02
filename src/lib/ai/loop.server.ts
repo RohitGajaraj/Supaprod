@@ -15,7 +15,10 @@ import { recallMemoryRefs } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { renderBriefBlock, type WorkspaceBrief } from "@/lib/briefs.functions";
-import { getActiveHouseRulesForWorkspace, renderHouseRulesBlock } from "@/lib/house-rules.functions";
+import {
+  getActiveHouseRulesForWorkspace,
+  renderHouseRulesBlock,
+} from "@/lib/house-rules.functions";
 import { loadAgentArc, resolveApprovalMode, type Arc, type ToolMode } from "./trust.server";
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";

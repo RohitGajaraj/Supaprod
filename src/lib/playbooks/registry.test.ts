@@ -31,9 +31,9 @@ describe("PLAYBOOK_REGISTRY — integrity", () => {
   });
 
   it("carries no AI-cliche / em-dash fingerprints in author-facing copy", () => {
-    const blob = PLAYBOOK_REGISTRY.map((p) => [p.summary, ...p.steps, p.rankingSignal].join(" ")).join(
-      " ",
-    );
+    const blob = PLAYBOOK_REGISTRY.map((p) =>
+      [p.summary, ...p.steps, p.rankingSignal].join(" "),
+    ).join(" ");
     expect(blob.includes("—")).toBe(false);
     expect(blob.includes("–")).toBe(false);
     expect(blob.toLowerCase()).not.toContain("delve");
@@ -85,7 +85,10 @@ describe("rankPlaybooksByOutcome — per-outcome learning", () => {
   });
 
   it("never throws on malformed runs", () => {
-    const r = rankPlaybooksByOutcome("prd", [null as unknown as PlaybookRun, { playbook_id: "prd-spine" }]);
+    const r = rankPlaybooksByOutcome("prd", [
+      null as unknown as PlaybookRun,
+      { playbook_id: "prd-spine" },
+    ]);
     expect(r.find((x) => x.playbook.id === "prd-spine")?.runs).toBe(1);
   });
 });

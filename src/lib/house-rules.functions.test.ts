@@ -41,10 +41,7 @@ describe("filterActiveRules", () => {
   it("retires a rule superseded by an APPROVED replacement", () => {
     const oldRule = rule("old");
     const newRule = rule("new");
-    const active = filterActiveRules(
-      [oldRule, newRule],
-      [{ parent_id: "new", child_id: "old" }],
-    );
+    const active = filterActiveRules([oldRule, newRule], [{ parent_id: "new", child_id: "old" }]);
     expect(active.map((r) => r.id)).toEqual(["new"]);
   });
 

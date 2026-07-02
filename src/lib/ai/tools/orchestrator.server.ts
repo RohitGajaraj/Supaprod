@@ -276,7 +276,9 @@ export const missionPlan = def({
     if (insErr) {
       const code = (insErr as { code?: string }).code;
       const missingColumn =
-        code === "42703" || code === "PGRST204" || /column .*playbook_id.* does not exist/i.test(insErr.message);
+        code === "42703" ||
+        code === "PGRST204" ||
+        /column .*playbook_id.* does not exist/i.test(insErr.message);
       if (missingColumn) {
         const bare = rows.map(({ playbook_id: _drop, ...r }) => r);
         insErr = (await supabase.from("mission_steps").insert(bare)).error;
