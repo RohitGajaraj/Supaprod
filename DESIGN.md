@@ -5,7 +5,10 @@ updated: 2026-06-19
 name: cadence-ember-editorial
 product: "Project Cadence — agentic product-operations platform"
 description: >
-  THE SOURCE OF TRUTH for all Cadence design work, in any tool (Claude Code,
+  SUPERSEDED for the product app on 2026-07-02 by DESIGN-OBSIDIAN.md (v3
+  "Obsidian"). Remains the source of truth for the PUBLIC LANDING PAGE only,
+  plus the historical record. Was: THE source of truth for all Cadence design
+  work, in any tool (Claude Code,
   Lovable, Cursor, design agents). Supersedes uploads/DESIGN-claude.md, which
   was an ANALYSIS of Claude.com used only as a craft reference — Cadence is
   deliberately differentiated from it. Warm parchment canvas, espresso/cacao
@@ -51,9 +54,15 @@ motion:
   durations: "140ms / 180ms / 260ms"
 ---
 
-# Cadence Design — "Ember Editorial" · Source of Truth
+> **SUPERSEDED for the product app (2026-07-02).** The authenticated app now
+> follows [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (v3 "Obsidian": jet-black
+> canvas, Ember & Glacier roles, restraint budget, standing instructions).
+> This file remains the contract for the public landing page only, plus the
+> historical record. Do not apply parchment styles to any app surface.
 
-> _Created: 2026-06-12 · Last updated: 2026-06-19_
+# Cadence Design — "Ember Editorial" · Source of Truth (landing page only)
+
+> _Created: 2026-06-12 · Last updated: 2026-07-02_
 
 Cadence is a platform where a swarm of specialist agents (Scout, Scribe,
 Builder, Marketer, Historian…) runs the product loop — signals → opportunities
