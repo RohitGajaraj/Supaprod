@@ -258,3 +258,26 @@ Concurrently, lane4 shipped DSN-04 (the design contract rides into Build) in the
 **Board re-scanned exhaustively before long-polling again**, not just taken on `lane.sh next`'s word: every remaining ⬜/◐ row was checked against its own documented remainder. All of them are genuine, already-investigated founder blockers — OBS-PORT/OBS-10/OBS-13/OBS-15 (Obsidian-port remainders, previously closed out to their honest ceiling), JNY-05 (its last 15% needs a registered Slack OAuth connector and a Business-tier write-back ruling this session has no standing to make), SANDBOX/BYO-P5 (founder-gated infra), and the rest (WM-M9, CMD, RF-06/07, AGT-01/02, DSN-05) explicitly Gated. No shallow or forced work taken to manufacture activity.
 
 **Long-polling again** per doctrine.
+
+## 2026-07-03 (05:xx) — Final recheck: cross-lane dry confirmed, stopping for the night
+
+**276/292 done (94.5% strict / 96.1% weighted).**
+
+Woke to two commits since the last check, both from other sessions/lanes and both clean merges (zero conflicts): a real security fix (`e0c96592`, trailing-dot SSRF bypass in `isPublicHost` — `new URL().hostname` preserves a trailing dot verbatim, but every check in that function was exact-match/`.endsWith()`, so appending "." to any blocked host silently bypassed the guard on `importDesignMemoryFromUrl`; fixed with a regression test, found by an automated background review, not by me, but landing on code this lane shipped tonight so noted here for the record) and lane3's own cross-lane dry confirmation (`eeb6ec2c`) reporting `bash scripts/lane.sh list` shows zero active claims from any lane besides the permanent `CHOKEPOINT` pin, and independently corroborating that every remaining `◐` row's blocker is genuine (not repeating its own prior reasoning, but citing OBS-PORT's retirement note verbatim as independent evidence).
+
+Confirmed the same from this lane's side: `lane.sh next` still returns exit 2, `lane.sh list` shows only the pinned chokepoint claim, working tree clean and fully synced with `origin/main`, tsc 0.
+
+**Stopping the long-poll loop here, per the founder's own stated stopping condition** (stop once the board is dry, with a handoff note) **and the cross-lane corroboration that all four lanes are genuinely idle** — continuing to poll every ~25 minutes overnight with a confirmed-dry board across every lane would not surface new work; the founder's morning review is what unblocks the remainder, not another recheck cycle.
+
+### This lane's full session account (all items, in order)
+
+1. **OBS-PORT retired** (bookkeeping only) — the umbrella tracking row's 15 sub-items were all already accounted for (12 done, 3 shipped-partial with no further autonomous slice); corrected a `lane.sh done` auto-flip mislabel back to the honest `◐ [~80%]`.
+2. **DSN-01 shipped** — design memory: standing, supersedable design-language decisions binding into DEF-04 scaffolds. A dispatched security review caught and fixed 2 real SSRF issues (unvalidated redirect, IPv4-mapped-IPv6 bypass) plus a prompt-injection framing gap before it shipped. Live-verified end to end via the Lovable MCP (migration applied, RLS + round-trip confirmed) since the founder was asleep before it landed, then triggered a publish per his standing authorization.
+3. **DSN-02 shipped** — the Critic's design lens: heuristic + consistency-vs-design-memory findings, folded into `runCritic` for PRDs and exposed standalone for DEF-04 scaffolds.
+4. **DSN-03 closed** (lane2 shipped the flow-generation half earlier; this lane closed its documented remainder) — the "scaffold derives from flow" lineage edge, unblocked once a concurrent lane's AGT-03 added scaffold persistence.
+5. **A real, previously-undiagnosed bug fixed in `scripts/dashboard-tally.sh`** — its bracket-weighting check was an exact match that silently zero-weighted every `[~NN%]`-annotated partial row; fixed to a prefix match, restoring trust in the script's own output for every lane.
+6. Investigated (not shipped, judgment call documented) **DSN-04** and **AGT-03** by hand before accepting board-dry the first time — both turned out to have real structural blockers at that point (a founder-gated BuildDriver seam and a pinned-chokepoint dependency respectively); both were later closed autonomously by other lanes once the actual buildable slice became clear, confirming the caution was warranted rather than overcautious.
+
+Every item: `tsc --noEmit` 0, full test suite green at each checkpoint (2121 → 2197 across the session as concurrent lane tests merged in), full doc-loop (dashboard row + feature doc + `plan.md` + `SOURCE-OF-TRUTH.md` cursor), committed with an explicit WHY, rebased through repeated concurrent-lane conflicts, pushed to `origin/main`, claim released via the ledger every time.
+
+**Nothing left mid-build. No claim held. Founder's morning punch list is lane3's `eeb6ec2c` note** (JNY-05 Slack OAuth + Business-tier ruling, OBS-10's URL-rename sign-off, OBS-13's visual pass needing a working `bun run dev`, OBS-15's remainder) — this lane's own findings agree with it in full, nothing to add.
