@@ -192,3 +192,19 @@ New session — loop woke up. `bash scripts/lane.sh next` = exit 2 (BOARD DRY). 
 5. Flip `WM-M9` chokepoint removal (attended session, removes BYOK from self-serve) 
 
 Long-polling ~25 min for new rows, founder unlock, or configuration push.
+
+## 2026-07-02 (17:07) — OBS-02 ✅ shipped: Obsidian app shell (rail + top bar + keyboard)
+
+**Picked via `bash scripts/lane.sh next`** (v3 Obsidian port front, OBS-01→02→03 strictly ordered foundation; OBS-01 already ✅). Claimed `OBS-02` with globs covering `nav-model.ts`/`.test.ts`, `AppShell.tsx`, `TopBar.tsx`, `CommandPalette.tsx`, the new `Surface.tsx`, `_authenticated.tsx`, and every `_authenticated.*.tsx` route.
+
+**Built:** hoisted `AppShell` once into `_authenticated.tsx` (was wrapped per-page in 21 routes — mechanically unwrapped to `<>...</>` Fragments + dropped the import). Reshaped `nav-model.ts` to the Obsidian iconography law (mono index `01`-`05`, no lucide; Ask off the rail, Discover/Plan added as interim `/product`-tab-scoped destinations). Rewrote `AppShell.tsx` (236px rail, Butterfly header, footer trio) and `TopBar.tsx` (52px bar) to the exact `obsidian-port/OBS-02.md` token values. New `src/components/obsidian/Surface.tsx` container. Rewrote `CommandPalette.tsx`'s `GotoShortcuts` from a vim `g`-chord to `1`-`5` + `g`. Cleaned up 11 routes' dead `listProjects`/`projects` queries left dangling by the unwrap.
+
+**Adversarial review (dispatched TypeScript reviewer) caught 2 real regressions, both fixed before commit:** the shell hoist would have silently wrapped the full-viewport, no-shell `/onboarding` route (exposing all nav + shortcuts pre-onboarding) — now explicitly excluded; and `FlowWidget` (the app's only Flow-mode entry point) would have been fully orphaned by the new 3-row footer anatomy — kept, unstyled, in the user-chip row rather than dropped. Also fixed: a `navItemActive` bare/tab-scoped double-active bug (Discover+Plan both highlighting on `/product?tab=roadmap`), a malformed CSS border value, and 2 stale comments.
+
+**Concurrency note:** lane 2 was building OBS-03 (primitives) in parallel on largely disjoint files; a routine `git fetch` + rebase surfaced a real conflict in `feature-dashboard.md`'s shared header/rows (both lanes' "Last updated" stamps + both lanes' OBS-02/OBS-03 rows) — resolved by hand, preserving both lanes' content (never blanket `--ours`/`--theirs`), per the standing merge-conflict rule.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 1892/1892 pass · `bash scripts/dashboard-tally.sh` recomputed. `bun run build`/`dev` untested in-worktree (documented pre-existing `lovable-tagger` ESM/CJS bug in every lane worktree, confirmed again this cycle even on a newer local Node via `nvm`, so it is a package bug not a Node-version issue — not this diff's concern per OBS-02.md §12).
+
+Files: `src/lib/nav-model.ts`, `src/lib/nav-model.test.ts`, `src/components/cadence/AppShell.tsx`, `src/components/cadence/TopBar.tsx`, `src/components/cadence/CommandPalette.tsx`, `src/components/obsidian/Surface.tsx` (new), `src/routes/_authenticated.tsx`, 21 `src/routes/_authenticated.*.tsx` routes, `public/assets/butterfly-ember.svg` (new), `docs/planning/feature-dashboard.md`, `docs/features/obsidian-port.md`, `docs/strategy/session-decisions.md`, `plan.md`.
+
+Claim released (`lane.sh done OBS-02`) — unblocks lane 2's deferred `/obsidian-specimen` route (its glob was waiting on this one) and OBS-04..09. Continuing to the next eligible item.

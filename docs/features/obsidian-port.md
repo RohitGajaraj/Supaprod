@@ -41,7 +41,35 @@ Founder doctrine ruling 2026-07-02 (see `plan.md` §4 and `docs/strategy/session
 
 ---
 
-## OBS-02 · App shell: pending
+## OBS-02 · App shell (✅ 2026-07-02, lane1, adversarial-reviewed)
+
+**What shipped:** the Obsidian app shell - a 236px mono-index rail, a 52px top bar, the shared `Surface` container, and the `1`-`5`/`g` keyboard map - hoisted ONCE into `src/routes/_authenticated.tsx` instead of wrapping each of the ~21 authenticated routes individually.
+
+- `src/lib/nav-model.ts` reshaped: `PRIMARY_NAV` is a flat, five-item list (Today · Discover · Plan · Build · Brain), each carrying a mono `index` (`"01"`-`"05"`) instead of a lucide icon. Ask is removed from the rail (it returns as the `⌘J` panel, OBS-12). Discover and Plan both point at the interim `/product` route, disambiguated by `search.tab` (`signals` / `roadmap`) until OBS-10 renames the routes and adds redirects.
+- `navItemActive` hardened: a bare (non-tab-scoped) item is now only active when NO tab is present on the route, so it can never show active at the same time as a tab-scoped sibling on the same path (the Discover/Plan collision on `/product?tab=roadmap`, caught by adversarial review).
+- `src/components/cadence/AppShell.tsx` rewritten: the rail (Butterfly mark + `cadFlutter`, workspace switcher with lucide dropped to plain text rows, search affordance, the five `NavRow`s, and the footer trio - the workspace-paused notice when live, the shimmer working line, the Engine Room door with `engineRoomActive`-driven active styling, and the user chip). All existing data hooks (`getWorkspacePauseState`, `getNeedsYou`, `getLiveRunCounts`, `amIAdmin`, the workspace CRUD handlers) are unchanged - consumed read-only, no feature work rides along.
+- `src/components/cadence/TopBar.tsx` reskinned to 52px: the surface title is the last breadcrumb, an optional subtitle is the penultimate one, plus a mono-caps date and workspace pill. The auxiliary widgets (`AttentionBell`, `MachineViewToggle`, `ConstructionPill`, `CookingBanner`, `LoopThread`, `AmbientChip`) keep their current markup - their reskin rides with later items.
+- New `src/components/obsidian/Surface.tsx`: the shared surface container (`max-width` 1060/1160, `cadRise` entrance) that OBS-04..09 adopt as they port.
+- `src/components/cadence/CommandPalette.tsx`'s `GotoShortcuts` rewritten: the legacy vim-style `g`-then-letter chord is replaced with single-press `1`-`5` (switch surfaces) and `g` (open the Engine Room); both ignore inputs/textareas/contentEditable and any held modifier. `Esc` closing overlays is unchanged (already handled in `CommandPalette`'s own handler).
+- 21 routes unwrapped: `<AppShell>...</AppShell>` became `<>...</>`, and the `AppShell` import was dropped from each. 11 of those routes were left with a dead `const projects = useQuery(...)` (fetched only to feed the old `AppShell projects` prop, which the component never actually read) - removed, along with the now-unused `listProjects` imports and the vestigial `projects?: unknown` prop on `AppShell`'s own signature.
+- `public/assets/butterfly-ember.svg` copied from `design-reference/obsidian-v3/assets/` and wired into the rail header with the spec's drop-shadow filter + `cadFlutter` animation.
+
+**Real regressions caught by adversarial review and fixed before commit (not just style nits):**
+
+- **Onboarding shell leak.** `_authenticated.onboarding.tsx` is documented full-viewport, no-shell. The hoist would have silently wrapped it in the rail/top bar too, exposing all five nav destinations and the `1`-`5`/`g` shortcuts to an account that hasn't finished onboarding. Fixed: `_authenticated.tsx` now branches on the current pathname and skips both the `AppShell` wrap and `GotoShortcuts` while on `/onboarding`.
+- **`FlowWidget` orphaned.** The old rail footer rendered `FlowWidget` (the app's only Flow-mode entry point: ambient sound + focus timer). The new 3-row footer anatomy in the OBS-02 spec doesn't mention it, and dropping it silently would have made the feature fully unreachable (`FlowModeProvider` still mounted, running, with no UI that could ever call `enterFlow()`). Fixed: kept `FlowWidget` in the user-chip row, unstyled (it degrades via the OBS-01 semantic bridge rather than dark-on-dark; a full Obsidian reskin is OBS-03/later-primitive territory, not this item's scope).
+
+**How to verify (repeatable):**
+
+1. `bun run dev` (primary checkout - `bun run build`/`dev` are red in lane worktrees on the pre-existing `lovable-tagger` ESM/CJS bug, unrelated to this diff), open `/today`.
+2. Rail: 236px, `--rail` background, mono indices `01`-`05`, Today/Discover/Plan/Build/Brain, no icons anywhere in the rail. Active row is `#1A1A1E` + ember index + weight 600.
+3. Keyboard: press `1`-`5` to switch surfaces, `g` to open the Engine Room, confirm typing in the Today task input does NOT trigger a surface switch.
+4. Visit `/product?tab=roadmap` and confirm only Plan (not Discover) shows active in the rail.
+5. Navigate to `/onboarding` directly (or trigger the onboarding redirect on a fresh account) and confirm NO rail/top bar renders - full viewport, as before.
+6. Open the user-chip's Flow icon (rightmost group before the presence dot) and confirm the Flow popover still opens/starts a session.
+7. Confirm the shell does not remount across navigation (rail persists, no flash) - hoisted once in `_authenticated.tsx`.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun test` 1877+ pass (0 fail) · adversarial TypeScript-reviewer pass (2 real regressions found and fixed - the onboarding leak and the orphaned FlowWidget - plus a `navItemActive` collision, a malformed CSS border value, and the 11-route dead-query cleanup) · humanized-output clean (no em/en dashes, no banned words, no exclamation marks in any new UI string) · hex gate (only `#1A1A1E` is a literal, matching the spec's own literal value for the nav-active background; every other color is a `var(--token)`).
 
 ## OBS-03 · Core primitives (🔨 lane2, 2026-07-02 - library shipped, one slice deferred)
 
