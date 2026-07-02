@@ -71,13 +71,7 @@ function AskUserTurn({ content }: { content: string }) {
   );
 }
 
-function AskAiMessage({
-  msg,
-  liveStatus,
-}: {
-  msg: Msg;
-  liveStatus: ResearchStatus | null;
-}) {
+function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatus | null }) {
   const [traceOpen, setTraceOpen] = React.useState(false);
   const thinking = !msg.content && !msg.error;
 
@@ -186,7 +180,9 @@ function AskAiMessage({
           }}
         >
           <div>{`How I got this · ${meta.sources.length} source${meta.sources.length === 1 ? "" : "s"} · ${meta.model}`}</div>
-          {meta.research?.sub_queries.map((q, i) => <div key={i}>{`- ${q}`}</div>)}
+          {meta.research?.sub_queries.map((q, i) => (
+            <div key={i}>{`- ${q}`}</div>
+          ))}
           {meta.sources.map((s) => (
             <div key={s.n}>{`[${s.n}] ${s.title}`}</div>
           ))}
@@ -306,10 +302,14 @@ export function AskPanel() {
           },
           body: JSON.stringify({ conversationId: convId, content }),
         });
-        if (res.status === 401) throw new AskUiError("Your session needs a refresh. Reload and try again.");
-        if (res.status === 429) throw new AskUiError("Rate limit reached. Try again in a few seconds.");
-        if (res.status === 402) throw new AskUiError("AI credits exhausted. Add credits in Settings.");
-        if (!res.ok || !res.body) throw new AskUiError("I could not reach the model just now. Try again.");
+        if (res.status === 401)
+          throw new AskUiError("Your session needs a refresh. Reload and try again.");
+        if (res.status === 429)
+          throw new AskUiError("Rate limit reached. Try again in a few seconds.");
+        if (res.status === 402)
+          throw new AskUiError("AI credits exhausted. Add credits in Settings.");
+        if (!res.ok || !res.body)
+          throw new AskUiError("I could not reach the model just now. Try again.");
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -358,7 +358,8 @@ export function AskPanel() {
           }
         }
       } catch (e) {
-        const friendly = e instanceof AskUiError ? e.message : "I could not reach the model just now. Try again.";
+        const friendly =
+          e instanceof AskUiError ? e.message : "I could not reach the model just now. Try again.";
         setMessages((prev) => {
           const next = [...prev];
           next[next.length - 1] = { ...next[next.length - 1], content: friendly, error: true };
@@ -432,7 +433,10 @@ export function AskPanel() {
               </button>
             </DialogPrimitive.Close>
           </div>
-          <div className="flex-1 overflow-y-auto flex flex-col" style={{ padding: "20px", gap: 16 }}>
+          <div
+            className="flex-1 overflow-y-auto flex flex-col"
+            style={{ padding: "20px", gap: 16 }}
+          >
             {messages.length === 0 ? (
               <p
                 style={{

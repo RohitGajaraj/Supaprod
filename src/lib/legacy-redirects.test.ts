@@ -18,7 +18,9 @@ describe("legacy-redirects", () => {
   });
 
   it("no path appears in both the canonical set and the door-internal set", () => {
-    const overlap = CANONICAL_PATHS.filter((p) => (DOOR_INTERNAL_PATHS as readonly string[]).includes(p));
+    const overlap = CANONICAL_PATHS.filter((p) =>
+      (DOOR_INTERNAL_PATHS as readonly string[]).includes(p),
+    );
     expect(overlap).toEqual([]);
   });
 

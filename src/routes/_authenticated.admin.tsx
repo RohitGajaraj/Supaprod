@@ -87,9 +87,7 @@ function AdminLayout() {
                       letterSpacing: "0.08em",
                       padding: "8px 12px",
                       color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                      borderBottom: isActive
-                        ? "2px solid var(--glacier)"
-                        : "2px solid transparent",
+                      borderBottom: isActive ? "2px solid var(--glacier)" : "2px solid transparent",
                       marginBottom: -1,
                     }}
                   >
@@ -139,8 +137,8 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
         Admin access required
       </div>
       <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, maxWidth: 520 }}>
-        The admin console manages members, roles, audit, and workspace billing. Ask a current
-        admin to grant you access.
+        The admin console manages members, roles, audit, and workspace billing. Ask a current admin
+        to grant you access.
       </p>
       {!anyAdminExists ? (
         <div className="flex items-center" style={{ gap: 10 }}>
@@ -161,7 +159,9 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
           >
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
           </button>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-faint)" }}>
+          <span
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-faint)" }}
+          >
             No admin exists yet. Whoever claims first becomes the first admin.
           </span>
         </div>

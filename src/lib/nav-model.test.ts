@@ -48,7 +48,7 @@ describe("nav-model - the calm front (primary destinations)", () => {
     const targets = PRIMARY_NAV.map((n) => n.to);
     expect(new Set(targets).size).toBe(targets.length);
     for (const t of targets) {
-      expect((CANONICAL_PATHS as readonly string[])).toContain(t);
+      expect(CANONICAL_PATHS as readonly string[]).toContain(t);
     }
   });
 

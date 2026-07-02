@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { CATALOG, filterCatalog, type CatalogEntry } from "@/lib/palette-catalog";
-import { ACT_VERBS, JUMP_DESTINATIONS, type ActVerb, type JumpDestination } from "@/lib/palette-sections";
+import {
+  ACT_VERBS,
+  JUMP_DESTINATIONS,
+  type ActVerb,
+  type JumpDestination,
+} from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
 import { PRIMARY_NAV, ENGINE_ROOM_DOOR } from "@/lib/nav-model";
 
