@@ -1,6 +1,12 @@
 # BYO-P5: Managed End-to-End Runtime (Ops, Cost, and Security Plan)
 
-Status: PLAN, founder-gated, produced 2026-07-01. P5a shipped same day. Hosting-provider alternatives researched 2026-07-02, and P5a-poc shipped the same day: a working, tested Deno Deploy adapter, live-verified end to end at $0. See both addenda below.
+Status: PLAN, founder-gated, produced 2026-07-01. P5a shipped same day. Hosting-provider alternatives researched 2026-07-02, and P5a-poc shipped the same day: a working, tested Deno Deploy adapter, live-verified end to end at $0. P5b (the hosting POC + admin UI) shipped 2026-07-02. See all three addenda below.
+
+## Addendum, 2026-07-03: reviewed, explicitly parked (no code change)
+
+**Why:** a founder status check ("what's pending on BYO-P5 and why") confirmed the plan and the P5a/P5a-poc/P5b/P5c-slice status above are still accurate as of this date — nothing regressed, nothing new shipped. The founder's decision this session was to **not** pick this back up right now and return to it later, so this addendum exists purely so a future session (or the founder) reading this doc cold knows the pause was deliberate, not an abandoned thread.
+
+**What is still the one blocker, unchanged since 2026-07-02:** the rest of P5c (real RLS/tenant isolation, the audit gate, per-tenant usage rollup, `exportTenantData`, secret injection) and everything after it (P5d, P5e) wait on a single founder call — continue building on the already-proven $0 Deno Deploy path, or open a directly-owned Cloudflare account and accept the ~$55/mo spend floor. No code is blocked on anything technical; this is purely a pending decision. See Section 6 and the P5c/P5d/P5e rows in Section 5 for the full remaining scope.
 
 ## Addendum, 2026-07-02: hosting-provider alternatives research (updates Section 1.1's economics and Section 1.5's evidence base; does not change the pooled-isolation model in Section 1.2)
 
