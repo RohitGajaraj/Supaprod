@@ -35,7 +35,6 @@ type DecisionRow = {
   status: string;
   source_kind: string | null;
   prd_id: string | null;
-  opportunity_id: string | null;
   decided_by_agent_slug: string | null;
   created_at: string;
 };
@@ -81,8 +80,7 @@ export async function loadNewestDecisionBrief(
   workspaceId: string,
   wantId?: string | null,
 ): Promise<{ decisions: { id: string; title: string }[]; brief: DecisionBrief } | null> {
-  const cols =
-    "id,title,rationale,status,source_kind,prd_id,opportunity_id,decided_by_agent_slug,created_at";
+  const cols = "id,title,rationale,status,source_kind,prd_id,decided_by_agent_slug,created_at";
   const { data: decRows, error: decErr } = await supabase
     .from("decisions")
     .select(cols)
@@ -110,21 +108,18 @@ export async function loadNewestDecisionBrief(
   const evidence = evidenceCounts(edges);
   const superseded = supersededChildIds(edges);
 
-  // A recorded outcome linked to the selected decision (by prd or opportunity), if any.
+  // A recorded outcome linked to the selected decision's PRD, if any. `decisions`
+  // has no `opportunity_id` column (never migrated - confirmed against the live
+  // schema), so a decision can only be outcome-linked via its PRD.
   let verdict: string | null = null;
   let metricLabel: string | null = null;
   let metricValue: string | null = null;
-  const linkFilter = selectedRow.prd_id
-    ? { col: "prd_id", val: selectedRow.prd_id }
-    : selectedRow.opportunity_id
-      ? { col: "opportunity_id", val: selectedRow.opportunity_id }
-      : null;
-  if (linkFilter) {
+  if (selectedRow.prd_id) {
     const { data: lrn } = await supabase
       .from("learnings")
       .select("verdict,metric_label,metric_value,created_at")
       .eq("workspace_id", workspaceId)
-      .eq(linkFilter.col, linkFilter.val)
+      .eq("prd_id", selectedRow.prd_id)
       .order("created_at", { ascending: false })
       .limit(1);
     const row = (lrn ?? [])[0] as

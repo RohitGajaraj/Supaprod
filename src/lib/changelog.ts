@@ -60,13 +60,15 @@ export type ChangelogRow = {
   body: string;
   pr_number: number | null;
   pr_url: string | null;
-  published_at: string;
+  released_at: string;
 };
 
 /**
  * Shape a publishable changeset into a `changelog_entries` upsert row. The DB
  * unique key is (changeset_id), so re-publishing the same merge is idempotent.
- * `publishedAt` falls back to release_notes_at, then the supplied now().
+ * `released_at` falls back to release_notes_at, then the supplied now() - the
+ * column is `released_at` (confirmed against the live schema; an earlier,
+ * never-applied migration used `published_at`, which the table never had).
  */
 export function changelogRowFor(cs: ChangesetForChangelog, now: string): ChangelogRow | null {
   if (!shouldPublishChangelog(cs)) return null;
@@ -80,7 +82,7 @@ export function changelogRowFor(cs: ChangesetForChangelog, now: string): Changel
     body: (cs.release_notes ?? "").trim(),
     pr_number: cs.pr_number ?? null,
     pr_url: cs.pr_url ?? null,
-    published_at: cs.release_notes_at ?? now,
+    released_at: cs.release_notes_at ?? now,
   };
 }
 

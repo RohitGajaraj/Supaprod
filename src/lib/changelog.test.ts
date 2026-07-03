@@ -57,12 +57,12 @@ describe("changelogRowFor", () => {
       prd_id: "prd1",
       title: "Add export button",
       pr_number: 42,
-      published_at: "2026-06-29T10:00:00.000Z",
+      released_at: "2026-06-29T10:00:00.000Z",
     });
   });
-  it("falls back published_at to now when release_notes_at is missing", () => {
+  it("falls back released_at to now when release_notes_at is missing", () => {
     const row = changelogRowFor(cs({ release_notes_at: null }), "NOW");
-    expect(row?.published_at).toBe("NOW");
+    expect(row?.released_at).toBe("NOW");
   });
   it("returns null for a non-publishable changeset", () => {
     expect(changelogRowFor(cs({ status: "staged" }), "NOW")).toBeNull();

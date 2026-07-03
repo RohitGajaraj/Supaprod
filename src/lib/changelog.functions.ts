@@ -31,7 +31,7 @@ export type ChangelogEntry = {
   body: string;
   pr_number: number | null;
   pr_url: string | null;
-  published_at: string;
+  released_at: string;
   product_name?: string | null;
 };
 
@@ -58,9 +58,9 @@ export const listChangelog = createServerFn({ method: "GET" })
 
     let q = db
       .from("changelog_entries")
-      .select("id,product_id,changeset_id,prd_id,title,body,pr_number,pr_url,published_at")
+      .select("id,product_id,changeset_id,prd_id,title,body,pr_number,pr_url,released_at")
       .eq("workspace_id", workspaceId)
-      .order("published_at", { ascending: false })
+      .order("released_at", { ascending: false })
       .limit(data.limit ?? 100);
     if (data.productId) q = q.eq("product_id", data.productId);
     const { data: rows, error } = await q;

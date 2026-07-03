@@ -133,7 +133,7 @@ export function ChangelogPanel() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {fmtDate(e.published_at)}
+                      {fmtDate(e.released_at)}
                     </time>
                   </div>
                   {e.body ? (
