@@ -102,6 +102,7 @@ import { Route as ApiPublicHooksScoutTickRouteImport } from './routes/api/public
 import { Route as ApiPublicHooksRetentionTickRouteImport } from './routes/api/public/hooks/retention-tick'
 import { Route as ApiPublicHooksResumeRunsRouteImport } from './routes/api/public/hooks/resume-runs'
 import { Route as ApiPublicHooksResearcherTickRouteImport } from './routes/api/public/hooks/researcher-tick'
+import { Route as ApiPublicHooksPromptOptimizeTickRouteImport } from './routes/api/public/hooks/prompt-optimize-tick'
 import { Route as ApiPublicHooksOutcomeTickRouteImport } from './routes/api/public/hooks/outcome-tick'
 import { Route as ApiPublicHooksMemoryTickRouteImport } from './routes/api/public/hooks/memory-tick'
 import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/public/hooks/indexer-tick'
@@ -616,6 +617,12 @@ const ApiPublicHooksResearcherTickRoute =
     path: '/api/public/hooks/researcher-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPromptOptimizeTickRoute =
+  ApiPublicHooksPromptOptimizeTickRouteImport.update({
+    id: '/api/public/hooks/prompt-optimize-tick',
+    path: '/api/public/hooks/prompt-optimize-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksOutcomeTickRoute =
   ApiPublicHooksOutcomeTickRouteImport.update({
     id: '/api/public/hooks/outcome-tick',
@@ -867,6 +874,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
+  '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
@@ -984,6 +992,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
+  '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
@@ -1105,6 +1114,7 @@ export interface FileRoutesById {
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
+  '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
@@ -1226,6 +1236,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
+    | '/api/public/hooks/prompt-optimize-tick'
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
@@ -1343,6 +1354,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
+    | '/api/public/hooks/prompt-optimize-tick'
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
@@ -1463,6 +1475,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
+    | '/api/public/hooks/prompt-optimize-tick'
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
@@ -1519,6 +1532,7 @@ export interface RootRouteChildren {
   ApiPublicHooksIndexerTickRoute: typeof ApiPublicHooksIndexerTickRoute
   ApiPublicHooksMemoryTickRoute: typeof ApiPublicHooksMemoryTickRoute
   ApiPublicHooksOutcomeTickRoute: typeof ApiPublicHooksOutcomeTickRoute
+  ApiPublicHooksPromptOptimizeTickRoute: typeof ApiPublicHooksPromptOptimizeTickRoute
   ApiPublicHooksResearcherTickRoute: typeof ApiPublicHooksResearcherTickRoute
   ApiPublicHooksResumeRunsRoute: typeof ApiPublicHooksResumeRunsRoute
   ApiPublicHooksRetentionTickRoute: typeof ApiPublicHooksRetentionTickRoute
@@ -2186,6 +2200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksResearcherTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/prompt-optimize-tick': {
+      id: '/api/public/hooks/prompt-optimize-tick'
+      path: '/api/public/hooks/prompt-optimize-tick'
+      fullPath: '/api/public/hooks/prompt-optimize-tick'
+      preLoaderRoute: typeof ApiPublicHooksPromptOptimizeTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/outcome-tick': {
       id: '/api/public/hooks/outcome-tick'
       path: '/api/public/hooks/outcome-tick'
@@ -2585,6 +2606,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksIndexerTickRoute: ApiPublicHooksIndexerTickRoute,
   ApiPublicHooksMemoryTickRoute: ApiPublicHooksMemoryTickRoute,
   ApiPublicHooksOutcomeTickRoute: ApiPublicHooksOutcomeTickRoute,
+  ApiPublicHooksPromptOptimizeTickRoute: ApiPublicHooksPromptOptimizeTickRoute,
   ApiPublicHooksResearcherTickRoute: ApiPublicHooksResearcherTickRoute,
   ApiPublicHooksResumeRunsRoute: ApiPublicHooksResumeRunsRoute,
   ApiPublicHooksRetentionTickRoute: ApiPublicHooksRetentionTickRoute,
