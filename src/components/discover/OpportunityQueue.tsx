@@ -1,25 +1,54 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel } from "@/components/obsidian";
+import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
-import { listOpportunities, listThemes, runCriticReview } from "@/lib/discovery.functions";
+import {
+  listOpportunities,
+  listThemes,
+  runCriticReview,
+  generatePrd,
+  deleteOpportunity,
+  updateOpportunity,
+} from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { relTimeCaps, verdictFor } from "./format";
-import { OpportunityRow } from "./OpportunityRow";
+import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
 
 const CHALLENGE_TOAST_ID = "obs-discover-challenge";
 const CHALLENGE_TOAST_MS = 3600;
 
 export function OpportunityQueue() {
+  const navigate = useNavigate();
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const { activeProductId } = useWorkspace();
   const fOpps = useServerFn(listOpportunities);
   const fLearnings = useServerFn(listLearnings);
   const fThemes = useServerFn(listThemes);
   const fCritic = useServerFn(runCriticReview);
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  const fDraftSpec = useServerFn(generatePrd);
+  const fDelete = useServerFn(deleteOpportunity);
+  const fUpdate = useServerFn(updateOpportunity);
+  // OBS-10: a Set, not a single scalar - every mutation adds its row's id on
+  // onMutate and removes it on onSettled, so ANY in-flight mutation on a row
+  // keeps that row's actions disabled, and a second row's mutation can never
+  // overwrite the first's pending state (adversarial review finding: a shared
+  // scalar let one row's menu re-enable mid-flight when a different row's
+  // mutation started).
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const setBusy = (id: string, busy: boolean) =>
+    setBusyIds((prev) => {
+      const next = new Set(prev);
+      if (busy) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  const [lineageId, setLineageId] = useState<string | null>(null);
 
   const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => fOpps() });
   const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fLearnings() });
@@ -57,7 +86,7 @@ export function OpportunityQueue() {
   const challenge = useMutation({
     mutationFn: (id: string) =>
       fCritic({ data: { target_kind: "opportunity" as const, target_id: id } }),
-    onMutate: (id) => setPendingId(id),
+    onMutate: (id) => setBusy(id, true),
     onSuccess: () => {
       toast("Critic engaged. The teardown lands on Today, receipts attached.", {
         id: CHALLENGE_TOAST_ID,
@@ -66,7 +95,43 @@ export function OpportunityQueue() {
       qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
     onError: (e: Error) => toast.error(e.message),
-    onSettled: () => setPendingId(null),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  // OBS-10: the row write actions ported from the retired /product
+  // Opportunities tab (draft spec / lineage / status / delete).
+  const draftSpec = useMutation({
+    mutationFn: (id: string) => fDraftSpec({ data: { opportunity_id: id } }),
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: (r) => {
+      toast.success("Spec drafted");
+      navigate({ to: "/prds/$id", params: { id: r.prd.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => fDelete({ data: { id } }),
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: () => {
+      toast.success("Opportunity deleted");
+      qc.invalidateQueries({ queryKey: ["opportunities"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  const setStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OpportunityStatus }) =>
+      fUpdate({ data: { id, status } }),
+    onMutate: ({ id }) => setBusy(id, true),
+    onSuccess: (_r, { status }) => {
+      toast.success(`Moved to ${status}`);
+      qc.invalidateQueries({ queryKey: ["opportunities"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, { id }) => setBusy(id, false),
   });
 
   if (opps.isLoading) {
@@ -146,6 +211,7 @@ export function OpportunityQueue() {
               ? "not yet reviewed by the Critic"
               : `Critic says ${verdict.toLowerCase()}`;
           const sub = `${[signalPart, criticPart].filter(Boolean).join(" · ")}${rescoreNote}`;
+          const rowBusy = busyIds.has(o.id);
           return (
             <OpportunityRow
               key={o.id}
@@ -155,7 +221,20 @@ export function OpportunityQueue() {
               verdict={verdict}
               hasPencil={i === 0}
               onChallenge={() => challenge.mutate(o.id)}
-              challengePending={pendingId === o.id && challenge.isPending}
+              challengePending={rowBusy && challenge.isPending}
+              actionsPending={rowBusy}
+              onDraftSpec={() => draftSpec.mutate(o.id)}
+              onLineage={() => setLineageId(o.id)}
+              onSetStatus={(status) => setStatus.mutate({ id: o.id, status })}
+              onDelete={async () => {
+                const ok = await confirm({
+                  title: "Delete this opportunity?",
+                  body: `This removes "${o.title}" permanently. Its lineage and any linked signals stay, but the opportunity itself is gone.`,
+                  destructive: true,
+                  confirmLabel: "Delete opportunity",
+                });
+                if (ok) del.mutate(o.id);
+              }}
             />
           );
         })
@@ -163,6 +242,13 @@ export function OpportunityQueue() {
       <p style={{ fontSize: "11.5px", color: "var(--text-faint)", padding: "0 4px" }}>
         Challenge any bet, even your own. The Critic answers with evidence, never with vibes.
       </p>
+      <LineageDrawer
+        open={!!lineageId}
+        onOpenChange={(open) => !open && setLineageId(null)}
+        kind="opportunity"
+        id={lineageId}
+        title={rows.find((o) => o.id === lineageId)?.title}
+      />
     </div>
   );
 }

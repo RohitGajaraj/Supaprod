@@ -14,11 +14,11 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
 const ROUTES: Partial<
   Record<ArtifactKind, (id: string) => { to: string; params?: Record<string, string> }>
 > = {
-  opportunity: () => ({ to: "/opportunities" }),
+  opportunity: () => ({ to: "/discover" }),
   prd: (id) => ({ to: "/prds/$id", params: { id } }),
   task: () => ({ to: "/tasks" }),
-  signal: () => ({ to: "/discovery" }),
-  theme: () => ({ to: "/discovery" }),
+  signal: () => ({ to: "/discover" }),
+  theme: () => ({ to: "/discover" }),
   meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
   roadmap_item: () => ({ to: "/roadmap" }),
   decision: () => ({ to: "/meetings" }),

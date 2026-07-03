@@ -76,10 +76,15 @@ export const DOOR_INTERNAL_PATHS = [
  * carries live functionality its canonical replacement does not yet have,
  * so folding it now would delete a working feature, not relocate one):
  *
- * - `/product` - Discover (OBS-06) is explicitly additive; capture, bulk
- *   import, cluster, promote, draft-spec, lineage, and delete all still
- *   live only on `/product` (confirmed in `DiscoverSurface`'s own file
- *   comment). Folding this would delete every write action Discover lacks.
+ * - `/product` - 2026-07-03 (lane2): the Signals/Opportunities write actions
+ *   (capture, bulk import, cluster, promote, draft-spec, lineage, delete) are
+ *   now ALSO on `/discover` (SignalComposer.tsx, SignalCard.tsx,
+ *   OpportunityRow.tsx) - that half is closed. `/product` itself still stays
+ *   live: its other 4 tabs (roadmap/specs/releases/strategy) each carry real
+ *   unclosed write surfaces of their own (Specs' rename/delete/promote/
+ *   dispatch, Releases' AnnouncementsManager approval workflow, Roadmap's
+ *   bulk-update) with no home yet on `/plan` or elsewhere - a materially
+ *   larger, separate effort, not part of this row's remaining scope.
  * - `/stakeholder` - audience-specific pack generation (exec/eng/board,
  *   copy/download); Plan's roadmap view has no equivalent.
  * - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with

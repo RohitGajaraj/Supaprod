@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { ReactElement } from "react";
 import { PencilNote } from "@/components/obsidian";
-import { OpportunityRow } from "./OpportunityRow";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { OpportunityRow, OPPORTUNITY_STATUSES } from "./OpportunityRow";
 
 /** Depth-first search for a child whose `type` matches, walking `props.children`
  * without a DOM renderer — the codebase's established shallow-element
@@ -33,5 +34,32 @@ describe("OpportunityRow pencil", () => {
   test("renders no PencilNote when hasPencil is false", () => {
     const el = OpportunityRow({ ...BASE_PROPS, hasPencil: false });
     expect(containsType(el, PencilNote)).toBe(false);
+  });
+});
+
+// OBS-10: the write-action overflow menu ported from the retired /product
+// Opportunities tab. Every handler is optional so the row degrades cleanly
+// (e.g. a read-only embed) when none are passed — verify that degradation,
+// not just the fully-wired case.
+describe("OpportunityRow write-action overflow", () => {
+  test("renders no action menu when every handler is omitted", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, hasPencil: false });
+    expect(containsType(el, DropdownMenu)).toBe(false);
+  });
+
+  test("renders the action menu when at least one handler is passed", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, hasPencil: false, onDelete: () => {} });
+    expect(containsType(el, DropdownMenu)).toBe(true);
+  });
+
+  test("still renders the action menu with only onLineage passed", () => {
+    const el = OpportunityRow({ ...BASE_PROPS, hasPencil: false, onLineage: () => {} });
+    expect(containsType(el, DropdownMenu)).toBe(true);
+  });
+});
+
+describe("OPPORTUNITY_STATUSES", () => {
+  test("is the six lanes the server fn's status enum accepts, in board order", () => {
+    expect(OPPORTUNITY_STATUSES).toEqual(["backlog", "now", "next", "later", "shipped", "dropped"]);
   });
 });

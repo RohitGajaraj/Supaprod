@@ -1,11 +1,23 @@
-import { useMemo, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, type ReactNode } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel } from "@/components/obsidian";
+import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listSignals, listThemes } from "@/lib/discovery.functions";
+import { toast } from "@/lib/notify";
+import {
+  listSignals,
+  listThemes,
+  promoteSignalToOpportunity,
+  promoteThemeToOpportunity,
+  generatePrd,
+  deleteSignal,
+} from "@/lib/discovery.functions";
 import { relTimeCaps, sourceCaps } from "./format";
 import { SignalCard } from "./SignalCard";
+import { SignalComposer } from "./SignalComposer";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -59,9 +71,32 @@ function LoadingBody() {
 }
 
 export function SignalFeed() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const confirm = useConfirm();
   const { activeProductId } = useWorkspace();
   const fSignals = useServerFn(listSignals);
   const fThemes = useServerFn(listThemes);
+  const fPromoteSignal = useServerFn(promoteSignalToOpportunity);
+  const fPromoteTheme = useServerFn(promoteThemeToOpportunity);
+  const fDraftSpec = useServerFn(generatePrd);
+  const fDelete = useServerFn(deleteSignal);
+
+  // OBS-10: a Set, not a single scalar - every mutation adds its row's id on
+  // onMutate and removes it on onSettled, so ANY in-flight mutation on a row
+  // (not just whichever fired most recently) keeps that row's action menu
+  // disabled. A shared scalar let a second row's mutation overwrite the
+  // first's pending id, re-enabling a row whose own mutation hadn't settled
+  // yet (adversarial review finding).
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const setBusy = (id: string, busy: boolean) =>
+    setBusyIds((prev) => {
+      const next = new Set(prev);
+      if (busy) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  const [lineageId, setLineageId] = useState<string | null>(null);
 
   const signals = useQuery({
     queryKey: ["signals", activeProductId],
@@ -73,12 +108,92 @@ export function SignalFeed() {
   });
 
   const themeById = useMemo(() => {
-    const map = new Map<string, { title: string; frequency: number }>();
+    const map = new Map<string, { title: string; frequency: number; summary: string | null }>();
     for (const t of themes.data?.themes ?? []) {
-      map.set(t.id, { title: t.title, frequency: t.frequency });
+      map.set(t.id, { title: t.title, frequency: t.frequency, summary: t.summary ?? null });
     }
     return map;
   }, [themes.data]);
+
+  // OBS-10: a signal that belongs to a theme should promote/draft-spec through
+  // the THEME (aggregate evidence, deterministic scoring), matching the
+  // retired /product Signals tab's briefFor — not just that one signal's own
+  // quote. Grouped client-side from data already fetched, no new query.
+  const signalsByTheme = useMemo(() => {
+    const map = new Map<string, { content: string; source: string }[]>();
+    for (const s of signals.data?.signals ?? []) {
+      if (!s.theme_id) continue;
+      const arr = map.get(s.theme_id) ?? [];
+      arr.push({ content: s.content, source: s.source });
+      map.set(s.theme_id, arr);
+    }
+    return map;
+  }, [signals.data]);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["signals"] });
+    qc.invalidateQueries({ queryKey: ["opportunities"] });
+  };
+
+  // OBS-10: the row write actions ported from the retired /product Signals
+  // tab (promote / draft spec / lineage / delete). Every mutation shares the
+  // busyIds set (see above) so any in-flight one disables its row's menu.
+  const promote = useMutation({
+    mutationFn: (id: string) => {
+      const theme = signals.data?.signals.find((s) => s.id === id)?.theme_id;
+      // A themed signal promotes through the theme (deterministic scoring,
+      // theme_id on the resulting opportunity) - matches the legacy panel's
+      // own choice, since a promote of just one member signal would silently
+      // drop the theme's other corroborating evidence.
+      return theme
+        ? fPromoteTheme({ data: { theme_id: theme } })
+        : fPromoteSignal({ data: { signal_id: id } });
+    },
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: () => {
+      toast.success("Promoted · now an opportunity");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  const draftSpec = useMutation({
+    mutationFn: async (id: string) => {
+      const signal = signals.data?.signals.find((s) => s.id === id);
+      const theme = signal?.theme_id ? themeById.get(signal.theme_id) : undefined;
+      const members = signal?.theme_id ? (signalsByTheme.get(signal.theme_id) ?? []) : [];
+      // Theme-aware brief, matching the legacy panel's briefFor exactly:
+      // aggregate every member quote (not just this one signal's), plus the
+      // theme's own summary when it has one.
+      const brief = theme
+        ? `Theme: ${theme.title}\n${theme.summary ? `Summary: ${theme.summary}\n` : ""}Evidence:\n${members.map((m) => `- "${m.content}" — ${m.source}`).join("\n")}`.slice(
+            0,
+            4000,
+          )
+        : `Signal (${signal?.source ?? "manual"}): ${signal?.content ?? ""}`.slice(0, 4000);
+      const r = await fDraftSpec({ data: { brief } });
+      return { id: r.prd.id };
+    },
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: (r) => {
+      toast.success("Spec drafted");
+      navigate({ to: "/prds/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => fDelete({ data: { id } }),
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: () => {
+      toast.success("Signal deleted");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
 
   if (signals.isLoading) {
     return (
@@ -119,10 +234,13 @@ export function SignalFeed() {
   const rows = signals.data?.signals ?? [];
   const weekAgo = Date.now() - WEEK_MS;
   const thisWeekCount = rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
+  const themeIds = new Set(themeById.keys());
+  const unclusteredCount = rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
 
   return (
     <PanelShell>
       <HeaderRow count={thisWeekCount} />
+      <SignalComposer unclusteredCount={unclusteredCount} />
       {rows.length === 0 ? (
         <MonoLabel tone="faint" style={{ fontSize: "11.5px" }}>
           Nothing sensed yet.
@@ -139,6 +257,19 @@ export function SignalFeed() {
                 quote={s.content}
                 theme={theme ? `→ ${theme.title.toUpperCase()} · ${theme.frequency} SIGNALS` : null}
                 isLast={i === rows.length - 1}
+                actionsPending={busyIds.has(s.id)}
+                onPromote={() => promote.mutate(s.id)}
+                onDraftSpec={() => draftSpec.mutate(s.id)}
+                onLineage={() => setLineageId(s.id)}
+                onDelete={async () => {
+                  const ok = await confirm({
+                    title: "Delete this signal?",
+                    body: "This removes the signal permanently. Its theme membership and any lineage referencing it stay, but the quote itself is gone.",
+                    destructive: true,
+                    confirmLabel: "Delete signal",
+                  });
+                  if (ok) del.mutate(s.id);
+                }}
               />
             );
           })}
@@ -147,6 +278,13 @@ export function SignalFeed() {
       <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: "12px" }}>
         Every quote is verbatim and keeps its source. Nothing here is a summary.
       </p>
+      <LineageDrawer
+        open={!!lineageId}
+        onOpenChange={(open) => !open && setLineageId(null)}
+        kind="signal"
+        id={lineageId}
+        title={rows.find((s) => s.id === lineageId)?.content}
+      />
     </PanelShell>
   );
 }
