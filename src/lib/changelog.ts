@@ -83,3 +83,22 @@ export function changelogRowFor(cs: ChangesetForChangelog, now: string): Changel
     published_at: cs.release_notes_at ?? now,
   };
 }
+
+/**
+ * Group already-fetched entries by product, in first-seen order. Generic over
+ * any entry shape carrying `product_name` so this pure module never needs to
+ * import the server-fn-adjacent `ChangelogEntry` type (OBS-10, folded from the
+ * retired /changelog page's local helper of the same name).
+ */
+export function groupByProduct<T extends { product_name?: string | null }>(
+  entries: T[],
+): Array<{ label: string; entries: T[] }> {
+  const groups = new Map<string, T[]>();
+  for (const e of entries) {
+    const label = e.product_name ?? "Unassigned";
+    const arr = groups.get(label) ?? [];
+    arr.push(e);
+    groups.set(label, arr);
+  }
+  return Array.from(groups.entries()).map(([label, es]) => ({ label, entries: es }));
+}

@@ -29,6 +29,8 @@ import { CalendarPanel } from "@/components/knowledge/CalendarPanel";
 import { GraphPanel } from "@/components/knowledge/GraphPanel";
 import { InsightsPanel } from "@/components/knowledge/InsightsPanel";
 import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
+import { ImpactLedgerPanel } from "@/components/knowledge/ImpactLedgerPanel";
+import { ChangelogPanel } from "@/components/knowledge/ChangelogPanel";
 
 // Brain (formerly Knowledge) — the product's brain: one substrate of everything
 // it knows. The "memory" tab is the compounding agent-recall (the moat, folded
@@ -42,6 +44,8 @@ type Tab =
   | "memory"
   | "learnings"
   | "decisions"
+  | "impact"
+  | "changelog"
   | "design"
   | "graph"
   | "docs";
@@ -51,6 +55,8 @@ const TABS: Tab[] = [
   "memory",
   "learnings",
   "decisions",
+  "impact",
+  "changelog",
   "design",
   "graph",
   "docs",
@@ -65,6 +71,10 @@ const KNOWLEDGE_DESC: Record<string, string> = {
   learnings:
     "What your team recorded: re-scored opportunities and outcome memos, each with a verdict.",
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
+  impact:
+    "Your portable track record: the decisions you made, the outcomes they drove, and the beliefs you revised on evidence. Take it to a review or your next role.",
+  changelog:
+    "What actually shipped, newest first. Each entry is written when a build merges, with its release notes.",
   design:
     "Your workspace's design language, learned not configured: tokens, type, spacing, principles, voice, patterns. Every mockup binds to what you approve here.",
   graph:
@@ -323,6 +333,8 @@ function KnowledgePage() {
             { id: "memory", label: "Memory" },
             { id: "learnings", label: "Learnings" },
             { id: "decisions", label: "Decisions" },
+            { id: "impact", label: "Impact" },
+            { id: "changelog", label: "Changelog" },
             { id: "design", label: "Design" },
             { id: "graph", label: "Graph" },
             { id: "docs", label: "Docs" },
@@ -338,6 +350,8 @@ function KnowledgePage() {
         {tab === "learnings" &&
           (learning ? <LearningDetail id={learning} /> : <CompoundingPanel />)}
         {tab === "decisions" && (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+        {tab === "impact" && <ImpactLedgerPanel />}
+        {tab === "changelog" && <ChangelogPanel />}
         {tab === "design" && <DesignMemoryPanel />}
         {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
         {tab === "docs" && <DocsPanel />}

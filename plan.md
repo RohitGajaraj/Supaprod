@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (OBS-10's lane1 slice ◐: `/impact` + `/changelog` folded into Brain, lane1)
+
+Picked up OBS-10's Brain fold, one of the item's 3 remaining parallel slices (lane2 has `/product`, lane3 has `/stakeholder`+`/fleet`+`/delegate`). Brain (`/knowledge`) gained two new tabs.
+
+**"Impact" tab (`ImpactLedgerPanel.tsx`).** Reuses `getImpactLedger`, the same query BrainStatTrio's summary strip already reads, for the full record the retired `/impact` page rendered: the honest headline, all four stat cards with their sublabels (decisions with human/agent split, hit rate with validated/missed counts, priority impact with the measured-outcomes count, beliefs revised), the "Standout calls" highlights, the name-customization input, copy-to-clipboard, download-as-markdown, and the full inline markdown preview. Nothing dropped; BrainStatTrio's condensed strip is unchanged.
+
+**"Changelog" tab (`ChangelogPanel.tsx`), net-new for Brain** (it had zero prior changelog coverage, confirmed by grep before starting). Reuses `listChangelog` unchanged, grouped by product via a new pure `groupByProduct` moved into `src/lib/changelog.ts` (generic over any `{ product_name }` shape, unit-tested). Same per-entry cards and empty-state CTA as the retired page, now an SPA `Link` instead of a full-page `window.location.href` reload.
+
+**A real, minor bug fixed along the way:** the retired `/changelog` page had no error branch, so a failed load silently rendered "Nothing shipped yet" instead of a failure. `ChangelogPanel` now handles it explicitly, matching every other Brain panel's error state.
+
+Both routes converted to `beforeLoad` redirect stubs (`/impact` → `/knowledge?tab=impact`, `/changelog` → `/knowledge?tab=changelog`), following the exact stub shape already established by `_authenticated.discovery.tsx`/`_authenticated.missions.index.tsx`. `legacy-redirects.ts` updated (both paths moved from `DOOR_INTERNAL_PATHS` into `LEGACY_REDIRECTS`). The one internal reference found via grep (`AppShell.tsx`'s machine-view `PAGE_DESCRIPTIONS` map) had its now-unreachable `/impact` entry removed.
+
+Gates: `tsc --noEmit` 0 · `bun test` 2299/2299 pass (0 regressions, 3 new) · `eslint`/`prettier` clean · humanized-output clean. `bun run dev` unavailable in this lane worktree (documented node20/ESM `lovable-tagger` failure); verified via tsc + full suite + confirming `routeTree.gen.ts` needed no regeneration (route ids unchanged). Dashboard row 10 (OBS-10) `[~85%]` → `[~90%]`, still `◐` (lane2/lane3's slices remain open). Full detail: `docs/features/obsidian-port.md` (OBS-10 "Resumed 2026-07-03 (lane1)" section).
+
 ### 2026-07-03 (WM-M9 ✅: BYOK retired from self-serve for real, a founder-attended chokepoint session, lane4)
 
 The founder asked directly to close every founder-gated item he could unblock right now. WM-M9 had sat `Gated: chokepoint edit, attended` since 2026-06-22. The strategic call ("credits-only self-serve; BYOK enterprise-only") was confirmed 2026-06-29 in `session-decisions.md`, but the actual chokepoint removal was never built.

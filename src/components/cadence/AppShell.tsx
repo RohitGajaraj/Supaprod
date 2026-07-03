@@ -221,7 +221,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       "Discovery feed — opportunities ranked by ICE score, signals, analytics, competitor moves.",
     "/settings": "Settings — account, workspace, connections, AI keys, billing.",
     "/sync": "Connectors — available sources, connected repos, sync mappings, conflict resolution.",
-    "/impact": "PM Impact Ledger — portable decision + outcome track record with Markdown export.",
     "/stakeholder":
       "Stakeholder Pack — audience-tuned alignment artifacts from decisions and their receipts.",
     "/trust": "Trust and privacy statement.",

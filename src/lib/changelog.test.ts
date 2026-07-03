@@ -3,6 +3,7 @@ import {
   shouldPublishChangelog,
   changelogTitleFor,
   changelogRowFor,
+  groupByProduct,
   type ChangesetForChangelog,
 } from "./changelog";
 
@@ -65,5 +66,33 @@ describe("changelogRowFor", () => {
   });
   it("returns null for a non-publishable changeset", () => {
     expect(changelogRowFor(cs({ status: "staged" }), "NOW")).toBeNull();
+  });
+});
+
+describe("groupByProduct", () => {
+  const entry = (over: Partial<{ id: string; product_name: string | null }>) => ({
+    id: "e1",
+    product_name: null,
+    ...over,
+  });
+
+  it("groups entries by product_name, first-seen order", () => {
+    const groups = groupByProduct([
+      entry({ id: "a", product_name: "Cadence" }),
+      entry({ id: "b", product_name: "Loop" }),
+      entry({ id: "c", product_name: "Cadence" }),
+    ]);
+    expect(groups.map((g) => g.label)).toEqual(["Cadence", "Loop"]);
+    expect(groups[0].entries.map((e) => e.id)).toEqual(["a", "c"]);
+    expect(groups[1].entries.map((e) => e.id)).toEqual(["b"]);
+  });
+
+  it("buckets a null/undefined product_name under Unassigned", () => {
+    const groups = groupByProduct([entry({ id: "a", product_name: null })]);
+    expect(groups).toEqual([{ label: "Unassigned", entries: [entry({ id: "a" })] }]);
+  });
+
+  it("returns an empty array for no entries", () => {
+    expect(groupByProduct([])).toEqual([]);
   });
 });

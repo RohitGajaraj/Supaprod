@@ -47,8 +47,6 @@ export const DOOR_INTERNAL_PATHS = [
   "/traces/$traceId",
   "/prds/$id",
   "/stakeholder",
-  "/impact",
-  "/changelog",
   "/fleet",
   "/delegate",
   "/product",
@@ -84,11 +82,14 @@ export const DOOR_INTERNAL_PATHS = [
  *   comment). Folding this would delete every write action Discover lacks.
  * - `/stakeholder` - audience-specific pack generation (exec/eng/board,
  *   copy/download); Plan's roadmap view has no equivalent.
- * - `/impact` - the impact-ledger detail view; not verified redundant with
- *   Brain's simpler `BrainStatTrio` export.
- * - `/changelog` - Brain has no "record"/changelog-equivalent tab yet.
  * - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with
  *   no Build equivalent.
+ *
+ * `/impact` and `/changelog` closed 2026-07-03 (lane1, OBS-10 Brain fold):
+ * Brain gained an `ImpactLedgerPanel` ("Impact" tab, the full 4-stat
+ * breakdown + highlights + copy/download + markdown preview BrainStatTrio's
+ * strip only summarized) and a `ChangelogPanel` ("Changelog" tab, net-new -
+ * Brain had zero prior changelog coverage). Both fold into `/knowledge` below.
  *
  * These are flagged to the founder per OBS-10.md §13 (URL renames + scope);
  * each is real product functionality that would be deleted, not merely
@@ -112,6 +113,8 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/outcome": { to: "/knowledge", search: { tab: "learnings" } },
   "/calendar": { to: "/knowledge", search: { tab: "calendar" } },
   "/meetings": { to: "/knowledge", search: { tab: "calendar" } },
+  "/impact": { to: "/knowledge", search: { tab: "impact" } },
+  "/changelog": { to: "/knowledge", search: { tab: "changelog" } },
 
   // -- Build (canonical /build; also the one true missions home, see below) --
   "/cockpit": { to: "/build" },
