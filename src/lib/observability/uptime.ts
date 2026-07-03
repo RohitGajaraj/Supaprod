@@ -10,7 +10,10 @@ import { observabilityGateOn, readObservabilityConfig } from "./config";
  * Ping a heartbeat slug. The full URL is `${BETTER_STACK_HEARTBEAT_URL}/${slug}`
  * so the founder can manage all slugs in one env var.
  */
-export async function heartbeat(slug: string, kind: "start" | "ok" | "fail" = "ok"): Promise<boolean> {
+export async function heartbeat(
+  slug: string,
+  kind: "start" | "ok" | "fail" = "ok",
+): Promise<boolean> {
   const cfg = readObservabilityConfig();
   if (!cfg.betterStack.enabled) return false;
   if (!(await observabilityGateOn())) return false;

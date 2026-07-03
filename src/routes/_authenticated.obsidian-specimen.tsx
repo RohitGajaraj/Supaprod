@@ -279,12 +279,7 @@ function ObsidianSpecimenContent() {
           <Section title="AuroraCard">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <AuroraCard label="LOOP HEALTH" value="94" note="7 loops · 30 days" hue="healthy" />
-              <AuroraCard
-                label="LOOP HEALTH"
-                value="61"
-                note="2 loops slipping"
-                hue="attention"
-              />
+              <AuroraCard label="LOOP HEALTH" value="61" note="2 loops slipping" hue="attention" />
               <AuroraCard label="LOOP HEALTH" value="28" note="3 loops broken" hue="failing" />
             </div>
           </Section>
@@ -349,8 +344,8 @@ function ObsidianSpecimenContent() {
                   margin: 0,
                 }}
               >
-                This panel exists to verify the focus trap and restore-on-close behavior against
-                the prototype.
+                This panel exists to verify the focus trap and restore-on-close behavior against the
+                prototype.
               </p>
               <Button
                 variant="primary"

@@ -45,9 +45,7 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
       const applied = new Set<string>(
         ((data ?? []) as Array<{ version: string }>).map((r) => r.version),
       );
-      const appliedPrefixes = new Set<string>(
-        [...applied].map((v) => v.slice(0, 8)),
-      );
+      const appliedPrefixes = new Set<string>([...applied].map((v) => v.slice(0, 8)));
       const pending = REQUIRED_VERSIONS.filter((v) => !appliedPrefixes.has(v));
       return { ok: pending.length === 0, pending: [...pending], checkedAt };
     } catch (err) {

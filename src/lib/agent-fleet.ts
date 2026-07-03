@@ -113,7 +113,16 @@ export function computeAgentFleet(
   const ensure = (slug: string, name: string | null): Acc => {
     let a = bySlug.get(slug);
     if (!a) {
-      a = { slug, name: name || slug, running: 0, queued: 0, done: 0, failed: 0, total: 0, lastActiveAt: null };
+      a = {
+        slug,
+        name: name || slug,
+        running: 0,
+        queued: 0,
+        done: 0,
+        failed: 0,
+        total: 0,
+        lastActiveAt: null,
+      };
       bySlug.set(slug, a);
     } else if ((!a.name || a.name === a.slug) && name) {
       a.name = name;
@@ -172,7 +181,8 @@ export function summarizeFleet(s: FleetSummary): string {
     return "No agents have run yet. Dispatch a mission and your fleet shows up here.";
   }
   const parts: string[] = [];
-  if (s.totalRunning > 0) parts.push(`${s.totalRunning} run${s.totalRunning === 1 ? "" : "s"} in flight`);
+  if (s.totalRunning > 0)
+    parts.push(`${s.totalRunning} run${s.totalRunning === 1 ? "" : "s"} in flight`);
   if (s.totalQueued > 0) parts.push(`${s.totalQueued} queued`);
   parts.push(`${s.working} of ${s.totalAgents} agent${s.totalAgents === 1 ? "" : "s"} active`);
   if (s.withExceptions > 0) {

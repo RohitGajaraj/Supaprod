@@ -11,11 +11,6 @@ export interface LoopHealthCardProps {
  * OBS-03 AuroraCard bound to the acceptance/autonomy score. */
 export function LoopHealthCard({ score, note, hue = "healthy" }: LoopHealthCardProps) {
   return (
-    <AuroraCard
-      label="LOOP HEALTH"
-      value={score != null ? score : "-"}
-      note={note}
-      hue={hue}
-    />
+    <AuroraCard label="LOOP HEALTH" value={score != null ? score : "-"} note={note} hue={hue} />
   );
 }

@@ -6,7 +6,11 @@ export type LoopSurface = "discover" | "today" | "define" | "build" | "brain";
 export type PillTone = "ember" | "glacier" | "quiet";
 
 const TONE_STYLE: Record<PillTone, { border: string; color: string; shadow: string }> = {
-  ember: { border: rgba("#FF6B2C", 0.5), color: "var(--ember)", shadow: "0 0 14px rgba(255,107,44,0.15)" },
+  ember: {
+    border: rgba("#FF6B2C", 0.5),
+    color: "var(--ember)",
+    shadow: "0 0 14px rgba(255,107,44,0.15)",
+  },
   glacier: { border: rgba("#7FD1DC", 0.35), color: "var(--glacier)", shadow: "none" },
   quiet: { border: "rgba(255,255,255,0.12)", color: "var(--text-muted)", shadow: "none" },
 };

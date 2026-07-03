@@ -5,11 +5,32 @@ import type { LineageEdgeLite } from "./trust-ledger.functions";
 describe("supersedingParentIds — the superseders of a decision (for the public receipt)", () => {
   const edges: LineageEdgeLite[] = [
     // an active supersession of decision d-old by d-new (d-old is the child)
-    { parent_kind: "decision", parent_id: "d-new", child_kind: "decision", child_id: "d-old", relation: "supersedes", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "d-new",
+      child_kind: "decision",
+      child_id: "d-old",
+      relation: "supersedes",
+      valid_to: null,
+    },
     // a RETIRED (reversed) supersession of d-rev — must NOT count
-    { parent_kind: "decision", parent_id: "x", child_kind: "decision", child_id: "d-rev", relation: "supersedes", valid_to: "2026-06-01T00:00:00Z" },
+    {
+      parent_kind: "decision",
+      parent_id: "x",
+      child_kind: "decision",
+      child_id: "d-rev",
+      relation: "supersedes",
+      valid_to: "2026-06-01T00:00:00Z",
+    },
     // a non-supersession edge — ignored
-    { parent_kind: "prd", parent_id: "p", child_kind: "decision", child_id: "d-derived", relation: "derived_from", valid_to: null },
+    {
+      parent_kind: "prd",
+      parent_id: "p",
+      child_kind: "decision",
+      child_id: "d-derived",
+      relation: "derived_from",
+      valid_to: null,
+    },
   ];
 
   test("returns the parent (superseder) id for an active supersedes edge on the child", () => {
@@ -18,9 +39,18 @@ describe("supersedingParentIds — the superseders of a decision (for the public
 
   test("checks ALL of the decision's own + source ids", () => {
     const withSourceEdge: LineageEdgeLite[] = [
-      { parent_kind: "prd", parent_id: "p-new", child_kind: "prd", child_id: "prd-1", relation: "supersedes", valid_to: null },
+      {
+        parent_kind: "prd",
+        parent_id: "p-new",
+        child_kind: "prd",
+        child_id: "prd-1",
+        relation: "supersedes",
+        valid_to: null,
+      },
     ];
-    expect(supersedingParentIds(["d-1", "prd-1", null, undefined], withSourceEdge)).toEqual(["p-new"]);
+    expect(supersedingParentIds(["d-1", "prd-1", null, undefined], withSourceEdge)).toEqual([
+      "p-new",
+    ]);
   });
 
   test("a reversed (valid_to set) supersession yields no superseder", () => {
@@ -37,8 +67,22 @@ describe("supersedingParentIds — the superseders of a decision (for the public
 
   test("dedups multiple edges from the same superseder", () => {
     const dup: LineageEdgeLite[] = [
-      { parent_kind: "decision", parent_id: "d-new", child_kind: "decision", child_id: "d-old", relation: "supersedes", valid_to: null },
-      { parent_kind: "decision", parent_id: "d-new", child_kind: "prd", child_id: "prd-src", relation: "contradicts", valid_to: null },
+      {
+        parent_kind: "decision",
+        parent_id: "d-new",
+        child_kind: "decision",
+        child_id: "d-old",
+        relation: "supersedes",
+        valid_to: null,
+      },
+      {
+        parent_kind: "decision",
+        parent_id: "d-new",
+        child_kind: "prd",
+        child_id: "prd-src",
+        relation: "contradicts",
+        valid_to: null,
+      },
     ];
     expect(supersedingParentIds(["d-old", "prd-src"], dup)).toEqual(["d-new"]);
   });

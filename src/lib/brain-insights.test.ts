@@ -40,7 +40,13 @@ describe("summarizeLearnings", () => {
 
 describe("isDecisionSuperseded — own id OR a source artifact id is superseded", () => {
   const sup = new Map<string, string>([["prd-1", "d-new"]]);
-  const base = { id: "d", status: "approved", created_at: "2026-06-10T00:00:00Z", mission_id: null, meeting_id: null };
+  const base = {
+    id: "d",
+    status: "approved",
+    created_at: "2026-06-10T00:00:00Z",
+    mission_id: null,
+    meeting_id: null,
+  };
   test("superseded via the decision's source prd", () => {
     expect(isDecisionSuperseded({ ...base, title: "t", prd_id: "prd-1" }, sup)).toBe(true);
   });
@@ -63,11 +69,38 @@ describe("monthKey", () => {
 describe("buildTimeline — month buckets, oldest→newest, capped", () => {
   const sup = new Map<string, string>([["d-old", "d-new"]]);
   const decisions = [
-    { id: "d-old", title: "a", status: "approved", created_at: "2026-04-02T00:00:00Z", mission_id: null, prd_id: null, meeting_id: null },
-    { id: "d2", title: "b", status: "approved", created_at: "2026-06-10T00:00:00Z", mission_id: null, prd_id: null, meeting_id: null },
-    { id: "d3", title: "c", status: "approved", created_at: "2026-06-20T00:00:00Z", mission_id: null, prd_id: null, meeting_id: null },
+    {
+      id: "d-old",
+      title: "a",
+      status: "approved",
+      created_at: "2026-04-02T00:00:00Z",
+      mission_id: null,
+      prd_id: null,
+      meeting_id: null,
+    },
+    {
+      id: "d2",
+      title: "b",
+      status: "approved",
+      created_at: "2026-06-10T00:00:00Z",
+      mission_id: null,
+      prd_id: null,
+      meeting_id: null,
+    },
+    {
+      id: "d3",
+      title: "c",
+      status: "approved",
+      created_at: "2026-06-20T00:00:00Z",
+      mission_id: null,
+      prd_id: null,
+      meeting_id: null,
+    },
   ];
-  const learnings = [{ created_at: "2026-06-01T00:00:00Z" }, { created_at: "2026-05-01T00:00:00Z" }];
+  const learnings = [
+    { created_at: "2026-06-01T00:00:00Z" },
+    { created_at: "2026-05-01T00:00:00Z" },
+  ];
   const tl = buildTimeline(decisions, sup, learnings);
 
   test("groups decisions + superseded + learnings by month, sorted ascending", () => {
@@ -99,13 +132,21 @@ describe("derivePatterns — honest plain-language observations", () => {
     expect(p[0].text).toContain("gathering precedent");
   });
   test("a strong hit rate is positive; supersession is surfaced as evolving", () => {
-    const learned = summarizeLearnings([{ verdict: "validated" }, { verdict: "validated" }, { verdict: "missed" }]);
+    const learned = summarizeLearnings([
+      { verdict: "validated" },
+      { verdict: "validated" },
+      { verdict: "missed" },
+    ]);
     const p = derivePatterns({ standing: 4, superseded: 2 }, learned);
     expect(p.some((x) => x.tone === "positive" && /landing/.test(x.text))).toBe(true);
     expect(p.some((x) => /revised since/.test(x.text))).toBe(true);
   });
   test("a weak hit rate is flagged to watch", () => {
-    const learned = summarizeLearnings([{ verdict: "missed" }, { verdict: "missed" }, { verdict: "validated" }]);
+    const learned = summarizeLearnings([
+      { verdict: "missed" },
+      { verdict: "missed" },
+      { verdict: "validated" },
+    ]);
     const p = derivePatterns({ standing: 1, superseded: 0 }, learned);
     expect(p.some((x) => x.tone === "watch")).toBe(true);
     expect(p.some((x) => /All 1 recorded decisions still stand/.test(x.text))).toBe(true);
@@ -129,9 +170,30 @@ describe("supersedingIdFor — which artifact revised this decision (the 'why it
 
 describe("resolvedChildIds — only real supersessions settle (contradicts does NOT)", () => {
   const edges: LineageEdgeLite[] = [
-    { parent_kind: "decision", parent_id: "d-new", child_kind: "decision", child_id: "d-old", relation: "supersedes", valid_to: null },
-    { parent_kind: "decision", parent_id: "x", child_kind: "decision", child_id: "d-conflict", relation: "contradicts", valid_to: null },
-    { parent_kind: "decision", parent_id: "y", child_kind: "decision", child_id: "d-reversed", relation: "supersedes", valid_to: "2026-06-01T00:00:00Z" },
+    {
+      parent_kind: "decision",
+      parent_id: "d-new",
+      child_kind: "decision",
+      child_id: "d-old",
+      relation: "supersedes",
+      valid_to: null,
+    },
+    {
+      parent_kind: "decision",
+      parent_id: "x",
+      child_kind: "decision",
+      child_id: "d-conflict",
+      relation: "contradicts",
+      valid_to: null,
+    },
+    {
+      parent_kind: "decision",
+      parent_id: "y",
+      child_kind: "decision",
+      child_id: "d-reversed",
+      relation: "supersedes",
+      valid_to: "2026-06-01T00:00:00Z",
+    },
   ];
   test("includes active supersedes children, excludes contradicts + reversed", () => {
     const r = resolvedChildIds(edges);
@@ -143,9 +205,23 @@ describe("resolvedChildIds — only real supersessions settle (contradicts does 
 
 describe("supersedesParentMap — 'revised' map excludes contradicts (Defect-1 guard)", () => {
   const edges: LineageEdgeLite[] = [
-    { parent_kind: "decision", parent_id: "d-new", child_kind: "decision", child_id: "d-old", relation: "supersedes", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "d-new",
+      child_kind: "decision",
+      child_id: "d-old",
+      relation: "supersedes",
+      valid_to: null,
+    },
     // a contradiction must NOT register as a revision — else a mere conflict reads "now superseded by X"
-    { parent_kind: "decision", parent_id: "rival", child_kind: "decision", child_id: "d-contested", relation: "contradicts", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "rival",
+      child_kind: "decision",
+      child_id: "d-contested",
+      relation: "contradicts",
+      valid_to: null,
+    },
   ];
   test("maps superseded child to its replacing parent, ignores the contradiction", () => {
     const m = supersedesParentMap(edges);
@@ -154,19 +230,49 @@ describe("supersedesParentMap — 'revised' map excludes contradicts (Defect-1 g
   });
   test("a contested-only decision yields no superseding id (revisedBy stays null)", () => {
     const m = supersedesParentMap(edges);
-    expect(supersedingIdFor({ id: "d-contested", mission_id: null, prd_id: null, meeting_id: null }, m)).toBeNull();
+    expect(
+      supersedingIdFor({ id: "d-contested", mission_id: null, prd_id: null, meeting_id: null }, m),
+    ).toBeNull();
   });
 });
 
 describe("activeContradictions — open conflict pairs, deduped + reversal-aware", () => {
   const edges: LineageEdgeLite[] = [
-    { parent_kind: "decision", parent_id: "a", child_kind: "decision", child_id: "b", relation: "contradicts", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "a",
+      child_kind: "decision",
+      child_id: "b",
+      relation: "contradicts",
+      valid_to: null,
+    },
     // same unordered pair from the other direction — must dedupe
-    { parent_kind: "decision", parent_id: "b", child_kind: "decision", child_id: "a", relation: "contradicts", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "b",
+      child_kind: "decision",
+      child_id: "a",
+      relation: "contradicts",
+      valid_to: null,
+    },
     // a reversed contradiction — excluded
-    { parent_kind: "decision", parent_id: "c", child_kind: "decision", child_id: "e", relation: "contradicts", valid_to: "2026-06-01T00:00:00Z" },
+    {
+      parent_kind: "decision",
+      parent_id: "c",
+      child_kind: "decision",
+      child_id: "e",
+      relation: "contradicts",
+      valid_to: "2026-06-01T00:00:00Z",
+    },
     // a supersession — not a contradiction
-    { parent_kind: "decision", parent_id: "f", child_kind: "decision", child_id: "g", relation: "supersedes", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "f",
+      child_kind: "decision",
+      child_id: "g",
+      relation: "supersedes",
+      valid_to: null,
+    },
   ];
   test("returns one deduped active pair", () => {
     const c = activeContradictions(edges);
@@ -197,7 +303,12 @@ describe("deriveUnresolved — open questions touching a known decision", () => 
     expect(u.count).toBe(1); // only the mixed outcome remains
   });
   test("a contradiction touching no known decision is skipped", () => {
-    const u = deriveUnresolved(decisions, [{ aId: "ghost-1", bId: "ghost-2" }], new Set(), summarizeLearnings([]));
+    const u = deriveUnresolved(
+      decisions,
+      [{ aId: "ghost-1", bId: "ghost-2" }],
+      new Set(),
+      summarizeLearnings([]),
+    );
     expect(u.contradictions).toHaveLength(0);
     expect(u.count).toBe(0);
   });

@@ -70,8 +70,8 @@ export function DesignReadinessPanel({ body }: { body: string }) {
       )}
 
       <p className="mt-3 border-t hairline pt-2 text-[11px] text-muted-foreground">
-        Checks the spec is ready to design. A generated mockup and live preview come from
-        Build (a later add-on).
+        Checks the spec is ready to design. A generated mockup and live preview come from Build (a
+        later add-on).
       </p>
     </div>
   );

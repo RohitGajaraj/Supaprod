@@ -1,5 +1,10 @@
 import * as React from "react";
-import { StatusDot, STATUS_STYLES, STATUS_WORD, type StatusState } from "@/components/obsidian/status";
+import {
+  StatusDot,
+  STATUS_STYLES,
+  STATUS_WORD,
+  type StatusState,
+} from "@/components/obsidian/status";
 
 export type MachineNowStatus = Extract<StatusState, "working" | "queued">;
 
@@ -75,7 +80,11 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
               <StatusDot state={r.status} word={STATUS_WORD[r.status]} className="shrink-0" />
               <span
                 className="min-w-0 flex-1 truncate"
-                style={{ fontFamily: "var(--font-ui)", fontSize: 12.5, color: "var(--text-primary)" }}
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 12.5,
+                  color: "var(--text-primary)",
+                }}
               >
                 {r.title}
               </span>

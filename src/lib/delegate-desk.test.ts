@@ -64,9 +64,9 @@ describe("delegate-desk — progress", () => {
   });
 
   it("does not count error/denied/running steps as done", () => {
-    expect(missionProgress([{ status: "error" }, { status: "running" }, { status: "denied" }])).toEqual(
-      { done: 0, total: 3, pct: 0 },
-    );
+    expect(
+      missionProgress([{ status: "error" }, { status: "running" }, { status: "denied" }]),
+    ).toEqual({ done: 0, total: 3, pct: 0 });
   });
 });
 

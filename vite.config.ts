@@ -13,7 +13,10 @@ const loadedEnv = {
   ...process.env,
 };
 
-const publicBackendUrl = loadedEnv.VITE_SUPABASE_URL ?? loadedEnv.SUPABASE_URL ?? "https://ysszyrczxanuzhiohygx.supabase.co";
+const publicBackendUrl =
+  loadedEnv.VITE_SUPABASE_URL ??
+  loadedEnv.SUPABASE_URL ??
+  "https://ysszyrczxanuzhiohygx.supabase.co";
 const publicBackendKey =
   loadedEnv.VITE_SUPABASE_PUBLISHABLE_KEY ??
   loadedEnv.SUPABASE_PUBLISHABLE_KEY ??
@@ -27,12 +30,8 @@ export default defineConfig({
   },
   vite: {
     define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        publicBackendUrl,
-      ),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        publicBackendKey,
-      ),
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(publicBackendUrl),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(publicBackendKey),
     },
     optimizeDeps: {
       exclude: ["@tanstack/start-client-core", "@tanstack/react-start"],

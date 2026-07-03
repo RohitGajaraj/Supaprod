@@ -194,7 +194,8 @@ export function ModelSwitcher({
                       </span>
                     </div>
                     <div className="truncate text-[10px] text-muted-foreground">
-                      {k.model_id}{k.base_url ? ` · ${k.base_url}` : ""}
+                      {k.model_id}
+                      {k.base_url ? ` · ${k.base_url}` : ""}
                     </div>
                   </div>
                   {value === k.model_id && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}

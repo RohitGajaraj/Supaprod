@@ -82,6 +82,8 @@ export function rejectionCountFor(
 }
 
 /** The number of distinct (agent, tool) boundaries the caller has set by declining. */
-export function rejectionPatternCount(byKey: Record<string, RejectionPattern> | null | undefined): number {
+export function rejectionPatternCount(
+  byKey: Record<string, RejectionPattern> | null | undefined,
+): number {
   return byKey ? Object.keys(byKey).length : 0;
 }

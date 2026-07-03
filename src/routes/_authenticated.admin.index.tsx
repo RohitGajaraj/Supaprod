@@ -85,13 +85,30 @@ function AdminOverview() {
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div className="bento" style={{ padding: 22, display: "grid", gap: 12 }}>
-        <div className="mono-label" style={{ fontSize: 9 }}>Credits engine</div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+        <div className="mono-label" style={{ fontSize: 9 }}>
+          Credits engine
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 18,
+            flexWrap: "wrap",
+          }}
+        >
           <div>
             <div className="font-display" style={{ fontSize: 18 }}>
               Metering is {enabled ? "ON" : "OFF"}
             </div>
-            <p style={{ fontSize: 12.5, color: "var(--ink-muted, #4a4438)", margin: "4px 0 0", maxWidth: 540 }}>
+            <p
+              style={{
+                fontSize: 12.5,
+                color: "var(--ink-muted, #4a4438)",
+                margin: "4px 0 0",
+                maxWidth: 540,
+              }}
+            >
               When ON, AI calls debit credits from the user's monthly grant and top-up balance.
               Top-ups are always recorded; metering only applies once this toggle is on.
             </p>
@@ -107,7 +124,9 @@ function AdminOverview() {
       </div>
 
       <div className="bento" style={{ padding: 22, display: "grid", gap: 14 }}>
-        <div className="mono-label" style={{ fontSize: 9 }}>Admins</div>
+        <div className="mono-label" style={{ fontSize: 9 }}>
+          Admins
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();

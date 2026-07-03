@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 
 /**
  * Unit tests for the ingest rate limiter logic.
- * 
+ *
  * Note: Full integration tests require a real Supabase connection.
  * These tests verify the business logic of the rate limit decision.
  */

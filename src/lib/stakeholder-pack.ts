@@ -75,7 +75,8 @@ function outcomeLine(brief: DecisionBrief): string | null {
   const metric =
     brief.metricLabel && brief.metricValue ? ` (${brief.metricLabel}: ${brief.metricValue})` : "";
   if (POSITIVE.has(v)) return `Recorded outcome: validated${metric}.`;
-  if (NEGATIVE.has(v)) return `Recorded outcome: it missed${metric} — and that is on the record too.`;
+  if (NEGATIVE.has(v))
+    return `Recorded outcome: it missed${metric} — and that is on the record too.`;
   return `Recorded outcome: mixed${metric}.`;
 }
 
@@ -95,14 +96,19 @@ function provenanceLine(brief: DecisionBrief): string {
 }
 
 function whyBody(brief: DecisionBrief): string {
-  return brief.rationale?.trim() ? brief.rationale.trim() : "No rationale was recorded for this decision.";
+  return brief.rationale?.trim()
+    ? brief.rationale.trim()
+    : "No rationale was recorded for this decision.";
 }
 
 /**
  * PURE. Compose one audience-tuned pack from a decision brief. Same facts, different lead and
  * emphasis per audience; always honest (sparse fields degrade to plain statements).
  */
-export function composeStakeholderPack(brief: DecisionBrief, audience: PackAudience): StakeholderPack {
+export function composeStakeholderPack(
+  brief: DecisionBrief,
+  audience: PackAudience,
+): StakeholderPack {
   const sections: PackSection[] = [];
   const outcome = outcomeLine(brief);
 
@@ -156,7 +162,10 @@ export function composeAllPacks(brief: DecisionBrief): Record<PackAudience, Stak
 }
 
 /** PURE. Render a pack as a clean, copy-anywhere Markdown artifact in Cadence's voice. */
-export function renderPackMarkdown(pack: StakeholderPack, opts: { asOf?: string | null } = {}): string {
+export function renderPackMarkdown(
+  pack: StakeholderPack,
+  opts: { asOf?: string | null } = {},
+): string {
   const lines: string[] = [`# ${pack.title}`];
   if (opts.asOf?.trim()) lines.push(`As of ${opts.asOf.trim()}`);
   lines.push("");

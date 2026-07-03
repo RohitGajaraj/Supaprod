@@ -112,10 +112,9 @@ export function buildOpenHandsRequest(req: DelegateRequest): OpenHandsTaskReques
   // creation time), which fails on Railway without privileged/DinD support.
   // The CodeActAgent clones the repo itself as part of task execution when
   // the URL is in the message — same outcome, no runtime init 500.
-  const repoContext =
-    req.repoUrl
-      ? `\n\nRepository: ${req.repoUrl}${req.baseBranch ? ` (branch: ${req.baseBranch})` : ""}\nClone the repo, implement the task, then open a pull request.`
-      : "";
+  const repoContext = req.repoUrl
+    ? `\n\nRepository: ${req.repoUrl}${req.baseBranch ? ` (branch: ${req.baseBranch})` : ""}\nClone the repo, implement the task, then open a pull request.`
+    : "";
   return {
     initial_user_msg: (task + repoContext).slice(0, DELEGATE_TASK_MAX_CHARS),
   };

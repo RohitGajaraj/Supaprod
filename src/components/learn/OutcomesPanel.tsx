@@ -57,9 +57,7 @@ export function OutcomesPanel() {
                 </span>
               </div>
               {a.rationale && <p className="text-sm mt-2">{a.rationale}</p>}
-              <p className="text-[11px] text-muted-foreground mt-1">
-                by {a.agent_slug ?? "agent"}
-              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">by {a.agent_slug ?? "agent"}</p>
             </div>
             <div className="text-[10px] text-muted-foreground shrink-0">
               {fmtTime(a.decided_at ?? a.created_at)}

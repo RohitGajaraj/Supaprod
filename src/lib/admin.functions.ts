@@ -66,7 +66,9 @@ export const adminResetCreditCycle = createServerFn({ method: "POST" })
 
 export const adminOverrideUserPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string; planTier: string; expiresAt: string | null; reason: string }) => d)
+  .inputValidator(
+    (d: { userId: string; planTier: string; expiresAt: string | null; reason: string }) => d,
+  )
   .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
     const { error } = await context.supabase.rpc("admin_override_user_plan", {
       _uid: data.userId,
@@ -104,17 +106,22 @@ export const adminSuspendUser = createServerFn({ method: "POST" })
 // ─── WM-S5: Demo workspace reset ──────────────────────────────────────────
 
 export type DemoResetResult =
-  | { ok: true; workspace_id: string; owner_email: string; deleted: Record<string, number>; note: string }
+  | {
+      ok: true;
+      workspace_id: string;
+      owner_email: string;
+      deleted: Record<string, number>;
+      note: string;
+    }
   | { error: string };
 
 export const adminResetDemoWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { workspaceId: string }) => d)
   .handler(async ({ context, data }): Promise<DemoResetResult> => {
-    const { data: result, error } = await context.supabase.rpc(
-      "admin_reset_demo_workspace",
-      { _workspace_id: data.workspaceId },
-    );
+    const { data: result, error } = await context.supabase.rpc("admin_reset_demo_workspace", {
+      _workspace_id: data.workspaceId,
+    });
     if (error) return { error: error.message };
     return result as DemoResetResult;
   });

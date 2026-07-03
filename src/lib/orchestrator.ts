@@ -41,9 +41,7 @@ export function toLinearPriority(priority: string | null): number {
  */
 export function findDanglingDeps(tasks: DispatchableTask[]): DispatchableTask[] {
   const seqs = new Set(tasks.map((t) => t.seq).filter((s): s is number => s !== null));
-  return tasks.filter((t) =>
-    (t.depends_on ?? []).some((dep) => !seqs.has(dep)),
-  );
+  return tasks.filter((t) => (t.depends_on ?? []).some((dep) => !seqs.has(dep)));
 }
 
 /**

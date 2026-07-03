@@ -7,8 +7,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type FeatureFlag = {
-  id: string; key: string; enabled: boolean; payload: string;
-  updated_by: string | null; updated_at: string;
+  id: string;
+  key: string;
+  enabled: boolean;
+  payload: string;
+  updated_by: string | null;
+  updated_at: string;
 };
 
 export const adminListFlags = createServerFn({ method: "GET" })
@@ -16,9 +20,16 @@ export const adminListFlags = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<FeatureFlag[] | { error: string }> => {
     const { data, error } = await context.supabase.rpc("admin_list_flags");
     if (error) return { error: error.message };
-    return ((data ?? []) as unknown as Array<{ id: string; key: string; enabled: boolean; payload: unknown; updated_by: string | null; updated_at: string }>).map(
-      (r): FeatureFlag => ({ ...r, payload: JSON.stringify(r.payload ?? {}) }),
-    );
+    return (
+      (data ?? []) as unknown as Array<{
+        id: string;
+        key: string;
+        enabled: boolean;
+        payload: unknown;
+        updated_by: string | null;
+        updated_at: string;
+      }>
+    ).map((r): FeatureFlag => ({ ...r, payload: JSON.stringify(r.payload ?? {}) }));
   });
 
 export const adminUpsertFlag = createServerFn({ method: "POST" })
@@ -26,9 +37,15 @@ export const adminUpsertFlag = createServerFn({ method: "POST" })
   .inputValidator((d: { key: string; enabled: boolean; payloadJson: string }) => d)
   .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
     let payload: unknown = {};
-    try { payload = JSON.parse(data.payloadJson || "{}"); } catch { return { error: "Payload must be valid JSON" }; }
+    try {
+      payload = JSON.parse(data.payloadJson || "{}");
+    } catch {
+      return { error: "Payload must be valid JSON" };
+    }
     const { error } = await context.supabase.rpc("admin_upsert_flag", {
-      _key: data.key, _enabled: data.enabled, _payload: payload,
+      _key: data.key,
+      _enabled: data.enabled,
+      _payload: payload,
     });
     if (error) return { error: error.message };
     return { ok: true };
@@ -43,7 +60,12 @@ export const adminDeleteFlag = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export type SystemBanner = { id: string; message: string; level: "info" | "warn" | "alert"; expires_at: string | null };
+export type SystemBanner = {
+  id: string;
+  message: string;
+  level: "info" | "warn" | "alert";
+  expires_at: string | null;
+};
 
 export const getActiveBanner = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -56,10 +78,20 @@ export const getActiveBanner = createServerFn({ method: "GET" })
 
 export const adminSetBanner = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { message: string; level: "info" | "warn" | "alert"; active: boolean; expiresAt: string | null }) => d)
+  .inputValidator(
+    (d: {
+      message: string;
+      level: "info" | "warn" | "alert";
+      active: boolean;
+      expiresAt: string | null;
+    }) => d,
+  )
   .handler(async ({ context, data }): Promise<{ ok: true } | { error: string }> => {
     const { error } = await context.supabase.rpc("admin_set_banner", {
-      _message: data.message, _level: data.level, _active: data.active, _expires_at: data.expiresAt,
+      _message: data.message,
+      _level: data.level,
+      _active: data.active,
+      _expires_at: data.expiresAt,
     });
     if (error) return { error: error.message };
     return { ok: true };
@@ -74,14 +106,26 @@ export const adminClearBanner = createServerFn({ method: "POST" })
   });
 
 export type AuditRow = {
-  id: string; actor_user_id: string | null; actor_email: string | null;
-  action: string; target_kind: string; target_id: string | null;
-  payload: string; created_at: string;
+  id: string;
+  actor_user_id: string | null;
+  actor_email: string | null;
+  action: string;
+  target_kind: string;
+  target_id: string | null;
+  payload: string;
+  created_at: string;
 };
 
 export const adminListAuditLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { targetKind?: string | null; targetId?: string | null; limit?: number; offset?: number }) => d)
+  .inputValidator(
+    (d: {
+      targetKind?: string | null;
+      targetId?: string | null;
+      limit?: number;
+      offset?: number;
+    }) => d,
+  )
   .handler(async ({ context, data }): Promise<AuditRow[] | { error: string }> => {
     const { data: rows, error } = await context.supabase.rpc("admin_list_audit_log", {
       _target_kind: data.targetKind ?? null,

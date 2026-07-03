@@ -51,72 +51,97 @@ function TrustPage() {
           justifyContent: "space-between",
         }}
       >
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
+        <Link
+          to="/"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
           <CadenceMark size={22} />
           <span style={{ fontWeight: 600 }}>Cadence</span>
         </Link>
         <nav style={{ display: "flex", gap: 14, fontSize: 13 }}>
-          <Link to="/pricing" style={{ color: "inherit", textDecoration: "none" }}>Pricing</Link>
-          <Link to="/login" style={{ color: "inherit", textDecoration: "none" }}>Sign in</Link>
+          <Link to="/pricing" style={{ color: "inherit", textDecoration: "none" }}>
+            Pricing
+          </Link>
+          <Link to="/login" style={{ color: "inherit", textDecoration: "none" }}>
+            Sign in
+          </Link>
         </nav>
       </header>
 
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "48px 20px 80px" }}>
-        <p style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-muted, #6b6258)" }}>
+        <p
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "var(--ink-muted, #6b6258)",
+          }}
+        >
           Trust
         </p>
-        <h1 style={{ fontSize: 34, fontWeight: 500, margin: "8px 0 14px", fontFamily: "var(--font-display, ui-serif, Georgia, serif)" }}>
+        <h1
+          style={{
+            fontSize: 34,
+            fontWeight: 500,
+            margin: "8px 0 14px",
+            fontFamily: "var(--font-display, ui-serif, Georgia, serif)",
+          }}
+        >
           Security and privacy at Cadence
         </h1>
         <p style={{ color: "var(--ink-muted, #4a443c)", lineHeight: 1.6, fontSize: 15 }}>
           This page is maintained by the Cadence team to answer common security and privacy
-          questions about the product. It describes controls that are enabled today. It is not
-          a certification and is not independently verified. Security is a shared responsibility
+          questions about the product. It describes controls that are enabled today. It is not a
+          certification and is not independently verified. Security is a shared responsibility
           between Cadence, our hosting platform, and you as a customer.
         </p>
 
         <Section title="Access and authentication">
-          Sign-in is handled through our managed authentication provider. Sessions are bound to
-          your account, and every request to backend data is authorized server-side. Workspace
-          membership controls who can read or change data within a workspace, and roles
-          (owner, admin, member, viewer) gate sensitive actions such as inviting members or
-          transferring ownership.
+          Sign-in is handled through our managed authentication provider. Sessions are bound to your
+          account, and every request to backend data is authorized server-side. Workspace membership
+          controls who can read or change data within a workspace, and roles (owner, admin, member,
+          viewer) gate sensitive actions such as inviting members or transferring ownership.
         </Section>
 
         <Section title="Data isolation">
-          Customer data is stored in a managed Postgres database with row-level security
-          enabled on user-facing tables. Policies scope reads and writes to the signed-in
-          user, their account, and their workspace. Billing identifiers and invitation
-          tokens are restricted to server-side roles and are never exposed to other members.
+          Customer data is stored in a managed Postgres database with row-level security enabled on
+          user-facing tables. Policies scope reads and writes to the signed-in user, their account,
+          and their workspace. Billing identifiers and invitation tokens are restricted to
+          server-side roles and are never exposed to other members.
         </Section>
 
         <Section title="Secrets and encryption">
-          Connection credentials and API keys you bring into Cadence are encrypted before
-          being stored. Decryption happens only inside server-side code paths. Data in
-          transit uses TLS provided by the hosting platform.
+          Connection credentials and API keys you bring into Cadence are encrypted before being
+          stored. Decryption happens only inside server-side code paths. Data in transit uses TLS
+          provided by the hosting platform.
         </Section>
 
         <Section title="Subprocessors and integrations">
           Cadence relies on infrastructure and AI providers to deliver the product, and on
           third-party services that you explicitly connect (for example a code repository or
-          calendar). Connections you create are scoped to your workspace, and you can
-          disconnect them at any time from Settings.
+          calendar). Connections you create are scoped to your workspace, and you can disconnect
+          them at any time from Settings.
         </Section>
 
         <Section title="Retention and deletion">
-          You can delete data you have created (workspaces, products, documents, signals)
-          from inside the app. Account deletion or data export requests can be made through
-          the security contact below.
+          You can delete data you have created (workspaces, products, documents, signals) from
+          inside the app. Account deletion or data export requests can be made through the security
+          contact below.
         </Section>
 
         <Section title="Reporting a security issue">
-          If you believe you have found a security vulnerability, please email
-          {" "}
+          If you believe you have found a security vulnerability, please email{" "}
           <a href="mailto:security@redcadence.app" style={{ color: "inherit" }}>
             security@redcadence.app
           </a>
-          . Please do not publicly disclose the issue until we have had a reasonable chance
-          to investigate and remediate.
+          . Please do not publicly disclose the issue until we have had a reasonable chance to
+          investigate and remediate.
         </Section>
 
         <p style={{ marginTop: 36, fontSize: 12, color: "var(--ink-faint, #8a8278)" }}>

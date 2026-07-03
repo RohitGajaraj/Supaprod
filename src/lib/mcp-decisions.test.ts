@@ -3,7 +3,11 @@ import { applyDecisionOutcomes } from "./mcp.functions";
 import { MCP_TOOLS, MCP_TOOL_NAMES } from "./mcp-protocol";
 
 describe("applyDecisionOutcomes — tag each decision with its provenance outcome", () => {
-  const decisions = [{ id: "d-old", title: "a" }, { id: "d-new", title: "b" }, { id: "d3", title: "c" }];
+  const decisions = [
+    { id: "d-old", title: "a" },
+    { id: "d-new", title: "b" },
+    { id: "d3", title: "c" },
+  ];
   const superseded = new Map<string, string>([["d-old", "d-new"]]);
 
   test("a decision in the superseded map is 'superseded', others 'standing'", () => {

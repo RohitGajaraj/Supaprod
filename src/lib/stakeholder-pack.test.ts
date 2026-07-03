@@ -76,7 +76,13 @@ describe("composeStakeholderPack — honest degradation", () => {
 
   it("frames an agent-proposed, no-evidence call without claiming human review", () => {
     const p = composeStakeholderPack(
-      brief({ humanDecided: false, actor: "scout", evidenceCount: 0, sourceLabel: null, verdict: null }),
+      brief({
+        humanDecided: false,
+        actor: "scout",
+        evidenceCount: 0,
+        sourceLabel: null,
+        verdict: null,
+      }),
       "exec",
     );
     const conf = p.sections.find((s) => s.heading === "How confident we are")?.body ?? "";

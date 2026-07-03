@@ -33,7 +33,10 @@ export type ObservabilityConfig = {
  * handlers, so this MUST NOT be invoked at module-scope of a shared file.
  */
 export function readObservabilityConfig(): ObservabilityConfig {
-  const env = (typeof process !== "undefined" ? process.env : {}) as Record<string, string | undefined>;
+  const env = (typeof process !== "undefined" ? process.env : {}) as Record<
+    string,
+    string | undefined
+  >;
   const posthogKey = env.POSTHOG_API_KEY?.trim() || null;
   const sentryDsn = env.SENTRY_DSN?.trim() || null;
   const heartbeatBase = env.BETTER_STACK_HEARTBEAT_URL?.trim() || null;
@@ -88,7 +91,15 @@ export async function observabilityGateOn(): Promise<boolean> {
 /** Strip obvious PII before sending to a vendor. Caller responsibility too. */
 export function scrubPII<T extends Record<string, unknown>>(props: T | undefined): T | undefined {
   if (!props) return props;
-  const banned = new Set(["email", "phone", "name", "full_name", "first_name", "last_name", "password"]);
+  const banned = new Set([
+    "email",
+    "phone",
+    "name",
+    "full_name",
+    "first_name",
+    "last_name",
+    "password",
+  ]);
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(props)) {
     if (banned.has(k.toLowerCase())) continue;

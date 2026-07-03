@@ -38,9 +38,7 @@ export const getEvalHealth = createServerFn({ method: "GET" })
     if (ids.length) {
       const { data, error: rErr } = await supabase
         .from("eval_runs")
-        .select(
-          "suite_id,status,pass_count,fail_count,errored,total_cases,avg_score,created_at",
-        )
+        .select("suite_id,status,pass_count,fail_count,errored,total_cases,avg_score,created_at")
         .in("suite_id", ids)
         .order("created_at", { ascending: false })
         .limit(2000);

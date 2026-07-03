@@ -24,7 +24,8 @@ export function PaymentTestModeBanner() {
           color: "var(--ink-muted, #4a4438)",
         }}
       >
-        Checkout is in preview. Prices and plans are live; payment processing turns on once we go live.
+        Checkout is in preview. Prices and plans are live; payment processing turns on once we go
+        live.
       </div>
     );
   }
@@ -38,7 +39,8 @@ export function PaymentTestModeBanner() {
           color: "var(--ink, #1d1a14)",
         }}
       >
-        Test mode &middot; use card <span className="font-mono">4242 4242 4242 4242</span>, any future expiry, any CVC.
+        Test mode &middot; use card <span className="font-mono">4242 4242 4242 4242</span>, any
+        future expiry, any CVC.
       </div>
     );
   }

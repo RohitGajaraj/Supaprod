@@ -62,7 +62,11 @@ describe("normalizeSignal", () => {
   });
 
   it("normalizes a raw item to the ontology", () => {
-    const n = normalizeSignal({ source: "Intercom", title: "Slow at night", content: "The queue is slow and times out" });
+    const n = normalizeSignal({
+      source: "Intercom",
+      title: "Slow at night",
+      content: "The queue is slow and times out",
+    });
     expect(n).not.toBeNull();
     expect(n!.source).toBe("intercom");
     expect(n!.tags).toContain("performance");
@@ -71,7 +75,11 @@ describe("normalizeSignal", () => {
   });
 
   it("preserves existing tags and a valid existing sentiment", () => {
-    const n = normalizeSignal({ content: "billing question", tags: ["manual-tag"], sentiment: "neutral" });
+    const n = normalizeSignal({
+      content: "billing question",
+      tags: ["manual-tag"],
+      sentiment: "neutral",
+    });
     expect(n!.tags).toContain("manual-tag");
     expect(n!.tags).toContain("billing");
     expect(n!.sentiment).toBe("neutral"); // not overwritten
@@ -101,7 +109,11 @@ describe("tagSignalUpdate", () => {
 
   it("is a no-op when already tagged and sentiment is set", () => {
     const first = tagSignalUpdate({ content: "the app is slow", tags: [], sentiment: null })!;
-    const second = tagSignalUpdate({ content: "the app is slow", tags: first.tags, sentiment: first.sentiment });
+    const second = tagSignalUpdate({
+      content: "the app is slow",
+      tags: first.tags,
+      sentiment: first.sentiment,
+    });
     expect(second!.changed).toBe(false);
   });
 

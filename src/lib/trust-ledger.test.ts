@@ -22,12 +22,40 @@ describe("isSupersessionRelation", () => {
 
 describe("supersededChildIds — the CHILD of an active supersession edge is the superseded node", () => {
   const edges: LineageEdgeLite[] = [
-    { parent_kind: "decision", parent_id: "new", child_kind: "decision", child_id: "old", relation: "supersedes", valid_to: null },
-    { parent_kind: "prd", parent_id: "p2", child_kind: "prd", child_id: "p1", relation: "contradicts", valid_to: null },
+    {
+      parent_kind: "decision",
+      parent_id: "new",
+      child_kind: "decision",
+      child_id: "old",
+      relation: "supersedes",
+      valid_to: null,
+    },
+    {
+      parent_kind: "prd",
+      parent_id: "p2",
+      child_kind: "prd",
+      child_id: "p1",
+      relation: "contradicts",
+      valid_to: null,
+    },
     // retired supersession (reversal) — must NOT count
-    { parent_kind: "decision", parent_id: "x", child_kind: "decision", child_id: "y", relation: "supersedes", valid_to: "2026-06-01T00:00:00Z" },
+    {
+      parent_kind: "decision",
+      parent_id: "x",
+      child_kind: "decision",
+      child_id: "y",
+      relation: "supersedes",
+      valid_to: "2026-06-01T00:00:00Z",
+    },
     // non-supersession edge — ignored
-    { parent_kind: "signal", parent_id: "s1", child_kind: "opportunity", child_id: "o1", relation: "derived_from", valid_to: null },
+    {
+      parent_kind: "signal",
+      parent_id: "s1",
+      child_kind: "opportunity",
+      child_id: "o1",
+      relation: "derived_from",
+      valid_to: null,
+    },
   ];
   const map = supersededChildIds(edges);
 
@@ -50,7 +78,13 @@ describe("supersededChildIds — the CHILD of an active supersession edge is the
 describe("evidenceCounts", () => {
   test("counts every id on either end of an edge", () => {
     const edges: LineageEdgeLite[] = [
-      { parent_kind: "a", parent_id: "x", child_kind: "b", child_id: "y", relation: "derived_from" },
+      {
+        parent_kind: "a",
+        parent_id: "x",
+        child_kind: "b",
+        child_id: "y",
+        relation: "derived_from",
+      },
       { parent_kind: "a", parent_id: "x", child_kind: "b", child_id: "z", relation: "promoted" },
     ];
     const c = evidenceCounts(edges);
@@ -62,8 +96,12 @@ describe("evidenceCounts", () => {
 
 describe("summarizeAction", () => {
   test("prettifies the tool name and appends a subject when present", () => {
-    expect(summarizeAction("tasks.create", { title: "Draft rollout" })).toBe("Tasks Create: Draft rollout");
-    expect(summarizeAction("github.issue_open", { name: "Fix bug" })).toBe("Github Issue Open: Fix bug");
+    expect(summarizeAction("tasks.create", { title: "Draft rollout" })).toBe(
+      "Tasks Create: Draft rollout",
+    );
+    expect(summarizeAction("github.issue_open", { name: "Fix bug" })).toBe(
+      "Github Issue Open: Fix bug",
+    );
   });
   test("falls back to a clean tool name with no subject, and to a default with no tool", () => {
     expect(summarizeAction("notify.send", {})).toBe("Notify Send");

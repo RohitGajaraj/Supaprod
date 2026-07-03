@@ -122,7 +122,15 @@ export function laneForStatus(status: string): DeskLaneId {
   return STATUS_TO_LANE[key] ?? DEFAULT_LANE;
 }
 
-const STEP_DONE = new Set(["executed", "completed", "done", "ok", "success", "succeeded", "skipped"]);
+const STEP_DONE = new Set([
+  "executed",
+  "completed",
+  "done",
+  "ok",
+  "success",
+  "succeeded",
+  "skipped",
+]);
 
 /** PURE — progress from the step strip: how many steps have reached a terminal-done state. */
 export function missionProgress(steps: { status: string }[]): MissionProgress {
@@ -174,6 +182,7 @@ export function summarizeDesk(counts: Record<DeskLaneId, number>, total: number)
   if (counts.working > 0) parts.push(`${counts.working} working`);
   if (counts.awaiting > 0) parts.push(`${counts.awaiting} queued`);
   if (counts.done > 0) parts.push(`${counts.done} done`);
-  if (counts.attention > 0) parts.push(`${counts.attention} need${counts.attention === 1 ? "s" : ""} a look`);
+  if (counts.attention > 0)
+    parts.push(`${counts.attention} need${counts.attention === 1 ? "s" : ""} a look`);
   return parts.join(" · ") + ".";
 }

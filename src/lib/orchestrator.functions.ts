@@ -185,10 +185,7 @@ export const listMissionSteps = createServerFn({ method: "POST" })
 
 const LINEAR_GATEWAY = "https://connector-gateway.lovable.dev/linear/graphql";
 
-async function linearGql<T>(
-  query: string,
-  variables?: Record<string, unknown>,
-): Promise<T> {
+async function linearGql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
   const LINEAR_API_KEY = process.env.LINEAR_API_KEY;
   if (!LOVABLE_API_KEY || !LINEAR_API_KEY)
@@ -203,8 +200,7 @@ async function linearGql<T>(
     body: JSON.stringify({ query, variables }),
   });
   const body = await res.text();
-  if (!res.ok)
-    throw new Error(`Linear API failed [${res.status}]: ${body.slice(0, 200)}`);
+  if (!res.ok) throw new Error(`Linear API failed [${res.status}]: ${body.slice(0, 200)}`);
   const parsed = JSON.parse(body) as { data?: T; errors?: unknown[] };
   if (parsed.errors?.length)
     throw new Error(`Linear error: ${JSON.stringify(parsed.errors).slice(0, 200)}`);
@@ -268,18 +264,14 @@ export const dispatchPRDToLinear = createServerFn({ method: "POST" })
         "local_id",
         tasks.map((t) => t.id),
       );
-    const alreadyDispatched = new Set<string>(
-      (existing ?? []).map((e) => e.local_id as string),
-    );
+    const alreadyDispatched = new Set<string>((existing ?? []).map((e) => e.local_id as string));
 
     // Exclude tasks with dangling depends_on references — they cannot be safely ordered
     const dangling = findDanglingDeps(tasks);
     const danglingIds = new Set(dangling.map((t) => t.id));
     const safeTasks = tasks.filter((t) => !danglingIds.has(t.id));
 
-    const toDispatch = topologicalOrder(safeTasks).filter(
-      (t) => !alreadyDispatched.has(t.id),
-    );
+    const toDispatch = topologicalOrder(safeTasks).filter((t) => !alreadyDispatched.has(t.id));
 
     const dispatched: DispatchResult["dispatched"] = [];
     const skipped: string[] = [...dangling.map((t) => t.id)];

@@ -38,7 +38,10 @@ export async function track(
     api_key: cfg.posthog.apiKey,
     event,
     distinct_id: distinctId,
-    properties: { ...scrubPII(props as Record<string, unknown>), $lib: "cadence-observability-facade" },
+    properties: {
+      ...scrubPII(props as Record<string, unknown>),
+      $lib: "cadence-observability-facade",
+    },
     timestamp: new Date().toISOString(),
   };
 
@@ -57,10 +60,7 @@ export async function track(
 }
 
 /** Identify is a no-op when disabled; uses anon-safe trait subset only. */
-export async function identify(
-  distinctId: string,
-  traits?: TrackProps,
-): Promise<boolean> {
+export async function identify(distinctId: string, traits?: TrackProps): Promise<boolean> {
   const cfg = readObservabilityConfig();
   if (!cfg.posthog.enabled) return false;
   if (!(await observabilityGateOn())) return false;

@@ -40,7 +40,13 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
       {attention > 0 && (
         <span
           className="mono-label"
-          style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--rose)", fontSize: 9.5 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            color: "var(--rose)",
+            fontSize: 9.5,
+          }}
         >
           <ShieldAlert size={11} strokeWidth={1.9} />
           {attention} need{attention === 1 ? "s" : ""} a closer look
@@ -48,7 +54,14 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
       )}
       <span
         className="mono-label"
-        style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 2, color: "var(--action-blue)", fontSize: 9.5 }}
+        style={{
+          marginLeft: "auto",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 2,
+          color: "var(--action-blue)",
+          fontSize: 9.5,
+        }}
       >
         Review <ChevronRight size={12} />
       </span>

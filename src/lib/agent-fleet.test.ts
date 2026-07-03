@@ -1,10 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import {
-  computeAgentFleet,
-  runBucket,
-  summarizeFleet,
-  type FleetRunInput,
-} from "./agent-fleet";
+import { computeAgentFleet, runBucket, summarizeFleet, type FleetRunInput } from "./agent-fleet";
 
 /**
  * AGENT-FLEET-VIEW (v11 #30) — the by-agent fleet lens. These lock the run
@@ -13,7 +8,13 @@ import {
  */
 
 function r(over: Partial<FleetRunInput>): FleetRunInput {
-  return { agent_slug: "scout", agent_name: "Scout", status: "completed", created_at: "2026-06-24T00:00:00Z", ...over };
+  return {
+    agent_slug: "scout",
+    agent_name: "Scout",
+    status: "completed",
+    created_at: "2026-06-24T00:00:00Z",
+    ...over,
+  };
 }
 
 describe("agent-fleet — run bucketing", () => {
@@ -31,11 +32,26 @@ describe("agent-fleet — run bucketing", () => {
 
 describe("agent-fleet — per-agent tallies + state", () => {
   const fleet = computeAgentFleet([
-    r({ agent_slug: "scout", agent_name: "Scout", status: "running", created_at: "2026-06-24T05:00:00Z" }),
+    r({
+      agent_slug: "scout",
+      agent_name: "Scout",
+      status: "running",
+      created_at: "2026-06-24T05:00:00Z",
+    }),
     r({ agent_slug: "scout", status: "completed", created_at: "2026-06-24T01:00:00Z" }),
     r({ agent_slug: "scout", status: "failed", created_at: "2026-06-24T02:00:00Z" }),
-    r({ agent_slug: "critic", agent_name: "Critic", status: "completed", created_at: "2026-06-24T03:00:00Z" }),
-    r({ agent_slug: "builder", agent_name: "Builder", status: "queued", created_at: "2026-06-24T04:00:00Z" }),
+    r({
+      agent_slug: "critic",
+      agent_name: "Critic",
+      status: "completed",
+      created_at: "2026-06-24T03:00:00Z",
+    }),
+    r({
+      agent_slug: "builder",
+      agent_name: "Builder",
+      status: "queued",
+      created_at: "2026-06-24T04:00:00Z",
+    }),
   ]);
 
   it("tallies running/queued/done/failed/total per agent", () => {
@@ -59,10 +75,13 @@ describe("agent-fleet — per-agent tallies + state", () => {
 
 describe("agent-fleet — roster seeding + summary", () => {
   it("includes roster agents with zero runs as idle", () => {
-    const fleet = computeAgentFleet([r({ agent_slug: "scout", status: "running" })], [
-      { slug: "scout", name: "Scout" },
-      { slug: "ghost", name: "Ghost" },
-    ]);
+    const fleet = computeAgentFleet(
+      [r({ agent_slug: "scout", status: "running" })],
+      [
+        { slug: "scout", name: "Scout" },
+        { slug: "ghost", name: "Ghost" },
+      ],
+    );
     const ghost = fleet.agents.find((a) => a.slug === "ghost")!;
     expect(ghost).toMatchObject({ total: 0, liveLoad: 0, state: "idle", lastActiveAt: null });
   });
@@ -101,7 +120,14 @@ describe("agent-fleet — roster seeding + summary", () => {
 describe("agent-fleet — headline", () => {
   it("summarizes runs in flight + active + exceptions", () => {
     expect(
-      summarizeFleet({ totalAgents: 4, working: 2, idle: 1, totalRunning: 3, totalQueued: 1, withExceptions: 1 }),
+      summarizeFleet({
+        totalAgents: 4,
+        working: 2,
+        idle: 1,
+        totalRunning: 3,
+        totalQueued: 1,
+        withExceptions: 1,
+      }),
     ).toBe("3 runs in flight · 1 queued · 2 of 4 agents active · 1 with exceptions.");
   });
 });

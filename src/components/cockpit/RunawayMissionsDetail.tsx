@@ -130,9 +130,7 @@ export function RunawayMissionsDetail({ runaway, slo, onNavigate }: RunawayMissi
               <div style={{ fontSize: 11, color: "var(--ink-subtle)", marginBottom: 4 }}>
                 Availability
               </div>
-              <div style={{ fontSize: 16, fontWeight: 500 }}>
-                {slo.metrics.availabilityPct}%
-              </div>
+              <div style={{ fontSize: 16, fontWeight: 500 }}>{slo.metrics.availabilityPct}%</div>
             </div>
             <div>
               <div style={{ fontSize: 11, color: "var(--ink-subtle)", marginBottom: 4 }}>

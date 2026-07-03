@@ -18,7 +18,7 @@ const WINDOW_DURATION_MS = 3600 * 1000; // 1 hour
  */
 export async function checkIngestRateLimit(
   db: SupabaseClient,
-  tokenId: string
+  tokenId: string,
 ): Promise<{ allowed: true } | { allowed: false; retryAfterSeconds: number }> {
   const now = new Date().toISOString();
   const windowStart = new Date(Date.now() - WINDOW_DURATION_MS).toISOString();
@@ -87,7 +87,10 @@ export async function checkIngestRateLimit(
     return { allowed: true };
   } catch (error) {
     // On any DB error, allow the request (fail open, but log)
-    console.warn("[ingest-ratelimit] DB error, allowing request:", error instanceof Error ? error.message : error);
+    console.warn(
+      "[ingest-ratelimit] DB error, allowing request:",
+      error instanceof Error ? error.message : error,
+    );
     return { allowed: true };
   }
 }

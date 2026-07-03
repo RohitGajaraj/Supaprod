@@ -136,7 +136,9 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
             no recorded steps
           </div>
         )}
-        {run.steps.map((s, i) => <StepLine key={i} step={s} idx={i} />)}
+        {run.steps.map((s, i) => (
+          <StepLine key={i} step={s} idx={i} />
+        ))}
         {live && (
           <div style={stepLine}>
             <span className="tabular-nums" style={stepNum}>
@@ -152,9 +154,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
               }}
             >
               <span className="dot dot-running" style={{ width: 5, height: 5 }} />
-              {run.step_index != null
-                ? `step ${run.step_index + 1} · reasoning`
-                : "starting up"}
+              {run.step_index != null ? `step ${run.step_index + 1} · reasoning` : "starting up"}
             </span>
           </div>
         )}

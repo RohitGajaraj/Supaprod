@@ -264,11 +264,17 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
           .eq("mission_id", missionId),
       ]);
       if (mRes.error) {
-        console.error("[SF-AUTOTRIGGER] mission status flip failed", { missionId, err: mRes.error.message });
+        console.error("[SF-AUTOTRIGGER] mission status flip failed", {
+          missionId,
+          err: mRes.error.message,
+        });
       } else {
         autoTodayCount++; // mission IS queued; count even if decision receipt update failed
         if (dRes.error) {
-          console.error("[SF-AUTOTRIGGER] decision receipt update failed — audit gap", { missionId, err: dRes.error.message });
+          console.error("[SF-AUTOTRIGGER] decision receipt update failed — audit gap", {
+            missionId,
+            err: dRes.error.message,
+          });
         }
       }
     }

@@ -36,9 +36,9 @@ describe("classifyMissionGate — block", () => {
 
   it("does NOT block when another run is still actively progressing (fan-out)", () => {
     // one run waits on a gate, a sibling is still running -> mission is still working
-    expect(
-      classifyMissionGate(mission({ runStatuses: ["waiting_approval", "running"] })),
-    ).toBe("none");
+    expect(classifyMissionGate(mission({ runStatuses: ["waiting_approval", "running"] }))).toBe(
+      "none",
+    );
   });
 
   it("does NOT block when the gate is not genuinely pending (count 0)", () => {
@@ -55,18 +55,16 @@ describe("classifyMissionGate — block", () => {
 
   it("treats every active synonym as 'progressing' (no false block)", () => {
     for (const s of ACTIVE_RUN_STATUSES) {
-      expect(
-        classifyMissionGate(mission({ runStatuses: ["waiting_approval", s] })),
-      ).toBe("none");
+      expect(classifyMissionGate(mission({ runStatuses: ["waiting_approval", s] }))).toBe("none");
     }
   });
 });
 
 describe("classifyMissionGate — unblock", () => {
   it("unblocks a blocked mission once no gate is pending (operator decided)", () => {
-    expect(
-      classifyMissionGate(mission({ status: "blocked", pendingGateCount: 0 })),
-    ).toBe("unblock");
+    expect(classifyMissionGate(mission({ status: "blocked", pendingGateCount: 0 }))).toBe(
+      "unblock",
+    );
   });
 
   it("unblocks a blocked mission whose runs are now all terminal", () => {
@@ -87,9 +85,7 @@ describe("classifyMissionGate — unblock", () => {
   });
 
   it("keeps a blocked mission blocked while a gate is still pending (none)", () => {
-    expect(
-      classifyMissionGate(mission({ status: "blocked", pendingGateCount: 1 })),
-    ).toBe("none");
+    expect(classifyMissionGate(mission({ status: "blocked", pendingGateCount: 1 }))).toBe("none");
   });
 });
 
@@ -120,9 +116,9 @@ describe("needsEscalationResolve", () => {
   });
 
   it("resolves when decided_at is set even if status string is unusual", () => {
-    expect(needsEscalationResolve(appr({ status: "weird", decidedAt: "2026-06-27T00:00:00Z" }))).toBe(
-      true,
-    );
+    expect(
+      needsEscalationResolve(appr({ status: "weird", decidedAt: "2026-06-27T00:00:00Z" })),
+    ).toBe(true);
   });
 
   it("does NOT resolve a genuinely pending approval", () => {
@@ -131,14 +127,16 @@ describe("needsEscalationResolve", () => {
 
   it("does NOT touch a consistently auto-expired approval (status+state both expired, undecided)", () => {
     expect(
-      needsEscalationResolve(appr({ status: "expired", escalationState: "expired", decidedAt: null })),
+      needsEscalationResolve(
+        appr({ status: "expired", escalationState: "expired", decidedAt: null }),
+      ),
     ).toBe(false);
   });
 
   it("does NOT re-resolve an already-resolved escalation_state", () => {
-    expect(
-      needsEscalationResolve(appr({ status: "executed", escalationState: "resolved" })),
-    ).toBe(false);
+    expect(needsEscalationResolve(appr({ status: "executed", escalationState: "resolved" }))).toBe(
+      false,
+    );
   });
 
   it("is total — tolerates empty strings", () => {

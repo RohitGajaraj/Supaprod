@@ -33,7 +33,9 @@ export function BillingBanner() {
         .maybeSingle();
       if (!cancelled) setPastDue(data?.status === "past_due");
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const openPortal = async () => {

@@ -11,10 +11,10 @@
  *   - viewer: read-only
  */
 
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/integrations/supabase/types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
-export type Role = 'owner' | 'admin' | 'member' | 'viewer';
+export type Role = "owner" | "admin" | "member" | "viewer";
 
 /**
  * Typed error for permission denied.
@@ -23,12 +23,12 @@ export class PermissionDeniedError extends Error {
   constructor(
     public readonly action: string,
     public readonly requiredRoles: Role[],
-    public readonly userRole?: Role
+    public readonly userRole?: Role,
   ) {
     super(
-      `Permission denied: ${action}. Required role(s): ${requiredRoles.join(', ')}. User role: ${userRole || 'none'}.`
+      `Permission denied: ${action}. Required role(s): ${requiredRoles.join(", ")}. User role: ${userRole || "none"}.`,
     );
-    this.name = 'PermissionDeniedError';
+    this.name = "PermissionDeniedError";
   }
 }
 
@@ -39,12 +39,12 @@ export class PermissionDeniedError extends Error {
 export async function getUserWorkspaceRole(
   supabase: SupabaseClient<Database>,
   workspaceId: string,
-  userId: string
+  userId: string,
 ): Promise<Role | null> {
-  const { data, error } = await (supabase.from('workspace_members') as any)
-    .select('role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', userId)
+  const { data, error } = await (supabase.from("workspace_members") as any)
+    .select("role")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
     .single();
 
   if (error || !data) return null;
@@ -58,17 +58,17 @@ export async function getUserWorkspaceRole(
 export async function getUserAccountRole(
   supabase: SupabaseClient<Database>,
   accountId: string,
-  userId: string
+  userId: string,
 ): Promise<Role | null> {
   // WM-M2's account_members table is not in the generated Supabase types yet (it
   // ships on the founder's next publish), so cast the client before .from() to keep
   // tsc green until the post-publish types regen. (The prior `.from(...) as any` cast
   // the result, not the client, so tsc still rejected the table-name argument.)
   const { data, error } = await (supabase as any)
-    .from('account_members')
-    .select('role')
-    .eq('account_id', accountId)
-    .eq('user_id', userId)
+    .from("account_members")
+    .select("role")
+    .eq("account_id", accountId)
+    .eq("user_id", userId)
     .single();
 
   if (error || !data) return null;
@@ -84,7 +84,7 @@ export async function assertWorkspaceRole(
   workspaceId: string,
   userId: string,
   requiredRoles: Role[],
-  action: string
+  action: string,
 ): Promise<void> {
   const userRole = await getUserWorkspaceRole(supabase, workspaceId, userId);
   if (!userRole || !requiredRoles.includes(userRole)) {
@@ -101,7 +101,7 @@ export async function assertAccountRole(
   accountId: string,
   userId: string,
   requiredRoles: Role[],
-  action: string
+  action: string,
 ): Promise<void> {
   const userRole = await getUserAccountRole(supabase, accountId, userId);
   if (!userRole || !requiredRoles.includes(userRole)) {
@@ -115,9 +115,9 @@ export async function assertAccountRole(
 export async function assertWorkspaceOwner(
   supabase: SupabaseClient<Database>,
   workspaceId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
-  await assertWorkspaceRole(supabase, workspaceId, userId, ['owner'], 'workspace owner action');
+  await assertWorkspaceRole(supabase, workspaceId, userId, ["owner"], "workspace owner action");
 }
 
 /**
@@ -126,9 +126,15 @@ export async function assertWorkspaceOwner(
 export async function assertCanManageWorkspace(
   supabase: SupabaseClient<Database>,
   workspaceId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
-  await assertWorkspaceRole(supabase, workspaceId, userId, ['owner', 'admin'], 'workspace management');
+  await assertWorkspaceRole(
+    supabase,
+    workspaceId,
+    userId,
+    ["owner", "admin"],
+    "workspace management",
+  );
 }
 
 /**
@@ -137,9 +143,9 @@ export async function assertCanManageWorkspace(
 export async function assertAccountOwner(
   supabase: SupabaseClient<Database>,
   accountId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
-  await assertAccountRole(supabase, accountId, userId, ['owner'], 'account owner action');
+  await assertAccountRole(supabase, accountId, userId, ["owner"], "account owner action");
 }
 
 /**
@@ -148,7 +154,7 @@ export async function assertAccountOwner(
 export async function assertCanManageAccount(
   supabase: SupabaseClient<Database>,
   accountId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
-  await assertAccountRole(supabase, accountId, userId, ['owner'], 'account management');
+  await assertAccountRole(supabase, accountId, userId, ["owner"], "account management");
 }

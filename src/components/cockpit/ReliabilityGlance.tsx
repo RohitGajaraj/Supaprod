@@ -77,7 +77,11 @@ export function ReliabilityGlance() {
         className="w-96"
         style={{ maxWidth: "90vw", maxHeight: "70vh", overflow: "auto" }}
       >
-        <RunawayMissionsDetail runaway={runaway} slo={slo} onNavigate={() => setPopoverOpen(false)} />
+        <RunawayMissionsDetail
+          runaway={runaway}
+          slo={slo}
+          onNavigate={() => setPopoverOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   );

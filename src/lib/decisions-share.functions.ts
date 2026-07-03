@@ -46,7 +46,12 @@ export function supersedingParentIds(
     if (!e || !isSupersessionRelation(e.relation)) continue;
     const retired = typeof e.valid_to === "string" && e.valid_to.trim() !== "";
     if (retired) continue;
-    if (typeof e.child_id === "string" && childSet.has(e.child_id) && typeof e.parent_id === "string" && e.parent_id) {
+    if (
+      typeof e.child_id === "string" &&
+      childSet.has(e.child_id) &&
+      typeof e.parent_id === "string" &&
+      e.parent_id
+    ) {
       parents.add(e.parent_id);
     }
   }

@@ -63,12 +63,7 @@ describe("topologicalOrder", () => {
   });
 
   test("diamond: 1 -> 2,3 -> 4 outputs 1 before 2 and 3, both before 4", () => {
-    const result = topologicalOrder([
-      task(4, [2, 3]),
-      task(2, [1]),
-      task(3, [1]),
-      task(1),
-    ]);
+    const result = topologicalOrder([task(4, [2, 3]), task(2, [1]), task(3, [1]), task(1)]);
     const ids = result.map((t) => t.id);
     expect(ids.indexOf("task-1")).toBeLessThan(ids.indexOf("task-2"));
     expect(ids.indexOf("task-1")).toBeLessThan(ids.indexOf("task-3"));
@@ -110,7 +105,13 @@ describe("findDanglingDeps", () => {
   });
 
   test("null depends_on treated as no deps", () => {
-    const t: DispatchableTask = { id: "t1", seq: 1, title: "T1", priority: "medium", depends_on: null };
+    const t: DispatchableTask = {
+      id: "t1",
+      seq: 1,
+      title: "T1",
+      priority: "medium",
+      depends_on: null,
+    };
     expect(findDanglingDeps([t])).toHaveLength(0);
   });
 });
