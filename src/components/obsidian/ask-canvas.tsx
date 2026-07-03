@@ -136,7 +136,11 @@ function CriticBlock({ verdict }: { verdict: CriticReview }) {
     <div style={BLOCK_STYLE}>
       <div className="flex items-center gap-2">
         <MonoLabel tone="muted">CRITIC</MonoLabel>
-        {tone === "REVISE" ? <MonoLabel tone="faint">REVISE</MonoLabel> : <VerdictChip tone={tone} />}
+        {tone === "REVISE" ? (
+          <MonoLabel tone="faint">REVISE</MonoLabel>
+        ) : (
+          <VerdictChip tone={tone} />
+        )}
       </div>
       <p
         style={{
