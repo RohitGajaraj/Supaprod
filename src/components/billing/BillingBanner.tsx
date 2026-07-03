@@ -1,6 +1,6 @@
 /**
  * Top-of-app billing banner. Two layers:
- *   1. PaymentTestModeBanner — surfaces sandbox/test card guidance.
+ *   1. (LOOM W1) the test-mode banner moved to billing surfaces only.
  *   2. Dunning notice — if the most recent subscription is `past_due`,
  *      prompts the user to update their card via the Stripe portal.
  *      Access is preserved during Stripe's retry window (founder ruling).
@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { createPortalSession } from "@/lib/payments.functions";
-import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
 export function BillingBanner() {
   const [pastDue, setPastDue] = useState(false);
@@ -59,7 +58,8 @@ export function BillingBanner() {
 
   return (
     <>
-      <PaymentTestModeBanner />
+      {/* LOOM W1: the checkout-preview banner is contextual to billing
+          surfaces only (chrome-quiet law); Settings mounts its own. */}
       {pastDue ? (
         <div className="flex w-full items-center justify-center gap-3 border-b border-red-300 bg-red-50 px-4 py-2 text-xs text-red-900">
           <span>Your last renewal payment failed. Update your card to keep your plan active.</span>

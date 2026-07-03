@@ -15,7 +15,7 @@ const TAB_TARGET: Record<string, { to: string; search?: Record<string, string> }
   strategy: { to: "/discover" },
   roadmap: { to: "/plan" },
   specs: { to: "/plan" },
-  releases: { to: "/knowledge", search: { tab: "changelog" } },
+  releases: { to: "/brain", search: { tab: "changelog" } },
 };
 
 export const Route = createFileRoute("/_authenticated/product")({

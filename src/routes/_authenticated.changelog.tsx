@@ -6,6 +6,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // rendered.
 export const Route = createFileRoute("/_authenticated/changelog")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "changelog" } });
+    throw redirect({ to: "/brain", search: { tab: "changelog" } });
   },
 });

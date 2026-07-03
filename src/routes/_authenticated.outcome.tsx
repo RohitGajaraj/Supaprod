@@ -5,6 +5,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // that also silently dropped this route's own tab=outcomes param.
 export const Route = createFileRoute("/_authenticated/outcome")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "learnings" } });
+    throw redirect({ to: "/brain", search: { tab: "learnings" } });
   },
 });

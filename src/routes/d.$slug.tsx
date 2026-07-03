@@ -11,7 +11,7 @@ import { CadenceMark } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 
 const OG_IMAGE =
-  "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9011d005-fe77-48c4-9d01-8cb09513383c";
+  "https://cadence-flow-beta.lovable.app/og-cadence.png";
 
 export const Route = createFileRoute("/d/$slug")({
   ssr: true,

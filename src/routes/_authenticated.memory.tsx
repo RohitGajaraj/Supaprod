@@ -6,6 +6,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // bookmarks to /knowledge?tab=memory, which now renders the same <MemoryList />.
 export const Route = createFileRoute("/_authenticated/memory")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "memory" } });
+    throw redirect({ to: "/brain", search: { tab: "memory" } });
   },
 });

@@ -5,6 +5,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // knowledge) and preserving the meeting id.
 export const Route = createFileRoute("/_authenticated/meetings/$id")({
   beforeLoad: ({ params }) => {
-    throw redirect({ to: "/knowledge", search: { tab: "calendar", meeting: params.id } });
+    throw redirect({ to: "/brain", search: { tab: "calendar", meeting: params.id } });
   },
 });

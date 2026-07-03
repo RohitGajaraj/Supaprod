@@ -5,6 +5,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // tab=learnings - landing every /learn bookmark on the wrong tab.
 export const Route = createFileRoute("/_authenticated/learn")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "learnings" } });
+    throw redirect({ to: "/brain", search: { tab: "learnings" } });
   },
 });

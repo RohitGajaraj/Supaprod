@@ -4,13 +4,12 @@
  * `legacy-redirects.test.ts` both read this map so there is exactly one
  * place that names "where did X go."
  *
- * Canonical-path correction (OBS-10 spec step 1): the spec's default
- * assumption was Brain = `/brain` and Engine Room = `/govern`. Neither
- * holds - OBS-08 reskinned `/knowledge` in place (no `/brain` route was
- * created), and OBS-09 built a NEW route `/engine-room` additive alongside
- * the untouched parchment `/govern` (which stays live as the room-detail
- * drill layer `RoomDetail`/`RecordRoom` navigate into). So:
- * Brain canonical = `/knowledge`. Engine Room canonical (door) = `/engine-room`.
+ * Canonical-path history: OBS-10 found Brain living at `/knowledge` (OBS-08
+ * reskinned it in place) and Engine Room at the new `/engine-room` glance
+ * with `/govern` as its live drill layer. LOOM W1 (2026-07-04) finished the
+ * rename the OBS-10 spec originally assumed: Brain canonical = `/brain`
+ * (label and URL agree); `/knowledge` is now itself a legacy key below.
+ * Engine Room canonical stays `/engine-room`.
  */
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
@@ -21,7 +20,7 @@ export const CANONICAL_PATHS = [
   "/discover",
   "/plan",
   "/build",
-  "/knowledge",
+  "/brain",
   "/engine-room",
 ] as const;
 
@@ -126,15 +125,16 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // "Genuinely remaining work" list above.
   "/stakeholder": { to: "/plan" },
 
-  // -- Brain (canonical /knowledge) --
-  "/memory": { to: "/knowledge", search: { tab: "memory" } },
-  "/docs": { to: "/knowledge", search: { tab: "docs" } },
-  "/learn": { to: "/knowledge", search: { tab: "learnings" } },
-  "/outcome": { to: "/knowledge", search: { tab: "learnings" } },
-  "/calendar": { to: "/knowledge", search: { tab: "calendar" } },
-  "/meetings": { to: "/knowledge", search: { tab: "calendar" } },
-  "/impact": { to: "/knowledge", search: { tab: "impact" } },
-  "/changelog": { to: "/knowledge", search: { tab: "changelog" } },
+  // -- Brain (canonical /brain since LOOM W1; /knowledge is legacy) --
+  "/knowledge": { to: "/brain" },
+  "/memory": { to: "/brain", search: { tab: "memory" } },
+  "/docs": { to: "/brain", search: { tab: "docs" } },
+  "/learn": { to: "/brain", search: { tab: "learnings" } },
+  "/outcome": { to: "/brain", search: { tab: "learnings" } },
+  "/calendar": { to: "/brain", search: { tab: "calendar" } },
+  "/meetings": { to: "/brain", search: { tab: "calendar" } },
+  "/impact": { to: "/brain", search: { tab: "impact" } },
+  "/changelog": { to: "/brain", search: { tab: "changelog" } },
 
   // -- Build (canonical /build; also the one true missions home, see below) --
   "/cockpit": { to: "/build" },

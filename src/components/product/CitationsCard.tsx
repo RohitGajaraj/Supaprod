@@ -29,9 +29,9 @@ function linkFor(
     case "signal":
       return { to: "/discover" };
     case "doc":
-      return { to: "/knowledge", search: { tab: "docs" } };
+      return { to: "/brain", search: { tab: "docs" } };
     case "meeting":
-      return { to: "/knowledge", search: { tab: "calendar", meeting: c.source_id } };
+      return { to: "/brain", search: { tab: "calendar", meeting: c.source_id } };
     default:
       return null;
   }

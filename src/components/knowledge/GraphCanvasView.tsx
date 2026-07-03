@@ -96,7 +96,7 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
   const recenter = (kind: string, id: string) => {
     setSelectedKey(null);
     setAsOf(null);
-    navigate({ to: "/knowledge", search: { tab: "graph", focusKind: kind, focusId: id } });
+    navigate({ to: "/brain", search: { tab: "graph", focusKind: kind, focusId: id } });
   };
 
   if (graphQ.isLoading) {

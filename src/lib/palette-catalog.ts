@@ -36,7 +36,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "export-record",
     pitch: "Export my decision record",
-    run: { to: "/knowledge", search: { tab: "insights" } },
+    run: { to: "/brain", search: { tab: "insights" } },
   },
   {
     id: "point-critic",
@@ -71,6 +71,54 @@ export const CATALOG: CatalogEntry[] = [
     id: "check-quality",
     pitch: "Check if the evals still pass",
     run: { to: "/engine-room", search: { room: "quality" } },
+  },
+  // LOOM W1 - the "rare goes to the palette" promise, actually kept: every
+  // folded or door-internal surface is indexed here (DESIGN-LOOM §9b).
+  {
+    id: "check-safety",
+    pitch: "Check the guardrails and safety record",
+    run: { to: "/engine-room", search: { room: "safety" } },
+  },
+  {
+    id: "open-record",
+    pitch: "Open the record room (traces and runs)",
+    run: { to: "/engine-room", search: { room: "record" } },
+  },
+  {
+    id: "trust-ledger",
+    pitch: "Verify the Trust Ledger integrity fingerprint",
+    run: { to: "/trust-ledger" },
+  },
+  {
+    id: "open-calendar",
+    pitch: "Open the calendar and meetings",
+    run: { to: "/brain", search: { tab: "calendar" } },
+  },
+  {
+    id: "memory-graph",
+    pitch: "Explore the knowledge graph",
+    kind: "BELIEF",
+    run: { to: "/brain", search: { tab: "graph" } },
+  },
+  {
+    id: "prompt-studio",
+    pitch: "Tune the prompts behind the agents",
+    run: { to: "/govern", search: { tab: "prompts" } },
+  },
+  {
+    id: "open-settings",
+    pitch: "Open settings (you, workspace, connections, plan)",
+    run: { to: "/settings" },
+  },
+  {
+    id: "plan-billing",
+    pitch: "See my plan and billing",
+    run: { to: "/settings", search: { section: "plan" } },
+  },
+  {
+    id: "admin-console",
+    pitch: "Open the admin console",
+    run: { to: "/admin" },
   },
 ];
 

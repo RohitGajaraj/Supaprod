@@ -178,7 +178,7 @@ export function ChangelogPanel() {
 
       <div style={{ marginTop: 24 }}>
         <Link
-          to="/knowledge"
+          to="/brain"
           search={{ tab: "impact" }}
           style={{
             fontSize: 12.5,

@@ -153,9 +153,9 @@ const RAG_KIND_MAP: Record<
   { kind: ResearchSourceKind; href: (sourceId: string | null) => string }
 > = {
   signal: { kind: "signal", href: () => "/discover" },
-  doc: { kind: "doc", href: () => "/knowledge?tab=docs" },
-  note: { kind: "doc", href: () => "/knowledge?tab=memory" },
-  meeting: { kind: "meeting", href: () => "/knowledge?tab=calendar" },
+  doc: { kind: "doc", href: () => "/brain?tab=docs" },
+  note: { kind: "doc", href: () => "/brain?tab=memory" },
+  meeting: { kind: "meeting", href: () => "/brain?tab=calendar" },
   prd: { kind: "prd", href: (id) => (id ? `/prds/${id}` : "/prds") },
   // F-BRAIN: distilled research findings live in the brain — recall cites /chat.
   finding: { kind: "finding", href: () => "/chat" },
@@ -212,7 +212,7 @@ async function gatherInternal(
   for (const c of chunks) {
     const map = RAG_KIND_MAP[c.source_kind] ?? {
       kind: "doc" as const,
-      href: () => "/knowledge?tab=docs",
+      href: () => "/brain?tab=docs",
     };
     const key = `${c.source_kind}:${c.source_id ?? c.id}`;
     const existing = bySource.get(key);
@@ -262,7 +262,7 @@ async function gatherInternal(
     snapshots.push({
       kind: "decision",
       title: "Recent decisions (5 newest)",
-      href: "/knowledge?tab=decisions",
+      href: "/brain?tab=decisions",
       lines: decisions.map((d) => `- ${d.title} (${d.status})`),
     });
   }

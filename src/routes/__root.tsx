@@ -81,25 +81,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Cadence" },
-      { name: "description", content: "Cursor for Product Managers." },
+      {
+        name: "description",
+        content: "The decision and outcome operating system for product teams.",
+      },
       { name: "author", content: "Cadence" },
       { property: "og:title", content: "Cadence" },
-      { property: "og:description", content: "Cursor for Product Managers." },
+      {
+        property: "og:description",
+        content: "The decision and outcome operating system for product teams.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Cadence" },
-      { name: "twitter:description", content: "Cursor for Product Managers." },
       {
-        property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9011d005-fe77-48c4-9d01-8cb09513383c",
+        name: "twitter:description",
+        content: "The decision and outcome operating system for product teams.",
       },
-      {
-        name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9011d005-fe77-48c4-9d01-8cb09513383c",
-      },
+      // Branded social image (public/og-cadence.png). Absolute URL required by
+      // crawlers; swap the host when the custom domain lands (founder note).
+      { property: "og:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
+      { name: "twitter:image", content: "https://cadence-flow-beta.lovable.app/og-cadence.png" },
     ],
     links: [
       {

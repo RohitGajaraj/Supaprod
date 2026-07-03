@@ -86,7 +86,7 @@ export function SourceLink({
   if (d.meeting_id) {
     return (
       <Link
-        to="/knowledge"
+        to="/brain"
         search={{ tab: "calendar", meeting: d.meeting_id }}
         className={className}
         style={style}
@@ -290,7 +290,7 @@ export function DecisionsPanel() {
               key={d.id}
               type="button"
               onClick={() =>
-                navigate({ to: "/knowledge", search: { tab: "decisions", decision: d.id } })
+                navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
               }
               className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
               style={{

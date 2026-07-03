@@ -30,7 +30,7 @@ export const LOOP_SURFACES = [
   // Build's own "a working change"), it just shares Build's URL now rather
   // than having its own page.
   { id: "missions", label: "Missions", to: "/build", produces: "a shipped outcome" },
-  { id: "brain", label: "Brain", to: "/knowledge", produces: "a learned precedent" },
+  { id: "brain", label: "Brain", to: "/brain", produces: "a learned precedent" },
   { id: "trust", label: "Trust", to: "/trust-ledger", produces: "proof you can defend" },
 ] as const;
 

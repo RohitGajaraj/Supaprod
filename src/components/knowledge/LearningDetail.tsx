@@ -60,7 +60,7 @@ export function LearningDetail({ id }: { id: string }) {
   const fOpps = useServerFn(listOpportunities);
   const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => fOpps() });
 
-  const onBack = () => navigate({ to: "/knowledge", search: { tab: "learnings" } });
+  const onBack = () => navigate({ to: "/brain", search: { tab: "learnings" } });
 
   if (learnings.isLoading) {
     return (

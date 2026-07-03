@@ -61,7 +61,7 @@ const LOOP_SURFACE_TO: Record<LoopSurface, { to: string; search?: Record<string,
   today: { to: "/today" },
   define: { to: "/plan" },
   build: { to: "/build" },
-  brain: { to: "/knowledge" },
+  brain: { to: "/brain" },
 };
 
 function fmtUsd(n: number): string {

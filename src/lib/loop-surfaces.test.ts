@@ -29,7 +29,7 @@ describe("loopIndexForPath — where the operator currently sits", () => {
     expect(loopIndexForPath("/discover")).toBe(1);
     expect(loopIndexForPath("/prds")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
-    expect(loopIndexForPath("/knowledge")).toBe(5);
+    expect(loopIndexForPath("/brain")).toBe(5);
     expect(loopIndexForPath("/trust-ledger")).toBe(6);
   });
 

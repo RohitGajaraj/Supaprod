@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/calendar")({
   }),
   beforeLoad: ({ search }) => {
     throw redirect({
-      to: "/knowledge",
+      to: "/brain",
       search: { tab: "calendar", meeting: search.meeting },
     });
   },

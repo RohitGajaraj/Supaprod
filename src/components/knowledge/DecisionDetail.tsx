@@ -120,7 +120,7 @@ export function DecisionDetail({ id }: { id: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const onBack = () => navigate({ to: "/knowledge", search: { tab: "decisions" } });
+  const onBack = () => navigate({ to: "/brain", search: { tab: "decisions" } });
 
   if (decisions.isLoading) {
     return (

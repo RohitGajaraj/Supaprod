@@ -129,7 +129,7 @@ export function CompoundingPanel() {
         {rescores.map((r, i) => (
           <Link
             key={r.id}
-            to="/knowledge"
+            to="/brain"
             search={{ tab: "learnings", learning: r.id }}
             className="block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
             style={{

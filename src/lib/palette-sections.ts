@@ -13,7 +13,7 @@ export const JUMP_DESTINATIONS: readonly JumpDestination[] = [
   { label: "Discover", hint: "2", run: { to: "/discover" } },
   { label: "Plan", hint: "3", run: { to: "/plan" } },
   { label: "Build", hint: "4", run: { to: "/build" } },
-  { label: "Brain", hint: "5", run: { to: "/knowledge" } },
+  { label: "Brain", hint: "5", run: { to: "/brain" } },
 ];
 
 export type ActVerb = { label: string; run: PaletteRun };

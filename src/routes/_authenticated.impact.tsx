@@ -7,6 +7,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // customization, copy/download, and the full markdown preview all moved over.
 export const Route = createFileRoute("/_authenticated/impact")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "impact" } });
+    throw redirect({ to: "/brain", search: { tab: "impact" } });
   },
 });

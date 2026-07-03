@@ -4,6 +4,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // consolidation), flattening a 2-hop chain (meetings -> calendar -> knowledge).
 export const Route = createFileRoute("/_authenticated/meetings")({
   beforeLoad: () => {
-    throw redirect({ to: "/knowledge", search: { tab: "calendar" } });
+    throw redirect({ to: "/brain", search: { tab: "calendar" } });
   },
 });

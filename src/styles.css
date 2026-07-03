@@ -1997,3 +1997,95 @@ html[data-motion="off"] .agent-live {
     opacity: 1;
   }
 }
+
+/* ===========================================================================
+ * LOOM v4 (2026-07-04) - the lit instrument. ADDITIVE over Obsidian v3:
+ * later-in-sheet, same scope, so these values win where they speak and v3
+ * applies where they are silent. Law: /DESIGN-LOOM.md. Do not add hexes
+ * outside this block.
+ * =========================================================================== */
+[data-obsidian] {
+  /* §4 ink ramp, lightened one step (readability; --text-faint is demoted
+   * to decorative/disabled and may not carry meaning) */
+  --text-body: #c6c0b8;
+  --text-muted: #a39d94;
+  --text-subtle: #86817a;
+
+  /* §4 type recalibrated: 14px base; the mono metadata floor rises to 10.5px */
+  --text-base: 14px;
+  --text-emphasis: 16px;
+  --text-h2: 25px;
+  --text-h1: 32px;
+  --text-hero: 40px;
+  --text-mono-floor: 10.5px;
+
+  /* §3 ember, layered (saturation scales inversely with area) */
+  --ember-text: #ff8a50;
+  --ember-tint: rgba(255, 107, 44, 0.13);
+  --ember-line: rgba(255, 107, 44, 0.45);
+  --cta-grad-top: #ff7a3d;
+  --cta-grad-bottom: #f25e1f;
+  --cta-ink: #160903;
+
+  /* §2 light and depth: one ambient light source from above */
+  --top-light: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --top-light-hover: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --shadow-ambient: 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-overlay: 0 24px 64px -16px rgba(0, 0, 0, 0.65);
+  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-elevated:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+
+  /* §5 motion doctrine tokens (Kowalski/Freiberg school) */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 140ms;
+  --dur-pop: 180ms;
+  --dur-panel: 240ms;
+  --dur-drawer: 300ms;
+
+  /* §6 the thread: one connective line language (moves ONLY where the
+   * machine is genuinely alive) */
+  --thread-gradient: linear-gradient(90deg, var(--glacier), #5b7cfa, #c77dff, var(--blossom));
+
+  /* §4b desktop-first canvas: container tiers */
+  --container-standard: 1240px;
+  --container-work: 1520px;
+}
+
+/* Every pressable answers the finger: subtle press, fast (§5). Applied via
+ * class on interactive chrome; components adopt progressively. */
+[data-obsidian] .loom-press {
+  transition: transform var(--dur-press) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+[data-obsidian] .loom-press:active {
+  transform: scale(0.98);
+}
+
+/* §2 canvas atmosphere: one fixed vignette + grain layer per app root.
+ * Pointer-events none, never on a scrolling container; kills the flat void. */
+[data-obsidian] .loom-atmosphere {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 20%, transparent 55%, rgba(0, 0, 0, 0.03) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
+}
+
+/* Rail active-thread indicator (§6): a static 2px thread on the active row. */
+[data-obsidian] .loom-thread-active {
+  position: relative;
+}
+[data-obsidian] .loom-thread-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--thread-gradient);
+  opacity: 0.85;
+}

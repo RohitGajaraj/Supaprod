@@ -9,7 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, ENGINE_ROOM_DOOR } from "@/lib/nav-model";
+import { PRIMARY_NAV, ENGINE_GROUP } from "@/lib/nav-model";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
 // parchment cmdk palette. Four sections (JUMP · ACT · ASK · CATALOG), a flat
@@ -342,7 +342,7 @@ export function GotoShortcuts() {
       }
       if (key.toLowerCase() === "g") {
         e.preventDefault();
-        navigate({ to: ENGINE_ROOM_DOOR.to });
+        navigate({ to: ENGINE_GROUP[0].to });
       }
     };
     window.addEventListener("keydown", onKey);
