@@ -26,7 +26,7 @@ describe("LOOP_SURFACES — the surface-level loop model", () => {
 describe("loopIndexForPath — where the operator currently sits", () => {
   test("matches each surface on its exact route", () => {
     expect(loopIndexForPath("/")).toBe(0);
-    expect(loopIndexForPath("/product")).toBe(1);
+    expect(loopIndexForPath("/discover")).toBe(1);
     expect(loopIndexForPath("/prds")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
     expect(loopIndexForPath("/knowledge")).toBe(5);
@@ -65,13 +65,13 @@ describe("loopIndexForPath — where the operator currently sits", () => {
     expect(loopIndexForPath("/evals")).toBe(-1);
     expect(loopIndexForPath("/guardrails")).toBe(-1);
     expect(isLoopSurface("/settings")).toBe(false);
-    expect(isLoopSurface("/product")).toBe(true);
+    expect(isLoopSurface("/discover")).toBe(true);
   });
 });
 
 describe("loopNeighbors — the loop wraps (it has no end)", () => {
   test("interior stage has its immediate prev/next", () => {
-    const n = loopNeighbors(loopIndexForPath("/product"));
+    const n = loopNeighbors(loopIndexForPath("/discover"));
     expect(n?.prev.id).toBe("today");
     expect(n?.next.id).toBe("prd");
   });

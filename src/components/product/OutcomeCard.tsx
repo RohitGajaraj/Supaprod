@@ -327,7 +327,7 @@ function RecordedOutcome({ outcome }: { outcome: PrdOutcome }) {
           <span className="tabular-nums">
             {Number(outcome.prior_ice).toFixed(1)} → {Number(outcome.new_ice).toFixed(1)}
           </span>{" "}
-          <Link to="/product" search={{ tab: "opportunities" } as never} className="link-action">
+          <Link to="/discover" className="link-action">
             View opportunities
           </Link>
         </p>

@@ -59,6 +59,7 @@ import { PlanTable, TIER_ICON } from "@/components/billing/PlanPicker";
 import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
 import { getPricingCatalog } from "@/lib/pricing.functions";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
+import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataExportCard } from "@/components/settings/DataExportCard";
 import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
 import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
@@ -293,6 +294,7 @@ function SettingsPage() {
           )}
           {active === "ai" && <ModelsTab />}
           {active === "staff" && <StaffTab />}
+          {active === "products" && <ProductsTab />}
           {active === "workspace" && (
             <>
               <WorkspaceTab scrollToBrief={section === "brief"} />

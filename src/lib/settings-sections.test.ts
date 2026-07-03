@@ -15,19 +15,21 @@ import {
 } from "./settings-sections";
 
 /**
- * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 - the grouping must collapse 11 flat
+ * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 - the grouping must collapse 12 flat
  * tabs into exactly four calm panes (You · Workspace · Connections · Plan)
  * WITHOUT breaking the `?section=` deep-link contract. These tests lock both:
  * the structural invariants of the four-pane model AND that every one of the
- * original 11 section ids is still reachable and unchanged.
+ * 12 section ids is still reachable and unchanged. "products" (the ported
+ * PortfolioBoard, OBS-10) joined the Workspace pane after the original 11.
  */
 
-// The 11 section ids the route shipped with - the routing contract that must hold.
+// The 12 section ids the route ships with - the routing contract that must hold.
 const ORIGINAL_SECTION_IDS: SectionId[] = [
   "connections",
   "ai",
   "staff",
   "workspace",
+  "products",
   "billing",
   "credits",
   "interop",
@@ -38,7 +40,7 @@ const ORIGINAL_SECTION_IDS: SectionId[] = [
 ];
 
 describe("settings-sections - the routing contract is preserved", () => {
-  it("exposes exactly the 11 original section ids (no id added or dropped)", () => {
+  it("exposes exactly the 12 section ids (no id added or dropped)", () => {
     expect([...ALL_SECTION_IDS].sort()).toEqual([...ORIGINAL_SECTION_IDS].sort());
   });
 

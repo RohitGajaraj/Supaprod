@@ -41,11 +41,7 @@ export function LearningsPanel() {
         <div key={o.id} className="bento p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <Link
-                to="/product"
-                search={{ tab: "opportunities" }}
-                className="font-display text-sm hover:underline"
-              >
+              <Link to="/discover" className="font-display text-sm hover:underline">
                 {o.title}
               </Link>
               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{o.problem}</p>

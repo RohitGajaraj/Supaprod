@@ -535,9 +535,7 @@ function PrdEditor() {
               {provQ.data!.source_signals.slice(0, 8).map((s) => (
                 <button
                   key={s.id}
-                  onClick={() =>
-                    navigate({ to: "/product", search: { tab: "signals", signal: s.id } })
-                  }
+                  onClick={() => navigate({ to: "/discover" })}
                   className="text-left text-xs link-action inline-flex items-baseline gap-2"
                 >
                   <span className="mono-label text-[10px] text-muted-foreground shrink-0">

@@ -152,9 +152,7 @@ export function LearningDetail({ id }: { id: string }) {
             </span>
             <button
               style={{ color: "var(--action-blue)", fontWeight: 500, textAlign: "left" }}
-              onClick={() =>
-                navigate({ to: "/product", search: { tab: "opportunities", opp: opp.id } })
-              }
+              onClick={() => navigate({ to: "/discover" })}
             >
               {opp.title} →
             </button>

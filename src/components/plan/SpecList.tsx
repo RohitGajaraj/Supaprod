@@ -1,7 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "@/lib/notify";
 import { VerdictChip, MonoLabel } from "@/components/obsidian";
-import { listSpecs } from "@/lib/discovery.functions";
+import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { listSpecs, deletePrd, createGithubIssueForPrd, savePrd } from "@/lib/discovery.functions";
+import { promotePrdToTasks } from "@/lib/lineage.functions";
+import { dispatchStudioSession } from "@/lib/studio.functions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { relTime } from "@/components/product/format";
 import { stateChip, citesLabel } from "./format";
 
@@ -21,8 +34,76 @@ const TONE_TO_VERDICT = {
 
 /** OBS-07 §5 step 5: the cited spec list. Shares `["prds"]` with the parchment SpecsPanel. */
 export function SpecList({ onOpen }: SpecListProps) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
   const fSpecs = useServerFn(listSpecs);
+  const fSave = useServerFn(savePrd);
+  const fDelete = useServerFn(deletePrd);
+  const fPromote = useServerFn(promotePrdToTasks);
+  const fCreateIssue = useServerFn(createGithubIssueForPrd);
+  const fDispatch = useServerFn(dispatchStudioSession);
+
   const specs = useQuery({ queryKey: ["prds"], queryFn: () => fSpecs() });
+  const inv = () => qc.invalidateQueries({ queryKey: ["prds"] });
+
+  const [lineage, setLineage] = useState<{ id: string; title: string } | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (renamingId) renameInputRef.current?.focus();
+  }, [renamingId]);
+
+  const rename = useMutation({
+    mutationFn: (v: { id: string; title: string }) => fSave({ data: { id: v.id, title: v.title } }),
+    onSuccess: () => {
+      inv();
+      toast.success("Renamed.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const del = useMutation({
+    mutationFn: (id: string) => fDelete({ data: { id } }),
+    onSuccess: inv,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const promote = useMutation({
+    mutationFn: (prd_id: string) => fPromote({ data: { prd_id } }),
+    onSuccess: (r) => {
+      toast.success(`Generated ${r.count} task${r.count === 1 ? "" : "s"}.`);
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const createIssue = useMutation({
+    mutationFn: (id: string) => fCreateIssue({ data: { id } }),
+    onSuccess: (r) => {
+      toast.success(
+        r.cached ? "GitHub issue already linked." : `GitHub issue #${r.number} created.`,
+      );
+      inv();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const dispatch = useMutation({
+    mutationFn: (prdId: string) => fDispatch({ data: { prdId } }),
+    onSuccess: (r) => {
+      toast.success("Handed to Build. Mission dispatched.");
+      navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const startRename = (id: string, current: string) => {
+    setRenameValue(current);
+    setRenamingId(id);
+  };
+  const commitRename = (id: string, original: string) => {
+    const next = renameValue.trim().slice(0, 200);
+    setRenamingId(null);
+    if (next && next !== original) rename.mutate({ id, title: next });
+  };
 
   if (specs.isLoading) {
     return (
@@ -94,58 +175,182 @@ export function SpecList({ onOpen }: SpecListProps) {
   }
 
   return (
-    <div style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}>
-      {specList.map((spec, i) => {
-        const chip = stateChip(spec.status);
-        const cites = citesLabel(spec.citations);
-        return (
-          <button
-            key={spec.id}
-            type="button"
-            onClick={() => onOpen(spec.id)}
-            className="w-full text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              width: "100%",
-              padding: "14px 18px",
-              borderBottom: i < specList.length - 1 ? "1px solid var(--hairline)" : "none",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              transitionProperty: "background-color",
-              transitionDuration: "var(--dur-control)",
-              transitionTimingFunction: "var(--ease)",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-          >
-            <span
+    <>
+      <div style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}>
+        {specList.map((spec, i) => {
+          const chip = stateChip(spec.status);
+          const cites = citesLabel(spec.citations);
+          const isRenaming = renamingId === spec.id;
+          const isDispatching = dispatch.isPending && dispatch.variables === spec.id;
+          const isCreatingIssue = createIssue.isPending && createIssue.variables === spec.id;
+          const isPromoting = promote.isPending && promote.variables === spec.id;
+          return (
+            <div
+              key={spec.id}
               style={{
-                flex: 1,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--text-primary)",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                borderBottom: i < specList.length - 1 ? "1px solid var(--hairline)" : "none",
               }}
             >
-              {spec.title}
-            </span>
-            <VerdictChip tone={TONE_TO_VERDICT[chip.tone]}>{chip.label}</VerdictChip>
-            {cites && (
-              <MonoLabel tone="blossom" style={{ fontSize: 9 }}>
-                {cites}
-              </MonoLabel>
-            )}
-            <MonoLabel tone="faint" style={{ fontSize: 9 }}>
-              {relTime(spec.updated_at)}
-            </MonoLabel>
-          </button>
-        );
-      })}
-    </div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (!isRenaming) onOpen(spec.id);
+                }}
+                onKeyDown={(e) => {
+                  if (isRenaming) return;
+                  if (e.key === "Enter") onOpen(spec.id);
+                }}
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flex: 1,
+                  minWidth: 0,
+                  padding: "14px 18px",
+                  cursor: isRenaming ? "default" : "pointer",
+                  transitionProperty: "background-color",
+                  transitionDuration: "var(--dur-control)",
+                  transitionTimingFunction: "var(--ease)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isRenaming) e.currentTarget.style.background = "var(--hover)";
+                }}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              >
+                {isRenaming ? (
+                  <input
+                    ref={renameInputRef}
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onBlur={() => commitRename(spec.id, spec.title)}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitRename(spec.id, spec.title);
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        setRenamingId(null);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--text-primary)",
+                      background: "var(--surface-raised)",
+                      border: "1px solid var(--hairline)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "4px 8px",
+                    }}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--text-primary)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {spec.title}
+                  </span>
+                )}
+                <VerdictChip tone={TONE_TO_VERDICT[chip.tone]}>{chip.label}</VerdictChip>
+                {cites && (
+                  <MonoLabel tone="blossom" style={{ fontSize: 9 }}>
+                    {cites}
+                  </MonoLabel>
+                )}
+                <MonoLabel tone="faint" style={{ fontSize: 9 }}>
+                  {relTime(spec.updated_at)}
+                </MonoLabel>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Spec actions"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      flexShrink: 0,
+                      padding: "4px 16px",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 14,
+                      color: "var(--text-faint)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ⋯
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => startRename(spec.id, spec.title)}>
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => promote.mutate(spec.id)} disabled={isPromoting}>
+                    {isPromoting ? "Generating tasks…" : "Generate tasks"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {spec.github_issue_url ? (
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        window.open(spec.github_issue_url!, "_blank", "noopener,noreferrer")
+                      }
+                    >
+                      Open GitHub issue
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onSelect={() => createIssue.mutate(spec.id)}
+                      disabled={isCreatingIssue}
+                    >
+                      {isCreatingIssue ? "Creating…" : "Create GitHub issue"}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    onSelect={() => dispatch.mutate(spec.id)}
+                    disabled={isDispatching}
+                  >
+                    {isDispatching ? "Dispatching…" : "Hand to Build"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setLineage({ id: spec.id, title: spec.title })}>
+                    Lineage
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => del.mutate(spec.id)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        })}
+      </div>
+      <LineageDrawer
+        open={lineage !== null}
+        onOpenChange={(o) => {
+          if (!o) setLineage(null);
+        }}
+        kind="prd"
+        id={lineage?.id ?? null}
+        title={lineage?.title}
+      />
+    </>
   );
 }

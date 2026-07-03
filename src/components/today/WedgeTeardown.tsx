@@ -235,8 +235,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
         </p>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           <Link
-            to="/product"
-            search={{ tab: "opportunities" }}
+            to="/discover"
             className="btn btn-sm"
             style={{ color: "var(--action-blue)", fontWeight: 600 }}
           >
@@ -327,8 +326,7 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           <ShareTeardownButton id={opportunity.id} />
           <Link
-            to="/product"
-            search={{ tab: "opportunities" }}
+            to="/discover"
             className="btn btn-sm"
             style={{ color: "var(--action-blue)", fontWeight: 600 }}
           >

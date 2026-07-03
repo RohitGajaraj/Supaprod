@@ -1,7 +1,7 @@
 // v6 Phase 0 / W4 — the cold-start on-ramp. A brand-new workspace lands on an
 // empty Today; instead of a barren dashboard, the empty state IS the on-ramp.
 // It narrates how to feed the loop and points only at WIRED mechanisms — the
-// webhook ingest door (/sync), manual signal capture (/product?tab=signals),
+// webhook ingest door (/sync), manual signal capture (/discover),
 // and source connections (/settings). Rendered only when the workspace is
 // genuinely cold (getColdStart → no signals/opportunities/specs), so the seeded
 // demo never sees it. Voice: the loop runs the reversible work; you make the
@@ -22,8 +22,7 @@ const steps = [
     icon: PenLine,
     title: "Or paste a few by hand",
     body: "Drop in your last handful of customer notes, tickets, or call takeaways. A dozen is enough for Scout to find the first themes.",
-    to: "/product" as const,
-    search: { tab: "signals" as const },
+    to: "/discover" as const,
     cta: "Add a signal",
   },
   {
@@ -104,7 +103,6 @@ export function ColdStartOnramp() {
               </div>
               <Link
                 to={s.to}
-                search={s.search}
                 className="btn btn-sm"
                 style={{
                   flexShrink: 0,
