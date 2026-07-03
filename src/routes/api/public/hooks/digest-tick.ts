@@ -12,8 +12,8 @@ export const Route = createFileRoute("/api/public/hooks/digest-tick")({
         if (unauth) return unauth;
 
         return withJobRun("notifications.digest-tick", async () => {
-          const { scanned, sent } = await sendDueDigests(supabaseAdmin);
-          return new Response(JSON.stringify({ ok: true, scanned, sent }), {
+          const { scanned, sent, slackPosted } = await sendDueDigests(supabaseAdmin);
+          return new Response(JSON.stringify({ ok: true, scanned, sent, slackPosted }), {
             headers: { "Content-Type": "application/json" },
           });
         });

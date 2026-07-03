@@ -40,6 +40,7 @@ export type ResolvedAuth =
 export type ResolvedConnector = {
   auth: ResolvedAuth | null;
   binding: {
+    id: string;
     resourceId: string;
     resourceLabel: string | null;
     config: Record<string, unknown>;
@@ -228,6 +229,7 @@ export async function resolveProviderAuth(args: {
               return {
                 auth,
                 binding: {
+                  id: binding.id,
                   resourceId: binding.resource_id,
                   resourceLabel: binding.resource_label ?? null,
                   config: binding.config ?? {},
@@ -291,6 +293,7 @@ export async function resolveProviderAuth(args: {
               return {
                 auth,
                 binding: {
+                  id: binding.id,
                   resourceId: binding.resource_id,
                   resourceLabel: binding.resource_label ?? null,
                   config: binding.config ?? {},

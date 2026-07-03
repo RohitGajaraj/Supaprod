@@ -133,10 +133,19 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     envFallback: { tokenEnv: "STRIPE_API_KEY" },
     setupHint: "Create a restricted API key in the Stripe Dashboard (Developers → API keys).",
   },
+  // JNY-05: Slack is the one SF-CONNECTOR with a second, outflow purpose —
+  // posting the ambient stakeholder digest to a team channel (write-back),
+  // alongside its original inflow purpose (reading a feedback channel as
+  // customer-voice signals). Same bot token, two scopes: channels:history for
+  // reads, chat:write for the digest post. outflow:true correctly bumps this
+  // provider's catalog minTier to 'team' (Business) per the 2026-06-27 ruling —
+  // enforcement is per-call-site via requiredCapability, so the existing Pro-tier
+  // inflow ingest (resolveProviderAuth({requiredCapability:"inflow"})) is unaffected.
   slack: {
     id: "slack",
     label: "Slack",
-    description: "Pull messages from a chosen feedback channel as customer-voice signals.",
+    description:
+      "Pull messages from a feedback channel as customer-voice signals, and post the stakeholder digest to a team channel.",
     authMethods: [
       {
         kind: "oauth_gateway",
@@ -144,11 +153,14 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         clientIdEnv: "SLACK_APP_USER_CONNECTOR_CLIENT_ID",
       },
     ],
-    resourceTypes: [{ kind: "channel", label: "Channel" }],
-    capabilities: { inflow: true, outflow: false, sync: false },
+    resourceTypes: [
+      { kind: "channel", label: "Channel" },
+      { kind: "digest_channel", label: "Stakeholder digest channel" },
+    ],
+    capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "SLACK_BOT_TOKEN", resourceKind: "channel" },
     setupHint:
-      "Create a Slack app + bot token (api.slack.com/apps); set SLACK_SIGNAL_CHANNEL to the channel id.",
+      "Create a Slack app + bot token (api.slack.com/apps) with channels:history and chat:write scopes; set SLACK_SIGNAL_CHANNEL to the channel id.",
   },
   zendesk: {
     id: "zendesk",

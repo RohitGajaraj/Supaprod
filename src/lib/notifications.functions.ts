@@ -9,6 +9,7 @@ import {
   renderPackMarkdown,
   type PackAudience,
 } from "@/lib/stakeholder-pack";
+import { postStakeholderDigestToSlack } from "@/lib/connectors/slack-digest.server";
 
 // R3 · Notifications, one "what needs you" feed derived live from the loop's
 // own state: tool calls waiting on a human, spend nearing or over a cap, a
@@ -557,10 +558,37 @@ const WEEKLY_DUE_MS = 6.5 * 24 * 60 * 60 * 1000;
  *  digest is due and who are not currently in their own quiet hours. Quiet hours reuse
  *  the profile's existing working_hours_start/end + timezone (no duplicate field, per
  *  the data-minimalism rule) — outside working hours is quiet; instant sends bypass this
- *  entirely by design (a critical incident at 2am must still reach you). */
+ *  entirely by design (a critical incident at 2am must still reach you).
+ *
+ *  JNY-05's Slack write-back runs as a second, workspace-scoped pass below (not nested
+ *  in the per-user loop above): a shared team channel must be posted to once per
+ *  workspace per period, not once per user with the email toggle on. */
+/** The workspace-scoped half of digest-tick: posts to every workspace's bound
+ *  "digest_channel" that is due, independent of any user's own email prefs. */
+async function sendDueSlackDigests(supabase: SupabaseClient): Promise<number> {
+  const { data: bindingRows } = await supabase
+    .from("connection_bindings")
+    .select("workspace_id")
+    .eq("provider", "slack")
+    .eq("resource_kind", "digest_channel")
+    .is("product_id", null)
+    .limit(50);
+  const workspaceIds = [
+    ...new Set(((bindingRows ?? []) as { workspace_id: string }[]).map((b) => b.workspace_id)),
+  ];
+  let posted = 0;
+  for (const workspaceId of workspaceIds) {
+    const result = await postStakeholderDigestToSlack(supabase, workspaceId);
+    if (result.posted) posted++;
+  }
+  return posted;
+}
+
 export async function sendDueDigests(
   supabase: SupabaseClient,
-): Promise<{ scanned: number; sent: number }> {
+): Promise<{ scanned: number; sent: number; slackPosted: number }> {
+  const slackPosted = await sendDueSlackDigests(supabase);
+
   const { data: prefRows } = await supabase
     .from("user_notification_preferences")
     .select("user_id,digest_frequency,last_digest_sent_at")
@@ -570,7 +598,7 @@ export async function sendDueDigests(
     digest_frequency: "daily" | "weekly";
     last_digest_sent_at: string | null;
   }[];
-  if (rows.length === 0) return { scanned: 0, sent: 0 };
+  if (rows.length === 0) return { scanned: 0, sent: 0, slackPosted };
 
   const now = Date.now();
   const due = rows.filter((r) => {
@@ -578,7 +606,7 @@ export async function sendDueDigests(
     const dueMs = r.digest_frequency === "weekly" ? WEEKLY_DUE_MS : DAILY_DUE_MS;
     return last === null || now - last >= dueMs;
   });
-  if (due.length === 0) return { scanned: rows.length, sent: 0 };
+  if (due.length === 0) return { scanned: rows.length, sent: 0, slackPosted };
 
   const userIds = due.map((r) => r.user_id);
   const { data: profileRows } = await supabase
@@ -609,5 +637,5 @@ export async function sendDueDigests(
     const result = await generateDigest(supabase, r.user_id, r.digest_frequency);
     if (result.generated && result.reason === "sent") sent++;
   }
-  return { scanned: rows.length, sent };
+  return { scanned: rows.length, sent, slackPosted };
 }
