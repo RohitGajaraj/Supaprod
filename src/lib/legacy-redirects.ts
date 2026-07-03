@@ -55,20 +55,33 @@ export const DOOR_INTERNAL_PATHS = [
 ] as const;
 
 /**
- * Deliberately NOT folded (verified against the real shipped code, not the
- * spec's abstract table - each of these carries live functionality its
- * canonical replacement does not yet have):
+ * PERMANENT doors (2026-07-03, reclassified) - architectural, not pending
+ * work. Each is a depth-2+ drill-in layer a shipped destination's own UI
+ * deliberately links INTO, the same pattern `/govern` already established
+ * for Engine Room (`RoomDetail`/`rooms/*.tsx` navigate there for the deeper
+ * view). Building a duplicate full surface into the destination just to fold
+ * these away would be redundant, speculative work against a link that
+ * already works - never re-list these under "genuinely remaining work":
+ *
+ * - `/govern` - Engine Room's own detail/drill layer; still renders its own
+ *   live tabs (traces/evals/drift/guardrails/budgets/team/approvals/etc).
+ * - `/prds/$id` - the full PRD editor (AI assist, GitHub issue creation, task
+ *   graphs, design scaffolding, Linear issues, Studio dispatch). Plan's
+ *   `SpecDetail` is explicitly read-only and links here itself as its own
+ *   "Open full spec ->" drill-in ("`src/components/plan/SpecDetail.tsx`).
+ *   Duplicating this into Plan would be a second full PRD editor, not a fold.
+ * - `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates
+ *   here for trace detail; `/govern?tab=traces` is a second live consumer.
+ *   Same drill-in-layer shape as `/govern` itself, one level deeper.
+ *
+ * Genuinely remaining work (verified against the real shipped code - each
+ * carries live functionality its canonical replacement does not yet have,
+ * so folding it now would delete a working feature, not relocate one):
  *
  * - `/product` - Discover (OBS-06) is explicitly additive; capture, bulk
  *   import, cluster, promote, draft-spec, lineage, and delete all still
  *   live only on `/product` (confirmed in `DiscoverSurface`'s own file
  *   comment). Folding this would delete every write action Discover lacks.
- * - `/prds/$id` - the full PRD editor (AI assist, GitHub issue creation,
- *   task graphs, design scaffolding, Linear issues, Studio dispatch).
- *   Plan's `SpecDetail` is explicitly read-only and links here itself
- *   ("Open full spec ->", see `src/components/plan/SpecDetail.tsx`).
- * - `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates
- *   here for trace detail; `/govern?tab=traces` is a second live consumer.
  * - `/stakeholder` - audience-specific pack generation (exec/eng/board,
  *   copy/download); Plan's roadmap view has no equivalent.
  * - `/impact` - the impact-ledger detail view; not verified redundant with
@@ -76,9 +89,6 @@ export const DOOR_INTERNAL_PATHS = [
  * - `/changelog` - Brain has no "record"/changelog-equivalent tab yet.
  * - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with
  *   no Build equivalent.
- * - `/govern` - Engine Room's own detail/drill layer (`RoomDetail` and every
- *   `rooms/*.tsx` navigate here for the deeper view); still renders its own
- *   live tabs (traces/evals/drift/guardrails/budgets/team/approvals/etc).
  *
  * These are flagged to the founder per OBS-10.md §13 (URL renames + scope);
  * each is real product functionality that would be deleted, not merely
