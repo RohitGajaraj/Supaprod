@@ -1349,6 +1349,7 @@ export type Database = {
       }
       assumptions: {
         Row: {
+          brief_item_id: string | null
           created_at: string
           decision_id: string | null
           id: string
@@ -1361,6 +1362,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          brief_item_id?: string | null
           created_at?: string
           decision_id?: string | null
           id?: string
@@ -1373,6 +1375,7 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          brief_item_id?: string | null
           created_at?: string
           decision_id?: string | null
           id?: string
@@ -1385,6 +1388,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "assumptions_brief_item_id_fkey"
+            columns: ["brief_item_id"]
+            isOneToOne: false
+            referencedRelation: "brief_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assumptions_decision_id_fkey"
             columns: ["decision_id"]
@@ -1496,6 +1506,63 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: []
+      }
+      brief_items: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          status: string
+          supersedes_id: string | null
+          title: string
+          updated_at: string
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          status?: string
+          supersedes_id?: string | null
+          title: string
+          updated_at?: string
+          version?: number
+          workspace_id?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          status?: string
+          supersedes_id?: string | null
+          title?: string
+          updated_at?: string
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brief_items_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "brief_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brief_items_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       builder_file_claims: {
         Row: {
@@ -3621,6 +3688,60 @@ export type Database = {
           },
         ]
       }
+      launch_plans: {
+        Row: {
+          check_by: string | null
+          checklist: Json
+          created_at: string
+          generated_by: string | null
+          id: string
+          positioning: string
+          prd_id: string
+          success_metric: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          check_by?: string | null
+          checklist: Json
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          positioning: string
+          prd_id: string
+          success_metric?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Update: {
+          check_by?: string | null
+          checklist?: Json
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          positioning?: string
+          prd_id?: string
+          success_metric?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_plans_prd_id_fkey"
+            columns: ["prd_id"]
+            isOneToOne: true
+            referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "launch_plans_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learnings: {
         Row: {
           created_at: string
@@ -4270,6 +4391,102 @@ export type Database = {
           },
           {
             foreignKeyName: "playbook_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prd_flows: {
+        Row: {
+          created_at: string
+          edges: Json
+          generated_by: string | null
+          id: string
+          prd_id: string
+          steps: Json
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          edges: Json
+          generated_by?: string | null
+          id?: string
+          prd_id: string
+          steps: Json
+          updated_at?: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          edges?: Json
+          generated_by?: string | null
+          id?: string
+          prd_id?: string
+          steps?: Json
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prd_flows_prd_id_fkey"
+            columns: ["prd_id"]
+            isOneToOne: true
+            referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prd_flows_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prd_scaffolds: {
+        Row: {
+          created_at: string
+          generated_by: string | null
+          html: string
+          id: string
+          prd_id: string
+          source: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          generated_by?: string | null
+          html: string
+          id?: string
+          prd_id: string
+          source?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          generated_by?: string | null
+          html?: string
+          id?: string
+          prd_id?: string
+          source?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prd_scaffolds_prd_id_fkey"
+            columns: ["prd_id"]
+            isOneToOne: true
+            referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prd_scaffolds_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -6429,6 +6646,8 @@ export type Database = {
           digest_drift: boolean
           digest_frequency: string
           digest_health: boolean
+          digest_stakeholder_audience: string
+          digest_stakeholder_update: boolean
           email_approvals: boolean
           email_budget: boolean
           email_drift: boolean
@@ -6447,6 +6666,8 @@ export type Database = {
           digest_drift?: boolean
           digest_frequency?: string
           digest_health?: boolean
+          digest_stakeholder_audience?: string
+          digest_stakeholder_update?: boolean
           email_approvals?: boolean
           email_budget?: boolean
           email_drift?: boolean
@@ -6465,6 +6686,8 @@ export type Database = {
           digest_drift?: boolean
           digest_frequency?: string
           digest_health?: boolean
+          digest_stakeholder_audience?: string
+          digest_stakeholder_update?: boolean
           email_approvals?: boolean
           email_budget?: boolean
           email_drift?: boolean
