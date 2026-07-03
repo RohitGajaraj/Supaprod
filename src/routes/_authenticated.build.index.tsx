@@ -41,6 +41,8 @@ import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
+import { FleetView } from "@/components/obsidian/FleetView";
+import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
 import { ToastProvider, ToastHost } from "@/components/obsidian/toast";
 import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
 import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
@@ -50,7 +52,12 @@ export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
   head: () => ({ meta: [{ title: "Build · Cadence" }] }),
   validateSearch: (search: Record<string, unknown>) =>
-    z.object({ mission: z.string().optional() }).parse(search),
+    z
+      .object({
+        mission: z.string().optional(),
+        view: z.enum(["missions", "agent", "lane"]).optional(),
+      })
+      .parse(search),
   errorComponent: ({ error, reset }) => (
     <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
       <div
@@ -363,8 +370,14 @@ function BuildPage() {
   const rows = sessions.data?.sessions ?? [];
   const isEmpty = !sessions.isLoading && !sessions.isError && rows.length === 0;
 
-  const openMission = (missionId: string) => navigate({ search: { mission: missionId } });
-  const closeMission = () => navigate({ search: {} });
+  // Functional form (not a plain object) so this doesn't clobber the `view`
+  // param when opening/closing a mission from the "By Lane" tab (adversarial
+  // review finding: navigate({ search: {...} }) discards all prior search
+  // state instead of merging it).
+  const openMission = (missionId: string) =>
+    navigate({ search: (prev) => ({ ...prev, mission: missionId }) });
+  const closeMission = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
+  const viewMode = search.view ?? "missions";
 
   return (
     <ToastProvider>
@@ -403,148 +416,191 @@ function BuildPage() {
 
         <Composer textareaRef={textareaRef} />
 
-        {sessions.isLoading ? (
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              color: "var(--text-faint)",
-              padding: "32px 0",
-              textAlign: "center",
-            }}
-          >
-            Loading missions…
-          </div>
-        ) : sessions.isError ? (
-          <div
-            style={{
-              padding: 24,
-              background: "var(--surface-card)",
-              borderRadius: "var(--radius-panel)",
-            }}
-          >
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-              COULDN'T LOAD MISSIONS
-            </div>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
-              {(sessions.error as Error)?.message?.slice(0, 160)}
-            </p>
+        {/* OBS-10: Fleet and Delegate folded in as two orthogonal lenses on the
+            same agent-mesh activity: by mission (default), by agent, by lane.
+            Not merged into one view; each keeps its own model and layout. */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          {(
+            [
+              { id: "missions", label: "Missions" },
+              { id: "agent", label: "By Agent" },
+              { id: "lane", label: "By Lane" },
+            ] as const
+          ).map(({ id, label }) => (
             <button
-              onClick={() => sessions.refetch()}
+              key={id}
+              type="button"
+              onClick={() =>
+                navigate({
+                  search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
+                })
+              }
               style={{
-                marginTop: 14,
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                color: "var(--glacier)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
+                ...MODE_PILL,
+                color: viewMode === id ? "var(--text-primary)" : "var(--text-faint)",
+                background: viewMode === id ? "var(--surface-raised)" : "none",
               }}
             >
-              Retry · reloads missions
+              {label}
             </button>
-          </div>
-        ) : isEmpty ? (
-          <div>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
-              <button
-                type="button"
-                onClick={() => setShowArchived((v) => !v)}
+          ))}
+        </div>
+
+        {viewMode === "missions" && (
+          <>
+            {sessions.isLoading ? (
+              <div
                 style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 9.5,
-                  color: "var(--text-faint)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {showArchived ? "Hide archived" : "Show archived"}
-              </button>
-            </div>
-            <div
-              style={{
-                padding: 32,
-                textAlign: "center",
-                background: "var(--surface-card)",
-                borderRadius: "var(--radius-panel)",
-              }}
-            >
-              <p style={{ fontSize: 15, color: "var(--text-primary)", margin: 0 }}>
-                Nothing building yet
-              </p>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
-                Agents dispatch builds from approved specs, or describe the work above in plain
-                language. A first build usually starts within a minute.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  textareaRef.current?.focus();
-                  textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }}
-                style={{
-                  marginTop: 14,
                   fontFamily: "var(--font-mono)",
                   fontSize: 11,
-                  color: "var(--glacier)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Describe the work · Build takes it from there
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div
-              style={{
-                marginBottom: 10,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10,
-                  letterSpacing: "0.11em",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                MISSIONS
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowArchived((v) => !v)}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 9.5,
                   color: "var(--text-faint)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
+                  padding: "32px 0",
+                  textAlign: "center",
                 }}
               >
-                {showArchived ? "Hide archived" : "Show archived"}
-              </button>
-            </div>
-            <div style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}>
-              {rows.map((s) => (
-                <BuildMissionRow
-                  key={s.mission_id}
-                  session={s}
-                  onOpen={() => openMission(s.mission_id)}
-                  onArchive={(archived) => archive.mutate({ missionId: s.mission_id, archived })}
-                  onDelete={() => setDeleteTarget(s)}
-                />
-              ))}
-            </div>
-          </div>
+                Loading missions…
+              </div>
+            ) : sessions.isError ? (
+              <div
+                style={{
+                  padding: 24,
+                  background: "var(--surface-card)",
+                  borderRadius: "var(--radius-panel)",
+                }}
+              >
+                <div
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}
+                >
+                  COULDN'T LOAD MISSIONS
+                </div>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+                  {(sessions.error as Error)?.message?.slice(0, 160)}
+                </p>
+                <button
+                  onClick={() => sessions.refetch()}
+                  style={{
+                    marginTop: 14,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    color: "var(--glacier)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Retry · reloads missions
+                </button>
+              </div>
+            ) : isEmpty ? (
+              <div>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowArchived((v) => !v)}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9.5,
+                      color: "var(--text-faint)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {showArchived ? "Hide archived" : "Show archived"}
+                  </button>
+                </div>
+                <div
+                  style={{
+                    padding: 32,
+                    textAlign: "center",
+                    background: "var(--surface-card)",
+                    borderRadius: "var(--radius-panel)",
+                  }}
+                >
+                  <p style={{ fontSize: 15, color: "var(--text-primary)", margin: 0 }}>
+                    Nothing building yet
+                  </p>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+                    Agents dispatch builds from approved specs, or describe the work above in plain
+                    language. A first build usually starts within a minute.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      textareaRef.current?.focus();
+                      textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }}
+                    style={{
+                      marginTop: 14,
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      color: "var(--glacier)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Describe the work · Build takes it from there
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div
+                  style={{
+                    marginBottom: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 10,
+                      letterSpacing: "0.11em",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    MISSIONS
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowArchived((v) => !v)}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9.5,
+                      color: "var(--text-faint)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {showArchived ? "Hide archived" : "Show archived"}
+                  </button>
+                </div>
+                <div
+                  style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}
+                >
+                  {rows.map((s) => (
+                    <BuildMissionRow
+                      key={s.mission_id}
+                      session={s}
+                      onOpen={() => openMission(s.mission_id)}
+                      onArchive={(archived) =>
+                        archive.mutate({ missionId: s.mission_id, archived })
+                      }
+                      onDelete={() => setDeleteTarget(s)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
+
+        {viewMode === "agent" && <FleetView />}
+        {viewMode === "lane" && <DelegateBoard onOpenMission={openMission} />}
       </div>
 
       <MissionSlideOver missionId={search.mission ?? null} onClose={closeMission} />
