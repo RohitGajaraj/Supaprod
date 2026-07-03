@@ -43,7 +43,7 @@ Settings > You > Notifications (`?section=notifications`), a new "Stakeholder up
 
 ## Known limits / out of scope
 
-- **Slack/write-back posting is genuinely founder-gated, not built**: no Slack connector is registered in `src/lib/connectors/catalog.ts`, and per the 2026-06-27 integration-tiering ruling (`docs/strategy/session-decisions.md`), write-back connectors are a Business-tier capability requiring real OAuth client registration, a founder call this session did not have standing to make on its own. The email-digest half above is the complete autonomous slice.
+- **Slack/write-back posting is genuinely founder-gated, not built**: Slack is already a registered connector (`src/lib/connectors/registry.ts`, `capabilities: { inflow: true, outflow: false, sync: false }`), but read-only, pulling messages from a channel as customer-voice signals; the entry has no write-back (`outflow`) capability enabled. Per the 2026-06-27 integration-tiering ruling (`docs/strategy/session-decisions.md`), write-back connectors are a Business-tier capability requiring real OAuth client registration for the outflow path, a founder call this session did not have standing to make on its own. **Correction (2026-07-03, session-close audit):** an earlier version of this note said "no Slack connector is registered," which is wrong; the connector exists, just without outflow. The email-digest half above is the complete autonomous slice.
 - Only the workspace's single newest decision is included, matching `getStakeholderPack`'s own existing default; there is no digest of multiple recent decisions.
 
 ## Related
