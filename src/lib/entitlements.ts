@@ -120,6 +120,13 @@ export type Entitlements = {
   /** Priority routing / capacity. */
   priority: boolean;
 
+  /**
+   * WM-M9: bring-your-own AI keys are an enterprise-only capability. Every other
+   * tier is credits-only self-serve. Model-agnostic provider routing still
+   * happens, but always through the platform's own keys, never a saved user key.
+   */
+  byokAllowed: boolean;
+
   // --- Connector access (the integration tier — pricing-strategy.md §3.3, 2026-06-27) ---
   /**
    * Which connector operations this plan permits.
@@ -189,6 +196,7 @@ export function entitlementsFor(tier: PlanTier): Entitlements {
     creditTopUps: paid,
     topUpCapPerCycle: tier === "free" ? 0 : enterprise ? null : TOP_UP_CAP_PER_CYCLE,
     enterpriseCreditModel: enterprise,
+    byokAllowed: enterprise,
     priority: tier === "max" || collab,
 
     connectorTier:

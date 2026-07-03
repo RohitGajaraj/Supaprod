@@ -67,7 +67,7 @@ flowchart LR
 
 **The database.** Supabase hosted Postgres with RLS, pgvector for embeddings, and pg_cron for the schedule. Two access paths from the worker: the user's RLS-scoped client for all loop and tool execution, and `supabaseAdmin` (service role, RLS-bypassing, in `src/integrations/supabase/client.server.ts`) used only by cron hooks and the connector credential chain. The RLS contract is the tenancy boundary, documented in [`data.md`](./data.md) and [`security.md`](./security.md).
 
-**The model path.** Every AI call goes through `callModel` or `callModelStream` in `runtime.server.ts`. Provider routing is three tiers checked in order: an explicit `byoOverride` (test use), a BYO key from `user_api_keys` when the model prefix matches a known provider, then the Lovable AI gateway with `LOVABLE_API_KEY`. Local dev has one fallback: if `LOVABLE_API_KEY` is absent and the model starts `google/`, it routes to Google's OpenAI-compatible endpoint with `GEMINI_API_KEY`. The chokepoint contract is [`runtime.md`](./runtime.md).
+**The model path.** Every AI call goes through `callModel` or `callModelStream` in `runtime.server.ts`. Provider routing is three tiers checked in order: an explicit `byoOverride` (test use, enterprise-only), a BYO key from `user_api_keys` (WM-M9: enterprise tier only, every other tier is credits-only self-serve and skips straight to the platform key), then the Lovable AI gateway with `LOVABLE_API_KEY`. Local dev has one fallback: if `LOVABLE_API_KEY` is absent and the model starts `google/`, it routes to Google's OpenAI-compatible endpoint with `GEMINI_API_KEY`. The chokepoint contract is [`runtime.md`](./runtime.md).
 
 ---
 

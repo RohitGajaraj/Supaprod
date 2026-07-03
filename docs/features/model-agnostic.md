@@ -29,7 +29,7 @@ Before this, the catalog was a closed 7-provider union and the chokepoint resolv
 
 ## Governance & guardrails
 
-- **WM-M9 reconciliation:** this is the **platform** AI backend on **our** keys/config — fully consistent with "model-agnostic preserved, on our keys." It is **not** consumer self-serve BYOK (which WM-M9 keeps enterprise-only). Platform provider keys live in env/wrangler (never the client bundle, never a DB row), per the env-var split.
+- **WM-M9 reconciliation:** this is the **platform** AI backend on **our** keys/config — fully consistent with "model-agnostic preserved, on our keys." It is **not** consumer self-serve BYOK: `entitlements.byokAllowed` gates the vault lookup in `resolveCallKey` and the Settings `saveApiKey`/`testApiKey` functions to the enterprise tier (enforced 2026-07-03), so a self-serve caller always resolves to the platform key regardless of any key saved before the gate. Platform provider keys live in env/wrangler (never the client bundle, never a DB row), per the env-var split.
 - **Quality gate:** capability routing **never** overrides a consumer's explicit, capable model pick. It engages only on Auto, a task hint, or an internal system surface.
 - **Benchmark integrity:** the `eval` subject call and the `judge` (Critic) surface are **never** routed.
 - **Kill-switch:** `AI_CAPABILITY_ROUTING` is ON by default (founder ruling); set to `off`/`0`/`false` to make routing byte-identical to pinned-model behavior.

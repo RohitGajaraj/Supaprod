@@ -1572,6 +1572,11 @@ function ByoKeysSection() {
   const fDelKey = useServerFn(deleteApiKey);
   const fTestKey = useServerFn(testApiKey);
   const keys = useQuery({ queryKey: ["api-keys"], queryFn: () => fKeys() });
+  // WM-M9: bring-your-own AI keys are enterprise-only. Same ["billing"] queryKey as
+  // BillingTab, so this dedupes with it rather than firing a second fetch.
+  const fGetBilling = useServerFn(getBillingState);
+  const billing = useQuery({ queryKey: ["billing"], queryFn: () => fGetBilling({ data: {} }) });
+  const isEnterprise = (billing.data?.planTier ?? "free") === "enterprise";
 
   const [keyProv, setKeyProv] = useState<string>(BYO_PROVIDERS[0].id);
   const [keyLabel, setKeyLabel] = useState<string>("");
@@ -1640,161 +1645,172 @@ function ByoKeysSection() {
   return (
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 4 }}>Bring your own AI keys</MonoLabel>
-      <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-        Connect any AI provider — Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
-        OpenRouter, and more. Stored encrypted per user. Add a Base URL for providers with custom
-        endpoints (Qwen, Ollama, custom).
-      </p>
+      {isEnterprise ? (
+        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
+          Connect any AI provider — Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
+          OpenRouter, and more. Stored encrypted per user. Add a Base URL for providers with custom
+          endpoints (Qwen, Ollama, custom).
+        </p>
+      ) : (
+        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
+          An Enterprise feature. Every other plan runs on Cadence credits. Model-agnostic provider
+          routing still applies, it just uses our keys instead of your own.
+        </p>
+      )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (keyValue.trim()) mSaveKey.mutate();
-        }}
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "3fr 3fr 4fr 2fr", gap: 8 }}>
-          <select
-            className="input"
-            value={keyProv}
-            onChange={(e) => setKeyProv(e.target.value)}
-            aria-label="Key provider"
-          >
-            {BYO_PROVIDERS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-          <input
-            className="input"
-            value={keyLabel}
-            onChange={(e) => setKeyLabel(e.target.value)}
-            placeholder="Label (optional)"
-          />
-          <input
-            className="input"
-            value={keyValue}
-            onChange={(e) => setKeyValue(e.target.value)}
-            type="password"
-            placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
-          />
-          <input
-            className="input"
-            value={keyBase}
-            onChange={(e) => setKeyBase(e.target.value)}
-            placeholder="Base URL (Qwen, Ollama, custom…)"
-          />
-        </div>
-        {keyProv === "custom" || keyBase.trim() ? (
-          <input
-            className="input"
-            style={{ marginTop: 4, width: "100%" }}
-            value={keyModelId}
-            onChange={(e) => setKeyModelId(e.target.value)}
-            placeholder="Model ID — the exact model to use with this key (e.g. qwen/qwen-max, ollama/llama3.2, custom/my-model)"
-          />
-        ) : null}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 8,
-            marginTop: 8,
+      {isEnterprise ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (keyValue.trim()) mSaveKey.mutate();
           }}
         >
-          {testResult ? (
-            <span
-              className="mono-label"
-              style={{
-                fontSize: 8.5,
-                color: testResult.ok ? "var(--emerald)" : "var(--rose)",
-              }}
+          <div style={{ display: "grid", gridTemplateColumns: "3fr 3fr 4fr 2fr", gap: 8 }}>
+            <select
+              className="input"
+              value={keyProv}
+              onChange={(e) => setKeyProv(e.target.value)}
+              aria-label="Key provider"
             >
-              {testResult.ok ? `ok · ${testResult.latency_ms}ms` : testResult.error?.slice(0, 80)}
-            </span>
-          ) : null}
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            disabled={mTestKey.isPending || !keyValue.trim()}
-            onClick={() => mTestKey.mutate()}
-          >
-            {mTestKey.isPending ? (
-              <>
-                <span className="spinner" style={{ width: 11, height: 11 }} />
-                Testing…
-              </>
-            ) : (
-              "Test · calls the provider"
-            )}
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={mSaveKey.isPending || !keyValue.trim()}
-          >
-            {mSaveKey.isPending ? "Saving…" : "Add key · stored encrypted"}
-          </button>
-        </div>
-      </form>
-
-      <div style={{ marginTop: 12 }}>
-        {keys.isLoading ? (
-          <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
-            loading…
+              {BYO_PROVIDERS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <input
+              className="input"
+              value={keyLabel}
+              onChange={(e) => setKeyLabel(e.target.value)}
+              placeholder="Label (optional)"
+            />
+            <input
+              className="input"
+              value={keyValue}
+              onChange={(e) => setKeyValue(e.target.value)}
+              type="password"
+              placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
+            />
+            <input
+              className="input"
+              value={keyBase}
+              onChange={(e) => setKeyBase(e.target.value)}
+              placeholder="Base URL (Qwen, Ollama, custom…)"
+            />
           </div>
-        ) : keyList.length === 0 ? (
-          <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>No BYO keys saved yet.</div>
-        ) : (
-          keyList.map((k, i) => (
-            <div
-              key={k.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 0",
-                borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
-                borderBottom: "1px solid var(--hairline)",
-                fontSize: 13,
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div>
-                  {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                  {k.label ? (
-                    <span style={{ color: "var(--ink-subtle)" }}> · {k.label}</span>
-                  ) : null}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                    color: "var(--ink-subtle)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {k.preview}
-                  {k.model_id ? ` · ${k.model_id}` : ""}
-                  {k.base_url ? ` · ${k.base_url}` : ""}
-                </div>
-              </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                aria-label="Remove key"
-                style={{ color: "var(--rose)", fontFamily: "var(--font-mono)", fontSize: 11 }}
-                disabled={mDelKey.isPending && mDelKey.variables === k.id}
-                onClick={() => mDelKey.mutate(k.id)}
+          {keyProv === "custom" || keyBase.trim() ? (
+            <input
+              className="input"
+              style={{ marginTop: 4, width: "100%" }}
+              value={keyModelId}
+              onChange={(e) => setKeyModelId(e.target.value)}
+              placeholder="Model ID — the exact model to use with this key (e.g. qwen/qwen-max, ollama/llama3.2, custom/my-model)"
+            />
+          ) : null}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              marginTop: 8,
+            }}
+          >
+            {testResult ? (
+              <span
+                className="mono-label"
+                style={{
+                  fontSize: 8.5,
+                  color: testResult.ok ? "var(--emerald)" : "var(--rose)",
+                }}
               >
-                Remove
-              </button>
+                {testResult.ok ? `ok · ${testResult.latency_ms}ms` : testResult.error?.slice(0, 80)}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={mTestKey.isPending || !keyValue.trim()}
+              onClick={() => mTestKey.mutate()}
+            >
+              {mTestKey.isPending ? (
+                <>
+                  <span className="spinner" style={{ width: 11, height: 11 }} />
+                  Testing…
+                </>
+              ) : (
+                "Test · calls the provider"
+              )}
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={mSaveKey.isPending || !keyValue.trim()}
+            >
+              {mSaveKey.isPending ? "Saving…" : "Add key · stored encrypted"}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {isEnterprise || keyList.length > 0 ? (
+        <div style={{ marginTop: 12 }}>
+          {keys.isLoading ? (
+            <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
+              loading…
             </div>
-          ))
-        )}
-      </div>
+          ) : keyList.length === 0 ? (
+            <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>No BYO keys saved yet.</div>
+          ) : (
+            keyList.map((k, i) => (
+              <div
+                key={k.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 0",
+                  borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
+                  borderBottom: "1px solid var(--hairline)",
+                  fontSize: 13,
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div>
+                    {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
+                    {k.label ? (
+                      <span style={{ color: "var(--ink-subtle)" }}> · {k.label}</span>
+                    ) : null}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      color: "var(--ink-subtle)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {k.preview}
+                    {k.model_id ? ` · ${k.model_id}` : ""}
+                    {k.base_url ? ` · ${k.base_url}` : ""}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  aria-label="Remove key"
+                  style={{ color: "var(--rose)", fontFamily: "var(--font-mono)", fontSize: 11 }}
+                  disabled={mDelKey.isPending && mDelKey.variables === k.id}
+                  onClick={() => mDelKey.mutate(k.id)}
+                >
+                  Remove
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { assertSafeBaseUrl } from "@/lib/url-safety";
@@ -7,33 +8,71 @@ import {
   listConfiguredPlatformProviders,
   resolveBestAgentModel,
 } from "@/lib/ai/platform-keys.server";
+import { entitlementsFor, normalizePlanTier } from "@/lib/entitlements";
+
+/**
+ * WM-M9: bring-your-own AI keys are enterprise-only. Resolves the caller's default
+ * workspace's account tier (same `current_user_default_workspace` pattern used
+ * throughout `*.functions.ts`) and checks it against the entitlements matrix, the
+ * single source of truth for what each tier permits. Fails to `false` (deny) on any
+ * error, the safe default for a retired self-serve capability.
+ */
+async function callerHasByokEntitlement(supabase: SupabaseClient): Promise<boolean> {
+  try {
+    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+    if (!workspaceId) return false;
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("plan_tier,account_id")
+      .eq("id", workspaceId as string)
+      .maybeSingle();
+    const w = (ws ?? {}) as { plan_tier?: string | null; account_id?: string | null };
+    let tier = normalizePlanTier(w.plan_tier);
+    if (w.account_id) {
+      const { data: acct } = await supabase
+        .from("accounts")
+        .select("plan_tier")
+        .eq("id", w.account_id)
+        .maybeSingle();
+      const a = (acct ?? {}) as { plan_tier?: string | null };
+      if (a.plan_tier != null) tier = normalizePlanTier(a.plan_tier);
+    }
+    return entitlementsFor(tier).byokAllowed;
+  } catch {
+    return false;
+  }
+}
 
 export const BYO_PROVIDERS = [
   // Tier 1 — top agentic quality
-  { id: "anthropic",  label: "Claude (Anthropic)",    placeholder: "sk-ant-…" },
-  { id: "openai",     label: "OpenAI",                placeholder: "sk-…" },
+  { id: "anthropic", label: "Claude (Anthropic)", placeholder: "sk-ant-…" },
+  { id: "openai", label: "OpenAI", placeholder: "sk-…" },
   // Tier 2 — strong open / regional alternatives
-  { id: "qwen",       label: "Qwen (Alibaba Cloud)",  placeholder: "sk-…  ·  set Base URL below" },
-  { id: "deepseek",   label: "DeepSeek",              placeholder: "sk-…" },
-  { id: "groq",       label: "Groq",                  placeholder: "gsk_…" },
-  { id: "xai",        label: "Grok (xAI)",            placeholder: "xai-…" },
-  { id: "mistral",    label: "Mistral",               placeholder: "…" },
-  { id: "moonshot",   label: "Moonshot (Kimi)",       placeholder: "sk-…" },
+  { id: "qwen", label: "Qwen (Alibaba Cloud)", placeholder: "sk-…  ·  set Base URL below" },
+  { id: "deepseek", label: "DeepSeek", placeholder: "sk-…" },
+  { id: "groq", label: "Groq", placeholder: "gsk_…" },
+  { id: "xai", label: "Grok (xAI)", placeholder: "xai-…" },
+  { id: "mistral", label: "Mistral", placeholder: "…" },
+  { id: "moonshot", label: "Moonshot (Kimi)", placeholder: "sk-…" },
   // Tier 3 — meta-routers & fast inference
-  { id: "openrouter", label: "OpenRouter",            placeholder: "sk-or-…" },
-  { id: "together",   label: "Together AI",           placeholder: "…" },
-  { id: "fireworks",  label: "Fireworks AI",          placeholder: "…" },
-  { id: "cerebras",   label: "Cerebras",              placeholder: "…" },
-  { id: "deepinfra",  label: "DeepInfra",             placeholder: "…" },
-  { id: "perplexity", label: "Perplexity",            placeholder: "pplx-…" },
-  { id: "minimax",    label: "MiniMax",               placeholder: "…" },
+  { id: "openrouter", label: "OpenRouter", placeholder: "sk-or-…" },
+  { id: "together", label: "Together AI", placeholder: "…" },
+  { id: "fireworks", label: "Fireworks AI", placeholder: "…" },
+  { id: "cerebras", label: "Cerebras", placeholder: "…" },
+  { id: "deepinfra", label: "DeepInfra", placeholder: "…" },
+  { id: "perplexity", label: "Perplexity", placeholder: "pplx-…" },
+  { id: "minimax", label: "MiniMax", placeholder: "…" },
   // Local / self-hosted
-  { id: "google",     label: "Gemini (Google)",       placeholder: "AIza…" },
-  { id: "ollama",     label: "Ollama (local)",        placeholder: "any string  ·  set Base URL below" },
+  { id: "google", label: "Gemini (Google)", placeholder: "AIza…" },
+  { id: "ollama", label: "Ollama (local)", placeholder: "any string  ·  set Base URL below" },
   // Utility
-  { id: "github_pat", label: "GitHub PAT",            placeholder: "ghp_…" },
+  { id: "github_pat", label: "GitHub PAT", placeholder: "ghp_…" },
   // Anything else — any OpenAI-compatible endpoint
-  { id: "custom",     label: "Custom / OpenAI-compatible", placeholder: "your API key  ·  set Base URL below" },
+  {
+    id: "custom",
+    label: "Custom / OpenAI-compatible",
+    placeholder: "your API key  ·  set Base URL below",
+  },
 ] as const;
 
 function maskFromPrefix(prefix: string | null | undefined): string {
@@ -119,6 +158,12 @@ export const saveApiKey = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => SaveSchema.parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    // WM-M9: saving a new BYO key is enterprise-only; self-serve is credits-only.
+    if (!(await callerHasByokEntitlement(supabase))) {
+      throw new Error(
+        "Bring-your-own AI keys are an Enterprise feature. Upgrade to Enterprise to use your own provider keys.",
+      );
+    }
     const { buildEncryptedKeyColumns } = await import("@/lib/byokeys-vault.server");
     const encrypted = await buildEncryptedKeyColumns(data.api_key);
     const { data: row, error } = await supabase
@@ -165,23 +210,23 @@ const TestSchema = z.object({
 
 function defaultModelFor(provider: string): string {
   const defaults: Record<string, string> = {
-    anthropic:  "anthropic/claude-haiku-4",
-    openai:     "openai/gpt-4o-mini",
-    google:     "google/gemini-2.5-flash-lite",
-    deepseek:   "deepseek/deepseek-chat",
-    xai:        "xai/grok-2-1212",
-    qwen:       "qwen/qwen-plus",
-    groq:       "groq/llama-3.3-70b-versatile",
-    mistral:    "mistral/mistral-large-latest",
-    moonshot:   "moonshot/moonshot-v1-128k",
+    anthropic: "anthropic/claude-haiku-4",
+    openai: "openai/gpt-4o-mini",
+    google: "google/gemini-2.5-flash-lite",
+    deepseek: "deepseek/deepseek-chat",
+    xai: "xai/grok-2-1212",
+    qwen: "qwen/qwen-plus",
+    groq: "groq/llama-3.3-70b-versatile",
+    mistral: "mistral/mistral-large-latest",
+    moonshot: "moonshot/moonshot-v1-128k",
     openrouter: "openrouter/openai/gpt-4o-mini",
-    together:   "together/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-    fireworks:  "fireworks/accounts/fireworks/models/llama-v3p1-70b-instruct",
-    cerebras:   "cerebras/llama3.1-70b",
-    deepinfra:  "deepinfra/meta-llama/Meta-Llama-3.1-70B-Instruct",
+    together: "together/meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+    fireworks: "fireworks/accounts/fireworks/models/llama-v3p1-70b-instruct",
+    cerebras: "cerebras/llama3.1-70b",
+    deepinfra: "deepinfra/meta-llama/Meta-Llama-3.1-70B-Instruct",
     perplexity: "perplexity/llama-3.1-sonar-large-128k-online",
-    minimax:    "minimax/minimax-text-01",
-    ollama:     "ollama/llama3.2",
+    minimax: "minimax/minimax-text-01",
+    ollama: "ollama/llama3.2",
     github_pat: "openai/gpt-4o-mini",
   };
   return defaults[provider] ?? `${provider}/auto`;
@@ -192,6 +237,18 @@ export const testApiKey = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => TestSchema.parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    // WM-M9: testing a pasted key is enterprise-only. Gated here (not left to the
+    // chokepoint's byoOverride branch) so a denied test reports the truth instead of
+    // silently falling back to the platform key and reporting a misleading "it works".
+    if (!(await callerHasByokEntitlement(supabase))) {
+      return {
+        ok: false,
+        latency_ms: 0,
+        model_echoed: data.model ?? defaultModelFor(data.provider),
+        error:
+          "Bring-your-own AI keys are an Enterprise feature. Upgrade to Enterprise to test your own provider keys.",
+      };
+    }
     // Test the caller's real model id when supplied (custom/open providers), else a
     // provider default. The chokepoint's byoOverride path routes generically to base_url.
     const model = data.model ?? defaultModelFor(data.provider);

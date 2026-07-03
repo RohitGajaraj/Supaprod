@@ -97,6 +97,12 @@ describe("entitlementsFor", () => {
       expect(e.dataExport).toBe(true);
     }
   });
+
+  it("WM-M9: bring-your-own AI keys are enterprise-only; every other tier is credits-only", () => {
+    for (const tier of PLAN_TIERS) {
+      expect(entitlementsFor(tier).byokAllowed).toBe(tier === "enterprise");
+    }
+  });
 });
 
 describe("limitFor", () => {

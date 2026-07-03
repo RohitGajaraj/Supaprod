@@ -27,6 +27,7 @@ import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
 import { resolvePrompt, logPromptRun, withHumanizeDirective } from "./prompts.server";
 import { humanizeText, isFenceOpen } from "./humanize";
+import { entitlementsFor, normalizePlanTier } from "../entitlements";
 
 import {
   generateCacheKey,
@@ -393,10 +394,40 @@ export type CallResult = {
 };
 
 /**
+ * WM-M9: bring-your-own AI keys are enterprise-only; every other tier is
+ * credits-only self-serve (model-agnostic provider routing still happens, but
+ * always through the platform's own keys). Resolves the SAME account
+ * `resolveCreditAccountId` already uses (the workspace's account, else the
+ * user's default account), so this can never disagree with which pool credits
+ * draw from. Fails to `false` (deny BYOK) on any error, the safe default when
+ * gating a retired capability, deliberately the opposite of this file's
+ * "never strand a call" fail-open convention used for budgets/guardrails.
+ */
+async function byokAllowedForCall(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string | null | undefined,
+): Promise<boolean> {
+  try {
+    const accountId = await resolveCreditAccountId(supabase, userId, workspaceId);
+    if (!accountId) return false;
+    const { data } = await supabase
+      .from("accounts")
+      .select("plan_tier")
+      .eq("id", accountId)
+      .maybeSingle();
+    const tier = normalizePlanTier((data as { plan_tier?: unknown } | null)?.plan_tier);
+    return entitlementsFor(tier).byokAllowed;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * MODEL-AGNOSTIC key resolution. Resolve the credential (and its base URL) to use
  * for a model's provider, in precedence order:
  *   1. byoOverride       — the Settings "Test" path (a pasted, not-yet-saved key)
- *   2. user vault        — an enterprise BYO key in user_api_keys (RLS-scoped)
+ *   2. user vault        — a BYO key in user_api_keys (RLS-scoped, enterprise tier only)
  *   3. platform env      — the platform operator's own key (AI_PROVIDER_<P>_KEY)
  * Returns null when none is configured → the caller uses the managed gateway.
  *
@@ -408,6 +439,7 @@ async function resolveCallKey(
   userId: string,
   provider: string,
   byoOverride?: { provider: string; apiKey: string; baseUrl?: string },
+  workspaceId?: string | null,
 ): Promise<{
   apiKey: string;
   baseUrl: string | null;
@@ -416,9 +448,11 @@ async function resolveCallKey(
   if (byoOverride) {
     return { apiKey: byoOverride.apiKey, baseUrl: byoOverride.baseUrl ?? null, source: "override" };
   }
-  const { loadBYOKey } = await import("@/lib/byokeys-vault.server");
-  const vault = await loadBYOKey(supabase, userId, provider);
-  if (vault?.api_key) return { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" };
+  if (await byokAllowedForCall(supabase, userId, workspaceId)) {
+    const { loadBYOKey } = await import("@/lib/byokeys-vault.server");
+    const vault = await loadBYOKey(supabase, userId, provider);
+    if (vault?.api_key) return { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" };
+  }
   const plat = resolvePlatformProviderKey(provider);
   if (plat) return { apiKey: plat.apiKey, baseUrl: plat.baseUrl, source: "platform" };
   return null;
@@ -1380,7 +1414,13 @@ export async function callModel(
 
   const attempt = async (model: string) => {
     const { provider: prov } = splitModelId(model);
-    const keyInfo = await resolveCallKey(supabase, userId, prov, opts.byoOverride);
+    const keyInfo = await resolveCallKey(
+      supabase,
+      userId,
+      prov,
+      opts.byoOverride,
+      opts.workspaceId,
+    );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
       if (route) {
@@ -1849,7 +1889,13 @@ export async function callModelStream(
 
   const attemptStream = async (model: string): Promise<Response> => {
     const { provider: prov } = splitModelId(model);
-    const keyInfo = await resolveCallKey(supabase, userId, prov, opts.byoOverride);
+    const keyInfo = await resolveCallKey(
+      supabase,
+      userId,
+      prov,
+      opts.byoOverride,
+      opts.workspaceId,
+    );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
       if (route) {
