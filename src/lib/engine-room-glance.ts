@@ -44,6 +44,29 @@ function fmtUsd(n: number): string {
   return n >= 1000 ? `$${Math.round(n).toLocaleString("en-US")}` : `$${n.toFixed(0)}`;
 }
 
+/**
+ * OBS-15: zero-fills a sparse day-bucketed series (as returned by
+ * getAnalyticsOverview's `daily`, which only carries an entry for a day that
+ * had at least one event) into a fixed-length window of `days` entries
+ * ending at `asOfMs` (defaults to Date.now()), oldest first. A day with no
+ * bucket entry is a real zero, not a gap: without this, a chart that plots
+ * the sparse array by index draws a quiet day as if it were adjacent to its
+ * neighbors, implying a smooth trend across days that never happened.
+ */
+export function zeroFillDaily(
+  daily: readonly { day: string; cost: number }[],
+  days: number,
+  asOfMs = Date.now(),
+): number[] {
+  const byDay = new Map(daily.map((d) => [d.day, d.cost]));
+  const out: number[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const key = new Date(asOfMs - i * 86400000).toISOString().slice(0, 10);
+    out.push(byDay.get(key) ?? 0);
+  }
+  return out;
+}
+
 function fmtSignedPct(pct: number): string {
   const rounded = Math.round(pct);
   return `${rounded >= 0 ? "+" : ""}${rounded}%`;

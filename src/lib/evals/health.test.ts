@@ -46,12 +46,7 @@ describe("computeEvalHealth — pass rate, error rate, score", () => {
   });
 
   it("computes error rate independent of pass/fail", () => {
-    const h = computeEvalHealth([
-      run({ errored: 1 }),
-      run(),
-      run(),
-      run(),
-    ]);
+    const h = computeEvalHealth([run({ errored: 1 }), run(), run(), run()]);
     expect(h.errorRate).toBeCloseTo(0.25, 2); // 1 of 4 runs errored
   });
 
@@ -67,6 +62,40 @@ describe("computeEvalHealth — pass rate, error rate, score", () => {
       run({ pass_count: 5, fail_count: 5, total_cases: 10 }),
     ]);
     expect(h.verdict).toBe("at-risk");
+  });
+});
+
+describe("computeEvalHealth — scoreTrend (OBS-15)", () => {
+  it("is empty when no run reports a score", () => {
+    const h = computeEvalHealth([run({ avg_score: null })]);
+    expect(h.scoreTrend).toEqual([]);
+  });
+
+  it("orders scored runs chronologically, oldest first", () => {
+    const h = computeEvalHealth([
+      run({ created_at: "2026-06-03T00:00:00Z", avg_score: 90 }),
+      run({ created_at: "2026-06-01T00:00:00Z", avg_score: 70 }),
+      run({ created_at: "2026-06-02T00:00:00Z", avg_score: 80 }),
+    ]);
+    expect(h.scoreTrend).toEqual([70, 80, 90]);
+  });
+
+  it("skips runs with no score but keeps the ones that have one", () => {
+    const h = computeEvalHealth([
+      run({ created_at: "2026-06-01T00:00:00Z", avg_score: 60 }),
+      run({ created_at: "2026-06-02T00:00:00Z", avg_score: null }),
+      run({ created_at: "2026-06-03T00:00:00Z", avg_score: 75 }),
+    ]);
+    expect(h.scoreTrend).toEqual([60, 75]);
+  });
+
+  it("caps at the last 10 scored runs", () => {
+    const runs = Array.from({ length: 14 }, (_, i) =>
+      run({ created_at: `2026-06-${String(i + 1).padStart(2, "0")}T00:00:00Z`, avg_score: i }),
+    );
+    const h = computeEvalHealth(runs);
+    expect(h.scoreTrend.length).toBe(10);
+    expect(h.scoreTrend).toEqual([4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 
@@ -86,18 +115,18 @@ describe("computeEvalHealth — flakiness", () => {
   });
 
   it("a stable suite is not flaky and needs >=3 runs to judge", () => {
-    const h = computeEvalHealth([
-      run({ suite_id: "stable" }),
-      run({ suite_id: "stable" }),
-    ]);
+    const h = computeEvalHealth([run({ suite_id: "stable" }), run({ suite_id: "stable" })]);
     expect(h.suites[0].flakiness).toBeNull(); // too few runs
     expect(h.suites[0].flaky).toBe(false);
   });
 
   it("surfaces suite titles when provided", () => {
-    const h = computeEvalHealth([run({ suite_id: "s9" }), run({ suite_id: "s9" }), run({ suite_id: "s9" })], {
-      s9: "Checkout safety suite",
-    });
+    const h = computeEvalHealth(
+      [run({ suite_id: "s9" }), run({ suite_id: "s9" }), run({ suite_id: "s9" })],
+      {
+        s9: "Checkout safety suite",
+      },
+    );
     expect(h.suites.find((s) => s.suiteId === "s9")?.title).toBe("Checkout safety suite");
   });
 });

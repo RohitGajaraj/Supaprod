@@ -82,6 +82,11 @@ export type ImpactLedger = {
   highlights: ImpactHighlight[];
   /** One honest plain-language headline; degrades gracefully on sparse data. */
   headline: string;
+  /** Decisions created per week, oldest first, over the last 8 weeks (real
+   * `created_at` timestamps only, never fabricated). OBS-15: feeds the Brain
+   * stat-trio's chart-grammar sparkline. All-zero when nothing landed in the
+   * window, which is honest, not an error. */
+  decisionsTrend: number[];
 };
 
 function round1(n: number): number {
@@ -107,7 +112,29 @@ export type ImpactLedgerInput = {
   supersededDecisionIds?: ReadonlySet<string>;
   /** Cap on highlights returned. */
   maxHighlights?: number;
+  /** Reference "now" in ms since epoch, for decisionsTrend's week bucketing.
+   * Callers pass it so the ledger stays deterministic/testable; defaults to
+   * Date.now(). */
+  asOfMs?: number;
 };
+
+const TREND_WEEKS = 8;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** PURE. Decisions created per week, oldest first, over the last
+ * `TREND_WEEKS` weeks ending at `asOfMs`. Real timestamps only. */
+function computeDecisionsTrend(decisions: readonly ImpactDecisionRow[], asOfMs: number): number[] {
+  const buckets = new Array(TREND_WEEKS).fill(0) as number[];
+  for (const d of decisions) {
+    if (!d || typeof d.created_at !== "string") continue;
+    const t = Date.parse(d.created_at);
+    if (Number.isNaN(t)) continue;
+    const weeksAgo = Math.floor((asOfMs - t) / WEEK_MS);
+    const idx = TREND_WEEKS - 1 - weeksAgo; // 0 = oldest bucket, last = the current week
+    if (idx >= 0 && idx < TREND_WEEKS) buckets[idx] += 1;
+  }
+  return buckets;
+}
 
 /**
  * PURE. Aggregate a PM's decisions + recorded outcomes into a portable track record.
@@ -197,6 +224,8 @@ export function computeImpactLedger(input: ImpactLedgerInput): ImpactLedger {
     iceShiftTotal,
   });
 
+  const decisionsTrend = computeDecisionsTrend(decisions, input.asOfMs ?? Date.now());
+
   return {
     decisionsTotal: decisions.length,
     humanLed,
@@ -210,6 +239,7 @@ export function computeImpactLedger(input: ImpactLedgerInput): ImpactLedger {
     span,
     highlights,
     headline,
+    decisionsTrend,
   };
 }
 
@@ -220,7 +250,7 @@ function buildHeadline(x: {
   iceShiftTotal: number;
 }): string {
   if (x.decisionsTotal === 0) {
-    return "No decisions on record yet — your track record fills in as you make and resolve calls.";
+    return "No decisions on record yet. Your track record fills in as you make and resolve calls.";
   }
   const parts: string[] = [`${x.decisionsTotal} decisions on record`];
   if (x.outcomes.hitRate !== null) {
@@ -231,26 +261,15 @@ function buildHeadline(x: {
     parts.push(`${x.outcomes.total} outcomes recorded, none decisive yet`);
   }
   if (x.beliefsRevised > 0) {
-    parts.push(`${x.beliefsRevised} belief${x.beliefsRevised === 1 ? "" : "s"} revised on evidence`);
+    parts.push(
+      `${x.beliefsRevised} belief${x.beliefsRevised === 1 ? "" : "s"} revised on evidence`,
+    );
   }
   return parts.join(" · ") + ".";
 }
 
 /** Human-month label, e.g. "Jun 2026", from a YYYY-MM-DD(...) stamp. */
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function humanMonth(iso: string | null): string {
   const k = monthKey(iso);
   if (!k) return "—";
@@ -283,12 +302,18 @@ export function renderImpactMarkdown(ledger: ImpactLedger, opts: RenderImpactOpt
   lines.push("");
 
   lines.push("## The record");
-  lines.push(`- Decisions made: ${ledger.decisionsTotal} (${ledger.humanLed} yours, ${ledger.agentLed} agent-led under your governance)`);
+  lines.push(
+    `- Decisions made: ${ledger.decisionsTotal} (${ledger.humanLed} yours, ${ledger.agentLed} agent-led under your governance)`,
+  );
   if (ledger.span.firstAt) {
-    lines.push(`- Span: ${humanMonth(ledger.span.firstAt)} to ${humanMonth(ledger.span.lastAt)}, active across ${ledger.span.activeMonths} month${ledger.span.activeMonths === 1 ? "" : "s"}`);
+    lines.push(
+      `- Span: ${humanMonth(ledger.span.firstAt)} to ${humanMonth(ledger.span.lastAt)}, active across ${ledger.span.activeMonths} month${ledger.span.activeMonths === 1 ? "" : "s"}`,
+    );
   }
   if (ledger.beliefsRevised > 0) {
-    lines.push(`- Beliefs revised on evidence: ${ledger.beliefsRevised} (you changed your mind when the data did)`);
+    lines.push(
+      `- Beliefs revised on evidence: ${ledger.beliefsRevised} (you changed your mind when the data did)`,
+    );
   }
   lines.push("");
 
@@ -297,12 +322,16 @@ export function renderImpactMarkdown(ledger: ImpactLedger, opts: RenderImpactOpt
     lines.push("- No outcomes recorded yet.");
   } else {
     if (ledger.outcomes.hitRate !== null) {
-      lines.push(`- Hit rate: ${Math.round(ledger.outcomes.hitRate * 100)}% (${ledger.outcomes.validated} validated, ${ledger.outcomes.missed} missed)`);
+      lines.push(
+        `- Hit rate: ${Math.round(ledger.outcomes.hitRate * 100)}% (${ledger.outcomes.validated} validated, ${ledger.outcomes.missed} missed)`,
+      );
     }
     if (ledger.outcomes.mixed > 0) lines.push(`- Mixed / partial: ${ledger.outcomes.mixed}`);
     if (ledger.measuredOutcomes > 0) {
       const sign = ledger.iceShiftTotal >= 0 ? "+" : "";
-      lines.push(`- Priority impact: ${sign}${ledger.iceShiftTotal} net ICE across ${ledger.measuredOutcomes} measured outcome${ledger.measuredOutcomes === 1 ? "" : "s"}`);
+      lines.push(
+        `- Priority impact: ${sign}${ledger.iceShiftTotal} net ICE across ${ledger.measuredOutcomes} measured outcome${ledger.measuredOutcomes === 1 ? "" : "s"}`,
+      );
     }
   }
   lines.push("");

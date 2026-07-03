@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { getImpactLedger, type ImpactLedgerResult } from "@/lib/pm-impact.functions";
 import { Button, MonoLabel } from "@/components/obsidian/primitives";
+import { Sparkline } from "@/components/obsidian";
 
 // OBS-08 — the Brain stat trio + "Export my record". Reuses getImpactLedger
 // (already backing /impact) read-only; no server-fn change. The prototype's
@@ -14,7 +15,14 @@ export type BrainStatCell = { value: string; label: string };
 
 export type BrainStats =
   | { hasRecord: false }
-  | { hasRecord: true; cells: BrainStatCell[]; markdown: string | null };
+  | {
+      hasRecord: true;
+      cells: BrainStatCell[];
+      markdown: string | null;
+      /** OBS-15: decisions per week, oldest first, last 8 weeks. Real
+       * decisions.created_at only, never fabricated; see pm-impact.ts. */
+      decisionsTrend: number[];
+    };
 
 /** PURE — the ledger -> stat-cell mapping. No dashboard/dollar fabrication;
  * the VALIDATED cell is omitted entirely when hitRate is null; the export
@@ -33,7 +41,12 @@ export function deriveBrainStats(result: ImpactLedgerResult): BrainStats {
     label: "ICE MOVED",
   });
 
-  return { hasRecord: true, cells, markdown: markdown || null };
+  return {
+    hasRecord: true,
+    cells,
+    markdown: markdown || null,
+    decisionsTrend: ledger.decisionsTrend,
+  };
 }
 
 function StatCell({ value, label }: BrainStatCell) {
@@ -106,11 +119,18 @@ export function BrainStatTrio() {
     );
   }
 
+  const hasDecisionsTrend = stats.decisionsTrend.some((n) => n > 0);
   return (
     <div className="flex flex-wrap items-end" style={{ gap: 32, marginBottom: 18 }}>
       {stats.cells.map((c) => (
         <StatCell key={c.label} value={c.value} label={c.label} />
       ))}
+      {hasDecisionsTrend ? (
+        <div>
+          <MonoLabel style={{ fontSize: "var(--text-mono-micro)" }}>CALLS · LAST 8 WEEKS</MonoLabel>
+          <Sparkline data={stats.decisionsTrend} w={140} h={32} />
+        </div>
+      ) : null}
       <span className="flex-1" />
       {stats.markdown ? (
         <div className="flex flex-col items-end" style={{ gap: 4 }}>

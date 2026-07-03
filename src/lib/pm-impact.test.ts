@@ -1,9 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import {
-  computeImpactLedger,
-  renderImpactMarkdown,
-  type ImpactLedgerInput,
-} from "./pm-impact";
+import { computeImpactLedger, renderImpactMarkdown, type ImpactLedgerInput } from "./pm-impact";
 
 function ledger(over: Partial<ImpactLedgerInput> = {}) {
   return computeImpactLedger({ decisions: [], learnings: [], ...over });
@@ -34,8 +30,18 @@ describe("computeImpactLedger — human vs agent + status + span", () => {
     const r = ledger({
       decisions: [
         { id: "d1", status: "shipped", created_at: "2026-04-10T00:00:00Z" },
-        { id: "d2", status: "shipped", created_at: "2026-06-02T00:00:00Z", decided_by_agent_slug: "scout" },
-        { id: "d3", status: "draft", created_at: "2026-06-20T00:00:00Z", decided_by_agent_slug: "  " },
+        {
+          id: "d2",
+          status: "shipped",
+          created_at: "2026-06-02T00:00:00Z",
+          decided_by_agent_slug: "scout",
+        },
+        {
+          id: "d3",
+          status: "draft",
+          created_at: "2026-06-20T00:00:00Z",
+          decided_by_agent_slug: "  ",
+        },
       ],
     });
     expect(r.humanLed).toBe(2); // d1 + d3 (blank slug = human)
@@ -99,11 +105,22 @@ describe("renderImpactMarkdown — portable artifact", () => {
         { id: "d2", status: "shipped", created_at: "2026-06-01T00:00:00Z" },
       ],
       learnings: [
-        { verdict: "validated", summary: "Checkout redesign lifted conversion", metric_label: "conv", metric_value: "+12%", prior_ice: 4, new_ice: 8 },
+        {
+          verdict: "validated",
+          summary: "Checkout redesign lifted conversion",
+          metric_label: "conv",
+          metric_value: "+12%",
+          prior_ice: 4,
+          new_ice: 8,
+        },
       ],
       supersededDecisionIds: new Set(["d1"]),
     });
-    const md = renderImpactMarkdown(l, { name: "Alex Rivera", workspace: "Acme", asOf: "2026-06-24" });
+    const md = renderImpactMarkdown(l, {
+      name: "Alex Rivera",
+      workspace: "Acme",
+      asOf: "2026-06-24",
+    });
     expect(md).toContain("# Alex Rivera");
     expect(md).toContain("_Acme_");
     expect(md).toContain("As of 2026-06-24");
@@ -128,5 +145,57 @@ describe("renderImpactMarkdown — portable artifact", () => {
     expect(md.includes("—")).toBe(false);
     expect(md.includes("–")).toBe(false);
     expect(md.toLowerCase()).not.toContain("delve");
+  });
+});
+
+describe("computeImpactLedger — decisionsTrend (OBS-15)", () => {
+  const ASOF = Date.parse("2026-07-03T12:00:00Z"); // a Friday, for a fixed reference "now"
+
+  it("is 8 all-zero weekly buckets with no decisions", () => {
+    const r = ledger({ asOfMs: ASOF });
+    expect(r.decisionsTrend).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("buckets a decision into the current (last) week", () => {
+    const r = ledger({
+      decisions: [{ id: "d1", created_at: "2026-07-03T00:00:00Z" }],
+      asOfMs: ASOF,
+    });
+    expect(r.decisionsTrend).toEqual([0, 0, 0, 0, 0, 0, 0, 1]);
+  });
+
+  it("buckets a decision from ~7 weeks ago into the oldest bucket", () => {
+    const r = ledger({
+      decisions: [{ id: "d1", created_at: "2026-05-13T00:00:00Z" }], // 51 days before ASOF
+      asOfMs: ASOF,
+    });
+    expect(r.decisionsTrend).toEqual([1, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("drops decisions older than the 8-week window and ignores malformed timestamps", () => {
+    const r = ledger({
+      decisions: [
+        { id: "d1", created_at: "2026-01-01T00:00:00Z" }, // way outside the window
+        { id: "d2", created_at: "not-a-date" },
+        { id: "d3" }, // no created_at
+        { id: "d4", created_at: "2026-07-01T00:00:00Z" }, // inside, current week
+      ],
+      asOfMs: ASOF,
+    });
+    expect(r.decisionsTrend.reduce((a, b) => a + b, 0)).toBe(1);
+    expect(r.decisionsTrend[7]).toBe(1);
+  });
+
+  it("real-count only, never fabricated: sums to decisionsTotal when every decision is in-window", () => {
+    const r = ledger({
+      decisions: [
+        { id: "d1", created_at: "2026-06-20T00:00:00Z" },
+        { id: "d2", created_at: "2026-06-27T00:00:00Z" },
+        { id: "d3", created_at: "2026-07-02T00:00:00Z" },
+      ],
+      asOfMs: ASOF,
+    });
+    expect(r.decisionsTrend.reduce((a, b) => a + b, 0)).toBe(3);
+    expect(r.decisionsTrend.reduce((a, b) => a + b, 0)).toBe(r.decisionsTotal);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { buildGlance, type GlanceInputs } from "../engine-room-glance";
+import { buildGlance, zeroFillDaily, type GlanceInputs } from "../engine-room-glance";
 
 describe("engine-room-glance buildGlance", () => {
   it("falls back to the prototype literals on empty input", () => {
@@ -113,5 +113,32 @@ describe("engine-room-glance buildGlance", () => {
     };
     const record = buildGlance(inputs)[3];
     expect(record.verdict).toBe("3 traces · ledger unverified");
+  });
+});
+
+describe("zeroFillDaily (OBS-15)", () => {
+  const ASOF = Date.parse("2026-07-03T12:00:00Z");
+
+  it("zero-fills every day when the sparse series is empty", () => {
+    expect(zeroFillDaily([], 7, ASOF)).toEqual([0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("places a real value at its own day, oldest first, without shifting a gap day next to its neighbor", () => {
+    // Spend happened only on day 1 (2026-06-27) and day 7 (2026-07-03) of the
+    // window; the 5 days between must stay real zeros, not be collapsed out.
+    const daily = [
+      { day: "2026-06-27", cost: 12 },
+      { day: "2026-07-03", cost: 40 },
+    ];
+    expect(zeroFillDaily(daily, 7, ASOF)).toEqual([12, 0, 0, 0, 0, 0, 40]);
+  });
+
+  it("ignores a bucket entry outside the requested window", () => {
+    const daily = [
+      { day: "2026-06-01", cost: 999 }, // outside a 7-day window ending at ASOF
+      { day: "2026-07-01", cost: 5 },
+    ];
+    const filled = zeroFillDaily(daily, 7, ASOF);
+    expect(filled.reduce((a, b) => a + b, 0)).toBe(5);
   });
 });

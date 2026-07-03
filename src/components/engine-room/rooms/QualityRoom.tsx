@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard } from "@/components/obsidian";
+import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
 import { listEvalSuites, getEvalScoreTrends } from "@/lib/evals.functions";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getDriftOverview } from "@/lib/drift.functions";
@@ -13,19 +13,28 @@ function ScoreView() {
   const q = useQuery({ queryKey: ["eval-health"], queryFn: () => fHealth() });
   const health = q.data?.health;
   const passRatePct = health?.passRate != null ? Math.round(health.passRate * 100) : null;
+  const trend = health?.scoreTrend ?? [];
   return (
-    <AuroraCard
-      label="PASS RATE"
-      value={passRatePct != null ? `${passRatePct}%` : "-"}
-      note={health ? `${health.trend} · ${health.verdict}` : "no eval runs yet"}
-      hue={
-        health?.verdict === "at-risk"
-          ? "failing"
-          : health?.verdict === "watch"
-            ? "attention"
-            : "healthy"
-      }
-    />
+    <div className="flex flex-col gap-3">
+      <AuroraCard
+        label="PASS RATE"
+        value={passRatePct != null ? `${passRatePct}%` : "-"}
+        note={health ? `${health.trend} · ${health.verdict}` : "no eval runs yet"}
+        hue={
+          health?.verdict === "at-risk"
+            ? "failing"
+            : health?.verdict === "watch"
+              ? "attention"
+              : "healthy"
+        }
+      />
+      {trend.length >= 2 ? (
+        <div>
+          <MonoLabel tone="muted">SCORE · RECENT RUNS</MonoLabel>
+          <Sparkline data={trend} w={260} h={44} />
+        </div>
+      ) : null}
+    </div>
   );
 }
 

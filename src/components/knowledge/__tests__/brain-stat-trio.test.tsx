@@ -18,6 +18,7 @@ const BASE_LEDGER: ImpactLedger = {
   span: { firstAt: null, lastAt: null, activeMonths: 0 },
   highlights: [],
   headline: "",
+  decisionsTrend: [0, 0, 0, 0, 0, 0, 0, 0],
 };
 
 function result(overrides: Partial<ImpactLedger>, markdown = "# record"): ImpactLedgerResult {
@@ -78,6 +79,15 @@ describe("deriveBrainStats — the Brain stat trio's pure data mapping", () => {
   test("measuredOutcomes alone (no decisions yet) still counts as having a record", () => {
     const stats = deriveBrainStats(result({ decisionsTotal: 0, measuredOutcomes: 2 }));
     expect(stats.hasRecord).toBe(true);
+  });
+
+  test("OBS-15: decisionsTrend passes through from the ledger, real counts only", () => {
+    const stats = deriveBrainStats(
+      result({ decisionsTotal: 4, decisionsTrend: [0, 0, 1, 0, 2, 0, 0, 1] }),
+    );
+    expect(stats.hasRecord).toBe(true);
+    if (!stats.hasRecord) return;
+    expect(stats.decisionsTrend).toEqual([0, 0, 1, 0, 2, 0, 0, 1]);
   });
 });
 

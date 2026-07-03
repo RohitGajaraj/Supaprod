@@ -55,6 +55,11 @@ export type EvalHealth = {
   suites: SuiteHealth[];
   /** A coarse, honest trust verdict for a headline. */
   verdict: "healthy" | "watch" | "at-risk" | "no-data";
+  /** Chronological avg_score (oldest first) of the last up to 10 runs that
+   * reported one, across all suites. Empty when no run has a score.
+   * OBS-15: feeds the Quality/SCORE room's chart-grammar sparkline. Real
+   * run history only, never a fabricated point. */
+  scoreTrend: number[];
 };
 
 const COMPLETED = "completed";
@@ -103,7 +108,8 @@ export function computeEvalHealth(
   const completedRuns = completed.length;
 
   const passRate = poolPassRate(runs);
-  const errorRate = totalRuns > 0 ? round2(runs.filter((r) => r.errored > 0).length / totalRuns) : 0;
+  const errorRate =
+    totalRuns > 0 ? round2(runs.filter((r) => r.errored > 0).length / totalRuns) : 0;
 
   let scoreSum = 0;
   let scoreN = 0;
@@ -124,7 +130,9 @@ export function computeEvalHealth(
   }
   const suites: SuiteHealth[] = [];
   for (const [suiteId, list] of bySuite) {
-    const ordered = [...list].sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""));
+    const ordered = [...list].sort((a, b) =>
+      (a.created_at ?? "").localeCompare(b.created_at ?? ""),
+    );
     const completedOrdered = ordered.filter(isCompleted);
     let flakiness: number | null = null;
     if (completedOrdered.length >= 3) {
@@ -150,12 +158,16 @@ export function computeEvalHealth(
     }
     return b.runs - a.runs;
   });
-  const flakySuites = suites.filter((s) => s.flaky).sort((a, b) => (b.flakiness ?? 0) - (a.flakiness ?? 0));
+  const flakySuites = suites
+    .filter((s) => s.flaky)
+    .sort((a, b) => (b.flakiness ?? 0) - (a.flakiness ?? 0));
 
   // Trend: recent half vs prior half of completed runs (chronological), by pooled pass rate.
   let trend: TrendDirection = "unknown";
   if (completedRuns >= 4) {
-    const chrono = [...completed].sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""));
+    const chrono = [...completed].sort((a, b) =>
+      (a.created_at ?? "").localeCompare(b.created_at ?? ""),
+    );
     const mid = Math.floor(chrono.length / 2);
     const prior = poolPassRate(chrono.slice(0, mid));
     const recent = poolPassRate(chrono.slice(mid));
@@ -168,9 +180,19 @@ export function computeEvalHealth(
 
   let verdict: EvalHealth["verdict"];
   if (completedRuns === 0) verdict = "no-data";
-  else if ((passRate ?? 0) >= 0.9 && errorRate < 0.1 && flakySuites.length === 0) verdict = "healthy";
+  else if ((passRate ?? 0) >= 0.9 && errorRate < 0.1 && flakySuites.length === 0)
+    verdict = "healthy";
   else if ((passRate ?? 0) >= 0.7 && flakySuites.length <= 1) verdict = "watch";
   else verdict = "at-risk";
+
+  const scoreTrend = runs
+    .filter(
+      (r): r is EvalRunRow & { avg_score: number } =>
+        typeof r.avg_score === "number" && !Number.isNaN(r.avg_score),
+    )
+    .sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""))
+    .slice(-10)
+    .map((r) => r.avg_score);
 
   return {
     totalRuns,
@@ -182,6 +204,7 @@ export function computeEvalHealth(
     flakySuites,
     suites,
     verdict,
+    scoreTrend,
   };
 }
 
@@ -195,7 +218,9 @@ export function summarizeEvalHealth(h: EvalHealth): string {
   parts.push(`across ${h.completedRuns} completed run${h.completedRuns === 1 ? "" : "s"}`);
   if (h.trend !== "unknown" && h.trend !== "stable") parts.push(`quality is ${h.trend}`);
   if (h.flakySuites.length > 0) {
-    parts.push(`${h.flakySuites.length} flaky suite${h.flakySuites.length === 1 ? "" : "s"} to fix`);
+    parts.push(
+      `${h.flakySuites.length} flaky suite${h.flakySuites.length === 1 ? "" : "s"} to fix`,
+    );
   }
   if (h.errorRate >= 0.1) parts.push(`${Math.round(h.errorRate * 100)}% of runs errored`);
   return parts.join(", ") + ".";
