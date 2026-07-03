@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
+import { useConfirm } from "@/hooks/use-confirm";
 import { VerdictChip, MonoLabel } from "@/components/obsidian";
 import { LineageDrawer } from "@/components/cadence/LineageDrawer";
 import { listSpecs, deletePrd, createGithubIssueForPrd, savePrd } from "@/lib/discovery.functions";
@@ -32,10 +33,15 @@ const TONE_TO_VERDICT = {
   glacier: "DRAFTING",
 } as const;
 
-/** OBS-07 §5 step 5: the cited spec list. Shares `["prds"]` with the parchment SpecsPanel. */
+/**
+ * OBS-07 §5 step 5: the cited spec list. OBS-10 (final closure): absorbed
+ * every write action the now-retired parchment `SpecsPanel` had (rename,
+ * generate tasks, GitHub issue, hand to Build, lineage, delete).
+ */
 export function SpecList({ onOpen }: SpecListProps) {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const fSpecs = useServerFn(listSpecs);
   const fSave = useServerFn(savePrd);
   const fDelete = useServerFn(deletePrd);
@@ -201,7 +207,10 @@ export function SpecList({ onOpen }: SpecListProps) {
                 }}
                 onKeyDown={(e) => {
                   if (isRenaming) return;
-                  if (e.key === "Enter") onOpen(spec.id);
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onOpen(spec.id);
+                  }
                 }}
                 className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
                 style={{
@@ -331,7 +340,14 @@ export function SpecList({ onOpen }: SpecListProps) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onSelect={() => del.mutate(spec.id)}
+                    onSelect={async () => {
+                      const ok = await confirm({
+                        title: `Delete "${spec.title}"?`,
+                        body: "This deletes the spec. This can't be undone.",
+                        destructive: true,
+                      });
+                      if (ok) del.mutate(spec.id);
+                    }}
                     className="text-destructive focus:text-destructive"
                   >
                     Delete

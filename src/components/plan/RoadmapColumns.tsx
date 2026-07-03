@@ -22,17 +22,16 @@ const COLUMNS: { key: RoadmapBucket; label: string; color: string }[] = [
 ];
 
 /**
- * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Shares the
- * exact `["roadmap"]` query key + `commitRoadmapItem`/`updateRoadmapItem`
- * server fns with the still-live parchment `RoadmapBoard`, so the two never
- * diverge. Backlog items (`bucket: null`) are out of this surface's scope
- * (§13) and stay invisible here.
+ * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Backlog items
+ * (`bucket: null`) are out of this surface's scope (§13) and stay invisible
+ * here.
  *
- * OBS-10: write parity with the legacy board — editing the outcome of an
- * ALREADY-committed bet goes through the same governed `commitRoadmapItem`
- * path the legacy `RoadmapBoard`'s inline editor used (bucket stays put,
- * outcome+measure get re-declared), and a multi-select bulk re-prioritize
- * bar calls `bulkUpdateRoadmapItems`.
+ * OBS-10 (final closure): write parity with the now-retired parchment
+ * `RoadmapBoard` (deleted). Editing the outcome of an ALREADY-committed bet
+ * goes through the same governed `commitRoadmapItem` path the retired
+ * board's inline editor used (bucket stays put, outcome+measure get
+ * re-declared), and a multi-select bulk re-prioritize bar calls
+ * `bulkUpdateRoadmapItems`.
  */
 export function RoadmapColumns() {
   const qc = useQueryClient();
@@ -73,9 +72,9 @@ export function RoadmapColumns() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // OBS-10: re-declare outcome+measure for a bet already sitting in a bucket —
-  // same governed write as `commit` above, but the bucket is the bet's current
-  // one (not forced to "now"), so it never re-homes a bet just for an edit.
+  // OBS-10: re-declare outcome+measure for a bet already sitting in a bucket,
+  // the same governed write as `commit` above, but the bucket is the bet's
+  // current one (not forced to "now"), so it never re-homes a bet for an edit.
   const editOutcome = useMutation({
     mutationFn: (v: { id: string; bucket: RoadmapBucket; outcome: string; measure: string }) =>
       fCommit({ data: { id: v.id, bucket: v.bucket, outcome: v.outcome, measure: v.measure } }),
@@ -197,7 +196,7 @@ export function RoadmapColumns() {
 
   return (
     <>
-      {/* OBS-10: bulk re-prioritize bar — appears only once a set is selected (calm front). */}
+      {/* OBS-10: bulk re-prioritize bar, appears only once a set is selected (calm front). */}
       {selectedIds.size > 0 && (
         <div
           style={{

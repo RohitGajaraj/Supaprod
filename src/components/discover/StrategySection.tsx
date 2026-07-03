@@ -7,7 +7,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
-import { MonoLabel } from "@/components/obsidian";
+import { Button, MonoLabel } from "@/components/obsidian";
 import {
   listTrackedEntities,
   listStrategyBriefs,
@@ -167,6 +167,22 @@ export function StrategySection() {
           <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
             Reading briefs
           </MonoLabel>
+        ) : briefsQ.error ? (
+          <div>
+            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+              Could not load briefs
+            </MonoLabel>
+            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+              {(briefsQ.error as Error).message}
+            </p>
+            <Button
+              variant="secondary"
+              style={{ marginTop: "12px" }}
+              onClick={() => briefsQ.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
         ) : briefs.length === 0 ? (
           <p
             style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
@@ -189,6 +205,22 @@ export function StrategySection() {
           <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
             Reading watch list
           </MonoLabel>
+        ) : entitiesQ.error ? (
+          <div>
+            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+              Could not load the watch list
+            </MonoLabel>
+            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+              {(entitiesQ.error as Error).message}
+            </p>
+            <Button
+              variant="secondary"
+              style={{ marginTop: "12px" }}
+              onClick={() => entitiesQ.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
         ) : entities.length === 0 ? (
           <p
             style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}

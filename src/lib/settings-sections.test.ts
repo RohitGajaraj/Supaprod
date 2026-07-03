@@ -88,6 +88,10 @@ describe("settings-sections - four-pane shape", () => {
   it("AI & keys lives in Workspace, not its own pane", () => {
     expect(groupForSection("ai")).toBe("workspace");
   });
+
+  it("Products (OBS-10, /product's PortfolioBoard) lives in Workspace, not a fifth pane", () => {
+    expect(groupForSection("products")).toBe("workspace");
+  });
 });
 
 describe("settings-sections - derivations", () => {

@@ -8,7 +8,7 @@ import { draftContractFromIntent } from "@/lib/discovery.functions";
 
 /**
  * OBS-10: the legacy SpecsPanel intent composer, ported into Plan. One line
- * in, a full agent-authored Outcome Contract out — lands on the Contract tab
+ * in, a full agent-authored Outcome Contract out: lands on the Contract tab
  * to judge deltas, not a blank page (matches the legacy behavior exactly).
  */
 export function SpecComposer() {
