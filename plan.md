@@ -283,6 +283,18 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-04 (AGENT-NATIVE discovery-gap fix + MCP write-scope question documented, founder-directed, lane2)
+
+Founder question in conversation: the human/machine toggle is a UI control a human clicks, but the actual consumer of "machine mode" is an autonomous agent that never renders the UI — so how does an agent, with no human in the loop, discover that Cadence has a machine-readable interface at all? Investigated the live code rather than assume: confirmed `/llms.txt`, `/agents.txt`, `/.well-known/agent.json`, and `POST /api/mcp` all exist and work, but nothing on an ordinary page pointed to them — no `robots.txt` at all, no `<link>` tag, no HTTP header. An agent had to already know to guess those exact paths.
+
+**Shipped (item 1, founder-approved to build now):** `public/robots.txt` (new, points any crawler/agent at `/llms.txt` + `/agents.txt`); two `<link rel="llms.txt"/"agents.txt">` tags added to every page's `<head>` (`src/routes/__root.tsx`); an HTTP `Link:` response header on every ordinary page response via new `withAgentDiscoveryLink()` (`src/server.ts`), skipped on the well-known/health JSON endpoints which are already machine-readable content. New `src/server.test.ts` (3 tests) covers the header helper in isolation. Pure discovery/protocol hygiene — no new UI surface, no Engine-Room doctrine question.
+
+**Documented, not built (item 2, founder explicitly parked it):** while investigating, found the live MCP tool catalog (`src/lib/mcp-protocol.ts`) is 10 read tools + 1 narrow gated write tool (`ingest_signal`) — no tool lets an agent actually operate Cadence (no `trigger_mission`/`approve_decision`). Founder raised whether the write surface should widen so an agent can get real work done through Cadence, not just read it, but asked to park the decision itself rather than build speculatively, and asked for the tradeoff to be written up for later. Full writeup: [`docs/features/agent-native-layer.md`](./docs/features/agent-native-layer.md) §"Open question — MCP write-tool scope"; tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §4 and the `AGENT-NATIVE-L2` dashboard row.
+
+Also corrected the doc's stale header (`docs/features/agent-native-layer.md` said "Status: IN BUILD, L2/L3 roadmap" — both were actually shipped 2026-06-27 per the dashboard and live code; flagged that the file's Layer 2/3 tool tables are the original design draft, not the as-shipped tool list, without doing a full reconciliation of that larger pre-existing drift — out of scope for this session).
+
+Gates: `bunx tsc --noEmit` 0 · `bun test` 2309/2309 pass (3 new, 0 regressions). Branch: `parallel/lane-2`. UI breadcrumb: none (protocol-level, not user-visible). Detail: [`docs/features/agent-native-layer.md`](./docs/features/agent-native-layer.md).
+
 ### 2026-07-04 (OBS-10 ✅ fully closed: `/product` retired entirely, lane3)
 
 Closed OBS-10's final gap. Lane2's earlier session had ported Signals/Opportunities write actions to Discover but `/product` stayed live: its other four tabs (Roadmap, Specs, Releases, Strategy) plus the `PortfolioBoard` rendered above every tab each still carried real, unclosed write surfaces. This session gave every one of them a home, then retired the route.

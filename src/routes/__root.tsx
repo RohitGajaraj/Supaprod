@@ -113,6 +113,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "64x64", href: faviconAsset.url },
       { rel: "apple-touch-icon", href: faviconAsset.url },
+      // Agent discovery breadcrumbs: an agent that fetches any page cold (no
+      // prior knowledge of Cadence's specific llms.txt/agents.txt convention)
+      // finds the machine-readable interfaces from the HTML <head> itself,
+      // without needing to guess well-known paths. See docs/features/agent-native-layer.md.
+      { rel: "llms.txt", href: "/llms.txt" },
+      { rel: "agents.txt", href: "/agents.txt" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
