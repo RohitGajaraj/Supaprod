@@ -12,6 +12,21 @@ function paymentsEnvironment(): StripeEnv {
   );
 }
 
+/**
+ * Dormant-payments probe. Payments being unconfigured is a LEGAL state
+ * (metering off until go-live, founder ruling) — ambient UI must branch on
+ * this instead of calling the throwing helpers, so the dormant state never
+ * surfaces as an uncaught exception. Only a real checkout attempt may throw.
+ */
+export function paymentsConfigured(): boolean {
+  return !!clientToken?.startsWith("pk_test_") || !!clientToken?.startsWith("pk_live_");
+}
+
+/** Non-throwing variant for ambient consumers (banners, polls). */
+export function getStripeEnvironmentOrNull(): StripeEnv | null {
+  return paymentsConfigured() ? paymentsEnvironment() : null;
+}
+
 let stripePromise: Promise<Stripe | null> | null = null;
 
 export function getStripe(): Promise<Stripe | null> {

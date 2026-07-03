@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { createPortalSession } from "@/lib/payments.functions";
 import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
@@ -19,6 +19,10 @@ export function BillingBanner() {
   const fPortal = useServerFn(createPortalSession);
 
   useEffect(() => {
+    // Dormant payments = no subscriptions to dun. Skip entirely rather than
+    // let getStripeEnvironment() throw inside this un-awaited async closure
+    // (was an unhandled rejection on every authenticated session in prod).
+    if (!paymentsConfigured()) return;
     let cancelled = false;
     (async () => {
       const { data: u } = await supabase.auth.getUser();

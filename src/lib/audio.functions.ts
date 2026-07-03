@@ -79,7 +79,20 @@ async function resolveWorkspaceId(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   explicit: string | null | undefined,
 ): Promise<string | null> {
-  if (explicit) return explicit;
+  if (explicit) {
+    // Membership gate: downstream writes go through the service-role client
+    // (bypassing RLS), so a client-supplied workspaceId must be proven to be
+    // one of the caller's own workspaces here. The RLS-scoped client can only
+    // see the caller's own membership rows, so this read IS the proof.
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("workspace_id", explicit)
+      .limit(1)
+      .maybeSingle();
+    if (!member) throw new Error("Forbidden: not a member of this workspace");
+    return explicit;
+  }
   const { data } = await supabase.rpc("current_user_default_workspace");
   return (data as string | null) ?? null;
 }

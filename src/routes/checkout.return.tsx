@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironmentOrNull } from "@/lib/stripe";
 
 export const Route = createFileRoute("/checkout/return")({
   validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({
@@ -26,6 +26,15 @@ function CheckoutReturn() {
         replace: true,
       });
     };
+    // Payments dormant: there is no environment to poll against — landing
+    // here can only be a stale/hand-typed URL. Bounce home instead of
+    // throwing inside tick() and stranding the user on "Confirming...".
+    const environment = getStripeEnvironmentOrNull();
+    if (!environment) {
+      setStatus("timeout");
+      goBack("pending");
+      return;
+    }
     let cancelled = false;
     let tries = 0;
     const tick = async () => {
@@ -35,7 +44,7 @@ function CheckoutReturn() {
         .from("subscriptions")
         .select("status, current_period_end")
         .eq("user_id", u.user.id)
-        .eq("environment", getStripeEnvironment())
+        .eq("environment", environment)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
