@@ -336,6 +336,14 @@ export type CallOpts = {
   byoOverride?: { provider: string; apiKey: string; baseUrl?: string };
   /** Ask provider for strict JSON */
   responseFormat?: "json_object";
+  /**
+   * AGT-01 — native structured-output tool-calling. When set, passed to the
+   * provider as its own tool/function-calling definitions instead of (or
+   * alongside) a text-described tool list; a response then arrives as
+   * structured tool_use/function_call blocks rather than JSON-in-text.
+   * Additive and optional: every existing caller is unaffected.
+   */
+  tools?: { name: string; description: string; input_schema: Record<string, unknown> }[];
   /** Model to retry with if primary fails after retries (legacy single fallback). */
   fallbackModel?: string;
   /** Ordered fallback chain tried after the primary fails (PROVIDER-FALLBACK). Takes
@@ -371,6 +379,8 @@ export type CallResult = {
   fallback?: boolean;
   /** Parsed JSON when responseFormat=json_object (best-effort) */
   json?: unknown;
+  /** AGT-01 — structured tool calls the provider returned, when opts.tools was set. */
+  toolCalls?: { id: string; name: string; args: unknown }[];
   /** Chunks injected as context (when retrieval enabled) */
   citations?: {
     id: string;
@@ -419,6 +429,7 @@ async function callAnthropic(
   model: string,
   msgs: { role: string; content: string }[],
   url = "https://api.anthropic.com/v1/messages",
+  tools?: CallOpts["tools"],
 ) {
   const system = msgs.find((m) => m.role === "system")?.content ?? "";
   const rest = msgs.filter((m) => m.role !== "system");
@@ -430,15 +441,44 @@ async function callAnthropic(
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ model, max_tokens: 2048, system, messages: rest }),
+    body: JSON.stringify({
+      model,
+      // AGT-01 (adversarial review finding): a tool_use response needs room
+      // for the schema-shaped args JSON on top of any reasoning text, on top
+      // of the existing 2048 budget — a cut-off mid-args is otherwise a
+      // truncated tool_use.input that fails argsSchema.safeParse downstream
+      // (a graceful, already-handled error path, but worth avoiding). Every
+      // non-tool call keeps the exact prior 2048 budget.
+      max_tokens: tools?.length ? 4096 : 2048,
+      system,
+      messages: rest,
+      // AGT-01: Anthropic's native tool_use format. Only sent when the
+      // caller opted in — every existing (non-tool) call is unaffected.
+      ...(tools?.length
+        ? {
+            tools: tools.map((t) => ({
+              name: t.name,
+              description: t.description,
+              input_schema: t.input_schema,
+            })),
+          }
+        : {}),
+    }),
   });
   const latency = Date.now() - t0;
   if (!res.ok)
     throw new Error(`Anthropic (${res.status}): ${maskKeyLike((await res.text()).slice(0, 200))}`);
   const j = (await res.json()) as {
-    content?: { text?: string }[];
+    content?: { type?: string; text?: string; id?: string; name?: string; input?: unknown }[];
     usage?: { input_tokens?: number; output_tokens?: number };
   };
+  // AGT-01: a tool_use block has no `text` field, so it contributes nothing
+  // to the plain-text join below by construction — extracted separately here
+  // rather than dropped, which is what happened before this change (the
+  // "silent data loss" risk the research phase flagged).
+  const toolCalls = (j.content ?? [])
+    .filter((c) => c.type === "tool_use" && c.name)
+    .map((c) => ({ id: c.id ?? "", name: c.name as string, args: c.input }));
   return {
     text:
       j.content
@@ -448,7 +488,43 @@ async function callAnthropic(
     in_tok: j.usage?.input_tokens ?? 0,
     out_tok: j.usage?.output_tokens ?? 0,
     latency,
+    toolCalls: toolCalls.length ? toolCalls : undefined,
   };
+}
+
+/**
+ * AGT-01: OpenAI-style `tools` array shared by callOpenAICompat and
+ * callGateway. Exported (alongside extractOpenAiToolCalls below) so this
+ * wire-format translation is directly unit-testable without mocking fetch.
+ */
+export function openAiToolsPayload(tools?: CallOpts["tools"]) {
+  return tools?.length
+    ? {
+        tools: tools.map((t) => ({
+          type: "function",
+          function: { name: t.name, description: t.description, parameters: t.input_schema },
+        })),
+      }
+    : {};
+}
+
+/** AGT-01: extract OpenAI-style `message.tool_calls` (never read before this change). */
+export function extractOpenAiToolCalls(
+  toolCalls: { id?: string; function?: { name?: string; arguments?: string } }[] | undefined,
+) {
+  if (!toolCalls?.length) return undefined;
+  const calls = toolCalls
+    .filter((tc) => tc.function?.name)
+    .map((tc) => {
+      let args: unknown = {};
+      try {
+        args = tc.function?.arguments ? JSON.parse(tc.function.arguments) : {};
+      } catch {
+        args = tc.function?.arguments ?? {};
+      }
+      return { id: tc.id ?? "", name: tc.function?.name as string, args };
+    });
+  return calls.length ? calls : undefined;
 }
 
 async function callOpenAICompat(
@@ -457,6 +533,7 @@ async function callOpenAICompat(
   model: string,
   msgs: { role: string; content: string }[],
   responseFormat?: "json_object",
+  tools?: CallOpts["tools"],
 ) {
   const t0 = Date.now();
   const res = await fetch(url, {
@@ -466,13 +543,19 @@ async function callOpenAICompat(
       model,
       messages: msgs,
       ...(responseFormat ? { response_format: { type: responseFormat } } : {}),
+      ...openAiToolsPayload(tools),
     }),
   });
   const latency = Date.now() - t0;
   if (!res.ok)
     throw new Error(`Provider (${res.status}): ${maskKeyLike((await res.text()).slice(0, 200))}`);
   const j = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
+    choices?: {
+      message?: {
+        content?: string;
+        tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[];
+      };
+    }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
   return {
@@ -480,6 +563,7 @@ async function callOpenAICompat(
     in_tok: j.usage?.prompt_tokens ?? 0,
     out_tok: j.usage?.completion_tokens ?? 0,
     latency,
+    toolCalls: extractOpenAiToolCalls(j.choices?.[0]?.message?.tool_calls),
   };
 }
 
@@ -487,6 +571,7 @@ async function callGateway(
   model: string,
   msgs: { role: string; content: string }[],
   responseFormat?: "json_object",
+  tools?: CallOpts["tools"],
 ) {
   const gw = resolveGateway(model);
   const t0 = Date.now();
@@ -497,6 +582,7 @@ async function callGateway(
       model: gw.model,
       messages: msgs,
       ...(responseFormat ? { response_format: { type: responseFormat } } : {}),
+      ...openAiToolsPayload(tools),
     }),
   });
   const latency = Date.now() - t0;
@@ -514,7 +600,12 @@ async function callGateway(
   if (!res.ok)
     throw new Error(`AI gateway (${res.status}): ${maskKeyLike((await res.text()).slice(0, 200))}`);
   const j = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
+    choices?: {
+      message?: {
+        content?: string;
+        tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[];
+      };
+    }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
   return {
@@ -522,6 +613,7 @@ async function callGateway(
     in_tok: j.usage?.prompt_tokens ?? 0,
     out_tok: j.usage?.completion_tokens ?? 0,
     latency,
+    toolCalls: extractOpenAiToolCalls(j.choices?.[0]?.message?.tool_calls),
   };
 }
 
@@ -1130,6 +1222,12 @@ export async function callModel(
   opts: CallOpts,
 ): Promise<CallResult> {
   const useGuards = opts.guardrails !== false;
+  // AGT-01: a native tool-calling turn is structured output, exactly like
+  // responseFormat=json_object — it must skip the same prose-only steps
+  // (the humanize directive going in, guardrail-scrubbing and humanizeText
+  // coming out) or those would corrupt tool_call args. One shared flag so
+  // every one of those checks stays in sync instead of drifting individually.
+  const isStructuredOutput = opts.responseFormat === "json_object" || !!opts.tools?.length;
 
   // 0. Governance — kill-switch + mission caps (throws GovernanceHaltError on halt)
   try {
@@ -1225,9 +1323,9 @@ export async function callModel(
     });
   }
 
-  // 2b. Soft humanization directive (prose only; JSON calls keep their exact
-  // schema instructions). The hard gate is humanizeText() on the output below.
-  if (opts.responseFormat !== "json_object") {
+  // 2b. Soft humanization directive (prose only; JSON/tool-calling calls keep
+  // their exact schema instructions). The hard gate is humanizeText() below.
+  if (!isStructuredOutput) {
     messages = withHumanizeDirective(messages);
   }
 
@@ -1235,7 +1333,13 @@ export async function callModel(
   // dispatch and the recorded modelUsed. Key + endpoint are resolved per-attempt-model
   // inside attempt() (so a cross-provider fallback uses the right key), see resolveCallKey.
   const t0 = Date.now();
-  let providerOut: { text: string; in_tok: number; out_tok: number; latency: number } = {
+  let providerOut: {
+    text: string;
+    in_tok: number;
+    out_tok: number;
+    latency: number;
+    toolCalls?: { id: string; name: string; args: unknown }[];
+  } = {
     text: "",
     in_tok: 0,
     out_tok: 0,
@@ -1257,6 +1361,7 @@ export async function callModel(
     opts.retrieval,
     opts.guardrails,
     opts.responseFormat,
+    !!opts.tools?.length,
   );
   let cacheKey: string | null = null;
   if (shouldCache) {
@@ -1283,13 +1388,20 @@ export async function callModel(
         provider = route.provider;
         const safeUrl = assertSafeBaseUrl(route.url);
         return route.style === "anthropic_messages"
-          ? callAnthropic(keyInfo.apiKey, route.model, messages, safeUrl)
-          : callOpenAICompat(safeUrl, keyInfo.apiKey, route.model, messages, opts.responseFormat);
+          ? callAnthropic(keyInfo.apiKey, route.model, messages, safeUrl, opts.tools)
+          : callOpenAICompat(
+              safeUrl,
+              keyInfo.apiKey,
+              route.model,
+              messages,
+              opts.responseFormat,
+              opts.tools,
+            );
       }
     }
     via = "gateway";
     provider = "lovable";
-    return callGateway(model, messages, opts.responseFormat);
+    return callGateway(model, messages, opts.responseFormat, opts.tools);
   };
 
   let lastErr: unknown = null;
@@ -1366,15 +1478,16 @@ export async function callModel(
 
   // 4. Post-guardrails on output
   let outputText = providerOut.text;
-  if (useGuards && outputText && opts.responseFormat !== "json_object") {
+  if (useGuards && outputText && !isStructuredOutput) {
     const r = evaluateGuardrails(outputText, rules, "output");
     r.hits.forEach((h) => hits.push(h));
     outputText = r.text;
   }
 
-  // 4a. Humanize prose output (zero AI fingerprints). PROSE ONLY — JSON
-  // responses must stay byte-exact so downstream JSON.parse never breaks.
-  if (outputText && opts.responseFormat !== "json_object") {
+  // 4a. Humanize prose output (zero AI fingerprints). PROSE ONLY — JSON and
+  // tool-calling responses must stay byte-exact so downstream JSON.parse (or
+  // a tool call's args) never breaks.
+  if (outputText && !isStructuredOutput) {
     outputText = humanizeText(outputText);
   }
 
@@ -1412,7 +1525,15 @@ export async function callModel(
         error_message: errMsg ?? null,
         input_preview: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
         system_preview: (messages.find((m) => m.role === "system")?.content ?? "").slice(0, 4000),
-        output_preview: outputText.slice(0, 1000),
+        // AGT-01: a pure native tool-call turn can have empty outputText (no
+        // accompanying prose) — fall back to a stringified tool-call summary
+        // so the log row isn't a blank string.
+        output_preview: (
+          outputText ||
+          (providerOut.toolCalls?.length
+            ? `[tool_call] ${providerOut.toolCalls.map((c) => c.name).join(", ")}`
+            : "")
+        ).slice(0, 1000),
       })
       .select("id")
       .single();
@@ -1521,6 +1642,7 @@ export async function callModel(
     latency_ms: providerOut.latency,
     fallback,
     json: parsedJson,
+    toolCalls: providerOut.toolCalls,
     citations: citations.map((c) => ({
       id: c.id,
       source_kind: c.source_kind,

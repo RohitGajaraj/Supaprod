@@ -27,9 +27,10 @@ import {
 import { loadAgentArc, resolveApprovalMode, type Arc, type ToolMode } from "./trust.server";
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";
-import { isHighRiskTool, toolRisk } from "@/lib/tool-consequences";
+import { isHighRiskTool, toolRisk, toolConsequence } from "@/lib/tool-consequences";
 import { capToolsByRisk } from "@/lib/agent-tool-cap";
 import { resolveBestAgentModelForUser } from "./platform-keys.server";
+import { buildNativeToolDefs } from "./tool-schemas.server";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
 
@@ -59,6 +60,18 @@ const HIGH_RISK_FORCE_REVIEW = new Set(["studio.pr.merge", "studio.revert", "del
 // explicit opt-in via a wrangler secret. studio.revert + delegate.openhands are
 // NOT graduated — they stay review-pinned regardless of this flag.
 const AUTO_SHIP_ENABLED = process.env.STUDIO_AUTO_SHIP === "1";
+
+// AGT-01 — structured-output protocol upgrade. Default OFF: the JSON-in-text
+// {thought, action} envelope (safeParseAction) stays the loop's universal
+// protocol until this is explicitly turned on. When on, the model is also
+// given native provider tool-calling definitions (tool-schemas.server.ts);
+// resolveModelAction prefers a native tool call when the provider returns
+// one, and falls back to the legacy text-parse otherwise — so a provider
+// that ignores the tools param, or a transient reply with no tool call,
+// degrades to today's exact behavior rather than failing. Same dormant-by-
+// design pattern as AUTO_SHIP_ENABLED above: a founder-grade activation,
+// not a per-request choice.
+const NATIVE_TOOLCALLING_ENABLED = process.env.AGENT_NATIVE_TOOLCALLING === "1";
 /**
  * Orchestrator control-flow tools that ALWAYS execute inline, exempt from
  * arc-gating and any seeded mode. These four tools are pure internal control
@@ -81,6 +94,63 @@ const ORCHESTRATION_CONTROL_FLOW_TOOLS = new Set([
   // run waiting on an approval that never comes.
   "critic.evaluate",
 ]);
+
+/**
+ * Resolve a tool call's final approval mode by composing, in strict order:
+ * seeded mode -> arc dial -> HIGH_RISK_FORCE_REVIEW floor -> HIGH_RISK_MIN_CONFIRM
+ * /isHighRiskTool floor -> low-risk auto-clear -> AGT-02 plan-level consent
+ * auto-clear. Extracted out of executeLoop (which is not independently
+ * testable — it is not exported and is tightly coupled to Supabase) into a
+ * pure, exported function so this safety-floor ORDERING is itself directly
+ * unit-testable, not just the predicates (toolRisk, isHighRiskTool) it calls.
+ *
+ * AGT-02 (v12 §7.3, "Consent scopes"): once the mission's own governing
+ * Outcome Contract is approved (prds.status === "approved", the human's
+ * CNV-01 confirm step), its REVERSIBLE work is pre-consented as a scope, so
+ * a per-step confirm is no longer required for it. This is the LAST branch
+ * in the chain and is guarded four ways: it only ever loosens `confirm` ->
+ * `auto` (never touches the sticky `review` state, which is resolved
+ * earlier); it explicitly excludes both hand-curated safety-floor sets
+ * (HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW) even for a tool that
+ * happens to be classified "reversible" — those floors exist for reasons
+ * beyond raw data-reversibility (outbound visibility, external side
+ * effects) that plan approval does not consent to; and it keys strictly off
+ * tool-consequences.ts's existing Reversibility axis ("reversible" only,
+ * never "partial" or the fail-closed-to-"partial" default for an
+ * uncatalogued tool). Per-step gates remain at every irreversible boundary;
+ * safety floors stay unchanged and non-overridable, exactly as the spec
+ * requires.
+ */
+export function resolveToolMode(
+  toolName: string,
+  rawToolMode: ToolMode,
+  arc: Arc,
+  contractApproved: boolean,
+): ToolMode {
+  const dialedMode = resolveApprovalMode(rawToolMode, arc);
+  let mode: ToolMode = dialedMode;
+  if (HIGH_RISK_FORCE_REVIEW.has(toolName)) {
+    // BYO-P3 WI3 — see the identical comment in executeLoop's prior inline
+    // version: the trust-graduated single ship decision for studio.pr.merge.
+    mode =
+      toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED
+        ? resolveApprovalMode("confirm", arc)
+        : "review";
+  } else if ((HIGH_RISK_MIN_CONFIRM.has(toolName) || isHighRiskTool(toolName)) && mode === "auto") {
+    mode = "confirm";
+  } else if (mode === "confirm" && toolRisk(toolName) === "low") {
+    mode = "auto";
+  } else if (
+    mode === "confirm" &&
+    contractApproved &&
+    !HIGH_RISK_MIN_CONFIRM.has(toolName) &&
+    !HIGH_RISK_FORCE_REVIEW.has(toolName) &&
+    toolConsequence(toolName).reversible === "reversible"
+  ) {
+    mode = "auto";
+  }
+  return mode;
+}
 
 export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
 
@@ -128,6 +198,32 @@ function safeParseAction(text: string): ModelReply | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * AGT-01 — resolve a single loop step's {thought, action} from the model's
+ * raw reply, preferring a native structured tool call (when enabled and the
+ * provider actually returned one) over the legacy JSON-in-text envelope.
+ * Exported and pure so the branching itself — not just safeParseAction — is
+ * directly unit-testable without a model or Supabase.
+ *
+ * Only the FIRST native tool call is used: the loop processes one action per
+ * step by design (a provider batching several tool calls in one turn is not
+ * something the current single-action-per-step architecture consumes; a
+ * model that wants a second call gets it on the next step, same as today).
+ */
+export function resolveModelAction(
+  result: { output: string; toolCalls?: { name: string; args: unknown }[] },
+  nativeEnabled: boolean,
+): ModelReply | null {
+  if (nativeEnabled && result.toolCalls?.length) {
+    const tc = result.toolCalls[0];
+    return {
+      thought: result.output || undefined,
+      action: { type: "tool_call", name: tc.name, args: tc.args as Json },
+    };
+  }
+  return safeParseAction(result.output);
 }
 
 async function recallMemory(
@@ -539,6 +635,44 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
   }
   const maxSteps = adaptiveStepBudget({ agentSlug: agent.slug, arc, plannedStepCount });
 
+  // AGT-02: plan-level consent. Resolved ONCE per run/resume (not re-checked
+  // per step) — consent is granted at the plan level, a point-in-time gate,
+  // matching how "approving the contract" is itself a single human action.
+  // Missing mission/prd context is non-fatal and leaves consent at false,
+  // which is strictly the SAFER default (falls back to today's per-step
+  // confirm) — never a fail-open.
+  //
+  // `missions` carries NO `prd_id` column (adversarial review caught an
+  // earlier version of this that assumed one and silently no-op'd on every
+  // run). The real link, already established and relied on elsewhere
+  // (src/lib/test-station.functions.ts's resolveMissionPrdId, used by BYO-P3's
+  // outcome.functions.ts too), is studio_changesets.mission_id ->
+  // studio_changesets.prd_id, most-recently-updated row with a non-null prd_id.
+  let contractApproved = false;
+  if (ctx.missionId) {
+    try {
+      const { data: changeset } = await supabase
+        .from("studio_changesets")
+        .select("prd_id")
+        .eq("mission_id", ctx.missionId)
+        .not("prd_id", "is", null)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const prdId = (changeset as { prd_id?: string | null } | null)?.prd_id;
+      if (prdId) {
+        const { data: prd } = await supabase
+          .from("prds")
+          .select("status")
+          .eq("id", prdId)
+          .maybeSingle();
+        contractApproved = (prd as { status?: string } | null)?.status === "approved";
+      }
+    } catch (e) {
+      console.error("AGT-02 contract-approval lookup failed:", e);
+    }
+  }
+
   const checkpoint = async (stepIndex: number) => {
     if (!runId) return;
     try {
@@ -634,11 +768,25 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         surface_ref: agent.slug,
         traceId,
         model,
-        responseFormat: "json_object",
+        // AGT-01 (adversarial review finding): forcing json_object mode
+        // alongside native tool defs puts two competing instructions in
+        // front of the model at once ("reply in strict JSON" vs "use this
+        // tool"), which can bias a model back toward the legacy JSON-in-text
+        // envelope instead of exercising tool_use — muting the very benefit
+        // the flag exists to unlock. json_object is only requested when
+        // native tools are NOT being offered this call.
+        ...(NATIVE_TOOLCALLING_ENABLED ? {} : { responseFormat: "json_object" as const }),
         messages: conv,
         promptKey: "planner_executor",
         workspaceId,
         runId,
+        // AGT-01 (dormant unless AGENT_NATIVE_TOOLCALLING=1): native provider
+        // tool-calling definitions for this agent's enabled tools, same set
+        // describeToolsForPrompt already renders as text above. The prompt's
+        // text tool list stays unconditionally in place either way — a
+        // provider that ignores `tools` or replies with plain text still
+        // works via resolveModelAction's legacy fallback below.
+        ...(NATIVE_TOOLCALLING_ENABLED ? { tools: buildNativeToolDefs(modeOf.keys()) } : {}),
       });
     } catch (e) {
       if (e instanceof GovernanceHaltError) {
@@ -687,7 +835,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
       steps.push({ kind: "final", message: `Run failed: ${errMsg}` });
       throw e;
     }
-    const parsed = safeParseAction(r.output);
+    const parsed = resolveModelAction(r, NATIVE_TOOLCALLING_ENABLED);
     if (!parsed?.action) {
       steps.push({ kind: "final", message: r.output || "(no reply)" });
       return s.finalize(r.output || "");
@@ -700,6 +848,17 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
 
     const call = parsed.action;
+    // AGT-01 (adversarial review finding): a native tool call with no
+    // accompanying prose leaves r.output empty. Pushing "" as this turn's
+    // assistant content would corrupt conv for every subsequent step (and
+    // across a resume/checkpoint) — the model reading its own history back
+    // sees a blank turn instead of what it actually did. r.output is used
+    // as-is whenever it's non-empty (the legacy path always has it; a native
+    // call MAY have accompanying text too), falling back to the same
+    // {thought, action} envelope the legacy protocol itself uses only when
+    // it's genuinely empty — so every assistant turn in conv stays a
+    // non-empty, self-consistent record regardless of which path produced it.
+    const assistantContent = r.output || JSON.stringify({ thought: parsed.thought, action: call });
     const def = TOOL_REGISTRY[call.name];
     if (!def) {
       const msg = `Unknown tool: ${call.name}`;
@@ -711,7 +870,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         error: msg,
         status: "error",
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
       conv.push({ role: "user", content: `Tool error: ${msg}. Pick a valid tool or finalize.` });
       continue;
     }
@@ -726,7 +885,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         error: msg,
         status: "error",
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
       conv.push({ role: "user", content: `Tool error: ${msg}. Fix args or finalize.` });
       continue;
     }
@@ -756,44 +915,18 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         error: msg,
         status: "error",
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
       conv.push({ role: "user", content: `Tool error: ${msg}. Pick an enabled tool or finalize.` });
       continue;
     }
 
-    // Safety floors (not overridable by the dial): high-risk tools force at
-    // least `confirm`; Studio's merge gate is always `review` (v4 HITL canon).
+    // Safety floors + AGT-02 plan-level consent, composed in strict order by
+    // resolveToolMode (extracted above so the ordering itself is unit-tested,
+    // not just its predicates): seeded mode -> arc dial -> HIGH_RISK_FORCE_REVIEW
+    // -> HIGH_RISK_MIN_CONFIRM/isHighRiskTool -> low-risk auto-clear -> AGT-02
+    // contract-approved reversible auto-clear.
     const rawToolMode = (modeOf.get(call.name) ?? "confirm") as ToolMode;
-    // The autonomy dial composes with the tool's own mode. `review` is sticky.
-    const dialedMode = resolveApprovalMode(rawToolMode, arc);
-    let mode: ToolMode = dialedMode;
-    if (HIGH_RISK_FORCE_REVIEW.has(call.name)) {
-      // BYO-P3 WI3 — the trust-graduated single ship decision. studio.pr.merge is
-      // the one decisive ship gate; under AUTO_SHIP it composes from a `confirm`
-      // base through the arc dial (observing→review, proving→confirm,
-      // trusted/ambient→auto) so ambient trust ships auto-silently. The merge
-      // tool's own CI-green + eval-regression gates still run inline, so an auto
-      // merge can never ship red. Default (flag off) keeps the review-pin. The
-      // seeded `review` mode is sticky through resolveApprovalMode, so the dial
-      // must use a `confirm` base here, not rawToolMode.
-      mode =
-        call.name === "studio.pr.merge" && AUTO_SHIP_ENABLED
-          ? resolveApprovalMode("confirm", arc)
-          : "review";
-    }
-    // FND-0.5 blast-radius floor: a high-blast-radius tool can never run unattended.
-    // The manual set is the curated stricter policy (also floors some medium-external
-    // tools like calendar.create / studio.pr.open); `isHighRiskTool` is the SYSTEMATIC
-    // classifier (reversibility x scope) so every high-blast tool — including ones the
-    // hand-maintained set missed (e.g. github.commit.append) and any future side-effecting
-    // tool — is floored to `confirm` without the list drifting. Only ever raises auto->confirm.
-    else if ((HIGH_RISK_MIN_CONFIRM.has(call.name) || isHighRiskTool(call.name)) && mode === "auto")
-      mode = "confirm";
-    // Auto-clear: low blast-radius tools (reversible + internal) run inline even when
-    // configured as 'confirm' — kills the babysitting tax on trivially undoable writes.
-    // Fires AFTER the HIGH_RISK floors above, so dangerous tools are never lowered.
-    // Never touches 'review' mode (review is sticky and founder-grade).
-    else if (mode === "confirm" && toolRisk(call.name) === "low") mode = "auto";
+    const mode: ToolMode = resolveToolMode(call.name, rawToolMode, arc, contractApproved);
     const isWrite = def.category === "write" || def.category === "planning";
 
     if (!isControlFlow && isWrite && (mode === "confirm" || mode === "review")) {
@@ -826,7 +959,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         status: "queued",
         approval_id: (appr as { id: string } | null)?.id,
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
 
       // F-STUDIO: shipping gates pause the run. Checkpoint the post-queue
       // conversation AT step i (not i+1: a gate hit on the final step would
@@ -902,7 +1035,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         result: result as Json,
         status: "executed",
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
 
       const escapedResult = xmlEscape(JSON.stringify(result));
       conv.push({
@@ -930,7 +1063,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         error: msg,
         status: "error",
       });
-      conv.push({ role: "assistant", content: r.output });
+      conv.push({ role: "assistant", content: assistantContent });
       conv.push({
         role: "user",
         content: `Tool "${call.name}" failed: ${msg}. Try another approach or finalize.`,

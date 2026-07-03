@@ -107,6 +107,9 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | CNV-03 | The ARD (publishing the Outcome Contract as a versioned public standard: schema, spec page, MCP `get_ard`, export/import) | ✅ Shipped 2026-07-03 (Lane 4) | `/ard` · `/api/public/ard/schema` · `/prds/$id?tab=contract` (Export/Import ARD) | [`outcome-contract.md`](./outcome-contract.md#cnv-03-the-ard-publishing-the-outcome-contract-as-a-standard-v12-sec-74) |
 | FS-01 / FS-04 | Foresight generators + calibration; risk composed into the Today brief and InsightRail | ✅ Shipped 2026-07-02 / 2026-07-03 (Lane 4) | `/today` | [`foresight-generators.md`](./foresight-generators.md) |
 | DSN-04 | The design contract rides into Build (design memory + flow graph fold into the mission goal; a lightweight return-side parity check) | ✅ Shipped 2026-07-03 (Lane 4) | dispatch-time only, no route | [`design-contract-rides-build.md`](./design-contract-rides-build.md) |
+| AGT-03 | Speculative reversible prep (background design-scaffold pre-staging while a contract is reviewed) | ✅ Shipped 2026-07-03 | `/prds/$id` (Design mockup panel) | [`speculative-prep.md`](./speculative-prep.md) |
+| AGT-02 | Consent scopes (plan-level approval: an approved contract pre-consents its reversible tool calls) | ✅ Shipped 2026-07-03 (Lane 1) | engine only, rides `executeLoop` | [`consent-scopes.md`](./consent-scopes.md) |
+| AGT-01 | Structured-output protocol upgrade (native provider tool-calling, dormant behind `AGENT_NATIVE_TOOLCALLING`) | ✅ Built + tested 2026-07-03 (Lane 1); activation is the founder's own flag flip | engine only, rides `executeLoop` | [`agent-native-toolcalling.md`](./agent-native-toolcalling.md) |
 
 ## Rules
 
