@@ -12,6 +12,10 @@ import {
   trackRecordsToObject,
   type AgentTrackRecord,
   type DecidedApprovalRow,
+  summarizeAgentOutcomes,
+  outcomeRecordsToObject,
+  type AgentOutcomeRecord,
+  type DecidedLearningRow,
 } from "@/lib/agent-track-record";
 import {
   summarizeRejections,
@@ -312,6 +316,53 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       rejectionsByKey = summarizeRejections(histRows as RejectionRow[]);
     }
 
+    // RF-06: the OUTCOME record alongside the approval record — did this
+    // agent's decided-on work actually turn out well, once real signal came
+    // in (public.learnings), not just "did the human say yes". No FK exists
+    // between learnings and decisions (both key off prd_id independently), so
+    // this is two queries joined in JS, same idiom as titleOf/riskOf above.
+    let outcomeByAgent: Record<string, AgentOutcomeRecord> = {};
+    if (agentSlugs.length) {
+      const { data: learningRows } = await db
+        .from("learnings")
+        .select("prd_id,verdict")
+        .eq("user_id", userId)
+        .in("verdict", ["validated", "missed"])
+        .not("prd_id", "is", null)
+        .limit(1000);
+      const prdIds = [
+        ...new Set(
+          ((learningRows ?? []) as { prd_id: string | null; verdict: string | null }[])
+            .map((l) => l.prd_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+      if (prdIds.length) {
+        const { data: decisionRows } = await db
+          .from("decisions")
+          .select("prd_id,decided_by_agent_slug")
+          .eq("user_id", userId)
+          .in("prd_id", prdIds);
+        const slugByPrd = new Map<string, string>(
+          (
+            (decisionRows ?? []) as {
+              prd_id: string | null;
+              decided_by_agent_slug: string | null;
+            }[]
+          )
+            .filter((d) => d.prd_id && d.decided_by_agent_slug)
+            .map((d) => [d.prd_id as string, d.decided_by_agent_slug as string]),
+        );
+        const decidedLearningRows: DecidedLearningRow[] = (
+          (learningRows ?? []) as { prd_id: string | null; verdict: string | null }[]
+        ).map((l) => ({
+          agent_slug: l.prd_id ? (slugByPrd.get(l.prd_id) ?? null) : null,
+          verdict: l.verdict,
+        }));
+        outcomeByAgent = outcomeRecordsToObject(summarizeAgentOutcomes(decidedLearningRows));
+      }
+    }
+
     return {
       approvals: approvals.map((a) => ({
         ...a,
@@ -319,6 +370,7 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
         risk: riskOf.get(a.tool_name) ?? "medium",
       })),
       trackByAgent,
+      outcomeByAgent,
       rejectionsByKey,
       medianResponseMs,
     };

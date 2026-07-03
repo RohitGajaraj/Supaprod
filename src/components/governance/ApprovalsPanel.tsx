@@ -14,7 +14,12 @@ import { Check, Clock, ExternalLink, Shield, X } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listGovernApprovals, extendApprovalTtl } from "@/lib/governance.functions";
-import { formatTrackRecord, type AgentTrackRecord } from "@/lib/agent-track-record";
+import {
+  formatTrackRecord,
+  type AgentTrackRecord,
+  formatOutcomeRecord,
+  type AgentOutcomeRecord,
+} from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { MonoLabel, RiskTag, StepDot } from "@/components/cadence/Primitives";
 
@@ -197,6 +202,7 @@ export function ApprovalsPanel() {
               key={a.id}
               a={a}
               track={q.data?.trackByAgent?.[a.agent_slug ?? ""] ?? null}
+              outcome={q.data?.outcomeByAgent?.[a.agent_slug ?? ""] ?? null}
               declines={rejectionCountFor(q.data?.rejectionsByKey, a.agent_slug, a.tool_name)}
               busy={decide.isPending && decide.variables?.approvalId === a.id}
               extending={extend.isPending && extend.variables === a.id}
@@ -220,6 +226,7 @@ export function ApprovalsPanel() {
 function ApprovalCard({
   a,
   track,
+  outcome,
   declines,
   busy,
   extending,
@@ -229,6 +236,7 @@ function ApprovalCard({
 }: {
   a: GovernApproval;
   track: AgentTrackRecord | null;
+  outcome: AgentOutcomeRecord | null;
   declines: number;
   busy: boolean;
   extending: boolean;
@@ -237,6 +245,7 @@ function ApprovalCard({
   onExtend: () => void;
 }) {
   const trackLabel = formatTrackRecord(track);
+  const outcomeLabel = formatOutcomeRecord(outcome);
   const resolvedLine = a.status === "pending" ? undefined : RESOLVED_LINE[a.status];
   const resolved = a.status !== "pending";
   const expiry = a.status === "pending" ? relExpiry(a.expires_at) : null;
@@ -275,6 +284,15 @@ function ApprovalCard({
               title="This agent's decided-approval record across your past gates"
             >
               {trackLabel}
+            </span>
+          )}
+          {outcomeLabel && (
+            <span
+              className="mono-label"
+              style={{ color: "var(--ink-faint)", fontSize: 9.5 }}
+              title="This agent's recorded outcome record — did the decided-on work actually turn out well, not just whether the gate was approved"
+            >
+              {outcomeLabel}
             </span>
           )}
           <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>wants</span>

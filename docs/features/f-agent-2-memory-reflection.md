@@ -31,12 +31,13 @@ Without memory, every run started from scratch and trust never moved. F-AGENT-2 
 - **Loop integration:** `src/lib/ai/loop.server.ts` calls `autoReflect()` + `maybeAutoAdvanceArc()` from **both** finalize paths (fresh run and resumed run) when `!halted`. Halted runs skip reflection by design: a governance halt never becomes a self-confirming lesson without operator review.
 - **Recall:** `recallMemory()` merges semantic search (`match_agent_memory`) with `recent_agent_reflections` (importance × recency, top 3), deduped by content, capped at 8.
 - **Two new tools** in the registry: `memory.reflect` (on-demand mid-run reflection) and `memory.promote` (escalate scope `agent → global` so all agents recall it).
-- **Autonomy RPC:** `auto_advance_agent_arc(p_user_id, p_agent_id)` SECURITY DEFINER promotes Observing→Proving at 5 clean completed runs and Proving→Trusted at 20, blocked by any rejected approval since the last `agent_autonomy.set_at`, never downgrades, never auto-promotes past Trusted (Ambient stays explicit).
+- **Autonomy RPC:** `auto_advance_agent_arc(p_user_id, p_agent_id)` SECURITY DEFINER promotes Observing→Proving at 5 clean completed runs and Proving→Trusted at 20, blocked by any rejected approval since the last `agent_autonomy.set_at` **or by any `public.learnings` row attributed to the agent recording a `'missed'` outcome verdict since that same point (RF-06, 2026-07-03 — see [`trust-and-autonomy.md`](./trust-and-autonomy.md) §8)**, never downgrades, never auto-promotes past Trusted (Ambient stays explicit).
 - **Daily cron:** `memory-tick-daily` (`/api/public/hooks/memory-tick`, 03:30 UTC) deletes low-importance (≤2) unused (>30d) memories.
 
 ## Governance & guardrails
 
 - **Halt-on-rejection.** Trust auto-advance is blocked by any rejected approval since the last arc change. The operator's "no" sticks.
+- **Halt-on-missed-outcome (RF-06).** Also blocked by any recorded `'missed'` outcome verdict attributed to the agent since the last arc change — a clean run with an accepted gate does not earn promotion if the real-world outcome later turned out wrong.
 - **No auto-promote to Ambient.** Ambient remains an explicit human decision.
 - **Memory promotion is its own tool** (`memory.promote`). Escalating an agent-scoped memory to workspace-global is gated like any other write.
 - **RLS:** `agent_memory` is scoped to `auth.uid()` and joined to the owning agent for read.

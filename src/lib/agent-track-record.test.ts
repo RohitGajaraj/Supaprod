@@ -3,6 +3,9 @@ import {
   summarizeAgentRecords,
   formatTrackRecord,
   trackRecordsToObject,
+  summarizeAgentOutcomes,
+  formatOutcomeRecord,
+  outcomeRecordsToObject,
 } from "./agent-track-record";
 
 describe("summarizeAgentRecords — per-agent decided approval record", () => {
@@ -64,12 +67,60 @@ describe("formatTrackRecord — honest, or null when there is no history", () =>
 
 describe("trackRecordsToObject — Map to transportable object", () => {
   test("flattens the map", () => {
-    const m = summarizeAgentRecords([
-      { agent_slug: "scout", status: "approved", decided_at: "x" },
-    ]);
+    const m = summarizeAgentRecords([{ agent_slug: "scout", status: "approved", decided_at: "x" }]);
     expect(trackRecordsToObject(m)).toEqual({ scout: { approved: 1, total: 1 } });
   });
   test("empty map -> empty object", () => {
     expect(trackRecordsToObject(new Map())).toEqual({});
+  });
+});
+
+describe("summarizeAgentOutcomes — per-agent recorded outcome record (RF-06)", () => {
+  test("counts validated vs missed per agent; excludes mixed (no clean signal)", () => {
+    const m = summarizeAgentOutcomes([
+      { agent_slug: "scout", verdict: "validated" },
+      { agent_slug: "scout", verdict: "validated" },
+      { agent_slug: "scout", verdict: "missed" },
+      { agent_slug: "scout", verdict: "mixed" }, // dropped: no clean directional signal
+      { agent_slug: "builder", verdict: "validated" },
+    ]);
+    expect(m.get("scout")).toEqual({ validated: 2, total: 3 });
+    expect(m.get("builder")).toEqual({ validated: 1, total: 1 });
+  });
+  test("blank slug and malformed input are safe", () => {
+    expect(summarizeAgentOutcomes([{ agent_slug: "", verdict: "validated" }]).size).toBe(0);
+    expect(summarizeAgentOutcomes(null).size).toBe(0);
+    expect(summarizeAgentOutcomes(undefined).size).toBe(0);
+  });
+  test("verdict is case-insensitive and slug is trimmed", () => {
+    const m = summarizeAgentOutcomes([
+      { agent_slug: " scout ", verdict: "VALIDATED" },
+      { agent_slug: "scout", verdict: "Missed" },
+    ]);
+    expect(m.get("scout")).toEqual({ validated: 1, total: 2 });
+  });
+  test("an unrecognized verdict never counts", () => {
+    expect(summarizeAgentOutcomes([{ agent_slug: "scout", verdict: "pending" }]).size).toBe(0);
+  });
+});
+
+describe("formatOutcomeRecord — honest, or null when there is no recorded outcome", () => {
+  test("renders validated/total", () => {
+    expect(formatOutcomeRecord({ validated: 12, total: 15 })).toBe("validated 12/15");
+  });
+  test("null when no validated/missed history (never a hollow 0/0)", () => {
+    expect(formatOutcomeRecord({ validated: 0, total: 0 })).toBeNull();
+    expect(formatOutcomeRecord(null)).toBeNull();
+    expect(formatOutcomeRecord(undefined)).toBeNull();
+  });
+});
+
+describe("outcomeRecordsToObject — Map to transportable object", () => {
+  test("flattens the map", () => {
+    const m = summarizeAgentOutcomes([{ agent_slug: "scout", verdict: "validated" }]);
+    expect(outcomeRecordsToObject(m)).toEqual({ scout: { validated: 1, total: 1 } });
+  });
+  test("empty map -> empty object", () => {
+    expect(outcomeRecordsToObject(new Map())).toEqual({});
   });
 });

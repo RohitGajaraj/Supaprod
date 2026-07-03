@@ -25,6 +25,12 @@ export type TrustBreakdown = {
   approval_acceptance_rate: number;
   evals_total: number;
   eval_mean_score: number;
+  // RF-06: did the agent's decided-on work actually turn out well (public.learnings,
+  // validated vs missed), not just whether it ran clean or the human said yes.
+  // 'mixed' verdicts are excluded from both — no clean directional signal.
+  outcomes_total: number;
+  outcomes_validated: number;
+  outcome_validated_rate: number;
   samples: number;
 };
 
@@ -85,12 +91,14 @@ export function resolveApprovalMode(toolMode: ToolMode, arc: Arc): ToolMode {
   }
 }
 
-type AgentRow = { id: string };
+type AgentRow = { id: string; slug: string };
 type RunRow = { agent_id: string; status: string };
 type ApprovalRow = { agent_id: string; status: string };
 type EvalRow = { ai_event_id: string; score: number | null };
 type EventRow = { id: string; agent_id: string | null };
 type AutonomyRow = { agent_id: string; arc: Arc };
+type LearningRow = { prd_id: string | null; verdict: string | null };
+type DecisionRow = { prd_id: string | null; decided_by_agent_slug: string | null };
 
 /**
  * Compute trust for every agent owned by the user in a single round-trip.
@@ -100,8 +108,8 @@ export async function computeAllAgentTrust(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<AgentTrust[]> {
-  const [agentsRes, runsRes, apprRes, eventsRes, autoRes] = await Promise.all([
-    supabase.from("agents").select("id").eq("user_id", userId),
+  const [agentsRes, runsRes, apprRes, eventsRes, autoRes, learningsRes] = await Promise.all([
+    supabase.from("agents").select("id,slug").eq("user_id", userId),
     supabase.from("agent_runs").select("agent_id,status").eq("user_id", userId),
     supabase.from("agent_approvals").select("agent_id,status").eq("user_id", userId),
     supabase
@@ -110,6 +118,13 @@ export async function computeAllAgentTrust(
       .eq("user_id", userId)
       .not("agent_id", "is", null),
     supabase.from("agent_autonomy").select("agent_id,arc").eq("user_id", userId),
+    // RF-06: recorded outcome quality, joined to agent attribution below.
+    supabase
+      .from("learnings")
+      .select("prd_id,verdict")
+      .eq("user_id", userId)
+      .in("verdict", ["validated", "missed"])
+      .not("prd_id", "is", null),
   ]);
 
   const agents = (agentsRes.data ?? []) as AgentRow[];
@@ -119,6 +134,7 @@ export async function computeAllAgentTrust(
   const autonomy = new Map<string, Arc>(
     ((autoRes.data ?? []) as AutonomyRow[]).map((a) => [a.agent_id, a.arc]),
   );
+  const learnings = (learningsRes.data ?? []) as LearningRow[];
 
   // Fetch evals only for this user's events.
   const eventIds = events.map((e) => e.id);
@@ -131,6 +147,26 @@ export async function computeAllAgentTrust(
     evals = (evalRows ?? []) as EvalRow[];
   }
   const eventToAgent = new Map<string, string>(events.map((e) => [e.id, e.agent_id as string]));
+
+  // RF-06: no FK exists between learnings and decisions (both key off prd_id
+  // independently), so resolve agent attribution via a second query + JS join,
+  // same idiom the rest of this function already uses (eventToAgent above).
+  const prdIds = [
+    ...new Set(learnings.map((l) => l.prd_id).filter((id): id is string => Boolean(id))),
+  ];
+  let decisionsByPrd = new Map<string, string>();
+  if (prdIds.length > 0) {
+    const { data: decisionRows } = await supabase
+      .from("decisions")
+      .select("prd_id,decided_by_agent_slug")
+      .eq("user_id", userId)
+      .in("prd_id", prdIds);
+    decisionsByPrd = new Map(
+      ((decisionRows ?? []) as DecisionRow[])
+        .filter((d) => d.prd_id && d.decided_by_agent_slug)
+        .map((d) => [d.prd_id as string, d.decided_by_agent_slug as string]),
+    );
+  }
 
   const out: AgentTrust[] = [];
   for (const a of agents) {
@@ -154,13 +190,22 @@ export async function computeAllAgentTrust(
     const eval_mean_score =
       evals_total > 0 ? aEvals.reduce((s, e) => s + (e.score as number), 0) / evals_total : 0;
 
-    const samples = missions_total + approvals_total + evals_total;
+    // RF-06: validated-outcome rate — did this agent's decided-on work actually
+    // turn out well, once real signal came in, not just whether it ran clean
+    // or the human accepted the gate.
+    const aOutcomes = learnings.filter((l) => l.prd_id && decisionsByPrd.get(l.prd_id) === a.slug);
+    const outcomes_total = aOutcomes.length;
+    const outcomes_validated = aOutcomes.filter((l) => l.verdict === "validated").length;
+    const outcome_validated_rate = outcomes_total > 0 ? outcomes_validated / outcomes_total : 0;
+
+    const samples = missions_total + approvals_total + evals_total + outcomes_total;
 
     const sMission = shrink(mission_success_rate, missions_total);
     const sApproval = shrink(approval_acceptance_rate, approvals_total);
     const sEval = shrink(eval_mean_score, evals_total);
+    const sOutcome = shrink(outcome_validated_rate, outcomes_total);
 
-    const raw = 0.4 * sMission + 0.3 * sApproval + 0.3 * sEval;
+    const raw = 0.3 * sMission + 0.2 * sApproval + 0.2 * sEval + 0.3 * sOutcome;
     const score = Math.round(Math.max(0, Math.min(1, raw)) * 100);
 
     const suggested_arc = suggestArc(score, samples);
@@ -180,6 +225,9 @@ export async function computeAllAgentTrust(
         approval_acceptance_rate,
         evals_total,
         eval_mean_score,
+        outcomes_total,
+        outcomes_validated,
+        outcome_validated_rate,
         samples,
       },
     });

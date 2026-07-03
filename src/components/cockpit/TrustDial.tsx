@@ -290,7 +290,7 @@ function TrustRow({
           className="fade-up tabular-nums"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(4, 1fr)",
             gap: 8,
             paddingTop: 4,
             borderTop: "1px solid var(--hairline)",
@@ -301,6 +301,10 @@ function TrustRow({
           <Stat
             label="Eval mean"
             value={b.evals_total > 0 ? `${Math.round(b.eval_mean_score * 100)}` : "n/a"}
+          />
+          <Stat
+            label="Validated"
+            value={b.outcomes_total > 0 ? `${b.outcomes_validated}/${b.outcomes_total}` : "n/a"}
           />
         </div>
       ) : null}

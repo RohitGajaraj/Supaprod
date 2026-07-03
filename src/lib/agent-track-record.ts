@@ -9,6 +9,10 @@
  * surface ONLY the approval record we actually record. Tool-gate ROLLBACKS are not
  * tracked, so we deliberately do NOT claim "0 rollbacks" — that would be a hollow
  * metric. Rollback-aware standing is a follow-on once a rollback signal exists.
+ *
+ * RF-06 adds the second half below: "validated 12/15", the agent's recorded
+ * OUTCOME quality (public.learnings), shown alongside the approval record so a
+ * human sees both "did I say yes before" and "did it turn out to be right".
  */
 
 // The record measures the human's APPROVE-vs-REJECT judgment of this agent, so it
@@ -67,6 +71,60 @@ export function trackRecordsToObject(
   m: Map<string, AgentTrackRecord>,
 ): Record<string, AgentTrackRecord> {
   const out: Record<string, AgentTrackRecord> = {};
+  for (const [k, v] of m) out[k] = v;
+  return out;
+}
+
+// RF-06: the OUTCOME record — did the agent's decided-on work actually turn out
+// well, once real-world signal came in (public.learnings, written by
+// recordOutcome), not just "did the human approve the gate" (that's
+// AgentTrackRecord, above). The two are deliberately separate: a human can
+// approve a gate that later turns out to have been the wrong call, and this
+// is the record that catches that. 'mixed' verdicts are excluded — no clean
+// directional signal, the same call recordOutcome's own DBR-3i edge makes.
+export type AgentOutcomeRecord = { validated: number; total: number };
+
+export type DecidedLearningRow = {
+  agent_slug: string | null;
+  verdict: string | null;
+};
+
+/**
+ * PURE. Tally each agent's recorded outcomes into validated / total (=
+ * validated + missed). 'mixed' and unrecognized verdicts are dropped, same
+ * as an undecided approval is dropped from summarizeAgentRecords above.
+ */
+export function summarizeAgentOutcomes(
+  rows: DecidedLearningRow[] | null | undefined,
+): Map<string, AgentOutcomeRecord> {
+  const out = new Map<string, AgentOutcomeRecord>();
+  for (const r of Array.isArray(rows) ? rows : []) {
+    const slug = (r?.agent_slug ?? "").trim();
+    if (!slug) continue;
+    const verdict = (r?.verdict ?? "").trim().toLowerCase();
+    if (verdict !== "validated" && verdict !== "missed") continue; // no clean signal
+    const rec = out.get(slug) ?? { validated: 0, total: 0 };
+    if (verdict === "validated") rec.validated++;
+    rec.total++;
+    out.set(slug, rec);
+  }
+  return out;
+}
+
+/**
+ * PURE. Human-readable outcome record, or null when the agent has no
+ * validated/missed history yet (shows nothing rather than a hollow "0/0").
+ */
+export function formatOutcomeRecord(rec: AgentOutcomeRecord | null | undefined): string | null {
+  if (!rec || rec.total <= 0) return null;
+  return `validated ${rec.validated}/${rec.total}`;
+}
+
+/** PURE. Flatten the Map to a plain object for transport in a server-fn payload. */
+export function outcomeRecordsToObject(
+  m: Map<string, AgentOutcomeRecord>,
+): Record<string, AgentOutcomeRecord> {
+  const out: Record<string, AgentOutcomeRecord> = {};
   for (const [k, v] of m) out[k] = v;
   return out;
 }
