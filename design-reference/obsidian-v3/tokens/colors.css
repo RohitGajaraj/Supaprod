@@ -15,6 +15,7 @@
   --surface-card-deep: #0E0E10; /* alternating rows, call-card base */
   --surface-raised: var(--raised);
   --surface-hover: var(--hover);
+  --surface-recessed: #0B0B0D; /* raw/detail card, one step darker than card: Ask trace box, mission raw trace, Ask canvas blocks */
 
   /* Hairlines replace shadows */
   --hairline: rgba(255, 255, 255, 0.07);

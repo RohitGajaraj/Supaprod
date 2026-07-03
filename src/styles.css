@@ -1647,6 +1647,7 @@ html[data-motion="off"] .agent-live {
   --surface-card-deep: #0e0e10; /* alternating rows, call-card base */
   --surface-raised: var(--raised);
   --surface-hover: var(--hover);
+  --surface-recessed: #0b0b0d; /* raw/detail card, one step darker than card: Ask trace box, mission raw trace, Ask canvas blocks */
 
   /* Hairlines replace shadows */
   --hairline: rgba(255, 255, 255, 0.07);

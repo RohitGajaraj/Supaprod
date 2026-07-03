@@ -3,7 +3,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
-import { MonoLabel } from "@/components/obsidian";
+import { MonoLabel, MissionCanvasBlocks } from "@/components/obsidian";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
@@ -110,21 +110,24 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
         <ChatMarkdown content={msg.content} citations={meta?.sources.map((s) => s.n)} />
       </div>
       {msg.mission_id ? (
-        <Link
-          to="/build/$missionId"
-          params={{ missionId: msg.mission_id }}
-          style={{
-            display: "inline-block",
-            marginTop: 6,
-            fontFamily: "var(--font-mono)",
-            fontSize: 9,
-            textTransform: "uppercase",
-            letterSpacing: "0.11em",
-            color: "var(--glacier)",
-          }}
-        >
-          Track the mission →
-        </Link>
+        <>
+          <MissionCanvasBlocks missionId={msg.mission_id} />
+          <Link
+            to="/build/$missionId"
+            params={{ missionId: msg.mission_id }}
+            style={{
+              display: "inline-block",
+              marginTop: 6,
+              fontFamily: "var(--font-mono)",
+              fontSize: 9,
+              textTransform: "uppercase",
+              letterSpacing: "0.11em",
+              color: "var(--glacier)",
+            }}
+          >
+            Open in Build →
+          </Link>
+        </>
       ) : null}
       {meta ? (
         <div

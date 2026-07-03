@@ -35,6 +35,8 @@ export type { CallCardProps, CallCardEvidence } from "./callcard";
 export { MissionRow } from "./missionrow";
 export type { MissionRowProps, MissionRowStatus } from "./missionrow";
 
+export { MissionCanvasBlocks } from "./ask-canvas";
+
 export {
   ChartFrame,
   Axes,

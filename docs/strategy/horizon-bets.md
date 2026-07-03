@@ -18,7 +18,7 @@
 | ID | Bet | Drill-down doc | Priority | Status |
 | --- | --- | --- | --- | --- |
 | **H1** | The Decision Brain | [`decision-brain.md`](../features/decision-brain.md) | **TOPMOST (founder ruling 2026-06-20)** | Increment 1 ([Ambient Precedent](../features/ambient-precedent.md)) SHIPPED to `main` (◐) 2026-06-20 cycle 55, all 6 tasks (engine + ranker ✅ unit-verified; 3 seams render-on-publish); deeper graph (DBR-1+) awaiting enrichment |
-| **H2** | The Command Canvas | [`command-canvas.md`](../features/command-canvas.md) | **PARKED (founder 2026-06-20)** | Parked; only H1 is active |
+| **H2** | The Command Canvas | [`command-canvas.md`](../features/command-canvas.md) | **Un-parked 2026-07-03 (founder)** | CMD-0 shipped (lane3), `◐ [~40%]`: the preview/canvas blocks render inside the existing Ask panel; CMD-1 (NL intent bar) and CMD-2 (direct manipulation) remain |
 
 Both came from one founder session (2026-06-20) and are best read as one arc: a **second-brain product** where a knowledge graph is the engine and a command-plus-preview surface is the front. Graph in, canvas out. Each bet has a self-contained, shareable drill-down doc in [`../features/`](../features/) (linked above); this register holds the strategic view (thesis, wiring, multi-lens, roadmap).
 
@@ -191,7 +191,7 @@ These gaps *are* the two bets. Wiring map:
 
 **H2 Command Canvas** (G7 Cockpit + Build surface; additive, lower priority):
 
-- **CMD-0 (the valuable half first):** a live preview/canvas pane rendering loop progress, memory-recall citations, and Critic verdicts as outcome-named, Warp-style blocks.
+- **CMD-0 (the valuable half first) - ✅ SHIPPED 2026-07-03 (lane3):** blocks rendering loop progress, memory-recall citations, and the Critic verdict inside Ask's existing panel thread (not a separate canvas pane - Ask stayed a 420px slide-over per OBS-12, which shipped after this bet was written; see `command-canvas.md`'s load-bearing correction note). Read-only, a new polling channel, zero change to `/api/chat`.
 - **CMD-1:** elevate `CommandPalette.tsx` from navigation to an NL intent bar that dispatches the loop into the canvas; preserve the GUI fallback.
 - **CMD-2:** direct manipulation (click-to-target, highlight-to-edit) plus the 10 calm-command rules.
 
