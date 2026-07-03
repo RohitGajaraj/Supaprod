@@ -11,6 +11,13 @@
 > This section replaces the old root `active-task.md` (folded in 2026-06-19). It is the single "what is in flight + what to pick next" cursor. Update it in the same unit of work as any change. Past work is in section 6 (progress log); the full dated history is in [`../../plan.md`](../../plan.md) section 4.
 
 > [!IMPORTANT]
+> ## 🧵 IN FLIGHT NOW — LOOM (G16): the founder's final production-readiness mission (2026-07-04, overnight, claimed `LOOM` lane1)
+>
+> **The founder's 2026-07-04 mission (`docs/Readiness Audit & Consumer Production grade`) supersedes the normal register pick-order tonight**: a full audit-then-transform pass to consumer production grade. The design law is **[`/DESIGN-LOOM.md`](../../DESIGN-LOOM.md)** (v4 "Loom", ADDITIVE over Obsidian v3); the execution bible + audit evidence (81 routes, 96 features, the deduped defect registers) is **[`loom/loom-plan.md`](./loom/loom-plan.md)**. Founder rulings folded in: everything visible + logically bucketed (no url-only features), Today triage redesign, desktop-first canvas, the living knowledge-graph flagship, single-product progressive disclosure, renames allowed. Shipped so far: prettier sweep (`3549fc2e`), dormant-payments crash chain + audio cross-tenant fix (`24fccc59`), the portal theme fix (`41d4b3b1`). Waves W1-W5 in the bible; founder-parked items in its last section.
+>
+> ---
+
+> [!IMPORTANT]
 > ## ⭐ THE GUIDING STAR (2026-06-23): v11 is now the standing strategy + build canon (read it before picking)
 >
 > **[`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md)** is the new strategy guiding star (the ranked build front lives in **[`feature-dashboard.md`](./feature-dashboard.md)**, the v11 items are #1-21 with a Why per row), produced from a code-and-live-DB-verified outsider teardown (investor / CTO / Head-of-Product / competitor / core-user lenses + a villain/defense pressure-test). **When v11 and an older doc disagree on direction, v11 wins.**
