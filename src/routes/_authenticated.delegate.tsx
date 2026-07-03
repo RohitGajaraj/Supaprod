@@ -55,7 +55,7 @@ function ProgressDots({ done, total }: { done: number; total: number }) {
 function MissionCard({ m }: { m: DeskMission }) {
   return (
     <Link
-      to="/missions/$missionId"
+      to="/build/$missionId"
       params={{ missionId: m.id }}
       style={{
         display: "block",

@@ -341,7 +341,7 @@ export function SignalDetail({ id }: { id: string }) {
                     </Link>
                   ) : e.child_kind === "mission" ? (
                     <Link
-                      to="/missions/$missionId"
+                      to="/build/$missionId"
                       params={{ missionId: e.child_id }}
                       style={LINK_STYLE}
                     >

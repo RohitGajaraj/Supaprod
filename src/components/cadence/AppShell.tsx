@@ -628,8 +628,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
             {runningCount > 0 && !askOpen && (
               <Link
-                to="/missions"
-                search={{ tab: "missions" } as never}
+                to="/build"
                 className="flex items-center"
                 style={{
                   fontFamily: "var(--font-mono)",

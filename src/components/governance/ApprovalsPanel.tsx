@@ -363,7 +363,7 @@ function ApprovalCard({
               <Link
                 className="btn btn-sm"
                 style={{ color: "var(--action-blue)" }}
-                to="/missions/$missionId"
+                to="/build/$missionId"
                 params={{ missionId: a.mission_id }}
               >
                 Mission

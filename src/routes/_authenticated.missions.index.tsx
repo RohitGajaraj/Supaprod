@@ -1,63 +1,12 @@
-// Missions — screen 4a of the Ember Editorial migration, ported 1:1 from
-// design-reference/cadence/missions.jsx (MissionsScreen): mono kicker
-// "Loop · Build", serif h1, hairline tab row (Missions | Agents). Production
-// functionality rides the reference layout: the ?tab= search-param contract,
-// the orchestrated-mission composer (MissionsPanel) and the swarm telemetry
-// panels (AgentsPanel). Sibling /missions/$missionId remains the deep link.
-import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { Activity } from "lucide-react";
-import { TopBar } from "@/components/cadence/TopBar";
-import { MonoLabel } from "@/components/cadence/Primitives";
-import { useWorkspace } from "@/hooks/use-workspace";
-import { MissionsPanel } from "@/components/cockpit/MissionsPanel";
-import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
-import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
-import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// /missions folded into Build per OBS-10 (IA consolidation): Build widened to
+// list every agent-mesh mission (Studio/Build code-gen AND orchestrator
+// goal-runs), so this page has no functionality Build lacks. The composer's
+// "Run a goal" mode (dispatchStudioSession's sibling, startOrchestratedMission)
+// replaces the retired MissionComposer.
 export const Route = createFileRoute("/_authenticated/missions/")({
-  // AGENT-EXP: the Agents tab is retired (the roster lives in Engine Room > Team).
-  // validateSearch stays lenient so any old ?tab= link still resolves to Missions.
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
-    tab: typeof search.tab === "string" ? search.tab : undefined,
-  }),
-  component: MissionsPage,
-  head: () => ({ meta: [{ title: "Missions · Cadence" }] }),
+  beforeLoad: () => {
+    throw redirect({ to: "/build" });
+  },
 });
-
-function MissionsPage() {
-  const { activeWorkspace } = useWorkspace();
-  return (
-    <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Missions"]} />
-      <div
-        data-screen-label="Missions"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
-      >
-        <header style={{ marginBottom: 22 }}>
-          <MonoLabel icon={Activity}>Loop · Build</MonoLabel>
-          <h1 className="font-display" style={{ fontSize: 26, marginTop: 7, fontWeight: 430 }}>
-            Missions
-          </h1>
-          <p style={{ fontSize: 13.5, color: "var(--ink-subtle)", marginTop: 4, maxWidth: 520 }}>
-            Goal-driven runs across the agent mesh. Watch the work, jump into any step.
-          </p>
-          {/* ENG-06 B2: the cost-per-outcome manager's glance for the fleet. */}
-          <MissionsCostGlance />
-          {/* RELIABILITY-GLANCE: a silent-when-healthy heads-up if the AI error budget is
-              strained (RELIABILITY-SLO) or a mission is spinning (RUNAWAY-DETECT). */}
-          <ReliabilityGlance />
-        </header>
-
-        {/* E8 · Loop Health Monitor — catch a stalled loop before it bites. */}
-        <LoopHealthBanner />
-
-        {/* AGENT-EXP: the Agents tab (the roster grid) is retired. The roster +
-            trust dials live in Engine Room > Team; agents appear in motion as the
-            relay on each mission. */}
-        <MissionsPanel />
-      </div>
-    </>
-  );
-}

@@ -60,7 +60,7 @@ export function SourceLink({
   if (d.mission_id) {
     return (
       <Link
-        to="/missions/$missionId"
+        to="/build/$missionId"
         params={{ missionId: d.mission_id }}
         className={className}
         style={style}

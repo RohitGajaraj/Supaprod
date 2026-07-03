@@ -30,6 +30,7 @@ import {
 } from "./build-status";
 import { getStudioSession, type StudioApproval } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
+import { promoteMission } from "@/lib/missions.functions";
 import { fmtCost } from "@/components/studio/studio-format";
 import type { LoopStep } from "@/lib/ai/loop.server";
 
@@ -44,6 +45,7 @@ export function MissionSlideOver({
   const showToast = useToast();
   const fGet = useServerFn(getStudioSession);
   const fDecide = useServerFn(decideApproval);
+  const fPromote = useServerFn(promoteMission);
   const [traceOpen, setTraceOpen] = useState(false);
 
   useEffect(() => {
@@ -73,8 +75,21 @@ export function MissionSlideOver({
     },
   });
 
+  // OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
+  // proposed but no human has promoted to 'queued' yet (ported from the
+  // retired /missions list row's "Review & launch" button).
+  const promote = useMutation({
+    mutationFn: () => fPromote({ data: { missionId: missionId! } }),
+    onSuccess: () => {
+      showToast("Mission queued. The agent will pick it up shortly.");
+      qc.invalidateQueries({ queryKey: ["studio-sessions"] });
+      qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
+    },
+  });
+
   const data = session.data;
-  const mission = data?.mission as { title: string; status: string } | undefined;
+  const mission = data?.mission as { title: string; status: string; goal?: string } | undefined;
+  const isOrchestratorMission = data?.kind === "mission";
   const approvals = (data?.approvals ?? []) as StudioApproval[];
   const pendingApproval = findPendingApproval(approvals) ?? null;
   const runs = data?.runs ?? [];
@@ -102,6 +117,53 @@ export function MissionSlideOver({
     >
       {!mission ? (
         <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading mission…</p>
+      ) : isOrchestratorMission ? (
+        // OBS-10: an orchestrator goal-run, not a Studio session — no changeset,
+        // no build steps. The rich detail (hops, replay, cancel, the Compounding
+        // moat view) lives one layer deeper, at the full page; this stays a
+        // condensed summary per the slide-over's own depth-2 contract.
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <MonoLabel tone="muted">MISSION</MonoLabel>
+            <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
+          </div>
+          {mission.goal ? (
+            <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5 }}>
+              {mission.goal}
+            </p>
+          ) : null}
+          {mission.status === "proposed" ? (
+            <CallCard
+              compact
+              kind="mission.promote"
+              expiry="No expiry"
+              title="Launch this mission"
+              body="A trigger proposed this goal. Nothing runs until you launch it."
+              ev={[]}
+              okLabel={promote.isPending ? "Launching…" : "Review & launch"}
+              noLabel="Not now"
+              consequence="The agent mesh picks this up on its next tick."
+              onOk={() => promote.mutate()}
+              onNo={onClose}
+            />
+          ) : null}
+          {missionId ? (
+            <Link
+              to="/build/$missionId"
+              params={{ missionId }}
+              style={{
+                alignSelf: "flex-start",
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.08em",
+                color: "var(--glacier)",
+                textDecoration: "none",
+              }}
+            >
+              Open full view →
+            </Link>
+          ) : null}
+        </div>
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">

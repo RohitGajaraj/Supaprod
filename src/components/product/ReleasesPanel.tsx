@@ -78,7 +78,7 @@ export function ReleasesPanel() {
       {missions.map((m) => (
         <Link
           key={m.id}
-          to="/missions/$missionId"
+          to="/build/$missionId"
           params={{ missionId: m.id }}
           className="bento lift"
           style={{
@@ -146,7 +146,7 @@ export function ReleasesPanel() {
           <span className="mono-label">{relTime(r.created_at)}</span>
           {r.mission_id ? (
             <Link
-              to="/missions/$missionId"
+              to="/build/$missionId"
               params={{ missionId: r.mission_id }}
               aria-label="Open mission"
               style={{ display: "inline-flex", color: "var(--ink-faint)" }}

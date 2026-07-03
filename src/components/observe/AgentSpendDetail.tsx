@@ -183,7 +183,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
                         }}
                         onClick={() =>
                           navigate({
-                            to: "/missions/$missionId",
+                            to: "/build/$missionId",
                             params: { missionId: m.missionId! },
                           })
                         }

@@ -67,6 +67,10 @@ export type StudioFileSetPolicy = FileSetPolicyReport;
 
 export type StudioSessionListItem = {
   mission_id: string;
+  /** OBS-10: 'build' = dispatched through Studio (has a 'builder' agent run);
+   * 'mission' = an orchestrator (or other-agent) goal-run, no changeset/PR of
+   * its own — open it via `/build/$missionId`'s mission-kind branch. */
+  kind: "build" | "mission";
   title: string;
   status: string;
   goal: string;
@@ -366,6 +370,15 @@ export const listStudioSessions = createServerFn({ method: "GET" })
     const db = supabase as unknown as SupabaseClient;
     const includeArchived = data?.includeArchived ?? false;
 
+    // OBS-10: Build is the one true missions home, so this lists every agent-
+    // mesh mission (Studio/Build code-gen AND orchestrator goal-runs), not just
+    // 'builder' ones. Two runs queries stay fully SEPARATE on purpose (adversarial
+    // review finding) rather than one unfiltered query: (1) keeps the 'build'-kind
+    // cost/run_status computation below byte-identical to the pre-fold behavior —
+    // no risk of a mid-mission `agent.handoff` to a non-builder agent polluting a
+    // Studio session's reported cost/status; (2) keeps each kind's own `.limit(100)`
+    // window independent, so a busy orchestrator mesh can never push a real Studio
+    // session's run out of the fetched window (a single shared limit could).
     const { data: runs, error } = await db
       .from("agent_runs")
       .select("id,mission_id,status,created_at")
@@ -375,10 +388,46 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       .limit(100);
     if (error) throw new Error(error.message);
     const runRows = (runs ?? []) as { id: string; mission_id: string | null; status: string }[];
-    const missionIds = [
+    const builderMissionIds = [
       ...new Set(runRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
     ];
+
+    const { data: otherRuns, error: otherError } = await db
+      .from("agent_runs")
+      .select("id,mission_id,status,created_at")
+      .eq("user_id", userId)
+      .neq("agent_slug", "builder")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (otherError) throw new Error(otherError.message);
+    const otherRunRows = (otherRuns ?? []) as {
+      id: string;
+      mission_id: string | null;
+      status: string;
+    }[];
+    const otherMissionIds = [
+      ...new Set(otherRunRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
+    ].filter((id) => !builderMissionIds.includes(id));
+
+    // A 'proposed' mission (the trigger-tick's own HITL gate, promoteMission.ts)
+    // has ZERO agent_runs by design — resume-runs ignores it until a human
+    // promotes it — so it would never enter either runs query above, making its
+    // "Review & launch" gate unreachable. Fetch these separately by status.
+    const { data: proposedMissions } = await db
+      .from("missions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "proposed");
+    const proposedIds = ((proposedMissions ?? []) as { id: string }[])
+      .map((p) => p.id)
+      .filter((id) => !builderMissionIds.includes(id) && !otherMissionIds.includes(id));
+
+    const missionIds = [...builderMissionIds, ...otherMissionIds, ...proposedIds];
     if (!missionIds.length) return { sessions: [] };
+    const missionKind = new Map<string, "build" | "mission">();
+    for (const id of builderMissionIds) missionKind.set(id, "build");
+    for (const id of otherMissionIds) missionKind.set(id, "mission");
+    for (const id of proposedIds) missionKind.set(id, "mission");
 
     const [{ data: missions }, { data: changesets }, { data: pendings }, { data: edges }] =
       await Promise.all([
@@ -448,40 +497,47 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       (prds ?? []).map((p: { id: string; title: string }) => [p.id, p.title]),
     );
 
-    // Cost: checkpoint trace → ai_events sum (legacy and new runs alike).
-    const runIds = runRows.map((r) => r.id);
-    const traces = await traceByRun(supabase, runIds);
-    const traceList = [...new Set(traces.values())];
-    const costByTrace = new Map<string, number>();
-    if (traceList.length) {
-      const { data: events } = await db
-        .from("ai_events")
-        .select("trace_id,est_cost_usd")
-        .in("trace_id", traceList);
-      for (const ev of (events ?? []) as {
-        trace_id: string | null;
-        est_cost_usd: number | null;
-      }[]) {
-        if (ev.trace_id)
-          costByTrace.set(
-            ev.trace_id,
-            (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
-          );
+    // Cost: checkpoint trace → ai_events sum (legacy and new runs alike). Computed
+    // separately per agent-kind run set (never merged) so a 'build'-kind mission's
+    // cost/status can never absorb a different agent's contribution mid-mission.
+    async function costAndStatusByMission(
+      rows: { id: string; mission_id: string | null; status: string }[],
+    ): Promise<{ cost: Map<string, number>; status: Map<string, string> }> {
+      const traces = await traceByRun(
+        supabase,
+        rows.map((r) => r.id),
+      );
+      const traceList = [...new Set(traces.values())];
+      const costByTrace = new Map<string, number>();
+      if (traceList.length) {
+        const { data: events } = await db
+          .from("ai_events")
+          .select("trace_id,est_cost_usd")
+          .in("trace_id", traceList);
+        for (const ev of (events ?? []) as {
+          trace_id: string | null;
+          est_cost_usd: number | null;
+        }[]) {
+          if (ev.trace_id)
+            costByTrace.set(
+              ev.trace_id,
+              (costByTrace.get(ev.trace_id) ?? 0) + (ev.est_cost_usd ?? 0),
+            );
+        }
       }
-    }
-    const costByMission = new Map<string, number>();
-    const runStatusByMission = new Map<string, string>();
-    for (const r of runRows) {
-      if (!r.mission_id) continue;
-      if (!runStatusByMission.has(r.mission_id)) runStatusByMission.set(r.mission_id, r.status);
-      const trace = traces.get(r.id);
-      if (trace) {
-        costByMission.set(
-          r.mission_id,
-          (costByMission.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0),
-        );
+      const cost = new Map<string, number>();
+      const status = new Map<string, string>();
+      for (const r of rows) {
+        if (!r.mission_id) continue;
+        if (!status.has(r.mission_id)) status.set(r.mission_id, r.status);
+        const trace = traces.get(r.id);
+        if (trace)
+          cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + (costByTrace.get(trace) ?? 0));
       }
+      return { cost, status };
     }
+    const builder = await costAndStatusByMission(runRows);
+    const other = await costAndStatusByMission(otherRunRows);
 
     const sessions = (
       (missions ?? []) as Array<{
@@ -498,8 +554,12 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       .filter((m) => includeArchived || !m.archived_at)
       .map((m) => {
         const prdId = prdByMission.get(m.id) ?? null;
+        const kind = missionKind.get(m.id) ?? "mission";
+        const { cost: costByMission, status: runStatusByMission } =
+          kind === "build" ? builder : other;
         return {
           mission_id: m.id,
+          kind,
           title: m.title,
           status: m.status,
           goal: m.goal,
@@ -595,6 +655,14 @@ export const getStudioSession = createServerFn({ method: "GET" })
       output: string | null;
     }>;
     const runIds = runRows.map((r) => r.id);
+
+    // OBS-10: a mission with zero 'builder' runs was never dispatched through
+    // Studio — it is an orchestrator (or other-agent) mission. `MissionSlideOver`
+    // and `/build/$missionId` read this to render the mission's own detail view
+    // (via `getMission`, missions.functions.ts) instead of the Studio-specific
+    // body below, which stays empty-but-harmless for a mission-kind id (every
+    // query below is scoped by mission_id and simply returns no rows).
+    const kind: "build" | "mission" = runRows.length > 0 ? "build" : "mission";
 
     // Steps + trace from the latest checkpoint per run (full state read is
     // fine here — a handful of runs per session).
@@ -798,6 +866,7 @@ export const getStudioSession = createServerFn({ method: "GET" })
 
     return {
       mission,
+      kind,
       runs: runsDetailed,
       changeset: csRow
         ? { ...(csRow as Record<string, unknown>), file_count: changes.length }

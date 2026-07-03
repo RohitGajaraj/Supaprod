@@ -34,6 +34,7 @@ import type { Inspection } from "@/lib/ai/studio-inspection";
 import { CostPanel } from "@/components/studio/CostPanel";
 import { StatusChip } from "@/components/studio/studio-ui";
 import { fmtCost } from "@/components/studio/studio-format";
+import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 
 type Tab = "changes" | "pr" | "preview" | "cost";
 const TABS: Tab[] = ["changes", "pr", "preview", "cost"];
@@ -324,6 +325,10 @@ function BuildSessionPage() {
   const [showWorkOrder, setShowWorkOrder] = useState(false);
 
   const data = session.data;
+  // OBS-10: a mission with no 'builder' agent run is an orchestrator goal-run,
+  // not a Studio session — render its own detail body (MissionOrchestratorDetail)
+  // instead of the changeset/PR-shaped grid below, which has nothing to show it.
+  const isOrchestratorMission = data?.kind === "mission";
   const mission = (data?.mission ?? null) as MissionRow | null;
   const runs = (data?.runs ?? []) as StudioRunDetail[];
   const changeset = (data?.changeset ?? null) as
@@ -376,7 +381,7 @@ function BuildSessionPage() {
           ← All sessions
         </Link>
 
-        {mission && (
+        {!isOrchestratorMission && mission && (
           <header style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <h1 className="font-display" style={{ fontSize: 22, fontWeight: 430 }}>
@@ -445,7 +450,7 @@ function BuildSessionPage() {
           </header>
         )}
 
-        {data && mission && (
+        {!isOrchestratorMission && data && mission && (
           <JourneyStrip runs={runs} changeset={changeset} ci={ci} missionStatus={mission.status} />
         )}
 
@@ -476,6 +481,8 @@ function BuildSessionPage() {
           >
             Loading the session…
           </div>
+        ) : isOrchestratorMission ? (
+          <MissionOrchestratorDetail missionId={missionId} />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>

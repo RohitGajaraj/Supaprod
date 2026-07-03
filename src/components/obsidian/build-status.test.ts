@@ -28,8 +28,13 @@ describe("studioToMissionRowStatus", () => {
     expect(studioToMissionRowStatus("cancelled", 0)).toBe("done");
     expect(studioToMissionRowStatus("completed_with_failures", 0)).toBe("done");
   });
-  test("a brand-new mission with zero runs (missions.status 'proposed') reads as queued", () => {
-    expect(studioToMissionRowStatus("proposed", 0)).toBe("queued");
+  // OBS-10: 'proposed' is the trigger-tick's own HITL gate (a mission an
+  // ambient trigger proposed but no human has promoted to 'queued' yet via
+  // missions.functions.ts `promoteMission`) — distinct from 'queued', which
+  // is already dispatched and running unattended. Reads as a gate, not a
+  // quiet queued row, so it is not missed.
+  test("proposed (an ambient-trigger mission awaiting promotion) reads as a gate", () => {
+    expect(studioToMissionRowStatus("proposed", 0)).toBe("gate");
   });
   test("a genuinely unrecognized status string fails safe to queued, never a false done", () => {
     expect(studioToMissionRowStatus("some_future_status", 0)).toBe("queued");
@@ -55,8 +60,8 @@ describe("studioToStatusState", () => {
     expect(studioToStatusState("cancelled", 0)).toBe("blocked");
     expect(studioToStatusState("completed_with_failures", 0)).toBe("blocked");
   });
-  test("proposed (a brand-new mission with zero runs) reads as queued", () => {
-    expect(studioToStatusState("proposed", 0)).toBe("queued");
+  test("proposed (an ambient-trigger mission awaiting promotion) reads as a gate", () => {
+    expect(studioToStatusState("proposed", 0)).toBe("gate");
   });
   test("an unrecognized status string fails safe to queued, never done", () => {
     expect(studioToStatusState("some_future_status", 0)).toBe("queued");

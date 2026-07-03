@@ -323,7 +323,7 @@ export function OpportunityDetail({ id }: { id: string }) {
                     mission
                   </span>
                   <Link
-                    to="/missions/$missionId"
+                    to="/build/$missionId"
                     params={{ missionId: e.child_id }}
                     style={LINK_STYLE}
                   >

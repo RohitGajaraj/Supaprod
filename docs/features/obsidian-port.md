@@ -288,7 +288,7 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
-## OBS-10 · IA consolidation (◐ shipped-partial, 2026-07-02, lane1)
+## OBS-10 · IA consolidation (◐ shipped-partial, 2026-07-02 lane1, resumed 2026-07-03 lane2)
 
 **What shipped:** `src/lib/legacy-redirects.ts` (new) - the single source of truth mapping every legacy path to its canonical fold target, plus `CANONICAL_PATHS` (the six primary destinations) and `DOOR_INTERNAL_PATHS` (Settings/Admin/onboarding/Trust Ledger/Connectors and the surfaces this pass deliberately kept live, see below). `legacy-redirects.test.ts` (new) asserts every target resolves to a canonical or door-internal path, never another legacy key (no 404s, no chains). `nav-model.ts` reshaped: Discover -> `/discover`, Plan -> `/plan` (both off the interim `/product?tab=` scope OBS-02/06/07 carried until this landed); the Engine Room door -> `/engine-room`; `ENGINE_ROOM_LINKS` drops Approvals (Calls live on Today only) and points Spend + the bare Engine Room link at the new glance's Spend room. `nav-model.test.ts` updated for the final-state invariants (5 unique canonical routes, no `/chat`, door + links resolve live). `CommandPalette.tsx`'s hardcoded Navigate entries re-pointed. `_authenticated.today.tsx`'s `LOOP_SURFACE_TO` map fixed - its LoopStrip pills were silently still targeting `/product?tab=` after OBS-06/07 had already shipped the real `/discover`/`/plan` routes.
 
@@ -303,18 +303,15 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 **`/eval-health` converted from a full render to a stub** (the one genuine `[render→stub]` conversion this pass completed) after verifying it was safe: `QualityRoom`'s Score view reads the exact same `getEvalHealth()` query (pass rate, trend, verdict) and its Suites view lists every suite with a trend arrow; the one piece of eval-health.tsx's content not reproduced there (the flaky-suite % breakdown) is still reachable one click deeper at `/govern?tab=evals`, which `QualityRoom`'s own Suites rows already navigate into.
 
-**Deliberately NOT folded - `[~25%]` of the spec's mapping table remains, each verified against the real shipped code, not assumed from the spec's abstract table, to carry live functionality its Obsidian replacement does not yet have:**
+**Deliberately NOT folded - each verified against the real shipped code, not assumed from the spec's abstract table, to carry live functionality its Obsidian replacement does not yet have. `/missions` and `/missions/$missionId` closed 2026-07-03 (lane2, see below); `/chat` closed by OBS-12 (its own row).**
 
 - `/product` - `DiscoverSurface`'s own file comment says it is explicitly additive; capture, bulk import, cluster, promote, draft-spec, lineage, and delete all still live only on `/product`. Folding it would delete every write action Discover lacks.
 - `/prds/$id` - the full PRD editor (AI assist, GitHub issue creation, task graphs, design scaffolding, Linear issue creation, Studio dispatch). Plan's `SpecDetail` is explicitly read-only and itself links here ("Open full spec ->").
 - `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates here for trace detail; `/govern?tab=traces` is a second live consumer.
-- `/missions` (bare) - hosts `LoopHealthBanner`, `MissionsCostGlance`, and `ReliabilityGlance`; none of the three exist on `/build` yet.
-- `/missions/$missionId` - 1399 lines vs `/build/$missionId`'s 530; not a verified duplicate, likely carries content the newer page lacks.
 - `/stakeholder` - audience-specific pack generation (exec/eng/board tabs, copy/download); Plan's roadmap view has no equivalent.
 - `/impact` - the impact-ledger detail view; not verified redundant with Brain's simpler `BrainStatTrio` export, despite sharing the same `getImpactLedger` data source.
 - `/changelog` - Brain has no "record"/changelog-equivalent tab yet.
 - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with no Build equivalent.
-- `/chat` - the Ask panel (OBS-12) does not exist yet. Redirecting this away now would delete AI chat with no replacement; OBS-12 owns this fold.
 
 **FOUNDER-GATE (per OBS-10.md §13, URL renames):** the renames that DID land are live now (`/discovery`→`/discover?tab=`, `/roadmap`+`/prds`→`/plan`, several engine-adjacent routes→`/engine-room`). The eleven surfaces above are deliberately still on their old parchment URLs pending feature parity - flagged here for founder review; folding them is real feature work (giving Discover/Plan/Build/Brain the missing capability first), not wiring, and is explicitly out of OBS-10's charter per its own §3 Scope OUT.
 
@@ -326,6 +323,30 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 4. Confirm the eleven surfaces listed above still render their full legacy content at their old URLs (no accidental redirect was introduced for them).
 
 **Gates at ship:** `tsc --noEmit` 0 · `bun test` 2008/2008 pass (25 new: 5 in `legacy-redirects.test.ts` + the updated `nav-model.test.ts`) · humanized-output clean · manual crawl of every re-pointed route confirmed one-hop, no 404, no chain.
+
+### Resumed 2026-07-03 (lane2) — `/missions` and `/missions/$missionId` folded
+
+Closed 2 of the 9 deliberately-not-folded surfaces above. **Real gap found first, bigger than the original note implied:** `/missions` (bare) wasn't just missing 3 glance widgets — its list (`listMissions`, `missions.functions.ts`) showed EVERY agent-mesh mission (orchestrator goal-runs via `startOrchestratedMission` AND Studio/Build code-gen via `dispatchStudioSession`), while `/build`'s list (`listStudioSessions`) only showed `agent_slug='builder'` missions. Folding naively would have made every orchestrator mission (including ones started from Brain's "follow up on this node" action, which already navigated to `/build?mission=` — a pre-existing dead-end bug, confirmed: `getStudioSession` filtered runs to 'builder' only, so that slide-over silently showed an empty session) permanently unreachable.
+
+**Fix — Build widened to be agent-agnostic, the one true missions home:**
+- `listStudioSessions`/`getStudioSession` (`studio.functions.ts`) gained a `kind: "build" | "mission"` field. Two runs queries stay fully separate (not one unfiltered query): keeps 'build'-kind cost/run_status computation byte-identical to pre-fold (no risk of a mid-mission `agent.handoff` to a non-'builder' agent polluting a Studio session's reported cost), and keeps each kind's own `.limit(100)` window independent so a busy orchestrator mesh can never push a real Studio session's run out of its fetched window.
+- New `src/components/missions/MissionOrchestratorDetail.tsx` — the retired `/missions/$missionId` page's full body (cancel, replay-with-model, Chief of Staff advance, governance gate, agent relay, Mission Compounding, plan/graph toggle, "executed unattended" audit, hops trace, failed-mission retry), moved unchanged into a component taking `missionId` as a prop. `MissionSlideOver.tsx` and `_authenticated.build.$missionId.tsx` both branch on `kind`: 'build' keeps the exact existing Studio UI; 'mission' renders a condensed slide-over summary + `MissionOrchestratorDetail` at the full page.
+- Build's Composer gained a "Run a goal" mode (`startOrchestratedMission`, ported from the retired `MissionsPanel`'s `MissionComposer`) alongside the existing "Ship code" mode.
+- `LoopHealthBanner`/`MissionsCostGlance`/`ReliabilityGlance` ported onto `/build`'s header, unmodified.
+- `/missions`, `/missions/$missionId`, `/cockpit` converted to `beforeLoad` redirect stubs → `/build`(`/$missionId`); ~14 internal `<Link to="/missions/...">` call sites repointed directly at `/build/...` (matching this doc's established precedent — internal links target canonical paths, never the redirect chain). Deleted now-fully-orphaned `MissionsPanel.tsx`/`AgentsPanel.tsx` (the latter was already dead before this session, confirmed via grep for importers).
+
+**Second gap found and fixed mid-build:** the retired `/missions` list had a "Review & launch" HITL gate for `status='proposed'` missions (the trigger-tick's own ambient-proposal mechanism — a mission it self-originates has zero `agent_runs` until a human promotes it via `promoteMission`). Missed on the first pass; `build-status.ts`'s `studioToMissionRowStatus`/`studioToStatusState` lumped `'proposed'` into `'queued'` (a silent, un-actionable row) instead of `'gate'`.
+
+**Adversarial review (3 lenses — functionality-loss, correctness/regression, security/data-scoping — each independently verified) found 3 real, confirmed issues before this was called done, all fixed:**
+1. **Blocking:** `listStudioSessions` discovered missions exclusively through `agent_runs`, so a `status='proposed'` mission (zero runs by design) never entered the list at all — the newly-added "Review & launch" `CallCard` was unreachable dead code. Fixed: a third query fetches `proposed` missions directly by `user_id`+`status`, merged into `missionIds`.
+2. **Blocking (compounding):** the direct-URL path (`/build/$missionId` for a proposed mission, reachable e.g. via a Decisions/Trust-Ledger `SourceLink`) had no `status==='proposed'` handling in `MissionOrchestratorDetail.tsx` at all — it read as "active" and offered only Cancel. Fixed: added a `missionProposed` branch with its own promote button, mirroring the slide-over.
+3. **Blocking:** the widened `listStudioSessions` query's `.limit(100)` was left unwidened after dropping the `agent_slug` filter, so in a busy mesh a real Studio session's run could fall out of the fetched window and silently vanish from `/build`'s list; the same unfiltered row set also risked blending a non-'builder' agent's cost/status into a 'build'-kind mission's numbers via a mid-mission `agent.handoff`. Fixed by the two-separate-queries redesign above (each kind's own `.limit(100)`, cost/status computed independently per kind, never merged).
+
+**Known, accepted non-blocking findings (documented, not fixed — flagged for founder awareness, not silently dropped):**
+- **Visibility narrowing:** `listStudioSessions` keeps its pre-existing `.eq("user_id", userId)` scope ("my sessions"). The old `/missions` page (`listMissions`, no owner filter, RLS-scoped to the whole workspace) showed every workspace member's orchestrator missions; `/build` now structurally cannot (its list is built from owner-scoped `agent_runs`). A deliberate, conservative choice (preserve Build's existing scope rather than silently start showing teammates' sessions) — not a security issue (RLS still enforces workspace boundaries; nothing leaks), but a real product/UX narrowing worth a founder look if workspace-wide mission visibility matters.
+- **Pre-existing, not introduced by this session:** `promoteMission` (`missions.functions.ts`) has no `.select()`/row-count check after its RLS-scoped `UPDATE`, so a non-owning workspace member's promote silently no-ops while the handler still returns `ok: true` (a false-success toast). Confirmed present identically in the deleted `MissionsPanel.tsx` before this fold — not a regression, but worth a dedicated fix.
+
+**Gates:** `tsc --noEmit` 0 · `bun test` 2199/2199 pass (0 regressions) · adversarial 3-lens review + skeptical verify pass, 3 blocking findings fixed, 2 non-blocking findings documented above.
 
 ---
 

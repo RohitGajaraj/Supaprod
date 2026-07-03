@@ -46,8 +46,6 @@ export const DOOR_INTERNAL_PATHS = [
   "/traces",
   "/traces/$traceId",
   "/prds/$id",
-  "/missions",
-  "/missions/$missionId",
   "/stakeholder",
   "/impact",
   "/changelog",
@@ -71,10 +69,6 @@ export const DOOR_INTERNAL_PATHS = [
  *   ("Open full spec ->", see `src/components/plan/SpecDetail.tsx`).
  * - `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates
  *   here for trace detail; `/govern?tab=traces` is a second live consumer.
- * - `/missions` (bare) - hosts `LoopHealthBanner`, `MissionsCostGlance`, and
- *   `ReliabilityGlance`; none of the three exist on `/build` yet.
- * - `/missions/$missionId` - 1399 lines vs `/build/$missionId`'s 530; not a
- *   verified duplicate, likely carries content the newer page lacks.
  * - `/stakeholder` - audience-specific pack generation (exec/eng/board,
  *   copy/download); Plan's roadmap view has no equivalent.
  * - `/impact` - the impact-ledger detail view; not verified redundant with
@@ -109,8 +103,17 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/calendar": { to: "/knowledge", search: { tab: "calendar" } },
   "/meetings": { to: "/knowledge", search: { tab: "calendar" } },
 
-  // -- Build --
-  "/cockpit": { to: "/missions" }, // /missions itself stays live (see above)
+  // -- Build (canonical /build; also the one true missions home, see below) --
+  "/cockpit": { to: "/build" },
+  // OBS-10 (2026-07-03, resumed): Build widened to list every agent-mesh
+  // mission (Studio/Build code-gen AND orchestrator goal-runs, distinguished
+  // by `StudioSessionListItem.kind`), so /missions no longer carries anything
+  // Build lacks - the composer's "Run a goal" mode replaced its composer, and
+  // MissionOrchestratorDetail replaced its detail page's hops/replay/cancel/
+  // compounding view. Both prior blockers (the 3 glance widgets, the 1399-vs-
+  // 530-line detail-page gap) are resolved; this is no longer in the
+  // "Deliberately NOT folded" list above.
+  "/missions": { to: "/build" },
 
   // -- Today --
   "/tasks": { to: "/today" },

@@ -555,7 +555,7 @@ export function TraceDetail({ id }: { id: string }) {
         right={
           mission ? (
             <Link
-              to="/missions/$missionId"
+              to="/build/$missionId"
               params={{ missionId: mission.id }}
               className="btn btn-ghost btn-sm"
             >
@@ -774,7 +774,7 @@ export function TraceDetail({ id }: { id: string }) {
             {" "}
             Reasoning steps between calls live on{" "}
             <Link
-              to="/missions/$missionId"
+              to="/build/$missionId"
               params={{ missionId: mission.id }}
               style={{ color: "var(--action-blue)" }}
             >
@@ -805,7 +805,8 @@ export function TraceDetail({ id }: { id: string }) {
 /* ---------- Route shell — TopBar around the drill body (rail is hoisted). ---------- */
 
 function TraceReplayPage() {
-  const { traceId } = Route.useParams();  const { activeWorkspace } = useWorkspace();
+  const { traceId } = Route.useParams();
+  const { activeWorkspace } = useWorkspace();
 
   return (
     <>

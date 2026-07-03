@@ -39,8 +39,13 @@ export function studioToMissionRowStatus(
   pendingApprovals: number,
 ): MissionRowStatus {
   if (pendingApprovals > 0 || status === "waiting_approval" || status === "blocked") return "gate";
+  // OBS-10: 'proposed' is the trigger-tick's own HITL gate — a mission an
+  // ambient trigger proposed but a human has not yet promoted to queued
+  // (missions.functions.ts `promoteMission`). Distinct from 'queued', which
+  // is already running through the loop unattended.
+  if (status === "proposed") return "gate";
   if (status === "running") return "working";
-  if (status === "queued" || status === "proposed") return "queued";
+  if (status === "queued") return "queued";
   if (FAILURE_STATUSES.has(status) || TERMINAL_OK_STATUSES.has(status)) return "done";
   return "queued";
 }
@@ -49,8 +54,9 @@ export function studioToMissionRowStatus(
  * cancelled mission gets its own (madder) `blocked` state instead of collapsing into "done". */
 export function studioToStatusState(status: string, pendingApprovals: number): StatusState {
   if (pendingApprovals > 0 || status === "waiting_approval" || status === "blocked") return "gate";
+  if (status === "proposed") return "gate";
   if (status === "running") return "working";
-  if (status === "queued" || status === "proposed") return "queued";
+  if (status === "queued") return "queued";
   if (FAILURE_STATUSES.has(status)) return "blocked";
   if (TERMINAL_OK_STATUSES.has(status)) return "done";
   return "queued";

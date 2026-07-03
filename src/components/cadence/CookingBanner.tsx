@@ -83,8 +83,7 @@ export function CookingBanner() {
       </span>
       <span style={{ flex: 1 }} />
       <Link
-        to="/missions"
-        search={{ tab: "missions" } as never}
+        to="/build"
         className="mono-label"
         style={{ fontSize: 9.5, color: "var(--action-blue)", whiteSpace: "nowrap" }}
       >

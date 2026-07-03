@@ -22,7 +22,7 @@ const ROUTES: Partial<
   meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
   roadmap_item: () => ({ to: "/roadmap" }),
   decision: () => ({ to: "/meetings" }),
-  mission: (id) => ({ to: "/missions/$missionId", params: { missionId: id } }),
+  mission: (id) => ({ to: "/build/$missionId", params: { missionId: id } }),
 };
 
 const KIND_LABEL: Record<ArtifactKind, string> = {

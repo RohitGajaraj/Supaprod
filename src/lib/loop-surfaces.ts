@@ -23,7 +23,11 @@ export const LOOP_SURFACES = [
   { id: "product", label: "Product", to: "/product", produces: "a ranked opportunity" },
   { id: "prd", label: "PRD", to: "/prds", produces: "an approved spec" },
   { id: "build", label: "Build", to: "/build", produces: "a working change" },
-  { id: "missions", label: "Missions", to: "/missions", produces: "a shipped outcome" },
+  // OBS-10: /missions folded into Build (the one true missions home) — this
+  // stage still names the engine's own Ship step (a distinct concept from
+  // Build's own "a working change"), it just shares Build's URL now rather
+  // than having its own page.
+  { id: "missions", label: "Missions", to: "/build", produces: "a shipped outcome" },
   { id: "brain", label: "Brain", to: "/knowledge", produces: "a learned precedent" },
   { id: "trust", label: "Trust", to: "/trust-ledger", produces: "proof you can defend" },
 ] as const;
@@ -42,8 +46,7 @@ export function loopIndexForPath(pathname: string): number {
   let bestLen = -1;
   for (let i = 0; i < LOOP_SURFACES.length; i++) {
     const to = LOOP_SURFACES[i].to;
-    const match =
-      to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/");
+    const match = to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(to + "/");
     if (match && to.length > bestLen) {
       best = i;
       bestLen = to.length;
@@ -62,9 +65,7 @@ export function isLoopSurface(pathname: string): boolean {
  * has no end — Trust's next is Today, Today's prev is Trust). Returns null for an
  * out-of-range index so callers fail closed.
  */
-export function loopNeighbors(
-  index: number,
-): { prev: LoopSurface; next: LoopSurface } | null {
+export function loopNeighbors(index: number): { prev: LoopSurface; next: LoopSurface } | null {
   if (index < 0 || index >= LOOP_SURFACES.length) return null;
   const n = LOOP_SURFACES.length;
   return {

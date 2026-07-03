@@ -1,10 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import {
-  LOOP_SURFACES,
-  loopIndexForPath,
-  isLoopSurface,
-  loopNeighbors,
-} from "@/lib/loop-surfaces";
+import { LOOP_SURFACES, loopIndexForPath, isLoopSurface, loopNeighbors } from "@/lib/loop-surfaces";
 
 describe("LOOP_SURFACES — the surface-level loop model", () => {
   test("is the seven v11 loop surfaces in order", () => {
@@ -34,15 +29,26 @@ describe("loopIndexForPath — where the operator currently sits", () => {
     expect(loopIndexForPath("/product")).toBe(1);
     expect(loopIndexForPath("/prds")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
-    expect(loopIndexForPath("/missions")).toBe(4);
     expect(loopIndexForPath("/knowledge")).toBe(5);
     expect(loopIndexForPath("/trust-ledger")).toBe(6);
   });
 
-  test("matches detail routes via longest-prefix (PRD/Build/Missions detail)", () => {
+  test("matches detail routes via longest-prefix (PRD/Build detail)", () => {
     expect(loopIndexForPath("/prds/abc-123")).toBe(2);
     expect(loopIndexForPath("/build/m1")).toBe(3);
-    expect(loopIndexForPath("/missions/m9")).toBe(4);
+  });
+
+  // OBS-10: /missions folded into Build — the "missions" stage (id, label,
+  // "a shipped outcome" payload) still exists in LOOP_SURFACES for the
+  // engine-loop narrative, it just shares Build's URL rather than having its
+  // own page. A path can only ever resolve to ONE index, so "/build" and
+  // "/build/m1" both land on "build" (index 3, the earlier array entry) —
+  // "missions" is never the *active* stage, by design.
+  test("the missions stage shares Build's URL and is never independently active", () => {
+    expect(LOOP_SURFACES[4].id).toBe("missions");
+    expect(LOOP_SURFACES[4].to).toBe("/build");
+    expect(loopIndexForPath("/build")).toBe(3);
+    expect(loopIndexForPath("/build/m1")).toBe(3);
   });
 
   test('"/" (Today) only matches exactly — never as a prefix of every path', () => {

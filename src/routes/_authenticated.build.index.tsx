@@ -8,7 +8,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, type RefObject } from "react";
+import { useRef, useState, type CSSProperties, type RefObject } from "react";
 import { z } from "zod";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
@@ -38,9 +38,13 @@ import {
   type StudioSessionListItem,
 } from "@/lib/studio.functions";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
+import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { ToastProvider, ToastHost } from "@/components/obsidian/toast";
+import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
+import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
+import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
 
 export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
@@ -82,14 +86,31 @@ export const Route = createFileRoute("/_authenticated/build/")({
   ),
 });
 
+const MODE_PILL: CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 9,
+  letterSpacing: "0.08em",
+  padding: "4px 10px",
+  borderRadius: "var(--radius-control)",
+  border: "1px solid var(--hairline)",
+  cursor: "pointer",
+};
+
 function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement | null> }) {
   const navigate = useNavigate();
   const fDispatch = useServerFn(dispatchStudioSession);
+  const fStartMission = useServerFn(startOrchestratedMission);
   const fPrds = useServerFn(listPrds);
 
+  // OBS-10: two entry points into the one true missions home. "Ship code"
+  // dispatches Studio's code-gen loop (unchanged). "Run a goal" is the
+  // orchestrator's goal-driven multi-agent DAG, ported from the retired
+  // /missions composer so starting one is still reachable after the fold.
+  const [mode, setMode] = useState<"ship" | "goal">("ship");
   const [prompt, setPrompt] = useState("");
   const [prdId, setPrdId] = useState<string | null>(null);
   const [model] = useState(DEFAULT_MODEL);
+  const [goalTitle, setGoalTitle] = useState("");
 
   const prds = useQuery({ queryKey: ["prds"], queryFn: () => fPrds() });
   const approvedPrds = (
@@ -113,7 +134,22 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const canDispatch = (prompt.trim().length >= 4 || !!prdId) && !dispatch.isPending;
+  const startMission = useMutation({
+    mutationFn: () =>
+      fStartMission({ data: { goal: prompt.trim(), title: goalTitle.trim() || undefined } }),
+    onSuccess: (r) => {
+      toast.success(`Chief of Staff dispatched ${r.approvals_queued ?? 0} approval(s); running.`);
+      navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const isPending = mode === "ship" ? dispatch.isPending : startMission.isPending;
+  const canStart =
+    mode === "ship"
+      ? (prompt.trim().length >= 4 || !!prdId) && !isPending
+      : prompt.trim().length >= 4 && !isPending;
+  const runStart = () => (mode === "ship" ? dispatch.mutate() : startMission.mutate());
 
   return (
     <section
@@ -127,18 +163,62 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         marginBottom: 18,
       }}
     >
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => setMode("ship")}
+          style={{
+            ...MODE_PILL,
+            color: mode === "ship" ? "var(--text-primary)" : "var(--text-faint)",
+            background: mode === "ship" ? "var(--surface-raised)" : "none",
+          }}
+        >
+          Ship code
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("goal")}
+          style={{
+            ...MODE_PILL,
+            color: mode === "goal" ? "var(--text-primary)" : "var(--text-faint)",
+            background: mode === "goal" ? "var(--surface-raised)" : "none",
+          }}
+        >
+          Run a goal
+        </button>
+      </div>
+      {mode === "goal" && (
+        <input
+          value={goalTitle}
+          onChange={(e) => setGoalTitle(e.target.value)}
+          placeholder="Mission title (optional)"
+          maxLength={200}
+          style={{
+            background: "var(--surface-hover)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 10px",
+            fontSize: 13,
+            color: "var(--text-primary)",
+          }}
+        />
+      )}
       <textarea
         ref={textareaRef}
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canDispatch) {
+          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
             e.preventDefault();
-            dispatch.mutate();
+            runStart();
           }
         }}
         rows={3}
-        placeholder="Describe what to ship. Build plans against the connected repo."
+        placeholder={
+          mode === "ship"
+            ? "Describe what to ship. Build plans against the connected repo."
+            : "Describe the goal, e.g. 'Investigate top 3 churn signals this week, draft a PRD for the highest-impact fix, and queue the engineering plan.'"
+        }
         style={{
           resize: "none",
           background: "var(--surface-hover)",
@@ -150,56 +230,64 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              style={{
-                maxWidth: 260,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontFamily: "var(--font-mono)",
-                fontSize: 9,
-                color: "var(--text-subtle)",
-                background: "none",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-control)",
-                padding: "6px 10px",
-                cursor: "pointer",
-              }}
-            >
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {selectedPrd ? selectedPrd.title : "No PRD"}
-              </span>
-              <span aria-hidden="true">↓</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            style={{ maxHeight: 288, width: 288, overflowY: "auto" }}
-          >
-            <DropdownMenuItem onClick={() => setPrdId(null)}>No PRD</DropdownMenuItem>
-            {approvedPrds.map((p) => (
-              <DropdownMenuItem key={p.id} onClick={() => setPrdId(p.id)}>
+        {mode === "ship" ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                style={{
+                  maxWidth: 260,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 9,
+                  color: "var(--text-subtle)",
+                  background: "none",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "6px 10px",
+                  cursor: "pointer",
+                }}
+              >
                 <span
                   style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                 >
-                  {p.title}
+                  {selectedPrd ? selectedPrd.title : "No PRD"}
                 </span>
-              </DropdownMenuItem>
-            ))}
-            {approvedPrds.length === 0 && (
-              <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-faint)" }}>
-                No approved PRDs yet.
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <span aria-hidden="true">↓</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              style={{ maxHeight: 288, width: 288, overflowY: "auto" }}
+            >
+              <DropdownMenuItem onClick={() => setPrdId(null)}>No PRD</DropdownMenuItem>
+              {approvedPrds.map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => setPrdId(p.id)}>
+                  <span
+                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  >
+                    {p.title}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+              {approvedPrds.length === 0 && (
+                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-faint)" }}>
+                  No approved PRDs yet.
+                </div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}>
+            The Chief of Staff plans a 1-6 step DAG and dispatches the right specialists.
+          </span>
+        )}
         <button
           type="button"
-          onClick={() => dispatch.mutate()}
-          disabled={!canDispatch}
+          onClick={runStart}
+          disabled={!canStart}
           style={{
             marginLeft: "auto",
             flexShrink: 0,
@@ -212,14 +300,14 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             // gate can both be visible at once (adversarial review finding).
             color: "var(--text-primary)",
             background: "var(--surface-raised)",
-            opacity: canDispatch ? 1 : 0.5,
+            opacity: canStart ? 1 : 0.5,
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
             padding: "8px 16px",
-            cursor: canDispatch ? "pointer" : "default",
+            cursor: canStart ? "pointer" : "default",
           }}
         >
-          {dispatch.isPending ? "Starting…" : "Start"}
+          {isPending ? "Starting…" : "Start"}
         </button>
       </div>
       <div
@@ -303,7 +391,15 @@ function BuildPage() {
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
             Validated work becomes shipped code. Approved specs come in · merged work moves on.
           </p>
+          {/* OBS-10: fleet-wide glances, ported from the retired /missions page —
+              genuinely about the whole agent mesh (code-gen + orchestrator goal-runs
+              alike), not Build-specific, so they belong on Build's calm front now
+              that it is the one true missions home. Each stays silent when healthy. */}
+          <MissionsCostGlance />
+          <ReliabilityGlance />
         </div>
+
+        <LoopHealthBanner />
 
         <Composer textareaRef={textareaRef} />
 
