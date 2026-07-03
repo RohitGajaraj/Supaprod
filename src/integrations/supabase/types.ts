@@ -2306,6 +2306,59 @@ export type Database = {
           },
         ]
       }
+      design_memory: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          rationale: string | null
+          source_kind: string
+          status: string
+          title: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          rationale?: string | null
+          source_kind?: string
+          status?: string
+          title: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          rationale?: string | null
+          source_kind?: string
+          status?: string
+          title?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_memory_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doc_versions: {
         Row: {
           content_json: Json
