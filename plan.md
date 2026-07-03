@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (OBS-10's lane3 slice ◐: `/stakeholder` folded into Plan, `/fleet` + `/delegate` folded into Build, lane3)
+
+Picked up OBS-10's remaining Plan/Build fold, one of the item's 3 remaining parallel slices (lane1 has `/impact`+`/changelog`, lane2 has `/product`). Two disjoint workstreams, built and self-verified independently, then adversarially reviewed by a second independent pass before shipping.
+
+**`/stakeholder` becomes a "Stakeholder Pack." section on `/plan`** (`StakeholderPackPanel.tsx`, wired into `PlanSurface.tsx`). Strictly read-only, reuses `getStakeholderPack` unchanged. Every legacy control preserved: the decision picker, the 3 audience tabs (Executive/Engineering/Board), Copy-to-clipboard with the same transient feedback, Download as `stakeholder-${audience}.md`, and all 4 query states. Restyled to the Obsidian v3 tokens already established by its `PlanSurface` siblings.
+
+**`/fleet` and `/delegate` become two new orthogonal view-mode tabs on `/build`** ("By Agent" / "By Lane"), alongside the existing default "Missions" list. `FleetView.tsx` and `DelegateBoard.tsx` reuse `computeAgentFleet`/`computeDelegateDesk` and their server functions completely unchanged; every visual signal preserved. Delegate's `MissionCard` now opens Build's own `MissionSlideOver` instead of a full-page link, verified safe since the slide-over fetches any mission by id independent of which list surfaced it.
+
+**Adversarial review caught and fixed 2 real issues before shipping:** `openMission`/`closeMission` used a plain-object `navigate({ search })`, verified against `@tanstack/router-core` source to replace rather than merge search state, so opening a mission from "By Lane" silently dropped the `view` param and stranded the user back on "Missions" after closing the slide-over (fixed with the functional form). `StakeholderPackPanel`'s `role="tablist"` incorrectly wrapped the Copy/Download buttons alongside the 3 audience tabs (fixed by scoping the role to only the tab buttons).
+
+Both legacy routes converted to `beforeLoad` redirect stubs, following the exact stub shape already established by `_authenticated.missions.index.tsx`/`_authenticated.roadmap.tsx`. `legacy-redirects.ts` updated: all three paths moved from `DOOR_INTERNAL_PATHS` into `LEGACY_REDIRECTS`. Rebased cleanly onto lane1's concurrent `/impact`/`/changelog` fold; the only conflict was both sessions independently removing their own now-closed paths from the same lists in `legacy-redirects.ts`, resolved by keeping both removals. `AppShell.tsx`'s now-unreachable `/stakeholder` `PAGE_DESCRIPTIONS` entry removed, following the same precedent lane1 set for `/impact`.
+
+Gates: `tsc --noEmit` 0 · `bun test` 2299/2299 pass (0 regressions) · `eslint`/`prettier` clean · humanized-output clean on every new/touched line. Only lane2's `/product` remains open in OBS-10 after this slice; row `[~90%]` -> `[~97%]`.
+
 ### 2026-07-03 (OBS-10's lane1 slice ◐: `/impact` + `/changelog` folded into Brain, lane1)
 
 Picked up OBS-10's Brain fold, one of the item's 3 remaining parallel slices (lane2 has `/product`, lane3 has `/stakeholder`+`/fleet`+`/delegate`). Brain (`/knowledge`) gained two new tabs.
