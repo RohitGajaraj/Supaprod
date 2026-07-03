@@ -283,6 +283,24 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-04 (OBS-10 ✅ fully closed: `/product` retired entirely, lane3)
+
+Closed OBS-10's final gap. Lane2's earlier session had ported Signals/Opportunities write actions to Discover but `/product` stayed live: its other four tabs (Roadmap, Specs, Releases, Strategy) plus the `PortfolioBoard` rendered above every tab each still carried real, unclosed write surfaces. This session gave every one of them a home, then retired the route.
+
+**Plan** absorbed Specs' full write parity (a new intent composer, `SpecComposer.tsx`; a per-row overflow menu on `SpecList.tsx` for rename/generate-tasks/GitHub-issue/hand-to-build/lineage/delete, delete now confirmed via `useConfirm` per the repo's destructive-actions convention) and Roadmap's remaining write parity (post-commit outcome editing, bulk multi-select re-prioritize, the `RoadmapHistory` audit popover reused unchanged).
+
+**Brain's Changelog tab** gained the Announcements authoring/approval workflow (`AnnouncementsPanel.tsx`, role-gated identically to the legacy component) and a read-only ship-history view (`ShipHistoryPanel.tsx`, confirmed not duplicated by the tab's existing `ChangelogPanel`, a different data source).
+
+**Discover** gained a Strategy section below its signal/opportunity grid (weekly competitor briefs + the tracked-entities watch list, read-only, renders independently of the grid's empty-state gate).
+
+**Settings** gained product portfolio lifecycle management (switch/archive/restore/export/delete) as a new section inside the existing Workspace pane, not a 5th pane - the Obsidian design contract caps Settings at exactly four.
+
+`/product` itself became a `beforeLoad` redirect branching on the incoming `?tab=` (a static single target can't express six destinations). Ten now-orphaned legacy panel/board files deleted after confirming zero remaining importers; eight stray internal links (Today's onramp/decision cards, a citations card, a learning detail, Build's mission detail, the PRD editor, and the AI chat citation pipeline) repointed to their real destinations.
+
+**A 5-way adversarial review (one reviewer per workstream plus the retirement itself) found and fixed 7 real issues:** a keyboard-accessibility regression (Space no longer opened a spec row after the necessary button-to-div change); a new, unconfirmed destructive delete wired into Plan; a live AI-chat citation pipeline (`research.server.ts`) still minting dead links into the retired route on a frequently-exercised path; a missing error-state branch on Discover's new Strategy panels; a missing test for the one invariant this workstream called hardest to get right (Products stays inside the Workspace pane); and two stale docblocks still describing the just-deleted legacy `RoadmapBoard`/`SpecsPanel` as "still-live."
+
+Gates: `tsc --noEmit` 0 · `bun test` 2307/2307 pass (0 regressions, 1 new) · `eslint`/`prettier` clean · humanized-output clean on every new/touched line. Full detail: [`docs/features/obsidian-port.md`](./docs/features/obsidian-port.md#resumed-2026-07-04-lane3-obs-10-final-closure-product-retired-entirely). Dashboard: row 10 `◐ [~96%]` -> `✅`, 285/292 = 97.6% strict / 287.20/292 = 98.4% weighted.
+
 ### 2026-07-03 (CMD-1 shipped + two Ask bugs fixed, lane1)
 
 The founder asked why the CMD (H2) row read only 40% done, and separately why he could not find "Ask" anywhere in the app as a consumer. Both questions traced to the same code. CMD (H2)'s three-slice roadmap (`docs/features/command-canvas.md`) had CMD-0 shipped (the canvas preview blocks) but CMD-1 (elevate `⌘K` into an NL intent bar) and CMD-2 (direct manipulation) both open. Investigating the Ask-visibility question found the real cause was not a missing UI affordance but two latent bugs sitting in the exact code CMD-1's own roadmap line names.
