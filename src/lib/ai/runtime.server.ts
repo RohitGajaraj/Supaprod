@@ -337,7 +337,7 @@ export type CallOpts = {
   /** Ask provider for strict JSON */
   responseFormat?: "json_object";
   /**
-   * AGT-01 — native structured-output tool-calling. When set, passed to the
+   * AGT-01 - native structured-output tool-calling. When set, passed to the
    * provider as its own tool/function-calling definitions instead of (or
    * alongside) a text-described tool list; a response then arrives as
    * structured tool_use/function_call blocks rather than JSON-in-text.
@@ -379,7 +379,7 @@ export type CallResult = {
   fallback?: boolean;
   /** Parsed JSON when responseFormat=json_object (best-effort) */
   json?: unknown;
-  /** AGT-01 — structured tool calls the provider returned, when opts.tools was set. */
+  /** AGT-01 - structured tool calls the provider returned, when opts.tools was set. */
   toolCalls?: { id: string; name: string; args: unknown }[];
   /** Chunks injected as context (when retrieval enabled) */
   citations?: {
@@ -445,7 +445,7 @@ async function callAnthropic(
       model,
       // AGT-01 (adversarial review finding): a tool_use response needs room
       // for the schema-shaped args JSON on top of any reasoning text, on top
-      // of the existing 2048 budget — a cut-off mid-args is otherwise a
+      // of the existing 2048 budget - a cut-off mid-args is otherwise a
       // truncated tool_use.input that fails argsSchema.safeParse downstream
       // (a graceful, already-handled error path, but worth avoiding). Every
       // non-tool call keeps the exact prior 2048 budget.
@@ -453,7 +453,7 @@ async function callAnthropic(
       system,
       messages: rest,
       // AGT-01: Anthropic's native tool_use format. Only sent when the
-      // caller opted in — every existing (non-tool) call is unaffected.
+      // caller opted in - every existing (non-tool) call is unaffected.
       ...(tools?.length
         ? {
             tools: tools.map((t) => ({
@@ -473,7 +473,7 @@ async function callAnthropic(
     usage?: { input_tokens?: number; output_tokens?: number };
   };
   // AGT-01: a tool_use block has no `text` field, so it contributes nothing
-  // to the plain-text join below by construction — extracted separately here
+  // to the plain-text join below by construction - extracted separately here
   // rather than dropped, which is what happened before this change (the
   // "silent data loss" risk the research phase flagged).
   const toolCalls = (j.content ?? [])
@@ -1223,7 +1223,7 @@ export async function callModel(
 ): Promise<CallResult> {
   const useGuards = opts.guardrails !== false;
   // AGT-01: a native tool-calling turn is structured output, exactly like
-  // responseFormat=json_object — it must skip the same prose-only steps
+  // responseFormat=json_object - it must skip the same prose-only steps
   // (the humanize directive going in, guardrail-scrubbing and humanizeText
   // coming out) or those would corrupt tool_call args. One shared flag so
   // every one of those checks stays in sync instead of drifting individually.
@@ -1484,7 +1484,7 @@ export async function callModel(
     outputText = r.text;
   }
 
-  // 4a. Humanize prose output (zero AI fingerprints). PROSE ONLY — JSON and
+  // 4a. Humanize prose output (zero AI fingerprints). PROSE ONLY - JSON and
   // tool-calling responses must stay byte-exact so downstream JSON.parse (or
   // a tool call's args) never breaks.
   if (outputText && !isStructuredOutput) {
@@ -1526,7 +1526,7 @@ export async function callModel(
         input_preview: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
         system_preview: (messages.find((m) => m.role === "system")?.content ?? "").slice(0, 4000),
         // AGT-01: a pure native tool-call turn can have empty outputText (no
-        // accompanying prose) — fall back to a stringified tool-call summary
+        // accompanying prose) - fall back to a stringified tool-call summary
         // so the log row isn't a blank string.
         output_preview: (
           outputText ||

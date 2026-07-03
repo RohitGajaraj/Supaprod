@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { openAiToolsPayload, extractOpenAiToolCalls } from "./runtime.server";
 
-// AGT-01 — the OpenAI-compat/gateway wire-format translation. Tested directly
+// AGT-01 - the OpenAI-compat/gateway wire-format translation. Tested directly
 // (no fetch mocking) since both functions are pure request/response shape
 // mappers around the actual provider call.
 
@@ -48,7 +48,7 @@ describe("extractOpenAiToolCalls", () => {
     ]);
   });
 
-  it("does not throw on malformed arguments JSON — falls back to the raw string rather than dropping the call", () => {
+  it("does not throw on malformed arguments JSON - falls back to the raw string rather than dropping the call", () => {
     const calls = extractOpenAiToolCalls([
       { id: "call_1", function: { name: "tasks.create", arguments: "{not valid json" } },
     ]);

@@ -1,5 +1,5 @@
 /**
- * AGT-01 — structured-output protocol upgrade. Translates a tool's existing
+ * AGT-01 - structured-output protocol upgrade. Translates a tool's existing
  * zod `argsSchema` (already the enforcement point for every tool call today)
  * into the JSON-Schema shape native provider tool-calling APIs expect
  * (Anthropic's `input_schema`, OpenAI-compat's `function.parameters`).
@@ -14,8 +14,7 @@
  * `{"type":"object","additionalProperties":{}}`, a valid JSON Schema that
  * Anthropic's tool_use and generic OpenAI-compat/gateway dispatch both
  * accept. OpenAI's *strict* function-calling mode specifically rejects this
- * (it requires `additionalProperties:false` + every property enumerated) —
- * this codebase does not use OpenAI's strict mode (no official SDK is
+ * (it requires `additionalProperties:false` + every property enumerated) -  * this codebase does not use OpenAI's strict mode (no official SDK is
  * imported anywhere in runtime.server.ts; every provider call is a raw
  * fetch), so this is a documented non-issue for every route this ships on
  * today, not an unhandled edge case.
@@ -33,7 +32,7 @@ export type NativeToolDef = {
  * Convert one tool's zod `argsSchema` into a plain JSON-Schema object safe to
  * hand a provider as a tool's input schema. `$refStrategy: "none"` inlines
  * everything (no `$ref`/`definitions`) since every registered tool's schema
- * is small and non-recursive — providers vary in `$ref` support, inlining
+ * is small and non-recursive - providers vary in `$ref` support, inlining
  * sidesteps that variance entirely. The `$schema` meta key zod-to-json-schema
  * adds is stripped: it describes the JSON-Schema dialect, not the tool.
  */
@@ -46,7 +45,7 @@ export function toolInputSchema(argsSchema: ToolDef["argsSchema"]): Record<strin
 /**
  * Build native tool-call definitions for a list of enabled tool names,
  * mirroring exactly the enabled-tool set `describeToolsForPrompt` renders as
- * text today (same source list, same tools — only the wire shape differs).
+ * text today (same source list, same tools - only the wire shape differs).
  * A name absent from TOOL_REGISTRY is silently skipped (the loop's own
  * "Unknown tool" check downstream is the real enforcement; this is prompt
  * construction, not validation).

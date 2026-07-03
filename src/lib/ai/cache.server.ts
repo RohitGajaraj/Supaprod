@@ -61,7 +61,7 @@ export async function generateCacheKey(
 /**
  * Check if a call should be cached. Returns false for:
  * - JSON responses (must stay byte-exact for JSON.parse)
- * - Native tool-calling requests (AGT-01 — a cached text response would be
+ * - Native tool-calling requests (AGT-01 - a cached text response would be
  *   missing the toolCalls a fresh provider call could return)
  * - Retrieval-enabled calls (context changes invalidate cache)
  * - Calls without guardrails (we trust guardrail-processed output)
@@ -77,7 +77,7 @@ export function shouldCacheCall(
   // No JSON responses (must be byte-exact)
   if (responseFormat === "json_object") return false;
 
-  // No native tool-calling requests (AGT-01) — see doc comment above.
+  // No native tool-calling requests (AGT-01) - see doc comment above.
   if (hasTools) return false;
 
   // No retrieval (context changes invalidate cache)

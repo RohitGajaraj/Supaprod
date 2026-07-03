@@ -29,7 +29,7 @@ describe("toolInputSchema", () => {
       { type: string; additionalProperties: unknown }
     >;
     expect(props.context.type).toBe("object");
-    // additionalProperties is an open (non-false) value — a valid schema Anthropic/gateway accept.
+    // additionalProperties is an open (non-false) value - a valid schema Anthropic/gateway accept.
     expect(props.context.additionalProperties).not.toBe(false);
   });
 
@@ -39,7 +39,7 @@ describe("toolInputSchema", () => {
     expect(() => toolInputSchema(def.argsSchema)).not.toThrow();
   });
 
-  it("studio.stage's real schema converts without throwing (the op-conditional content field stays enforced only by run(), matching today's behavior — no regression)", () => {
+  it("studio.stage's real schema converts without throwing (the op-conditional content field stays enforced only by run(), matching today's behavior - no regression)", () => {
     const def = TOOL_REGISTRY["studio.stage"];
     expect(def).toBeDefined();
     const schema = toolInputSchema(def.argsSchema);
@@ -57,7 +57,7 @@ describe("buildNativeToolDefs", () => {
     }
   });
 
-  it("silently skips a name absent from TOOL_REGISTRY (prompt construction, not validation — the loop's own Unknown tool check is the real gate)", () => {
+  it("silently skips a name absent from TOOL_REGISTRY (prompt construction, not validation - the loop's own Unknown tool check is the real gate)", () => {
     const defs = buildNativeToolDefs(["tasks.create", "not.a.real.tool"]);
     expect(defs).toHaveLength(1);
     expect(defs[0].name).toBe("tasks.create");

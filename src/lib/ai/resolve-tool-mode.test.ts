@@ -1,15 +1,15 @@
 import { describe, it, expect } from "bun:test";
 import { resolveToolMode } from "./loop.server";
 
-// AGT-02 — Consent scopes. `resolveToolMode` composes, in strict order:
+// AGT-02 - Consent scopes. `resolveToolMode` composes, in strict order:
 // seeded mode -> arc dial -> HIGH_RISK_FORCE_REVIEW -> HIGH_RISK_MIN_CONFIRM/
 // isHighRiskTool -> low-risk auto-clear -> AGT-02 contract-approved
 // reversible auto-clear. "proving" arc is used throughout because it is the
 // one arc where resolveApprovalMode(toolMode, arc) leaves "confirm" as
-// "confirm" (auto -> confirm, confirm stays confirm) — isolating every test
+// "confirm" (auto -> confirm, confirm stays confirm) - isolating every test
 // below to the branches THIS chain composes, not the arc dial itself.
 
-describe("resolveToolMode — AGT-02 plan-level consent, safety floors preserved", () => {
+describe("resolveToolMode - AGT-02 plan-level consent, safety floors preserved", () => {
   it("does not change behavior when the contract is not approved (regression: identical to the pre-AGT-02 chain)", () => {
     expect(resolveToolMode("tasks.create", "confirm", "proving", false)).toBe("auto"); // pre-existing low-risk auto-clear
     expect(resolveToolMode("github.pr.open", "confirm", "proving", false)).toBe("confirm"); // medium risk, no clear without AGT-02
@@ -22,13 +22,13 @@ describe("resolveToolMode — AGT-02 plan-level consent, safety floors preserved
     expect(resolveToolMode("github.issue.create", "confirm", "proving", true)).toBe("auto");
   });
 
-  it("NEVER auto-clears a HIGH_RISK_MIN_CONFIRM tool even though it is classified reversible and the contract is approved — the safety-floor-preservation case", () => {
+  it("NEVER auto-clears a HIGH_RISK_MIN_CONFIRM tool even though it is classified reversible and the contract is approved - the safety-floor-preservation case", () => {
     // calendar.create is reversible (tool-consequences.ts) yet hand-floored to
     // at-least-confirm. AGT-02 must not undo that hardening.
     expect(resolveToolMode("calendar.create", "confirm", "proving", true)).toBe("confirm");
   });
 
-  it("NEVER auto-clears a HIGH_RISK_FORCE_REVIEW tool regardless of contract approval — review stays sticky", () => {
+  it("NEVER auto-clears a HIGH_RISK_FORCE_REVIEW tool regardless of contract approval - review stays sticky", () => {
     expect(resolveToolMode("studio.pr.merge", "confirm", "proving", true)).toBe("review");
     expect(resolveToolMode("studio.revert", "confirm", "proving", true)).toBe("review");
     expect(resolveToolMode("delegate.openhands", "confirm", "proving", true)).toBe("review");
@@ -40,8 +40,7 @@ describe("resolveToolMode — AGT-02 plan-level consent, safety floors preserved
   });
 
   it("does not clear a partial-reversibility (not fully reversible) tool even with an approved contract", () => {
-    // studio.commit / github.commit.append are "partial", not "reversible" —
-    // AGT-02's condition is a strict equality on "reversible", so these must
+    // studio.commit / github.commit.append are "partial", not "reversible" -     // AGT-02's condition is a strict equality on "reversible", so these must
     // stay at confirm.
     expect(resolveToolMode("studio.commit", "confirm", "proving", true)).toBe("confirm");
     expect(resolveToolMode("github.commit.append", "confirm", "proving", true)).toBe("confirm");
@@ -51,7 +50,7 @@ describe("resolveToolMode — AGT-02 plan-level consent, safety floors preserved
     expect(resolveToolMode("some.unknown.tool", "confirm", "proving", true)).toBe("confirm");
   });
 
-  it("only ever loosens confirm -> auto — never touches a tool that is already auto", () => {
+  it("only ever loosens confirm -> auto - never touches a tool that is already auto", () => {
     // ambient arc dials everything to auto before this chain's later branches
     // would matter; confirm-only fields in AGT-02's own condition mean an
     // already-auto tool is simply left alone (mode !== "confirm" short-circuits).

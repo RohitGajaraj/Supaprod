@@ -61,12 +61,12 @@ const HIGH_RISK_FORCE_REVIEW = new Set(["studio.pr.merge", "studio.revert", "del
 // NOT graduated — they stay review-pinned regardless of this flag.
 const AUTO_SHIP_ENABLED = process.env.STUDIO_AUTO_SHIP === "1";
 
-// AGT-01 — structured-output protocol upgrade. Default OFF: the JSON-in-text
+// AGT-01 - structured-output protocol upgrade. Default OFF: the JSON-in-text
 // {thought, action} envelope (safeParseAction) stays the loop's universal
 // protocol until this is explicitly turned on. When on, the model is also
 // given native provider tool-calling definitions (tool-schemas.server.ts);
 // resolveModelAction prefers a native tool call when the provider returns
-// one, and falls back to the legacy text-parse otherwise — so a provider
+// one, and falls back to the legacy text-parse otherwise - so a provider
 // that ignores the tools param, or a transient reply with no tool call,
 // degrades to today's exact behavior rather than failing. Same dormant-by-
 // design pattern as AUTO_SHIP_ENABLED above: a founder-grade activation,
@@ -100,7 +100,7 @@ const ORCHESTRATION_CONTROL_FLOW_TOOLS = new Set([
  * seeded mode -> arc dial -> HIGH_RISK_FORCE_REVIEW floor -> HIGH_RISK_MIN_CONFIRM
  * /isHighRiskTool floor -> low-risk auto-clear -> AGT-02 plan-level consent
  * auto-clear. Extracted out of executeLoop (which is not independently
- * testable — it is not exported and is tightly coupled to Supabase) into a
+ * testable - it is not exported and is tightly coupled to Supabase) into a
  * pure, exported function so this safety-floor ORDERING is itself directly
  * unit-testable, not just the predicates (toolRisk, isHighRiskTool) it calls.
  *
@@ -112,7 +112,7 @@ const ORCHESTRATION_CONTROL_FLOW_TOOLS = new Set([
  * `auto` (never touches the sticky `review` state, which is resolved
  * earlier); it explicitly excludes both hand-curated safety-floor sets
  * (HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW) even for a tool that
- * happens to be classified "reversible" — those floors exist for reasons
+ * happens to be classified "reversible" - those floors exist for reasons
  * beyond raw data-reversibility (outbound visibility, external side
  * effects) that plan approval does not consent to; and it keys strictly off
  * tool-consequences.ts's existing Reversibility axis ("reversible" only,
@@ -130,7 +130,7 @@ export function resolveToolMode(
   const dialedMode = resolveApprovalMode(rawToolMode, arc);
   let mode: ToolMode = dialedMode;
   if (HIGH_RISK_FORCE_REVIEW.has(toolName)) {
-    // BYO-P3 WI3 — see the identical comment in executeLoop's prior inline
+    // BYO-P3 WI3 - see the identical comment in executeLoop's prior inline
     // version: the trust-graduated single ship decision for studio.pr.merge.
     mode =
       toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED
@@ -201,10 +201,10 @@ function safeParseAction(text: string): ModelReply | null {
 }
 
 /**
- * AGT-01 — resolve a single loop step's {thought, action} from the model's
+ * AGT-01 - resolve a single loop step's {thought, action} from the model's
  * raw reply, preferring a native structured tool call (when enabled and the
  * provider actually returned one) over the legacy JSON-in-text envelope.
- * Exported and pure so the branching itself — not just safeParseAction — is
+ * Exported and pure so the branching itself - not just safeParseAction - is
  * directly unit-testable without a model or Supabase.
  *
  * Only the FIRST native tool call is used: the loop processes one action per
@@ -636,11 +636,11 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
   const maxSteps = adaptiveStepBudget({ agentSlug: agent.slug, arc, plannedStepCount });
 
   // AGT-02: plan-level consent. Resolved ONCE per run/resume (not re-checked
-  // per step) — consent is granted at the plan level, a point-in-time gate,
+  // per step) - consent is granted at the plan level, a point-in-time gate,
   // matching how "approving the contract" is itself a single human action.
   // Missing mission/prd context is non-fatal and leaves consent at false,
   // which is strictly the SAFER default (falls back to today's per-step
-  // confirm) — never a fail-open.
+  // confirm) - never a fail-open.
   //
   // `missions` carries NO `prd_id` column (adversarial review caught an
   // earlier version of this that assumed one and silently no-op'd on every
@@ -772,7 +772,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         // alongside native tool defs puts two competing instructions in
         // front of the model at once ("reply in strict JSON" vs "use this
         // tool"), which can bias a model back toward the legacy JSON-in-text
-        // envelope instead of exercising tool_use — muting the very benefit
+        // envelope instead of exercising tool_use - muting the very benefit
         // the flag exists to unlock. json_object is only requested when
         // native tools are NOT being offered this call.
         ...(NATIVE_TOOLCALLING_ENABLED ? {} : { responseFormat: "json_object" as const }),
@@ -783,7 +783,7 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         // AGT-01 (dormant unless AGENT_NATIVE_TOOLCALLING=1): native provider
         // tool-calling definitions for this agent's enabled tools, same set
         // describeToolsForPrompt already renders as text above. The prompt's
-        // text tool list stays unconditionally in place either way — a
+        // text tool list stays unconditionally in place either way - a
         // provider that ignores `tools` or replies with plain text still
         // works via resolveModelAction's legacy fallback below.
         ...(NATIVE_TOOLCALLING_ENABLED ? { tools: buildNativeToolDefs(modeOf.keys()) } : {}),
@@ -851,12 +851,12 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     // AGT-01 (adversarial review finding): a native tool call with no
     // accompanying prose leaves r.output empty. Pushing "" as this turn's
     // assistant content would corrupt conv for every subsequent step (and
-    // across a resume/checkpoint) — the model reading its own history back
+    // across a resume/checkpoint) - the model reading its own history back
     // sees a blank turn instead of what it actually did. r.output is used
     // as-is whenever it's non-empty (the legacy path always has it; a native
     // call MAY have accompanying text too), falling back to the same
     // {thought, action} envelope the legacy protocol itself uses only when
-    // it's genuinely empty — so every assistant turn in conv stays a
+    // it's genuinely empty - so every assistant turn in conv stays a
     // non-empty, self-consistent record regardless of which path produced it.
     const assistantContent = r.output || JSON.stringify({ thought: parsed.thought, action: call });
     const def = TOOL_REGISTRY[call.name];

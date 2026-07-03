@@ -1,14 +1,14 @@
 import { describe, it, expect } from "bun:test";
 import { resolveModelAction } from "./loop.server";
 
-// AGT-01 — structured-output protocol upgrade. resolveModelAction prefers a
+// AGT-01 - structured-output protocol upgrade. resolveModelAction prefers a
 // native tool call when the flag is enabled AND the provider actually
 // returned one; every other case falls back to the legacy safeParseAction
 // text-parse, which is the CURRENT universal protocol and must stay
 // byte-identical in behavior when the flag is off (the backward-
 // compatibility guarantee the whole design rests on).
 
-describe("resolveModelAction — native-toolcalling / legacy-text-parse branching", () => {
+describe("resolveModelAction - native-toolcalling / legacy-text-parse branching", () => {
   it("flag OFF (default): always uses the legacy text parse, even if toolCalls happen to be present", () => {
     const result = {
       output: '{"thought":"t","action":{"type":"final","message":"done"}}',
@@ -41,7 +41,7 @@ describe("resolveModelAction — native-toolcalling / legacy-text-parse branchin
     expect(parsed?.thought).toBeUndefined();
   });
 
-  it("flag ON but the provider returned no tool call (plain text reply): falls back to the legacy text parse — the graceful-degradation path", () => {
+  it("flag ON but the provider returned no tool call (plain text reply): falls back to the legacy text parse - the graceful-degradation path", () => {
     const result = { output: '{"thought":"t","action":{"type":"final","message":"ok"}}' };
     const parsed = resolveModelAction(result, true);
     expect(parsed?.action?.type).toBe("final");
