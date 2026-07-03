@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Agentic-era machine-readable interfaces:
+# See /llms.txt for AI agent context and /agents.txt for the agent access
+# policy (rate limits, auth, MCP tool catalog, write scopes).
+# A2A agent card: /.well-known/agent.json

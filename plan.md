@@ -283,6 +283,36 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-04 (AGENT-NATIVE discovery-gap fix + MCP write-scope question documented, founder-directed, lane2)
+
+Founder question in conversation: the human/machine toggle is a UI control a human clicks, but the actual consumer of "machine mode" is an autonomous agent that never renders the UI — so how does an agent, with no human in the loop, discover that Cadence has a machine-readable interface at all? Investigated the live code rather than assume: confirmed `/llms.txt`, `/agents.txt`, `/.well-known/agent.json`, and `POST /api/mcp` all exist and work, but nothing on an ordinary page pointed to them — no `robots.txt` at all, no `<link>` tag, no HTTP header. An agent had to already know to guess those exact paths.
+
+**Shipped (item 1, founder-approved to build now):** `public/robots.txt` (new, points any crawler/agent at `/llms.txt` + `/agents.txt`); two `<link rel="llms.txt"/"agents.txt">` tags added to every page's `<head>` (`src/routes/__root.tsx`); an HTTP `Link:` response header on every ordinary page response via new `withAgentDiscoveryLink()` (`src/server.ts`), skipped on the well-known/health JSON endpoints which are already machine-readable content. New `src/server.test.ts` (3 tests) covers the header helper in isolation. Pure discovery/protocol hygiene — no new UI surface, no Engine-Room doctrine question.
+
+**Documented, not built (item 2, founder explicitly parked it):** while investigating, found the live MCP tool catalog (`src/lib/mcp-protocol.ts`) is 10 read tools + 1 narrow gated write tool (`ingest_signal`) — no tool lets an agent actually operate Cadence (no `trigger_mission`/`approve_decision`). Founder raised whether the write surface should widen so an agent can get real work done through Cadence, not just read it, but asked to park the decision itself rather than build speculatively, and asked for the tradeoff to be written up for later. Full writeup: [`docs/features/agent-native-layer.md`](./docs/features/agent-native-layer.md) §"Open question — MCP write-tool scope"; tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §4 and the `AGENT-NATIVE-L2` dashboard row.
+
+Also corrected the doc's stale header (`docs/features/agent-native-layer.md` said "Status: IN BUILD, L2/L3 roadmap" — both were actually shipped 2026-06-27 per the dashboard and live code; flagged that the file's Layer 2/3 tool tables are the original design draft, not the as-shipped tool list, without doing a full reconciliation of that larger pre-existing drift — out of scope for this session).
+
+Gates: `bunx tsc --noEmit` 0 · `bun test` 2309/2309 pass (3 new, 0 regressions). Branch: `parallel/lane-2`. UI breadcrumb: none (protocol-level, not user-visible). Detail: [`docs/features/agent-native-layer.md`](./docs/features/agent-native-layer.md).
+
+### 2026-07-04 (OBS-10 ✅ fully closed: `/product` retired entirely, lane3)
+
+Closed OBS-10's final gap. Lane2's earlier session had ported Signals/Opportunities write actions to Discover but `/product` stayed live: its other four tabs (Roadmap, Specs, Releases, Strategy) plus the `PortfolioBoard` rendered above every tab each still carried real, unclosed write surfaces. This session gave every one of them a home, then retired the route.
+
+**Plan** absorbed Specs' full write parity (a new intent composer, `SpecComposer.tsx`; a per-row overflow menu on `SpecList.tsx` for rename/generate-tasks/GitHub-issue/hand-to-build/lineage/delete, delete now confirmed via `useConfirm` per the repo's destructive-actions convention) and Roadmap's remaining write parity (post-commit outcome editing, bulk multi-select re-prioritize, the `RoadmapHistory` audit popover reused unchanged).
+
+**Brain's Changelog tab** gained the Announcements authoring/approval workflow (`AnnouncementsPanel.tsx`, role-gated identically to the legacy component) and a read-only ship-history view (`ShipHistoryPanel.tsx`, confirmed not duplicated by the tab's existing `ChangelogPanel`, a different data source).
+
+**Discover** gained a Strategy section below its signal/opportunity grid (weekly competitor briefs + the tracked-entities watch list, read-only, renders independently of the grid's empty-state gate).
+
+**Settings** gained product portfolio lifecycle management (switch/archive/restore/export/delete) as a new section inside the existing Workspace pane, not a 5th pane - the Obsidian design contract caps Settings at exactly four.
+
+`/product` itself became a `beforeLoad` redirect branching on the incoming `?tab=` (a static single target can't express six destinations). Ten now-orphaned legacy panel/board files deleted after confirming zero remaining importers; eight stray internal links (Today's onramp/decision cards, a citations card, a learning detail, Build's mission detail, the PRD editor, and the AI chat citation pipeline) repointed to their real destinations.
+
+**A 5-way adversarial review (one reviewer per workstream plus the retirement itself) found and fixed 7 real issues:** a keyboard-accessibility regression (Space no longer opened a spec row after the necessary button-to-div change); a new, unconfirmed destructive delete wired into Plan; a live AI-chat citation pipeline (`research.server.ts`) still minting dead links into the retired route on a frequently-exercised path; a missing error-state branch on Discover's new Strategy panels; a missing test for the one invariant this workstream called hardest to get right (Products stays inside the Workspace pane); and two stale docblocks still describing the just-deleted legacy `RoadmapBoard`/`SpecsPanel` as "still-live."
+
+Gates: `tsc --noEmit` 0 · `bun test` 2307/2307 pass (0 regressions, 1 new) · `eslint`/`prettier` clean · humanized-output clean on every new/touched line. Full detail: [`docs/features/obsidian-port.md`](./docs/features/obsidian-port.md#resumed-2026-07-04-lane3-obs-10-final-closure-product-retired-entirely). Dashboard: row 10 `◐ [~96%]` -> `✅`, 285/292 = 97.6% strict / 287.20/292 = 98.4% weighted.
+
 ### 2026-07-03 (CMD-1 shipped + two Ask bugs fixed, lane1)
 
 The founder asked why the CMD (H2) row read only 40% done, and separately why he could not find "Ask" anywhere in the app as a consumer. Both questions traced to the same code. CMD (H2)'s three-slice roadmap (`docs/features/command-canvas.md`) had CMD-0 shipped (the canvas preview blocks) but CMD-1 (elevate `⌘K` into an NL intent bar) and CMD-2 (direct manipulation) both open. Investigating the Ask-visibility question found the real cause was not a missing UI affordance but two latent bugs sitting in the exact code CMD-1's own roadmap line names.

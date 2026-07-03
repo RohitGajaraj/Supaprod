@@ -330,6 +330,7 @@ When you have a moment, these unblock the next tier. Each needs a decision/secre
 - **The design / UX-polish pass**, ruled LAST, once, on the finalized product (standing instruction 2).
 - **`F-IA-*` IA consolidation** (cull nav, merge routes, collapse to 7 surfaces), design-adjacent / product-tasting; bundled with the design pass.
 - **Cut/defer post-PMF:** `F-AUDIO-1/2`, `SEN-04`.
+- **`AGENT-NATIVE-L2` write-tool scope (parked 2026-07-04, explicitly NOT to be built until you decide).** Today the MCP server is 10 read tools + 1 narrow gated write tool (`ingest_signal`) — an agent can read Cadence but cannot operate it (no `trigger_mission`/`approve_decision`/anything execution-driving). You raised whether the write surface should widen so an external agent can actually get work done through Cadence, not just read it, but asked to park the call itself rather than build speculatively. The tradeoff (bigger write surface = bigger cross-tenant/injection risk + a new "does an external agent need the same trust-arc gating as Cadence's own agents" question) is written up in full in [`../features/agent-native-layer.md`](../features/agent-native-layer.md) §"Open question — MCP write-tool scope". Separately, the same session closed a real discovery gap (no `robots.txt`, no `<link>`/HTTP header pointing any page at `/llms.txt`/`/agents.txt`) — that part is DONE, not gated; see the same doc's "Discovery hardening (2026-07-04)" section.
 
 ---
 

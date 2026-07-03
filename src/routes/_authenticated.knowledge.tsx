@@ -31,6 +31,8 @@ import { InsightsPanel } from "@/components/knowledge/InsightsPanel";
 import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
 import { ImpactLedgerPanel } from "@/components/knowledge/ImpactLedgerPanel";
 import { ChangelogPanel } from "@/components/knowledge/ChangelogPanel";
+import { AnnouncementsPanel } from "@/components/knowledge/AnnouncementsPanel";
+import { ShipHistoryPanel } from "@/components/knowledge/ShipHistoryPanel";
 
 // Brain (formerly Knowledge) — the product's brain: one substrate of everything
 // it knows. The "memory" tab is the compounding agent-recall (the moat, folded
@@ -351,7 +353,22 @@ function KnowledgePage() {
           (learning ? <LearningDetail id={learning} /> : <CompoundingPanel />)}
         {tab === "decisions" && (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
         {tab === "impact" && <ImpactLedgerPanel />}
-        {tab === "changelog" && <ChangelogPanel />}
+        {tab === "changelog" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            <section>
+              <MonoLabel style={{ marginBottom: 10, display: "block" }}>Announcements</MonoLabel>
+              <AnnouncementsPanel />
+            </section>
+            <section>
+              <MonoLabel style={{ marginBottom: 10, display: "block" }}>Changelog</MonoLabel>
+              <ChangelogPanel />
+            </section>
+            <section>
+              <MonoLabel style={{ marginBottom: 10, display: "block" }}>Ship history</MonoLabel>
+              <ShipHistoryPanel />
+            </section>
+          </div>
+        )}
         {tab === "design" && <DesignMemoryPanel />}
         {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
         {tab === "docs" && <DocsPanel />}

@@ -6,6 +6,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { listOpportunities, listSignals } from "@/lib/discovery.functions";
 import { SignalFeed } from "./SignalFeed";
 import { OpportunityQueue } from "./OpportunityQueue";
+import { StrategySection } from "./StrategySection";
 
 /**
  * The evidence desk: a 1160px two-column surface, signal on the left,
@@ -93,6 +94,11 @@ export function DiscoverSurface() {
           <OpportunityQueue />
         </div>
       )}
+
+      <div style={{ marginTop: 40, marginBottom: 12 }}>
+        <MonoLabel>Strategy.</MonoLabel>
+      </div>
+      <StrategySection />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MonoLabel } from "@/components/obsidian";
 import { Surface } from "@/components/obsidian/Surface";
 import { RoadmapColumns } from "./RoadmapColumns";
+import { SpecComposer } from "./SpecComposer";
 import { SpecList } from "./SpecList";
 import { SpecDetail } from "./SpecDetail";
 import { StakeholderPackPanel } from "./StakeholderPackPanel";
@@ -49,6 +50,7 @@ export function PlanSurface() {
       <div style={{ marginTop: 40, marginBottom: 12 }}>
         <MonoLabel>Specs, with their receipts.</MonoLabel>
       </div>
+      <SpecComposer />
       <SpecList onOpen={setSpecOpen} />
 
       <div style={{ marginTop: 40, marginBottom: 12 }}>

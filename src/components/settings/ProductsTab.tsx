@@ -1,10 +1,8 @@
-// B3 Portfolio + B5 lifecycle. Run many products without losing the thread:
-// each product shows its loop status (task progress + signals/opps/specs) and
-// is one click to switch. B5 adds the full lifecycle right here — soft archive
-// + restore (reversible, Undo toast), JSON export (the escape hatch), and an
-// honest export-then-delete (typed-name confirm; the copy reflects the FK
-// `on delete set null`, so deleting a product DETACHES its signals/opps/specs
-// to the workspace rather than destroying them).
+// OBS-10 - the /product page is being retired; this ports its PortfolioBoard
+// (switch/archive/restore/export/delete) into Settings > Workspace as its own
+// section, restyled to this file's sibling-tab pattern (bento + MonoLabel
+// header, matching StaffTab/NotificationsTab/MembersCard). Same server
+// functions, same lifecycle logic, same confirm copy - only the shell moved.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Target, Download, Archive, ArchiveRestore, Trash2 } from "lucide-react";
@@ -39,8 +37,6 @@ function fileSlug(name: string) {
   );
 }
 
-// Small calm icon action — a hairline ghost button, sibling to the switch card
-// (never nested inside it).
 function ActionButton({
   label,
   onClick,
@@ -76,10 +72,9 @@ function ActionButton({
   );
 }
 
-export function PortfolioBoard() {
+export function ProductsTab() {
   const { activeProductId, setActiveProductId } = useWorkspace();
   const qc = useQueryClient();
-  // useConfirm() returns the confirm fn directly (not an object) — matches AppShell.
   const confirm = useConfirm();
 
   const fPortfolio = useServerFn(getPortfolio);
@@ -109,7 +104,6 @@ export function PortfolioBoard() {
       await fArchive({ data: { id: p.id, archive: true } });
       if (activeProductId === p.id) setActiveProductId(null);
       refresh();
-      // Reversible → Undo (Restore is the durable fallback if Flow holds this).
       toast.success(`Archived "${p.name}".`, {
         action: {
           label: "Undo",
@@ -150,7 +144,6 @@ export function PortfolioBoard() {
     });
     if (!ok) return;
     try {
-      // Safety net: snapshot before the irreversible delete.
       const data = await fExport({ data: { id: p.id } });
       downloadJson(`${fileSlug(p.name)}-cadence-export.json`, data);
       await fDelete({ data: { id: p.id } });
@@ -162,144 +155,184 @@ export function PortfolioBoard() {
     }
   }
 
+  if (portfolio.isLoading) {
+    return (
+      <div
+        className="mono-label"
+        style={{ padding: "32px 0", textAlign: "center", color: "var(--ink-faint)" }}
+      >
+        loading…
+      </div>
+    );
+  }
+
+  if (portfolio.error) {
+    return (
+      <div className="bento" style={{ padding: 24 }}>
+        <div className="mono-label" style={{ color: "var(--rose)" }}>
+          Couldn't load products
+        </div>
+        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          {(portfolio.error as Error)?.message}
+        </p>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 14 }}
+          onClick={() => portfolio.refetch()}
+        >
+          Retry · reloads products
+        </button>
+      </div>
+    );
+  }
+
   const all = portfolio.data?.products ?? [];
   const active = all.filter((p) => !p.archived);
   const archived = all.filter((p) => p.archived);
-  if (all.length === 0) return null;
+
+  if (all.length === 0) {
+    return (
+      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
+        No products in this workspace yet.
+      </p>
+    );
+  }
 
   return (
-    <section className="bento" style={{ padding: "12px var(--card-pad)", marginBottom: 20 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <MonoLabel icon={Target}>
-          Portfolio · {active.length} product{active.length === 1 ? "" : "s"}
-        </MonoLabel>
-        {active.length > 1 && (
-          <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-            click to switch
-          </span>
-        )}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <MonoLabel icon={Target}>
+            Portfolio · {active.length} product{active.length === 1 ? "" : "s"}
+          </MonoLabel>
+          {active.length > 1 && (
+            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+              click to switch
+            </span>
+          )}
+        </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {active.map((p) => {
-          const isActive = p.id === activeProductId;
-          return (
-            <div key={p.id} style={{ position: "relative" }}>
-              <button
-                onClick={() => setActiveProductId(p.id)}
-                className="lift"
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "10px 96px 10px 12px",
-                  borderRadius: 8,
-                  border: `1px solid ${isActive ? "var(--ember)" : "var(--hairline)"}`,
-                  background: isActive
-                    ? "color-mix(in oklab, var(--ember) 6%, transparent)"
-                    : "transparent",
-                }}
-              >
-                <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                  {isActive && (
-                    <span
-                      aria-hidden
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 99,
-                        background: "var(--ember)",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                  <span
-                    style={{
-                      fontSize: 13.5,
-                      color: "var(--ink)",
-                      fontWeight: isActive ? 600 : 500,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {p.name}
-                  </span>
-                  {isActive && (
-                    <span className="mono-label" style={{ color: "var(--ember)", flexShrink: 0 }}>
-                      active
-                    </span>
-                  )}
-                </span>
-                {p.north_star && (
-                  <p
-                    style={{
-                      fontSize: 11.5,
-                      color: "var(--ink-subtle)",
-                      margin: "3px 0 7px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {p.north_star}
-                  </p>
-                )}
-                <div
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {active.map((p) => {
+            const isActive = p.id === activeProductId;
+            return (
+              <div key={p.id} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setActiveProductId(p.id)}
+                  className="lift"
                   style={{
-                    height: 4,
-                    borderRadius: 99,
-                    background: "var(--surface-2)",
-                    overflow: "hidden",
-                    margin: p.north_star ? "0 0 8px" : "7px 0 8px",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "10px 96px 10px 12px",
+                    borderRadius: 8,
+                    border: `1px solid ${isActive ? "var(--ember)" : "var(--hairline)"}`,
+                    background: isActive
+                      ? "color-mix(in oklab, var(--ember) 6%, transparent)"
+                      : "transparent",
                   }}
                 >
+                  <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    {isActive && (
+                      <span
+                        aria-hidden
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: 99,
+                          background: "var(--ember)",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                    <span
+                      style={{
+                        fontSize: 13.5,
+                        color: "var(--ink)",
+                        fontWeight: isActive ? 600 : 500,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {p.name}
+                    </span>
+                    {isActive && (
+                      <span className="mono-label" style={{ color: "var(--ember)", flexShrink: 0 }}>
+                        active
+                      </span>
+                    )}
+                  </span>
+                  {p.north_star && (
+                    <p
+                      style={{
+                        fontSize: 11.5,
+                        color: "var(--ink-subtle)",
+                        margin: "3px 0 7px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {p.north_star}
+                    </p>
+                  )}
                   <div
                     style={{
-                      height: "100%",
-                      width: `${p.progress}%`,
+                      height: 4,
                       borderRadius: 99,
-                      background: p.progress > 75 ? "var(--ember)" : "var(--ink-subtle)",
-                      transition: "width var(--dur-slow)",
+                      background: "var(--surface-2)",
+                      overflow: "hidden",
+                      margin: p.north_star ? "0 0 8px" : "7px 0 8px",
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${p.progress}%`,
+                        borderRadius: 99,
+                        background: p.progress > 75 ? "var(--ember)" : "var(--ink-subtle)",
+                        transition: "width var(--dur-slow)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    className="mono-label tabular-nums"
+                    style={{ display: "flex", gap: 14, color: "var(--ink-faint)" }}
+                  >
+                    <span>
+                      {p.task_done}/{p.task_total} tasks
+                    </span>
+                    <span>{p.signals} signals</span>
+                    <span>{p.opportunities} opportunities</span>
+                    <span>{p.specs} specs</span>
+                  </div>
+                </button>
+                <div style={{ position: "absolute", top: 9, right: 10, display: "flex", gap: 4 }}>
+                  <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
+                    <Download size={12} strokeWidth={1.75} />
+                  </ActionButton>
+                  <ActionButton label={`Archive ${p.name}`} onClick={() => archive(p)}>
+                    <Archive size={12} strokeWidth={1.75} />
+                  </ActionButton>
+                  <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
+                    <Trash2 size={12} strokeWidth={1.75} />
+                  </ActionButton>
                 </div>
-                <div
-                  className="mono-label tabular-nums"
-                  style={{ display: "flex", gap: 14, color: "var(--ink-faint)" }}
-                >
-                  <span>
-                    {p.task_done}/{p.task_total} tasks
-                  </span>
-                  <span>{p.signals} signals</span>
-                  <span>{p.opportunities} opportunities</span>
-                  <span>{p.specs} specs</span>
-                </div>
-              </button>
-              <div style={{ position: "absolute", top: 9, right: 10, display: "flex", gap: 4 }}>
-                <ActionButton label={`Export ${p.name}`} onClick={() => runExport(p)}>
-                  <Download size={12} strokeWidth={1.75} />
-                </ActionButton>
-                <ActionButton label={`Archive ${p.name}`} onClick={() => archive(p)}>
-                  <Archive size={12} strokeWidth={1.75} />
-                </ActionButton>
-                <ActionButton label={`Delete ${p.name}`} danger onClick={() => remove(p)}>
-                  <Trash2 size={12} strokeWidth={1.75} />
-                </ActionButton>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {archived.length > 0 && (
-        <div style={{ marginTop: 16 }}>
+        <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
           <MonoLabel icon={Archive}>
             Archived · {archived.length} product{archived.length === 1 ? "" : "s"}
           </MonoLabel>
@@ -346,6 +379,6 @@ export function PortfolioBoard() {
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

@@ -20,7 +20,9 @@
 // Product); `produces` = what this stage hands forward (the felt-continuity payload).
 export const LOOP_SURFACES = [
   { id: "today", label: "Today", to: "/", produces: "your decision" },
-  { id: "product", label: "Product", to: "/product", produces: "a ranked opportunity" },
+  // OBS-10: /product folded (final closure); Discover is now this stage's
+  // home (signals + opportunities + strategy all live there).
+  { id: "product", label: "Discover", to: "/discover", produces: "a ranked opportunity" },
   { id: "prd", label: "PRD", to: "/prds", produces: "an approved spec" },
   { id: "build", label: "Build", to: "/build", produces: "a working change" },
   // OBS-10: /missions folded into Build (the one true missions home) — this

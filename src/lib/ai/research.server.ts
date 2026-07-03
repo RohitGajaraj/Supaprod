@@ -42,7 +42,7 @@ export type ResearchSource = {
   title: string;
   /** External page — web sources only. */
   url?: string;
-  /** Internal deep link, e.g. "/prds/<id>" or "/product?tab=opportunities". */
+  /** Internal deep link, e.g. "/prds/<id>" or "/discover". */
   href?: string;
   /** Domain for web sources; source-kind label for internal ones. */
   sub?: string;
@@ -152,7 +152,7 @@ const RAG_KIND_MAP: Record<
   string,
   { kind: ResearchSourceKind; href: (sourceId: string | null) => string }
 > = {
-  signal: { kind: "signal", href: () => "/product?tab=signals" },
+  signal: { kind: "signal", href: () => "/discover" },
   doc: { kind: "doc", href: () => "/knowledge?tab=docs" },
   note: { kind: "doc", href: () => "/knowledge?tab=memory" },
   meeting: { kind: "meeting", href: () => "/knowledge?tab=calendar" },
@@ -239,7 +239,7 @@ async function gatherInternal(
     snapshots.push({
       kind: "opportunity",
       title: "Opportunity queue (top 5 by ICE)",
-      href: "/product?tab=opportunities",
+      href: "/discover",
       lines: opps.map((o) => `- ${o.title} — ICE ${o.ice_score ?? "—"} · ${o.status}`),
     });
   }
@@ -250,9 +250,8 @@ async function gatherInternal(
     snapshots.push({
       kind: "roadmap",
       title: "Roadmap (by lane)",
-      // v6 Phase 0 / W1: the Roadmap tab was deleted; opportunities (ICE-ranked,
-      // lane-grouped by status) is the live successor surface for this snapshot.
-      href: "/product?tab=opportunities",
+      // OBS-10: the Now/Next/Later roadmap now lives on Plan.
+      href: "/plan",
       lines: ["now", "next", "later", "shipped"]
         .filter((l) => byLane.has(l))
         .map((l) => `- ${l}: ${byLane.get(l)!.join("; ")}`),

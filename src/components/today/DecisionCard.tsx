@@ -315,7 +315,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
   // Review call (prd / opp) — the call is to review; Critic verdict is the lever.
   const isPrd = item.kind === "prd";
   const question = isPrd ? `Ship the spec: ${item.title}?` : `Keep or kill: ${item.title}?`;
-  const openTo = isPrd ? "/prds/$id" : "/product";
+  const openTo = isPrd ? "/prds/$id" : "/discover";
   return (
     <div className="fade-up lift" style={cardStyle}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
@@ -345,12 +345,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             <ExternalLink size={12} strokeWidth={1.75} /> Open spec
           </Link>
         ) : (
-          <Link
-            to={openTo}
-            search={{ tab: "opportunities" }}
-            className="btn btn-sm"
-            style={{ color: "var(--action-blue)" }}
-          >
+          <Link to={openTo} className="btn btn-sm" style={{ color: "var(--action-blue)" }}>
             <ExternalLink size={12} strokeWidth={1.75} /> Open
           </Link>
         )}

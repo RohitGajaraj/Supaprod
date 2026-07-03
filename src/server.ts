@@ -30,6 +30,25 @@ function brandedErrorResponse(): Response {
   });
 }
 
+// Agent discovery breadcrumb: an agent that only reads response headers
+// (never parses HTML) still learns a machine-readable interface exists,
+// without first knowing to guess /llms.txt or /agents.txt. Applied to every
+// ordinary page response; skipped for the well-known/health responses below,
+// which are already the machine-readable content themselves.
+export const AGENT_DISCOVERY_LINK_HEADER =
+  '</llms.txt>; rel="llms-txt", </agents.txt>; rel="agent-policy"';
+
+export function withAgentDiscoveryLink(response: Response): Response {
+  if (response.headers.has("Link")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Link", AGENT_DISCOVERY_LINK_HEADER);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boolean {
   let payload: unknown;
   try {
@@ -129,7 +148,7 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withAgentDiscoveryLink(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
       return brandedErrorResponse();

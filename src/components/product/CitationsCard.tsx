@@ -27,7 +27,7 @@ function linkFor(
   if (!c.source_id) return null;
   switch (c.source_kind) {
     case "signal":
-      return { to: "/product", search: { tab: "signals" } };
+      return { to: "/discover" };
     case "doc":
       return { to: "/knowledge", search: { tab: "docs" } };
     case "meeting":

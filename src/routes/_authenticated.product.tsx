@@ -1,146 +1,30 @@
-// Product — screen 5 of the Ember Editorial migration, ported 1:1 from
-// design-reference/cadence/loop.jsx (ProductScreen + PRODUCT_DESC): mono
-// kicker "Loop · Sense", serif h1, hairline TabRow with per-tab description
-// lines. Production functionality rides the reference layout: the ?tab=
-// search-param contract (the /prds index redirects to /product?tab=specs),
-// and each tab's TanStack Query + server-function wiring lives in its panel.
-//
-// Screen-6 drill contract (loop-detail.jsx): drill state rides OPTIONAL
-// search params on this route — ?signal= opens SignalDetail, ?opp= opens
-// OpportunityDetail — replacing ONLY the tab body (SurfaceHeader + TabRow
-// stay). setTab navigates with a fresh search object, so switching tabs
-// clears any open drill automatically; DrillHeader's back link navigates to
-// the same tab without the drill param.
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { Compass } from "lucide-react";
-import { TopBar } from "@/components/cadence/TopBar";
-import { SurfaceHeader, TabRow } from "@/components/cadence/Primitives";
-import { useWorkspace } from "@/hooks/use-workspace";
-import { SignalsPanel } from "@/components/product/SignalsPanel";
-import { SignalDetail } from "@/components/product/SignalDetail";
-import { OpportunitiesPanel } from "@/components/product/OpportunitiesPanel";
-import { OpportunityDetail } from "@/components/product/OpportunityDetail";
-import { SpecsPanel } from "@/components/product/SpecsPanel";
-import { ReleasesPanel } from "@/components/product/ReleasesPanel";
-import { AnnouncementsManager } from "@/components/product/AnnouncementsManager";
-import { RoadmapBoard } from "@/components/product/RoadmapBoard";
-import { PortfolioBoard } from "@/components/product/PortfolioBoard";
-import { StrategyPanel } from "@/components/product/StrategyPanel";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// v6 Phase 0 / W1: the Roadmap (sprint planner + capacity) and Tasks (To-Do/
-// Doing/Done kanban) tabs are deleted — they wear the clothes of a human-PM
-// tool and contradict the Agentic Product OS positioning (continuous agent
-// re-ranking replaces the manual sprint/kanban). Replacement = the agent-
-// decomposed dependency graph, later. The `tasks` TABLE stays (Today's capture
-// list reads it); only the product-tab kanban + sprint planner are gone.
-// /roadmap + /tasks routes now redirect away (see those route files).
-// JNY-01: adds a 6th tab, Strategy — the first visible surface for the
-// scout_targets watch list + competitor-tick's weekly briefs (both shipped
-// dark until now). Additive only; the 5 tabs above stay byte-identical to
-// the design-reference port.
-type Tab = "signals" | "opportunities" | "roadmap" | "specs" | "releases" | "strategy";
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: "signals", label: "Signals" },
-  { id: "opportunities", label: "Opportunities" },
-  { id: "roadmap", label: "Roadmap" },
-  { id: "specs", label: "Specs" },
-  { id: "releases", label: "Releases" },
-  { id: "strategy", label: "Strategy" },
-];
-
-// PRODUCT_DESC from the reference; Builder → Studio → Build per the
-// 2026-06-12 renames (user-facing name only). H2: the Roadmap is the outcome
-// commitment layer (Now/Next/Later), not the deleted task kanban.
-const PRODUCT_DESC: Record<Tab, string> = {
-  signals: "Capture customer signals from anywhere; cluster them into actionable themes.",
-  opportunities: "Ranked by ICE. Generate a PRD with one click when you're ready to build.",
-  roadmap:
-    "Commit opportunities to Now, Next, or Later with an outcome and a measure. ICE orders within each bucket.",
-  specs: "Product requirement docs. Draft from a brief, hand off to GitHub or Build.",
-  releases: "Build sessions that completed end-to-end, with duration and cost.",
-  strategy: "Tracked competitors and platform shifts, summarized weekly.",
+// /product folded per OBS-10 (IA consolidation, final closure). Every tab's
+// write action now has an Obsidian home: signals/opportunities/strategy on
+// Discover (lane2 + this session), roadmap/specs on Plan (this session),
+// releases (Announcements + the changelog + ship history) on Brain's
+// Changelog tab (this session), and product portfolio lifecycle (switch/
+// archive/restore/export/delete) on Settings' Workspace pane (this session).
+// The incoming ?tab= determines the target since the legacy page branched
+// six ways on it; a bare /product (no tab) matches the legacy default of
+// "signals".
+const TAB_TARGET: Record<string, { to: string; search?: Record<string, string> }> = {
+  signals: { to: "/discover" },
+  opportunities: { to: "/discover" },
+  strategy: { to: "/discover" },
+  roadmap: { to: "/plan" },
+  specs: { to: "/plan" },
+  releases: { to: "/knowledge", search: { tab: "changelog" } },
 };
 
 export const Route = createFileRoute("/_authenticated/product")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { tab: Tab; signal?: string; opp?: string } => {
-    const t = search.tab;
-    return {
-      tab: TABS.some((x) => x.id === t) ? (t as Tab) : "signals",
-      signal: typeof search.signal === "string" ? search.signal : undefined,
-      opp: typeof search.opp === "string" ? search.opp : undefined,
-    };
+  beforeLoad: ({ search }) => {
+    const tab =
+      typeof (search as Record<string, unknown>).tab === "string"
+        ? ((search as Record<string, unknown>).tab as string)
+        : "signals";
+    const target = TAB_TARGET[tab] ?? TAB_TARGET.signals;
+    throw redirect(target);
   },
-  component: ProductPage,
-  head: () => ({ meta: [{ title: "Product · Cadence" }] }),
-  errorComponent: ({ error, reset }) => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <div className="bento" style={{ padding: 24 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load Product
-          </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}>
-            {(error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={reset}>
-            Retry · reloads the surface
-          </button>
-        </div>
-      </div>
-    </>
-  ),
-  notFoundComponent: () => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <p style={{ fontSize: 13, color: "var(--ink-subtle)" }}>Not found.</p>
-      </div>
-    </>
-  ),
 });
-
-function ProductPage() {
-  const { tab, signal, opp } = Route.useSearch();
-  const navigate = useNavigate({ from: "/product" });
-  const { activeWorkspace } = useWorkspace();
-  const setTab = (next: string) => navigate({ search: { tab: next as Tab } });
-
-  return (
-    <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Product"]} />
-      <div
-        data-screen-label="Product"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
-      >
-        <SurfaceHeader
-          kicker="Loop · Sense"
-          icon={Compass}
-          title="Product"
-          sub="Discover, define, plan, and ship. One station for the whole product loop."
-        />
-        {/* B3 Portfolio + B5 lifecycle — run many products without losing the
-            thread; switch, archive / restore, export, and delete on each card. */}
-        <PortfolioBoard />
-        <TabRow tabs={TABS} active={tab} onSet={setTab} desc={PRODUCT_DESC} />
-
-        {tab === "signals" && (signal ? <SignalDetail id={signal} /> : <SignalsPanel />)}
-        {tab === "opportunities" && (opp ? <OpportunityDetail id={opp} /> : <OpportunitiesPanel />)}
-        {tab === "roadmap" && <RoadmapBoard />}
-        {tab === "specs" && <SpecsPanel />}
-        {tab === "releases" && (
-          <>
-            {/* L2b-2: customer-facing announcement authoring (the Ship surface) sits
-                above the internal build-session history. */}
-            <AnnouncementsManager />
-            <ReleasesPanel />
-          </>
-        )}
-        {tab === "strategy" && <StrategyPanel />}
-      </div>
-    </>
-  );
-}

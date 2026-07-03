@@ -7,6 +7,7 @@ import {
   getRoadmap,
   updateRoadmapItem,
   commitRoadmapItem,
+  bulkUpdateRoadmapItems,
   type RoadmapItem,
   type RoadmapBucket,
 } from "@/lib/roadmap.functions";
@@ -21,19 +22,34 @@ const COLUMNS: { key: RoadmapBucket; label: string; color: string }[] = [
 ];
 
 /**
- * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Shares the
- * exact `["roadmap"]` query key + `commitRoadmapItem`/`updateRoadmapItem`
- * server fns with the still-live parchment `RoadmapBoard`, so the two never
- * diverge. Backlog items (`bucket: null`) are out of this surface's scope
- * (§13) and stay invisible here.
+ * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Backlog items
+ * (`bucket: null`) are out of this surface's scope (§13) and stay invisible
+ * here.
+ *
+ * OBS-10 (final closure): write parity with the now-retired parchment
+ * `RoadmapBoard` (deleted). Editing the outcome of an ALREADY-committed bet
+ * goes through the same governed `commitRoadmapItem` path the retired
+ * board's inline editor used (bucket stays put, outcome+measure get
+ * re-declared), and a multi-select bulk re-prioritize bar calls
+ * `bulkUpdateRoadmapItems`.
  */
 export function RoadmapColumns() {
   const qc = useQueryClient();
   const fRoadmap = useServerFn(getRoadmap);
   const fUpdate = useServerFn(updateRoadmapItem);
   const fCommit = useServerFn(commitRoadmapItem);
+  const fBulk = useServerFn(bulkUpdateRoadmapItems);
   const roadmap = useQuery({ queryKey: ["roadmap"], queryFn: () => fRoadmap() });
   const [ceremonyBet, setCeremonyBet] = useState<CommitCeremonyBet | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string, on: boolean) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
 
   const move = useMutation({
     mutationFn: (v: { id: string; bucket: RoadmapBucket }) =>
@@ -52,6 +68,37 @@ export function RoadmapColumns() {
       setCeremonyBet(null);
       qc.invalidateQueries({ queryKey: ["roadmap"] });
       toast.success("Committed to Now. The team builds this next.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // OBS-10: re-declare outcome+measure for a bet already sitting in a bucket,
+  // the same governed write as `commit` above, but the bucket is the bet's
+  // current one (not forced to "now"), so it never re-homes a bet for an edit.
+  const editOutcome = useMutation({
+    mutationFn: (v: { id: string; bucket: RoadmapBucket; outcome: string; measure: string }) =>
+      fCommit({ data: { id: v.id, bucket: v.bucket, outcome: v.outcome, measure: v.measure } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      toast.success("Outcome saved.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // OBS-10: bulk re-prioritize the selected set into one bucket, lenient like
+  // the drag move (place-first; per-item outcome+measure governance still
+  // applies and the gap surface flags what moved without one).
+  const bulkMove = useMutation({
+    mutationFn: (v: { ids: string[]; bucket: RoadmapBucket }) =>
+      fBulk({ data: { ids: v.ids, bucket: v.bucket } }),
+    onSuccess: (res) => {
+      setSelectedIds(new Set());
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      toast.success(
+        res.moved > 0
+          ? `Moved ${res.moved}${res.skipped ? ` · ${res.skipped} unchanged` : ""}.`
+          : "Nothing to move.",
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -149,6 +196,65 @@ export function RoadmapColumns() {
 
   return (
     <>
+      {/* OBS-10: bulk re-prioritize bar, appears only once a set is selected (calm front). */}
+      {selectedIds.size > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 14px",
+            marginBottom: 12,
+            background: "var(--surface-card)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-panel)",
+          }}
+        >
+          <MonoLabel tone="muted">{selectedIds.size} selected</MonoLabel>
+          <span style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+            <MonoLabel tone="faint">move to</MonoLabel>
+            {COLUMNS.map((col) => (
+              <button
+                key={col.key}
+                type="button"
+                disabled={bulkMove.isPending}
+                onClick={() => bulkMove.mutate({ ids: [...selectedIds], bucket: col.key })}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-label)",
+                  letterSpacing: "0.11em",
+                  textTransform: "uppercase",
+                  color: col.color,
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "3px 10px",
+                  background: "transparent",
+                  cursor: bulkMove.isPending ? "default" : "pointer",
+                  opacity: bulkMove.isPending ? 0.5 : 1,
+                }}
+              >
+                {col.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-label)",
+                letterSpacing: "0.11em",
+                textTransform: "uppercase",
+                color: "var(--text-faint)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              clear
+            </button>
+          </span>
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
         {COLUMNS.map((col) => {
           const colItems = items
@@ -163,13 +269,20 @@ export function RoadmapColumns() {
                 {colItems.map((item) => (
                   <BetCard
                     key={item.id}
+                    id={item.id}
                     title={item.title}
                     measure={item.measure}
                     outcome={item.outcome}
                     column={col.key}
                     iceScore={item.ice_score}
                     hasOutcome={isCommitmentGoverned(item)}
+                    selected={selectedIds.has(item.id)}
+                    onToggleSelect={(on) => toggleSelect(item.id, on)}
                     onMoveTo={(bucket) => handleMove(item, bucket)}
+                    onEditOutcome={(values) =>
+                      editOutcome.mutate({ id: item.id, bucket: col.key, ...values })
+                    }
+                    editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
                   />
                 ))}
               </div>

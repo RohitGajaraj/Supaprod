@@ -1,0 +1,241 @@
+// OBS-10: the strategy head, ported from the retired /product Strategy tab
+// (src/components/product/StrategyPanel.tsx) into Discover. Same read-only
+// contract as the legacy panel: the scout_targets watch list still seeds
+// itself via auto-seed and the weekly briefs still synthesize on their own
+// cadence; a manual add-to-watchlist form stays a documented follow-up, not
+// built here. Reuses listTrackedEntities/listStrategyBriefs unchanged.
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import type { ReactNode } from "react";
+import { Button, MonoLabel } from "@/components/obsidian";
+import {
+  listTrackedEntities,
+  listStrategyBriefs,
+  type TrackedEntity,
+  type StrategyBrief,
+} from "@/lib/strategy-registry.functions";
+import { relTimeCaps } from "./format";
+
+function PanelShell({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        backgroundColor: "#111113",
+        border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: "var(--radius-card)",
+        padding: "18px 20px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function HeaderRow({ label, count }: { label: string; count: number | null }) {
+  return (
+    <div className="mb-3.5 flex items-baseline">
+      <span className="flex-1">
+        <MonoLabel style={{ fontSize: "9px", letterSpacing: "0.12em" }}>{label}</MonoLabel>
+      </span>
+      {count === null ? null : (
+        <MonoLabel tone="glacier" style={{ fontSize: "9px", letterSpacing: "0.08em" }}>
+          {count}
+        </MonoLabel>
+      )}
+    </div>
+  );
+}
+
+function lastCheckedCaps(iso: string | null): string {
+  return iso ? relTimeCaps(iso) : "NOT YET CHECKED";
+}
+
+function kindCaps(kind: TrackedEntity["kind"]): string {
+  return kind === "competitor-surface" ? "COMPETITOR" : "TECH SHIFT";
+}
+
+function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gap: "5px",
+        paddingBottom: "13px",
+        borderBottom: isLast ? undefined : "1px solid rgba(255,255,255,0.05)",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "8.5px",
+            letterSpacing: "0.08em",
+            color: "var(--blossom)",
+            border: "1px solid rgba(229,189,223,0.35)",
+            borderRadius: "99px",
+            padding: "1px 7px",
+          }}
+        >
+          {brief.kind === "competitor" ? "COMPETITOR" : "TECH SHIFT"}
+        </span>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "8.5px",
+            letterSpacing: "0.08em",
+            color: "var(--text-faint)",
+          }}
+        >
+          {relTimeCaps(brief.created_at)}
+        </span>
+      </div>
+      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-primary)" }}>
+        {brief.title}
+      </div>
+      <p
+        style={{
+          fontSize: "12.5px",
+          lineHeight: 1.6,
+          color: "var(--text-body)",
+          margin: 0,
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {brief.content}
+      </p>
+    </div>
+  );
+}
+
+function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean }) {
+  return (
+    <div
+      className="flex items-center gap-2"
+      style={{
+        padding: "8px 0",
+        borderBottom: isLast ? undefined : "1px solid rgba(255,255,255,0.05)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "8px",
+          letterSpacing: "0.08em",
+          color: "var(--text-faint)",
+          flexShrink: 0,
+        }}
+      >
+        {kindCaps(entity.kind)}
+      </span>
+      <span
+        style={{
+          fontSize: "12.5px",
+          color: "var(--text-body)",
+          flex: 1,
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {entity.label}
+      </span>
+      <MonoLabel tone="faint" style={{ fontSize: "8.5px", letterSpacing: "0.08em" }}>
+        {entity.cadence.toUpperCase()}
+      </MonoLabel>
+      <MonoLabel tone="faint" style={{ fontSize: "8.5px", letterSpacing: "0.08em" }}>
+        {entity.enabled ? lastCheckedCaps(entity.last_checked_at) : "PAUSED"}
+      </MonoLabel>
+    </div>
+  );
+}
+
+export function StrategySection() {
+  const fEntities = useServerFn(listTrackedEntities);
+  const fBriefs = useServerFn(listStrategyBriefs);
+  const entitiesQ = useQuery({ queryKey: ["strategy-entities"], queryFn: () => fEntities() });
+  const briefsQ = useQuery({ queryKey: ["strategy-briefs"], queryFn: () => fBriefs() });
+
+  const entities = entitiesQ.data ?? [];
+  const briefs = briefsQ.data ?? [];
+
+  return (
+    <div className="grid items-start" style={{ gridTemplateColumns: "1.4fr 1fr", gap: "20px" }}>
+      <PanelShell>
+        <HeaderRow label="Weekly briefs" count={briefsQ.isLoading ? null : briefs.length} />
+        {briefsQ.isLoading ? (
+          <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
+            Reading briefs
+          </MonoLabel>
+        ) : briefsQ.error ? (
+          <div>
+            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+              Could not load briefs
+            </MonoLabel>
+            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+              {(briefsQ.error as Error).message}
+            </p>
+            <Button
+              variant="secondary"
+              style={{ marginTop: "12px" }}
+              onClick={() => briefsQ.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : briefs.length === 0 ? (
+          <p
+            style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+          >
+            No briefs yet. One lands here the first Monday after a tracked competitor or platform
+            surface actually changes. Nothing to configure by hand.
+          </p>
+        ) : (
+          <div className="grid gap-3.5">
+            {briefs.map((b, i) => (
+              <BriefRow key={b.id} brief={b} isLast={i === briefs.length - 1} />
+            ))}
+          </div>
+        )}
+      </PanelShell>
+
+      <PanelShell>
+        <HeaderRow label="Tracked entities" count={entitiesQ.isLoading ? null : entities.length} />
+        {entitiesQ.isLoading ? (
+          <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
+            Reading watch list
+          </MonoLabel>
+        ) : entitiesQ.error ? (
+          <div>
+            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+              Could not load the watch list
+            </MonoLabel>
+            <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
+              {(entitiesQ.error as Error).message}
+            </p>
+            <Button
+              variant="secondary"
+              style={{ marginTop: "12px" }}
+              onClick={() => entitiesQ.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : entities.length === 0 ? (
+          <p
+            style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+          >
+            Nothing tracked yet. The watch list seeds itself from your workspace's focus and top
+            opportunities once Scout runs.
+          </p>
+        ) : (
+          <div>
+            {entities.map((e, i) => (
+              <EntityRow key={e.id} entity={e} isLast={i === entities.length - 1} />
+            ))}
+          </div>
+        )}
+      </PanelShell>
+    </div>
+  );
+}

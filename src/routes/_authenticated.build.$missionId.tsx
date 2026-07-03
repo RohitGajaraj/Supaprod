@@ -206,8 +206,8 @@ function JourneyStrip({
       ))}
       {missionStatus === "completed" && (
         <Link
-          to="/product"
-          search={{ tab: "releases" }}
+          to="/knowledge"
+          search={{ tab: "changelog" }}
           className="mono-label"
           style={{ fontSize: 9, color: "var(--action-blue)", marginLeft: 4 }}
         >

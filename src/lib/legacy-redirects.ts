@@ -46,7 +46,6 @@ export const DOOR_INTERNAL_PATHS = [
   "/traces",
   "/traces/$traceId",
   "/prds/$id",
-  "/product",
 ] as const;
 
 /**
@@ -69,19 +68,25 @@ export const DOOR_INTERNAL_PATHS = [
  *   here for trace detail; `/govern?tab=traces` is a second live consumer.
  *   Same drill-in-layer shape as `/govern` itself, one level deeper.
  *
- * Genuinely remaining work (verified against the real shipped code - each
- * carries live functionality its canonical replacement does not yet have,
- * so folding it now would delete a working feature, not relocate one):
- *
- * - `/product` - 2026-07-03 (lane2): the Signals/Opportunities write actions
- *   (capture, bulk import, cluster, promote, draft-spec, lineage, delete) are
- *   now ALSO on `/discover` (SignalComposer.tsx, SignalCard.tsx,
- *   OpportunityRow.tsx) - that half is closed. `/product` itself still stays
- *   live: its other 4 tabs (roadmap/specs/releases/strategy) each carry real
- *   unclosed write surfaces of their own (Specs' rename/delete/promote/
- *   dispatch, Releases' AnnouncementsManager approval workflow, Roadmap's
- *   bulk-update) with no home yet on `/plan` or elsewhere - a materially
- *   larger, separate effort, not part of this row's remaining scope.
+ * Genuinely remaining work: NONE as of 2026-07-03 (lane3) - every legacy
+ * surface below is closed. `/product` itself (2026-07-03, lane3, final
+ * closure): lane2 closed the Signals/Opportunities half onto `/discover`
+ * earlier this session; this pass closed the remaining four tabs - Specs'
+ * rename/delete/promote/create-issue/hand-to-build/lineage (a new row
+ * overflow menu on Plan, plus the "draft a spec from one line" composer),
+ * Roadmap's bulk multi-select re-prioritize + post-commit outcome editing +
+ * the RoadmapHistory audit trail (Plan), the Announcements authoring/
+ * approval workflow + a read-only ship-history view (Brain's Changelog tab),
+ * Strategy's tracked-entities watch list + weekly competitor briefs
+ * (Discover), and the product-portfolio lifecycle - switch/archive/restore/
+ * export/delete (a new Products section on Settings' Workspace pane, inside
+ * the existing four-pane cap, not a fifth pane). `/product` itself now
+ * branches its `beforeLoad` redirect on the incoming `?tab=` (see the route
+ * stub `src/routes/_authenticated.product.tsx` - a single static target
+ * cannot express this, so it is not entered in `LEGACY_REDIRECTS` below with
+ * per-tab search params; the map entry uses the bare-URL default instead).
+ * All ten now-orphaned `src/components/product/*Panel.tsx`/`*Board.tsx`
+ * files were deleted (verified zero remaining importers before removal).
  *
  * `/impact` and `/changelog` closed 2026-07-03 (lane1, OBS-10 Brain fold):
  * Brain gained an `ImpactLedgerPanel` ("Impact" tab, the full 4-stat
@@ -107,6 +112,10 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Discover --
   "/discovery": { to: "/discover", search: { tab: "signals" } },
   "/opportunities": { to: "/discover", search: { tab: "opportunities" } },
+  // OBS-10 (2026-07-03, lane3, final closure): the bare-URL default (the
+  // legacy page's own default tab is "signals"). The real stub branches on
+  // ?tab= six ways - see the module doc above and the route stub itself.
+  "/product": { to: "/discover" },
 
   // -- Plan --
   "/prds": { to: "/plan" }, // bare list only; /prds/$id stays live (see above)

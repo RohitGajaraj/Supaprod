@@ -1,6 +1,6 @@
 # Agent-Native Layer
 
-> _Created: 2026-06-27 · Status: **IN BUILD** (L1 active; L2/L3 roadmap Tier 1)_
+> _Created: 2026-06-27 · Status: **L1/L2/L3 all shipped 2026-06-27** (this doc's Build Plan section below retains the original design draft; the as-shipped MCP tool catalog is the one in `public/llms.txt` / `public/agents.txt` / `src/lib/mcp-protocol.ts`, which evolved from the draft list below — treat the live files as authoritative over this doc's tool tables). Discovery-hardening addendum 2026-07-04, see below._
 > _Decision log: [`../strategy/session-decisions.md`](../strategy/session-decisions.md) — 2026-06-27 entry_
 > _Dashboard: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) rows AGENT-NATIVE-L1 / L2 / L3_
 > _Strategy: [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) §20 (agentic doctrine)_
@@ -204,6 +204,39 @@ The `[HUMAN] [MACHINE]` toggle is placed in the **top-right nav** — not in the
 - Machine mode: the toggle is what reveals the "engine" (structured output), following "revealed on demand" — the operator flips it; it is not forced on everyone
 
 The toggle does NOT violate the doctrine because it is not a new surface or a new mode of the product — it is a rendering switch for the same content.
+
+---
+
+## Discovery hardening (2026-07-04)
+
+**Gap found:** L1/L2/L3 shipped real, working machine-readable interfaces (`/llms.txt`, `/agents.txt`, `/.well-known/agent.json`, `POST /api/mcp`), but nothing on an ordinary page pointed to them. The `[HUMAN]/[MACHINE]` toggle is a control a *human* clicks — it is irrelevant to an autonomous agent that never renders the UI. An agent landing on Cadence cold (a raw fetch, a browsing agent, a crawler) had no in-page signal that a machine mode existed at all; it would only find `/llms.txt` or `/agents.txt` if it already knew to guess those exact paths. There was also no `robots.txt` — the oldest and most universally-checked discovery convention on the web, and the natural bridge for a crawler-style agent to find the newer `llms.txt`/`agents.txt` convention.
+
+**Founder framing that surfaced this:** "it's not that aspect of turning it to machine mode that... is even not required for any agent to know that there is something called agent mode that needs to be turned on. That is more required." I.e., the coverage (every page dual-surface) was already solid; the missing piece was unprompted discoverability by an agent with no human in the loop.
+
+**Fix shipped (docs-adjacent code, no new surface, no UI change, Engine-Room doctrine untouched — purely protocol-level breadcrumbs):**
+- `public/robots.txt` (new) — standard `Allow: /` plus a comment pointing any crawler/agent at `/llms.txt` and `/agents.txt`.
+- `src/routes/__root.tsx` — two `<link>` tags (`rel="llms.txt"`, `rel="agents.txt"`) added to every page's `<head>`, so any agent that parses HTML (even one with zero prior Cadence-specific knowledge) finds the machine-readable interfaces from the page itself.
+- `src/server.ts` — every ordinary page response now carries an HTTP `Link:` header (`</llms.txt>; rel="llms-txt", </agents.txt>; rel="agent-policy"`) via a new `withAgentDiscoveryLink()` helper, so an agent that only reads response headers (never downloads/parses the body — the cheaper path many crawler-style agents take first) still discovers machine mode. Skipped on the `/.well-known/agent.json`, OAuth-metadata, and healthz responses, which are already machine-readable content themselves.
+- Tests: `src/server.test.ts` (new, 3 tests) covers the header-injection helper in isolation.
+
+This closes the "how would the agent know" gap without touching the write-access question below, which is a separate, unresolved scope decision.
+
+---
+
+## Open question — MCP write-tool scope (parked 2026-07-04, founder-gated, not decided)
+
+**Raised by the founder, explicitly parked for later — do not build against this until a decision is made.**
+
+Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `search_opportunities`, `search_decisions`, `search_prds`, `get_prd`, `get_ard`, `get_roadmap`, `export_skillpack`, `get_governing_decision`, `get_contradiction_history`, per `src/lib/mcp-protocol.ts`) plus **one narrow write tool** (`ingest_signal`, gated behind the workspace-level `interop_write_enabled()` flag, default off). There is no tool that lets an agent actually operate Cadence — no `trigger_mission`, no `approve_decision`, nothing that drives execution. An external agent can read everything the tool catalog exposes and, if a workspace owner opts in, push in a new signal. It cannot act on Cadence's behalf beyond that.
+
+**The founder's question:** given the whole point of agent-native access is that an *agent*, not a human, is the one operating the toggle/interface, should the MCP write surface be widened so an agent can actually get work done through Cadence — not just read state and optionally drop in a signal? The founder was explicit this is a real, live option worth pursuing ("even if it takes energy and effort for us to build, let us do that" — said in the 2026-06-26/27 session about the read/discovery layer, and the same instinct now extends to the write/control layer) but has asked to **park the decision itself** rather than build speculatively.
+
+**Why this isn't a small tweak (the tradeoff, for whenever this is picked up):**
+- **For:** the `write:signal`-only design was a deliberate "commodity trap" guard (see Threats and mitigations, above) — but it also means Cadence is not yet a true agent *operator* surface, only an agent *reader* surface. If the strategic thesis is "agents are the primary consumer," a read-only-plus-one-signal API caps how much value an agent integration can actually deliver.
+- **Against / risk:** every additional write tool is a new cross-tenant-leak and prompt-injection surface (the Asana MCP incident, cited above, is exactly this failure mode) and a new "agent takes an action a human didn't approve" trust question — which is the same class of concern the Engine-Room Doctrine and the existing approval-gate model (`src/lib/ai/loop.server.ts`'s `auto`/`confirm`/`review` modes) already govern for Cadence's *own* agents. Extending that trust model to *external* agents calling in over MCP is a bigger decision than adding a tool.
+- **Candidate scope, if greenlit later:** tools like `trigger_mission`, `approve_decision`, or `record_outcome` (all present in this doc's original Layer 2 draft table above but never built) would need the same trust-arc gating Cadence already applies internally, not a flat on/off.
+
+**Where this is tracked:** [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4 (founder pickup list) and the [`AGENT-NATIVE-L2`](../planning/feature-dashboard.md) dashboard row.
 
 ---
 
