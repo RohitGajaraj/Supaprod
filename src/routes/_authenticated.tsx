@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CommandPalette, GotoShortcuts } from "@/components/cadence/CommandPalette";
 import { AppShell } from "@/components/cadence/AppShell";
@@ -40,6 +41,20 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // The portal theme fix: Radix/shadcn floating layers (dropdowns, dialogs,
+  // popovers, tooltips, sonner, cmdk) portal onto document.body — OUTSIDE the
+  // <div data-obsidian> below — so they rendered in the light parchment theme
+  // over the dark app (the "workspace switcher goes white" bug). Hoisting the
+  // attribute onto <html> while the authenticated tree is mounted lets every
+  // portal inherit the Obsidian tokens; the landing page never mounts this
+  // layout, so it stays parchment. The inner div stays as a same-DOM anchor.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-obsidian", "");
+    return () => {
+      document.documentElement.removeAttribute("data-obsidian");
+    };
+  }, []);
   // Onboarding is documented full-viewport, no-shell (_authenticated.onboarding.tsx)
   // and must stay that way after the OBS-02 hoist: wrapping it in <AppShell>
   // would expose all five nav destinations + the 1-5/g shortcuts before the
