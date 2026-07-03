@@ -2,6 +2,9 @@
  * Admin pricing editor: edit subscription bundles per tier and top-up bundles.
  * Stripe price IDs are optional fields; if blank, the checkout falls back to
  * the convention-based `lookup_key` (see billing-tier.lookupKeyFor).
+ *
+ * Chrome-only Obsidian v3 re-skin (2026-07-03): colors/type/spacing/markup
+ * only. No query key, mutation, prop shape, or validation branch changed.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import { MonoLabel, Button } from "@/components/obsidian";
 import {
   getPricingCatalog,
   adminUpsertBundle,
@@ -50,14 +54,41 @@ const TIER_LABELS: Record<string, string> = {
   team: "Galaxy (Team)",
 };
 
+// Focus ring, per the contract: 2px glacier, offset 2, on every interactive element.
+const focusRingClass =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
 function inputStyle(): React.CSSProperties {
   return {
     width: "100%",
-    padding: "6px 8px",
-    border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-    borderRadius: 6,
+    padding: "8px 10px",
+    border: "1px solid var(--hairline-strong)",
+    borderRadius: "var(--radius-control)",
+    fontFamily: "var(--font-ui)",
     fontSize: 12.5,
-    background: "var(--canvas, #fbf7ef)",
+    color: "var(--text-primary)",
+    background: "var(--raised)",
+  };
+}
+
+function cardStyle(): React.CSSProperties {
+  return {
+    background: "var(--card)",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-card)",
+    padding: "var(--space-6)",
+    display: "grid",
+    gap: "var(--space-3)",
+  };
+}
+
+function sectionTitleStyle(): React.CSSProperties {
+  return {
+    fontFamily: "var(--font-serif)",
+    fontWeight: 460,
+    fontSize: "var(--text-card-title)",
+    lineHeight: 1.3,
+    color: "var(--text-primary)",
   };
 }
 
@@ -77,11 +108,29 @@ function AdminPricing() {
   }, [catalog.data]);
 
   return (
-    <div style={{ display: "grid", gap: 18 }}>
-      <p style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)", margin: 0 }}>
-        Edits go live immediately and reflect in Settings -&gt; Plan on the user's next view.
-        Leaving Stripe price IDs blank uses the convention-based lookup_key
-        (e.g. <code>cluster_1k_monthly</code>).
+    <div style={{ display: "grid", gap: "var(--space-6)" }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          lineHeight: "var(--leading-body)",
+          color: "var(--text-body)",
+          margin: 0,
+          maxWidth: 640,
+        }}
+      >
+        Edits go live immediately and show up in Settings → Plan the next time a member opens it.
+        Leave a Stripe price box blank to use the built-in naming pattern instead (for example{" "}
+        <code
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 12,
+            color: "var(--text-muted)",
+          }}
+        >
+          cluster_1k_monthly
+        </code>
+        ).
       </p>
 
       {(["pro", "max", "team"] as const).map((tier) => (
@@ -144,47 +193,50 @@ function TierSection({
   });
 
   return (
-    <div className="bento" style={{ padding: 22, display: "grid", gap: 12 }}>
+    <div style={cardStyle()}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div className="font-display" style={{ fontSize: 18 }}>{TIER_LABELS[tier]}</div>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-subtle)" }}>
+        <div style={sectionTitleStyle()}>{TIER_LABELS[tier]}</div>
+        <MonoLabel tone="faint">
           {rows.length} bundle{rows.length === 1 ? "" : "s"}
-        </span>
+        </MonoLabel>
       </div>
 
-      <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: "grid", gap: "var(--space-2)" }}>
         <div
-          className="mono-label"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 70px 90px",
-            gap: 8,
-            fontSize: 9,
-            color: "var(--ink-faint)",
+            gap: "var(--space-2)",
             padding: "0 4px",
           }}
         >
-          <span>Credits</span>
-          <span>Monthly $</span>
-          <span>Yearly $</span>
-          <span>Stripe price (monthly)</span>
-          <span>Stripe price (yearly)</span>
-          <span>Active</span>
-          <span></span>
+          <MonoLabel tone="faint">Credits</MonoLabel>
+          <MonoLabel tone="faint">Monthly $</MonoLabel>
+          <MonoLabel tone="faint">Yearly $</MonoLabel>
+          <MonoLabel tone="faint">Stripe price (monthly)</MonoLabel>
+          <MonoLabel tone="faint">Stripe price (yearly)</MonoLabel>
+          <MonoLabel tone="faint">Active</MonoLabel>
+          <span />
         </div>
 
         {rows.map((r) => (
-          <BundleRow key={r.id} tier={tier} row={r} onSave={upsert.mutate} onDelete={(id) => {
-            void (async () => {
-              const ok = await confirm({
-                title: `Delete ${r.credits.toLocaleString()} credit bundle?`,
-                body: "This bundle stops appearing in the plan picker.",
-                confirmLabel: "Delete",
-                destructive: true,
-              });
-              if (ok) del.mutate(id);
-            })();
-          }} />
+          <BundleRow
+            key={r.id}
+            tier={tier}
+            row={r}
+            onSave={upsert.mutate}
+            onDelete={(id) => {
+              void (async () => {
+                const ok = await confirm({
+                  title: `Delete ${r.credits.toLocaleString()} credit bundle?`,
+                  body: "This bundle stops appearing in the plan picker.",
+                  confirmLabel: "Delete",
+                  destructive: true,
+                });
+                if (ok) del.mutate(id);
+              })();
+            }}
+          />
         ))}
 
         <BundleRow tier={tier} row={null} onSave={upsert.mutate} onDelete={() => {}} />
@@ -242,30 +294,68 @@ function BundleRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr 70px 90px",
-        gap: 8,
-        padding: "6px 4px",
-        borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.06))",
+        gap: "var(--space-2)",
+        padding: "8px 4px",
+        borderBottom: "1px solid var(--hairline)",
         alignItems: "center",
       }}
     >
-      <input style={inputStyle()} type="number" value={credits} onChange={(e) => setCredits(Number(e.target.value))} />
-      <input style={inputStyle()} type="number" step="0.01" value={monthly} onChange={(e) => setMonthly(Number(e.target.value))} />
-      <input style={inputStyle()} type="number" step="0.01" value={yearly} onChange={(e) => setYearly(Number(e.target.value))} />
-      <input style={inputStyle()} value={priceM} onChange={(e) => setPriceM(e.target.value)} placeholder="price_..." />
-      <input style={inputStyle()} value={priceY} onChange={(e) => setPriceY(e.target.value)} placeholder="price_..." />
-      <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-      <div style={{ display: "flex", gap: 4 }}>
-        <button className="btn btn-primary btn-sm" onClick={save} style={{ fontSize: 11, padding: "4px 8px" }}>
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        type="number"
+        value={credits}
+        onChange={(e) => setCredits(Number(e.target.value))}
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        type="number"
+        step="0.01"
+        value={monthly}
+        onChange={(e) => setMonthly(Number(e.target.value))}
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        type="number"
+        step="0.01"
+        value={yearly}
+        onChange={(e) => setYearly(Number(e.target.value))}
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        value={priceM}
+        onChange={(e) => setPriceM(e.target.value)}
+        placeholder="price_..."
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        value={priceY}
+        onChange={(e) => setPriceY(e.target.value)}
+        placeholder="price_..."
+      />
+      <input
+        className={focusRingClass}
+        type="checkbox"
+        checked={active}
+        onChange={(e) => setActive(e.target.checked)}
+        style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
+      />
+      <div style={{ display: "flex", gap: "var(--space-1)" }}>
+        <Button variant="secondary" onClick={save} style={{ fontSize: 11.5, padding: "6px 10px" }}>
           {row ? "Save" : "Add"}
-        </button>
+        </Button>
         {row ? (
-          <button
-            className="btn btn-ghost btn-sm"
+          <Button
+            variant="secondary"
             onClick={() => onDelete(row.id)}
-            style={{ fontSize: 11, padding: "4px 8px" }}
+            style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
           >
-            ×
-          </button>
+            Remove
+          </Button>
         ) : null}
       </div>
     </div>
@@ -308,36 +398,38 @@ function TopupSection({
   });
 
   return (
-    <div className="bento" style={{ padding: 22, display: "grid", gap: 12 }}>
-      <div className="font-display" style={{ fontSize: 18 }}>Top-up bundles</div>
+    <div style={cardStyle()}>
+      <div style={sectionTitleStyle()}>Top-up bundles</div>
       <div
-        className="mono-label"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr 2fr 70px 90px",
-          gap: 8,
-          fontSize: 9,
-          color: "var(--ink-faint)",
+          gap: "var(--space-2)",
           padding: "0 4px",
         }}
       >
-        <span>Credits</span>
-        <span>Price $</span>
-        <span>Stripe price id</span>
-        <span>Active</span>
-        <span></span>
+        <MonoLabel tone="faint">Credits</MonoLabel>
+        <MonoLabel tone="faint">Price $</MonoLabel>
+        <MonoLabel tone="faint">Stripe price id</MonoLabel>
+        <MonoLabel tone="faint">Active</MonoLabel>
+        <span />
       </div>
       {rows.map((r) => (
-        <TopupRow key={r.id} row={r} onSave={upsert.mutate} onDelete={(id) => {
-          void (async () => {
-            const ok = await confirm({
-              title: `Delete ${r.credits.toLocaleString()} top-up?`,
-              confirmLabel: "Delete",
-              destructive: true,
-            });
-            if (ok) del.mutate(id);
-          })();
-        }} />
+        <TopupRow
+          key={r.id}
+          row={r}
+          onSave={upsert.mutate}
+          onDelete={(id) => {
+            void (async () => {
+              const ok = await confirm({
+                title: `Delete ${r.credits.toLocaleString()} top-up?`,
+                confirmLabel: "Delete",
+                destructive: true,
+              });
+              if (ok) del.mutate(id);
+            })();
+          }}
+        />
       ))}
       <TopupRow row={null} onSave={upsert.mutate} onDelete={() => {}} />
     </div>
@@ -383,28 +475,53 @@ function TopupRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr 2fr 70px 90px",
-        gap: 8,
-        padding: "6px 4px",
-        borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.06))",
+        gap: "var(--space-2)",
+        padding: "8px 4px",
+        borderBottom: "1px solid var(--hairline)",
         alignItems: "center",
       }}
     >
-      <input style={inputStyle()} type="number" value={credits} onChange={(e) => setCredits(Number(e.target.value))} />
-      <input style={inputStyle()} type="number" step="0.01" value={price} onChange={(e) => setPrice(Number(e.target.value))} />
-      <input style={inputStyle()} value={stripeId} onChange={(e) => setStripeId(e.target.value)} placeholder="price_..." />
-      <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-      <div style={{ display: "flex", gap: 4 }}>
-        <button className="btn btn-primary btn-sm" onClick={save} style={{ fontSize: 11, padding: "4px 8px" }}>
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        type="number"
+        value={credits}
+        onChange={(e) => setCredits(Number(e.target.value))}
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        type="number"
+        step="0.01"
+        value={price}
+        onChange={(e) => setPrice(Number(e.target.value))}
+      />
+      <input
+        className={focusRingClass}
+        style={inputStyle()}
+        value={stripeId}
+        onChange={(e) => setStripeId(e.target.value)}
+        placeholder="price_..."
+      />
+      <input
+        className={focusRingClass}
+        type="checkbox"
+        checked={active}
+        onChange={(e) => setActive(e.target.checked)}
+        style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
+      />
+      <div style={{ display: "flex", gap: "var(--space-1)" }}>
+        <Button variant="secondary" onClick={save} style={{ fontSize: 11.5, padding: "6px 10px" }}>
           {row ? "Save" : "Add"}
-        </button>
+        </Button>
         {row ? (
-          <button
-            className="btn btn-ghost btn-sm"
+          <Button
+            variant="secondary"
             onClick={() => onDelete(row.id)}
-            style={{ fontSize: 11, padding: "4px 8px" }}
+            style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
           >
-            ×
-          </button>
+            Remove
+          </Button>
         ) : null}
       </div>
     </div>

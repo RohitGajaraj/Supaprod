@@ -1,4 +1,5 @@
-import { StepDot } from "@/components/cadence/Primitives";
+import type { ReactNode } from "react";
+import { StatusDot } from "@/components/obsidian";
 import type { ConnectionRow as AccountConnection } from "@/lib/connections.functions";
 
 // OBS-13 - the provider monogram tile: a mono initial on `--raised`, no
@@ -27,206 +28,209 @@ function Monogram({ label }: { label: string }) {
   );
 }
 
-// F-CONN Phase 2 — one quiet list row per provider inside the "Connected
-// accounts" group on Settings. Restyled quiet-Ember for screen 5 wave B
-// (F-DESIGN-EMBER): soft-stone icon tile, StepDot connection state
-// (completed = connected, failed = error, planned otherwise), Connect as the
-// reference's btn-primary, Verify/Disconnect as quiet ghosts. No per-row
-// explainer panels: the admin-setup detail rides in a title tooltip; the
-// shared footnote lives in AccountConnectionsSection. Calendar providers pass
-// `accounts` (multi-account) and render each account as a sub-row; everything
-// else passes `connections` from the connections table. Screen 6 adds the
-// optional onDetails prop — a blue mono "details →" link leading the actions
-// cluster that opens the ConnectorDetail drill-down (rendered for every
-// provider row; the detail has a state for configured, unconfigured, and
-// connected alike). Presentational only — all mutations stay in the section
-// component.
+// OBS-13 §8 connection-card anatomy. Provider · scope · owner · glowing
+// status word · last sync (mono) · permissions · ONE action. Presentational
+// only - every mutation (connect/verify/disconnect/remove) stays wired
+// exactly as before; this file only changes how the row looks.
 
-function stepStatusFor(status: AccountConnection["status"]): string {
-  if (status === "connected") return "completed";
-  if (status === "error") return "failed";
-  return "planned";
+function timeAgoCaps(iso: string | null): string {
+  if (!iso) return "NEVER";
+  const mins = Math.max(0, Math.round((Date.now() - +new Date(iso)) / 60000));
+  if (mins < 1) return "JUST NOW";
+  if (mins < 60) return `${mins}M AGO`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}H AGO`;
+  return `${Math.round(hrs / 24)}D AGO`;
 }
 
-function statusTitle(c: AccountConnection): string | undefined {
-  if (c.status === "error") return c.status_detail ?? "Connection error";
-  if (c.status === "disconnected") return "Disconnected. Reconnect to use this account.";
-  if (c.last_verified_at) return `Verified ${new Date(c.last_verified_at).toLocaleDateString()}`;
-  return undefined;
+function connectionState(c: AccountConnection): "live" | "stale" | "failing" {
+  if (c.status === "error") return "failing";
+  const ageMs = c.last_verified_at
+    ? Date.now() - +new Date(c.last_verified_at)
+    : Number.POSITIVE_INFINITY;
+  return ageMs > 24 * 60 * 60 * 1000 ? "stale" : "live";
 }
 
-function ConnectButton({
-  onConnect,
-  busy,
-  disabled = false,
+function MetaLine({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.10em",
+        color: "var(--text-faint)",
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        flexWrap: "wrap",
+        marginTop: 3,
+      }}
+      className="uppercase"
+    >
+      {children}
+    </div>
+  );
+}
+
+function GhostAction({
+  onClick,
+  disabled,
   title,
+  children,
 }: {
-  onConnect: () => void;
-  busy: boolean;
+  onClick: () => void;
   disabled?: boolean;
   title?: string;
+  children: ReactNode;
 }) {
   return (
     <button
       type="button"
-      className="btn btn-primary btn-sm"
-      onClick={onConnect}
-      disabled={busy || disabled}
+      onClick={onClick}
+      disabled={disabled}
       title={title}
-      style={{ flexShrink: 0 }}
+      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        fontFamily: "var(--font-ui)",
+        fontSize: 13,
+        fontWeight: 500,
+        padding: "7px 14px",
+        borderRadius: "var(--radius-control)",
+        background: "var(--raised)",
+        color: "var(--text-primary)",
+        border: "none",
+        flexShrink: 0,
+        opacity: disabled ? 0.45 : 1,
+        cursor: disabled ? "default" : "pointer",
+      }}
     >
-      Connect
+      {children}
     </button>
   );
 }
 
-/** Quiet mono "coming soon" — the registry setupHint rides in the title tooltip. */
-function SetupRequired({
+function QuietTextAction({
+  onClick,
+  disabled,
+  title,
+  tone = "subtle",
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+  tone?: "subtle" | "madder";
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className="uppercase outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.10em",
+        color: tone === "madder" ? "var(--madder)" : "var(--text-subtle)",
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        flexShrink: 0,
+        opacity: disabled ? 0.45 : 1,
+        cursor: disabled ? "default" : "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Not-yet-connected row: no glowing status (the §8 vocabulary is for an
+ * existing connection); a quiet muted word plus the one Connect action. */
+function NotConnectedRow({
   hint,
   onConnect,
   busy,
+  configured,
 }: {
   hint?: string;
   onConnect: () => void;
   busy: boolean;
+  configured: boolean;
 }) {
   return (
-    <>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
       <span
         title={hint}
-        className="mono-label"
         style={{
-          fontSize: 8.5,
-          color: "var(--ink-subtle)",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
+          fontFamily: "var(--font-mono)",
+          fontSize: 9.5,
+          letterSpacing: "0.10em",
+          color: "var(--text-faint)",
         }}
+        className="uppercase"
       >
-        <StepDot status="planned" />
-        coming soon
+        {configured ? "not connected" : "coming soon"}
       </span>
-      <ConnectButton onConnect={onConnect} busy={busy} disabled title={hint} />
-    </>
+      <GhostAction
+        onClick={onConnect}
+        disabled={busy || !configured}
+        title={configured ? undefined : hint}
+      >
+        Connect
+      </GhostAction>
+    </div>
   );
 }
 
-/** One stored connection rendered inline: prominent connected badge + quiet actions. */
-function ConnectionStatus({
+/** One stored connection rendered per the §8 anatomy: glowing status word +
+ * the one action button (Reconnect when failing, else Disconnect), with
+ * Verify/Remove as quiet secondary text so neither capability is dropped. */
+function ConnectedRow({
   connection: c,
-  configured,
-  setupHint,
   busy,
-  onConnect,
   onVerify,
   onDisconnect,
   onRemove,
 }: {
   connection: AccountConnection;
-  configured: boolean;
-  setupHint?: string;
   busy: boolean;
-  onConnect: () => void;
   onVerify?: (c: AccountConnection) => void;
   onDisconnect?: (c: AccountConnection) => void;
   onRemove?: (c: AccountConnection) => void;
 }) {
-  const isConnected = c.status === "connected";
-  const label = c.account_label ?? c.account_email ?? "Connected";
+  const state = connectionState(c);
+  const word = state === "failing" ? "FAILING" : state === "stale" ? "STALE" : "LIVE";
 
   return (
-    <>
-      <span
-        title={statusTitle(c)}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 5,
-          minWidth: 0,
-          ...(isConnected
-            ? {
-                background: "color-mix(in srgb, var(--emerald) 12%, transparent)",
-                border: "1px solid color-mix(in srgb, var(--emerald) 28%, transparent)",
-                borderRadius: 20,
-                padding: "3px 9px 3px 6px",
-              }
-            : {}),
-        }}
-      >
-        <StepDot status={stepStatusFor(c.status)} />
-        <span
-          style={{
-            maxWidth: 160,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            fontSize: 12,
-            fontWeight: isConnected ? 500 : 400,
-            color: isConnected ? "var(--emerald)" : "var(--ink-subtle)",
-          }}
-        >
-          {label}
-        </span>
-      </span>
-      {isConnected ? (
-        <a
-          href="/sync"
-          style={{
-            fontSize: 11,
-            color: "var(--action-blue)",
-            textDecoration: "none",
-            flexShrink: 0,
-            whiteSpace: "nowrap",
-          }}
-        >
-          manage repos →
-        </a>
+    <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+      <StatusDot state={state} word={word} title={c.status_detail ?? undefined} />
+      {onVerify ? (
+        <QuietTextAction onClick={() => onVerify(c)} disabled={busy}>
+          Verify
+        </QuietTextAction>
       ) : null}
-      {c.status === "disconnected" ? (
-        <ConnectButton
-          onConnect={onConnect}
-          busy={busy}
-          disabled={!configured}
-          title={configured ? undefined : setupHint}
-        />
-      ) : (
-        <>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => onVerify?.(c)}
-            disabled={busy}
-          >
-            Verify
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => onDisconnect?.(c)}
-            disabled={busy}
-          >
-            Disconnect
-          </button>
-        </>
-      )}
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={() => onRemove?.(c)}
-        disabled={busy}
-        title="Remove connection and its workspace bindings"
-        aria-label="Remove connection"
-        style={{ color: "var(--rose)", padding: "4px 6px", fontSize: 11 }}
-      >
-        Remove
-      </button>
-    </>
+      <GhostAction onClick={() => onDisconnect?.(c)} disabled={busy}>
+        {state === "failing" ? "Reconnect" : "Disconnect"}
+      </GhostAction>
+      {onRemove ? (
+        <QuietTextAction
+          onClick={() => onRemove(c)}
+          disabled={busy}
+          title="Removes the connection and its workspace bindings. Nothing else is deleted."
+          tone="madder"
+        >
+          Remove
+        </QuietTextAction>
+      ) : null}
+    </div>
   );
 }
 
 export function ConnectionRow({
   label,
-  description,
   configured,
   setupHint,
   busy,
@@ -242,7 +246,8 @@ export function ConnectionRow({
   /** Accepted for caller compatibility; OBS-13 replaced the lucide tile with a monogram (see Monogram above), so this is no longer rendered. */
   icon?: unknown;
   label: string;
-  description: string;
+  /** Accepted for caller compatibility; the §8 anatomy's mono metadata line replaces the free-text sentence this used to render. */
+  description?: string;
   configured: boolean;
   setupHint?: string;
   busy: boolean;
@@ -261,61 +266,78 @@ export function ConnectionRow({
   const primary = connections[0];
   const extras = connections.slice(1);
   const hasSubRows = (accounts !== undefined && accounts.length > 0) || extras.length > 0;
+  const permissions = primary?.scopes?.length ? primary.scopes.join(" · ").toUpperCase() : null;
 
   return (
     <div style={configured ? undefined : { opacity: 0.6 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0" }}>
         <Monogram label={label} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>{label}</div>
           <div
-            style={{
-              fontSize: 12,
-              color: "var(--ink-subtle)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
+            style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4, color: "var(--text-primary)" }}
           >
-            {description}
+            {label}
           </div>
+          <MetaLine>
+            <span>SCOPE &middot; PERSONAL</span>
+            <span>&middot;</span>
+            <span>OWNER &middot; YOU</span>
+            {primary ? (
+              <>
+                <span>&middot;</span>
+                <span>LAST SYNC &middot; {timeAgoCaps(primary.last_verified_at)}</span>
+              </>
+            ) : null}
+            {permissions ? (
+              <>
+                <span>&middot;</span>
+                <span>{permissions}</span>
+              </>
+            ) : null}
+          </MetaLine>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           {onDetails ? (
-            <button
-              type="button"
-              className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--action-blue)", flexShrink: 0 }}
-              onClick={onDetails}
-            >
-              details →
-            </button>
+            <QuietTextAction onClick={onDetails} tone="subtle">
+              details &rarr;
+            </QuietTextAction>
           ) : null}
           {accounts !== undefined ? (
             // Calendar: multi-account — Connect stays available to add another.
             configured ? (
               <>
-                {accounts.length > 0 ? <StepDot status="completed" /> : null}
-                <ConnectButton onConnect={onConnect} busy={busy} />
+                {accounts.length > 0 ? <StatusDot state="live" word="LIVE" /> : null}
+                <GhostAction onClick={onConnect} disabled={busy}>
+                  Connect
+                </GhostAction>
               </>
             ) : (
-              <SetupRequired hint={setupHint} onConnect={onConnect} busy={busy} />
+              <NotConnectedRow
+                hint={setupHint}
+                onConnect={onConnect}
+                busy={busy}
+                configured={configured}
+              />
             )
           ) : primary ? (
-            <ConnectionStatus
+            <ConnectedRow
               connection={primary}
-              configured={configured}
-              setupHint={setupHint}
               busy={busy}
-              onConnect={onConnect}
               onVerify={onVerify}
               onDisconnect={onDisconnect}
               onRemove={onRemove}
             />
           ) : configured ? (
-            <ConnectButton onConnect={onConnect} busy={busy} />
+            <GhostAction onClick={onConnect} disabled={busy}>
+              Connect
+            </GhostAction>
           ) : (
-            <SetupRequired hint={setupHint} onConnect={onConnect} busy={busy} />
+            <NotConnectedRow
+              hint={setupHint}
+              onConnect={onConnect}
+              busy={busy}
+              configured={configured}
+            />
           )}
         </div>
       </div>
@@ -325,14 +347,14 @@ export function ConnectionRow({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 4,
-            paddingBottom: 10,
+            gap: 6,
+            paddingBottom: 12,
             paddingLeft: 44,
           }}
         >
           {accounts?.map((a) => (
-            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <StepDot status="completed" />
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <StatusDot state="live" word="LIVE" />
               <span
                 style={{
                   minWidth: 0,
@@ -340,32 +362,26 @@ export function ConnectionRow({
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                   fontSize: 12,
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-body)",
                 }}
               >
                 {a.label}
               </span>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
+              <QuietTextAction
                 onClick={() => onDisconnectAccount?.(a.id)}
                 disabled={busy}
                 title="Disconnect this account"
-                aria-label="Disconnect this account"
-                style={{ padding: "2px 5px", fontSize: 11 }}
+                tone="madder"
               >
-                ×
-              </button>
+                Remove
+              </QuietTextAction>
             </div>
           ))}
           {extras.map((c) => (
-            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <ConnectionStatus
+            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <ConnectedRow
                 connection={c}
-                configured={configured}
-                setupHint={setupHint}
                 busy={busy}
-                onConnect={onConnect}
                 onVerify={onVerify}
                 onDisconnect={onDisconnect}
                 onRemove={onRemove}

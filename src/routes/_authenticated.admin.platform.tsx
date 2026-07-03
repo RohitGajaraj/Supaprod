@@ -1,5 +1,11 @@
 /**
  * Admin Console v2 — Platform tab. Feature flags, system banner, audit log.
+ *
+ * Chrome-only Obsidian v3 re-skin (2026-07-03): colors/type/spacing/markup
+ * only. No query key, mutation, prop shape, or conditional business-logic
+ * branch changed. This file is only the "Platform" tab body — the parent
+ * admin layout already renders the TopBar, the Newsreader question header,
+ * and the mono sub-tabs.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -26,15 +32,20 @@ import {
   provisionHostingPoc,
   type ProvisionHostingPocResult,
 } from "@/lib/hosting/hosting-poc.functions";
+import { Button, MonoLabel, type MonoLabelTone } from "@/components/obsidian";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,
 });
 
+// Focus ring, per the contract: 2px glacier, offset 2, on every interactive element.
+const focusRingClass =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
 function AdminPlatform() {
   return (
-    <div style={{ marginTop: 12, display: "grid", gap: 14 }}>
-      <p className="mono-label" style={{ color: "var(--ink-subtle)", margin: 0 }}>
+    <div style={{ display: "grid", gap: "var(--space-6)" }}>
+      <p style={{ ...bodyTextStyle() }}>
         Pull kill switches · post banners · trigger deploys · read the audit trail
       </p>
       <DeployPanel />
@@ -70,26 +81,24 @@ function DeployPanel() {
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">Deploy</div>
-      <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
-        Trigger a production deploy. Requires <code>CLOUDFLARE_DEPLOY_HOOK_URL</code> or{" "}
-        <code>LOVABLE_DEPLOY_HOOK_URL</code> to be set as a wrangler secret.
+    <div style={cardStyle()}>
+      <div style={sectionTitleStyle()}>Deploy</div>
+      <p style={bodyTextStyle()}>
+        Trigger a production deploy. Requires{" "}
+        <code style={codeStyle()}>CLOUDFLARE_DEPLOY_HOOK_URL</code> or{" "}
+        <code style={codeStyle()}>LOVABLE_DEPLOY_HOOK_URL</code> to be set as a wrangler secret.
       </p>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
+          className={focusRingClass}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Reason (optional)"
           style={input(320)}
         />
-        <button
-          className="btn btn-primary btn-sm"
-          disabled={deploy.isPending}
-          onClick={() => deploy.mutate()}
-        >
-          {deploy.isPending ? "Deploying..." : "Trigger deploy"}
-        </button>
+        <Button variant="secondary" disabled={deploy.isPending} onClick={() => deploy.mutate()}>
+          {deploy.isPending ? "Deploying…" : "Trigger deploy"}
+        </Button>
       </div>
     </div>
   );
@@ -125,14 +134,19 @@ function HostingPocPanel() {
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">Cadence-hosted · proof of concept</div>
-      <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
+    <div style={cardStyle()}>
+      <div style={sectionTitleStyle()}>Cadence-hosted · proof of concept</div>
+      <p style={bodyTextStyle()}>
         Deploys a minimal static shell for one of your own Products to Deno Deploy. Not user-facing;
         safe to click more than once for the same Product.
       </p>
-      <div style={{ display: "flex", gap: 8 }}>
-        <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={input(260)}>
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
+        <select
+          className={focusRingClass}
+          value={projectId}
+          onChange={(e) => setProjectId(e.target.value)}
+          style={input(260)}
+        >
           <option value="">
             {projectsQuery.isLoading ? "Loading projects…" : "Select a Product"}
           </option>
@@ -142,18 +156,18 @@ function HostingPocPanel() {
             </option>
           ))}
         </select>
-        <button
-          className="btn btn-primary btn-sm"
+        <Button
+          variant="secondary"
           disabled={!projectId || deploy.isPending}
           onClick={() => deploy.mutate()}
         >
-          {deploy.isPending ? "Deploying…" : "Deploy Cadence-hosted PoC"}
-        </button>
+          {deploy.isPending ? "Deploying…" : "Deploy proof of concept"}
+        </Button>
       </div>
       {lastUrl ? (
-        <p style={{ fontSize: 12.5, margin: 0 }}>
+        <p style={bodyTextStyle()}>
           Live at:{" "}
-          <a href={lastUrl} target="_blank" rel="noreferrer">
+          <a href={lastUrl} target="_blank" rel="noreferrer" style={{ color: "var(--blossom)" }}>
             {lastUrl}
           </a>
         </p>
@@ -161,6 +175,16 @@ function HostingPocPanel() {
     </div>
   );
 }
+
+// marigold is reserved for in-review status only (design contract role-color
+// law: each role color has exactly one job) - "warn" has no dedicated hue in
+// the restraint palette, so it stays neutral and the mono-caps word itself
+// carries the severity, same as any other status-color-only-on-real-status case.
+const BANNER_TONE: Record<SystemBanner["level"], MonoLabelTone> = {
+  info: "glacier",
+  warn: "muted",
+  alert: "madder",
+};
 
 function BannerPanel() {
   const qc = useQueryClient();
@@ -198,66 +222,89 @@ function BannerPanel() {
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">System banner</div>
+    <div style={cardStyle()}>
+      <div style={sectionTitleStyle()}>System banner</div>
       {banner ? (
         <div
           style={{
-            fontSize: 12.5,
-            padding: 10,
+            display: "flex",
+            alignItems: "baseline",
+            gap: "var(--space-2)",
+            flexWrap: "wrap",
+            background: "var(--raised)",
             border: "1px solid var(--hairline)",
-            borderRadius: 6,
+            borderRadius: "var(--radius-control)",
+            padding: "var(--space-3)",
           }}
         >
-          <strong>{banner.level.toUpperCase()}</strong> · {banner.message}
+          <MonoLabel tone={BANNER_TONE[banner.level]}>{banner.level}</MonoLabel>
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-body)",
+            }}
+          >
+            {banner.message}
+          </span>
           {banner.expires_at ? (
-            <> · expires {banner.expires_at.slice(0, 16).replace("T", " ")}</>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-micro)",
+                color: "var(--text-faint)",
+              }}
+            >
+              · expires {banner.expires_at.slice(0, 16).replace("T", " ")}
+            </span>
           ) : null}
         </div>
       ) : (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: 0 }}>No active banner.</p>
+        <p style={bodyTextStyle()}>No active banner.</p>
       )}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <div
+        style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}
+      >
         <input
+          className={focusRingClass}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Banner message"
-          style={{
-            flex: 1,
-            minWidth: 220,
-            padding: "6px 8px",
-            border: "1px solid var(--hairline)",
-            borderRadius: 6,
-            fontSize: 12.5,
-          }}
+          style={{ ...input(), flex: 1, minWidth: 220 }}
         />
         <select
+          className={focusRingClass}
           value={level}
           onChange={(e) => setLevel(e.target.value as typeof level)}
-          style={input(100)}
+          style={input(110)}
         >
-          <option value="info">info</option>
-          <option value="warn">warn</option>
-          <option value="alert">alert</option>
+          <option value="info">Info</option>
+          <option value="warn">Warn</option>
+          <option value="alert">Alert</option>
         </select>
         <input
+          className={focusRingClass}
           type="number"
           value={days}
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
           style={input(80)}
         />
-        <button
-          className="btn btn-primary btn-sm"
+        <Button
+          variant="secondary"
           disabled={!message || set.isPending}
           onClick={() => set.mutate()}
         >
           {set.isPending ? "Publishing…" : "Publish · shows to everyone"}
-        </button>
+        </Button>
         {banner ? (
-          <button className="btn btn-sm" onClick={() => clear.mutate()}>
+          <Button
+            variant="secondary"
+            style={{ color: "var(--text-subtle)" }}
+            onClick={() => clear.mutate()}
+          >
             Clear
-          </button>
+          </Button>
         ) : null}
       </div>
     </div>
@@ -294,93 +341,141 @@ function FlagsPanel() {
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">Feature flags · {rows.length}</div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div style={cardStyle()}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div style={sectionTitleStyle()}>Feature flags</div>
+        <MonoLabel tone="faint">
+          {rows.length} flag{rows.length === 1 ? "" : "s"}
+        </MonoLabel>
+      </div>
+      <div
+        style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", alignItems: "center" }}
+      >
         <input
+          className={focusRingClass}
           value={key}
           onChange={(e) => setKey(e.target.value)}
           placeholder="experimental.x"
           style={input(220)}
         />
-        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
-          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />{" "}
-          enabled
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-1)",
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-body)",
+          }}
+        >
+          <input
+            className={focusRingClass}
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+            style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
+          />
+          Enabled
         </label>
         <input
+          className={focusRingClass}
           value={payload}
           onChange={(e) => setPayload(e.target.value)}
           placeholder='{"rolloutPct":10}'
           style={input(220)}
         />
-        <button
-          className="btn btn-primary btn-sm"
+        <Button
+          variant="secondary"
           disabled={!key || upsert.isPending}
           onClick={() => upsert.mutate({ key, enabled, payloadJson: payload })}
         >
-          {upsert.isPending ? "Saving…" : "Upsert flag"}
-        </button>
+          {upsert.isPending ? "Saving…" : "Save flag"}
+        </Button>
       </div>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-        <thead>
-          <tr className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-            <th style={th()}>Key</th>
-            <th style={th()}>Enabled</th>
-            <th style={th()}>Payload</th>
-            <th style={th()}>Updated</th>
-            <th style={th()}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((f) => (
-            <tr key={f.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-              <td style={td()}>
-                <code>{f.key}</code>
-              </td>
-              <td style={td()}>
-                <button
-                  className="btn btn-sm"
-                  onClick={() =>
-                    upsert.mutate({ key: f.key, enabled: !f.enabled, payloadJson: f.payload })
-                  }
-                >
-                  {f.enabled ? "on" : "off"} · click to toggle
-                </button>
-              </td>
-              <td style={td()}>
-                <code style={{ fontSize: 11 }}>{f.payload}</code>
-              </td>
-              <td style={td()}>{f.updated_at.slice(0, 10)}</td>
-              <td style={td()}>
-                <button
-                  className="btn btn-sm"
-                  onClick={async () => {
-                    const ok = await confirm({
-                      title: "Delete flag?",
-                      body: `${f.key} will be removed.`,
-                      confirmLabel: "Delete",
-                      destructive: true,
-                    });
-                    if (ok) del.mutate(f.id);
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={th()}>Key</th>
+              <th style={th()}>Enabled</th>
+              <th style={th()}>Details</th>
+              <th style={th()}>Updated</th>
+              <th style={th()}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((f) => (
+              <tr key={f.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                <td style={td()}>
+                  <code style={codeStyle()}>{f.key}</code>
+                </td>
+                <td style={td()}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                    <MonoLabel tone={f.enabled ? "moss" : "faint"}>
+                      {f.enabled ? "on" : "off"}
+                    </MonoLabel>
+                    <Button
+                      variant="secondary"
+                      style={{ fontSize: 11.5, padding: "6px 10px" }}
+                      onClick={() =>
+                        upsert.mutate({ key: f.key, enabled: !f.enabled, payloadJson: f.payload })
+                      }
+                    >
+                      {f.enabled ? "Turn off" : "Turn on"}
+                    </Button>
+                  </div>
+                </td>
+                <td style={td()}>
+                  <code style={{ ...codeStyle(), fontSize: 11 }}>{f.payload}</code>
+                </td>
+                <td style={td()}>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {f.updated_at.slice(0, 10)}
+                  </span>
+                </td>
+                <td style={td()}>
+                  <Button
+                    variant="secondary"
+                    style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Delete flag?",
+                        body: `${f.key} will be removed.`,
+                        confirmLabel: "Delete",
+                        destructive: true,
+                      });
+                      if (ok) del.mutate(f.id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  style={{
+                    ...td(),
+                    padding: "var(--space-3)",
+                    textAlign: "center",
+                    color: "var(--text-subtle)",
                   }}
                 >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-          {rows.length === 0 ? (
-            <tr>
-              <td
-                colSpan={5}
-                style={{ padding: 12, textAlign: "center", color: "var(--ink-subtle)" }}
-              >
-                No flags yet.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+                  No flags yet.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -424,30 +519,24 @@ function MemoryExpiryPanel() {
   };
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">Memory expiry · free tier</div>
-      <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: 0 }}>
-        When enabled, new <code>agent_memory</code> rows for free-tier users are stamped with a
-        14-day <code>expires_at</code>. The nightly cron prunes expired rows. Existing rows are
-        grandfathered.
+    <div style={cardStyle()}>
+      <div style={sectionTitleStyle()}>Memory expiry · free tier</div>
+      <p style={bodyTextStyle()}>
+        When enabled, new <code style={codeStyle()}>agent_memory</code> rows for free-tier users are
+        stamped with a 14-day <code style={codeStyle()}>expires_at</code>. The nightly cron prunes
+        expired rows. Existing rows are grandfathered.
       </p>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <span
-          style={{
-            fontSize: 12.5,
-            fontWeight: 500,
-            color: enabled ? "var(--accent)" : "var(--ink-subtle)",
-          }}
-        >
-          {cur.isLoading ? "Loading…" : enabled ? "Enabled" : "Disabled"}
-        </span>
-        <button
-          className={`btn btn-sm${enabled ? "" : " btn-primary"}`}
+      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+        <MonoLabel tone={enabled ? "moss" : "faint"}>
+          {cur.isLoading ? "loading" : enabled ? "enabled" : "disabled"}
+        </MonoLabel>
+        <Button
+          variant="secondary"
           disabled={cur.isLoading || toggle.isPending}
           onClick={handleToggle}
         >
           {toggle.isPending ? "Saving…" : enabled ? "Disable" : "Enable"}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -464,74 +553,125 @@ function AuditPanel() {
   const rows: AuditRow[] = Array.isArray(list.data) ? (list.data as AuditRow[]) : [];
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <div className="mono-label">Audit log · {rows.length}</div>
+    <div style={cardStyle()}>
+      <div
+        style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexWrap: "wrap" }}
+      >
+        <div style={sectionTitleStyle()}>Audit log</div>
+        <MonoLabel tone="faint">
+          {rows.length} {rows.length === 1 ? "entry" : "entries"}
+        </MonoLabel>
         <select
           value={targetKind}
           onChange={(e) => setTargetKind(e.target.value)}
-          style={{ ...input(160), marginLeft: "auto" }}
+          className={focusRingClass}
+          style={{ ...input(180), marginLeft: "auto" }}
         >
-          <option value="">all kinds</option>
-          <option value="user">user</option>
-          <option value="workspace">workspace</option>
-          <option value="voucher">voucher</option>
-          <option value="invitation">invitation</option>
-          <option value="flag">flag</option>
-          <option value="banner">banner</option>
-          <option value="subscription">subscription</option>
-          <option value="domain">domain</option>
-          <option value="signup_approval">signup_approval</option>
+          <option value="">All kinds</option>
+          <option value="user">User</option>
+          <option value="workspace">Workspace</option>
+          <option value="voucher">Voucher</option>
+          <option value="invitation">Invitation</option>
+          <option value="flag">Feature flag</option>
+          <option value="banner">Banner</option>
+          <option value="subscription">Subscription</option>
+          <option value="domain">Domain</option>
+          <option value="signup_approval">Signup approval</option>
         </select>
       </div>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-        <thead>
-          <tr className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-            <th style={th()}>When</th>
-            <th style={th()}>Actor</th>
-            <th style={th()}>Action</th>
-            <th style={th()}>Target</th>
-            <th style={th()}>Payload</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-              <td style={td()}>{r.created_at.slice(0, 16).replace("T", " ")}</td>
-              <td style={td()}>{r.actor_email ?? r.actor_user_id?.slice(0, 8) ?? "-"}</td>
-              <td style={td()}>
-                <code>{r.action}</code>
-              </td>
-              <td style={td()}>
-                {r.target_kind} · {r.target_id?.slice(0, 8) ?? "-"}
-              </td>
-              <td style={td()}>
-                <code style={{ fontSize: 10 }}>{r.payload}</code>
-              </td>
-            </tr>
-          ))}
-          {rows.length === 0 ? (
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
             <tr>
-              <td
-                colSpan={5}
-                style={{ padding: 12, textAlign: "center", color: "var(--ink-subtle)" }}
-              >
-                No entries.
-              </td>
+              <th style={th()}>When</th>
+              <th style={th()}>Actor</th>
+              <th style={th()}>Action</th>
+              <th style={th()}>Target</th>
+              <th style={th()}>Details</th>
             </tr>
-          ) : null}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                <td style={td()}>{r.created_at.slice(0, 16).replace("T", " ")}</td>
+                <td style={td()}>{r.actor_email ?? r.actor_user_id?.slice(0, 8) ?? "-"}</td>
+                <td style={td()}>
+                  <code style={codeStyle()}>{r.action}</code>
+                </td>
+                <td style={td()}>
+                  {r.target_kind} · {r.target_id?.slice(0, 8) ?? "-"}
+                </td>
+                <td style={td()}>
+                  <code style={{ ...codeStyle(), fontSize: 10 }}>{r.payload}</code>
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  style={{
+                    ...td(),
+                    padding: "var(--space-3)",
+                    textAlign: "center",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  No entries.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
+function cardStyle(): React.CSSProperties {
+  return {
+    background: "var(--card)",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-card)",
+    padding: "var(--space-4)",
+    display: "grid",
+    gap: "var(--space-3)",
+  };
+}
+
+function sectionTitleStyle(): React.CSSProperties {
+  return {
+    fontFamily: "var(--font-serif)",
+    fontWeight: 460,
+    fontSize: "var(--text-card-title)",
+    lineHeight: 1.3,
+    color: "var(--text-primary)",
+  };
+}
+
+function bodyTextStyle(): React.CSSProperties {
+  return {
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+    lineHeight: "var(--leading-body)",
+    color: "var(--text-muted)",
+    margin: 0,
+    maxWidth: 640,
+  };
+}
+
+function codeStyle(): React.CSSProperties {
+  return { fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-muted)" };
+}
+
 function input(width?: number): React.CSSProperties {
   return {
-    padding: "6px 8px",
-    border: "1px solid var(--hairline)",
-    borderRadius: 6,
-    background: "var(--canvas)",
+    padding: "8px 10px",
+    border: "1px solid var(--hairline-strong)",
+    borderRadius: "var(--radius-control)",
+    background: "var(--raised)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-ui)",
     fontSize: 12.5,
     width,
   };
@@ -539,12 +679,22 @@ function input(width?: number): React.CSSProperties {
 function th(): React.CSSProperties {
   return {
     padding: "8px 10px",
-    fontSize: 10,
-    letterSpacing: "0.12em",
+    fontFamily: "var(--font-mono)",
+    fontSize: "var(--text-mono-label)",
     textTransform: "uppercase",
+    letterSpacing: "0.11em",
+    color: "var(--text-subtle)",
+    fontWeight: 400,
     textAlign: "left",
+    borderBottom: "1px solid var(--hairline-strong)",
   };
 }
 function td(): React.CSSProperties {
-  return { padding: "8px 10px", verticalAlign: "middle" };
+  return {
+    padding: "8px 10px",
+    verticalAlign: "middle",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+    color: "var(--text-body)",
+  };
 }

@@ -10,7 +10,10 @@ export type StatusState =
   | "queued"
   | "thinking"
   | "in-review"
-  | "blocked";
+  | "blocked"
+  | "live"
+  | "stale"
+  | "failing";
 
 interface StatusStyle {
   color: string;
@@ -75,6 +78,25 @@ export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
     glow: null,
     animation: null,
   },
+  // OBS-13 §8 connection-card anatomy: a connection's own three-state
+  // vocabulary (live/stale/failing), distinct from the build/mission states
+  // above — every one of the three carries a glow per the card anatomy spec
+  // ("glowing status word"), unlike queued/blocked/in-review which don't.
+  live: {
+    color: "var(--moss)",
+    glow: "0 0 10px rgba(127, 191, 142, 0.55)",
+    animation: null,
+  },
+  stale: {
+    color: "var(--marigold)",
+    glow: "0 0 10px rgba(232, 180, 76, 0.55)",
+    animation: null,
+  },
+  failing: {
+    color: "var(--madder)",
+    glow: "0 0 10px rgba(224, 101, 87, 0.55)",
+    animation: null,
+  },
 };
 
 /** Default mono word per state (OBS-03 spec §9). `word` on `StatusDot` stays
@@ -90,6 +112,9 @@ export const STATUS_WORD: Record<StatusState, string> = {
   thinking: "THINKING",
   "in-review": "IN REVIEW",
   blocked: "BLOCKED",
+  live: "LIVE",
+  stale: "STALE",
+  failing: "FAILING",
 };
 
 export interface StatusDotProps extends React.HTMLAttributes<HTMLSpanElement> {

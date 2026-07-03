@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (OBS-13 closing pass: connection-card anatomy + 7 admin sub-pages + Plan pane, lane1)
+
+Founder-authorized closing pass on OBS-13's remaining `[~30%]` (a Tier-2 design item, normally deferred to a founder-prompted session per velocity doctrine - the founder asked directly what was pending, which is exactly that prompt). All three deferred slices from the 2026-07-02 partial ship now close.
+
+**1. The §8 connection-card anatomy.** `src/components/obsidian/status.tsx` gained three new `StatusDot` states (`live`/`stale`/`failing`, moss/marigold/madder each with the spec's `0 0 10px` glow) - additive, non-breaking to every existing consumer. `ConnectionRow.tsx` rewritten to render the mono `SCOPE · OWNER · LAST SYNC · PERMISSIONS` metadata line and the glowing status word, with the ONE-action law honored (Connect/Reconnect/Disconnect as the single ghost button) while Verify/Remove stay as quiet secondary text rather than being dropped.
+
+**2. All 7 admin sub-page bodies** (`pricing`/`people`/`workspaces`/`platform`/`observability`/`ai-costs`/`proof`) re-skinned via a 7-way parallel Workflow pass, each independently adversarially verified for lucide-zero, logic-preservation, token-compliance, and voice. Two real findings surfaced and were fixed, not waived: a banned triple-adjective listicle in `ai-costs.tsx` ("faster, more reliable, and cheaper") reworded to one clause; a marigold-for-generic-"warn" role-color misuse in `platform.tsx` (marigold is reserved for in-review status only per the design contract's one-job-per-color law) corrected to a neutral `muted` tone.
+
+**3. The Plan pane** (`BillingTab`/`BundleGrid`/`CreditsTabInner` in `_authenticated.settings.tsx`, plus the coupled `src/components/billing/PlanPicker.tsx`) re-skinned to Obsidian cards. `TIER_ICON` moved off lucide to mono-monogram tiles, its export and consumption site updated together in the same pass so the shape never drifted between the two files. Every Stripe call and business conditional (isOwner gating, cancelAtPeriodEnd, past_due, tier checks) verified untouched.
+
+Claimed via the ledger (a stale `lane.sh done` DONE-marker from 2026-07-02 - the documented can't-tell-partial-from-full bug already known from OBS-10/OBS-PORT - had to be cleared first since no other lane held an active claim on the row).
+
+**Gates:** `tsc --noEmit` 0 project-wide · `bun test` 2198/2198 pass · `bun run lint` clean (0 errors after one prettier auto-fix pass) · lucide grep clean across every touched file · humanized-output adversarially verified per file · `bun run build` hits only the pre-existing node20-vs-lovable-tagger ESM failure in this worktree, unrelated to source changes. Docs: [`docs/features/obsidian-port.md`](./docs/features/obsidian-port.md#obs-13--settings-four-panes--role-gated-admin-door--shipped-2026-07-02-to-2026-07-03-lane1), dashboard row + headline tally refreshed via `scripts/dashboard-tally.sh` (277/292 ✅, 280.95/292 weighted).
+
 ### 2026-07-03 (security fix: SSRF trailing-dot bypass in isPublicHost, lane4)
 
 An automated background security review flagged `isPublicHost` (`src/lib/design-memory.functions.ts`, DSN-01's SSRF guard for `importDesignMemoryFromUrl`) for a HIGH-severity URL-allowlist bypass. Verified exploitable before fixing: `new URL("http://localhost./x").hostname` returns `"localhost."` with the trailing dot preserved verbatim (confirmed directly with `node -e`), and any DNS resolver treats a trailing dot as denoting the root — `localhost.` resolves identically to `localhost`. Every check in `isPublicHost` was an exact `===` or `.endsWith()` match against literal strings (`"localhost"`, `"metadata.google.internal"`, `.internal`, `.local`, etc.), none of which match once a single `.` is appended, so the entire blocklist was bypassable this way (`http://localhost./x`, `http://metadata.google.internal./x`, `http://evil.internal./x`).

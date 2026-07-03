@@ -3,9 +3,15 @@
  * Personal | Teams tab toggle. 2-column grid per tab.
  * Personal: Free + Pro. Teams: Business + Enterprise.
  * Driven by entitlements + billing-tier; no DB catalog dependency.
+ *
+ * OBS-13 - re-skinned to Obsidian v3 (chrome-only): tokens, Newsreader card
+ * titles, JetBrains-mono prices/metadata, glacier as the recommended/current
+ * signal (ember stays reserved for a genuinely-required action, and this
+ * comparison table never has one), zero lucide, zero pictorial connector
+ * logos (mono text chips instead). Data/logic unchanged.
  */
 import { useState } from "react";
-import { Zap, User, Users, Building2, Star } from "lucide-react";
+import { MonoLabel, Button, rgba } from "@/components/obsidian";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
 import { toast } from "@/lib/notify";
 import { getStripeEnvironment } from "@/lib/stripe";
@@ -18,15 +24,9 @@ import {
 } from "@/lib/entitlements";
 import { useConfirm } from "@/hooks/use-confirm";
 
-// Connector logo chips — inline SVG paths from SimpleIcons (MIT-licensed).
-// No network dependency: paths embedded directly so logos always render.
-const CONNECTOR_CHIPS = [
-  { id: "github", label: "GitHub", bg: "#1b1f23", path: "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" },
-  { id: "linear", label: "Linear", bg: "#5e6ad2", path: "M2.886 4.18A11.982 11.982 0 0 1 11.99 0C18.624 0 24 5.376 24 12.009c0 3.64-1.62 6.903-4.18 9.105L2.887 4.18ZM1.817 5.626l16.556 16.556c-.524.33-1.075.62-1.65.866L.951 7.277c.247-.575.537-1.126.866-1.65ZM.322 9.163l14.515 14.515c-.71.172-1.443.282-2.195.322L0 11.358a12 12 0 0 1 .322-2.195Zm-.17 4.862 9.823 9.824a12.02 12.02 0 0 1-9.824-9.824Z" },
-  { id: "notion", label: "Notion", bg: "#191919", path: "M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z" },
-  { id: "jira", label: "Jira", bg: "#0052cc", path: "M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z" },
-  { id: "google_docs", label: "Google Docs", bg: "#4285f4", path: "M14.727 6.727H14V0H4.91c-.905 0-1.637.732-1.637 1.636v20.728c0 .904.732 1.636 1.636 1.636h14.182c.904 0 1.636-.732 1.636-1.636V6.727h-6zm-.545 10.455H7.09v-1.364h7.09v1.364zm2.727-3.273H7.091v-1.364h9.818v1.364zm0-3.273H7.091V9.273h9.818v1.363zM14.727 6h6l-6-6v6z" },
-] as const;
+// Connector scope chips - plain mono text, no brand logos (iconography law:
+// no icon set, no pictorial elements beyond the butterfly mark).
+const CONNECTOR_LABELS = ["GitHub", "Linear", "Notion", "Jira", "Google Docs"] as const;
 
 function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
   return (
@@ -34,63 +34,90 @@ function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 4,
-        marginTop: 5,
+        gap: "var(--space-1)",
+        marginTop: "var(--space-1)",
         marginBottom: 3,
         marginLeft: 12,
         flexWrap: "wrap",
       }}
     >
-      {CONNECTOR_CHIPS.map((c) => (
+      {CONNECTOR_LABELS.map((label) => (
         <span
-          key={c.id}
-          title={c.label}
+          key={label}
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            background: c.bg,
-            flexShrink: 0,
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-micro)",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--text-subtle)",
+            background: "var(--raised)",
+            borderRadius: "var(--radius-control)",
+            padding: "2px 6px",
+            whiteSpace: "nowrap",
           }}
         >
-          <svg viewBox="0 0 24 24" width={12} height={12} fill="white" aria-hidden>
-            <path d={c.path} />
-          </svg>
+          {label}
         </span>
       ))}
-      <span style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>+ more</span>
       <span
         style={{
-          fontSize: 8,
-          fontWeight: 600,
-          color: "var(--ember, #c2602e)",
-          background: "color-mix(in oklab, var(--ember, #c2602e) 10%, transparent)",
-          border: "1px solid color-mix(in oklab, var(--ember, #c2602e) 20%, transparent)",
-          borderRadius: 3,
-          padding: "1px 4px",
-          textTransform: "uppercase",
-          letterSpacing: "0.04em",
-          whiteSpace: "nowrap",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-micro)",
+          color: "var(--text-faint)",
         }}
       >
-        {showWrite ? "read + write" : "read"}
+        + more
       </span>
+      <MonoLabel tone={showWrite ? "glacier" : "muted"}>
+        {showWrite ? "read + write" : "read"}
+      </MonoLabel>
     </div>
   );
 }
 
-export const TIER_ICON: Record<
-  PlanTier,
-  React.ComponentType<{ size?: number; strokeWidth?: number }>
-> = {
-  free: Zap,
-  pro: User,
-  max: Star,
-  team: Users,
-  enterprise: Building2,
+// Tier monogram — a mono letter on a raised tile, replacing the retired
+// lucide icon set (iconography law: no icon set, only mono glyphs/unicode).
+const TIER_LETTER: Record<PlanTier, string> = {
+  free: "F",
+  pro: "P",
+  max: "M",
+  team: "B",
+  enterprise: "E",
+};
+
+function makeTierGlyph(tier: PlanTier): React.ComponentType<{ size?: number }> {
+  function TierGlyph({ size = 20 }: { size?: number }) {
+    return (
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: size,
+          height: size,
+          borderRadius: "var(--radius-control)",
+          background: "var(--raised)",
+          color: "var(--text-subtle)",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-label)",
+          fontWeight: 600,
+          flexShrink: 0,
+        }}
+      >
+        {TIER_LETTER[tier]}
+      </span>
+    );
+  }
+  return TierGlyph;
+}
+
+export const TIER_ICON: Record<PlanTier, React.ComponentType<{ size?: number }>> = {
+  free: makeTierGlyph("free"),
+  pro: makeTierGlyph("pro"),
+  max: makeTierGlyph("max"),
+  team: makeTierGlyph("team"),
+  enterprise: makeTierGlyph("enterprise"),
 };
 
 /** Backwards-compat alias so existing imports keep working. */
@@ -114,6 +141,33 @@ function nextTierFor(tier: PlanTier): PlanTier | null {
   }
 }
 
+const PILL_TOGGLE_TRACK: React.CSSProperties = {
+  display: "inline-flex",
+  borderRadius: "var(--radius-pill)",
+  padding: 3,
+  background: "var(--raised)",
+};
+
+function pillButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    padding: "6px 16px",
+    borderRadius: "var(--radius-pill)",
+    border: "none",
+    cursor: "pointer",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+    fontWeight: active ? 600 : 500,
+    background: active ? "var(--hover)" : "transparent",
+    color: active ? "var(--text-primary)" : "var(--text-subtle)",
+    transitionProperty: "background-color, color",
+    transitionDuration: "var(--dur-control)",
+    transitionTimingFunction: "var(--ease)",
+  };
+}
+
+const FOCUS_RING_CLASS =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
 export function PlanTable({
   currentTier,
   canSelect,
@@ -131,7 +185,7 @@ export function PlanTable({
   const recommended = nextTierFor(currentTier);
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div style={{ display: "grid", gap: "var(--space-5, 20px)" }}>
       {/* Row: Personal | Teams tab on left, Monthly | Annual toggle on right */}
       <div
         style={{
@@ -139,18 +193,11 @@ export function PlanTable({
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 10,
+          gap: "var(--space-2)",
         }}
       >
         {/* Audience tab */}
-        <div
-          style={{
-            display: "inline-flex",
-            borderRadius: 99,
-            padding: 3,
-            background: "var(--soft-stone, rgba(0,0,0,0.06))",
-          }}
-        >
+        <div style={PILL_TOGGLE_TRACK}>
           {(["personal", "teams"] as const).map((t) => {
             const active = t === tab;
             return (
@@ -158,18 +205,8 @@ export function PlanTable({
                 key={t}
                 type="button"
                 onClick={() => setTab(t)}
-                style={{
-                  padding: "6px 18px",
-                  borderRadius: 99,
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: active ? 600 : 500,
-                  background: active ? "var(--canvas, #fbf7ef)" : "transparent",
-                  color: active ? "var(--ink, #1d1a14)" : "var(--ink-subtle, #6b6457)",
-                  boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  transition: "all 0.15s",
-                }}
+                className={FOCUS_RING_CLASS}
+                style={pillButtonStyle(active)}
               >
                 {t === "personal" ? "Personal" : "Teams"}
               </button>
@@ -178,14 +215,7 @@ export function PlanTable({
         </div>
 
         {/* Global billing toggle */}
-        <div
-          style={{
-            display: "inline-flex",
-            borderRadius: 99,
-            padding: 3,
-            background: "var(--soft-stone, rgba(0,0,0,0.06))",
-          }}
-        >
+        <div style={PILL_TOGGLE_TRACK}>
           {(["monthly", "annual"] as const).map((mode) => {
             const active = mode === (annual ? "annual" : "monthly");
             return (
@@ -193,37 +223,26 @@ export function PlanTable({
                 key={mode}
                 type="button"
                 onClick={() => setAnnual(mode === "annual")}
+                className={FOCUS_RING_CLASS}
                 style={{
-                  padding: "6px 14px",
-                  borderRadius: 99,
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: active ? 600 : 500,
-                  background: active ? "var(--canvas, #fbf7ef)" : "transparent",
-                  color: active ? "var(--ink, #1d1a14)" : "var(--ink-subtle, #6b6457)",
-                  boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                  transition: "all 0.15s",
+                  ...pillButtonStyle(active),
                   display: "flex",
                   alignItems: "center",
-                  gap: 5,
+                  gap: "var(--space-1)",
                 }}
               >
                 {mode === "monthly" ? "Monthly" : "Annual"}
                 {mode === "annual" && (
-                  <span
+                  <MonoLabel
+                    tone="moss"
                     style={{
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      color: "var(--moss-success, #4f8a59)",
-                      background:
-                        "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
-                      borderRadius: 99,
-                      padding: "1px 5px",
+                      background: rgba("#7FBF8E", 0.14),
+                      borderRadius: "var(--radius-pill)",
+                      padding: "1px 6px",
                     }}
                   >
                     -17%
-                  </span>
+                  </MonoLabel>
                 )}
               </button>
             );
@@ -231,8 +250,8 @@ export function PlanTable({
         </div>
       </div>
 
-      {/* 2-column grid per tab — popular badge tracks the user's actual next step */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      {/* 2-column grid per tab — recommended badge tracks the user's actual next step */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
         {tab === "personal" ? (
           <>
             <FreeCard isCurrent={currentTier === "free"} />
@@ -278,40 +297,35 @@ function CardShell({
 }) {
   return (
     <div
-      className="bento"
       style={{
-        padding: "22px 18px 18px",
+        background: "var(--card)",
+        // Depth is tint, never a shadow: the recommended card gets a glacier
+        // hairline (the machine's own recommendation), the current card gets
+        // a slightly stronger neutral hairline. Never ember — nothing on
+        // this comparison table is a genuinely-required action.
+        border: popular
+          ? "1px solid var(--glacier)"
+          : isCurrent
+            ? "1px solid var(--hairline-strong)"
+            : "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "var(--space-5, 22px) var(--space-4) var(--space-4)",
         display: "flex",
         flexDirection: "column",
-        gap: 12,
-        // Recommended card gets the ember glow — it's the conversion target.
-        // Current card gets a softer warm tint — just enough to say "you're here".
-        borderColor: popular
-          ? "var(--ember, #c2602e)"
-          : isCurrent
-            ? "color-mix(in oklab, var(--ember, #c2602e) 30%, transparent)"
-            : undefined,
-        background: isCurrent
-          ? "color-mix(in oklab, var(--ember, #c2602e) 5%, var(--canvas, #fbf7ef))"
-          : undefined,
-        boxShadow: popular
-          ? "0 0 0 1.5px var(--ember, #c2602e), 0 0 0 6px color-mix(in oklab, var(--ember, #c2602e) 18%, transparent), 0 0 24px -2px color-mix(in oklab, var(--ember, #c2602e) 35%, transparent), 0 18px 44px -18px color-mix(in oklab, var(--ember, #c2602e) 55%, transparent)"
-          : undefined,
+        gap: "var(--space-3)",
         position: "relative",
-        overflow: "visible",
       }}
     >
       {popular ? (
         <span
-          aria-hidden
+          aria-hidden="true"
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             right: 0,
-            height: 3,
-            background:
-              "linear-gradient(90deg, var(--ember, #c2602e), color-mix(in oklab, var(--ember, #c2602e) 60%, transparent))",
+            height: 2,
+            background: "var(--glacier)",
             borderTopLeftRadius: "inherit",
             borderTopRightRadius: "inherit",
           }}
@@ -345,79 +359,66 @@ function CardHeader({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 8,
+          gap: "var(--space-2)",
         }}
       >
-        <span
-          aria-hidden
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 12,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background:
-              "linear-gradient(145deg, color-mix(in oklab, var(--ember, #c2602e) 18%, transparent), color-mix(in oklab, var(--ember, #c2602e) 6%, transparent))",
-            border: "1px solid color-mix(in oklab, var(--ember, #c2602e) 22%, transparent)",
-            color: "var(--ember, #c2602e)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px -6px color-mix(in oklab, var(--ember, #c2602e) 40%, transparent)",
-          }}
-        >
-          <Icon size={20} strokeWidth={1.6} />
-        </span>
+        <Icon size={28} />
         {isCurrent ? (
-          <span
-            className="mono-label"
+          <MonoLabel
+            tone="glacier"
             style={{
-              fontSize: 9,
-              color: "var(--canvas, #fbf7ef)",
-              background: "var(--ember, #c2602e)",
+              background: rgba("#7FD1DC", 0.12),
+              border: "1px solid var(--glacier)",
+              borderRadius: "var(--radius-pill)",
               padding: "3px 9px",
-              borderRadius: 99,
               whiteSpace: "nowrap",
-              letterSpacing: "0.12em",
             }}
           >
             Current plan
-          </span>
+          </MonoLabel>
         ) : popular ? (
-          <span
-            className="mono-label"
+          <MonoLabel
+            tone="glacier"
             style={{
-              fontSize: 8.5,
-              color: "var(--ember, #c2602e)",
-              border: "1px solid color-mix(in oklab, var(--ember, #c2602e) 40%, transparent)",
-              borderRadius: 99,
+              border: "1px solid var(--glacier)",
+              borderRadius: "var(--radius-pill)",
               padding: "2px 8px",
             }}
           >
             Popular
-          </span>
+          </MonoLabel>
         ) : null}
       </div>
       <div
-        className="font-display"
-        style={{ fontSize: 19, marginTop: 10, letterSpacing: "-0.01em" }}
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontWeight: 460,
+          fontSize: "var(--text-card-title)",
+          lineHeight: 1.3,
+          color: "var(--text-primary)",
+          marginTop: "var(--space-2)",
+        }}
       >
         {name}
       </div>
       <p
         style={{
-          fontSize: 11,
-          color: "var(--ink-subtle, #6b6457)",
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-helper)",
+          color: "var(--text-subtle)",
           margin: "3px 0 0",
-          lineHeight: 1.4,
+          lineHeight: "var(--leading-body)",
         }}
       >
         {forWhom}
       </p>
       <p
         style={{
-          fontSize: 12,
-          color: "var(--ink-muted, #4a4438)",
-          margin: "6px 0 0",
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-sm)",
+          color: "var(--text-body)",
+          margin: "var(--space-1) 0 0",
+          lineHeight: "var(--leading-body)",
         }}
       >
         {tagline}
@@ -433,7 +434,9 @@ function ExpandableBullets({ items }: { items: string[] }) {
   const hiddenCount = items.length - PREVIEW;
   return (
     <div>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
+      <ul
+        style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "var(--space-2)" }}
+      >
         {visible.map((h) => {
           const isReadConnector = h.startsWith("Read connectors");
           const isWriteConnector = h.startsWith("Write-back connectors");
@@ -441,24 +444,25 @@ function ExpandableBullets({ items }: { items: string[] }) {
             <li
               key={h}
               style={{
-                fontSize: 11.5,
-                color: "var(--ink, #1d1a14)",
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-helper)",
+                color: "var(--text-body)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 0,
               }}
             >
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: "var(--space-2)" }}>
                 <span
+                  aria-hidden="true"
                   style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: 99,
-                    background: "var(--ember, #c2602e)",
-                    marginTop: 7,
-                    flexShrink: 0,
+                    fontFamily: "var(--font-mono)",
+                    color: "var(--text-faint)",
+                    lineHeight: "var(--leading-body)",
                   }}
-                />
+                >
+                  &middot;
+                </span>
                 <span>{h}</span>
               </div>
               {(isReadConnector || isWriteConnector) && (
@@ -472,14 +476,15 @@ function ExpandableBullets({ items }: { items: string[] }) {
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
+          className={FOCUS_RING_CLASS}
           style={{
             background: "none",
             border: "none",
-            padding: "8px 0 0",
-            fontSize: 11,
-            color: "var(--ink-subtle, #6b6457)",
+            padding: "var(--space-2) 0 0",
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-helper)",
+            color: "var(--glacier)",
             cursor: "pointer",
-            textDecoration: "underline",
           }}
         >
           {expanded ? "Show less" : `Show ${hiddenCount} more`}
@@ -500,25 +505,41 @@ function FreeCard({ isCurrent }: { isCurrent: boolean }) {
         forWhom={p.forWhom}
         isCurrent={isCurrent}
       />
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-        <span className="font-display" style={{ fontSize: 32, lineHeight: 1 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-1)" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 30,
+            lineHeight: 1,
+            color: "var(--text-primary)",
+          }}
+        >
           $0
         </span>
-        <span style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)" }}>/month</span>
+        <span
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-subtle)",
+          }}
+        >
+          /month
+        </span>
       </div>
-      <p style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", margin: "0 0 12px" }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-helper)",
+          color: "var(--text-subtle)",
+          margin: 0,
+        }}
+      >
         No credit card needed
       </p>
-      <button
-        className="btn btn-ghost btn-sm"
-        disabled
-        style={{ width: "100%", textAlign: "center", marginBottom: 4 }}
-      >
+      <Button variant="secondary" disabled style={{ width: "100%", justifyContent: "center" }}>
         {isCurrent ? "You are on Free" : "Start on Free"}
-      </button>
-      <div
-        style={{ height: 1, background: "var(--hairline, rgba(0,0,0,0.07))", marginBottom: 14 }}
-      />
+      </Button>
+      <div style={{ height: 1, background: "var(--hairline)" }} />
       <ExpandableBullets items={p.highlights} />
     </CardShell>
   );
@@ -546,20 +567,45 @@ function EnterpriseCard({
         popular={popular}
       />
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <span className="font-display" style={{ fontSize: 22, lineHeight: 1.2 }}>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 20,
+            lineHeight: 1.2,
+            color: "var(--text-primary)",
+          }}
+        >
           Custom
         </span>
         {isComingFromBusiness ? (
-          <span style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-body)",
+            }}
+          >
             Custom platform fee + $20/seat + usage at API rates
           </span>
         ) : (
           <>
-            <span style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-body)",
+              }}
+            >
               Platform fee + $20/seat
             </span>
-            <span style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)" }}>
-              Usage at API rates · scales with model and task
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-helper)",
+                color: "var(--text-subtle)",
+              }}
+            >
+              Usage at API rates &middot; scales with model and task
             </span>
           </>
         )}
@@ -568,8 +614,9 @@ function EnterpriseCard({
         <>
           <p
             style={{
-              fontSize: 11,
-              color: "var(--ink-subtle, #6b6457)",
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-helper)",
+              color: "var(--text-subtle)",
               margin: 0,
               textAlign: "center",
             }}
@@ -577,20 +624,33 @@ function EnterpriseCard({
             Reach your account manager to adjust seats or API rates.
           </p>
           <a
-            className="btn btn-ghost btn-sm"
             href="mailto:sales@cadence.app?subject=Enterprise plan management"
-            style={{ marginTop: 4, textAlign: "center", width: "100%" }}
+            className={`${FOCUS_RING_CLASS} hover:[background-color:#242429]`}
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-base)",
+              fontWeight: 500,
+              color: "var(--text-primary)",
+              background: "var(--hover)",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--radius-control)",
+              padding: "8px 16px",
+              textAlign: "center",
+              display: "block",
+              textDecoration: "none",
+            }}
           >
             Contact account manager
           </a>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 4 }}>
+          <div style={{ display: "flex", justifyContent: "center" }}>
             <a
               href="mailto:sales@cadence.app?subject=Enterprise plan management"
+              className={FOCUS_RING_CLASS}
               style={{
-                fontSize: 11,
-                color: "var(--ink-subtle, #6b6457)",
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-helper)",
+                color: "var(--blossom)",
                 textDecoration: "underline",
-                cursor: "pointer",
               }}
             >
               Manage subscription
@@ -599,20 +659,26 @@ function EnterpriseCard({
         </>
       ) : (
         <a
-          className="btn btn-primary btn-sm"
           href="mailto:sales@cadence.app?subject=Enterprise enquiry"
-          style={{ marginTop: 4, textAlign: "center", width: "100%" }}
+          className={`${FOCUS_RING_CLASS} hover:[background-color:#242429]`}
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            background: "var(--hover)",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 16px",
+            textAlign: "center",
+            display: "block",
+            textDecoration: "none",
+          }}
         >
           Talk to our team
         </a>
       )}
-      <div
-        style={{
-          height: 1,
-          background: "var(--hairline, rgba(0,0,0,0.07))",
-          margin: "16px 0 14px",
-        }}
-      />
+      <div style={{ height: 1, background: "var(--hairline)" }} />
       <ExpandableBullets items={p.highlights} />
     </CardShell>
   );
@@ -712,57 +778,76 @@ function PaidTierCard({
       />
 
       {/* Price — billing label — dollar savings (when annual) */}
-      <div style={{ marginBottom: 4 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-          <span className="font-display" style={{ fontSize: 28, lineHeight: 1 }}>
+      <div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-1)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 26,
+              lineHeight: 1,
+              color: "var(--text-primary)",
+            }}
+          >
             ${price ?? "--"}
           </span>
-          <span style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)" }}>/mo</span>
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-subtle)",
+            }}
+          >
+            /mo
+          </span>
         </div>
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 7,
-            marginTop: 5,
+            gap: "var(--space-2)",
+            marginTop: "var(--space-1)",
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-helper)",
+              color: "var(--text-subtle)",
+            }}
+          >
             {billing === "yearly" ? "billed annually" : "billed monthly"}
           </span>
           {yearlySavings && (
-            <span
+            <MonoLabel
+              tone="moss"
               style={{
-                fontSize: 10.5,
-                fontWeight: 600,
-                color: "var(--moss-success, #4f8a59)",
-                background: "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
-                borderRadius: 99,
+                background: rgba("#7FBF8E", 0.14),
+                borderRadius: "var(--radius-pill)",
                 padding: "2px 7px",
               }}
             >
               Save ${yearlySavings}/yr
-            </span>
+            </MonoLabel>
           )}
         </div>
       </div>
 
       {/* Credit dropdown — per card so users can compare different tiers across plans */}
-      <label style={{ display: "grid", gap: 4 }}>
-        <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          Credits / month
-        </span>
+      <label style={{ display: "grid", gap: "var(--space-1)" }}>
+        <MonoLabel>Credits / month</MonoLabel>
         <select
           value={credits}
           onChange={(e) => setCredits(Number(e.target.value) as CreditTier)}
+          className={FOCUS_RING_CLASS}
           style={{
             padding: "7px 10px",
-            borderRadius: 8,
-            border: "1px solid var(--hairline, rgba(0,0,0,0.14))",
-            background: "var(--canvas, #fbf7ef)",
-            fontSize: 13,
-            color: "var(--ink, #1d1a14)",
+            borderRadius: "var(--radius-control)",
+            border: "1px solid var(--hairline-strong)",
+            background: "var(--raised)",
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
+            color: "var(--text-primary)",
             cursor: "pointer",
           }}
         >
@@ -774,26 +859,29 @@ function PaidTierCard({
         </select>
       </label>
 
-      {/* CTA — immediately after price + credit selection, before features */}
-      <button
-        className={
-          isCurrent || direction === "downgrade" ? "btn btn-ghost btn-sm" : "btn btn-primary btn-sm"
-        }
+      {/* CTA — immediately after price + credit selection, before features.
+          Never ember: nothing in this comparison table is a genuinely-
+          required action right now, so every card reads at the same
+          secondary weight; the copy (Upgrade / Move / Current plan)
+          carries the meaning, not the color. */}
+      <Button
+        variant="secondary"
         disabled={!canSelect || !lookupKey || isCurrent}
         onClick={onSubscribe}
-        style={{ width: "100%", textAlign: "center" }}
+        style={{ width: "100%", justifyContent: "center" }}
       >
         {ctaLabel}
-      </button>
+      </Button>
 
       {statusMessage && (
         <p
           style={{
-            fontSize: 11,
-            color: "var(--ink-subtle, #6b6457)",
-            margin: "0",
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-helper)",
+            color: "var(--text-subtle)",
+            margin: 0,
             textAlign: "center",
-            lineHeight: 1.4,
+            lineHeight: "var(--leading-body)",
           }}
         >
           {statusMessage}
@@ -801,9 +889,7 @@ function PaidTierCard({
       )}
 
       {/* Feature list below CTA */}
-      <div
-        style={{ height: 1, background: "var(--hairline, rgba(0,0,0,0.07))", margin: "4px 0 2px" }}
-      />
+      <div style={{ height: 1, background: "var(--hairline)" }} />
       <ExpandableBullets items={p.highlights} />
 
       {lookupKey ? (

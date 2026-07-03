@@ -1,12 +1,19 @@
 /**
- * Admin Console v2 — Workspaces tab. Search, drawer with members + audit,
+ * Admin Console v2 · Workspaces tab. Search, drawer with members + audit,
  * grant credits, change member role, transfer ownership, soft-delete + restore.
+ *
+ * Obsidian v3 chrome pass (2026-07-03): re-skinned from the parchment "bento"
+ * look to the dark card/hairline system (see the parent `_authenticated.admin.tsx`
+ * for the shared look). Visual only · every query, mutation, and data shape
+ * below is unchanged; only colors, type, spacing, and a few plain-words label
+ * renames (Engine-Room Test) changed.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { MonoLabel, Button } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import {
@@ -52,66 +59,131 @@ function AdminWorkspaces() {
     : [];
 
   return (
-    <div style={{ marginTop: 12, display: "grid", gap: 14 }}>
-      <p className="mono-label" style={{ color: "var(--ink-subtle)", margin: 0 }}>
-        Inspect tenants · adjust plans · move ownership
-      </p>
-      <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <div style={{ display: "grid", gap: "var(--space-4)" }}>
+      <MonoLabel>Find a workspace · check its plan · move ownership</MonoLabel>
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          padding: "var(--space-4)",
+          display: "grid",
+          gap: "var(--space-3)",
+        }}
+      >
+        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, slug, or owner email"
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] placeholder:[color:var(--text-faint)]"
             style={{
               flex: 1,
-              padding: "8px 10px",
+              padding: "8px 12px",
+              background: "var(--raised)",
               border: "1px solid var(--hairline)",
-              borderRadius: 6,
-              fontSize: 13,
+              borderRadius: "var(--radius-control)",
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-base)",
+              color: "var(--text-primary)",
             }}
           />
-          <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-            {search.isLoading ? "Loading…" : `${rows.length} workspaces`}
-          </span>
+          {search.isLoading ? (
+            <span
+              style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-faint)" }}
+            >
+              reading workspaces…
+            </span>
+          ) : (
+            <MonoLabel>{rows.length} workspaces</MonoLabel>
+          )}
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-          <thead>
-            <tr className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-              <th style={th()}>Name</th>
-              <th style={th()}>Owner</th>
-              <th style={th()}>Plan</th>
-              <th style={th()}>Members</th>
-              <th style={th()}>Deleted</th>
-              <th style={th()}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((w) => (
-              <tr key={w.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                <td style={td()}>{w.name}</td>
-                <td style={td()}>{w.owner_email ?? "-"}</td>
-                <td style={td()}>{w.plan_tier}</td>
-                <td style={td()}>{w.member_count}</td>
-                <td style={td()}>{w.deleted_at ? "yes" : "no"}</td>
-                <td style={td()}>
-                  <button className="btn btn-sm" onClick={() => setSelected(w.id)}>
-                    Open
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 && !search.isLoading ? (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <td
-                  colSpan={6}
-                  style={{ padding: 12, textAlign: "center", color: "var(--ink-subtle)" }}
-                >
-                  No workspaces.
-                </td>
+                <th style={th()}>Name</th>
+                <th style={th()}>Owner</th>
+                <th style={th()}>Plan</th>
+                <th style={th()}>Members</th>
+                <th style={th()}>Deleted</th>
+                <th style={th()}></th>
               </tr>
-            ) : null}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((w) => (
+                <tr
+                  key={w.id}
+                  className="transition-colors hover:[background-color:var(--hover)]"
+                  style={{
+                    borderTop: "1px solid var(--hairline)",
+                    transitionDuration: "var(--dur-control)",
+                    transitionTimingFunction: "var(--ease)",
+                  }}
+                >
+                  <td style={td()}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-ui)",
+                        fontWeight: 500,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {w.name}
+                    </span>
+                  </td>
+                  <td style={{ ...td(), color: "var(--text-body)" }}>{w.owner_email ?? "-"}</td>
+                  <td style={td()}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-mono-label)",
+                        letterSpacing: "0.11em",
+                        color: "var(--text-muted)",
+                      }}
+                      className="uppercase"
+                    >
+                      {w.plan_tier}
+                    </span>
+                  </td>
+                  <td style={td()}>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
+                      {w.member_count}
+                    </span>
+                  </td>
+                  <td style={td()}>
+                    {w.deleted_at ? (
+                      <MonoLabel tone="madder">yes</MonoLabel>
+                    ) : (
+                      <MonoLabel>no</MonoLabel>
+                    )}
+                  </td>
+                  <td style={td()}>
+                    <Button variant="quiet" onClick={() => setSelected(w.id)}>
+                      Open →
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 && !search.isLoading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    style={{
+                      padding: "var(--space-4)",
+                      textAlign: "center",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-base)",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    No workspaces.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </div>
       <WorkspaceDrawer workspaceId={selected} onClose={() => setSelected(null)} />
     </div>
@@ -172,7 +244,7 @@ function WorkspaceDrawer({
   const softDel = useMutation({
     mutationFn: () => fSoftDel({ data: { workspaceId: workspaceId! } }),
     onSuccess: () => {
-      toast.success("Workspace soft-deleted (30-day restore window).");
+      toast.success("Workspace deleted. Restore any time within 30 days.");
       invalidate();
     },
   });
@@ -194,7 +266,7 @@ function WorkspaceDrawer({
         const del = r.deleted as Record<string, number>;
         const total = Object.values(del).reduce((a, b) => a + b, 0);
         toast.success(
-          `Demo reset complete — ${total} rows cleared. Reseed via Supabase SQL editor.`,
+          `Demo reset complete. ${total} rows cleared. Reseed using the Supabase SQL editor.`,
         );
         invalidate();
       }
@@ -203,31 +275,73 @@ function WorkspaceDrawer({
 
   return (
     <Sheet open={!!workspaceId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" style={{ width: "min(560px, 100vw)", overflow: "auto" }}>
-        <SheetHeader>
-          <SheetTitle>{d?.workspace?.name ?? "Workspace"}</SheetTitle>
+      <SheetContent
+        side="right"
+        style={{
+          width: "min(560px, 100vw)",
+          overflow: "auto",
+          background: "var(--card)",
+          borderLeft: "1px solid var(--hairline)",
+          boxShadow: "none",
+          color: "var(--text-primary)",
+          padding: "var(--space-6)",
+        }}
+      >
+        <SheetHeader
+          style={{
+            paddingBottom: "var(--space-4)",
+            borderBottom: "1px solid var(--hairline)",
+            marginBottom: 0,
+          }}
+        >
+          <SheetTitle
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 460,
+              fontSize: "var(--text-card-title)",
+              lineHeight: 1.3,
+              color: "var(--text-primary)",
+            }}
+          >
+            {d?.workspace?.name ?? "Workspace"}
+          </SheetTitle>
         </SheetHeader>
         {!d ? (
-          <p style={{ marginTop: 16, fontSize: 13 }}>Loading…</p>
+          <p
+            style={{
+              marginTop: "var(--space-4)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-faint)",
+            }}
+          >
+            reading workspace…
+          </p>
         ) : (
-          <div style={{ marginTop: 16, display: "grid", gap: 18 }}>
+          <div style={{ marginTop: "var(--space-4)", display: "grid", gap: "var(--space-6)" }}>
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
-                Identity
+              <div style={{ marginBottom: "var(--space-2)" }}>
+                <MonoLabel>Details</MonoLabel>
               </div>
-              <div style={{ fontSize: 12.5 }}>
-                Slug · {d.workspace?.slug}
-                <br />
-                Plan · {d.workspace?.plan_tier}
-                <br />
-                Created · {d.workspace?.created_at?.slice(0, 10)}
-                <br />
-                Deleted · {d.workspace?.deleted_at ? d.workspace.deleted_at.slice(0, 10) : "no"}
+              <div style={{ display: "grid", gap: 6 }}>
+                <FieldRow label="Slug" value={d.workspace?.slug} />
+                <FieldRow label="Plan" value={d.workspace?.plan_tier} />
+                <FieldRow label="Created" value={d.workspace?.created_at?.slice(0, 10)} />
+                <FieldRow
+                  label="Deleted"
+                  value={
+                    d.workspace?.deleted_at ? (
+                      <MonoLabel tone="madder">{d.workspace.deleted_at.slice(0, 10)}</MonoLabel>
+                    ) : (
+                      <MonoLabel>no</MonoLabel>
+                    )
+                  }
+                />
               </div>
             </section>
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
-                Members
+              <div style={{ marginBottom: "var(--space-2)" }}>
+                <MonoLabel>Members</MonoLabel>
               </div>
               <ul
                 style={{
@@ -235,21 +349,34 @@ function WorkspaceDrawer({
                   padding: 0,
                   listStyle: "none",
                   display: "grid",
-                  gap: 6,
-                  fontSize: 12.5,
+                  gap: "var(--space-2)",
                 }}
               >
                 {(d.members ?? []).map((m) => (
-                  <li key={m.user_id} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <li
+                    key={m.user_id}
+                    style={{
+                      display: "flex",
+                      gap: "var(--space-2)",
+                      alignItems: "center",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
                     {m.email ?? m.user_id.slice(0, 8)} ·
                     <select
                       value={m.role}
                       onChange={(e) => setRole.mutate({ userId: m.user_id, role: e.target.value })}
+                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
                       style={{
-                        padding: "4px 6px",
+                        padding: "5px 8px",
+                        background: "var(--raised)",
                         border: "1px solid var(--hairline)",
-                        borderRadius: 6,
-                        fontSize: 12,
+                        borderRadius: "var(--radius-control)",
+                        fontFamily: "var(--font-ui)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--text-primary)",
                       }}
                     >
                       <option value="owner">owner</option>
@@ -257,9 +384,9 @@ function WorkspaceDrawer({
                       <option value="member">member</option>
                       <option value="viewer">viewer</option>
                     </select>
-                    <button
-                      className="btn btn-sm"
-                      style={{ marginLeft: "auto" }}
+                    <Button
+                      variant="secondary"
+                      style={{ marginLeft: "auto", padding: "6px 12px", fontSize: 12 }}
                       onClick={async () => {
                         const ok = await confirm({
                           title: "Remove member?",
@@ -271,10 +398,11 @@ function WorkspaceDrawer({
                       }}
                     >
                       Remove
-                    </button>
+                    </Button>
                     {d.workspace?.owner_id !== m.user_id ? (
-                      <button
-                        className="btn btn-sm"
+                      <Button
+                        variant="secondary"
+                        style={{ padding: "6px 12px", fontSize: 12 }}
                         onClick={async () => {
                           const ok = await confirm({
                             title: "Transfer ownership?",
@@ -285,79 +413,102 @@ function WorkspaceDrawer({
                         }}
                       >
                         Make owner
-                      </button>
+                      </Button>
                     ) : null}
                   </li>
                 ))}
               </ul>
             </section>
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
-                Lifecycle
+              <div style={{ marginBottom: "var(--space-2)" }}>
+                <MonoLabel>Delete &amp; restore</MonoLabel>
               </div>
               {d.workspace?.deleted_at ? (
-                <button className="btn btn-primary btn-sm" onClick={() => restore.mutate()}>
+                <Button variant="secondary" onClick={() => restore.mutate()}>
                   Restore · re-enables workspace
-                </button>
+                </Button>
               ) : (
-                <button
-                  className="btn btn-sm"
+                <Button
+                  variant="secondary"
                   onClick={async () => {
                     const ok = await confirm({
-                      title: "Soft-delete workspace?",
+                      title: "Delete this workspace?",
                       body: "Hidden from users immediately. 30-day restore window.",
-                      confirmLabel: "Soft-delete · 30-day restore window",
+                      confirmLabel: "Delete · 30-day restore window",
                       destructive: true,
                     });
                     if (ok) softDel.mutate();
                   }}
                 >
-                  Soft-delete · 30-day restore
-                </button>
+                  Delete workspace · 30-day restore
+                </Button>
               )}
             </section>
-            {/* WM-S5: Demo reset — only shown for @redcadence.app demo accounts */}
+            {/* WM-S5: Demo reset · only shown for @redcadence.app demo accounts */}
             {(d.members ?? []).some((m) => m.email?.endsWith("@redcadence.app")) && (
               <section>
-                <div className="mono-label" style={{ marginBottom: 6 }}>
-                  Demo reset
+                <div style={{ marginBottom: "var(--space-2)" }}>
+                  <MonoLabel>Demo reset</MonoLabel>
                 </div>
-                <p style={{ fontSize: 12, color: "var(--ink-muted)", marginBottom: 8 }}>
-                  Hard-wipes all user-generated content (signals, decisions, opportunities, etc.)
-                  from this demo workspace. Seed data can be restored by re-running the TEST-SEED +
-                  DEMO-SEED-RICH migrations via Supabase SQL editor.
+                <p
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-muted)",
+                    marginBottom: "var(--space-2)",
+                  }}
+                >
+                  Deletes all user content (signals, decisions, opportunities, and more) from this
+                  demo workspace. Restore the seed data by re-running the TEST-SEED and
+                  DEMO-SEED-RICH migrations in the Supabase SQL editor.
                 </p>
-                <button
-                  className="btn btn-sm"
-                  disabled={demoReset.isPending}
+                <Button
+                  variant="secondary"
+                  loading={demoReset.isPending}
                   onClick={async () => {
                     const ok = await confirm({
                       title: "Reset demo workspace?",
-                      body: "All content rows will be deleted. Workspace and membership are preserved. Reseed manually afterward.",
+                      body: "All content will be deleted. The workspace and its members stay. Reseed manually afterward.",
                       confirmLabel: "Reset demo data",
                       destructive: true,
                     });
                     if (ok) demoReset.mutate();
                   }}
                 >
-                  {demoReset.isPending ? "Resetting..." : "Reset demo data"}
-                </button>
+                  Reset demo data
+                </Button>
               </section>
             )}
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
-                Recent audit
+              <div style={{ marginBottom: "var(--space-2)" }}>
+                <MonoLabel>Recent activity</MonoLabel>
               </div>
-              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12 }}>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 4 }}>
                 {(d.audit ?? []).slice(0, 10).map((row) => (
-                  <li key={row.id}>
-                    <code>{row.action}</code> · {row.created_at.slice(0, 16).replace("T", " ")}
+                  <li
+                    key={row.id}
+                    style={{
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-body)",
+                    }}
+                  >
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--glacier)" }}>
+                      {row.action}
+                    </span>{" "}
+                    · {row.created_at.slice(0, 16).replace("T", " ")}
                   </li>
                 ))}
                 {(d.audit ?? []).length === 0 ? (
-                  <li style={{ listStyle: "none", color: "var(--ink-subtle)" }}>
-                    No admin actions yet.
+                  <li
+                    style={{
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    No activity yet.
                   </li>
                 ) : null}
               </ul>
@@ -369,15 +520,40 @@ function WorkspaceDrawer({
   );
 }
 
+function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "baseline" }}>
+      <MonoLabel style={{ minWidth: 64 }}>{label}</MonoLabel>
+      <span
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          color: "var(--text-body)",
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
 function th(): React.CSSProperties {
   return {
-    padding: "8px 10px",
-    fontSize: 10,
-    letterSpacing: "0.12em",
+    padding: "var(--space-2) var(--space-3)",
+    fontFamily: "var(--font-mono)",
+    fontSize: "var(--text-mono-label)",
+    letterSpacing: "0.11em",
     textTransform: "uppercase",
     textAlign: "left",
+    color: "var(--text-subtle)",
+    borderBottom: "1px solid var(--hairline-strong)",
   };
 }
 function td(): React.CSSProperties {
-  return { padding: "10px", verticalAlign: "middle" };
+  return {
+    padding: "var(--space-3)",
+    verticalAlign: "middle",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-base)",
+  };
 }

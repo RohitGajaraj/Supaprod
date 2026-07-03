@@ -4,6 +4,10 @@
  * + workspaces + audit, and the core mutations (grant credits, reset cycle,
  * override plan, suspend/unsuspend). Invitations & Vouchers panels land in
  * subsequent steps of `docs/planning/admin-console-v2-plan.md`.
+ *
+ * OBS-13 chrome pass: re-skinned from parchment to Obsidian v3 (dark cockpit,
+ * mono metadata, no icon set). Every query, mutation, and data shape below
+ * is unchanged — only the markup, tokens, and copy-that-was-jargon changed.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -12,6 +16,7 @@ import { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import { MonoLabel, Button } from "@/components/obsidian";
 import {
   adminSearchUsers,
   adminGetUserDetail,
@@ -27,6 +32,11 @@ export const Route = createFileRoute("/_authenticated/admin/people")({
   component: AdminPeople,
 });
 
+// Shared focus treatment: 2px glacier ring, offset 2 — every interactive
+// element in this file uses this exact class pattern (design contract §12).
+const FOCUS_RING =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
 const SUB_TABS = [
   { id: "users", label: "Users" },
   { id: "invitations", label: "Invitations" },
@@ -37,24 +47,56 @@ type SubTab = (typeof SUB_TABS)[number]["id"];
 function AdminPeople() {
   const [sub, setSub] = useState<SubTab>("users");
   return (
-    <div style={{ marginTop: 12, display: "grid", gap: 14 }}>
-      <p className="mono-label" style={{ color: "var(--ink-subtle, #6b6457)", margin: 0 }}>
+    <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-4)" }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-helper)",
+          color: "var(--text-subtle)",
+          margin: 0,
+        }}
+      >
         Manage who can use Cadence · grant credits · run promo campaigns
       </p>
-      <div style={{ display: "flex", gap: 6 }}>
-        {SUB_TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setSub(t.id)}
-            className="btn btn-sm"
-            style={{
-              background: sub === t.id ? "var(--surface-3, rgba(0,0,0,0.06))" : "transparent",
-              fontWeight: sub === t.id ? 600 : 500,
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div
+        style={{
+          display: "inline-flex",
+          gap: 2,
+          padding: 3,
+          background: "var(--raised)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-control)",
+          width: "fit-content",
+        }}
+      >
+        {SUB_TABS.map((t) => {
+          const isActive = sub === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSub(t.id)}
+              className={FOCUS_RING}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-label)",
+                textTransform: "uppercase",
+                letterSpacing: "0.11em",
+                padding: "var(--space-2) var(--space-3)",
+                borderRadius: "6px",
+                border: "none",
+                background: isActive ? "var(--hover)" : "transparent",
+                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                cursor: "pointer",
+                transitionProperty: "background-color, color",
+                transitionDuration: "var(--dur-control)",
+                transitionTimingFunction: "var(--ease)",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
       {sub === "users" ? (
         <UsersPanel />
@@ -86,29 +128,39 @@ function UsersPanel() {
   }, [search.data]);
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "var(--space-4)",
+        display: "grid",
+        gap: "var(--space-3)",
+      }}
+    >
+      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search by email or display name…"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={{
             flex: 1,
-            padding: "8px 10px",
-            border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-            borderRadius: 6,
-            background: "var(--canvas, #fbf7ef)",
-            fontSize: 13,
+            padding: "var(--space-2) var(--space-3)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            background: "var(--raised)",
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
           }}
         />
-        <span className="mono-label" style={{ color: "var(--ink-subtle, #6b6457)" }}>
-          {search.isLoading ? "Loading…" : `${rows.length} users`}
-        </span>
+        <MonoLabel tone="muted">{search.isLoading ? "Loading…" : `${rows.length} users`}</MonoLabel>
       </div>
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr className="mono-label" style={{ textAlign: "left", color: "var(--ink-subtle)" }}>
+            <tr style={{ borderBottom: "1px solid var(--hairline-strong)" }}>
               <th style={th()}>Email</th>
               <th style={th()}>Name</th>
               <th style={th()}>Plan</th>
@@ -122,18 +174,48 @@ function UsersPanel() {
             {rows.map((r) => (
               <tr
                 key={r.user_id}
-                style={{ borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))" }}
+                className="hover:[background-color:var(--hover)]"
+                style={{
+                  borderTop: "1px solid var(--hairline)",
+                  transitionProperty: "background-color",
+                  transitionDuration: "var(--dur-control)",
+                  transitionTimingFunction: "var(--ease)",
+                }}
               >
-                <td style={td()}>{r.email}</td>
+                <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
                 <td style={td()}>{r.display_name ?? "-"}</td>
-                <td style={td()}>{r.plan_tier}</td>
-                <td style={td()}>{r.balance_credits.toLocaleString()}</td>
-                <td style={td()}>{r.suspended ? "yes" : "no"}</td>
-                <td style={td()}>{new Date(r.created_at).toLocaleDateString()}</td>
+                <td style={{ ...td(), textTransform: "capitalize" }}>{r.plan_tier}</td>
+                <td
+                  style={{
+                    ...td(),
+                    fontFamily: "var(--font-mono)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {r.balance_credits.toLocaleString()}
+                </td>
+                <td
+                  style={{
+                    ...td(),
+                    color: r.suspended ? "var(--madder)" : "var(--text-body)",
+                  }}
+                >
+                  {r.suspended ? "yes" : "no"}
+                </td>
+                <td
+                  style={{
+                    ...td(),
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-helper)",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {new Date(r.created_at).toLocaleDateString()}
+                </td>
                 <td style={td()}>
-                  <button className="btn btn-sm" onClick={() => setSelected(r.user_id)}>
-                    Open
-                  </button>
+                  <Button variant="quiet" onClick={() => setSelected(r.user_id)}>
+                    Open →
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -141,7 +223,13 @@ function UsersPanel() {
               <tr>
                 <td
                   colSpan={7}
-                  style={{ padding: 16, textAlign: "center", color: "var(--ink-subtle)" }}
+                  style={{
+                    padding: "var(--space-4)",
+                    textAlign: "center",
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-base)",
+                    color: "var(--text-subtle)",
+                  }}
                 >
                   No users match.
                 </td>
@@ -156,10 +244,25 @@ function UsersPanel() {
 }
 
 function th(): React.CSSProperties {
-  return { padding: "8px 10px", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase" };
+  return {
+    padding: "var(--space-2) var(--space-3)",
+    fontFamily: "var(--font-mono)",
+    fontSize: "var(--text-mono-label)",
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    textAlign: "left",
+    fontWeight: 500,
+    color: "var(--text-subtle)",
+  };
 }
 function td(): React.CSSProperties {
-  return { padding: "10px", verticalAlign: "middle" };
+  return {
+    padding: "var(--space-3)",
+    verticalAlign: "middle",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-base)",
+    color: "var(--text-body)",
+  };
 }
 
 type UserDetail = {
@@ -260,32 +363,81 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
 
   return (
     <Sheet open={!!userId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" style={{ width: "min(560px, 100vw)", overflow: "auto" }}>
+      <SheetContent
+        side="right"
+        style={{
+          width: "min(560px, 100vw)",
+          overflow: "auto",
+          backgroundColor: "var(--card)",
+        }}
+      >
         <SheetHeader>
-          <SheetTitle>{d?.user?.email ?? "User"}</SheetTitle>
+          <SheetTitle
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 460,
+              fontSize: "var(--text-card-title)",
+              lineHeight: 1.3,
+              color: "var(--text-primary)",
+            }}
+          >
+            {d?.user?.email ?? "User"}
+          </SheetTitle>
         </SheetHeader>
         {detail.isLoading ? (
-          <p style={{ marginTop: 16, fontSize: 13 }}>Loading…</p>
+          <p
+            style={{
+              marginTop: "var(--space-4)",
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-base)",
+              color: "var(--text-subtle)",
+            }}
+          >
+            Loading…
+          </p>
         ) : !d ? null : (
-          <div style={{ marginTop: 16, display: "grid", gap: 18 }}>
+          <div style={{ marginTop: "var(--space-4)", display: "grid", gap: "var(--space-6)" }}>
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Identity
-              </div>
-              <div style={{ fontSize: 12.5, display: "grid", gap: 4 }}>
+              </MonoLabel>
+              <div
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  color: "var(--text-body)",
+                  display: "grid",
+                  gap: "var(--space-1)",
+                }}
+              >
                 <div>Name · {d.profile?.display_name ?? "-"}</div>
                 <div>Joined · {d.user?.created_at?.slice(0, 10)}</div>
                 <div>Last sign-in · {d.user?.last_sign_in_at?.slice(0, 10) ?? "never"}</div>
-                <div>Suspended · {d.profile?.suspended ? "yes" : "no"}</div>
+                <div>
+                  Suspended ·{" "}
+                  <span
+                    style={{ color: d.profile?.suspended ? "var(--madder)" : "var(--text-body)" }}
+                  >
+                    {d.profile?.suspended ? "yes" : "no"}
+                  </span>
+                </div>
               </div>
             </section>
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Plan & override
-              </div>
+              </MonoLabel>
               {d.subscription ? (
-                <div style={{ fontSize: 12.5, display: "grid", gap: 4 }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-base)",
+                    color: "var(--text-body)",
+                    display: "grid",
+                    gap: "var(--space-1)",
+                  }}
+                >
                   <div>Base plan · {d.subscription.plan_tier ?? "-"}</div>
                   <div>Override tier · {d.subscription.plan_override_tier ?? "-"}</div>
                   <div>
@@ -294,7 +446,15 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                   </div>
                 </div>
               ) : (
-                <p style={{ fontSize: 12, color: "var(--ink-subtle)" }}>No subscription row.</p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  No subscription row.
+                </p>
               )}
               <PlanOverrideForm
                 pending={override.isPending}
@@ -309,13 +469,23 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
             </section>
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Credits
-              </div>
+              </MonoLabel>
               {(d.accounts ?? []).map((a) => (
-                <div key={a.id} style={{ fontSize: 12.5 }}>
-                  Account {a.id.slice(0, 8)} · balance {a.balance_credits.toLocaleString()} · cycle{" "}
-                  {a.monthly_grant_credits.toLocaleString()} · topup{" "}
+                <div
+                  key={a.id}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-helper)",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  Account {a.id.slice(0, 8)} · balance{" "}
+                  <span style={{ color: "var(--text-primary)" }}>
+                    {a.balance_credits.toLocaleString()}
+                  </span>{" "}
+                  · cycle {a.monthly_grant_credits.toLocaleString()} · topup{" "}
                   {a.topup_credits.toLocaleString()}
                 </div>
               ))}
@@ -323,9 +493,9 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 pending={grant.isPending}
                 onSubmit={(delta, reason) => grant.mutate({ delta, reason })}
               />
-              <button
-                className="btn btn-sm"
-                style={{ marginTop: 8 }}
+              <Button
+                variant="secondary"
+                style={{ marginTop: "var(--space-2)" }}
                 disabled={reset.isPending}
                 onClick={async () => {
                   const ok = await confirm({
@@ -337,20 +507,49 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 }}
               >
                 Reset monthly cycle
-              </button>
+              </Button>
             </section>
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Workspaces
-              </div>
+              </MonoLabel>
               {(d.workspaces ?? []).length === 0 ? (
-                <p style={{ fontSize: 12, color: "var(--ink-subtle)" }}>Not in any workspaces.</p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  Not in any workspaces.
+                </p>
               ) : (
-                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12.5 }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: "var(--space-4)",
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-base)",
+                    color: "var(--text-body)",
+                    display: "grid",
+                    gap: "var(--space-1)",
+                  }}
+                >
                   {(d.workspaces ?? []).map((w) => (
                     <li key={w.id}>
-                      {w.name} · <span style={{ color: "var(--ink-subtle)" }}>{w.role}</span>
+                      {w.name} ·{" "}
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "var(--text-mono-label)",
+                          letterSpacing: "0.11em",
+                          textTransform: "uppercase",
+                          color: "var(--text-subtle)",
+                        }}
+                      >
+                        {w.role}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -358,11 +557,11 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
             </section>
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Access
-              </div>
-              <button
-                className="btn btn-sm"
+              </MonoLabel>
+              <Button
+                variant="secondary"
                 disabled={suspend.isPending}
                 onClick={async () => {
                   const isSuspended = d.profile?.suspended;
@@ -380,20 +579,39 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 }}
               >
                 {d.profile?.suspended ? "Restore · allows sign-in" : "Suspend · blocks sign-in"}
-              </button>
+              </Button>
             </section>
 
             <section>
-              <div className="mono-label" style={{ marginBottom: 6 }}>
+              <MonoLabel style={{ display: "block", marginBottom: "var(--space-2)" }}>
                 Recent audit
-              </div>
+              </MonoLabel>
               {(d.audit ?? []).length === 0 ? (
-                <p style={{ fontSize: 12, color: "var(--ink-subtle)" }}>No prior admin actions.</p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  No prior admin actions.
+                </p>
               ) : (
-                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12 }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: "var(--space-4)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-helper)",
+                    color: "var(--text-faint)",
+                    display: "grid",
+                    gap: "var(--space-1)",
+                  }}
+                >
                   {(d.audit ?? []).slice(0, 10).map((row) => (
                     <li key={row.id}>
-                      <code>{row.action}</code> · {row.created_at.slice(0, 16).replace("T", " ")}
+                      <span style={{ color: "var(--glacier)" }}>{row.action}</span> ·{" "}
+                      {row.created_at.slice(0, 16).replace("T", " ")}
                     </li>
                   ))}
                 </ul>
@@ -415,6 +633,15 @@ function GrantCreditsForm({
 }) {
   const [delta, setDelta] = useState(100);
   const [reason, setReason] = useState("Admin grant");
+  const fieldStyle: React.CSSProperties = {
+    padding: "6px 10px",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-control)",
+    background: "var(--raised)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+  };
   return (
     <form
       onSubmit={(e) => {
@@ -422,34 +649,52 @@ function GrantCreditsForm({
         if (!Number.isFinite(delta) || delta === 0) return;
         onSubmit(Math.trunc(delta), reason || "Admin grant");
       }}
-      style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}
+      style={{
+        display: "flex",
+        gap: "var(--space-2)",
+        marginTop: "var(--space-2)",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
     >
       <input
         type="number"
         value={delta}
         onChange={(e) => setDelta(Number(e.target.value))}
-        style={{
-          width: 100,
-          padding: "6px 8px",
-          border: "1px solid var(--hairline)",
-          borderRadius: 6,
-          fontSize: 12.5,
-        }}
+        className={FOCUS_RING}
+        style={{ ...fieldStyle, width: 100 }}
       />
       <input
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason"
-        style={{
-          flex: 1,
-          minWidth: 160,
-          padding: "6px 8px",
-          border: "1px solid var(--hairline)",
-          borderRadius: 6,
-          fontSize: 12.5,
-        }}
+        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+        style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
       />
-      <button className="btn btn-primary btn-sm" disabled={pending}>
+      {/*
+        Native submit button (kept out of the Button primitive on purpose):
+        this form relies on the browser's implicit type="submit" behavior to
+        fire onSubmit above. The Button primitive hardcodes type="button",
+        which would silently break the grant action. Hand-styled to match
+        Button's "secondary" look exactly.
+      */}
+      <button
+        disabled={pending}
+        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:#242429] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
+        style={{
+          fontFamily: "var(--font-ui)",
+          borderRadius: "var(--radius-control)",
+          backgroundColor: "var(--hover)",
+          color: "var(--text-primary)",
+          fontSize: "13px",
+          fontWeight: 500,
+          padding: "8px 18px",
+          border: "1px solid var(--hairline-strong)",
+          transitionProperty: "background-color, color, transform, opacity",
+          transitionDuration: "var(--dur-control)",
+          transitionTimingFunction: "var(--ease)",
+        }}
+      >
         {pending ? "Granting…" : `Grant ${delta} · adds to balance`}
       </button>
     </form>
@@ -470,23 +715,34 @@ function PlanOverrideForm({
   const [tier, setTier] = useState("max");
   const [days, setDays] = useState(7);
   const [reason, setReason] = useState("");
+  const fieldStyle: React.CSSProperties = {
+    padding: "6px 10px",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-control)",
+    background: "var(--raised)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+  };
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(tier, days, reason);
       }}
-      style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}
+      style={{
+        display: "flex",
+        gap: "var(--space-2)",
+        marginTop: "var(--space-2)",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
     >
       <select
         value={tier}
         onChange={(e) => setTier(e.target.value)}
-        style={{
-          padding: "6px 8px",
-          border: "1px solid var(--hairline)",
-          borderRadius: 6,
-          fontSize: 12.5,
-        }}
+        className={FOCUS_RING}
+        style={fieldStyle}
       >
         <option value="free">free</option>
         <option value="pro">pro</option>
@@ -499,34 +755,49 @@ function PlanOverrideForm({
         value={days}
         min={0}
         onChange={(e) => setDays(Number(e.target.value))}
-        style={{
-          width: 80,
-          padding: "6px 8px",
-          border: "1px solid var(--hairline)",
-          borderRadius: 6,
-          fontSize: 12.5,
-        }}
+        className={FOCUS_RING}
+        style={{ ...fieldStyle, width: 80 }}
       />
-      <span style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>days (0 = no expiry)</span>
+      <span
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-helper)",
+          color: "var(--text-subtle)",
+        }}
+      >
+        days (0 = no expiry)
+      </span>
       <input
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason"
-        style={{
-          flex: 1,
-          minWidth: 160,
-          padding: "6px 8px",
-          border: "1px solid var(--hairline)",
-          borderRadius: 6,
-          fontSize: 12.5,
-        }}
+        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+        style={{ ...fieldStyle, flex: 1, minWidth: 160 }}
       />
-      <button className="btn btn-primary btn-sm" disabled={pending}>
+      {/* Native submit button — see the comment in GrantCreditsForm above;
+          same reasoning applies (this form's onSubmit relies on it). */}
+      <button
+        disabled={pending}
+        className={`relative inline-flex items-center justify-center gap-2 ${FOCUS_RING} hover:[background-color:#242429] active:scale-[0.985] disabled:cursor-default disabled:opacity-45`}
+        style={{
+          fontFamily: "var(--font-ui)",
+          borderRadius: "var(--radius-control)",
+          backgroundColor: "var(--hover)",
+          color: "var(--text-primary)",
+          fontSize: "13px",
+          fontWeight: 500,
+          padding: "8px 18px",
+          border: "1px solid var(--hairline-strong)",
+          transitionProperty: "background-color, color, transform, opacity",
+          transitionDuration: "var(--dur-control)",
+          transitionTimingFunction: "var(--ease)",
+        }}
+      >
         {pending ? "Saving…" : "Override · temporary plan"}
       </button>
-      <button type="button" className="btn btn-sm" onClick={onClear} disabled={clearPending}>
+      <Button variant="quiet" onClick={onClear} disabled={clearPending}>
         Clear override
-      </button>
+      </Button>
     </form>
   );
 }

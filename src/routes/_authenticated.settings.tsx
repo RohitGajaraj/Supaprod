@@ -445,34 +445,55 @@ function BillingTab({ checkout }: { checkout?: string }) {
     ? renews.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
     : null;
 
+  // Status read — same three states drive both the pill and the "Manage
+  // billing" action below. Ember is reserved for the one action that is
+  // genuinely required right now (a broken payment method); everything
+  // else on this pane stays quiet.
+  const isPastDue = sub?.status === "past_due";
+  const subStatusWord = sub?.cancelAtPeriodEnd
+    ? "CANCELS AT PERIOD END"
+    : isPastDue
+      ? "PAYMENT ISSUE"
+      : "ACTIVE";
+  const subStatusTone = sub?.cancelAtPeriodEnd ? "marigold" : isPastDue ? "madder" : "moss";
+  const subStatusColor = sub?.cancelAtPeriodEnd
+    ? "var(--marigold)"
+    : isPastDue
+      ? "var(--madder)"
+      : "var(--moss)";
+  const subStatusGlow = sub?.cancelAtPeriodEnd
+    ? "0 0 8px rgba(232, 180, 76, 0.5)"
+    : isPastDue
+      ? "0 0 8px rgba(224, 101, 87, 0.5)"
+      : "0 0 8px rgba(127, 191, 142, 0.5)";
+
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <PaymentTestModeBanner />
       {/* ── Current plan card ────────────────────────────────────────── */}
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)", display: "grid", gap: 0 }}>
+      <div style={cardStyle()}>
         {/* Top row: plan identity + status pill */}
         <div
           style={{
             display: "flex",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            gap: 12,
+            gap: "var(--space-3)",
           }}
         >
           <div>
-            <div
-              className="mono-label"
-              style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", marginBottom: 4 }}
-            >
+            <ObsidianMonoLabel style={{ marginBottom: "var(--space-1)" }}>
               Current plan
-            </div>
+            </ObsidianMonoLabel>
             <div
-              className="font-display"
-              style={{ fontSize: 22, display: "flex", alignItems: "center", gap: 8 }}
+              style={{
+                ...cardTitleStyle(),
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+              }}
             >
-              <span style={{ color: "var(--ember, #c2602e)", display: "inline-flex" }}>
-                <TierGlyph size={20} strokeWidth={1.5} />
-              </span>
+              <TierGlyph size={20} />
               {current.name}
             </div>
           </div>
@@ -480,29 +501,25 @@ function BillingTab({ checkout }: { checkout?: string }) {
           {hasSub && (
             <span
               style={{
-                fontSize: 11,
-                fontWeight: 500,
-                padding: "3px 10px",
-                borderRadius: 99,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
                 marginTop: 4,
                 flexShrink: 0,
-                background: sub?.cancelAtPeriodEnd
-                  ? "color-mix(in oklab, #b45309 12%, transparent)"
-                  : sub?.status === "past_due"
-                    ? "color-mix(in oklab, #dc2626 12%, transparent)"
-                    : "color-mix(in oklab, var(--moss-success, #4f8a59) 14%, transparent)",
-                color: sub?.cancelAtPeriodEnd
-                  ? "#92400e"
-                  : sub?.status === "past_due"
-                    ? "#991b1b"
-                    : "var(--moss-success, #4f8a59)",
               }}
             >
-              {sub?.cancelAtPeriodEnd
-                ? "Cancels at period end"
-                : sub?.status === "past_due"
-                  ? "Payment issue"
-                  : "Active"}
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "var(--radius-pill)",
+                  background: subStatusColor,
+                  boxShadow: subStatusGlow,
+                  flexShrink: 0,
+                }}
+              />
+              <ObsidianMonoLabel tone={subStatusTone}>{subStatusWord}</ObsidianMonoLabel>
             </span>
           )}
         </div>
@@ -510,10 +527,11 @@ function BillingTab({ checkout }: { checkout?: string }) {
         {/* Tagline */}
         <p
           style={{
-            fontSize: 13,
-            color: "var(--ink-muted, #4a4438)",
-            margin: "8px 0 0",
-            lineHeight: 1.45,
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
+            color: "var(--text-body)",
+            margin: "var(--space-2) 0 0",
+            lineHeight: "var(--leading-body)",
           }}
         >
           {current.tagline}
@@ -521,15 +539,31 @@ function BillingTab({ checkout }: { checkout?: string }) {
 
         {/* Renewal date — only when available */}
         {hasSub && renewsLabel && (
-          <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "5px 0 0" }}>
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-label)",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--text-subtle)",
+              margin: "10px 0 0",
+            }}
+          >
             {sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}{" "}
-            <strong style={{ color: "var(--ink, #1d1a14)", fontWeight: 500 }}>{renewsLabel}</strong>
+            <span style={{ color: "var(--text-primary)" }}>{renewsLabel}</span>
           </p>
         )}
 
         {/* Non-owner notice */}
         {state && !state.isOwner && (
-          <p style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", margin: "12px 0 0" }}>
+          <p
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-helper)",
+              color: "var(--text-subtle)",
+              margin: "var(--space-3) 0 0",
+            }}
+          >
             Only the workspace owner can change or cancel the plan.
           </p>
         )}
@@ -538,59 +572,66 @@ function BillingTab({ checkout }: { checkout?: string }) {
         {(!state || state.isOwner) && (
           <div
             style={{
-              marginTop: 16,
-              paddingTop: 14,
-              borderTop: "1px solid var(--hairline, rgba(0,0,0,0.08))",
+              marginTop: "var(--space-4)",
+              paddingTop: "var(--space-3)",
+              borderTop: "1px solid var(--hairline)",
               display: "flex",
-              gap: 8,
+              gap: "var(--space-2)",
               flexWrap: "wrap",
               alignItems: "center",
             }}
           >
-            {/* Manage billing → Stripe portal for payment/invoice management */}
+            {/* Manage billing → Stripe portal for payment/invoice management.
+                Ember only when a payment issue genuinely needs fixing now. */}
             {hasSub && (
-              <button
-                className="btn btn-primary btn-sm"
+              <ObsidianButton
+                variant={isPastDue ? "primary" : "secondary"}
                 disabled={openPortal.isPending}
                 onClick={() => openPortal.mutate()}
               >
                 {openPortal.isPending ? "Opening…" : "Manage billing"}
-              </button>
+              </ObsidianButton>
             )}
 
             {/* Cancel / Resume — only when subscription exists */}
             {hasSub &&
               (sub?.cancelAtPeriodEnd ? (
-                <button
-                  className="btn btn-ghost btn-sm"
+                <ObsidianButton
+                  variant="quiet"
                   disabled={resumeSub.isPending}
                   onClick={() => resumeSub.mutate()}
                 >
                   {resumeSub.isPending ? "Resuming…" : "Resume plan"}
-                </button>
+                </ObsidianButton>
               ) : (
-                <button
-                  className="btn btn-ghost btn-sm"
+                <ObsidianButton
+                  variant="quiet"
                   disabled={cancelSub.isPending}
                   onClick={onCancelClick}
                 >
                   {cancelSub.isPending ? "Canceling…" : "Cancel plan"}
-                </button>
+                </ObsidianButton>
               ))}
 
             {/* Top-up always available (navigates in-app, no Stripe needed) */}
             {currentTier !== "free" && (
-              <button
-                className="btn btn-ghost btn-sm"
+              <ObsidianButton
+                variant="quiet"
                 onClick={() => navigate({ search: { section: "credits" } })}
               >
                 Buy a credit top-up
-              </button>
+              </ObsidianButton>
             )}
 
             {/* Free tier: nudge toward upgrading */}
             {currentTier === "free" && (
-              <span style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-helper)",
+                  color: "var(--text-subtle)",
+                }}
+              >
                 Pick a plan below to upgrade.
               </span>
             )}
@@ -598,7 +639,7 @@ function BillingTab({ checkout }: { checkout?: string }) {
         )}
       </div>
 
-      {/* Horizontal Lovable-style plan table: free · 3 paid · enterprise.
+      {/* Horizontal plan table: free · 3 paid · enterprise.
           Per-card credits dropdown drives the live price. */}
       <PlanTable currentTier={currentTier} canSelect={state?.isOwner ?? false} />
     </div>
@@ -614,6 +655,37 @@ function BillingTab({ checkout }: { checkout?: string }) {
 
 function CreditsTab() {
   return <CreditsTabInner />;
+}
+
+// Shared card chrome for the Plan pane (OBS-13): var(--card) + hairline +
+// radius-card, Newsreader section titles — the same pattern already shipped
+// on the Admin > Spend surface (_authenticated.admin.ai-costs.tsx).
+function cardStyle(): React.CSSProperties {
+  return {
+    background: "var(--card)",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-card)",
+    padding: "var(--space-4)",
+  };
+}
+
+function cardTitleStyle(): React.CSSProperties {
+  return {
+    fontFamily: "var(--font-serif)",
+    fontWeight: 460,
+    fontSize: "var(--text-card-title)",
+    lineHeight: 1.3,
+    color: "var(--text-primary)",
+  };
+}
+
+function helperTextStyle(): React.CSSProperties {
+  return {
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-helper)",
+    color: "var(--text-subtle)",
+    margin: "var(--space-3) 0 0",
+  };
 }
 
 function BundleGrid({
@@ -637,7 +709,7 @@ function BundleGrid({
     <div
       style={{
         display: "grid",
-        gap: 10,
+        gap: "var(--space-2)",
         gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
       }}
     >
@@ -655,51 +727,72 @@ function BundleGrid({
             disabled={wouldExceed}
             onClick={() => onSelect(b.key)}
             title={wouldExceed ? "Exceeds your per-cycle top-up limit." : undefined}
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
             style={{
               textAlign: "left",
-              padding: "12px 14px",
-              borderRadius: 10,
+              padding: "var(--space-3)",
+              borderRadius: "var(--radius-control)",
               cursor: wouldExceed ? "not-allowed" : "pointer",
               opacity: wouldExceed ? 0.5 : 1,
-              border: selected
-                ? "1px solid var(--ember, #c2602e)"
-                : "1px solid var(--hairline, rgba(0,0,0,0.12))",
-              background: selected
-                ? "color-mix(in oklab, var(--ember, #c2602e) 8%, var(--canvas, #fbf7ef))"
-                : "var(--canvas, #fbf7ef)",
-              boxShadow: selected
-                ? "0 0 0 3px color-mix(in oklab, var(--ember, #c2602e) 18%, transparent)"
-                : "none",
+              // Selected uses glacier — the machine marking your pick — never
+              // ember, which stays reserved for a genuinely-required action.
+              border: selected ? "1px solid var(--glacier)" : "1px solid var(--hairline)",
+              background: selected ? "rgba(127, 209, 220, 0.12)" : "var(--raised)",
               display: "flex",
               flexDirection: "column",
-              gap: 4,
+              gap: "var(--space-1)",
               position: "relative",
+              transitionProperty: "background-color, border-color",
+              transitionDuration: "var(--dur-control)",
+              transitionTimingFunction: "var(--ease)",
             }}
           >
             {isBest && (
               <span
-                className="mono-label"
                 style={{
                   position: "absolute",
                   top: -8,
                   right: 10,
-                  fontSize: 8.5,
-                  background: "var(--ink, #1d1a14)",
-                  color: "var(--canvas, #fbf7ef)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-micro)",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  background: "var(--card)",
+                  color: "var(--glacier)",
+                  border: "1px solid var(--glacier)",
                   padding: "2px 6px",
-                  borderRadius: 99,
+                  borderRadius: "var(--radius-pill)",
                 }}
               >
                 Best value
               </span>
             )}
-            <span className="font-display" style={{ fontSize: 18, lineHeight: 1.1 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 16,
+                lineHeight: 1.1,
+                color: "var(--text-primary)",
+              }}
+            >
               {fmtCreditsShort(b.credits)} credits
             </span>
-            <span style={{ fontSize: 13, color: "var(--ink, #1d1a14)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-base)",
+                color: "var(--text-body)",
+              }}
+            >
               {fmtPrice(b.priceCents)}
             </span>
-            <span style={{ fontSize: 10, color: "var(--ink-subtle, #6b6457)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-micro)",
+                color: "var(--text-subtle)",
+              }}
+            >
               {(perCredit / 100).toFixed(3)} $/credit
               {savedVsStarter > 0 ? ` · save ${savedVsStarter}%` : ""}
             </span>
@@ -807,58 +900,93 @@ function CreditsTabInner() {
     (min, b) => Math.min(min, b.priceCents / b.credits),
     Infinity,
   );
+  // Presentational only — chooses the top-up CTA's color, never gates any
+  // query/mutation: ember only when you are genuinely out of headroom now.
+  const isOutOfCredits = !!data && data.enabled && data.balanceCredits + data.topupCredits <= 0;
 
   return (
-    <div style={{ display: "grid", gap: 16 }}>
+    <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <PaymentTestModeBanner />
       {/* Voucher redeem entry point (the user-facing caller for redeemVoucher). */}
       <RedeemCodeCard />
 
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          Balance
-        </div>
-        <div className="font-display" style={{ fontSize: 28, marginTop: 4 }}>
-          {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "-"}
-          <span style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", marginLeft: 8 }}>
+      <div style={cardStyle()}>
+        <ObsidianMonoLabel>Balance</ObsidianMonoLabel>
+        <div
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 28,
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            marginTop: "var(--space-1)",
+          }}
+        >
+          {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "--"}
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-subtle)",
+              marginLeft: "var(--space-2)",
+            }}
+          >
             credits
           </span>
         </div>
         {data && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginTop: 12, fontSize: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "var(--space-6)",
+              marginTop: "var(--space-3)",
+            }}
+          >
             <div>
+              <ObsidianMonoLabel>Monthly grant</ObsidianMonoLabel>
               <div
-                className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}
+                style={{
+                  marginTop: "var(--space-1)",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  color: "var(--text-body)",
+                }}
               >
-                Monthly grant
+                {data.monthlyGrantCredits.toLocaleString()}
               </div>
-              <div style={{ marginTop: 2 }}>{data.monthlyGrantCredits.toLocaleString()}</div>
             </div>
             <div>
+              <ObsidianMonoLabel>Purchased top-ups</ObsidianMonoLabel>
               <div
-                className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}
+                style={{
+                  marginTop: "var(--space-1)",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  color: "var(--text-body)",
+                }}
               >
-                Purchased top-ups
+                {data.topupCredits.toLocaleString()}
               </div>
-              <div style={{ marginTop: 2 }}>{data.topupCredits.toLocaleString()}</div>
             </div>
             {cycleLabel && (
               <div>
+                <ObsidianMonoLabel>Cycle started</ObsidianMonoLabel>
                 <div
-                  className="mono-label"
-                  style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}
+                  style={{
+                    marginTop: "var(--space-1)",
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-base)",
+                    color: "var(--text-body)",
+                  }}
                 >
-                  Cycle started
+                  {cycleLabel}
                 </div>
-                <div style={{ marginTop: 2 }}>{cycleLabel}</div>
               </div>
             )}
           </div>
         )}
         {data && !data.enabled && (
-          <p style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 10 }}>
+          <p style={helperTextStyle()}>
             Metering is off while we finish the credits rollout. Top-ups are recorded and will count
             once metering turns on.
           </p>
@@ -866,22 +994,16 @@ function CreditsTabInner() {
       </div>
 
       {/* ===== Where your credits go (WM-M16 usage attribution) ===== */}
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          Where your credits go
-        </div>
+      <div style={cardStyle()}>
+        <ObsidianMonoLabel>Where your credits go</ObsidianMonoLabel>
         {(() => {
           const a = attribution.data;
           if (attribution.isLoading) {
-            return (
-              <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "10px 0 0" }}>
-                Loading…
-              </p>
-            );
+            return <p style={helperTextStyle()}>Loading…</p>;
           }
           if (!a || a.totalDebited <= 0) {
             return (
-              <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "10px 0 0" }}>
+              <p style={helperTextStyle()}>
                 {data && !data.enabled
                   ? "Usage breakdown appears once metering is on. You'll see which products and teammates spent credits this cycle."
                   : "No credits spent this cycle yet. Usage by product and teammate will appear here."}
@@ -890,23 +1012,39 @@ function CreditsTabInner() {
           }
           const max = Math.max(...a.byProduct.map((p) => p.credits), 1);
           return (
-            <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-              <div style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)" }}>
+            <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-2)" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  color: "var(--text-subtle)",
+                }}
+              >
                 {a.totalDebited.toLocaleString()} credits spent this cycle
               </div>
               {a.byProduct.slice(0, 8).map((p) => (
-                <div key={p.id ?? "unattributed"} style={{ display: "grid", gap: 4 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }}>
-                    <span style={{ color: "var(--ink, #1d1a14)" }}>{p.name}</span>
-                    <span style={{ color: "var(--ink-subtle, #6b6457)" }}>
+                <div
+                  key={p.id ?? "unattributed"}
+                  style={{ display: "grid", gap: "var(--space-1)" }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-base)",
+                    }}
+                  >
+                    <span style={{ color: "var(--text-primary)" }}>{p.name}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}>
                       {p.credits.toLocaleString()}
                     </span>
                   </div>
                   <div
                     style={{
                       height: 6,
-                      borderRadius: 99,
-                      background: "var(--hairline, rgba(0,0,0,0.08))",
+                      borderRadius: "var(--radius-pill)",
+                      background: "var(--raised)",
                       overflow: "hidden",
                     }}
                   >
@@ -914,14 +1052,21 @@ function CreditsTabInner() {
                       style={{
                         width: `${Math.round((p.credits / max) * 100)}%`,
                         height: "100%",
-                        background: "var(--ember, #c2602e)",
+                        background: "var(--tangerine)",
                       }}
                     />
                   </div>
                 </div>
               ))}
               {a.byMember.length > 1 && (
-                <div style={{ fontSize: 11, color: "var(--ink-faint, #8a8377)", marginTop: 4 }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-micro)",
+                    color: "var(--text-faint)",
+                    marginTop: "var(--space-1)",
+                  }}
+                >
                   Across {a.byMember.length} teammates this cycle.
                 </div>
               )}
@@ -933,46 +1078,56 @@ function CreditsTabInner() {
       <CreditCapsCard />
 
       {/* ===== Pick a bundle ===== */}
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
+      <div style={cardStyle()}>
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
             justifyContent: "space-between",
-            gap: 12,
+            gap: "var(--space-3)",
             flexWrap: "wrap",
           }}
         >
           <div>
-            <div
-              className="mono-label"
-              style={{ fontSize: 9, color: "var(--ember, #c2602e)", letterSpacing: "0.18em" }}
-            >
-              One-time top-ups
-            </div>
-            <div
-              className="font-display"
-              style={{ fontSize: 22, marginTop: 4, fontWeight: 500, letterSpacing: "-0.01em" }}
-            >
+            <ObsidianMonoLabel>One-time top-ups</ObsidianMonoLabel>
+            <div style={{ ...cardTitleStyle(), marginTop: "var(--space-1)" }}>
               Buy credits without changing your plan
             </div>
-            <p style={{ fontSize: 12, color: "var(--ink-muted, #4a4438)", margin: "4px 0 0" }}>
-              Credits land in your balance and stay until used. Higher bundles unlock a better
+            <p
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-body)",
+                margin: "var(--space-1) 0 0",
+                lineHeight: "var(--leading-body)",
+              }}
+            >
+              Credits land in your balance and stay until used. Higher bundles get a better
               per-credit rate.
             </p>
           </div>
           {selectedBundle && (
             <div style={{ textAlign: "right" }}>
+              <ObsidianMonoLabel>Your selection</ObsidianMonoLabel>
               <div
-                className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 24,
+                  lineHeight: 1,
+                  marginTop: "var(--space-1)",
+                  color: "var(--text-primary)",
+                }}
               >
-                Your selection
-              </div>
-              <div className="font-display" style={{ fontSize: 28, lineHeight: 1, marginTop: 4 }}>
                 {fmtPrice(selectedBundle.priceCents)}
               </div>
-              <div style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", marginTop: 2 }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-micro)",
+                  color: "var(--text-subtle)",
+                  marginTop: "var(--space-1)",
+                }}
+              >
                 {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
                 {(selectedBundle.priceCents / selectedBundle.credits / 100).toFixed(3)} $/credit
               </div>
@@ -981,18 +1136,10 @@ function CreditsTabInner() {
         </div>
 
         {/* Starter tiers */}
-        <div style={{ marginTop: 18 }}>
-          <div
-            className="mono-label"
-            style={{
-              fontSize: 9,
-              color: "var(--ink-faint, #8a8377)",
-              letterSpacing: "0.14em",
-              marginBottom: 8,
-            }}
-          >
+        <div style={{ marginTop: "var(--space-4)" }}>
+          <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
             Starter packs
-          </div>
+          </ObsidianMonoLabel>
           <BundleGrid
             bundles={starterBundles}
             selectedKey={selectedKey}
@@ -1006,18 +1153,10 @@ function CreditsTabInner() {
 
         {/* Scale tiers */}
         {scaleBundles.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <div
-              className="mono-label"
-              style={{
-                fontSize: 9,
-                color: "var(--ink-faint, #8a8377)",
-                letterSpacing: "0.14em",
-                marginBottom: 8,
-              }}
-            >
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
               At scale &middot; better per-credit rate
-            </div>
+            </ObsidianMonoLabel>
             <BundleGrid
               bundles={scaleBundles}
               selectedKey={selectedKey}
@@ -1031,9 +1170,9 @@ function CreditsTabInner() {
         )}
 
         {selectedBundle && (
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-            <button
-              className="btn btn-primary btn-sm"
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-4)" }}>
+            <ObsidianButton
+              variant={isOutOfCredits ? "primary" : "secondary"}
               disabled={remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom}
               onClick={() =>
                 openTopUp(
@@ -1044,17 +1183,18 @@ function CreditsTabInner() {
             >
               Buy {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
               {fmtPrice(selectedBundle.priceCents)}
-            </button>
+            </ObsidianButton>
           </div>
         )}
 
         {data && (
-          <p style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", margin: "12px 0 0" }}>
+          <p style={helperTextStyle()}>
             This cycle: {data.cycleTopupCredits.toLocaleString()} of{" "}
-            {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more? &nbsp;
+            {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more?{" "}
             <a
               href="mailto:sales@cadence.app?subject=Enterprise%20credits"
-              style={{ color: "var(--ember, #c2602e)" }}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{ color: "var(--blossom)" }}
             >
               Talk to sales for volume pricing
             </a>
@@ -1063,21 +1203,23 @@ function CreditsTabInner() {
         )}
       </div>
 
-      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          Recent activity
-        </div>
+      <div style={cardStyle()}>
+        <ObsidianMonoLabel>Recent activity</ObsidianMonoLabel>
         {credits.isLoading ? (
-          <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "10px 0 0" }}>
-            Loading…
-          </p>
+          <p style={helperTextStyle()}>Loading…</p>
         ) : data && data.ledger.length === 0 && data.topups.length === 0 ? (
-          <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "10px 0 0" }}>
+          <p style={helperTextStyle()}>
             No activity yet. Your grants, debits, and top-ups will appear here.
           </p>
         ) : (
           <ul
-            style={{ listStyle: "none", padding: 0, margin: "10px 0 0", display: "grid", gap: 6 }}
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: "var(--space-3) 0 0",
+              display: "grid",
+              gap: "var(--space-1)",
+            }}
           >
             {data?.topups.map((t) => (
               <li
@@ -1085,21 +1227,28 @@ function CreditsTabInner() {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  gap: 12,
-                  fontSize: 12,
-                  padding: "6px 0",
-                  borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.06))",
+                  gap: "var(--space-3)",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  padding: "var(--space-2) 0",
+                  borderBottom: "1px solid var(--hairline)",
                 }}
               >
-                <span>
+                <span style={{ color: "var(--text-primary)" }}>
                   Top-up &middot;{" "}
-                  <span style={{ color: "var(--ink-subtle, #6b6457)" }}>{t.price_lookup_key}</span>
+                  <span style={{ color: "var(--text-subtle)" }}>{t.price_lookup_key}</span>
                 </span>
-                <span style={{ color: "var(--emerald, #2f8f6b)" }}>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--moss)" }}>
                   +{Number(t.credits_added).toLocaleString()} credits
                 </span>
                 <span
-                  style={{ color: "var(--ink-faint, #8a8377)", minWidth: 90, textAlign: "right" }}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-micro)",
+                    color: "var(--text-faint)",
+                    minWidth: 90,
+                    textAlign: "right",
+                  }}
                 >
                   {new Date(t.created_at).toLocaleDateString()}
                 </span>
@@ -1111,27 +1260,34 @@ function CreditsTabInner() {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  gap: 12,
-                  fontSize: 12,
-                  padding: "6px 0",
-                  borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.06))",
+                  gap: "var(--space-3)",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "var(--text-base)",
+                  padding: "var(--space-2) 0",
+                  borderBottom: "1px solid var(--hairline)",
                 }}
               >
-                <span>
+                <span style={{ color: "var(--text-primary)" }}>
                   {row.reason}
                   {row.surface ? ` · ${row.surface}` : ""}
                 </span>
                 <span
                   style={{
-                    color:
-                      row.delta_credits >= 0 ? "var(--emerald, #2f8f6b)" : "var(--ink, #1d1a14)",
+                    fontFamily: "var(--font-mono)",
+                    color: row.delta_credits >= 0 ? "var(--moss)" : "var(--text-body)",
                   }}
                 >
                   {row.delta_credits >= 0 ? "+" : ""}
                   {Number(row.delta_credits).toLocaleString()} credits
                 </span>
                 <span
-                  style={{ color: "var(--ink-faint, #8a8377)", minWidth: 90, textAlign: "right" }}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-micro)",
+                    color: "var(--text-faint)",
+                    minWidth: 90,
+                    textAlign: "right",
+                  }}
                 >
                   {new Date(row.created_at).toLocaleDateString()}
                 </span>

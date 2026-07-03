@@ -6,15 +6,20 @@
  * to prove: "the system gets measurably better at this workspace's decisions
  * as its memory grows, and here is the curve." Sparse data reads honestly,
  * never an invented number. Spec: docs/features/proof-surface.md.
+ *
+ * Obsidian v3 chrome pass (2026-07-03): this file renders only the tab BODY
+ * — the parent route (_authenticated.admin.tsx) already supplies the TopBar,
+ * the Newsreader question header, and the mono sub-tab bar. No lucide icons;
+ * cards use var(--card) / var(--hairline) / var(--radius-card); a trend word
+ * maps to moss (improving) or madder (worsening), the outcome-color law.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { ShieldCheck, GitMerge, Radar } from "lucide-react";
 import { getMoatMetrics } from "@/lib/observability.functions";
 import { getProofSurfaceExtras } from "@/lib/proof-surface.functions";
 import type { Trend } from "@/lib/gauntlet-metrics";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
 import { GauntletMetricsPanel } from "@/components/observe/GauntletMetricsPanel";
 
 export const Route = createFileRoute("/_authenticated/admin/proof")({
@@ -31,41 +36,68 @@ function trendWord(t: Trend | undefined, upIsGood: boolean): string {
   return rising === upIsGood ? "improving" : "worsening";
 }
 
-function ExtraCard({
-  icon: Icon,
+/** Outcome color for a trend word: moss = positive, madder = negative, muted
+ * = flat / nothing to call yet. Role colors mark a real outcome only, never
+ * decoration (DESIGN-OBSIDIAN.md role-color law). */
+function trendTone(word: string): MonoLabelTone {
+  if (word === "improving") return "moss";
+  if (word === "worsening") return "madder";
+  return "muted";
+}
+
+const cardStyle = {
+  background: "var(--card)",
+  border: "1px solid var(--hairline)",
+  borderRadius: "var(--radius-card)",
+  padding: "var(--space-4)",
+};
+
+const cardNumberStyle = {
+  fontFamily: "var(--font-serif)",
+  fontWeight: 460,
+  fontSize: 26,
+  lineHeight: 1.3,
+};
+
+const cardMeaningStyle = {
+  fontFamily: "var(--font-ui)",
+  fontSize: 12.5,
+  lineHeight: 1.5,
+  color: "var(--text-body)",
+  marginTop: 8,
+};
+
+function StatCard({
   label,
   value,
   meaning,
   substat,
+  substatTone = "muted",
   loading,
 }: {
-  icon: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
   label: string;
   value: string;
   meaning: string;
   substat: string;
+  substatTone?: MonoLabelTone;
   loading: boolean;
 }) {
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <MonoLabel icon={Icon} style={{ marginBottom: 6 }}>
-        {label}
+    <div style={cardStyle}>
+      <MonoLabel style={{ marginBottom: 8, display: "block" }}>{label}</MonoLabel>
+      <div
+        className="tabular-nums"
+        style={{
+          ...cardNumberStyle,
+          color: value === "-" ? "var(--text-faint)" : "var(--text-primary)",
+        }}
+      >
+        {loading ? "···" : value}
+      </div>
+      <p style={cardMeaningStyle}>{meaning}</p>
+      <MonoLabel tone={substatTone} style={{ marginTop: 10, display: "block" }}>
+        {loading ? "reading…" : substat}
       </MonoLabel>
-      <div
-        className="font-display tabular-nums"
-        style={{ fontSize: 26, color: value === "-" ? "var(--ink-faint)" : "var(--ink)" }}
-      >
-        {loading ? "…" : value}
-      </div>
-      <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 8, lineHeight: 1.45 }}>
-        {meaning}
-      </p>
-      <div
-        className="mono-label"
-        style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 8 }}
-      >
-        {loading ? "loading…" : substat}
-      </div>
     </div>
   );
 }
@@ -79,11 +111,7 @@ function AdminReceiptsRollup() {
   });
 
   if (q.isLoading) {
-    return (
-      <p className="mono-label" style={{ color: "var(--ink-subtle)", marginTop: 12 }}>
-        loading…
-      </p>
-    );
+    return <MonoLabel style={{ marginTop: 12, display: "block" }}>reading…</MonoLabel>;
   }
   if (!q.data || "error" in q.data) {
     return null; // AdminLayout already gates access; a transient error here just hides the section.
@@ -103,38 +131,43 @@ function AdminReceiptsRollup() {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 12 }}>
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 6 }}>Decisions recorded</MonoLabel>
-        <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+      <div style={cardStyle}>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Decisions recorded</MonoLabel>
+        <div className="tabular-nums" style={{ ...cardNumberStyle, color: "var(--text-primary)" }}>
           {decisionVelocity.length === 0 ? "-" : decisionsInWindow}
         </div>
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 8 }}>
+        <p style={cardMeaningStyle}>
           Across every workspace, weekly velocity (up to 200 weeks of history).
         </p>
       </div>
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 6 }}>Outcome rate, avg</MonoLabel>
-        <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+      <div style={cardStyle}>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Outcome rate, avg</MonoLabel>
+        <div className="tabular-nums" style={{ ...cardNumberStyle, color: "var(--text-primary)" }}>
           {avgSupersessionPct == null ? "-" : pct1(avgSupersessionPct)}
         </div>
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 8 }}>
+        <p style={cardMeaningStyle}>
           Share of decisions closed by a real result, averaged across agents.
         </p>
       </div>
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 6 }}>Cost / decision, avg</MonoLabel>
-        <div className="font-display tabular-nums" style={{ fontSize: 26 }}>
+      <div style={cardStyle}>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Cost / decision, avg</MonoLabel>
+        <div className="tabular-nums" style={{ ...cardNumberStyle, color: "var(--text-primary)" }}>
           {avgCostPerDecision == null ? "-" : `$${avgCostPerDecision.toFixed(4)}`}
         </div>
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 8 }}>
+        <p style={cardMeaningStyle}>
           Rolling 30 days, averaged across agents with recorded decisions.
         </p>
       </div>
       <div style={{ gridColumn: "1 / -1" }}>
         <Link
           to="/admin/ai-costs"
-          className="mono-label"
-          style={{ fontSize: 10, color: "var(--ink-subtle)" }}
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-label)",
+            letterSpacing: "0.11em",
+            color: "var(--blossom)",
+          }}
         >
           View the full per-week / per-agent tables →
         </Link>
@@ -154,21 +187,23 @@ function AdminProof() {
 
   const tax = extras?.babysittingTax;
   const taxValue = tax == null || !tax.tableReady ? "-" : String(tax.weeklyGated.at(-1) ?? 0);
+  const taxTrend = tax != null && tax.tableReady ? trendWord(tax.trend, false) : null;
   const taxSub =
     tax == null
       ? ""
       : !tax.tableReady
         ? "not enough data yet."
-        : `${trendWord(tax.trend, false)} · last 8 weeks: ${tax.weeklyGated.join(", ")}`;
+        : `${taxTrend} · last 8 weeks: ${tax.weeklyGated.join(", ")}`;
 
   const sup = extras?.supersessionsCaught;
   const supValue = sup == null ? "-" : String(sup.total);
+  const supTrend = sup != null && sup.total > 0 ? trendWord(sup.trend, true) : null;
   const supSub =
     sup == null
       ? ""
       : sup.total === 0
         ? "not enough data yet. No supersessions caught in the last 60 days."
-        : `${sup.last30d} in the last 30 days · ${trendWord(sup.trend, true)}`;
+        : `${sup.last30d} in the last 30 days · ${supTrend}`;
 
   const fs01 = extras?.predictionHitRate;
   const fs01Value =
@@ -177,12 +212,21 @@ function AdminProof() {
     fs01 == null
       ? ""
       : !fs01.tableReady
-        ? "not enough data yet. FS-01 prediction calibration is not live yet."
+        ? "not enough data yet. This calibration is not live yet."
         : `${fs01.hits} of ${fs01.total} predictions called correctly`;
 
   return (
     <div style={{ marginTop: 12 }}>
-      <p className="mono-label" style={{ color: "var(--ink-subtle)", margin: 0, lineHeight: 1.5 }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 14,
+          lineHeight: 1.5,
+          color: "var(--text-body)",
+          margin: 0,
+          maxWidth: 720,
+        }}
+      >
         The proof surface: the system gets measurably better at this workspace's decisions as its
         memory grows, and here is the curve. Every number below reads from real tables; sparse
         windows say "not enough data yet", never an invented figure.
@@ -193,36 +237,31 @@ function AdminProof() {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <MonoLabel icon={GitMerge} style={{ marginBottom: 8 }}>
-          The receipts: admin materialized views
-        </MonoLabel>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>The receipts</MonoLabel>
         <AdminReceiptsRollup />
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <MonoLabel icon={ShieldCheck} style={{ marginBottom: 8 }}>
-          The remainder of the moat proof
-        </MonoLabel>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>The rest of the proof</MonoLabel>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-          <ExtraCard
-            icon={ShieldCheck}
+          <StatCard
             label="Babysitting tax, weekly"
             value={taxValue}
             meaning="Gated (human-decided) approval requests landing on you per week. Falling means the loop is earning more trust and asking less."
             substat={taxSub}
+            substatTone={taxTrend ? trendTone(taxTrend) : "muted"}
             loading={extrasQ.isLoading}
           />
-          <ExtraCard
-            icon={GitMerge}
+          <StatCard
             label="Supersessions caught"
             value={supValue}
             meaning="Standing decisions the loop revised or contradicted once new evidence arrived: the moat catching its own drift."
             substat={supSub}
+            substatTone={supTrend ? trendTone(supTrend) : "muted"}
             loading={extrasQ.isLoading}
           />
-          <ExtraCard
-            icon={Radar}
-            label="Prediction hit rate (FS-01)"
+          <StatCard
+            label="Prediction hit rate"
             value={fs01Value}
             meaning="Of the loop's falsifiable predictions with an expired horizon, the share that came true: the single most quotable trust artifact for a skeptic."
             substat={fs01Sub}
