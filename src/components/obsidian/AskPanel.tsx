@@ -264,7 +264,7 @@ function AskComposer({
 }
 
 export function AskPanel() {
-  const { isOpen, context, close } = useAsk();
+  const { isOpen, context, close, pendingIntent, clearPendingIntent } = useAsk();
   const [messages, setMessages] = React.useState<Msg[]>([]);
   const [streaming, setStreaming] = React.useState(false);
   const [liveStatus, setLiveStatus] = React.useState<ResearchStatus | null>(null);
@@ -375,6 +375,13 @@ export function AskPanel() {
     },
     [streaming, ensureConversation],
   );
+
+  React.useEffect(() => {
+    if (!isOpen || !pendingIntent) return;
+    const intent = pendingIntent;
+    clearPendingIntent();
+    send(intent);
+  }, [isOpen, pendingIntent, clearPendingIntent, send]);
 
   if (!isOpen) return null;
 

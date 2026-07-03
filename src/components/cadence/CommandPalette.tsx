@@ -22,7 +22,7 @@ type PaletteRow =
   | { section: "JUMP"; label: string; hint: string; to: string; search?: Record<string, string> }
   | { section: "RECENT"; label: string; kind: string; to: string; search?: Record<string, string> }
   | { section: "ACT"; label: string; to: string; search?: Record<string, string>; event?: string }
-  | { section: "ASK"; label: string; hint: string }
+  | { section: "ASK"; label: string; intent: string }
   | {
       section: "CATALOG";
       label: string;
@@ -84,11 +84,11 @@ export function CommandPalette() {
     const ql = q.toLowerCase();
     const jump = JUMP_DESTINATIONS.filter((d) => d.label.toLowerCase().includes(ql)).map(jumpToRow);
     const act = ACT_VERBS.filter((v) => v.label.toLowerCase().includes(ql)).map(actToRow);
-    const ask: PaletteRow[] = "ask cadence".includes(ql)
-      ? [{ section: "ASK", label: "Ask Cadence", hint: "⌘J" }]
-      : [];
     const catalog = filterCatalog(q).map(catalogToRow);
-    return [...jump, ...act, ...ask, ...catalog];
+    const matched = [...jump, ...act, ...catalog];
+    const ask: PaletteRow[] =
+      matched.length === 0 ? [{ section: "ASK", label: `Ask Cadence: "${q}"`, intent: q }] : [];
+    return [...matched, ...ask];
   }, [query]);
 
   useEffect(() => {
@@ -98,13 +98,12 @@ export function CommandPalette() {
   const runRow = (row: PaletteRow) => {
     setOpen(false);
     if (row.section === "ASK") {
-      window.dispatchEvent(new CustomEvent("cadence:open-ask", { detail: { seed: query } }));
-      // Ask panel (OBS-12) not mounted yet - fall back so the row is never dead.
-      navigate({ to: "/today" });
+      window.dispatchEvent(new CustomEvent("cadence:open-ask", { detail: { intent: row.intent } }));
       return;
     }
     if (row.section === "ACT" && row.event) {
-      window.dispatchEvent(new CustomEvent(row.event, { detail: { seed: query } }));
+      window.dispatchEvent(new CustomEvent(row.event, { detail: {} }));
+      if (row.event === "cadence:open-ask") return;
     }
     navigate({ to: row.to, search: row.search as never });
   };
@@ -229,8 +228,9 @@ export function CommandPalette() {
                     const rightHint =
                       row.section === "JUMP"
                         ? row.hint
-                        : row.section === "ASK"
-                          ? row.hint
+                        : row.section === "ASK" ||
+                            (row.section === "ACT" && row.event === "cadence:open-ask")
+                          ? "⌘J"
                           : row.section === "RECENT"
                             ? row.kind
                             : row.section === "CATALOG"

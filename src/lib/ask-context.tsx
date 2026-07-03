@@ -10,9 +10,12 @@ import { useRouterState } from "@tanstack/react-router";
 type AskState = {
   isOpen: boolean;
   context: string;
-  summon: (context?: string) => void;
+  pendingIntent: string | null;
+  summon: () => void;
   close: () => void;
-  toggle: (context?: string) => void;
+  toggle: () => void;
+  runIntent: (intent: string) => void;
+  clearPendingIntent: () => void;
 };
 
 const AskContext = React.createContext<AskState | null>(null);
@@ -31,7 +34,7 @@ export function contextForPath(pathname: string, missionId: string | null): stri
 
 export function AskProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [explicitContext, setExplicitContext] = React.useState<string | null>(null);
+  const [pendingIntent, setPendingIntent] = React.useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const missionId = useRouterState({
     select: (s) => {
@@ -40,29 +43,24 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const derivedContext = React.useMemo(
-    () => contextForPath(pathname, missionId),
-    [pathname, missionId],
-  );
-  const context = explicitContext ?? derivedContext;
+  const context = React.useMemo(() => contextForPath(pathname, missionId), [pathname, missionId]);
 
-  const summon = React.useCallback((ctx?: string) => {
-    setExplicitContext(ctx ?? null);
+  const summon = React.useCallback(() => {
     setIsOpen(true);
   }, []);
   const close = React.useCallback(() => {
     setIsOpen(false);
-    setExplicitContext(null);
+    setPendingIntent(null);
   }, []);
-  const toggle = React.useCallback((ctx?: string) => {
-    setIsOpen((prev) => {
-      if (prev) {
-        setExplicitContext(null);
-        return false;
-      }
-      setExplicitContext(ctx ?? null);
-      return true;
-    });
+  const toggle = React.useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
+  const runIntent = React.useCallback((intent: string) => {
+    setPendingIntent(intent);
+    setIsOpen(true);
+  }, []);
+  const clearPendingIntent = React.useCallback(() => {
+    setPendingIntent(null);
   }, []);
 
   React.useEffect(() => {
@@ -78,16 +76,30 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     const onOpenAsk = (e: Event) => {
-      const seed = (e as CustomEvent<{ seed?: string }>).detail?.seed;
-      summon(seed);
+      const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent;
+      const trimmed = intent?.trim();
+      if (trimmed) {
+        runIntent(trimmed);
+      } else {
+        summon();
+      }
     };
     window.addEventListener("cadence:open-ask", onOpenAsk);
     return () => window.removeEventListener("cadence:open-ask", onOpenAsk);
-  }, [summon]);
+  }, [summon, runIntent]);
 
   const value = React.useMemo(
-    () => ({ isOpen, context, summon, close, toggle }),
-    [isOpen, context, summon, close, toggle],
+    () => ({
+      isOpen,
+      context,
+      pendingIntent,
+      summon,
+      close,
+      toggle,
+      runIntent,
+      clearPendingIntent,
+    }),
+    [isOpen, context, pendingIntent, summon, close, toggle, runIntent, clearPendingIntent],
   );
 
   return <AskContext.Provider value={value}>{children}</AskContext.Provider>;

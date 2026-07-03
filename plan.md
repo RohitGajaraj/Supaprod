@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (CMD-1 shipped + two Ask bugs fixed, lane1)
+
+The founder asked why the CMD (H2) row read only 40% done, and separately why he could not find "Ask" anywhere in the app as a consumer. Both questions traced to the same code. CMD (H2)'s three-slice roadmap (`docs/features/command-canvas.md`) had CMD-0 shipped (the canvas preview blocks) but CMD-1 (elevate `⌘K` into an NL intent bar) and CMD-2 (direct manipulation) both open. Investigating the Ask-visibility question found the real cause was not a missing UI affordance but two latent bugs sitting in the exact code CMD-1's own roadmap line names.
+
+**Bug 1:** selecting the palette's "Ask about this screen" row dispatched the open-ask event and then unconditionally navigated to `/today`, stamped with a stale comment claiming the Ask panel "not mounted yet" (false since OBS-12 shipped it as a 420px `⌘J` slide-over). This silently destroyed whatever screen's context the user actually wanted to ask about.
+
+**Bug 2:** the event carried the typed text as `detail.seed`, which `ask-context.tsx` only ever used to set a fake `About: <text>` context-chip label. Free text typed into the palette was never actually sent as a question; a user would have to retype it inside the Ask composer.
+
+**Fixed both, and shipped CMD-1 in the same pass** (the fix and the feature turned out to be the same code): `src/lib/ask-context.tsx` dropped the dead `explicitContext` override (context is now always the route-derived label) and added `pendingIntent`/`runIntent()`/`clearPendingIntent()`; `src/components/obsidian/AskPanel.tsx` gained a one-shot effect that auto-runs a queued intent through the existing, unmodified `send()`/`/api/chat` pipeline; `src/components/cadence/CommandPalette.tsx`'s Ask-opening row no longer navigates, and a query matching nothing in JUMP/ACT/CATALOG now falls through to a live `Ask Cadence: "<query>"` row instead of a dead "Nothing by that name" - which is CMD-1 itself, reusing CMD-0's canvas blocks with zero new UI. Existing JUMP/ACT/CATALOG matching is untouched.
+
+Deliberately did **not** add a persistent visible Ask button or a second onboarding coach mark to fix discoverability: `DESIGN-OBSIDIAN.md` bans new nav items, badges, and banners, and this product keeps exactly one coach mark, ever (`TodayCoachMark.tsx`, "there is no tour and no second mark"). Read the design contract via the `cadence-design` skill before touching anything, which is what surfaced this constraint.
+
+Gates: `tsc --noEmit` 0 · `bun test` 2299/2299 pass, zero regressions · verified by an independent adversarial-correctness review and an independent design-compliance review (both clean, run in parallel after implementation). Dashboard row 46 (CMD (H2)) `[~40%]` → `[~70%]`, still `◐` (CMD-2, direct manipulation in the canvas, remains open and needs its own design pass first - no editable-artifact surface exists yet for it to attach to). Full detail: `docs/features/command-canvas.md` (CMD-1 build note).
+
 ### 2026-07-03 (OBS-10's lane3 slice ◐: `/stakeholder` folded into Plan, `/fleet` + `/delegate` folded into Build, lane3)
 
 Picked up OBS-10's remaining Plan/Build fold, one of the item's 3 remaining parallel slices (lane1 has `/impact`+`/changelog`, lane2 has `/product`). Two disjoint workstreams, built and self-verified independently, then adversarially reviewed by a second independent pass before shipping.
