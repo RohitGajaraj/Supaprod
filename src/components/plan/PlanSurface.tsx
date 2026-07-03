@@ -4,6 +4,7 @@ import { Surface } from "@/components/obsidian/Surface";
 import { RoadmapColumns } from "./RoadmapColumns";
 import { SpecList } from "./SpecList";
 import { SpecDetail } from "./SpecDetail";
+import { StakeholderPackPanel } from "./StakeholderPackPanel";
 
 /**
  * OBS-07 §5 step 7: the Plan orchestrator. 1160px container, the outcome-roadmap
@@ -49,6 +50,11 @@ export function PlanSurface() {
         <MonoLabel>Specs, with their receipts.</MonoLabel>
       </div>
       <SpecList onOpen={setSpecOpen} />
+
+      <div style={{ marginTop: 40, marginBottom: 12 }}>
+        <MonoLabel>Stakeholder Pack.</MonoLabel>
+      </div>
+      <StakeholderPackPanel />
 
       <SpecDetail id={specOpen} onClose={() => setSpecOpen(null)} />
     </Surface>

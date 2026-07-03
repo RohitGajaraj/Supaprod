@@ -46,9 +46,6 @@ export const DOOR_INTERNAL_PATHS = [
   "/traces",
   "/traces/$traceId",
   "/prds/$id",
-  "/stakeholder",
-  "/fleet",
-  "/delegate",
   "/product",
 ] as const;
 
@@ -85,16 +82,20 @@ export const DOOR_INTERNAL_PATHS = [
  *   dispatch, Releases' AnnouncementsManager approval workflow, Roadmap's
  *   bulk-update) with no home yet on `/plan` or elsewhere - a materially
  *   larger, separate effort, not part of this row's remaining scope.
- * - `/stakeholder` - audience-specific pack generation (exec/eng/board,
- *   copy/download); Plan's roadmap view has no equivalent.
- * - `/fleet`, `/delegate` - agent-capacity and delegation-queue views with
- *   no Build equivalent.
  *
  * `/impact` and `/changelog` closed 2026-07-03 (lane1, OBS-10 Brain fold):
  * Brain gained an `ImpactLedgerPanel` ("Impact" tab, the full 4-stat
  * breakdown + highlights + copy/download + markdown preview BrainStatTrio's
  * strip only summarized) and a `ChangelogPanel` ("Changelog" tab, net-new -
  * Brain had zero prior changelog coverage). Both fold into `/knowledge` below.
+ *
+ * `/stakeholder` closed 2026-07-03 (lane3, OBS-10 Plan fold): Plan gained a
+ * "Stakeholder Pack." section (`StakeholderPackPanel`, the same decision
+ * picker + exec/eng/board tabs + copy/download the legacy page had).
+ * `/fleet` and `/delegate` closed 2026-07-03 (lane3, OBS-10 Build fold):
+ * Build gained two orthogonal view-mode tabs, "By Agent" (`FleetView`) and
+ * "By Lane" (`DelegateBoard`), both reusing `computeAgentFleet`/
+ * `computeDelegateDesk` unchanged. All three fold below.
  *
  * These are flagged to the founder per OBS-10.md §13 (URL renames + scope);
  * each is real product functionality that would be deleted, not merely
@@ -110,6 +111,11 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Plan --
   "/prds": { to: "/plan" }, // bare list only; /prds/$id stays live (see above)
   "/roadmap": { to: "/plan", search: { view: "roadmap" } },
+  // OBS-10 (2026-07-03, resumed, lane3): Plan gained a "Stakeholder Pack."
+  // section (StakeholderPackPanel, same decision picker + exec/eng/board
+  // tabs + copy/download the legacy page had) - no longer in the
+  // "Genuinely remaining work" list above.
+  "/stakeholder": { to: "/plan" },
 
   // -- Brain (canonical /knowledge) --
   "/memory": { to: "/knowledge", search: { tab: "memory" } },
@@ -132,6 +138,13 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // 530-line detail-page gap) are resolved; this is no longer in the
   // "Deliberately NOT folded" list above.
   "/missions": { to: "/build" },
+  // OBS-10 (2026-07-03, resumed, lane3): Fleet and Delegate folded in as two
+  // orthogonal view-mode tabs on Build (by-agent and by-lane lenses on the
+  // same agent-mesh activity, ported unchanged from computeAgentFleet /
+  // computeDelegateDesk) - both no longer in the "Genuinely remaining work"
+  // list above.
+  "/fleet": { to: "/build", search: { view: "agent" } },
+  "/delegate": { to: "/build", search: { view: "lane" } },
 
   // -- Today --
   "/tasks": { to: "/today" },
