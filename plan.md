@@ -283,6 +283,16 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-03 (security fix: SSRF trailing-dot bypass in isPublicHost, lane4)
+
+An automated background security review flagged `isPublicHost` (`src/lib/design-memory.functions.ts`, DSN-01's SSRF guard for `importDesignMemoryFromUrl`) for a HIGH-severity URL-allowlist bypass. Verified exploitable before fixing: `new URL("http://localhost./x").hostname` returns `"localhost."` with the trailing dot preserved verbatim (confirmed directly with `node -e`), and any DNS resolver treats a trailing dot as denoting the root — `localhost.` resolves identically to `localhost`. Every check in `isPublicHost` was an exact `===` or `.endsWith()` match against literal strings (`"localhost"`, `"metadata.google.internal"`, `.internal`, `.local`, etc.), none of which match once a single `.` is appended, so the entire blocklist was bypassable this way (`http://localhost./x`, `http://metadata.google.internal./x`, `http://evil.internal./x`).
+
+Fix: normalize `host.toLowerCase().replace(/\.+$/, "")` once, before any comparison — one line, no behavior change for any already-passing input. Added a regression test (`design-memory.functions.test.ts`, "blocks a trailing-dot bypass") covering the exact bypass strings plus a check that a legitimate public host with a trailing dot (`example.com.`) still passes through unaffected.
+
+This is the same file DSN-01's original build already had a dispatched `ecc:security-reviewer` pass over (which caught 2 different SSRF issues — an unvalidated-redirect pivot and an IPv4-mapped-IPv6 bypass — plus a prompt-injection framing gap, all fixed before that ship). This trailing-dot variant was missed in that pass; closing it now with the same rigor and the same "verify exploitable, then fix, then add a regression test" discipline.
+
+**Gates:** `tsc --noEmit` 0 (pre-existing stripe-module errors only) · `bun test` 2191/2192 pass (the 1 fail + 1 error are the same pre-existing env/dependency issues as every other item this session) · `design-memory.functions.test.ts` in isolation: 17/17 pass (was 16, +1 for this fix) · `eslint`/`prettier` clean on both touched files. Doc: `docs/features/design-memory.md` (Governance + Verification checklist sections updated in the same session).
+
 ### 2026-07-03 (DSN-04 The design contract rides into Build shipped, lane4)
 
 v12 §6: design intent dies at the codegen handoff in every AI pipeline today. DSN-01 (design memory) and DSN-03 (flow graphs) both already exist as structured artifacts a spec carries; this is where they survive the one step that actually matters, the handoff into the agent doing the building.

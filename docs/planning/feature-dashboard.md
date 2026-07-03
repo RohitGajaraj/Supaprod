@@ -181,20 +181,20 @@ Billing / Stripe: `M-C-PRICE`, `WM-M3`, `WM-M13`. Credit engine (already shipped
 - _By priority class (live, 2026-07-03, fresh over the fully-merged register): **Tier 1 = 2** (OBS-PORT [~80%] + OBS-10 [~75%]), **Tier 2 = 2** (OBS-13+15 + JNY-05 [~85%]), **Gated = 9** (👤 founder-marked: SANDBOX, WM-M9, BYO-P5, CMD (H2) + v12's RF-06/RF-07/AGT-01/AGT-02/DSN-05), Deferred = 2 (⏭️), Partial = 7, Done = 276. **v11 Tier-1 front COMPLETE. ALL AFD/analytics ✅. The full CNV-01..04 arc closed. The full v12 design leg DSN-01..04 closed. No row is 🔨 In Dev right now — every remaining open row is either Gated (👤 founder) or a partial's own genuine, documented remainder.**_
 
 
-- **By status (of 292 total), with weighted contribution to the roll-up (refreshed 2026-07-03 post-DSN-04/AGT-03/DSN-03-reclaim, computed fresh via a corrected per-row awk over the fully-merged register — a prior version of this table's `s=="◐"`/`s=="🔨"` exact-match checks zero-weighted any bracket- or lane-suffix-annotated row; fixed to a prefix match so every `[~NN%]` partial and every `(laneN, date)`-suffixed In-Dev row is weighted correctly):**
+- **By status (of 292 total), with weighted contribution to the roll-up (refreshed 2026-07-03 post-DSN-03-close, computed fresh via a corrected per-row awk over the fully-merged register — a prior version of this table's `s=="◐"`/`s=="🔨"` exact-match checks zero-weighted any bracket- or lane-suffix-annotated row; fixed to a prefix match so every `[~NN%]` partial and every `(laneN, date)`-suffixed In-Dev row is weighted correctly. This exact table was independently audited and found stale-by-one-row after DSN-03's ✅ close; this is the corrected recompute):**
 
 | Status | Count | Item % | Weighted contribution |
 | --- | --- | --- | --- |
-| ✅ Done | 275 | 100% | 275.0 |
+| ✅ Done | 276 | 100% | 276.0 |
 | ◐ Partial | 7 | per-row `[~NN%]` (OBS-PORT 80%, JNY-05 85%, OBS-10 75%, OBS-13 70%, OBS-15 55%, SANDBOX/BYO-P5 50% default) | 4.65 |
 | ⏸️ Paused | 0 | 50% | 0.0 |
-| 🔨 In Dev | 1 | 50% (DSN-03 lane1) | 0.5 |
+| 🔨 In Dev | 0 | 50% | 0.0 |
 | ⬜ Open | 7 | 0% | 0.0 |
 | ⏭️ Deferred | 2 | 0% | 0.0 |
 | 🚧 Blocked | 0 | 0% | 0.0 |
-| **Total** | **292** | - | **280.15 / 292 = 95.9%** |
+| **Total** | **292** | - | **280.65 / 292 = 96.1%** |
 
-- **By category (Total / Done / Open / Weighted %), most-complete first** - shows which lanes are nearly closed and which are barely started. _(Recomputed fresh from the fully-merged register 2026-07-03: Foundational 37/39 = 95% (AGT-03), Build 20/22 = 91% (DSN-04). Every category verified via a fresh per-category awk over the live register, not hand-incremented.)_
+- **By category (Total / Done / Open / Weighted %), most-complete first** - shows which lanes are nearly closed and which are barely started. _(Recomputed fresh from the fully-merged register 2026-07-03: DSN-03's ✅ close moves Define 6/8 → 7/8 = 87.5%. Every category verified via a fresh per-category awk over the live register, not hand-incremented.)_
 
 | Category | Total | Done | Open | Done % |
 | --- | --- | --- | --- | --- |
@@ -211,10 +211,10 @@ Billing / Stripe: `M-C-PRICE`, `WM-M3`, `WM-M13`. Credit engine (already shipped
 | Launch | 16 | 15 | 1 | 94% |
 | Build | 22 | 20 | 2 | 91% |
 | Cockpit | 42 | 37 | 5 | 88% |
+| Define | 8 | 7 | 1 | 88% |
 | BYO | 8 | 7 | 1 | 88% |
 | Knowledge | 11 | 9 | 2 | 82% |
-| Define | 8 | 6 | 2 | 75% |
-| **Total** | **292** | **275** | **17** | **94.2%** |
+| **Total** | **292** | **276** | **16** | **94.5%** |
 
 > **Pick-order is THE BUILD SEQUENCE above** (founder ruling 2026-06-21): build the lowest open number, do not deliberate. The tier law (foundation/core/USP, then design, then non-essential, then final polish) and the rationale live in the Build Sequence section + [`../../AGENTS.md`](../../AGENTS.md) §3 "Build Sequence" + the SSOT ([`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §0). Positioning rationale: v10 ([`v10-master-blueprint`](../strategy/v10-master-blueprint.md) §15-16) + moat.md. **The TOPMOST priority is the Decision Brain (H1); the monetization + credit + billing + admin block (WM-M*, M-C-*, BYO-P4) is CLOSED 🔒 (build-complete; founder go-live config only — do NOT re-pick, see the 🔒 banner above); the WM tenancy spine (WM-F*) stays Claude-owned; BYO (BYO-*) awaits founder greenlight.** The Priority column on each row is now superseded by the Build Sequence number for pick-order; it stays as a coarse tier hint.
 

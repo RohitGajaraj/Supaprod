@@ -84,6 +84,12 @@ to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improv
 - SSRF: `importDesignMemoryFromUrl` requires `https:`, rejects private/loopback/link-local IPv4,
   cluster/metadata/internal hostname suffixes, and IPv4-mapped IPv6 literals, and never follows a
   redirect (a 3xx is treated as a failed fetch, same as `connectors/mcp/client.server.ts`).
+  **2026-07-03 fix:** `isPublicHost` normalizes a trailing DNS-root dot before comparing —
+  `new URL(...).hostname` preserves it verbatim (`"localhost."`), and any resolver treats that
+  identically to the bare name, so every exact-match/`.endsWith()` blocklist check could be
+  bypassed just by appending `.` to a blocked host (`localhost.`, `metadata.google.internal.`,
+  any `*.internal.`/`*.local.`). Found by automated security review, confirmed exploitable, fixed
+  with a regression test. See `plan.md` §4 ("SSRF trailing-dot bypass").
 - Prompt injection: extracted title/content is screened with `assessAndQuarantine` before storage,
   and the prompt block that carries it into DEF-04 is explicitly framed as visual-style reference
   data only, with an instruction never to treat it as new content/links/forms/behavior.
@@ -94,8 +100,13 @@ to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improv
 ## Verification checklist
 
 - [x] `bunx tsc --noEmit` — 0 errors.
-- [x] `bun test` — 2127/2127 pass (16 new: `filterActiveDesignMemory`, `formatDesignMemoryContext`,
-      `parseExtractedItems`, and 6 `isPublicHost` SSRF cases incl. the IPv4-mapped-IPv6 bypass).
+- [x] `bun test` — 2127/2127 pass at ship (16 new: `filterActiveDesignMemory`,
+      `formatDesignMemoryContext`, `parseExtractedItems`, and 6 `isPublicHost` SSRF cases incl.
+      the IPv4-mapped-IPv6 bypass). **2026-07-03:** +1 regression test (17 total in
+      `design-memory.functions.test.ts`) for the trailing-dot bypass fix above; full suite
+      2191/2192 pass at that fix's ship (the 1 fail + 1 error are pre-existing, unrelated
+      env/dependency issues — a missing `stripe` package and missing Supabase env vars in the
+      dev shell — not a regression from this fix).
 - [ ] `bun run build` — blocked by this worktree's known pre-existing node20/ESM `vite build`
       failure (`lovable-tagger` CJS/ESM incompatibility), unrelated to this change; not a
       regression (see the dashboard's recurring note on this same limitation for OBS-02/03).

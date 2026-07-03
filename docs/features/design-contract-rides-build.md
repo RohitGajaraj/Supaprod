@@ -15,6 +15,13 @@ v12 §6: design intent dies at the codegen handoff in every AI pipeline today. D
 - No new route or panel. `dispatchStudioSession` (`src/lib/studio.functions.ts`) composes the goal automatically whenever a PRD is dispatched with design memory or a flow graph present.
 - `checkDesignParity` / `getDesignParity` (`src/lib/design-parity.functions.ts`) are callable server functions; wiring a UI trigger into an existing panel (e.g. the Build mission slide-over, alongside JNY-03's test station) is a natural follow-up, not built tonight to avoid touching a file under another lane's active claim.
 
+## Demo script (≤ 90s)
+
+N/A as a live click-through — this ships dispatch-time and return-time behavior with no UI surface yet (see "Where to find it"). The closest thing to a demo is code-level:
+
+1. Dispatch a PRD with approved design memory and a generated flow into Studio; open the resulting mission's `agent_runs.input` (or its goal in the mission detail) and point out the design-memory block and numbered flow steps riding alongside the PRD body.
+2. Once that mission's changeset has a `pr_url`, call `checkDesignParity({ missionId })` (e.g. via a script or the Supabase MCP) and show the new `artifact_lineage` row (`relation: "design_parity"`) it records — visible on the Trust Ledger like any other receipt.
+
 ## How it works
 
 - `formatDesignMemoryContext` (DSN-01, unchanged) + a new `formatFlowContext` (`design-parity.functions.ts`, pure, unit-tested) render the workspace's design memory and the PRD's `prd_flows` row as text blocks.
