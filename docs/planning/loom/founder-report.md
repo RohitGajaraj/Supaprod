@@ -1,6 +1,6 @@
 # Loom · the morning report
 
-> _Created: 2026-07-04 · Last updated: 2026-07-04 (early morning, mission in final waves)_
+> _Created: 2026-07-04 · Last updated: 2026-07-04 afternoon (day session: live-QA rounds shipped)_
 
 You asked for the final production-readiness pass: audit everything against
 the live app, recover the homeless features, redesign beyond v3 without
@@ -141,3 +141,40 @@ authorizing the Lovable MCP) can show why and republish.
 
 The demo seed was NOT run: the mission gates it on a stable, deployed
 production — that gate is yours to open after the publish.
+
+
+## Day session addendum (2026-07-04 afternoon)
+
+After your publish, two live-QA rounds ran against production and shipped:
+
+- `d3b23c97` page-level horizontal scroll killed on ALL v4 surfaces (your
+  Brain report; systemic flex-stretch root cause). Verified live.
+- `cd5f1cd2` the brief now LEADS Today as a composed spotlight (your
+  ruling); the Focus timer lives on the My-day strip (25/50 blocks).
+- `850fe4e3` ten silently-dead AI features restored (bare model ids the
+  gateway rejected: Focus-next, brain insights, calibration, briefs, flows,
+  launch plans, design memory, assumption watch).
+- `7174acbc` the tnum punctuation bug (fullwidth periods in EVERY sentence,
+  app-wide), the visible Ask door, Trust Ledger honesty, casing/grammar.
+- `ea2954ed` + `17098e16` the em-dash cleanup: demo-content data sweep +
+  the two seed functions that were minting dashed names for every new
+  signup, re-declared clean; demo profiles pinned to 'Demo'.
+- `aa8cb835` ONE attention truth (hero = rail = strip = banner), the
+  expired-call lifecycle (live count honest, expired collapsed with real
+  run-now/dismiss), outcome-named call headlines, real trace titles,
+  Quality/Brain number contradictions fixed at root, legible numerals,
+  palette default catalog, connections one-verb clarity.
+- `04467d8b` the full ranked QA catalog is committed at
+  [`live-qa-round-1.md`](./live-qa-round-1.md) for any future round.
+
+**Your three actions:**
+1. Publish once more AND apply pending migrations (three: prd-scope
+   consistency, demo-content humanize, seed-function humanize) — that is
+   where the remaining on-screen em dashes die.
+2. Free disk space on this Mac: 176MB left. Big consumers:
+   ~/Library/Application Support 21G · ~/.npm 2.8G · ~/.cache 2.5G ·
+   five cadence-lane node_modules ~3G (safe to delete, bun install
+   restores). My cleanup attempt was permission-blocked, deliberately left
+   to you.
+3. Optional: authorize the Lovable MCP for this session if you want live
+   DB verification/sweeps run directly from here.
