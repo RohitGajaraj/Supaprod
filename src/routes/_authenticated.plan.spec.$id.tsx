@@ -394,8 +394,15 @@ function SpecEditorPage() {
   }
 
   // Error and not-found are DIFFERENT states: a failed fetch never wears the
-  // not-found instruction's clothes (DESIGN-LOOM §9b).
-  if (prdQ.isError) {
+  // not-found instruction's clothes (DESIGN-LOOM §9b). getPrd's `.single()`
+  // throws PGRST116 ("multiple (or no) rows") when the id is missing or
+  // RLS-hidden, so that one error shape IS the not-found case; everything
+  // else stays a real error with a retry.
+  const specMissing =
+    prdQ.isError &&
+    /multiple \(or no\) rows|cannot coerce.*single/i.test((prdQ.error as Error)?.message ?? "");
+
+  if (prdQ.isError && !specMissing) {
     return (
       <>
         {chrome}
@@ -429,7 +436,7 @@ function SpecEditorPage() {
     );
   }
 
-  if (!prdQ.data?.prd) {
+  if (specMissing || !prdQ.data?.prd) {
     return (
       <>
         {chrome}

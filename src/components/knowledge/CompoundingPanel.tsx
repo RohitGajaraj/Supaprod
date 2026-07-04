@@ -14,6 +14,7 @@
 // the "what it moved" line is the machine voice in glacier mono (README law:
 // the moved-line states what changed, in the machine's own voice).
 import { useServerFn } from "@tanstack/react-start";
+import { PanelSkeleton } from "./PanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
@@ -62,11 +63,7 @@ export function CompoundingPanel() {
   const headline = summary ? describeCompounding(summary) : null;
 
   if (q.isLoading) {
-    return (
-      <Card>
-        <MonoLabel>LOADING</MonoLabel>
-      </Card>
-    );
+    return <PanelSkeleton />;
   }
 
   if (q.isError) {
@@ -113,8 +110,8 @@ export function CompoundingPanel() {
         <p
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
-            color: "var(--text-faint)",
+            fontSize: "var(--text-mono-floor)",
+            color: "var(--text-subtle)",
             marginBottom: 14,
             textTransform: "uppercase",
             letterSpacing: "0.08em",
@@ -147,7 +144,7 @@ export function CompoundingPanel() {
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: 10,
+                  fontSize: "var(--text-mono-floor)",
                   color: "var(--glacier)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",

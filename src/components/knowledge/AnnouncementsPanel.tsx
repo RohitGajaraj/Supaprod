@@ -342,8 +342,8 @@ export function AnnouncementsPanel() {
                   className="tabular-nums"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9,
-                    color: "var(--text-faint)",
+                    fontSize: "var(--text-mono-floor)",
+                    color: "var(--text-subtle)",
                   }}
                 >
                   {relTime(a.published_at ?? a.submitted_at ?? a.created_at)}
@@ -408,7 +408,9 @@ export function AnnouncementsPanel() {
           </DialogHeader>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>title</MonoLabel>
+              <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+                title
+              </MonoLabel>
               <input
                 value={newTitle}
                 maxLength={200}
@@ -420,7 +422,9 @@ export function AnnouncementsPanel() {
               />
             </div>
             <div>
-              <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>body</MonoLabel>
+              <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+                body
+              </MonoLabel>
               <textarea
                 value={newBody}
                 maxLength={20000}

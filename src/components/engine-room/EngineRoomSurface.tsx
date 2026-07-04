@@ -28,6 +28,12 @@ export function EngineRoomContainer({ children }: { children: React.ReactNode })
   return (
     <div
       style={{
+        // width:100% matters: the shell's <main> is a column flexbox, and a
+        // flex item with cross-axis auto margins gives up stretch and
+        // shrink-wraps its content. Without it the room grid rendered ~650px
+        // wide at 1440 - the exact "floats like a phone layout" defect §4b
+        // exists to kill.
+        width: "100%",
         maxWidth: "var(--container-work)",
         margin: "0 auto",
         padding: "36px 32px 64px",

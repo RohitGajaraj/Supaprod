@@ -85,13 +85,16 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
   if (!specBody || specBody.trim().length < 40) return null;
 
   return (
-    <div className="mt-4 rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+    <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
+      <div className="flex items-center justify-between border-b hairline px-4 py-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
-          <span className="text-xs font-semibold text-slate-700">Design mockup</span>
+          <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} strokeWidth={1.9} />
+          <span className="text-[13px] font-medium text-foreground">Design mockup</span>
           {prestaged && (
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
+            <span
+              className="rounded-full border hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+              style={{ color: "var(--blossom)" }}
+            >
               Pre-staged while you reviewed
             </span>
           )}
@@ -99,7 +102,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         <button
           onClick={() => mutation.mutate()}
           disabled={mutation.isPending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+          className="loom-press inline-flex items-center gap-1.5 rounded-md border hairline px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
         >
           {mutation.isPending ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -113,7 +116,10 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       </div>
 
       {mutation.isError && (
-        <div className="flex items-center gap-2 px-4 py-3 text-xs text-red-600 bg-red-50 border-b border-red-100">
+        <div
+          className="flex items-center gap-2 border-b hairline px-4 py-3 text-xs"
+          style={{ color: "var(--madder)" }}
+        >
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
           <span>
             {mutation.error instanceof Error
@@ -124,7 +130,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       )}
 
       {mutation.isPending && !scaffold && (
-        <div className="flex items-center justify-center gap-2 py-12 text-xs text-slate-400">
+        <div className="flex items-center justify-center gap-2 py-12 text-xs text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Generating design mockup from your spec…
         </div>
@@ -137,7 +143,10 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             title="Design mockup"
             sandbox="allow-scripts allow-forms allow-modals"
             srcDoc={scaffold.html}
-            className="w-full rounded-lg border border-slate-200 bg-white"
+            // The mockup document is the artifact: it styles its own canvas and
+            // assumes a light page, so the iframe keeps a white base to avoid a
+            // dark flash before srcDoc paints. The chrome around it is tokens.
+            className="w-full rounded-lg border hairline bg-white"
             style={{ height: 540 }}
           />
           <div className="mt-2 flex items-center justify-between">
@@ -146,10 +155,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 type="button"
                 onClick={() => feedback.mutate(true)}
                 disabled={feedback.isPending || feedbackGiven !== null}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               >
                 <ThumbsUp
-                  className={feedbackGiven === "approved" ? "h-3 w-3 text-emerald-600" : "h-3 w-3"}
+                  className="h-3 w-3"
+                  style={feedbackGiven === "approved" ? { color: "var(--moss)" } : undefined}
                 />
                 Good fit
               </button>
@@ -157,10 +167,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 type="button"
                 onClick={() => feedback.mutate(false)}
                 disabled={feedback.isPending || feedbackGiven !== null}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               >
                 <ThumbsDown
-                  className={feedbackGiven === "rejected" ? "h-3 w-3 text-red-500" : "h-3 w-3"}
+                  className="h-3 w-3"
+                  style={feedbackGiven === "rejected" ? { color: "var(--madder)" } : undefined}
                 />
                 Not a fit
               </button>
@@ -168,7 +179,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 type="button"
                 onClick={() => designCritic.mutate()}
                 disabled={designCritic.isPending}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+                className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               >
                 {designCritic.isPending ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -178,27 +189,27 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
                 {designCritic.isPending ? "Checking…" : "Check design consistency"}
               </button>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Generated {new Date(scaffold.generatedAt).toLocaleTimeString()} · AI-drafted, review
               before use
             </p>
           </div>
 
           {designReview && (
-            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <div className="text-xs font-semibold text-slate-600 mb-2">
+            <div className="mt-3 rounded-lg border hairline bg-background/60 p-3">
+              <div className="mb-2 font-mono text-[10.5px] uppercase tracking-wide text-muted-foreground">
                 Design consistency · {designReview.verdict}
               </div>
               {designReview.findings.length === 0 ? (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   No hierarchy, accessibility, IA, or consistency issues flagged.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {designReview.findings.map((f, i) => (
-                    <li key={i} className="text-xs text-slate-600 leading-snug">
+                    <li key={i} className="text-xs leading-snug text-foreground">
                       {f.issue}
-                      <span className="block text-slate-400">
+                      <span className="block text-muted-foreground">
                         {f.principle}
                         {f.standing_decision ? ` · violates "${f.standing_decision}"` : ""}
                       </span>
@@ -212,7 +223,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       )}
 
       {!scaffold && !mutation.isPending && !mutation.isError && (
-        <div className="px-4 py-6 text-center text-xs text-slate-400">
+        <div className="px-4 py-6 text-center text-xs text-muted-foreground">
           Generate an AI-drafted screen mockup from this spec.
         </div>
       )}

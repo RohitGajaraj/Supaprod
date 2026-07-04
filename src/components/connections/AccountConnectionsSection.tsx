@@ -298,7 +298,7 @@ export function AccountConnectionsSection({
     <section id="connections" className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 4 }}>Connected accounts</MonoLabel>
       <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>
-        Connect tools once; pick what each workspace uses on Connectors.
+        Connect tools once; pick what each workspace uses on Connections.
       </p>
 
       {list.isLoading ? (
@@ -636,8 +636,8 @@ export function ConnectorDetail({
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>What it feeds · workspace bindings</MonoLabel>
           {provBindings.length === 0 ? (
-            <p style={{ fontSize: 12.5, color: "var(--ink-faint)", margin: 0 }}>
-              No workspace bindings yet — bind repos, projects, or pages on Connectors.
+            <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
+              No workspace bindings yet. Bind repos, projects, or pages on Connections.
             </p>
           ) : (
             <ul

@@ -193,12 +193,25 @@ export function DocsPanel() {
   const previewDoc = (preview.data?.doc ?? null) as DocFull | null;
 
   if (docs.isLoading) {
+    // Shimmer skeleton matching the loaded layout (toolbar row, then doc rows).
+    const bar = (h: number, w?: string) => (
+      <div
+        style={{
+          width: w ?? "100%",
+          height: h,
+          borderRadius: "var(--radius-card)",
+          background:
+            "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
+          animation: "cadShimmer 1.6s linear infinite",
+        }}
+      />
+    );
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
-        <span className="spinner" />
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          loading…
-        </span>
+      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {bar(34, "55%")}
+        {bar(52)}
+        {bar(52)}
+        {bar(52, "80%")}
       </div>
     );
   }
@@ -276,7 +289,7 @@ export function DocsPanel() {
         selected.isLoading || !doc ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
             <span className="spinner" />
-            <span className="mono-label" style={{ fontSize: 9 }}>
+            <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
               loading…
             </span>
           </div>
@@ -294,7 +307,7 @@ export function DocsPanel() {
             >
               <button
                 className="mono-label"
-                style={{ color: "var(--action-blue)", fontSize: 9 }}
+                style={{ color: "var(--action-blue)", fontSize: "var(--text-mono-floor)" }}
                 onClick={() => setSelectedId(null)}
               >
                 ← All docs
@@ -334,13 +347,15 @@ export function DocsPanel() {
                     const next = await prompt({
                       title: "Change icon",
                       label: "Paste a single emoji",
-                      defaultValue: doc.icon ?? "📄",
+                      defaultValue: doc.icon ?? "",
                       confirmLabel: "Save",
                     });
                     if (next) mUpdate.mutate({ id: doc.id, icon: next });
                   }}
                 >
-                  {doc.icon ?? "📄"}
+                  {/* User-chosen emoji is their data; OUR fallback is the styled icon
+                      (no hardcoded emoji in UI strings — the glyph law). */}
+                  {doc.icon ? doc.icon : <FileText size={18} style={{ verticalAlign: "middle" }} />}
                 </button>
                 <input
                   defaultValue={doc.title}
@@ -364,7 +379,10 @@ export function DocsPanel() {
                   }}
                 />
               </div>
-              <div className="mono-label" style={{ fontSize: 8.5, margin: "4px 0 14px" }}>
+              <div
+                className="mono-label"
+                style={{ fontSize: "var(--text-mono-floor)", margin: "4px 0 14px" }}
+              >
                 doc · last edited {updatedLabel(doc.updated_at)} · autosaves to the brain
                 {mUpdate.isPending ? " · saving…" : ""}
               </div>
@@ -446,14 +464,18 @@ export function DocsPanel() {
                     </span>
                     <span
                       className="mono-label"
-                      style={{ fontSize: 9, marginTop: 1, display: "block" }}
+                      style={{ fontSize: "var(--text-mono-floor)", marginTop: 1, display: "block" }}
                     >
                       doc · updated {updatedLabel(d.updated_at)}
                     </span>
                   </span>
                   <button
                     className="mono-label"
-                    style={{ fontSize: 8, color: "var(--action-blue)", flexShrink: 0 }}
+                    style={{
+                      fontSize: "var(--text-mono-floor)",
+                      color: "var(--action-blue)",
+                      flexShrink: 0,
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                       openEditor(d.id);
@@ -477,7 +499,7 @@ export function DocsPanel() {
                     }}
                   >
                     {preview.isLoading || !previewDoc ? (
-                      <span className="mono-label" style={{ fontSize: 9 }}>
+                      <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
                         loading…
                       </span>
                     ) : (
@@ -494,7 +516,7 @@ export function DocsPanel() {
                     )}
                     <span
                       className="mono-label"
-                      style={{ fontSize: 8.5, marginTop: 8, display: "block" }}
+                      style={{ fontSize: "var(--text-mono-floor)", marginTop: 8, display: "block" }}
                     >
                       preview · double-click the card (or “edit”) to open the editor
                     </span>
@@ -610,7 +632,7 @@ export function DocsPanel() {
                   }}
                 >
                   <span className="spinner" />
-                  <span className="mono-label" style={{ fontSize: 9 }}>
+                  <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
                     searching notion…
                   </span>
                 </div>

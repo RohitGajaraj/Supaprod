@@ -443,7 +443,7 @@ export function CalendarPanel({
               onClick={() => setViewPersist(id)}
               className="mono-label"
               style={{
-                fontSize: 9,
+                fontSize: "var(--text-mono-floor)",
                 padding: "3px 10px",
                 borderRadius: 5,
                 background: view === id ? "var(--surface-2)" : "transparent",
@@ -470,7 +470,7 @@ export function CalendarPanel({
             <MonoLabel>Schedule · Scheduler finds open time</MonoLabel>
             <button
               className="mono-label"
-              style={{ fontSize: 9, color: "var(--ink-subtle)" }}
+              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
               onClick={() => setShowNew(false)}
             >
               cancel
@@ -483,11 +483,14 @@ export function CalendarPanel({
             placeholder="Event title · e.g. Deep-work block"
           />
           <div style={{ marginTop: 10 }}>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 6 }}>
+            <div
+              className="mono-label"
+              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6 }}
+            >
               suggested slots · inside your working hours, no conflicts
             </div>
             {mPropose.isPending ? (
-              <span className="mono-label" style={{ fontSize: 9 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
                 finding open time…
               </span>
             ) : null}
@@ -498,7 +501,7 @@ export function CalendarPanel({
                   onClick={() => setPicked(s.start_at)}
                   className="mono-label"
                   style={{
-                    fontSize: 9,
+                    fontSize: "var(--text-mono-floor)",
                     padding: "4px 10px",
                     borderRadius: 99,
                     border: `1px solid ${picked === s.start_at ? "var(--ink)" : "var(--hairline)"}`,
@@ -542,7 +545,7 @@ export function CalendarPanel({
             <MonoLabel>Plan deep work · blocks inside your working hours</MonoLabel>
             <button
               className="mono-label"
-              style={{ fontSize: 9, color: "var(--ink-subtle)" }}
+              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
               onClick={() => {
                 setShowPlan(false);
                 setPlanned(false);
@@ -552,7 +555,7 @@ export function CalendarPanel({
             </button>
           </div>
           {mPlan.isPending ? (
-            <span className="mono-label" style={{ fontSize: 9 }}>
+            <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
               fitting your deep-work tasks around your calendar…
             </span>
           ) : blocks.length === 0 ? (
@@ -600,7 +603,7 @@ export function CalendarPanel({
                       onClick={() => mAddBlock.mutate(b)}
                       disabled={added || mAddBlock.isPending}
                       style={{
-                        fontSize: 9,
+                        fontSize: "var(--text-mono-floor)",
                         padding: "3px 10px",
                         borderRadius: 99,
                         border: "1px solid var(--hairline)",
@@ -620,11 +623,21 @@ export function CalendarPanel({
       )}
 
       {loading ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
-          <span className="spinner" />
-          <span className="mono-label" style={{ fontSize: 9 }}>
-            loading…
-          </span>
+        // Shimmer skeleton matching the loaded layout (view row, then day cards).
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[34, 96, 96, 64].map((h, i) => (
+            <div
+              key={i}
+              style={{
+                width: i === 0 ? "45%" : "100%",
+                height: h,
+                borderRadius: "var(--radius-card)",
+                background:
+                  "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
+                animation: "cadShimmer 1.6s linear infinite",
+              }}
+            />
+          ))}
         </div>
       ) : loadError ? (
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
@@ -735,7 +748,7 @@ export function CalendarPanel({
                   ) : null}
                   <span
                     className="mono-label"
-                    style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
+                    style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
                   >
                     {it.kind}
                   </span>
@@ -771,7 +784,10 @@ export function CalendarPanel({
                       background: "var(--surface-1)",
                     }}
                   >
-                    <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 6 }}>
+                    <div
+                      className="mono-label"
+                      style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6 }}
+                    >
                       capture · extracted by Historian
                     </div>
                     <p style={{ fontSize: 12.5, color: "var(--ink-muted)", lineHeight: 1.6 }}>
@@ -779,7 +795,11 @@ export function CalendarPanel({
                     </p>
                     <button
                       className="mono-label"
-                      style={{ fontSize: 8.5, color: "var(--action-blue)", marginTop: 8 }}
+                      style={{
+                        fontSize: "var(--text-mono-floor)",
+                        color: "var(--action-blue)",
+                        marginTop: 8,
+                      }}
                       onClick={() => onMeetingChange(it.id)}
                     >
                       Open · capture &amp; extract
@@ -926,7 +946,7 @@ function MonthGrid({
             key={d}
             className="mono-label"
             style={{
-              fontSize: 8,
+              fontSize: "var(--text-mono-floor)",
               textAlign: "center",
               padding: "2px 0 4px",
               opacity: di > 4 ? 0.5 : 1,
@@ -1061,7 +1081,10 @@ function MonthGrid({
               marginBottom: selItems.length ? 6 : 0,
             }}
           >
-            <span className="mono-label" style={{ fontSize: 8.5, color: "var(--ink)" }}>
+            <span
+              className="mono-label"
+              style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink)" }}
+            >
               {monthName} {selDay}
               {isThisMonth && selDay === today.getDate() ? (
                 <span style={{ color: "var(--ember)" }}> · today</span>
@@ -1070,7 +1093,7 @@ function MonthGrid({
             <span style={{ flex: 1 }}></span>
             <button
               className="btn btn-ghost btn-sm"
-              style={{ fontSize: 10 }}
+              style={{ fontSize: 11 }}
               disabled={quickAddPending}
               onClick={() => onQuickAdd(new Date(year, month, selDay))}
             >
@@ -1369,7 +1392,7 @@ function EventEditor({
           <span style={{ flex: 1 }}></span>
           <button
             className="mono-label"
-            style={{ fontSize: 9, color: "var(--ink-subtle)" }}
+            style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
             onClick={onClose}
           >
             close
@@ -1377,7 +1400,10 @@ function EventEditor({
         </div>
         <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+            <div
+              className="mono-label"
+              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+            >
               title
             </div>
             <input
@@ -1388,7 +1414,10 @@ function EventEditor({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
-              <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+              <div
+                className="mono-label"
+                style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+              >
                 start
               </div>
               <input
@@ -1399,7 +1428,10 @@ function EventEditor({
               />
             </div>
             <div>
-              <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+              <div
+                className="mono-label"
+                style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+              >
                 end
               </div>
               <input
@@ -1411,7 +1443,10 @@ function EventEditor({
             </div>
           </div>
           <div>
-            <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
+            <div
+              className="mono-label"
+              style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}
+            >
               notes
             </div>
             <textarea
@@ -1429,7 +1464,7 @@ function EventEditor({
               rel="noreferrer"
               className="mono-label"
               style={{
-                fontSize: 8.5,
+                fontSize: "var(--text-mono-floor)",
                 color: "var(--action-blue)",
                 display: "inline-flex",
                 alignItems: "center",
@@ -1507,7 +1542,7 @@ function ConnectButton({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72" style={{ padding: 10 }}>
-        <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 8 }}>
+        <div className="mono-label" style={{ fontSize: "var(--text-mono-floor)", marginBottom: 8 }}>
           calendar accounts
         </div>
         {connections.length === 0 ? (
@@ -1547,7 +1582,7 @@ function ConnectButton({
               <button
                 onClick={() => onDisconnect(c.id)}
                 className="mono-label"
-                style={{ fontSize: 9, color: "var(--ink-subtle)" }}
+                style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
                 aria-label="Disconnect"
               >
                 ×

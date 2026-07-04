@@ -32,7 +32,14 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
   // OBS-02 hoisted the Obsidian shell into _authenticated.tsx, so this route
   // renders bare. No AppShell wrap here.
   errorComponent: ({ error, reset }) => (
-    <div style={{ maxWidth: "var(--container-standard)", margin: "0 auto", padding: "64px 32px" }}>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "var(--container-standard)",
+        margin: "0 auto",
+        padding: "64px 32px",
+      }}
+    >
       <p
         style={{
           fontFamily: "var(--font-ui)",

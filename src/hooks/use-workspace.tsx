@@ -30,6 +30,14 @@ type WorkspaceContextType = {
   products: Product[];
   activeProductId: string | null;
   activeProduct: Product | null;
+  /**
+   * Loom W2 progressive disclosure (founder ruling 2026-07-04): the product
+   * concept stays invisible until a second product exists. Consumers (the
+   * AppShell switcher, any Product menu section) render product UI only when
+   * this is true; capture paths keep using activeProductId, which self-selects
+   * the single product.
+   */
+  productsVisible: boolean;
   isLoading: boolean;
   setActiveWorkspaceId: (id: string | null) => void;
   setActiveProductId: (id: string | null) => void;
@@ -170,6 +178,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         products,
         activeProductId,
         activeProduct,
+        productsVisible: products.length > 1,
         isLoading: isLoadingWorkspaces || isLoadingProducts,
         setActiveWorkspaceId,
         setActiveProductId,

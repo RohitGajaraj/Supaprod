@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Copy, Check, Download } from "lucide-react";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { Button, MonoLabel } from "@/components/obsidian/primitives";
+import { PanelSkeleton } from "./PanelSkeleton";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -99,11 +100,7 @@ export function ImpactLedgerPanel() {
   }
 
   if (!query.data) {
-    return (
-      <Card>
-        <MonoLabel>LOADING</MonoLabel>
-      </Card>
-    );
+    return <PanelSkeleton rows={[52, 96, 180]} />;
   }
 
   const { ledger, markdown } = query.data;

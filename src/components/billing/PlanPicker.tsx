@@ -14,7 +14,7 @@ import { useState } from "react";
 import { MonoLabel, Button, rgba } from "@/components/obsidian";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
 import { toast } from "@/lib/notify";
-import { getStripeEnvironment } from "@/lib/stripe";
+import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { priceForCredits, lookupKeyFor } from "@/lib/billing-tier";
 import {
   planPresentation,
@@ -314,6 +314,8 @@ function CardShell({
         flexDirection: "column",
         gap: "var(--space-3)",
         position: "relative",
+        // v4 §2: cards catch the ambient light from above.
+        boxShadow: "var(--top-light)",
       }}
     >
       {popular ? (
@@ -863,15 +865,33 @@ function PaidTierCard({
           Never ember: nothing in this comparison table is a genuinely-
           required action right now, so every card reads at the same
           secondary weight; the copy (Upgrade / Move / Current plan)
-          carries the meaning, not the color. */}
-      <Button
-        variant="secondary"
-        disabled={!canSelect || !lookupKey || isCurrent}
-        onClick={onSubscribe}
-        style={{ width: "100%", justifyContent: "center" }}
-      >
-        {ctaLabel}
-      </Button>
+          carries the meaning, not the color.
+          Honesty law (v4 §9b): while payments are dormant there is no
+          upgrade button at all — the table stays a real comparison, and one
+          quiet line says when checkout opens. */}
+      {paymentsConfigured() || isCurrent ? (
+        <Button
+          variant="secondary"
+          disabled={!canSelect || !lookupKey || isCurrent}
+          onClick={onSubscribe}
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {ctaLabel}
+        </Button>
+      ) : (
+        <p
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-helper)",
+            color: "var(--text-subtle)",
+            margin: 0,
+            textAlign: "center",
+            lineHeight: "var(--leading-body)",
+          }}
+        >
+          Checkout opens when payments go live. Prices shown are final.
+        </p>
+      )}
 
       {statusMessage && (
         <p

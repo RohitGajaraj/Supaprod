@@ -94,10 +94,16 @@ export const DEFAULT_SECTION: SectionId = "profile";
  * Legacy deep links still arrive with old `?section=` values; keep them landing.
  *   brief    -> workspace   (the strategic brief lives in the Workspace pane)
  *   calendar -> connections (calendar accounts live under Yours)
+ *   plan     -> billing     (the user-chip "Plan & billing" entry and the
+ *                            signup checkout redirect target the PANE id;
+ *                            they must land on the Plan pane, never Profile)
+ *   you      -> profile     (pane-id symmetry: every GroupId resolves)
  */
 export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
   brief: "workspace",
   calendar: "connections",
+  plan: "billing",
+  you: "profile",
 };
 
 function isSectionId(raw: string): raw is SectionId {

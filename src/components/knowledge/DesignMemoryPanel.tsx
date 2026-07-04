@@ -5,6 +5,7 @@
 // public URL, paste a design constitution, or accept a generic starter set.
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { PanelSkeleton } from "./PanelSkeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import {
@@ -124,9 +125,7 @@ export function DesignMemoryPanel() {
       </div>
 
       {items.isLoading ? (
-        <div style={{ padding: "18px 2px" }}>
-          <MonoLabel>LOADING</MonoLabel>
-        </div>
+        <PanelSkeleton />
       ) : items.isError ? (
         <div
           style={{

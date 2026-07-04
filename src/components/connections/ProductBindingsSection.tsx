@@ -79,7 +79,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
   const mRemove = useMutation({
     mutationFn: (id: string) => fRemove({ data: { id } }),
     onSuccess: () => {
-      toast.success("Product binding removed — falling back to workspace binding");
+      toast.success("Product binding removed, falling back to the workspace binding");
       qc.invalidateQueries({ queryKey: ["product-bindings", projectId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Unbind failed"),
@@ -100,7 +100,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
         <div className="px-4 py-2.5 flex items-center gap-2">
           <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold text-muted-foreground">
-            {projectName ? `${projectName} — repo binding` : "Product repo binding"}
+            {projectName ? `${projectName} · repo binding` : "Product repo binding"}
           </span>
           <span className="text-[10px] text-muted-foreground/60 ml-1">
             overrides workspace default

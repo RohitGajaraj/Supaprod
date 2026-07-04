@@ -151,6 +151,18 @@ describe("settings-sections - normalizeSection (deep-link safety)", () => {
     }
   });
 
+  it("resolves every pane id to that pane's landing section (?section=plan must land on Plan)", () => {
+    expect(normalizeSection("plan")).toBe("billing");
+    expect(normalizeSection("you")).toBe("profile");
+    // pane ids that double as section ids already pass through
+    expect(normalizeSection("workspace")).toBe("workspace");
+    expect(normalizeSection("connections")).toBe("connections");
+    // full invariant: every GroupId lands inside its own pane
+    for (const g of SETTINGS_GROUPS) {
+      expect(groupForSection(normalizeSection(g.id))).toBe(g.id);
+    }
+  });
+
   it("falls back to the default for an unknown section value", () => {
     expect(normalizeSection("totally-made-up")).toBe(DEFAULT_SECTION);
   });

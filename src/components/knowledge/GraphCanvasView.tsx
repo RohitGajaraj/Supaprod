@@ -393,8 +393,8 @@ export function GraphCanvasView({
       )}
       {staleness && staleness.staleCount > 0 && (
         <NoticeLine color="var(--marigold)">
-          {staleness.staleCount} of {staleness.datedCount} facts may be stale · no fresh evidence
-          in {staleness.thresholdDays}d (dashed ring)
+          {staleness.staleCount} of {staleness.datedCount} facts may be stale · no fresh evidence in{" "}
+          {staleness.thresholdDays}d (dashed ring)
         </NoticeLine>
       )}
       {contradictionDrift && contradictionDrift.driftedCount > 0 && (
@@ -406,8 +406,8 @@ export function GraphCanvasView({
       )}
       {revisedCount > 0 && (
         <NoticeLine color="var(--madder)">
-          {revisedCount} {revisedCount === 1 ? "thread" : "threads"} here mark a belief a later
-          outcome revised (the drifting dashes)
+          {revisedCount} {revisedCount === 1 ? "thread here marks" : "threads here mark"} a belief a
+          later outcome revised (the drifting dashes)
         </NoticeLine>
       )}
       {retiredCount > 0 && (

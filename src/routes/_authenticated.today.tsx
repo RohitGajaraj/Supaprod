@@ -155,8 +155,6 @@ function Dashboard() {
   const fetchAcceptance = useServerFn(getAcceptanceRate);
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
-  const fetchMeetings = useServerFn(listMeetings);
-  const fetchTasks = useServerFn(listTasks);
   const mResolveApproval = useServerFn(resolveApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
   const mSavePrd = useServerFn(savePrd);
@@ -177,16 +175,6 @@ function Dashboard() {
   const autonomy = useQuery({
     queryKey: ["autonomy", 14],
     queryFn: () => fetchAutonomy({ data: { days: 14 } }),
-  });
-  const meetings = useQuery({
-    queryKey: ["meetings-today"],
-    queryFn: () => fetchMeetings(),
-    staleTime: 5 * 60 * 1000,
-  });
-  const tasks = useQuery({
-    queryKey: ["tasks-today"],
-    queryFn: () => fetchTasks(),
-    staleTime: 5 * 60 * 1000,
   });
   const regenBrief = useMutation({
     mutationFn: () => mBrief(),
@@ -473,7 +461,7 @@ function Dashboard() {
           : r.verdict === "missed"
             ? "var(--madder)"
             : "var(--glacier)",
-      text: `A ${r.verdict} outcome moved ${r.opportunity_title ?? "a priority"}: ICE ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
+      text: `A ${r.verdict} outcome moved ${r.opportunity_title ?? "a priority"}: priority score ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
       cause: "LEARNING · RE-RANKED",
     }));
 

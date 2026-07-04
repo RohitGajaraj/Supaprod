@@ -57,7 +57,7 @@ export function WorkspaceBindingsSection() {
         </h2>
       </div>
       <p className="text-sm text-muted-foreground mb-3">
-        Map your connected accounts to this workspace — which repo, team, or database the agents act
+        Map your connected accounts to this workspace: which repo, team, or database the agents act
         on.
       </p>
       <div className="rounded-xl border hairline bg-background/60 divide-y divide-border/40">

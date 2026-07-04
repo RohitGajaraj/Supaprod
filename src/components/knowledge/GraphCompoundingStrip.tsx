@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
 const WEEK_MS = 7 * 86_400_000;
@@ -62,13 +63,20 @@ export function GraphCompoundingStrip({
   const fLift = useServerFn(getMemoryLift);
   const fCalibration = useServerFn(getForecastCalibration);
 
-  const memQ = useQuery({ queryKey: ["gauntlet-memory"], queryFn: () => fMem() });
+  // Keys carry the active workspace so a switch refetches instead of showing
+  // the previous workspace's cached numbers (the server fns resolve scope
+  // per-session; the cache must not outlive a workspace change).
+  const { activeWorkspaceId } = useWorkspace();
+  const memQ = useQuery({
+    queryKey: ["gauntlet-memory", activeWorkspaceId],
+    queryFn: () => fMem(),
+  });
   const liftQ = useQuery({
-    queryKey: ["gauntlet-memory-lift"],
+    queryKey: ["gauntlet-memory-lift", activeWorkspaceId],
     queryFn: () => fLift({ data: { days: 90 } }),
   });
   const calibrationQ = useQuery({
-    queryKey: ["forecast-calibration"],
+    queryKey: ["forecast-calibration", activeWorkspaceId],
     queryFn: () => fCalibration(),
   });
 

@@ -243,3 +243,48 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, workspaceId: workspaceId as string };
   });
+
+/**
+ * Loom W2, founder ruling 2026-07-04 (single-product progressive disclosure):
+ * every workspace gets ONE default product so capture paths always have a
+ * product_id to land on, while the product concept stays invisible in the UI
+ * until a second product exists (use-workspace.productsVisible).
+ *
+ * Called right after workspace creation (AppShell.createWorkspace). Idempotent:
+ * inserts a `projects` row named after the workspace only when the workspace
+ * has none; matches seed_demo_workspace's insert shape
+ * (user_id, workspace_id, name, status).
+ */
+export const ensureDefaultProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }) => {
+    const { data: ws, error: wsError } = await context.supabase
+      .from("workspaces")
+      .select("id, name")
+      .eq("id", data.workspaceId)
+      .single();
+    if (wsError || !ws) throw new Error(wsError?.message ?? "Workspace not found");
+
+    const { count, error: countError } = await context.supabase
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", data.workspaceId);
+    if (countError) throw new Error(countError.message);
+    if ((count ?? 0) > 0) return { ok: true as const, created: false as const, productId: null };
+
+    const { data: project, error: insertError } = await context.supabase
+      .from("projects")
+      .insert({
+        user_id: context.userId,
+        workspace_id: data.workspaceId,
+        name: ws.name,
+        status: "active",
+      })
+      .select("id")
+      .single();
+    if (insertError || !project) {
+      throw new Error(insertError?.message ?? "Could not create the default product");
+    }
+    return { ok: true as const, created: true as const, productId: project.id as string };
+  });

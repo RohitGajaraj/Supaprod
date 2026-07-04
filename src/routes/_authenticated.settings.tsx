@@ -7,24 +7,18 @@
 // button OAuth only, no key paste for connectors), profile/brief/voice-anchor
 // saves, and BYO AI keys (not connectors — they stay under Models).
 // Reference Digest tab omitted: no digest-routing backend (no-filler law).
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
-import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/cadence/Primitives";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
-import {
-  listIntegrations,
-  upsertIntegration,
-  disconnectIntegration,
-  PROVIDERS,
-} from "@/lib/integrations.functions";
 import {
   listApiKeys,
   saveApiKey,
@@ -38,7 +32,7 @@ import {
   AccountConnectionsSection,
   ConnectorDetail,
 } from "@/components/connections/AccountConnectionsSection";
-import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
+import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
 import { getBillingState, type BillingState } from "@/lib/billing.functions";
 import {
@@ -97,10 +91,14 @@ function normalizeConnector(raw: string | undefined): ProviderId | undefined {
 }
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  // The canonical param is ?section=; ?tab= is a legacy alias that older links
+  // and external deep links still send (audit D-20: ?tab=plan was silently
+  // ignored). Both are accepted; section wins when both arrive.
   validateSearch: (
     search: Record<string, unknown>,
-  ): { section?: string; connector?: string; checkout?: string } => ({
+  ): { section?: string; tab?: string; connector?: string; checkout?: string } => ({
     section: typeof search.section === "string" ? search.section : undefined,
+    tab: typeof search.tab === "string" ? search.tab : undefined,
     connector: typeof search.connector === "string" ? search.connector : undefined,
     checkout: typeof search.checkout === "string" ? search.checkout : undefined,
   }),
@@ -117,7 +115,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
             {(error as Error)?.message ?? "Unknown error"}
           </p>
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={reset}>
-            Retry · reloads the surface
+            Retry
           </button>
         </div>
       </div>
@@ -136,7 +134,7 @@ function SettingsIndex({
   onSet: (id: GroupId) => void;
 }) {
   return (
-    <div className="flex flex-col" style={{ gap: 2, width: 168, flexShrink: 0 }}>
+    <div className="flex flex-col" style={{ gap: 2, width: 172, flexShrink: 0 }}>
       {PRIMARY_GROUPS.map((g, i) => {
         const isActive = g.id === activeGroup;
         return (
@@ -144,20 +142,24 @@ function SettingsIndex({
             key={g.id}
             type="button"
             onClick={() => onSet(g.id)}
-            className="flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]${isActive ? " loom-thread-active" : ""}`}
             style={{
               gap: 10,
-              padding: "8px 10px",
+              padding: "8px 12px",
               borderRadius: "var(--radius-control)",
-              background: isActive ? "#1A1A1E" : "transparent",
+              background: isActive ? "var(--hover, #1A1A1E)" : "transparent",
               textAlign: "left",
+              transitionProperty: "background-color",
+              transitionDuration: "var(--dur-press, 140ms)",
             }}
           >
+            {/* v4 §3: active nav index reads ember-text; the mono floor is 10.5px */}
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 9.5,
-                color: isActive ? "var(--ember)" : "var(--text-faint)",
+                fontSize: "var(--text-mono-floor, 10.5px)",
+                letterSpacing: "0.08em",
+                color: isActive ? "var(--ember-text)" : "var(--text-subtle)",
               }}
             >
               {String(i + 1).padStart(2, "0")}
@@ -165,7 +167,7 @@ function SettingsIndex({
             <span
               style={{
                 fontFamily: "var(--font-ui)",
-                fontSize: 13,
+                fontSize: "var(--text-base, 14px)",
                 color: isActive ? "var(--text-primary)" : "var(--text-body)",
               }}
             >
@@ -213,11 +215,13 @@ function DensityToggle() {
 
 function AdminDoor() {
   const fAmIAdmin = useServerFn(amIAdmin);
+  const navigate = useNavigate();
   const q = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fAmIAdmin() });
   if (!q.data?.isAdmin) return null;
   return (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
-      <ObsidianButton variant="quiet" onClick={() => (window.location.href = "/admin")}>
+      {/* Router navigation, not a full page reload (audit D-20). */}
+      <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
         Admin console →
       </ObsidianButton>
       <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
@@ -228,8 +232,10 @@ function AdminDoor() {
 }
 
 function SettingsPage() {
-  const { section, connector, checkout } = Route.useSearch();
-  const active = normalizeSection(section);
+  const { section, tab, connector, checkout } = Route.useSearch();
+  // ?section= is canonical; legacy ?tab= keeps landing (audit D-20).
+  const rawSection = section ?? tab;
+  const active = normalizeSection(rawSection);
   const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
   const navigate = useNavigate({ from: "/settings" });
   const { activeWorkspace, activeProduct } = useWorkspace();
@@ -250,75 +256,114 @@ function SettingsPage() {
       <TopBar crumbs={[workspaceName ?? "Workspace", "Settings"]} />
       <div
         data-screen-label="Settings"
-        className="flex"
-        style={{ padding: "36px 32px 64px", maxWidth: 960, margin: "0 auto", gap: 40 }}
+        style={{
+          padding: "36px 32px 64px",
+          width: "100%",
+          maxWidth: "var(--container-standard, 1240px)",
+          margin: "0 auto",
+        }}
       >
-        <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+        {/* v4 surface header: real h1 (AT-navigable outline) + the maker's-mark
+            thread underline (DESIGN-LOOM §6, static). */}
+        <header style={{ marginBottom: 28 }}>
+          <ObsidianMonoLabel style={{ display: "block", marginBottom: 6 }}>
+            {workspaceName ?? "Workspace"}
+          </ObsidianMonoLabel>
+          <h1
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 460,
+              fontSize: "var(--text-h1, 32px)",
+              lineHeight: 1.15,
+              color: "var(--text-primary)",
+              margin: 0,
+            }}
+          >
+            Settings
+          </h1>
+          <span
+            aria-hidden="true"
+            style={{
+              display: "block",
+              width: 24,
+              height: 2,
+              marginTop: 10,
+              borderRadius: 2,
+              background: "var(--thread-gradient)",
+              opacity: 0.4,
+            }}
+          />
+        </header>
 
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 720 }}>
-          {/* Tier 2: the active pane's member sections — only shown when the pane
+        <div className="flex" style={{ gap: 44 }}>
+          <SettingsIndex activeGroup={activeGroup} onSet={setGroup} />
+
+          <div style={{ flex: 1, minWidth: 0, maxWidth: 880 }}>
+            {/* Tier 2: the active pane's member sections — only shown when the pane
               holds more than one section (single-section panes need no sub-row). */}
-          {groupMembers.length > 1 ? (
-            <div className="flex flex-wrap" style={{ gap: 4, marginBottom: 20 }}>
-              {groupMembers.map((s) => {
-                const isActive = s.id === active;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setTab(s.id)}
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      padding: "5px 10px",
-                      borderRadius: "var(--radius-control)",
-                      background: isActive ? "var(--raised)" : "transparent",
-                      color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
+            {groupMembers.length > 1 ? (
+              <div className="flex flex-wrap" style={{ gap: 4, marginBottom: 20 }}>
+                {groupMembers.map((s) => {
+                  const isActive = s.id === active;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setTab(s.id)}
+                      className="loom-press"
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-mono-floor, 10.5px)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        padding: "5px 10px",
+                        borderRadius: "var(--radius-control)",
+                        background: isActive ? "var(--raised)" : "transparent",
+                        color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                      }}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
 
-          {active === "connections" && (
-            <ConnectionsTab
-              connector={activeConnector}
-              onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
-              onCloseDetail={() => navigate({ search: { section: "connections" } })}
-            />
-          )}
-          {active === "ai" && <ModelsTab />}
-          {active === "staff" && <StaffTab />}
-          {active === "products" && <ProductsTab />}
-          {active === "workspace" && (
-            <>
-              <WorkspaceTab scrollToBrief={section === "brief"} />
-              <AdminDoor />
-            </>
-          )}
-          {active === "billing" && <BillingTab checkout={checkout} />}
-          {active === "credits" && <CreditsTab />}
-          {active === "interop" && <IntegrationsTab />}
-          {active === "profile" && (
-            <>
-              <ProfileTab />
-              <DensityToggle />
-            </>
-          )}
-          {active === "notifications" && <NotificationsTab />}
-          {active === "health" && <HealthCard />}
-          {active === "data" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <DataSubstrateCard />
-              <DataExportCard workspaceId={activeWorkspace?.id} />
-              <SubprocessorsCard />
-            </div>
-          )}
+            {active === "connections" && (
+              <ConnectionsTab
+                connector={activeConnector}
+                onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
+                onCloseDetail={() => navigate({ search: { section: "connections" } })}
+              />
+            )}
+            {active === "ai" && <ModelsTab />}
+            {active === "staff" && <StaffTab />}
+            {active === "products" && <ProductsTab />}
+            {active === "workspace" && (
+              <>
+                <WorkspaceTab scrollToBrief={rawSection === "brief"} />
+                <AdminDoor />
+              </>
+            )}
+            {active === "billing" && <BillingTab checkout={checkout} />}
+            {active === "credits" && <CreditsTab />}
+            {active === "interop" && <IntegrationsTab />}
+            {active === "profile" && (
+              <>
+                <ProfileTab />
+                <DensityToggle />
+              </>
+            )}
+            {active === "notifications" && <NotificationsTab />}
+            {active === "health" && <HealthCard />}
+            {active === "data" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <DataSubstrateCard />
+                <DataExportCard workspaceId={activeWorkspace?.id} />
+                <SubprocessorsCard />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
@@ -668,6 +713,8 @@ function cardStyle(): React.CSSProperties {
     border: "1px solid var(--hairline)",
     borderRadius: "var(--radius-card)",
     padding: "var(--space-4)",
+    // v4 §2: the card catches the ambient light from above.
+    boxShadow: "var(--top-light)",
   };
 }
 
@@ -859,34 +906,22 @@ function CreditsTabInner() {
     ? Math.max(0, data.cycleTopupCapCredits - data.cycleTopupCredits)
     : null;
 
-  // Drive bundles from the admin-managed catalog when available; fall back to
-  // a market-benchmarked ladder (Notion AI / Cursor / Linear pricing per equivalent
-  // unit, ~$1.50–$2 per 100 credits at entry, scaling down with volume to ~$1).
+  // Bundles come from the admin-managed catalog ONLY (honesty law, audit
+  // D-20): the old hardcoded 9-bundle fallback ladder rendered clickable
+  // prices no backend would honor. No catalog rows means no bundle grid.
   // Convention: lookup_key = "topup_<credits>" or "topup_<k>k".
   const catalogBundles = (catalog.data?.topups ?? []).filter((b) => b.active);
   type Bundle = { key: string; credits: number; priceCents: number };
-  const BUNDLES: Bundle[] = catalogBundles.length
-    ? [...catalogBundles]
-        .sort((a, b) => a.credits - b.credits)
-        .map((b) => ({
-          key:
-            b.credits >= 1000 && b.credits % 1000 === 0
-              ? `topup_${b.credits / 1000}k`
-              : `topup_${b.credits}`,
-          credits: b.credits,
-          priceCents: b.price_cents,
-        }))
-    : [
-        { key: "topup_250", credits: 250, priceCents: 500 },
-        { key: "topup_1k", credits: 1000, priceCents: 1800 },
-        { key: "topup_2_5k", credits: 2500, priceCents: 4000 },
-        { key: "topup_5k", credits: 5000, priceCents: 7500 },
-        { key: "topup_10k", credits: 10000, priceCents: 14000 },
-        { key: "topup_25k", credits: 25000, priceCents: 32500 },
-        { key: "topup_50k", credits: 50000, priceCents: 60000 },
-        { key: "topup_100k", credits: 100000, priceCents: 110000 },
-        { key: "topup_250k", credits: 250000, priceCents: 250000 },
-      ];
+  const BUNDLES: Bundle[] = [...catalogBundles]
+    .sort((a, b) => a.credits - b.credits)
+    .map((b) => ({
+      key:
+        b.credits >= 1000 && b.credits % 1000 === 0
+          ? `topup_${b.credits / 1000}k`
+          : `topup_${b.credits}`,
+      credits: b.credits,
+      priceCents: b.price_cents,
+    }));
   const fmtPrice = (c: number) => `$${Math.round(c / 100).toLocaleString()}`;
   const fmtCreditsShort = (n: number) =>
     n >= 1000 && n % 1000 === 0 ? `${n / 1000}k` : n.toLocaleString();
@@ -1137,56 +1172,114 @@ function CreditsTabInner() {
           )}
         </div>
 
-        {/* Starter tiers */}
-        <div style={{ marginTop: "var(--space-4)" }}>
-          <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
-            Starter packs
-          </ObsidianMonoLabel>
-          <BundleGrid
-            bundles={starterBundles}
-            selectedKey={selectedKey}
-            onSelect={setSelectedKey}
-            remainingTopupRoom={remainingTopupRoom}
-            bestPerCredit={bestPerCredit}
-            fmtPrice={fmtPrice}
-            fmtCreditsShort={fmtCreditsShort}
-          />
-        </div>
-
-        {/* Scale tiers */}
-        {scaleBundles.length > 0 && (
+        {/* Four states (DESIGN-LOOM §9): skeleton while the catalog loads,
+            error with retry (never empty-state clothes), honest instruction
+            when no bundles are published, loaded grid otherwise. */}
+        {catalog.isLoading ? (
+          <div
+            aria-hidden="true"
+            style={{
+              display: "grid",
+              gap: "var(--space-2)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              marginTop: "var(--space-4)",
+            }}
+          >
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse"
+                style={{
+                  height: 84,
+                  borderRadius: "var(--radius-control)",
+                  background: "var(--raised)",
+                }}
+              />
+            ))}
+          </div>
+        ) : catalog.error ? (
           <div style={{ marginTop: "var(--space-4)" }}>
-            <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
-              At scale &middot; better per-credit rate
-            </ObsidianMonoLabel>
-            <BundleGrid
-              bundles={scaleBundles}
-              selectedKey={selectedKey}
-              onSelect={setSelectedKey}
-              remainingTopupRoom={remainingTopupRoom}
-              bestPerCredit={bestPerCredit}
-              fmtPrice={fmtPrice}
-              fmtCreditsShort={fmtCreditsShort}
-            />
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+              Couldn't load the top-up catalog.{" "}
+              {(catalog.error as Error)?.message ?? "Unknown error"}
+            </p>
+            <div style={{ marginTop: "var(--space-2)" }}>
+              <ObsidianButton variant="quiet" onClick={() => catalog.refetch()}>
+                Retry
+              </ObsidianButton>
+            </div>
           </div>
-        )}
+        ) : BUNDLES.length === 0 ? (
+          <p style={helperTextStyle()}>
+            No top-up bundles are published yet. When they are, they appear here with live prices.
+          </p>
+        ) : (
+          <>
+            {/* Starter tiers */}
+            {starterBundles.length > 0 && (
+              <div style={{ marginTop: "var(--space-4)" }}>
+                <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
+                  Starter packs
+                </ObsidianMonoLabel>
+                <BundleGrid
+                  bundles={starterBundles}
+                  selectedKey={selectedKey}
+                  onSelect={setSelectedKey}
+                  remainingTopupRoom={remainingTopupRoom}
+                  bestPerCredit={bestPerCredit}
+                  fmtPrice={fmtPrice}
+                  fmtCreditsShort={fmtCreditsShort}
+                />
+              </div>
+            )}
 
-        {selectedBundle && (
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-4)" }}>
-            <ObsidianButton
-              variant={isOutOfCredits ? "primary" : "secondary"}
-              disabled={remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom}
-              onClick={() =>
-                openTopUp(
-                  selectedBundle.key,
-                  `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
-                )
-              }
-            >
-              Buy {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
-              {fmtPrice(selectedBundle.priceCents)}
-            </ObsidianButton>
-          </div>
+            {/* Scale tiers */}
+            {scaleBundles.length > 0 && (
+              <div style={{ marginTop: "var(--space-4)" }}>
+                <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
+                  At scale &middot; better per-credit rate
+                </ObsidianMonoLabel>
+                <BundleGrid
+                  bundles={scaleBundles}
+                  selectedKey={selectedKey}
+                  onSelect={setSelectedKey}
+                  remainingTopupRoom={remainingTopupRoom}
+                  bestPerCredit={bestPerCredit}
+                  fmtPrice={fmtPrice}
+                  fmtCreditsShort={fmtCreditsShort}
+                />
+              </div>
+            )}
+
+            {/* Honest checkout: while payments are dormant there is no Buy
+                button at all (a disabled buy is still a dead promise). */}
+            {selectedBundle && envSafe ? (
+              <div
+                style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-4)" }}
+              >
+                <ObsidianButton
+                  variant={isOutOfCredits ? "primary" : "secondary"}
+                  disabled={
+                    remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
+                  }
+                  onClick={() =>
+                    openTopUp(
+                      selectedBundle.key,
+                      `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
+                    )
+                  }
+                >
+                  Buy {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
+                  {fmtPrice(selectedBundle.priceCents)}
+                </ObsidianButton>
+              </div>
+            ) : selectedBundle ? (
+              <p style={helperTextStyle()}>
+                Checkout isn't switched on in this build yet. Prices are live for planning; buying
+                opens once payments go live.
+              </p>
+            ) : null}
+          </>
         )}
 
         {data && (
@@ -1236,10 +1329,8 @@ function CreditsTabInner() {
                   borderBottom: "1px solid var(--hairline)",
                 }}
               >
-                <span style={{ color: "var(--text-primary)" }}>
-                  Top-up &middot;{" "}
-                  <span style={{ color: "var(--text-subtle)" }}>{t.price_lookup_key}</span>
-                </span>
+                {/* Human words, not the raw price_lookup_key enum (copy audit). */}
+                <span style={{ color: "var(--text-primary)" }}>Credit top-up</span>
                 <span style={{ fontFamily: "var(--font-mono)", color: "var(--moss)" }}>
                   +{Number(t.credits_added).toLocaleString()} credits
                 </span>
@@ -1270,8 +1361,9 @@ function CreditsTabInner() {
                 }}
               >
                 <span style={{ color: "var(--text-primary)" }}>
-                  {row.reason}
-                  {row.surface ? ` · ${row.surface}` : ""}
+                  {/* Ledger reasons are enum slugs; read them as words. */}
+                  {String(row.reason).replace(/_/g, " ")}
+                  {row.surface ? ` · ${String(row.surface).replace(/_/g, " ")}` : ""}
                 </span>
                 <span
                   style={{
@@ -1312,12 +1404,19 @@ function CreditsTabInner() {
   );
 }
 
-/* ---- Connections — Connected accounts (OAuth-only) + workspace tool sync,
-   the reference's 3-col connector card grid (serif 16 name · StepDot ·
-   12 ink-subtle desc · Connect/Disconnect). Screen 6 ships the ConnectorDetail
-   drill-down: ?connector= (optional search param) replaces this whole tab body
-   with the per-provider detail; "details →" on every account row opens it,
-   DrillHeader's back link and any tab switch clear it (fresh search object). ---- */
+/* ---- Connections — Connected accounts (OAuth-only). Screen 6 ships the
+   ConnectorDetail drill-down: ?connector= (optional search param) replaces
+   this whole tab body with the per-provider detail; "details →" on every
+   account row opens it, DrillHeader's back link and any tab switch clear it
+   (fresh search object).
+
+   Loom W2 (2026-07-04): the old "Workspace tool sync" card grid is GONE — its
+   Connect button upserted status:'connected' with no OAuth behind it (audit
+   D-04, claim-outruns-wiring). Every provider row in Connected accounts is
+   already honest: a real connect flow when the OAuth app is configured, a
+   quiet "coming soon" disabled state when it is not. One-home rule (§9b):
+   workspace bindings render fully on /sync (Connections, the bindings home);
+   here they appear as a read-only summary that links there. ---- */
 
 function ConnectionsTab({
   connector,
@@ -1328,37 +1427,6 @@ function ConnectionsTab({
   onOpenDetail: (provider: ProviderId) => void;
   onCloseDetail: () => void;
 }) {
-  const qc = useQueryClient();
-  const fIntegrations = useServerFn(listIntegrations);
-  const fUpsertInt = useServerFn(upsertIntegration);
-  const fDisconnect = useServerFn(disconnectIntegration);
-  const integrations = useQuery({ queryKey: ["integrations"], queryFn: () => fIntegrations() });
-
-  const intMap = new Map(
-    (integrations.data?.integrations ?? []).map(
-      (i: { provider: string; status: string; account_label: string | null }) => [i.provider, i],
-    ),
-  );
-
-  const mConnect = useMutation({
-    mutationFn: (provider: string) =>
-      fUpsertInt({
-        data: { provider, status: "connected", account_label: "Connected via Lovable" },
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["integrations"] });
-      toast.success("Connected");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const mDisconnect = useMutation({
-    mutationFn: (provider: string) => fDisconnect({ data: { provider } }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["integrations"] });
-      toast.success("Disconnected");
-    },
-  });
-
   // Drill-down: the detail replaces the entire tab body (SurfaceHeader +
   // TabRow stay above us in SettingsPage).
   if (connector) {
@@ -1370,81 +1438,123 @@ function ConnectionsTab({
       <ObsidianMonoLabel tone="glacier">Yours</ObsidianMonoLabel>
       <AccountConnectionsSection onOpenDetail={onOpenDetail} />
 
-      {/* OBS-13: Connections is the only integrations home — the workspace-level
-          bindings shelf lifted in from /sync (until OBS-10 folds that route). */}
       <div style={{ marginTop: 8 }}>
         <ObsidianMonoLabel tone="glacier">This workspace's</ObsidianMonoLabel>
         <div style={{ marginTop: 8 }}>
-          <WorkspaceBindingsSection />
+          <WorkspaceBindingsSummary />
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div>
-        <MonoLabel style={{ marginBottom: 4 }}>Workspace tool sync</MonoLabel>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-          Bring your other PM tools into Cadence. Two-way sync ships in 5.2b.
+/* One-home rule: /sync is the bindings home; Settings shows the summary and
+   links there. Four states: skeleton / instruction / error-with-retry /
+   loaded (DESIGN-LOOM §9). */
+function WorkspaceBindingsSummary() {
+  const fBindings = useServerFn(listWorkspaceBindings);
+  const q = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
+
+  if (q.isLoading) {
+    return (
+      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+        <div style={{ display: "grid", gap: 10 }} aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="animate-pulse"
+              style={{
+                height: 14,
+                width: `${72 - i * 14}%`,
+                borderRadius: 4,
+                background: "var(--raised)",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (q.error) {
+    return (
+      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+        <div className="mono-label" style={{ color: "var(--rose)" }}>
+          Couldn't load workspace bindings
+        </div>
+        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+          {(q.error as Error)?.message ?? "Unknown error"}
         </p>
-        {integrations.isLoading ? (
-          <div
-            className="mono-label"
-            style={{ padding: "24px 0", textAlign: "center", color: "var(--ink-faint)" }}
-          >
-            loading…
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-            {PROVIDERS.map((p) => {
-              const conn = intMap.get(p.id) as
-                | { status: string; account_label: string | null }
-                | undefined;
-              const connected = conn?.status === "connected";
-              const comingSoon = p.desc.startsWith("Coming");
-              return (
-                <div
-                  key={p.id}
-                  className="bento"
-                  style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span className="font-display" style={{ fontSize: 16 }}>
-                      {p.label}
-                    </span>
-                    <StepDot status={connected ? "completed" : "planned"} />
-                  </div>
-                  <span style={{ fontSize: 12, color: "var(--ink-subtle)", flex: 1 }}>
-                    {p.desc}
-                    {connected && conn?.account_label ? ` · ${conn.account_label}` : ""}
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 12 }}
+          onClick={() => q.refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const bindings = q.data?.bindings ?? [];
+
+  return (
+    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      {bindings.length === 0 ? (
+        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
+          Nothing bound yet. Pick which repo, team, or database this workspace's agents act on.
+        </p>
+      ) : (
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {bindings.map((b) => {
+            const healthy = b.connection_status === "connected";
+            return (
+              <li
+                key={b.id}
+                style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: healthy ? "var(--moss, #7FBF8E)" : "var(--madder, #E06557)",
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ color: "var(--ink)", minWidth: 0 }}>
+                  {CONNECTOR_REGISTRY[b.provider as ProviderId]?.label ?? b.provider}
+                  <span style={{ color: "var(--ink-subtle)" }}>
+                    {" "}
+                    · {b.resource_label ?? b.resource_id}
+                    {healthy ? "" : " · reconnect needed"}
                   </span>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    {connected ? (
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        disabled={mDisconnect.isPending}
-                        onClick={() => mDisconnect.mutate(p.id)}
-                      >
-                        Disconnect · unlinks the tool
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn-primary btn-sm"
-                        disabled={comingSoon || mConnect.isPending}
-                        onClick={() => mConnect.mutate(p.id)}
-                      >
-                        {comingSoon ? "Coming soon" : "Connect"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <div style={{ marginTop: 12 }}>
+        <Link
+          to="/sync"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{ fontSize: 12.5, color: "var(--blossom)" }}
+        >
+          {bindings.length === 0
+            ? "Set up bindings on Connections →"
+            : "Manage bindings on Connections →"}
+        </Link>
       </div>
     </div>
   );
@@ -1532,20 +1642,20 @@ function ModelsTab() {
             >
               <optgroup label="Recommended">
                 <option value={AUTO_MODEL}>
-                  Auto — best model per task, optimized automatically
+                  Auto: best model per task, optimized automatically
                 </option>
               </optgroup>
               <optgroup label="Live (Lovable AI Gateway)">
                 {MODELS.filter((m) => m.live).map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.label} — {m.desc}
+                    {m.label}: {m.desc}
                   </option>
                 ))}
               </optgroup>
               <optgroup label="Adapter-ready (platform / enterprise key)">
                 {MODELS.filter((m) => !m.live).map((m) => (
                   <option key={m.id} value={m.id} disabled>
-                    {m.label} — {m.desc}
+                    {m.label}: {m.desc}
                   </option>
                 ))}
               </optgroup>
@@ -1649,7 +1759,7 @@ function ByoKeysSection() {
       <MonoLabel style={{ marginBottom: 4 }}>Bring your own AI keys</MonoLabel>
       {isEnterprise ? (
         <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-          Connect any AI provider — Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
+          Connect any AI provider: Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
           OpenRouter, and more. Stored encrypted per user. Add a Base URL for providers with custom
           endpoints (Qwen, Ollama, custom).
         </p>
@@ -1684,6 +1794,7 @@ function ByoKeysSection() {
               className="input"
               value={keyLabel}
               onChange={(e) => setKeyLabel(e.target.value)}
+              aria-label="Key label"
               placeholder="Label (optional)"
             />
             <input
@@ -1691,12 +1802,14 @@ function ByoKeysSection() {
               value={keyValue}
               onChange={(e) => setKeyValue(e.target.value)}
               type="password"
+              aria-label="API key"
               placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
             />
             <input
               className="input"
               value={keyBase}
               onChange={(e) => setKeyBase(e.target.value)}
+              aria-label="Base URL"
               placeholder="Base URL (Qwen, Ollama, custom…)"
             />
           </div>
@@ -1706,7 +1819,8 @@ function ByoKeysSection() {
               style={{ marginTop: 4, width: "100%" }}
               value={keyModelId}
               onChange={(e) => setKeyModelId(e.target.value)}
-              placeholder="Model ID — the exact model to use with this key (e.g. qwen/qwen-max, ollama/llama3.2, custom/my-model)"
+              aria-label="Model ID"
+              placeholder="Model ID: the exact model to use with this key (e.g. qwen/qwen-max, ollama/llama3.2, custom/my-model)"
             />
           ) : null}
           <div
@@ -2036,14 +2150,16 @@ function WorkspaceTab({ scrollToBrief }: { scrollToBrief: boolean }) {
               empty to skip.
             </p>
           </div>
+          {/* Quiet, not solid: the brief's Save is this screen's one primary
+              CTA (v4 §3 ember discipline). */}
           <button
             type="button"
-            className="btn btn-primary btn-sm"
+            className="btn btn-ghost btn-sm"
             style={{ flexShrink: 0 }}
             disabled={saveVoice.isPending || profile.isLoading}
             onClick={() => saveVoice.mutate()}
           >
-            {saveVoice.isPending ? "Saving…" : "Save · every mission hears it"}
+            {saveVoice.isPending ? "Saving…" : "Save voice anchor"}
           </button>
         </div>
         <textarea

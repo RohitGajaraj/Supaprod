@@ -1,7 +1,11 @@
 // BRAIN-UX-V11 — human-lens Insights tab (floor) + AI analyst ceiling.
+// Loom W2-BRAIN: queries carry the active workspace (stale cross-workspace
+// numbers were audit row D-15), loading is a layout-matching skeleton, and
+// the error state names the cause and offers a retry (DESIGN-LOOM section 9).
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBrainInsights,
   getBrainAnalysis,
@@ -124,28 +128,80 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
 }
 
 export function InsightsPanel() {
+  const { activeWorkspaceId } = useWorkspace();
   const fInsights = useServerFn(getBrainInsights);
   const fAnalysis = useServerFn(getBrainAnalysis);
-  const q = useQuery({ queryKey: ["brain-insights"], queryFn: () => fInsights() });
+  const q = useQuery({
+    queryKey: ["brain-insights", activeWorkspaceId],
+    queryFn: () => fInsights({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
   // AI analyst loads lazily: staleTime 30 min so it fires at most once per session.
   const qa = useQuery({
-    queryKey: ["brain-analysis"],
+    queryKey: ["brain-analysis", activeWorkspaceId],
     queryFn: () => fAnalysis(),
     staleTime: 30 * 60 * 1000,
     retry: false,
   });
 
   if (q.isPending) {
+    // Shimmer skeleton matching the loaded layout: badge line, insight rows,
+    // then the two stat cards side by side.
+    const bar = (h: number, w?: string) => (
+      <div
+        style={{
+          width: w ?? "100%",
+          height: h,
+          borderRadius: "var(--radius-card)",
+          background:
+            "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
+          animation: "cadShimmer 1.6s linear infinite",
+        }}
+      />
+    );
     return (
-      <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "28px 0" }}>
-        Reading the brain…
+      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {bar(22, "40%")}
+        {bar(46)}
+        {bar(46)}
+        <div style={{ display: "flex", gap: 12 }}>
+          {bar(110, "50%")}
+          {bar(110, "50%")}
+        </div>
       </div>
     );
   }
   if (q.isError) {
     return (
-      <div style={{ fontSize: 13, color: "var(--rose)", padding: "28px 0" }}>
-        Could not load insights. {(q.error as Error)?.message}
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--top-light)",
+          padding: "16px 18px",
+        }}
+      >
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>
+          Insights · failed to load
+        </MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+          {(q.error as Error)?.message ?? "Unknown error"}
+        </p>
+        <button
+          type="button"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--glacier)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+          }}
+          onClick={() => void q.refetch()}
+        >
+          Retry · reloads insights
+        </button>
       </div>
     );
   }
@@ -202,7 +258,11 @@ export function InsightsPanel() {
         <div className="bento" style={{ padding: 16 }}>
           <MonoLabel style={{ marginBottom: 12 }}>Beliefs</MonoLabel>
           <div style={{ display: "flex", gap: 24 }}>
-            <Stat value={String(d.beliefs.standing)} label="still stand" color="var(--moss-bright)" />
+            <Stat
+              value={String(d.beliefs.standing)}
+              label="still stand"
+              color="var(--moss-bright)"
+            />
             <Stat value={String(d.beliefs.superseded)} label="revised since" />
           </div>
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
@@ -218,7 +278,11 @@ export function InsightsPanel() {
               value={d.learned.hitRate === null ? "-" : `${d.learned.hitRate}%`}
               label="hit rate"
             />
-            <Stat value={String(d.learned.validated)} label="validated" color="var(--moss-bright)" />
+            <Stat
+              value={String(d.learned.validated)}
+              label="validated"
+              color="var(--moss-bright)"
+            />
             <Stat value={String(d.learned.missed)} label="missed" color="var(--madder-bright)" />
             <Stat value={String(d.learned.mixed)} label="mixed" color="var(--ink-subtle)" />
           </div>

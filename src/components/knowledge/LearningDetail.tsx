@@ -135,7 +135,10 @@ export function LearningDetail({ id }: { id: string }) {
           {l.summary}
         </p>
         {footer.length > 0 ? (
-          <p className="mono-label tabular-nums" style={{ fontSize: 8.5, marginTop: 10 }}>
+          <p
+            className="mono-label tabular-nums"
+            style={{ fontSize: "var(--text-mono-floor)", marginTop: 10 }}
+          >
             {footer.join(" · ")}
           </p>
         ) : null}

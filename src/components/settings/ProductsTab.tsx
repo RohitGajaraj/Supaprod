@@ -8,13 +8,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Target, Download, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { useConfirm } from "@/hooks/use-confirm";
+import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
 import {
   getPortfolio,
   setProjectArchived,
   exportProduct,
   deleteProject,
+  createProject,
   type PortfolioProduct,
 } from "@/lib/projects.functions";
 
@@ -73,9 +74,11 @@ function ActionButton({
 }
 
 export function ProductsTab() {
-  const { activeProductId, setActiveProductId } = useWorkspace();
+  const { activeProductId, setActiveProductId, activeWorkspaceId, refreshProducts } =
+    useWorkspace();
   const qc = useQueryClient();
   const confirm = useConfirm();
+  const prompt = usePrompt();
 
   const fPortfolio = useServerFn(getPortfolio);
   const portfolio = useQuery({ queryKey: ["portfolio"], queryFn: () => fPortfolio() });
@@ -83,11 +86,33 @@ export function ProductsTab() {
   const fArchive = useServerFn(setProjectArchived);
   const fExport = useServerFn(exportProduct);
   const fDelete = useServerFn(deleteProject);
+  const fCreate = useServerFn(createProject);
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["portfolio"] });
     qc.invalidateQueries({ queryKey: ["projects"] });
+    void refreshProducts();
   };
+
+  async function addProduct() {
+    const name = await prompt({
+      title: "New product",
+      label: "Product name",
+      placeholder: "e.g. Checkout v2",
+      confirmLabel: "Create",
+    });
+    if (!name?.trim()) return;
+    try {
+      const res = await fCreate({
+        data: { name: name.trim(), workspaceId: activeWorkspaceId ?? undefined },
+      });
+      refresh();
+      if (res.project?.id) setActiveProductId(res.project.id);
+      toast.success(`Added "${name.trim()}".`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't create the product.");
+    }
+  }
 
   async function runExport(p: PortfolioProduct) {
     try {
@@ -156,12 +181,27 @@ export function ProductsTab() {
   }
 
   if (portfolio.isLoading) {
+    // Skeleton matches the loaded layout: one bento card with product rows.
     return (
-      <div
-        className="mono-label"
-        style={{ padding: "32px 0", textAlign: "center", color: "var(--ink-faint)" }}
-      >
-        loading…
+      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }} aria-hidden="true">
+        <div
+          className="animate-pulse"
+          style={{ height: 12, width: 140, borderRadius: 4, background: "var(--surface-2)" }}
+        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="animate-pulse"
+              style={{
+                height: 74,
+                borderRadius: 8,
+                border: "1px solid var(--hairline)",
+                background: "var(--surface-1)",
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -180,7 +220,7 @@ export function ProductsTab() {
           style={{ marginTop: 14 }}
           onClick={() => portfolio.refetch()}
         >
-          Retry · reloads products
+          Retry
         </button>
       </div>
     );
@@ -191,10 +231,25 @@ export function ProductsTab() {
   const archived = all.filter((p) => p.archived);
 
   if (all.length === 0) {
+    // Empty = an instruction + one action (DESIGN-LOOM §9).
     return (
-      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
-        No products in this workspace yet.
-      </p>
+      <div className="bento" style={{ padding: 24 }}>
+        <MonoLabel icon={Target}>Products</MonoLabel>
+        <p
+          style={{
+            fontSize: 12.5,
+            color: "var(--ink-subtle)",
+            margin: "10px 0 14px",
+            maxWidth: 480,
+          }}
+        >
+          A product is where signals, opportunities, and specs live. New workspaces start with one
+          named after the workspace; add one here to begin.
+        </p>
+        <button type="button" className="btn btn-primary btn-sm" onClick={addProduct}>
+          New product
+        </button>
+      </div>
     );
   }
 
@@ -212,11 +267,16 @@ export function ProductsTab() {
           <MonoLabel icon={Target}>
             Portfolio · {active.length} product{active.length === 1 ? "" : "s"}
           </MonoLabel>
-          {active.length > 1 && (
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-              click to switch
-            </span>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {active.length > 1 && (
+              <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
+                click to switch
+              </span>
+            )}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={addProduct}>
+              New product
+            </button>
+          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -232,9 +292,11 @@ export function ProductsTab() {
                     textAlign: "left",
                     padding: "10px 96px 10px 12px",
                     borderRadius: 8,
-                    border: `1px solid ${isActive ? "var(--ember)" : "var(--hairline)"}`,
+                    // Glacier marks the machine's record of your selection;
+                    // ember stays reserved for needs-a-human (v4 §3).
+                    border: `1px solid ${isActive ? "var(--glacier)" : "var(--hairline)"}`,
                     background: isActive
-                      ? "color-mix(in oklab, var(--ember) 6%, transparent)"
+                      ? "color-mix(in oklab, var(--glacier) 8%, transparent)"
                       : "transparent",
                   }}
                 >
@@ -246,7 +308,7 @@ export function ProductsTab() {
                           width: 6,
                           height: 6,
                           borderRadius: 99,
-                          background: "var(--ember)",
+                          background: "var(--glacier)",
                           flexShrink: 0,
                         }}
                       />
@@ -264,7 +326,10 @@ export function ProductsTab() {
                       {p.name}
                     </span>
                     {isActive && (
-                      <span className="mono-label" style={{ color: "var(--ember)", flexShrink: 0 }}>
+                      <span
+                        className="mono-label"
+                        style={{ color: "var(--glacier)", flexShrink: 0 }}
+                      >
                         active
                       </span>
                     )}
@@ -297,7 +362,7 @@ export function ProductsTab() {
                         height: "100%",
                         width: `${p.progress}%`,
                         borderRadius: 99,
-                        background: p.progress > 75 ? "var(--ember)" : "var(--ink-subtle)",
+                        background: p.progress > 75 ? "var(--moss, #7FBF8E)" : "var(--ink-subtle)",
                         transition: "width var(--dur-slow)",
                       }}
                     />

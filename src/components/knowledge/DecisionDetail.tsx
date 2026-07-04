@@ -58,7 +58,7 @@ function ShareDecisionButton({ id }: { id: string }) {
     return (
       <span
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)" }}
+        style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
         title="Sharing lights up after the next sync applies the share columns."
       >
         share · after sync
@@ -178,7 +178,7 @@ export function DecisionDetail({ id }: { id: string }) {
           <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}>
             {d.rationale ?? "No rationale captured."}
           </p>
-          <p className="mono-label" style={{ fontSize: 8.5, marginTop: 12 }}>
+          <p className="mono-label" style={{ fontSize: "var(--text-mono-floor)", marginTop: 12 }}>
             source · {SOURCE_LABEL[(d.source_kind ?? "manual") as DecisionSource]}
             {d.source_label ? ` · ${d.source_label}` : ""}
           </p>
@@ -195,8 +195,8 @@ export function DecisionDetail({ id }: { id: string }) {
             ))}
           </div>
           <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 12 }}>
-            Agents read this before any mission that touches the same surface. Decisions are
-            working memory, not minutes.
+            Agents read this before any mission that touches the same surface. Decisions are working
+            memory, not minutes.
           </p>
         </div>
       </div>

@@ -82,7 +82,32 @@ export function BrainStatTrio() {
   const fGet = useServerFn(getImpactLedger);
   const q = useQuery({ queryKey: ["impact-ledger", ""], queryFn: () => fGet({ data: {} }) });
 
-  // No-filler law: nothing paints until the query resolves.
+  // Numbers are real or absent (the honesty law): while loading, a skeleton
+  // holds the strip's height so the surface never jumps; on error the strip
+  // stays absent (the count strip below carries the failure + retry).
+  if (q.isPending) {
+    return (
+      <div
+        aria-hidden="true"
+        className="flex items-end"
+        style={{ gap: 32, marginBottom: 18, minHeight: 46 }}
+      >
+        {[72, 72, 72].map((w, i) => (
+          <div
+            key={i}
+            style={{
+              width: w,
+              height: 42,
+              borderRadius: "var(--radius-card)",
+              background:
+                "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
+              animation: "cadShimmer 1.6s linear infinite",
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
   if (!q.data) return null;
 
   const stats = deriveBrainStats(q.data);

@@ -29,7 +29,9 @@ export function HouseRulesPanel() {
   const decide = useMutation({
     mutationFn: (v: { ruleId: string; decision: "approve" | "reject" }) => fDecide({ data: v }),
     onSuccess: (_r, v) => {
-      toast.success(v.decision === "approve" ? "Approved · now applies to every AI call." : "Rejected.");
+      toast.success(
+        v.decision === "approve" ? "Approved · now applies to every AI call." : "Rejected.",
+      );
       inv();
     },
     onError: (e: Error) => toast.error(e.message),

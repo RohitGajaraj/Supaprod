@@ -9,6 +9,7 @@
 // OBS-08: ported to Obsidian presentation; every mutation/filter/dialog
 // behavior below is unchanged from the pre-port panel.
 import { useState } from "react";
+import { PanelSkeleton } from "./PanelSkeleton";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -123,7 +124,7 @@ function FilterGroup<T extends string>({
           className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: 9,
+            fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.08em",
             padding: "3px 10px",
             borderRadius: 6,
@@ -221,9 +222,7 @@ export function DecisionsPanel() {
       </div>
 
       {decisions.isLoading ? (
-        <div style={{ padding: "18px 2px" }}>
-          <MonoLabel>LOADING</MonoLabel>
-        </div>
+        <PanelSkeleton />
       ) : decisions.isError ? (
         <div
           style={{
@@ -275,7 +274,7 @@ export function DecisionsPanel() {
               padding: "10px 18px",
               borderBottom: "1px solid var(--hairline)",
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
+              fontSize: "var(--text-mono-floor)",
               color: "var(--text-faint)",
               textTransform: "uppercase",
             }}
@@ -371,7 +370,11 @@ export function DecisionsPanel() {
               </span>
               <span
                 className="tabular-nums"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-floor)",
+                  color: "var(--text-subtle)",
+                }}
               >
                 {ageOf(d.created_at)}
               </span>
@@ -439,7 +442,9 @@ function LogDecisionDialog({
         </DialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>title</MonoLabel>
+            <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+              title
+            </MonoLabel>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -459,7 +464,9 @@ function LogDecisionDialog({
             />
           </div>
           <div>
-            <MonoLabel style={{ fontSize: 8.5, marginBottom: 4 }}>rationale · optional</MonoLabel>
+            <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4 }}>
+              rationale · optional
+            </MonoLabel>
             <textarea
               value={rationale}
               onChange={(e) => setRationale(e.target.value)}

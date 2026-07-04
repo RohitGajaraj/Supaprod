@@ -12,6 +12,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { listChangelog } from "@/lib/changelog.functions";
 import { groupByProduct } from "@/lib/changelog";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { PanelSkeleton } from "./PanelSkeleton";
 
 function fmtDate(iso: string): string {
   const d = new Date(iso);
@@ -43,11 +44,7 @@ export function ChangelogPanel() {
   });
 
   if (query.isLoading) {
-    return (
-      <Card>
-        <MonoLabel>LOADING</MonoLabel>
-      </Card>
-    );
+    return <PanelSkeleton />;
   }
 
   if (query.isError) {

@@ -578,6 +578,11 @@ export function GraphForceCanvas({
   useEffect(
     () => () => {
       if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+      // A cancelled frame never runs, so it must reopen the schedule gate:
+      // under dev double-invoked effects (and any future remount that keeps
+      // refs), a latched-true rafPending would silently freeze the canvas
+      // forever - the blank-graph bug.
+      rafPending.current = false;
       simRef.current?.stop();
     },
     [],
@@ -610,7 +615,12 @@ export function GraphForceCanvas({
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // A touch/pen pointer can be gone before the handler runs; dragging
+      // still works for the common case, so never let capture failure throw.
+    }
     const { sx, sy } = localPoint(e);
     const node = pick(sx, sy);
     const cam = camRef.current;

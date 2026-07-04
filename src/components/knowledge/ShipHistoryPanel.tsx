@@ -13,6 +13,7 @@ import { getOutcomeData } from "@/lib/outcome.functions";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { StatusDot, STATUS_WORD } from "@/components/obsidian/status";
 import { fmtUsd, relTime } from "./ship-format";
+import { PanelSkeleton } from "./PanelSkeleton";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -38,11 +39,7 @@ export function ShipHistoryPanel() {
   const empty = missions.length === 0 && runs.length === 0;
 
   if (outcome.isLoading) {
-    return (
-      <Card>
-        <MonoLabel>LOADING</MonoLabel>
-      </Card>
-    );
+    return <PanelSkeleton />;
   }
 
   if (outcome.isError) {
@@ -127,11 +124,21 @@ export function ShipHistoryPanel() {
           </span>
           <span
             className="tabular-nums"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-subtle)",
+            }}
           >
             {m.hop_count} hop{m.hop_count === 1 ? "" : "s"}
           </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-subtle)",
+            }}
+          >
             {relTime(m.completed_at ?? m.updated_at)}
           </span>
           <ChevronRight size={12} style={{ color: "var(--text-faint)" }} />
@@ -180,12 +187,22 @@ export function ShipHistoryPanel() {
           </span>
           <span
             className="tabular-nums"
-            style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-subtle)",
+            }}
           >
             {r.duration_ms ? `${(r.duration_ms / 1000).toFixed(1)}s` : "-"} ·{" "}
             {Number(r.tokens_used ?? 0).toLocaleString()} tok · {fmtUsd(r.spend_used_usd)}
           </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-subtle)",
+            }}
+          >
             {relTime(r.created_at)}
           </span>
           {r.mission_id ? (
