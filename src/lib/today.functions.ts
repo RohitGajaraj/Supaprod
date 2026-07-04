@@ -540,8 +540,12 @@ async function resolveTier(supabase: SupabaseClient, workspaceId: string): Promi
         .eq("id", workspaceId)
         .maybeSingle();
       tier = normalizePlanTier((ws as { plan_tier?: string | null } | null)?.plan_tier);
-    } catch {
-      /* keep the free default */
+    } catch (e) {
+      // Both reads failed: a real DB error, so the tier is unknown, not free.
+      // Log and rethrow — getMemoryExpiry's outer catch returns the non-showing
+      // state, so a paid account never sees a false upgrade nudge (LOOM W4).
+      console.error("today/resolveTier: workspace tier read failed", e);
+      throw e;
     }
   }
   if (accountId) {
@@ -553,8 +557,10 @@ async function resolveTier(supabase: SupabaseClient, workspaceId: string): Promi
         .maybeSingle();
       const a = (acct ?? {}) as { plan_tier?: string | null };
       if (a.plan_tier != null) tier = normalizePlanTier(a.plan_tier);
-    } catch {
-      /* account row not readable yet; keep the workspace/free tier */
+    } catch (e) {
+      // account row not readable yet; keep the workspace/free tier (logged so
+      // a real read failure is visible instead of silent).
+      console.warn("today/resolveTier: account tier read failed, using workspace shim", e);
     }
   }
   return tier;

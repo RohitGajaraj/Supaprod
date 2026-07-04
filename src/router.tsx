@@ -32,6 +32,71 @@ function RoutePending() {
   );
 }
 
+// LOOM W4 - route-level error fallback (DESIGN-LOOM §9: an error may never
+// wear an empty state's clothes, and it always ships the cause + one action).
+// Inline styles + CSS variables with dark-safe literal fallbacks, since this
+// also mounts on public (parchment) routes and before token layers load.
+function RouteError({ error }: { error: Error }) {
+  const message =
+    error instanceof Error && error.message
+      ? error.message
+      : "Something went wrong while loading this page.";
+  return (
+    <div
+      style={{
+        minHeight: "40vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+        padding: 24,
+        textAlign: "center",
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          fontSize: 14,
+          lineHeight: 1.55,
+          maxWidth: "48ch",
+          color: "var(--text-body, #C6C0B8)",
+        }}
+      >
+        This page hit an error.
+      </p>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12.5,
+          lineHeight: 1.5,
+          maxWidth: "56ch",
+          color: "var(--text-muted, #A39D94)",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {message}
+      </p>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        style={{
+          marginTop: 4,
+          padding: "6px 14px",
+          fontSize: 12.5,
+          borderRadius: 8,
+          border: "1px solid var(--line, rgba(255,255,255,0.12))",
+          background: "transparent",
+          color: "var(--text-body, #C6C0B8)",
+          cursor: "pointer",
+        }}
+      >
+        Reload the page
+      </button>
+    </div>
+  );
+}
+
 export const getRouter = () => {
   const queryClient = new QueryClient({
     // LOOM W1 - app-wide query hygiene: tab refocus must not refire every
@@ -52,6 +117,7 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: RoutePending,
+    defaultErrorComponent: RouteError,
     defaultPendingMs: 150,
     defaultPendingMinMs: 300,
   });

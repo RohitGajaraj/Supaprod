@@ -8,7 +8,7 @@ export const PROVIDERS = [
   { id: "linear", label: "Linear", desc: "Import & sync issues to tasks" },
   { id: "google_calendar", label: "Google Calendar", desc: "Sync upcoming meetings" },
   { id: "figma", label: "Figma", desc: "Embed Figma files in docs" },
-  { id: "jira", label: "Jira", desc: "Custom OAuth — contact us" },
+  { id: "jira", label: "Jira", desc: "Custom OAuth · contact us" },
 ] as const;
 
 export const listIntegrations = createServerFn({ method: "GET" })

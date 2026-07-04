@@ -187,8 +187,12 @@ function BrainSurface({ children }: { children: React.ReactNode }) {
         margin: "0 auto",
         padding: "36px 32px 64px",
         animation: "cadRise 260ms var(--ease) both",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+      <div aria-hidden="true" className="loom-glow-field" />
       {children}
     </div>
   );

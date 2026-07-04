@@ -101,7 +101,7 @@ function assertApiKey(): string {
   const key = process.env.ASSEMBLYAI_API_KEY;
   if (!key) {
     throw new Error(
-      "ASSEMBLYAI_API_KEY not set — audio transcription is dormant by design. " +
+      "ASSEMBLYAI_API_KEY not set. Audio transcription is dormant by design. " +
         "Set the key in wrangler secrets to activate.",
     );
   }
@@ -378,8 +378,8 @@ Only include real commitments, not vague discussion points.`;
           title: item.title.slice(0, 200),
           content:
             `From meeting transcript "${transcript.file_name}"` +
-            (item.owner ? ` — owner: ${item.owner}` : "") +
-            (item.due_date ? ` — due: ${item.due_date}` : "") +
+            (item.owner ? ` · owner: ${item.owner}` : "") +
+            (item.due_date ? ` · due: ${item.due_date}` : "") +
             `\n\n"${item.raw_text}"`,
         });
         if (!sigErr) signalsInserted++;

@@ -56,7 +56,7 @@ export function isGatewayColdError(message: string | null | undefined): boolean 
 }
 
 const COLD_NOTE =
-  "The Critic needs the AI gateway, which isn't reachable here right now. Your idea is safe — try again in a moment, or once the gateway is connected.";
+  "The Critic needs the AI gateway, which isn't reachable here right now. Your idea is safe. Try again in a moment, or once the gateway is connected.";
 const TRANSIENT_NOTE = "Couldn't complete that just now. Give it a moment and try again.";
 
 /**

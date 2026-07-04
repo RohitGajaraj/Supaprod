@@ -35,7 +35,7 @@ export const startCalendarConnect = createServerFn({ method: "POST" })
     const clientId = clientIdFor(data.provider);
     if (!clientId) {
       throw new Error(
-        `Connect setup pending. The ${data.provider === "google" ? "Google" : "Microsoft"} calendar credential has not been configured yet — please contact the workspace admin.`,
+        `Connect setup pending. The ${data.provider === "google" ? "Google" : "Microsoft"} calendar credential has not been configured yet. Contact the workspace admin.`,
       );
     }
     const { authorizationUrl } = await authorizeAppUserOAuth({

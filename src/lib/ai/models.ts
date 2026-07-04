@@ -230,7 +230,7 @@ export const MODELS: Model[] = [
     provider: "qwen",
     tier: "balanced",
     contextK: 131,
-    desc: "Alibaba balanced — fast, capable, low cost.",
+    desc: "Alibaba balanced · fast, capable, low cost.",
     live: false,
     capabilities: ["fast-chat", "code", "reasoning"],
   },

@@ -155,7 +155,7 @@ export type StudioPreview = {
 } | null;
 
 const WORK_ORDER_HEADER =
-  "Studio work order — plan against the connected repo, stage a multi-file changeset, ship a PR, watch CI, and request the merge on green.";
+  "Studio work order · plan against the connected repo, stage a multi-file changeset, ship a PR, watch CI, and request the merge on green.";
 
 /**
  * Dispatch a Studio session (the agent door). Builds a structured work order
@@ -271,7 +271,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       const { data: ws } = await supabase.rpc("current_user_default_workspace");
       workspaceId = (ws as string | null) ?? null;
     }
-    if (!workspaceId) throw new Error("No workspace — create or join one first.");
+    if (!workspaceId) throw new Error("No workspace. Create or join one first.");
 
     const { data: agent } = await supabase
       .from("agents")

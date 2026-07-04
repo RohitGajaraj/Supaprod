@@ -331,6 +331,15 @@ export function GotoShortcuts() {
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
         return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // LOOM W4: never fire surface switches under an open dialog/overlay -
+      // typing "3" into a focused-but-non-input dialog must not yank the
+      // user to Plan and drop their in-flight decision.
+      if (
+        document.querySelector(
+          '[role="dialog"][data-state="open"], [role="dialog"][aria-modal="true"]',
+        )
+      )
+        return;
       const key = e.key;
       if (key >= "1" && key <= "5") {
         const item = PRIMARY_NAV[Number(key) - 1];

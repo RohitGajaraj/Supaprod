@@ -27,7 +27,7 @@ function key(): string {
   if (!k) {
     throw new Error(
       "web tools are not configured: FIRECRAWL_API_KEY is missing. " +
-        "An admin must set the FIRECRAWL_API_KEY server secret (platform infrastructure — not a user connector).",
+        "An admin must set the FIRECRAWL_API_KEY server secret (platform infrastructure, not a user connector).",
     );
   }
   return k;

@@ -69,12 +69,12 @@ export function summarizeGateStakes(gates: PendingGate[] | null | undefined): Ga
  * Honest when the queue is clear (no fabricated urgency).
  */
 export function describeStakes(s: GateStakes): string {
-  if (!s || s.total === 0) return "No pending approvals — the queue is clear.";
+  if (!s || s.total === 0) return "No pending approvals. The queue is clear.";
   const parts: string[] = [];
   if (s.top) {
     const riskTag = s.top.risk === "high" ? ", high blast radius" : "";
     parts.push(
-      `Most consequential: ${s.top.toolName} — ${s.top.effect} (${s.top.reversibility}${riskTag}).`,
+      `Most consequential: ${s.top.toolName} · ${s.top.effect} (${s.top.reversibility}${riskTag}).`,
     );
   }
   const breakdown: string[] = [];

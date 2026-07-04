@@ -190,7 +190,7 @@ export function evaluateTriggers(
       out.push({
         kind: "watch-scan",
         title,
-        goal: `${newCount} new signals arrived in the last 24 hours. Review and frame what changed — identify emerging clusters, surface framed opportunities, and log anything worth tracking.`,
+        goal: `${newCount} new signals arrived in the last 24 hours. Review and frame what changed. Identify emerging clusters, surface framed opportunities, and log anything worth tracking.`,
         rationale: `Self-initiated: ${newCount} new signals crossed the Watch threshold (${WATCH_SIGNAL_THRESHOLD}). Dispatched to the Watch agent (discovery-scout) for review and framing.`,
         reversible: true,
         priority: 30,

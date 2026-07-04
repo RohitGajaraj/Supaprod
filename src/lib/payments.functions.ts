@@ -435,8 +435,14 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
           };
         }
       }
-    } catch {
-      /* if the cap check itself errors, fall through to checkout */
+    } catch (e) {
+      // LOOM W4: a failed cap check must BLOCK, not fall through to checkout.
+      // Falling through let a buyer pass the cycle cap whenever this read
+      // errored, which is a silent money failure.
+      console.error("createTopUpCheckout: top-up cap check failed", e);
+      return {
+        error: "We could not verify your top-up limit just now. Please try again in a moment.",
+      };
     }
 
     // Delegate to the canonical session creator (resolves customer, sets

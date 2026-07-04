@@ -64,11 +64,11 @@ export type DelegateDesk = {
 const LANE_ORDER: DeskLaneId[] = ["needsYou", "working", "awaiting", "done", "attention"];
 
 const LANE_META: Record<DeskLaneId, { label: string; blurb: string }> = {
-  needsYou: { label: "Needs you", blurb: "Paused at a gate — a decision unblocks the work." },
+  needsYou: { label: "Needs you", blurb: "Paused at a gate. A decision unblocks the work." },
   working: { label: "Working", blurb: "Agents are on it. Walk away; come back to it done." },
   awaiting: { label: "Queued", blurb: "Handed off, waiting to start." },
   done: { label: "Done", blurb: "Finished. The full trail is kept." },
-  attention: { label: "Needs a look", blurb: "Stopped early — failed or cancelled." },
+  attention: { label: "Needs a look", blurb: "Stopped early. Failed or cancelled." },
 };
 
 // Status → lane. Normalized (lowercase, trimmed). Tolerant of the variants the

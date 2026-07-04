@@ -480,8 +480,12 @@ function BuildPage() {
           padding: "30px 44px 56px",
           maxWidth: "var(--container-work)",
           margin: "0 auto",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+        <div aria-hidden="true" className="loom-glow-field" />
         <div style={{ marginBottom: 22 }}>
           <h1
             style={{

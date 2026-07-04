@@ -92,7 +92,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "search_prds",
     description:
-      "Search specs (PRDs) by keyword (title or body) and/or status (draft/review/approved/shipped). Discover specs without knowing their id — the find half of get_prd.",
+      "Search specs (PRDs) by keyword (title or body) and/or status (draft/review/approved/shipped). Discover specs without knowing their id · the find half of get_prd.",
     inputSchema: {
       type: "object",
       properties: {
@@ -147,7 +147,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "get_governing_decision",
     description:
-      "Given a topic, return the CURRENT governing decisions — decisions that have not been superseded or contradicted. Stale decisions are flagged and their replacement is named, so an agent always cites the live belief, not an overturned one.",
+      "Given a topic, return the CURRENT governing decisions: decisions that have not been superseded or contradicted. Stale decisions are flagged and their replacement is named, so an agent always cites the live belief, not an overturned one.",
     inputSchema: {
       type: "object",
       properties: {
@@ -160,7 +160,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "get_contradiction_history",
     description:
-      "Given a topic, return the contradiction and supersession history of related decisions. Shows what was believed, what outcome invalidated it, and when — so an agent can ask 'has a bet like this ever been contradicted?' before committing.",
+      "Given a topic, return the contradiction and supersession history of related decisions. Shows what was believed, what outcome invalidated it, and when, so an agent can ask 'has a bet like this ever been contradicted?' before committing.",
     inputSchema: {
       type: "object",
       properties: {

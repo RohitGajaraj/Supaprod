@@ -85,7 +85,7 @@ export async function autoAdjustIce(
   const deltaC = Math.abs(newConfidence - oldConfidence);
 
   if (deltaI < 1 && deltaC < 1) {
-    return { ok: true, skipped: true, reason: "delta < 1 point on both axes — no update needed" };
+    return { ok: true, skipped: true, reason: "delta < 1 point on both axes · no update needed" };
   }
 
   // 4. Apply update.

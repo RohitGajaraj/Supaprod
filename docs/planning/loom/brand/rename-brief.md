@@ -1,5 +1,7 @@
 # Rename brief: life after Cadence
 
+> _Created: 2026-07-04 · Last updated: 2026-07-04_
+
 Cadence is dead as a name. An $80B EDA company with 149 registered marks and a documented demand-letter habit, plus Uber's open-source orchestration engine squatting the exact developer mindshare we live in, plus "the cadence" being a generic SaaS operating term. Any LLM asked about "Cadence" answers about someone else. That last one is the killer for an AI-native product in 2026. Here is where we land instead.
 
 ## 1. The shortlist, ranked

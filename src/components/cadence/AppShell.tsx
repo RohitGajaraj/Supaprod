@@ -117,6 +117,14 @@ function NavRow({
   );
 }
 
+// LOOM W4 perf: the shell's polls stop while the tab is hidden (a background
+// tab must not keep three server-fn polls alive) and resume on the next
+// visible tick. Pass to refetchInterval as a callback.
+function pollWhenVisible(ms: number) {
+  return () =>
+    typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const searchTab = useRouterState({
@@ -152,7 +160,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         return null;
       }
     },
-    refetchInterval: 30_000,
+    // 60s, aligned with the needs-you poll (a pause flip is rare and also
+    // re-read on demand); paused while the tab is hidden.
+    refetchInterval: pollWhenVisible(60_000),
     enabled: !!activeWorkspaceId,
   });
 
@@ -179,7 +189,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: needsYou } = useQuery({
     queryKey: ["needs-you"],
     queryFn: () => fetchNeedsYou(),
-    refetchInterval: 60_000,
+    refetchInterval: pollWhenVisible(60_000),
   });
   const callCount =
     (needsYou?.approvals.length ?? 0) +
@@ -193,7 +203,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: liveCounts } = useQuery({
     queryKey: ["live-run-counts"],
     queryFn: () => fetchLiveCounts(),
-    refetchInterval: 15_000,
+    // 15s, the liveliest signal (the working line); paused while hidden.
+    refetchInterval: pollWhenVisible(15_000),
   });
   const runningCount = liveCounts?.running ?? 0;
   const queuedCount = liveCounts?.queued ?? 0;
@@ -223,21 +234,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const PAGE_DESCRIPTIONS: Record<string, string> = {
     "/today":
-      "Live dashboard — active missions, recent decisions, signal queue, pending approvals, loop health.",
+      "Live dashboard · active missions, recent decisions, signal queue, pending approvals, loop health.",
     "/build":
-      "Build surface — live agent activity, PR and CI status, cost per session, build controls.",
+      "Build surface · live agent activity, PR and CI status, cost per session, build controls.",
     "/brain":
-      "Decision brain and memory layer — beliefs, supersession graph, learnings, precedents.",
+      "Decision brain and memory layer · beliefs, supersession graph, learnings, precedents.",
     "/trust-ledger":
-      "Trust Ledger — every decision and outcome with SHA-256 integrity fingerprint. The receipts layer.",
+      "Trust Ledger · every decision and outcome with SHA-256 integrity fingerprint. The receipts layer.",
     "/govern":
-      "Governance and cost controls — agent trust arcs, approval modes, spend caps, pause state.",
-    "/engine-room": "Engine Room — spend, quality, safety, and the record, at a glance.",
+      "Governance and cost controls · agent trust arcs, approval modes, spend caps, pause state.",
+    "/engine-room": "Engine Room · spend, quality, safety, and the record, at a glance.",
     "/discover":
-      "Discovery feed — opportunities ranked by ICE score, signals, analytics, competitor moves.",
-    "/plan": "Plan — cited specs and the outcome-declared roadmap.",
-    "/settings": "Settings — account, workspace, connections, AI keys, billing.",
-    "/sync": "Connections — available sources, connected repos, sync mappings.",
+      "Discovery feed · opportunities ranked by ICE score, signals, analytics, competitor moves.",
+    "/plan": "Plan · cited specs and the outcome-declared roadmap.",
+    "/settings": "Settings · account, workspace, connections, AI keys, billing.",
+    "/sync": "Connections · available sources, connected repos, sync mappings.",
     "/trust": "Trust and privacy statement.",
   };
 
@@ -249,7 +260,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `Cadence authenticated page at ${path}`;
 
     return [
-      `# Cadence — ${ws}`,
+      `# Cadence · ${ws}`,
       prod ? `**Active product:** ${prod}` : "",
       `**Current route:** ${path}`,
       ``,
@@ -275,8 +286,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `- Append \`?view=machine\` to any URL for machine mode`,
       `- A2A agent card: \`/.well-known/agent.json\``,
       `- Site context: \`/llms.txt\``,
-      `- MCP server: POST /api/mcp — 9 read tools + ingest_signal (write:signal scope); bearer token from Settings > Interop`,
-      `- Agent policy: /agents.txt — rate limits, content tiers, write-scope gates`,
+      `- MCP server: POST /api/mcp · 9 read tools + ingest_signal (write:signal scope); bearer token from Settings > Interop`,
+      `- Agent policy: /agents.txt · rate limits, content tiers, write-scope gates`,
     ].join("\n");
   }
 

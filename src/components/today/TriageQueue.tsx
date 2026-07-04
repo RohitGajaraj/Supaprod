@@ -58,7 +58,13 @@ export function TriageQueue({ groups }: { groups: QueueGroup[] }) {
               </span>
             </div>
             <div className="flex flex-col" style={{ gap: 10 }}>
-              <CallCard {...top.props} featured={group.family === featuredFamily} />
+              {/* Loom §2b: the featured (top) call carries the fading hairline,
+                  the light catching its top edge. One per screen. */}
+              <CallCard
+                {...top.props}
+                featured={group.family === featuredFamily}
+                className={group.family === featuredFamily ? "loom-hairline-fade" : undefined}
+              />
               {rest.length > 0 && !isOpen ? (
                 <button
                   type="button"

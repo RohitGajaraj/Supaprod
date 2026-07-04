@@ -426,7 +426,10 @@ export function GraphCanvasView({
       )}
 
       <div className="flex flex-wrap items-start" style={{ gap: 14 }}>
-        <div style={{ flex: 1, minWidth: 320 }}>
+        {/* Loom §2b: the flagship graph card carries the fading hairline (the
+            light catching its top edge). On the wrapper, not the canvas card
+            itself: the card's overflow-hidden would clip the 1px line. */}
+        <div className="loom-hairline-fade" style={{ flex: 1, minWidth: 320 }}>
           <GraphForceCanvas
             graph={graph}
             selectedKey={selectedKey}

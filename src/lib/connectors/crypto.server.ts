@@ -36,7 +36,7 @@ async function vaultKey(): Promise<CryptoKey> {
   const raw = process.env.CONNECTOR_SECRETS_KEY;
   if (!raw) {
     throw new Error(
-      "CONNECTOR_SECRETS_KEY is not set — connector secret vault is setup pending. Generate one with `openssl rand -base64 32` and add it as a server secret.",
+      "CONNECTOR_SECRETS_KEY is not set. Connector secret vault is setup pending. Generate one with `openssl rand -base64 32` and add it as a server secret.",
     );
   }
   const bytes = base64ToBytes(raw.trim());

@@ -38,6 +38,10 @@ export function EngineRoomContainer({ children }: { children: React.ReactNode })
         margin: "0 auto",
         padding: "36px 32px 64px",
         animation: "cadRise 260ms var(--ease) both",
+        // Loom §2b: anchors + clips the glance's glow field (harmless for
+        // RoomDetail, which renders no glow).
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       {children}
@@ -156,10 +160,16 @@ export function EngineRoomSurface() {
   const { rooms } = useEngineRoomGlance();
   const allHealthy =
     rooms.length > 0 && rooms.every((r) => r.glance !== null && r.glance.state === "healthy");
+  // Loom §2b glow tone: moss on an all-healthy day, ember when any room asks
+  // for attention, no tone (glacier default) while the verdicts are loading.
+  const anyAttention = rooms.some((r) => r.glance !== null && r.glance.state !== "healthy");
+  const glowTone = allHealthy ? "moss" : anyAttention ? "ember" : undefined;
   const openRoom = (key: RoomKey) => navigate({ search: { room: key } });
 
   return (
     <EngineRoomContainer>
+      {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+      <div aria-hidden="true" className="loom-glow-field" data-tone={glowTone} />
       <h1
         style={{
           fontFamily: "var(--font-serif)",

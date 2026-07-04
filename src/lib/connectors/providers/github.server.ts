@@ -37,7 +37,7 @@ export function normalizeGithubRepo(rawRepo: string): string | null {
 async function importAppKey(): Promise<CryptoKey> {
   const raw = process.env.GITHUB_APP_PRIVATE_KEY;
   if (!raw) {
-    throw new Error("GITHUB_APP_PRIVATE_KEY is not set — GitHub App connect is setup pending.");
+    throw new Error("GITHUB_APP_PRIVATE_KEY is not set. GitHub App connect is setup pending.");
   }
   // Secrets pasted as single lines often carry literal \n escapes.
   const pem = raw.replace(/\\n/g, "\n").trim();
@@ -67,7 +67,7 @@ function b64urlJson(obj: Record<string, unknown>): string {
 export async function appJwt(): Promise<string> {
   const appId = process.env.GITHUB_APP_ID;
   if (!appId) {
-    throw new Error("GITHUB_APP_ID is not set — GitHub App connect is setup pending.");
+    throw new Error("GITHUB_APP_ID is not set. GitHub App connect is setup pending.");
   }
   const key = await importAppKey();
   const now = Math.floor(Date.now() / 1000);
@@ -132,7 +132,7 @@ export async function getInstallationAccount(
 async function stateHmac(payload: string): Promise<string> {
   const keyB64 = process.env.CONNECTOR_SECRETS_KEY;
   if (!keyB64) {
-    throw new Error("CONNECTOR_SECRETS_KEY is not set — cannot sign GitHub connect state.");
+    throw new Error("CONNECTOR_SECRETS_KEY is not set. Cannot sign GitHub connect state.");
   }
   const key = await crypto.subtle.importKey(
     "raw",
@@ -267,7 +267,7 @@ export async function resolveGitHub(args: {
     const repo = normalizeGithubRepo(resolved.binding.resourceId);
     if (!repo) {
       throw new Error(
-        `GitHub binding has an invalid repo "${resolved.binding.resourceId}" — expected owner/name. Re-bind the repo on Connectors.`,
+        `GitHub binding has an invalid repo "${resolved.binding.resourceId}". Expected owner/name. Re-bind the repo on Connectors.`,
       );
     }
     return { token, repo, source: "binding", actorLabel: await actorLabelFor(resolved.auth) };

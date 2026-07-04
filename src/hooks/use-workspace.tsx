@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { accountChangedOnSwitch, shouldClearOnWorkspaceSwitch } from "./workspace-query-scope";
@@ -126,7 +126,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   }, [products, isLoadingProducts, activeWorkspaceId]);
 
-  const setActiveWorkspaceId = (id: string | null) => {
+  const setActiveWorkspaceId = useCallback(
+    (id: string | null) => {
     // WM-F8: on a real switch, clear every workspace-scoped query so no stale
     // data from the previous workspace flashes before the refetch (which reads
     // like a cross-workspace leak). Active observers refetch automatically
@@ -155,40 +156,55 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
     // Clear product when workspace switches
     setActiveProductState(null);
-  };
-
-  const setActiveProductId = (id: string | null) => {
-    setActiveProductState(id);
-    if (id && activeWorkspaceId) {
-      localStorage.setItem(`${PRODUCT_STORAGE_KEY}.${activeWorkspaceId}`, id);
-    } else if (activeWorkspaceId) {
-      localStorage.removeItem(`${PRODUCT_STORAGE_KEY}.${activeWorkspaceId}`);
-    }
-  };
-
-  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || null;
-  const activeProduct = products.find((p) => p.id === activeProductId) || null;
-
-  return (
-    <WorkspaceContext.Provider
-      value={{
-        workspaces,
-        activeWorkspaceId,
-        activeWorkspace,
-        products,
-        activeProductId,
-        activeProduct,
-        productsVisible: products.length > 1,
-        isLoading: isLoadingWorkspaces || isLoadingProducts,
-        setActiveWorkspaceId,
-        setActiveProductId,
-        refreshWorkspaces,
-        refreshProducts,
-      }}
-    >
-      {children}
-    </WorkspaceContext.Provider>
+    },
+    [activeWorkspaceId, workspaces, queryClient],
   );
+
+  const setActiveProductId = useCallback(
+    (id: string | null) => {
+      setActiveProductState(id);
+      if (id && activeWorkspaceId) {
+        localStorage.setItem(`${PRODUCT_STORAGE_KEY}.${activeWorkspaceId}`, id);
+      } else if (activeWorkspaceId) {
+        localStorage.removeItem(`${PRODUCT_STORAGE_KEY}.${activeWorkspaceId}`);
+      }
+    },
+    [activeWorkspaceId],
+  );
+
+  // LOOM W4 perf: a stable context value. Without this, every provider render
+  // handed consumers a fresh object and re-rendered the whole authed tree.
+  const value = useMemo<WorkspaceContextType>(() => {
+    const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || null;
+    const activeProduct = products.find((p) => p.id === activeProductId) || null;
+    return {
+      workspaces,
+      activeWorkspaceId,
+      activeWorkspace,
+      products,
+      activeProductId,
+      activeProduct,
+      productsVisible: products.length > 1,
+      isLoading: isLoadingWorkspaces || isLoadingProducts,
+      setActiveWorkspaceId,
+      setActiveProductId,
+      refreshWorkspaces,
+      refreshProducts,
+    };
+  }, [
+    workspaces,
+    activeWorkspaceId,
+    products,
+    activeProductId,
+    isLoadingWorkspaces,
+    isLoadingProducts,
+    setActiveWorkspaceId,
+    setActiveProductId,
+    refreshWorkspaces,
+    refreshProducts,
+  ]);
+
+  return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 
 export function useWorkspace() {

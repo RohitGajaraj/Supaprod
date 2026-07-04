@@ -188,13 +188,13 @@ export function derivePatterns(beliefs: BrainBeliefs, learned: LearnedSummary): 
       text:
         learned.hitRate >= 60
           ? `Your calls are landing: ${learned.hitRate}% of ${decisive} decisive outcomes validated.`
-          : `Worth a look: only ${learned.hitRate}% of ${decisive} decisive outcomes validated — the misses may share a pattern.`,
+          : `Worth a look: only ${learned.hitRate}% of ${decisive} decisive outcomes validated. The misses may share a pattern.`,
     });
   }
   if (learned.mixed > 0) {
     out.push({
       tone: "neutral",
-      text: `${learned.mixed} outcome${learned.mixed === 1 ? "" : "s"} came back mixed — partial signal, not a clean win or loss.`,
+      text: `${learned.mixed} outcome${learned.mixed === 1 ? "" : "s"} came back mixed. Partial signal, not a clean win or loss.`,
     });
   }
 
@@ -202,12 +202,12 @@ export function derivePatterns(beliefs: BrainBeliefs, learned: LearnedSummary): 
     if (beliefs.superseded > 0) {
       out.push({
         tone: "neutral",
-        text: `${beliefs.superseded} of ${totalDecisions} decisions have been revised since — the belief set is evolving, not frozen.`,
+        text: `${beliefs.superseded} of ${totalDecisions} decisions have been revised since. The belief set is evolving, not frozen.`,
       });
     } else {
       out.push({
         tone: "positive",
-        text: `All ${totalDecisions} recorded decisions still stand — none has been superseded.`,
+        text: `All ${totalDecisions} recorded decisions still stand. None has been superseded.`,
       });
     }
   }
@@ -315,7 +315,7 @@ export function deriveUnresolved(
     if (out.length < limit) {
       out.push({
         title: titleById.get(known) || "A recorded decision",
-        detail: "Flagged as conflicting with another recorded decision — not yet reconciled.",
+        detail: "Flagged as conflicting with another recorded decision. Not yet reconciled.",
       });
     }
   }

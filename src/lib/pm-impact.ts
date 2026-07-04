@@ -272,7 +272,7 @@ function buildHeadline(x: {
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function humanMonth(iso: string | null): string {
   const k = monthKey(iso);
-  if (!k) return "—";
+  if (!k) return "·";
   const [y, m] = k.split("-");
   const idx = Number(m) - 1;
   return `${MONTHS[idx] ?? m} ${y}`;

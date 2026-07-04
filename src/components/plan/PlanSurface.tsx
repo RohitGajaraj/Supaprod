@@ -68,8 +68,12 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         margin: "0 auto",
         padding: "36px 32px 64px",
         animation: "cadRise 260ms var(--ease) both",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+      <div aria-hidden="true" className="loom-glow-field" />
       <div style={{ marginBottom: 28 }}>
         <h1
           style={{

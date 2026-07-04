@@ -104,9 +104,10 @@ async function limitGatesEnabled(supabase: SupabaseClient): Promise<boolean> {
 async function resolveWorkspaceTier(
   supabase: SupabaseClient,
   workspaceId: string,
-): Promise<{ tier: PlanTier; accountId: string | null }> {
+): Promise<{ tier: PlanTier; accountId: string | null; tierUnknown: boolean }> {
   let tier: PlanTier = "free";
   let accountId: string | null = null;
+  let tierUnknown = false;
 
   try {
     const { data: ws, error } = await supabase
@@ -127,8 +128,12 @@ async function resolveWorkspaceTier(
         .eq("id", workspaceId)
         .maybeSingle();
       tier = normalizePlanTier((ws as { plan_tier?: string | null } | null)?.plan_tier);
-    } catch {
-      // keep the free default.
+    } catch (e) {
+      // Both reads failed: a real DB error. The 'free' default is now a guess,
+      // not a fact — flag it so gates don't enforce the strictest cap on a
+      // possibly-paid account (LOOM W4 silent-money-failure fix).
+      console.error("resolveWorkspaceTier: workspace tier read failed", e);
+      tierUnknown = true;
     }
   }
 
@@ -141,12 +146,14 @@ async function resolveWorkspaceTier(
         .maybeSingle();
       const a = (acct ?? {}) as { plan_tier?: string | null };
       if (a.plan_tier != null) tier = normalizePlanTier(a.plan_tier);
-    } catch {
-      // accounts table absent yet: keep the workspace shim tier.
+    } catch (e) {
+      // accounts table absent yet: keep the workspace shim tier (logged so a
+      // real read failure is visible instead of silent).
+      console.warn("resolveWorkspaceTier: account tier read failed, using workspace shim", e);
     }
   }
 
-  return { tier, accountId };
+  return { tier, accountId, tierUnknown };
 }
 
 /**
@@ -163,7 +170,11 @@ export async function assertCanCreateProduct(
 ): Promise<void> {
   if (!(await limitGatesEnabled(supabase))) return;
 
-  const { tier, accountId } = await resolveWorkspaceTier(supabase, workspaceId);
+  const { tier, accountId, tierUnknown } = await resolveWorkspaceTier(supabase, workspaceId);
+  // Tier unknown (DB error): skip this best-effort pre-check rather than
+  // enforce the free cap against a possibly-paid account. The DB trigger
+  // remains the authoritative guard.
+  if (tierUnknown) return;
   const limit = limitFor(tier, "product");
   if (limit === null) return; // generous/unlimited tier.
 

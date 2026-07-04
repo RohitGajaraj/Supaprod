@@ -1,5 +1,7 @@
 # Logo concept directions
 
+> _Created: 2026-07-04 · Last updated: 2026-07-04_
+
 Four distinct marks for the product currently called Cadence (name in flux). Every SVG is hand-authored geometry, drawn in `currentColor` with no gradients, so each mark survives one-color print, dark UI, light UI, and an embossed favicon. All live in this folder; each was rendered and visually verified at large and small sizes during authoring. These are craft sketches, not final vectors: a designer should refine optical weights, but the geometry and idea are real, not placeholder.
 
 A shared note on color: in the product palette, any of these can carry the glacier-violet-blossom thread gradient in hero contexts, with ember reserved for the "needs a human" accent. The sketches prove the marks do not depend on that gradient to read.

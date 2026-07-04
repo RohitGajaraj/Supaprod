@@ -1,5 +1,7 @@
 # Cadence Deep-Quality Audit Register (merged, deduplicated)
 
+> _Created: 2026-07-04 · Last updated: 2026-07-04_
+
 > Merged from 9 audit reports (sec:api-surface, sec:tenancy-rls, sec:secrets-connectors, a11y:primitives, a11y:contrast-forms, perf:loading, perf:data, arch:errors, lang:fingerprints) on 2026-07-04. Blockers first in every section.
 
 ## SECURITY

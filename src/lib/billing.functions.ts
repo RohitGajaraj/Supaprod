@@ -32,6 +32,12 @@ export type BillingState = {
   isOwner: boolean;
   /** Is the payment gateway configured for this build (sandbox or live token present)? */
   stripeConfigured: boolean;
+  /**
+   * LOOM W4: true when the tier read failed outright (a real DB error, not the
+   * graceful pre-migration fallback). The 'free' returned alongside is a
+   * fallback, not a fact — paid gates should treat it as unknown, not free.
+   */
+  planTierUnknown?: boolean;
 };
 
 export const getBillingState = createServerFn({ method: "GET" })
@@ -61,6 +67,7 @@ export const getBillingState = createServerFn({ method: "GET" })
     }
 
     let planTier: PlanTier = "free";
+    let planTierUnknown = false;
     let isOwner = false;
     let accountId: string | null = null;
     try {
@@ -91,8 +98,12 @@ export const getBillingState = createServerFn({ method: "GET" })
         const r = (row ?? {}) as { owner_id?: string; plan_tier?: string | null };
         planTier = normalizePlanTier(r.plan_tier);
         isOwner = !!r.owner_id && r.owner_id === userId;
-      } catch {
-        // transient / no plan_tier column: default to free.
+      } catch (e) {
+        // Both reads failed: a real DB error, not the pre-migration shape.
+        // Log it and mark the tier unknown instead of silently reporting free
+        // (LOOM W4 silent-money-failure fix).
+        console.error("getBillingState: workspace tier read failed", e);
+        planTierUnknown = true;
       }
     }
 
@@ -107,8 +118,10 @@ export const getBillingState = createServerFn({ method: "GET" })
           .maybeSingle();
         const a = (acct ?? {}) as { plan_tier?: string | null };
         if (a.plan_tier != null) planTier = normalizePlanTier(a.plan_tier);
-      } catch {
-        // accounts not present yet: keep the workspace shim.
+      } catch (e) {
+        // accounts not present yet: keep the workspace shim (logged so a real
+        // read failure is visible instead of silent).
+        console.warn("getBillingState: account tier read failed, using workspace shim", e);
       }
     }
 
@@ -118,5 +131,6 @@ export const getBillingState = createServerFn({ method: "GET" })
       entitlements: entitlementsFor(planTier),
       isOwner,
       stripeConfigured,
+      planTierUnknown,
     };
   });

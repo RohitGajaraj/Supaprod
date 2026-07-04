@@ -183,20 +183,20 @@ export function computeLoopClosure(input: LoopClosureInput): LoopClosureReport {
   const gaps: string[] = [];
   if (!closed) {
     if (counts.decisions === 0) {
-      gaps.push("No decisions recorded yet — the loop has nothing to govern.");
+      gaps.push("No decisions recorded yet. The loop has nothing to govern.");
     }
     if (outcomesRecorded === 0) {
       gaps.push(
-        "No recorded outcomes (learnings with a verdict) — the loop has no feedback to learn from.",
+        "No recorded outcomes (learnings with a verdict). The loop has no feedback to learn from.",
       );
     }
     if (supersessionEdges === 0) {
       gaps.push(
-        "No supersession edges — beliefs are never replaced; the decision graph is flat (a cold moat).",
+        "No supersession edges. Beliefs are never replaced; the decision graph is flat (a cold moat).",
       );
     } else if (governingResolutions === 0) {
       gaps.push(
-        "Supersession edges exist but none resolve a precedent forward to a later governing decision — the chain does not close.",
+        "Supersession edges exist but none resolve a precedent forward to a later governing decision. The chain does not close.",
       );
     }
   }

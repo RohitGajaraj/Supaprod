@@ -44,7 +44,7 @@ export const ENGINE_ROOM_BANDS: readonly EngineRoomBand[] = [
   {
     id: "needs-you",
     label: "Needs you",
-    blurb: "What's waiting on you right now — controls, attention, and the approval queue.",
+    blurb: "What's waiting on you right now · controls, attention, and the approval queue.",
     tabs: ["controls", "attention", "approvals", "house-rules"],
   },
   {

@@ -101,5 +101,5 @@ export function scanEgressForPii(text: string | null | undefined): PiiEgressScan
  */
 export function describeEgressPii(types: string[]): string {
   if (types.length === 0) return "";
-  return `This content looks like it contains personal data (${types.join(", ")}). Remove it before publishing — this surface is public.`;
+  return `This content looks like it contains personal data (${types.join(", ")}). Remove it before publishing. This surface is public.`;
 }

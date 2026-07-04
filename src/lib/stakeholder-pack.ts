@@ -76,7 +76,7 @@ function outcomeLine(brief: DecisionBrief): string | null {
     brief.metricLabel && brief.metricValue ? ` (${brief.metricLabel}: ${brief.metricValue})` : "";
   if (POSITIVE.has(v)) return `Recorded outcome: validated${metric}.`;
   if (NEGATIVE.has(v))
-    return `Recorded outcome: it missed${metric} — and that is on the record too.`;
+    return `Recorded outcome: it missed${metric}, and that is on the record too.`;
   return `Recorded outcome: mixed${metric}.`;
 }
 
@@ -171,7 +171,7 @@ export function renderPackMarkdown(
   lines.push("");
   for (const s of pack.sections) {
     lines.push(`## ${s.heading}`);
-    lines.push(s.body || "—");
+    lines.push(s.body || "·");
     lines.push("");
   }
   lines.push(`_${pack.footer}_`);

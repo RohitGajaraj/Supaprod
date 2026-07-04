@@ -50,7 +50,10 @@ export const MonoLabel = React.forwardRef<HTMLSpanElement, MonoLabelProps>(
         fontFamily: "var(--font-mono)",
         fontSize: "var(--text-mono-label)",
         letterSpacing: "0.11em",
-        color: tone ? MONO_LABEL_TONE_COLOR[tone] : "var(--text-subtle)",
+        // LOOM W4 contrast floor: the default mono label reads at --text-muted
+        // (subtle fell below arm's-length readability on dark). Callers that
+        // pass an explicit tone are untouched.
+        color: tone ? MONO_LABEL_TONE_COLOR[tone] : "var(--text-muted)",
         ...style,
       }}
       {...props}

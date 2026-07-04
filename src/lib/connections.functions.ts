@@ -192,7 +192,7 @@ export const startGithubAppConnect = createServerFn({ method: "POST" })
     const slug = (process.env.GITHUB_APP_SLUG ?? "").trim();
     if (!slug || !process.env.GITHUB_APP_ID) {
       throw new Error(
-        "GitHub setup pending — an admin must register the GitHub App and set GITHUB_APP_ID and GITHUB_APP_SLUG before members can connect.",
+        "GitHub setup pending. An admin must register the GitHub App and set GITHUB_APP_ID and GITHUB_APP_SLUG before members can connect.",
       );
     }
     const state = await makeConnectState(context.userId);
@@ -217,7 +217,7 @@ export const verifyConnection = createServerFn({ method: "POST" })
       try {
         const auth = await materializeAdapterAuth(row);
         if (!auth) {
-          detail = "No credential stored for this connection — reconnect it.";
+          detail = "No credential stored for this connection. Reconnect it.";
         } else {
           const result = await adapter.validate(auth);
           ok = result.ok;
@@ -311,7 +311,7 @@ export const startGatewayConnect = createServerFn({ method: "POST" })
     const clientId = process.env[method.clientIdEnv];
     if (!clientId) {
       throw new Error(
-        `${spec.label} setup pending — an admin must register the ${spec.label} OAuth app and set ${method.clientIdEnv}.` +
+        `${spec.label} setup pending. An admin must register the ${spec.label} OAuth app and set ${method.clientIdEnv}.` +
           (spec.setupHint ? ` ${spec.setupHint}` : ""),
       );
     }
@@ -445,7 +445,7 @@ export const listBindableResources = createServerFn({ method: "POST" })
     const adapter = getProviderAdapter(row.provider);
     if (!adapter) throw new Error("No adapter registered for this provider yet.");
     const auth = await materializeAdapterAuth(row);
-    if (!auth) throw new Error("No credential stored for this connection — reconnect it.");
+    if (!auth) throw new Error("No credential stored for this connection. Reconnect it.");
     const items = (await adapter.listResources?.(auth, data.resourceKind, { q: data.q })) ?? [];
     return { items };
   });

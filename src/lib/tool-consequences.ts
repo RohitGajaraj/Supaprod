@@ -22,17 +22,17 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
   "github.pr.open": {
     effect: "Opens a draft pull request on the repo.",
     reversible: "reversible",
-    undo: "Close the PR — nothing merges.",
+    undo: "Close the PR. Nothing merges.",
   },
   "studio.pr.open": {
     effect: "Opens a draft pull request on the repo.",
     reversible: "reversible",
-    undo: "Close the PR — nothing merges.",
+    undo: "Close the PR. Nothing merges.",
   },
   "studio.pr.merge": {
     effect: "Merges the pull request into the branch.",
     reversible: "irreversible",
-    undo: "Already merged — undoing means a revert PR.",
+    undo: "Already merged. Undoing means a revert PR.",
   },
   "delegate.openhands": {
     effect:
@@ -48,12 +48,12 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
   "github.commit.append": {
     effect: "Appends a commit to the branch.",
     reversible: "partial",
-    undo: "Stays in history — revert with a follow-up commit.",
+    undo: "Stays in history. Revert with a follow-up commit.",
   },
   "studio.commit": {
     effect: "Writes a commit to the working branch.",
     reversible: "partial",
-    undo: "Stays in history — revert with a follow-up commit.",
+    undo: "Stays in history. Revert with a follow-up commit.",
   },
   "studio.stage": {
     effect: "Stages file changes on the working branch.",
@@ -66,7 +66,7 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     undo: "Delete the event.",
   },
   "scheduler.propose": {
-    effect: "Proposes a schedule slot — nothing books yet.",
+    effect: "Proposes a schedule slot. Nothing books yet.",
     reversible: "reversible",
     undo: "Dismiss the proposal.",
   },
@@ -113,13 +113,13 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
   "backlog.prioritize": {
     effect: "Re-ranks the opportunity backlog.",
     reversible: "reversible",
-    undo: "Re-rank again — scores recompute each cycle.",
+    undo: "Re-rank again. Scores recompute each cycle.",
   },
   // orchestration (the Chief of Staff runs the mission)
   "mission.plan": {
     effect: "Plans the mission into a small step-by-step DAG.",
     reversible: "reversible",
-    undo: "Re-plan — the steps regenerate.",
+    undo: "Re-plan. The steps regenerate.",
   },
   "mission.dispatch": {
     effect: "Dispatches the ready mission steps to their agents.",
@@ -144,14 +144,14 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
   "research.synthesize": {
     effect: "Synthesizes signals into themes / opportunities.",
     reversible: "partial",
-    undo: "Remove the generated theme/opportunity — the source signals are untouched.",
+    undo: "Remove the generated theme/opportunity. The source signals are untouched.",
   },
 };
 
 const DEFAULT: ToolConsequence = {
   effect: "Runs the tool with the agent's arguments.",
   reversible: "partial",
-  undo: "Effect not catalogued — review the arguments before approving.",
+  undo: "Effect not catalogued. Review the arguments before approving.",
 };
 
 export function toolConsequence(toolName: string | null | undefined): ToolConsequence {

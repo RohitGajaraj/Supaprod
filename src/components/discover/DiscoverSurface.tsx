@@ -87,8 +87,16 @@ export function DiscoverSurface() {
   return (
     <div
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
-      style={{ maxWidth: "var(--container-standard)", padding: "36px 32px 64px" }}
+      style={{
+        maxWidth: "var(--container-standard)",
+        padding: "36px 32px 64px",
+        position: "relative",
+        overflow: "hidden",
+      }}
     >
+      {/* Loom §2b glow field: the one ambient wash behind the hero (default
+          glacier, the machine surface light). */}
+      <div aria-hidden="true" className="loom-glow-field" />
       <h1
         style={{
           fontFamily: "var(--font-serif)",

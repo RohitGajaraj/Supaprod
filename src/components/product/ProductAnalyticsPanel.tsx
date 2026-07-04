@@ -215,7 +215,7 @@ export function ProductAnalyticsPanel({
           <p className="text-[11px] text-slate-400">
             {d.ingestGated
               ? "Set POSTHOG_PERSONAL_API_KEY + POSTHOG_PROJECT_ID to pull cohort data."
-              : "No data yet — click refresh to pull from PostHog."}
+              : "No data yet. Click refresh to pull from PostHog."}
           </p>
         )}
 

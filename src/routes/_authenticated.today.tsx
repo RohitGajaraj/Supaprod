@@ -532,8 +532,17 @@ function Dashboard() {
           margin: "0 auto",
           padding: "32px 32px 64px",
           animation: "cadRise 260ms var(--ease) both",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
+        {/* Loom §2b glow field: the one ambient wash behind the hero. Ember-warm
+            only while calls actually pend; otherwise the default glacier light. */}
+        <div
+          aria-hidden="true"
+          className="loom-glow-field"
+          data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
+        />
         {needsYouLoaded ? (
           <Hero
             greeting={greeting.data?.greeting ?? "Hello"}
@@ -674,7 +683,10 @@ function Dashboard() {
                     textTransform: "uppercase",
                   }}
                 >
-                  {clearedSession} OF {totalCalls} ANSWERED
+                  {/* LOOM W4 honesty: the old "N of M answered" denominator
+                      shifted as new calls arrived mid-session. State the two
+                      real numbers instead. */}
+                  {clearedSession} answered · {callCount} open
                 </div>
               </div>
             )}

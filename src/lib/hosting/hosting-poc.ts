@@ -39,7 +39,7 @@ export function minimalShellHtml(projectName: string): string {
 </head>
 <body style="font-family: system-ui, sans-serif; padding: 64px 24px; text-align: center; color: #1a1a1a;">
 <h1 style="font-size: 28px; margin-bottom: 8px;">${safeName}</h1>
-<p style="color: #666; margin: 0;">Hosted by Cadence — BYO-P5 proof of concept.</p>
+<p style="color: #666; margin: 0;">Hosted by Cadence · BYO-P5 proof of concept.</p>
 </body>
 </html>`;
 }

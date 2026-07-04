@@ -30,7 +30,7 @@ const EMPTY: LoopClosureReport = {
     governingResolutions: 0,
   },
   chains: [],
-  gaps: ["No workspace context — nothing to prove."],
+  gaps: ["No workspace context. Nothing to prove."],
 };
 
 export const getLoopClosure = createServerFn({ method: "GET" })
