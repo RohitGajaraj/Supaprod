@@ -1,3 +1,4 @@
+-- 20260704063000_fix_changelog_released_at_trigger.sql
 -- Fix: changelog auto-materialize trigger, targeting the real live column.
 --
 -- 20260629120200_byo_p3_changelog.sql never actually applied to production
@@ -54,3 +55,50 @@ WHERE status = 'merged'
   AND release_notes IS NOT NULL
   AND btrim(release_notes) <> ''
 ON CONFLICT (changeset_id) WHERE changeset_id IS NOT NULL DO NOTHING;
+
+-- 20260704110900_loom_prd_scope_consistency.sql
+-- LOOM W4: prd-in-workspace consistency for the three PRD-derived artifact
+-- tables (prd_scaffolds, prd_flows, launch_plans). Their write policies
+-- checked only is_workspace_member(workspace_id), so a member of workspace A
+-- could insert/update a row that points at a PRD belonging to workspace B
+-- (cross-tenant artifact attachment). The fix: WITH CHECK now also requires
+-- the referenced PRD to live in the row's own workspace.
+
+-- prd_scaffolds ---------------------------------------------------------------
+DROP POLICY IF EXISTS "prd_scaffolds ws write" ON public.prd_scaffolds;
+CREATE POLICY "prd_scaffolds ws write" ON public.prd_scaffolds FOR ALL
+  USING (public.is_workspace_member(workspace_id))
+  WITH CHECK (
+    public.is_workspace_member(workspace_id)
+    AND EXISTS (
+      SELECT 1 FROM public.prds p
+      WHERE p.id = prd_scaffolds.prd_id
+        AND p.workspace_id = prd_scaffolds.workspace_id
+    )
+  );
+
+-- prd_flows -------------------------------------------------------------------
+DROP POLICY IF EXISTS "prd_flows ws write" ON public.prd_flows;
+CREATE POLICY "prd_flows ws write" ON public.prd_flows FOR ALL
+  USING (public.is_workspace_member(workspace_id))
+  WITH CHECK (
+    public.is_workspace_member(workspace_id)
+    AND EXISTS (
+      SELECT 1 FROM public.prds p
+      WHERE p.id = prd_flows.prd_id
+        AND p.workspace_id = prd_flows.workspace_id
+    )
+  );
+
+-- launch_plans ----------------------------------------------------------------
+DROP POLICY IF EXISTS "launch_plans ws write" ON public.launch_plans;
+CREATE POLICY "launch_plans ws write" ON public.launch_plans FOR ALL
+  USING (public.is_workspace_member(workspace_id))
+  WITH CHECK (
+    public.is_workspace_member(workspace_id)
+    AND EXISTS (
+      SELECT 1 FROM public.prds p
+      WHERE p.id = launch_plans.prd_id
+        AND p.workspace_id = launch_plans.workspace_id
+    )
+  );
