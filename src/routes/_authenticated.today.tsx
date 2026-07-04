@@ -12,6 +12,8 @@ import { WhatChanged, type WhatChangedItem } from "@/components/obsidian/today/W
 import { MachineNow, type MachineNowRow } from "@/components/obsidian/today/MachineNow";
 import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
 import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
+import { TriageQueue } from "@/components/today/TriageQueue";
+import { MyDayStrip } from "@/components/today/MyDayStrip";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -25,6 +27,8 @@ import { recordRitualSession, getAcceptanceRate, getAutonomyRatio } from "@/lib/
 import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
+import { listMeetings } from "@/lib/meetings.functions";
+import { listTasks } from "@/lib/tasks.functions";
 import type { CriticReview } from "@/lib/discovery.functions";
 import {
   TodayCoachMark,
@@ -108,6 +112,8 @@ function Dashboard() {
   const fetchAcceptance = useServerFn(getAcceptanceRate);
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
+  const fetchMeetings = useServerFn(listMeetings);
+  const fetchTasks = useServerFn(listTasks);
   const mResolveApproval = useServerFn(resolveApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
   const mBrief = useServerFn(generateDailyBrief);
@@ -126,6 +132,16 @@ function Dashboard() {
   const autonomy = useQuery({
     queryKey: ["autonomy", 14],
     queryFn: () => fetchAutonomy({ data: { days: 14 } }),
+  });
+  const meetings = useQuery({
+    queryKey: ["meetings-today"],
+    queryFn: () => fetchMeetings(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const tasks = useQuery({
+    queryKey: ["tasks-today"],
+    queryFn: () => fetchTasks(),
+    staleTime: 5 * 60 * 1000,
   });
   const regenBrief = useMutation({
     mutationFn: () => mBrief(),
@@ -378,101 +394,117 @@ function Dashboard() {
                   background: "var(--surface-card-deep)",
                 }}
               />
-            ) : callCount === 0 ? (
-              <div
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid rgba(127,191,142,0.3)",
-                  borderRadius: "var(--radius-card)",
-                  padding: "28px 26px",
-                }}
-              >
-                <h2
-                  style={{
-                    fontFamily: "var(--font-serif)",
-                    fontSize: 21,
-                    fontWeight: 450,
-                    color: "var(--text-primary)",
-                    margin: "0 0 6px",
-                  }}
-                >
-                  All clear.{" "}
-                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
-                    Enjoy the quiet roadmap.
-                  </em>
-                </h2>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                  The loop is running itself. New calls will find you here first.
-                </p>
-              </div>
             ) : (
               <>
-                {visiblePrd.map((p) => {
-                  const { body, ev } = criticEvidence(p.critic_review);
-                  return (
-                    <CallCard
-                      key={p.id}
-                      kind="WORTH BUILDING?"
-                      expiry=""
-                      title={p.title}
-                      body={body}
-                      ev={ev}
-                      okLabel="Approve"
-                      noLabel="Send back"
-                      consequence="Opens the pull request · nothing ships without you"
-                      onOk={() => decide(p.id, true)}
-                      onNo={() => decide(p.id, false)}
-                    />
-                  );
-                })}
-                {visibleOpp.map((o) => {
-                  const { body, ev } = criticEvidence(o.critic_review);
-                  return (
-                    <CallCard
-                      key={o.id}
-                      kind="WORTH BUILDING?"
-                      expiry=""
-                      title={o.title}
-                      body={body}
-                      ev={ev}
-                      okLabel="Approve"
-                      noLabel="Send back"
-                      consequence="Opens the pull request · nothing ships without you"
-                      onOk={() => decide(o.id, true)}
-                      onNo={() => decide(o.id, false)}
-                    />
-                  );
-                })}
-                {visibleApprovals.map((a) => (
-                  <CallCard
-                    key={a.id}
-                    kind="SHIP IT?"
-                    expiry={a.expires_at ? new Date(a.expires_at).toLocaleTimeString() : ""}
-                    title={`${a.agent_slug} wants to run ${a.tool_name}`}
-                    body={a.rationale ?? "Waiting on your approval."}
-                    ev={[]}
-                    okLabel="Approve"
-                    noLabel="Send back"
-                    consequence="Opens the pull request · nothing ships without you"
-                    onOk={() => decide(a.id, true)}
-                    onNo={() => decide(a.id, false)}
-                  />
-                ))}
-                {visibleAssumption.map((c) => (
-                  <CallCard
-                    key={c.id}
-                    kind="WORTH RE-EXAMINING?"
-                    expiry=""
-                    title={c.decisionTitle}
-                    body={`${c.assumptionStatement}. ${c.rationale}`}
-                    ev={c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : []}
-                    okLabel="Re-examine"
-                    noLabel="Still holds"
-                    consequence="Reopens the decision for review · nothing changes without you"
-                    onOk={() => decideChallenge.mutate({ id: c.id, action: "confirm" })}
-                    onNo={() => decideChallenge.mutate({ id: c.id, action: "dismiss" })}
-                  />
-                ))}
+                {/* LOOM W2-TODAY: My-day strip (meetings + tasks + focus-next) */}
+                <MyDayStrip
+                  meetings={meetings.data?.meetings?.length ?? 0}
+                  tasksDue={tasks.data?.tasks?.filter((t: any) => !t.completed).length ?? 0}
+                  onViewMeetings={() => goSurface("brain")}
+                  onViewTasks={() => {}}
+                />
+
+                {/* LOOM W2-TODAY: Triage-grouped call queue */}
+                <TriageQueue
+                  isEmpty={callCount === 0}
+                  emptyState={
+                    <div
+                      style={{
+                        background: "var(--card)",
+                        border: "1px solid rgba(127,191,142,0.3)",
+                        borderRadius: "var(--radius-card)",
+                        padding: "28px 26px",
+                      }}
+                    >
+                      <h2
+                        style={{
+                          fontFamily: "var(--font-serif)",
+                          fontSize: 21,
+                          fontWeight: 450,
+                          color: "var(--text-primary)",
+                          margin: "0 0 6px",
+                        }}
+                      >
+                        All clear.{" "}
+                        <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
+                          Enjoy the quiet roadmap.
+                        </em>
+                      </h2>
+                      <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                        The loop is running itself. New calls will find you here first.
+                      </p>
+                    </div>
+                  }
+                  calls={[
+                    // PRDs
+                    ...visiblePrd.map((p) => {
+                      const { body, ev } = criticEvidence(p.critic_review);
+                      return {
+                        id: p.id,
+                        kind: "WORTH BUILDING?" as const,
+                        expiry: "",
+                        title: p.title,
+                        body,
+                        ev,
+                        okLabel: "Approve",
+                        noLabel: "Send back",
+                        consequence: "Opens the pull request · nothing ships without you",
+                      };
+                    }),
+                    // Opportunities
+                    ...visibleOpp.map((o) => {
+                      const { body, ev } = criticEvidence(o.critic_review);
+                      return {
+                        id: o.id,
+                        kind: "WORTH BUILDING?" as const,
+                        expiry: "",
+                        title: o.title,
+                        body,
+                        ev,
+                        okLabel: "Approve",
+                        noLabel: "Send back",
+                        consequence: "Opens the pull request · nothing ships without you",
+                      };
+                    }),
+                    // Approvals
+                    ...visibleApprovals.map((a) => ({
+                      id: a.id,
+                      kind: "SHIP IT?" as const,
+                      expiry: a.expires_at ? new Date(a.expires_at).toLocaleTimeString() : "",
+                      title: `${a.agent_slug} wants to run ${a.tool_name}`,
+                      body: a.rationale ?? "Waiting on your approval.",
+                      ev: [] as { src: string; text: string }[],
+                      okLabel: "Approve",
+                      noLabel: "Send back",
+                      consequence: "Opens the pull request · nothing ships without you",
+                    })),
+                    // Assumptions/Challenges
+                    ...visibleAssumption.map((c) => ({
+                      id: c.id,
+                      kind: "WORTH RE-EXAMINING?" as const,
+                      expiry: "",
+                      title: c.decisionTitle,
+                      body: `${c.assumptionStatement}. ${c.rationale}`,
+                      ev: c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : [],
+                      okLabel: "Re-examine",
+                      noLabel: "Still holds",
+                      consequence: "Reopens the decision for review · nothing changes without you",
+                    })),
+                  ]}
+                  onDecide={(id, approved) => {
+                    // Determine whether this is an approval or a challenge
+                    if (visibleApprovals.some((a) => a.id === id)) {
+                      decide(id, approved);
+                    } else if (visibleAssumption.some((c) => c.id === id)) {
+                      decideChallenge.mutate({
+                        id,
+                        action: approved ? "confirm" : "dismiss",
+                      });
+                    } else {
+                      decide(id, approved);
+                    }
+                  }}
+                />
               </>
             )}
             {totalCalls > 0 && (
