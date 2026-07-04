@@ -42,9 +42,16 @@ if [ -z "$file_versions" ]; then
   exit 0
 fi
 
-# Applied versions from the managed migrations table.
+# Applied versions from the managed migrations table. Lovable Cloud may record
+# the apply timestamp in `version` a few seconds after the filename timestamp,
+# while preserving the Git filename prefix in `name`. Treat either as applied.
 applied_raw=$(psql -At -c \
-  "SELECT version FROM supabase_migrations.schema_migrations ORDER BY version" \
+  "SELECT version FROM supabase_migrations.schema_migrations
+   UNION
+   SELECT substring(name FROM '^([0-9]+)')
+   FROM supabase_migrations.schema_migrations
+   WHERE name ~ '^[0-9]+'
+   ORDER BY 1" \
   2>&1) || {
   if echo "$applied_raw" | grep -qi "permission denied"; then
     echo "[migrations] no read access to supabase_migrations schema; skipping"
