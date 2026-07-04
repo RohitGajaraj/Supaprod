@@ -99,6 +99,7 @@ import { Route as AuthenticatedAdminPeopleRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminObservabilityRouteImport } from './routes/_authenticated.admin.observability'
 import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authenticated.admin.ai-costs'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
 import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/public/hooks/steward-tick'
@@ -605,6 +606,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -874,6 +880,7 @@ export interface FileRoutesByFullPath {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
@@ -998,6 +1005,7 @@ export interface FileRoutesByTo {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
@@ -1126,6 +1134,7 @@ export interface FileRoutesById {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/_authenticated/admin/observability': typeof AuthenticatedAdminObservabilityRoute
@@ -1254,6 +1263,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/ai-costs'
     | '/admin/observability'
@@ -1378,6 +1388,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/admin/ai-costs'
     | '/admin/observability'
@@ -1505,6 +1516,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/ai-costs'
     | '/_authenticated/admin/observability'
@@ -1586,6 +1598,7 @@ export interface RootRouteChildren {
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
   TSlugRoute: typeof TSlugRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicIngestSignalsRoute: typeof ApiPublicIngestSignalsRoute
@@ -2258,6 +2271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -2710,6 +2730,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,
   TSlugRoute: TSlugRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicIngestSignalsRoute: ApiPublicIngestSignalsRoute,
