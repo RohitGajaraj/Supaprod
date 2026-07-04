@@ -14,6 +14,7 @@ import { Route as SubprocessorsRouteImport } from './routes/subprocessors'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ArdRouteImport } from './routes/ard'
@@ -73,6 +74,8 @@ import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated.agents'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated.studio.index'
 import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
 import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
@@ -95,6 +98,7 @@ import { Route as AuthenticatedAdminPlatformRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPeopleRouteImport } from './routes/_authenticated.admin.people'
 import { Route as AuthenticatedAdminObservabilityRouteImport } from './routes/_authenticated.admin.observability'
 import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authenticated.admin.ai-costs'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
 import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/public/hooks/steward-tick'
@@ -154,6 +158,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -456,6 +465,18 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedStudioIndexRoute =
   AuthenticatedStudioIndexRouteImport.update({
     id: '/studio/',
@@ -577,6 +598,12 @@ const AuthenticatedAdminAiCostsRoute =
     id: '/ai-costs',
     path: '/ai-costs',
     getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -785,11 +812,14 @@ export interface FileRoutesByFullPath {
   '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/subprocessors': typeof SubprocessorsRoute
   '/trust': typeof TrustRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -844,6 +874,7 @@ export interface FileRoutesByFullPath {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -907,11 +938,14 @@ export interface FileRoutesByTo {
   '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/subprocessors': typeof SubprocessorsRoute
   '/trust': typeof TrustRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/brain': typeof AuthenticatedBrainRoute
@@ -964,6 +998,7 @@ export interface FileRoutesByTo {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -1029,11 +1064,14 @@ export interface FileRoutesById {
   '/ard': typeof ArdRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/subprocessors': typeof SubprocessorsRoute
   '/trust': typeof TrustRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/agents': typeof AuthenticatedAgentsRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
@@ -1088,6 +1126,7 @@ export interface FileRoutesById {
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
   '/t/$slug': typeof TSlugRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
   '/_authenticated/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/_authenticated/admin/people': typeof AuthenticatedAdminPeopleRoute
@@ -1153,11 +1192,14 @@ export interface FileRouteTypes {
     | '/ard'
     | '/forgot-password'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/reset-password'
     | '/signup'
     | '/subprocessors'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/agents'
     | '/analytics'
@@ -1212,6 +1254,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/ai-costs'
     | '/admin/observability'
     | '/admin/people'
@@ -1275,11 +1318,14 @@ export interface FileRouteTypes {
     | '/ard'
     | '/forgot-password'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/reset-password'
     | '/signup'
     | '/subprocessors'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/agents'
     | '/analytics'
     | '/brain'
@@ -1332,6 +1378,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.mcp/invoke-tool/$tool'
     | '/admin/ai-costs'
     | '/admin/observability'
     | '/admin/people'
@@ -1396,11 +1443,14 @@ export interface FileRouteTypes {
     | '/ard'
     | '/forgot-password'
     | '/login'
+    | '/mcp'
     | '/pricing'
     | '/reset-password'
     | '/signup'
     | '/subprocessors'
     | '/trust'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/agents'
     | '/_authenticated/analytics'
@@ -1455,6 +1505,7 @@ export interface FileRouteTypes {
     | '/join/$token'
     | '/p/$slug'
     | '/t/$slug'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/admin/ai-costs'
     | '/_authenticated/admin/observability'
     | '/_authenticated/admin/people'
@@ -1520,11 +1571,14 @@ export interface RootRouteChildren {
   ArdRoute: typeof ArdRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SubprocessorsRoute: typeof SubprocessorsRoute
   TrustRoute: typeof TrustRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiMcpRoute: typeof ApiMcpRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -1532,6 +1586,7 @@ export interface RootRouteChildren {
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
   TSlugRoute: typeof TSlugRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicIngestSignalsRoute: typeof ApiPublicIngestSignalsRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
@@ -1606,6 +1661,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -2021,6 +2083,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/studio/': {
       id: '/_authenticated/studio/'
       path: '/studio'
@@ -2174,6 +2250,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/ai-costs'
       preLoaderRoute: typeof AuthenticatedAdminAiCostsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -2611,11 +2694,15 @@ const rootRouteChildren: RootRouteChildren = {
   ArdRoute: ArdRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   PricingRoute: PricingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SubprocessorsRoute: SubprocessorsRoute,
   TrustRoute: TrustRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
   ApiMcpRoute: ApiMcpRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
@@ -2623,6 +2710,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,
   TSlugRoute: TSlugRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicIngestSignalsRoute: ApiPublicIngestSignalsRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
