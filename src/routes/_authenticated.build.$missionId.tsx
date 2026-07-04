@@ -66,7 +66,12 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
     const isNotFound = message === "Session not found";
     return (
       <div
-        style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}
+        style={{
+          padding: "30px 44px 56px",
+          maxWidth: "var(--container-work)",
+          width: "100%",
+          margin: "0 auto",
+        }}
       >
         <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
           <MonoLabel style={{ color: isNotFound ? "var(--text-subtle)" : "var(--madder)" }}>
@@ -462,7 +467,12 @@ function BuildSessionPage() {
       />
       <div
         data-screen-label="Build session"
-        style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}
+        style={{
+          padding: "30px 44px 56px",
+          maxWidth: "var(--container-work)",
+          width: "100%",
+          margin: "0 auto",
+        }}
       >
         <Link
           to="/build"

@@ -455,7 +455,7 @@ export function GauntletMetricsPanel() {
         invented number.
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
         <MetricCard
           icon={CheckCircle2}
           label="Acceptance rate"

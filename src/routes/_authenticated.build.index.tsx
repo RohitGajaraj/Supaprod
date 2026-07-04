@@ -60,6 +60,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
       .parse(search),
   errorComponent: ({ error, reset }) => (
     <div style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}>
+    width: "100%",
       <div
         style={{
           padding: 24,
@@ -479,6 +480,7 @@ function BuildPage() {
         style={{
           padding: "30px 44px 56px",
           maxWidth: "var(--container-work)",
+          width: "100%",
           margin: "0 auto",
           position: "relative",
           overflow: "hidden",

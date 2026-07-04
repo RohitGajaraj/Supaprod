@@ -289,7 +289,7 @@ export function EvalsPanel() {
           }}
         />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
           {suites.map((s) => {
             const score = s.last_run?.avg_score != null ? Math.round(s.last_run.avg_score) : null;
             const t = trends[s.id];

@@ -368,6 +368,7 @@ function SpecEditorPage() {
 
   const container: CSSProperties = {
     maxWidth: "var(--container-standard)",
+    width: "100%",
     margin: "0 auto",
     padding: "32px 32px 64px",
   };

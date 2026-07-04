@@ -89,6 +89,7 @@ export function DiscoverSurface() {
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
       style={{
         maxWidth: "var(--container-standard)",
+        width: "100%",
         padding: "36px 32px 64px",
         position: "relative",
         overflow: "hidden",

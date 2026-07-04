@@ -182,7 +182,7 @@ function SpanInspector({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: 12,
           marginTop: 12,
           fontSize: 12.5,
@@ -263,7 +263,7 @@ function SpanInspector({
       {evalCells.some(([, v]) => v != null) && (
         <div style={{ marginTop: 14 }}>
           <MonoLabel style={{ marginBottom: 6 }}>Eval scores</MonoLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}>
             {evalCells.map(([k, v]) =>
               v == null ? null : (
                 <div
@@ -325,7 +325,7 @@ function ToolInspector({ tool }: { tool: ToolCallRow }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: 12,
           marginTop: 12,
           fontSize: 12.5,

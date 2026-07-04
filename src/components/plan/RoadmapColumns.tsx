@@ -120,7 +120,7 @@ export function RoadmapColumns() {
     return (
       <div
         role="status"
-        style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}
+        style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}
       >
         <span className="sr-only">Loading the roadmap…</span>
         {COLUMNS.map((c) => (
@@ -270,7 +270,7 @@ export function RoadmapColumns() {
           </span>
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
         {COLUMNS.map((col) => {
           const colItems = items
             .filter((i) => i.bucket === col.key)

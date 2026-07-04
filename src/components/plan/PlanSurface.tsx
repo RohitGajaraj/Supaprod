@@ -65,6 +65,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
     <div
       style={{
         maxWidth: "var(--container-standard)",
+        width: "100%",
         margin: "0 auto",
         padding: "36px 32px 64px",
         animation: "cadRise 260ms var(--ease) both",

@@ -184,6 +184,7 @@ function BrainSurface({ children }: { children: React.ReactNode }) {
     <div
       style={{
         maxWidth: "var(--container-work, 1520px)",
+        width: "100%",
         margin: "0 auto",
         padding: "36px 32px 64px",
         animation: "cadRise 260ms var(--ease) both",

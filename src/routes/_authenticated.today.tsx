@@ -529,6 +529,7 @@ function Dashboard() {
       <div
         style={{
           maxWidth: "var(--container-standard)",
+          width: "100%",
           margin: "0 auto",
           padding: "32px 32px 64px",
           animation: "cadRise 260ms var(--ease) both",

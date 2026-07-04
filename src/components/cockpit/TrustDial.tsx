@@ -290,7 +290,7 @@ function TrustRow({
           className="fade-up tabular-nums"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
             gap: 8,
             paddingTop: 4,
             borderTop: "1px solid var(--hairline)",
