@@ -117,10 +117,13 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
         {settings.data?.is_owner ? (
           <span className="ml-auto flex items-center gap-2">
             <MonoLabel style={{ fontSize: "10.5px" }}>Auto-cluster</MonoLabel>
+            {/* Glacier when on: autonomous machine behavior is the machine's
+             * voice, and ember stays reserved for the one Capture CTA (v4 §3). */}
             <Switch
               checked={settings.data.enabled}
               disabled={toggleAuto.isPending}
               onCheckedChange={(v) => toggleAuto.mutate(v)}
+              className="data-[state=checked]:bg-[var(--glacier)]"
             />
           </span>
         ) : null}

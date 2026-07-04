@@ -39,7 +39,7 @@ function Delta({
 }) {
   if (value === 0) {
     return (
-      <span style={{ fontSize: 10, color: "var(--ink-faint)" }} title="No change">
+      <span style={{ fontSize: 10, color: "var(--text-faint)" }} title="No change">
         ·
       </span>
     );
@@ -53,7 +53,7 @@ function Delta({
     <span
       style={{
         fontSize: 10,
-        color: regressed ? "var(--madder)" : "var(--ink-muted)",
+        color: regressed ? "var(--madder)" : "var(--text-body)",
         whiteSpace: "nowrap",
       }}
     >
@@ -81,12 +81,12 @@ function MetricRow({
         gap: 8,
         alignItems: "baseline",
         padding: "5px 0",
-        borderTop: "1px solid color-mix(in oklab, var(--ink-faint) 30%, transparent)",
+        borderTop: "1px solid var(--hairline)",
         fontSize: 12.5,
       }}
     >
-      <span style={{ color: "var(--ink-subtle)" }}>{label}</span>
-      <span style={{ color: "var(--ink-muted)", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ color: "var(--text-subtle)" }}>{label}</span>
+      <span style={{ color: "var(--text-body)", fontVariantNumeric: "tabular-nums" }}>
         {original}
       </span>
       <span style={{ fontVariantNumeric: "tabular-nums" }}>{replay}</span>
@@ -131,11 +131,11 @@ export function MissionDiff({
       <MonoLabel style={{ marginBottom: 4 }}>replay vs original · what changed</MonoLabel>
 
       {diff.finalOutputChanged ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "0 0 10px" }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 10px" }}>
           The final answer changed between the two runs.
         </p>
       ) : (
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "0 0 10px" }}>
           The final answer is unchanged; the run shape may still differ below.
         </p>
       )}
@@ -149,7 +149,7 @@ export function MissionDiff({
           fontSize: 9,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
           paddingBottom: 2,
         }}
       >
@@ -201,7 +201,7 @@ export function MissionDiff({
         replay={fmtDur(diff.replay.durationMs)}
         delta={
           diff.deltas.durationMs === null ? (
-            <span style={{ fontSize: 10, color: "var(--ink-faint)" }}>-</span>
+            <span style={{ fontSize: 10, color: "var(--text-faint)" }}>-</span>
           ) : (
             <Delta value={diff.deltas.durationMs} render={fmtDur} desirable="lower" />
           )
@@ -218,11 +218,11 @@ export function MissionDiff({
                 key={h.index}
                 style={{
                   fontSize: 12,
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-subtle)",
                   padding: "3px 0",
                 }}
               >
-                <span style={{ color: "var(--ink-muted)" }}>
+                <span style={{ color: "var(--text-body)" }}>
                   Hop {h.index + 1}
                   {h.agentSlug ? ` · ${h.agentSlug}` : ""}
                 </span>{" "}
@@ -240,7 +240,7 @@ export function MissionDiff({
           </ul>
         </div>
       ) : (
-        <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 10 }}>
+        <p style={{ fontSize: 12, color: "var(--text-subtle)", marginTop: 10 }}>
           Every hop matched the original step for step.
         </p>
       )}

@@ -29,7 +29,7 @@ export function HouseRulesPanel() {
   const decide = useMutation({
     mutationFn: (v: { ruleId: string; decision: "approve" | "reject" }) => fDecide({ data: v }),
     onSuccess: (_r, v) => {
-      toast.success(v.decision === "approve" ? "Approved · live at the chokepoint." : "Rejected.");
+      toast.success(v.decision === "approve" ? "Approved · now applies to every AI call." : "Rejected.");
       inv();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -117,7 +117,7 @@ export function HouseRulesPanel() {
 }
 
 const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · live at the chokepoint", color: "var(--emerald)" },
+  approved: { text: "approved · applies to every AI call", color: "var(--emerald)" },
   rejected: { text: "rejected · discarded", color: "var(--coral)" },
 };
 
@@ -207,7 +207,7 @@ function HouseRuleCard({
           >
             <button className="btn btn-approve btn-sm" disabled={busy} onClick={onApprove}>
               <Check size={11} />
-              Approve · goes live at the chokepoint
+              Approve · applies to every AI call
             </button>
             <button className="btn btn-reject btn-sm" disabled={busy} onClick={onReject}>
               <X size={11} />

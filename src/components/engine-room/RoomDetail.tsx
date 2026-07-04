@@ -95,6 +95,41 @@ export function EmptyRow({ message }: { message: string }) {
   );
 }
 
+/** A failed read says so and offers one retry (LOOM §9b: an error may never
+ * wear an empty state's clothes). Shared by all four rooms' views. */
+export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div style={{ padding: "18px 0" }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          color: "var(--madder-bright)",
+          marginBottom: "10px",
+        }}
+      >
+        {message}
+      </p>
+      <button
+        type="button"
+        className="uppercase cursor-pointer"
+        onClick={onRetry}
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          letterSpacing: "0.11em",
+          color: "var(--glacier)",
+          background: "none",
+          border: "none",
+          padding: 0,
+        }}
+      >
+        RETRY
+      </button>
+    </div>
+  );
+}
+
 /** Suspense/loading fallback for a lazy room body: a quiet shimmer line at
  * the reading position, never a blank frame (LOOM §9). */
 export function PanelPending() {

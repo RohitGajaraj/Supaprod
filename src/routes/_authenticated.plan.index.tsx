@@ -1,13 +1,21 @@
-// Plan · OBS-07: ported to the Obsidian v3 design system (cited specs + outcome
-// roadmap). `/plan` is a new, additive route — `/product` and `/prds` keep their
-// current parchment behavior and current data (shared query keys) until OBS-10
-// folds the routes together. No server function is modified.
+// Plan · LOOM W2 (2026-07-04): the Plan destination, v4 "Loom". Moved from
+// `_authenticated.plan.tsx` to the index position so the full spec editor can
+// live at the sibling `/plan/spec/$id` (re-homed from `/prds/$id`) without a
+// pass-through layout. Honors `?view=` (roadmap · specs · stakeholders) so the
+// `/roadmap` and `/stakeholder` legacy redirects land on the section they
+// promised (DESIGN-LOOM §9b: deep-link params are honored everywhere).
 import { createFileRoute } from "@tanstack/react-router";
 import { TopBar } from "@/components/cadence/TopBar";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { PlanSurface } from "@/components/plan/PlanSurface";
+import { PlanSurface, PLAN_VIEWS, type PlanView } from "@/components/plan/PlanSurface";
 
-export const Route = createFileRoute("/_authenticated/plan")({
+export const Route = createFileRoute("/_authenticated/plan/")({
+  validateSearch: (search: Record<string, unknown>): { view?: PlanView } => {
+    const v = search.view;
+    return {
+      view: (PLAN_VIEWS as readonly string[]).includes(v as string) ? (v as PlanView) : undefined,
+    };
+  },
   component: PlanPage,
   head: () => ({ meta: [{ title: "Plan · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
@@ -18,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/plan")({
           maxWidth: 560,
           background: "var(--surface-card)",
           borderRadius: "var(--radius-panel)",
+          boxShadow: "var(--shadow-elevated)",
         }}
       >
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
@@ -28,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/plan")({
         </p>
         <button
           onClick={reset}
+          className="loom-press"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
@@ -47,10 +57,11 @@ export const Route = createFileRoute("/_authenticated/plan")({
 
 function PlanPage() {
   const { activeWorkspace } = useWorkspace();
+  const { view } = Route.useSearch();
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Plan"]} />
-      <PlanSurface />
+      <PlanSurface view={view} />
     </>
   );
 }

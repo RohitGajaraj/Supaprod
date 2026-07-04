@@ -1094,7 +1094,7 @@ function MonthGrid({
           ))}
           {selItems.length === 0 ? (
             <div style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>
-              Nothing scheduled — a good deep-work day.
+              Nothing scheduled · a good deep-work day.
             </div>
           ) : null}
         </div>
@@ -1153,8 +1153,8 @@ function YearGrid({ buckets }: { buckets: Record<string, DayItem[]> }) {
         <span className="font-display" style={{ fontSize: 16, flex: 1 }}>
           {year} · occupancy
         </span>
-        <span className="mono-label" style={{ fontSize: 7.5 }}>
-          like a contribution graph — but for your time
+        <span className="mono-label" style={{ fontSize: 10.5 }}>
+          like a contribution graph · but for your time
         </span>
       </div>
       {/* The grid FILLS the card width — cell size derives from the weeks

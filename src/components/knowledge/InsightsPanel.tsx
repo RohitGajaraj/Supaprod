@@ -58,7 +58,7 @@ function Stat({ value, label, color }: { value: string; label: string; color?: s
       >
         {value}
       </span>
-      <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+      <span className="mono-label" style={{ fontSize: 10.5, color: "var(--ink-subtle)" }}>
         {label}
       </span>
     </div>
@@ -112,7 +112,7 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
             </div>
             <span
               className="mono-label tabular-nums"
-              style={{ fontSize: 8, color: "var(--ink-faint)" }}
+              style={{ fontSize: 10.5, color: "var(--ink-subtle)" }}
             >
               {b.month.slice(2)}
             </span>
@@ -208,7 +208,7 @@ export function InsightsPanel() {
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {totalDecisions === 0
               ? "No decisions recorded yet."
-              : "Current beliefs are the calls that still hold; revised ones were superseded by a later decision."}
+              : "Current beliefs are the calls that still hold; revised ones were replaced by a later call."}
           </p>
         </div>
         <div className="bento" style={{ padding: 16 }}>
@@ -241,7 +241,7 @@ export function InsightsPanel() {
                   <span
                     className="mono-label"
                     style={{
-                      fontSize: 8.5,
+                      fontSize: 10.5,
                       color: b.superseded ? "var(--ink-subtle)" : "var(--moss-bright)",
                       flexShrink: 0,
                       textTransform: "uppercase",
@@ -355,7 +355,7 @@ export function InsightsPanel() {
                 <span
                   className="mono-label"
                   style={{
-                    fontSize: 9,
+                    fontSize: 10.5,
                     color: VERDICT_COLOR[l.verdict?.toLowerCase()] ?? "var(--ink-subtle)",
                     flexShrink: 0,
                     minWidth: 60,
@@ -376,7 +376,7 @@ export function InsightsPanel() {
                   {l.metricLabel && l.metricValue ? (
                     <span
                       className="mono-label"
-                      style={{ fontSize: 9, color: "var(--ink-faint)", marginLeft: 6 }}
+                      style={{ fontSize: 10.5, color: "var(--ink-subtle)", marginLeft: 6 }}
                     >
                       {l.metricLabel}: {l.metricValue}
                     </span>
@@ -385,7 +385,7 @@ export function InsightsPanel() {
                     <span
                       className="mono-label tabular-nums"
                       style={{
-                        fontSize: 9,
+                        fontSize: 10.5,
                         marginLeft: 6,
                         color: l.iceShift > 0 ? "var(--moss-bright)" : "var(--madder-bright)",
                       }}

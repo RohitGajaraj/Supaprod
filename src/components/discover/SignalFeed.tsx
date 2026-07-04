@@ -193,7 +193,10 @@ export function SignalFeed() {
     onMutate: (id) => setBusy(id, true),
     onSuccess: (r) => {
       toast.success("Spec drafted");
-      navigate({ to: "/prds/$id", params: { id: r.id } });
+      // The spec editor's home is /plan/spec/$id since the W2 re-home; the
+      // /prds/$id stub only exists for external legacy links, and in-app
+      // links never target a redirect (quality-register invariant).
+      navigate({ to: "/plan/spec/$id", params: { id: r.id } });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: (_d, _e, id) => setBusy(id, false),

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Direction 4 (wildcard): The Throughline. Many options arrive, one call leaves.
+       Thin strands stop short of the decision point (options, not yet chosen);
+       the bold line grows out of it (the call that ships). Single color. -->
+  <g stroke="currentColor" fill="none" stroke-linecap="round">
+    <g stroke-width="2.2">
+      <line x1="7.3" y1="16.5" x2="14.4" y2="26.2"/>
+      <line x1="3" y1="31" x2="12" y2="31"/>
+      <line x1="6" y1="44" x2="13.9" y2="35.4"/>
+    </g>
+    <line x1="18" y1="31" x2="43" y2="8.5" stroke-width="4.4"/>
+  </g>
+  <circle cx="18" cy="31" r="3.6" fill="currentColor"/>
+</svg>

@@ -393,8 +393,8 @@ export function GraphCanvasView({
       )}
       {staleness && staleness.staleCount > 0 && (
         <NoticeLine color="var(--marigold)">
-          {staleness.staleCount} of {staleness.datedCount} facts may be stale · no fresh evidence in{" "}
-          {staleness.thresholdDays}d (dashed ring)
+          {staleness.staleCount} of {staleness.datedCount} facts may be stale · no fresh evidence
+          in {staleness.thresholdDays}d (dashed ring)
         </NoticeLine>
       )}
       {contradictionDrift && contradictionDrift.driftedCount > 0 && (

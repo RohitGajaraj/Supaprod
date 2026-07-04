@@ -27,7 +27,7 @@ function CiVerdict({ overall }: { overall: Exclude<StudioCi, null>["overall"] })
   if (overall === "failure") return <VerdictChip tone="madder">fail</VerdictChip>;
   if (overall === "pending") return <StatusBadge status="running" />;
   return (
-    <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+    <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
       {overall}
     </span>
   );
@@ -71,7 +71,7 @@ export function CiPanel({
           padding: "48px 0",
           textAlign: "center",
           fontSize: 12.5,
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         No PR yet. The session opens one after the changeset commits.
@@ -93,7 +93,7 @@ export function CiPanel({
                 gap: 4,
                 fontSize: 11,
                 fontWeight: 600,
-                color: inspection.has_tests ? "var(--emerald)" : "var(--coral)",
+                color: inspection.has_tests ? "var(--moss)" : "var(--madder)",
               }}
             >
               {inspection.has_tests ? null : <ShieldAlert size={11} />}
@@ -107,15 +107,15 @@ export function CiPanel({
               marginTop: 10,
               flexWrap: "wrap",
               fontSize: 12.5,
-              color: "var(--ink-muted)",
+              color: "var(--text-body)",
             }}
           >
             <span>
-              <strong style={{ color: "var(--ink)" }}>{inspection.total_files}</strong> file
+              <strong style={{ color: "var(--text-primary)" }}>{inspection.total_files}</strong> file
               {inspection.total_files === 1 ? "" : "s"}
             </span>
             <span>
-              <strong style={{ color: "var(--ink)" }}>{inspection.test_files}</strong> test file
+              <strong style={{ color: "var(--text-primary)" }}>{inspection.test_files}</strong> test file
               {inspection.test_files === 1 ? "" : "s"}
             </span>
             <span>
@@ -131,7 +131,7 @@ export function CiPanel({
               style={{
                 marginTop: 8,
                 fontSize: 11.5,
-                color: "var(--ink-faint)",
+                color: "var(--text-subtle)",
                 lineHeight: 1.4,
               }}
             >
@@ -151,7 +151,7 @@ export function CiPanel({
               display: "inline-flex",
               alignItems: "center",
               gap: 4,
-              color: "var(--action-blue)",
+              color: "var(--cornflower)",
             }}
           >
             PR #{changeset.pr_number}
@@ -163,7 +163,7 @@ export function CiPanel({
           <div
             style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8, minWidth: 0 }}
           >
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               branch
             </span>
             <span
@@ -171,7 +171,7 @@ export function CiPanel({
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 11.5,
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 minWidth: 0,
               }}
             >
@@ -221,19 +221,19 @@ export function CiPanel({
                 margin: 0,
                 fontSize: 12,
                 lineHeight: 1.4,
-                color: ci.overall === "failure" ? "var(--coral)" : "var(--ink-muted)",
+                color: ci.overall === "failure" ? "var(--madder)" : "var(--text-body)",
               }}
             >
               {ci.gate.reason}
             </p>
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               ran on · {ci.gate.providerLabel}
             </span>
           </div>
         ) : null}
         <div style={{ marginTop: 12 }}>
           {!ci || ci.checks.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
+            <div style={{ fontSize: 12.5, color: "var(--text-subtle)", fontStyle: "italic" }}>
               No checks reported yet. Refresh once CI starts.
             </div>
           ) : (
@@ -256,12 +256,12 @@ export function CiPanel({
                     minWidth: 0,
                     fontFamily: "var(--font-mono)",
                     fontSize: 11.5,
-                    color: "var(--ink)",
+                    color: "var(--text-primary)",
                   }}
                 >
                   {c.name}
                 </span>
-                <span className="mono-label" style={{ color: "var(--ink-muted)" }}>
+                <span className="mono-label" style={{ color: "var(--text-body)" }}>
                   {c.conclusion ?? c.status}
                 </span>
                 {c.html_url ? (
@@ -270,7 +270,7 @@ export function CiPanel({
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`Open ${c.name} on GitHub`}
-                    style={{ color: "var(--action-blue)", display: "inline-flex" }}
+                    style={{ color: "var(--cornflower)", display: "inline-flex" }}
                   >
                     <ExternalLink size={9} />
                   </a>
@@ -280,7 +280,7 @@ export function CiPanel({
           )}
         </div>
         {ci?.updated_at ? (
-          <div className="mono-label" style={{ marginTop: 10, color: "var(--ink-faint)" }}>
+          <div className="mono-label" style={{ marginTop: 10, color: "var(--text-subtle)" }}>
             snapshot · {new Date(ci.updated_at).toLocaleString()}
           </div>
         ) : null}
@@ -290,16 +290,16 @@ export function CiPanel({
         <div
           className="fade-up"
           style={{
-            background: "color-mix(in oklab, var(--ember) 9%, transparent)",
-            border: "1px solid color-mix(in oklab, var(--ember) 35%, transparent)",
+            background: "var(--ember-tint)",
+            border: "1px solid var(--ember-line)",
             borderRadius: 12,
             padding: 14,
           }}
         >
-          <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember)", fontWeight: 700 }}>
+          <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember-text)", fontWeight: 700 }}>
             Waiting on you
           </MonoLabel>
-          <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--ink-muted)" }}>
+          <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--text-body)" }}>
             The merge gate is waiting on you. Clear it from the timeline on the left.
           </p>
         </div>

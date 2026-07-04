@@ -42,7 +42,7 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
         ) : (
           <div style={{ width: 20 }} />
         )}
-        <span className="mono-label" style={{ fontSize: 8.5, minWidth: 60 }}>
+        <span className="mono-label" style={{ fontSize: 10.5, minWidth: 60 }}>
           {node.kind}
         </span>
         <span style={{ fontSize: 13, color: "var(--ink)" }}>{node.title || "Untitled"}</span>
@@ -108,7 +108,7 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
         <span className="spinner" />
-        <span className="mono-label" style={{ fontSize: 9 }}>
+        <span className="mono-label" style={{ fontSize: 10.5 }}>
           loading tree…
         </span>
       </div>

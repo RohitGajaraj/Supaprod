@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
 import { getEvalHealth } from "@/lib/eval-health.functions";
-import { PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
 
 // LOOM W2 fold: /govern's evals (SUITES, with the ?suite= drill), drift
 // (DRIFT, with the ?surface= drill), prompts (PROMPTS - Prompt Studio's
@@ -37,6 +37,11 @@ const GauntletMetricsPanel = React.lazy(() =>
 function ScoreView() {
   const fHealth = useServerFn(getEvalHealth);
   const q = useQuery({ queryKey: ["eval-health"], queryFn: () => fHealth() });
+  // Honesty (LOOM §9b): a failed read is an error with a retry, never the
+  // "no eval runs yet" card.
+  if (q.isError) {
+    return <ErrorRetry message="Eval health did not load." onRetry={() => void q.refetch()} />;
+  }
   if (q.isLoading) return <PanelPending />;
   const health = q.data?.health;
   const passRatePct = health?.passRate != null ? Math.round(health.passRate * 100) : null;

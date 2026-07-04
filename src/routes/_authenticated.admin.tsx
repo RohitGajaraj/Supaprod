@@ -15,6 +15,8 @@ import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/rea
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TopBar } from "@/components/cadence/TopBar";
+import { Button } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import { amIAdmin, bootstrapSelfAdmin } from "@/lib/pricing.functions";
 import { toast } from "@/lib/notify";
 
@@ -63,9 +65,16 @@ function AdminLayout() {
           Who runs this workspace, and what is it costing?
         </p>
         {me.isLoading ? (
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-faint)" }}>
-            reading…
-          </p>
+          <AdminSkeleton rows={3} height={40} />
+        ) : me.isError ? (
+          // An access-check failure is an error, never a "you are not an
+          // admin" verdict (register D-11: errors must not wear another
+          // state's clothes).
+          <AdminErrorCard
+            what="your admin access"
+            message={me.error instanceof Error ? me.error.message : undefined}
+            onRetry={() => me.refetch()}
+          />
         ) : me.data?.isAdmin ? (
           <>
             <div
@@ -82,7 +91,7 @@ function AdminLayout() {
                     className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
+                      fontSize: "var(--text-mono-label)",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
                       padding: "8px 12px",
@@ -142,25 +151,22 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
       </p>
       {!anyAdminExists ? (
         <div className="flex items-center" style={{ gap: 10 }}>
-          <button
-            type="button"
-            disabled={claim.isPending}
+          {/* The screen's one primary CTA: the v4 top-lit ember gradient
+              (DESIGN-LOOM §3), on the Button primitive so it gets the focus
+              ring and press feedback (register D-40). */}
+          <Button
+            variant="primary"
+            loading={claim.isPending}
             onClick={() => claim.mutate()}
             style={{
-              fontFamily: "var(--font-ui)",
-              fontSize: 13,
-              fontWeight: 600,
-              padding: "9px 18px",
-              borderRadius: "var(--radius-control)",
-              background: "var(--ember)",
-              color: "var(--cta-ink, #0A0A0B)",
-              border: "none",
+              background: "linear-gradient(180deg, #FF7A3D, #F25E1F)",
+              color: "#160903",
             }}
           >
             {claim.isPending ? "Claiming…" : "Claim admin · one-time setup"}
-          </button>
+          </Button>
           <span
-            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-faint)" }}
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)" }}
           >
             No admin exists yet. Whoever claims first becomes the first admin.
           </span>

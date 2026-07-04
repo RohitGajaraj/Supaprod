@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Direction 2: The Facet Butterfly. Four cut planes, bilateral symmetry.
+       The unfilled vertical channel between the halves IS the body. Single color. -->
+  <g fill="currentColor">
+    <!-- left half -->
+    <polygon points="22.5,10.5 4,5.5 8,22 22.5,24"/>
+    <polygon points="22.5,27 7,29 13,42.5 22.5,36"/>
+    <!-- right half (mirror) -->
+    <g transform="translate(48,0) scale(-1,1)">
+      <polygon points="22.5,10.5 4,5.5 8,22 22.5,24"/>
+      <polygon points="22.5,27 7,29 13,42.5 22.5,36"/>
+    </g>
+  </g>
+</svg>

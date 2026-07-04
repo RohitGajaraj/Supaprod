@@ -1,158 +1,110 @@
-/**
- * LOOM W2-TODAY: Triage-grouped Call queue
- *
- * Calls never pile up on one screen. Eleven flat approvals is a defect,
- * not a queue. The triage law (DESIGN-LOOM §8b):
- *
- * - The queue groups by kind (Ship it? · Worth building? · Spend)
- * - Each group shows its top card featured, the rest behind an inline "N more" expander
- * - Groups render in order: Ship → Worth Building → Spend (priority descending)
- * - Empty group renders nothing (not "0 · Ship it" chatter)
- *
- * This closes the "Today overwhelms" audit finding.
- */
+// Loom W2-TODAY (DESIGN-LOOM §8b) — the triage-grouped calls queue.
+//
+// Never a flat wall of cards: each family renders its top call in full and
+// folds the rest behind a quiet "N more" inline expander (one click, no
+// navigation). The single highest-stakes call — the first card of the first
+// non-empty group — is the screen's featured Call and carries the one solid
+// ember CTA (§3). Answering advances naturally: the mutation invalidates the
+// queue and the next call takes the top slot.
+import * as React from "react";
+import { CallCard, type CallCardProps } from "@/components/obsidian/callcard";
+import { FAMILY_LABEL, type CallFamily } from "./triage";
 
-import { useState } from "react";
-import { CallCard } from "@/components/obsidian/callcard";
-
-type Call = {
+export interface QueueCall {
   id: string;
-  kind: "SHIP IT?" | "WORTH BUILDING?" | "WORTH RE-EXAMINING?" | "SPEND";
-  expiry: string;
-  title: string;
-  body: string;
-  ev: { src: string; text: string }[];
-  okLabel: string;
-  noLabel: string;
-  consequence: string;
-};
-
-type GroupKey = "ship" | "building" | "spend" | "challenge";
-
-interface TriageQueueProps {
-  calls: Call[];
-  onDecide: (id: string, approved: boolean) => void;
-  isEmpty?: boolean;
-  emptyState?: React.ReactNode;
+  props: Omit<CallCardProps, "featured" | "compact">;
 }
 
-const GROUP_ORDER: Record<GroupKey, { order: number; label: string }> = {
-  ship: { order: 1, label: "Ship it?" },
-  building: { order: 2, label: "Worth building?" },
-  challenge: { order: 3, label: "Worth re-examining?" },
-  spend: { order: 4, label: "Spend" },
-};
-
-function callToGroupKey(kind: string): GroupKey {
-  if (kind === "SHIP IT?") return "ship";
-  if (kind === "WORTH BUILDING?") return "building";
-  if (kind === "WORTH RE-EXAMINING?") return "challenge";
-  if (kind === "SPEND") return "spend";
-  return "building"; // fallback
+export interface QueueGroup {
+  family: CallFamily;
+  calls: QueueCall[];
 }
 
-export function TriageQueue({
-  calls,
-  onDecide,
-  isEmpty = false,
-  emptyState,
-}: TriageQueueProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<GroupKey>>(new Set());
-
-  if (isEmpty || calls.length === 0) {
-    return emptyState ? <>{emptyState}</> : null;
-  }
-
-  // Group calls by kind
-  const groups = new Map<GroupKey, Call[]>();
-  for (const call of calls) {
-    const key = callToGroupKey(call.kind);
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-    groups.get(key)!.push(call);
-  }
-
-  // Sort groups by order, filter out empty
-  const sortedGroups = Array.from(groups.entries())
-    .sort((a, b) => GROUP_ORDER[a[0]].order - GROUP_ORDER[b[0]].order)
-    .filter(([, calls]) => calls.length > 0);
+export function TriageQueue({ groups }: { groups: QueueGroup[] }) {
+  const [expanded, setExpanded] = React.useState<Partial<Record<CallFamily, boolean>>>({});
+  const nonEmpty = groups.filter((g) => g.calls.length > 0);
+  const featuredFamily = nonEmpty[0]?.family;
 
   return (
-    <div className="flex flex-col gap-6">
-      {sortedGroups.map(([groupKey, groupCalls]) => {
-        const isExpanded = expandedGroups.has(groupKey);
-        const topCall = groupCalls[0];
-        const restCount = groupCalls.length - 1;
-
+    <div className="flex flex-col" style={{ gap: 18 }}>
+      {nonEmpty.map((group) => {
+        const [top, ...rest] = group.calls;
+        const isOpen = Boolean(expanded[group.family]);
         return (
-          <div key={groupKey} className="flex flex-col gap-3">
-            {/* Top card (always shown) */}
-            <CallCard
-              key={topCall.id}
-              kind={topCall.kind}
-              expiry={topCall.expiry}
-              title={topCall.title}
-              body={topCall.body}
-              ev={topCall.ev}
-              okLabel={topCall.okLabel}
-              noLabel={topCall.noLabel}
-              consequence={topCall.consequence}
-              onOk={() => onDecide(topCall.id, true)}
-              onNo={() => onDecide(topCall.id, false)}
-            />
-
-            {/* "N more" expander button (if rest exist) */}
-            {restCount > 0 && (
-              <button
-                onClick={() => {
-                  const newExpanded = new Set(expandedGroups);
-                  if (isExpanded) {
-                    newExpanded.delete(groupKey);
-                  } else {
-                    newExpanded.add(groupKey);
-                  }
-                  setExpandedGroups(newExpanded);
-                }}
+          <section key={group.family} aria-label={FAMILY_LABEL[group.family]}>
+            <div className="flex items-baseline" style={{ gap: 8, marginBottom: 8 }}>
+              <h2
                 style={{
-                  fontSize: 13,
-                  padding: "6px 0",
-                  background: "none",
-                  border: "none",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10.5,
+                  fontWeight: 400,
+                  letterSpacing: "0.12em",
                   color: "var(--text-subtle)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={(e) => {
-                  (e.target as HTMLElement).style.color = "var(--text-muted)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.target as HTMLElement).style.color = "var(--text-subtle)";
+                  textTransform: "uppercase",
+                  margin: 0,
                 }}
               >
-                {isExpanded ? "Hide" : `${restCount} more`}
-              </button>
-            )}
-
-            {/* Rest of calls (shown only when expanded) */}
-            {isExpanded &&
-              groupCalls.slice(1).map((call) => (
-                <CallCard
-                  key={call.id}
-                  kind={call.kind}
-                  expiry={call.expiry}
-                  title={call.title}
-                  body={call.body}
-                  ev={call.ev}
-                  okLabel={call.okLabel}
-                  noLabel={call.noLabel}
-                  consequence={call.consequence}
-                  onOk={() => onDecide(call.id, true)}
-                  onNo={() => onDecide(call.id, false)}
-                />
-              ))}
-          </div>
+                {FAMILY_LABEL[group.family]}
+              </h2>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10.5,
+                  color:
+                    group.family === featuredFamily ? "var(--ember-text)" : "var(--text-subtle)",
+                }}
+              >
+                · {group.calls.length}
+              </span>
+            </div>
+            <div className="flex flex-col" style={{ gap: 10 }}>
+              <CallCard {...top.props} featured={group.family === featuredFamily} />
+              {rest.length > 0 && !isOpen ? (
+                <button
+                  type="button"
+                  className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  onClick={() => setExpanded((e) => ({ ...e, [group.family]: true }))}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--text-muted)",
+                    background: "transparent",
+                    border: "1px dashed var(--hairline-strong)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "9px 14px",
+                  }}
+                >
+                  {rest.length} more →
+                </button>
+              ) : null}
+              {isOpen ? (
+                <>
+                  {rest.map((call) => (
+                    <CallCard key={call.id} {...call.props} compact />
+                  ))}
+                  <button
+                    type="button"
+                    className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    onClick={() => setExpanded((e) => ({ ...e, [group.family]: false }))}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 10.5,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--text-muted)",
+                      background: "transparent",
+                      border: "none",
+                      padding: "2px 0",
+                    }}
+                  >
+                    Show fewer
+                  </button>
+                </>
+              ) : null}
+            </div>
+          </section>
         );
       })}
     </div>

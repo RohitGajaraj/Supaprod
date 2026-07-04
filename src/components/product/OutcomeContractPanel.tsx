@@ -548,7 +548,7 @@ function OracleBadge({ clause }: { clause: ContractClause }) {
         ? clause.oracle_ref || "Covered by the standard CI gate"
         : clause.oracle_kind === "uat"
           ? "Manual checklist item, tick when verified"
-          : "Not falsifiable as written — filed as a watched assumption (FS-02)";
+          : "Not falsifiable as written; filed as a watched assumption (FS-02)";
   return (
     <span
       title={title}

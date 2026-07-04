@@ -12,6 +12,10 @@
  * every conditional branch below are unchanged from the parchment version).
  * This file is only the "Health" tab body — the parent admin layout already
  * renders the TopBar, the Newsreader question header, and the mono sub-tabs.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): the gate toggle surfaces thrown failures,
+ * the error state gained a retry, loading is a layout-shaped skeleton, and
+ * raw enum/env-var strings moved to hover detail (plain words in the row).
  */
 import type { ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -23,6 +27,7 @@ import {
   adminSetObservabilityEnabled,
 } from "@/lib/observability.functions";
 import { Button, MonoLabel, StatusDot } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 
 export const Route = createFileRoute("/_authenticated/admin/observability")({
   component: AdminObservability,
@@ -44,36 +49,27 @@ function AdminObservability() {
       toast.success(`Health tracking ${res.enabled ? "turned on" : "turned off"}.`);
       qc.invalidateQueries({ queryKey: ["observability-status"] });
     },
+    // Register: setGate had no onError; a thrown failure ended in silence.
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Save failed. The setting did not change."),
   });
 
   if (status.isLoading) {
-    return (
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
-          textTransform: "uppercase",
-          letterSpacing: "0.11em",
-          color: "var(--text-faint)",
-        }}
-      >
-        Reading health status…
-      </p>
-    );
+    return <AdminSkeleton rows={4} height={56} />;
   }
   if (!status.data || "error" in status.data) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-ui)",
-          fontSize: "var(--text-base)",
-          color: "var(--madder)",
-        }}
-      >
-        {status.data && "error" in status.data
-          ? status.data.error
-          : "Could not load health status."}
-      </p>
+      <AdminErrorCard
+        what="health status"
+        message={
+          status.data && "error" in status.data
+            ? status.data.error
+            : status.error instanceof Error
+              ? status.error.message
+              : undefined
+        }
+        onRetry={() => status.refetch()}
+      />
     );
   }
 
@@ -175,8 +171,8 @@ function AdminObservability() {
       <Card>
         <CardTitle>Where these signals come from</CardTitle>
         <CardDescription>
-          Set by an engineer in the app&apos;s hosting settings. Full guide in
-          docs/runbooks/observability.md.
+          Set by an engineer in the app&apos;s hosting settings. The engineering runbook covers the
+          details.
         </CardDescription>
         <div style={{ marginTop: "var(--space-3)" }}>
           {vendorEntries.map((v, i) => (
@@ -201,7 +197,9 @@ function AdminObservability() {
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
               >
-                <MonoLabel>{f.failure_kind}</MonoLabel>
+                {/* Raw enum slugs read as broken UI; show the words, keep the
+                    raw value on hover (register: raw failure_kind enums). */}
+                <MonoLabel title={f.failure_kind}>{f.failure_kind.replaceAll("_", " ")}</MonoLabel>
                 <span
                   style={{
                     fontFamily: "var(--font-mono)",
@@ -334,7 +332,13 @@ function VendorRow({
         </span>
       </div>
       <div className="flex items-center" style={{ gap: 10 }}>
-        {!present && <MonoLabel tone="faint">{envVar}</MonoLabel>}
+        {/* The exact key name is engineer detail; it stays on hover instead
+            of reading as a raw env var label (master-inventory copy row). */}
+        {!present && (
+          <MonoLabel tone="muted" title={envVar}>
+            key not set
+          </MonoLabel>
+        )}
         <StatusDot
           state={present ? "live" : "stale"}
           word={present ? "CONFIGURED" : "NOT SET UP"}

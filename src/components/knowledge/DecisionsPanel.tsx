@@ -73,7 +73,7 @@ export function SourceLink({
   if (d.prd_id) {
     return (
       <Link
-        to="/prds/$id"
+        to="/plan/spec/$id"
         params={{ id: d.prd_id }}
         className={className}
         style={style}

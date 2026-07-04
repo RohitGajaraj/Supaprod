@@ -142,7 +142,7 @@ export function DecisionDetail({ id }: { id: string }) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 10 }}>
-          decision not found — it may have been removed
+          decision not found · it may have been removed
         </MonoLabel>
         <button className="btn btn-ghost btn-sm" onClick={onBack}>
           Back · all decisions
@@ -195,7 +195,7 @@ export function DecisionDetail({ id }: { id: string }) {
             ))}
           </div>
           <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 12 }}>
-            Agents read this before any mission that touches the same surface — decisions are
+            Agents read this before any mission that touches the same surface. Decisions are
             working memory, not minutes.
           </p>
         </div>

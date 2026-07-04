@@ -5,6 +5,13 @@
  *
  * Chrome-only Obsidian v3 re-skin (2026-07-03): colors/type/spacing/markup
  * only. No query key, mutation, prop shape, or validation branch changed.
+ *
+ * Loom W2-ADMIN pass (2026-07-04, register D-06): this money surface now has
+ * a real loading skeleton and a real error state with retry (a transient
+ * error used to be indistinguishable from an empty catalog); saves reject
+ * negative or non-numeric prices; a new row's inputs only clear after the
+ * upsert confirms success (no more unsaved-row drift after a failed save);
+ * every mutation surfaces thrown failures and disables its buttons in flight.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,6 +20,7 @@ import { useMemo, useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { MonoLabel, Button } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import {
   getPricingCatalog,
   adminUpsertBundle,
@@ -48,10 +56,11 @@ export const Route = createFileRoute("/_authenticated/admin/pricing")({
   component: AdminPricing,
 });
 
+// Plain word first, brand name second (the old "Cluster (Pro)" read garbled).
 const TIER_LABELS: Record<string, string> = {
-  pro: "Cluster (Pro)",
-  max: "Constellation (Max)",
-  team: "Galaxy (Team)",
+  pro: "Pro · Cluster",
+  max: "Max · Constellation",
+  team: "Team · Galaxy",
 };
 
 // Focus ring, per the contract: 2px glacier, offset 2, on every interactive element.
@@ -106,6 +115,25 @@ function AdminPricing() {
     for (const k of Object.keys(map)) map[k].sort((a, b) => a.credits - b.credits);
     return map;
   }, [catalog.data]);
+
+  // A money surface must never show a failed read as an empty catalog: an
+  // admin could "fix" the blank by re-creating bundles (register D-06).
+  if (catalog.isLoading) {
+    return (
+      <div style={{ display: "grid", gap: "var(--space-6)" }}>
+        <AdminSkeleton rows={4} height={44} />
+      </div>
+    );
+  }
+  if (catalog.isError) {
+    return (
+      <AdminErrorCard
+        what="the pricing catalog"
+        message={catalog.error instanceof Error ? catalog.error.message : undefined}
+        onRetry={() => catalog.refetch()}
+      />
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: "var(--space-6)" }}>
@@ -178,6 +206,8 @@ function TierSection({
       toast.success("Saved.");
       onSaved();
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Save failed. Nothing was changed."),
   });
 
   const del = useMutation({
@@ -190,13 +220,26 @@ function TierSection({
       toast.success("Removed.");
       onSaved();
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Delete failed. Nothing was changed."),
   });
+
+  // Rows await this so a new row only clears its inputs after the save
+  // actually lands (register D-06: unsaved-row drift after a failed upsert).
+  const saveBundle = async (input: BundleInput): Promise<boolean> => {
+    try {
+      const res = await upsert.mutateAsync(input);
+      return !("error" in res);
+    } catch {
+      return false;
+    }
+  };
 
   return (
     <div style={cardStyle()}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div style={sectionTitleStyle()}>{TIER_LABELS[tier]}</div>
-        <MonoLabel tone="faint">
+        <MonoLabel tone="muted">
           {rows.length} bundle{rows.length === 1 ? "" : "s"}
         </MonoLabel>
       </div>
@@ -210,12 +253,12 @@ function TierSection({
             padding: "0 4px",
           }}
         >
-          <MonoLabel tone="faint">Credits</MonoLabel>
-          <MonoLabel tone="faint">Monthly $</MonoLabel>
-          <MonoLabel tone="faint">Yearly $</MonoLabel>
-          <MonoLabel tone="faint">Stripe price (monthly)</MonoLabel>
-          <MonoLabel tone="faint">Stripe price (yearly)</MonoLabel>
-          <MonoLabel tone="faint">Active</MonoLabel>
+          <MonoLabel tone="muted">Credits</MonoLabel>
+          <MonoLabel tone="muted">Monthly $</MonoLabel>
+          <MonoLabel tone="muted">Yearly $</MonoLabel>
+          <MonoLabel tone="muted">Stripe price (monthly)</MonoLabel>
+          <MonoLabel tone="muted">Stripe price (yearly)</MonoLabel>
+          <MonoLabel tone="muted">Active</MonoLabel>
           <span />
         </div>
 
@@ -224,7 +267,8 @@ function TierSection({
             key={r.id}
             tier={tier}
             row={r}
-            onSave={upsert.mutate}
+            busy={upsert.isPending || del.isPending}
+            onSave={saveBundle}
             onDelete={(id) => {
               void (async () => {
                 const ok = await confirm({
@@ -239,7 +283,13 @@ function TierSection({
           />
         ))}
 
-        <BundleRow tier={tier} row={null} onSave={upsert.mutate} onDelete={() => {}} />
+        <BundleRow
+          tier={tier}
+          row={null}
+          busy={upsert.isPending || del.isPending}
+          onSave={saveBundle}
+          onDelete={() => {}}
+        />
       </div>
     </div>
   );
@@ -248,12 +298,14 @@ function TierSection({
 function BundleRow({
   tier,
   row,
+  busy,
   onSave,
   onDelete,
 }: {
   tier: "pro" | "max" | "team";
   row: PricingBundle | null;
-  onSave: (input: BundleInput) => void;
+  busy: boolean;
+  onSave: (input: BundleInput) => Promise<boolean>;
   onDelete: (id: string) => void;
 }) {
   const [credits, setCredits] = useState(row?.credits ?? 0);
@@ -263,12 +315,16 @@ function BundleRow({
   const [priceY, setPriceY] = useState(row?.stripe_price_id_yearly ?? "");
   const [active, setActive] = useState(row?.active ?? true);
 
-  function save() {
-    if (!credits || credits < 1) {
-      toast.error("Credits must be at least 1.");
+  async function save() {
+    if (!Number.isFinite(credits) || credits < 1) {
+      toast.error("Credits must be a number of at least 1.");
       return;
     }
-    onSave({
+    if (!Number.isFinite(monthly) || monthly < 0 || !Number.isFinite(yearly) || yearly < 0) {
+      toast.error("Prices must be zero or more.");
+      return;
+    }
+    const ok = await onSave({
       id: row?.id ?? null,
       tier,
       credits,
@@ -280,7 +336,7 @@ function BundleRow({
       active,
       sort_order: row?.sort_order ?? 99,
     });
-    if (!row) {
+    if (ok && !row) {
       setCredits(0);
       setMonthly(0);
       setYearly(0);
@@ -345,12 +401,18 @@ function BundleRow({
         style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
       />
       <div style={{ display: "flex", gap: "var(--space-1)" }}>
-        <Button variant="secondary" onClick={save} style={{ fontSize: 11.5, padding: "6px 10px" }}>
+        <Button
+          variant="secondary"
+          disabled={busy}
+          onClick={() => void save()}
+          style={{ fontSize: 11.5, padding: "6px 10px" }}
+        >
           {row ? "Save" : "Add"}
         </Button>
         {row ? (
           <Button
             variant="secondary"
+            disabled={busy}
             onClick={() => onDelete(row.id)}
             style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
           >
@@ -384,6 +446,8 @@ function TopupSection({
       toast.success("Saved.");
       onSaved();
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Save failed. Nothing was changed."),
   });
   const del = useMutation({
     mutationFn: (id: string) => fDelete({ data: { id } }),
@@ -395,7 +459,18 @@ function TopupSection({
       toast.success("Removed.");
       onSaved();
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Delete failed. Nothing was changed."),
   });
+
+  const saveTopup = async (input: TopupInput): Promise<boolean> => {
+    try {
+      const res = await upsert.mutateAsync(input);
+      return !("error" in res);
+    } catch {
+      return false;
+    }
+  };
 
   return (
     <div style={cardStyle()}>
@@ -408,17 +483,18 @@ function TopupSection({
           padding: "0 4px",
         }}
       >
-        <MonoLabel tone="faint">Credits</MonoLabel>
-        <MonoLabel tone="faint">Price $</MonoLabel>
-        <MonoLabel tone="faint">Stripe price id</MonoLabel>
-        <MonoLabel tone="faint">Active</MonoLabel>
+        <MonoLabel tone="muted">Credits</MonoLabel>
+        <MonoLabel tone="muted">Price $</MonoLabel>
+        <MonoLabel tone="muted">Stripe price id</MonoLabel>
+        <MonoLabel tone="muted">Active</MonoLabel>
         <span />
       </div>
       {rows.map((r) => (
         <TopupRow
           key={r.id}
           row={r}
-          onSave={upsert.mutate}
+          busy={upsert.isPending || del.isPending}
+          onSave={saveTopup}
           onDelete={(id) => {
             void (async () => {
               const ok = await confirm({
@@ -431,18 +507,25 @@ function TopupSection({
           }}
         />
       ))}
-      <TopupRow row={null} onSave={upsert.mutate} onDelete={() => {}} />
+      <TopupRow
+        row={null}
+        busy={upsert.isPending || del.isPending}
+        onSave={saveTopup}
+        onDelete={() => {}}
+      />
     </div>
   );
 }
 
 function TopupRow({
   row,
+  busy,
   onSave,
   onDelete,
 }: {
   row: TopupBundle | null;
-  onSave: (input: TopupInput) => void;
+  busy: boolean;
+  onSave: (input: TopupInput) => Promise<boolean>;
   onDelete: (id: string) => void;
 }) {
   const [credits, setCredits] = useState(row?.credits ?? 0);
@@ -450,12 +533,16 @@ function TopupRow({
   const [stripeId, setStripeId] = useState(row?.stripe_price_id ?? "");
   const [active, setActive] = useState(row?.active ?? true);
 
-  function save() {
-    if (!credits || credits < 1) {
-      toast.error("Credits must be at least 1.");
+  async function save() {
+    if (!Number.isFinite(credits) || credits < 1) {
+      toast.error("Credits must be a number of at least 1.");
       return;
     }
-    onSave({
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error("Prices must be zero or more.");
+      return;
+    }
+    const ok = await onSave({
       id: row?.id ?? null,
       credits,
       price_cents: Math.round(price * 100),
@@ -463,7 +550,7 @@ function TopupRow({
       active,
       sort_order: row?.sort_order ?? 99,
     });
-    if (!row) {
+    if (ok && !row) {
       setCredits(0);
       setPrice(0);
       setStripeId("");
@@ -511,12 +598,18 @@ function TopupRow({
         style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
       />
       <div style={{ display: "flex", gap: "var(--space-1)" }}>
-        <Button variant="secondary" onClick={save} style={{ fontSize: 11.5, padding: "6px 10px" }}>
+        <Button
+          variant="secondary"
+          disabled={busy}
+          onClick={() => void save()}
+          style={{ fontSize: 11.5, padding: "6px 10px" }}
+        >
           {row ? "Save" : "Add"}
         </Button>
         {row ? (
           <Button
             variant="secondary"
+            disabled={busy}
             onClick={() => onDelete(row.id)}
             style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
           >

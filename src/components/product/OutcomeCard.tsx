@@ -118,7 +118,7 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
     onSuccess: (r) => {
       if (r.shipped) {
         toast.success(
-          `Shipped — GitHub issue closed${
+          `Shipped: GitHub issue closed${
             r.shippedAt ? ` ${new Date(r.shippedAt).toLocaleDateString()}` : ""
           }`,
         );
@@ -358,7 +358,7 @@ function OutcomeSuggestionBanner({
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5">
           <Sparkles className="h-3 w-3" />
-          {highConfidence ? "Suggested outcome" : "Suggested — review before recording"}
+          {highConfidence ? "Suggested outcome" : "Suggested · review before recording"}
         </span>
         <VerdictChip tone={VERDICT_TONES[suggestion.verdict]}>{suggestion.verdict}</VerdictChip>
       </div>

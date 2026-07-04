@@ -33,13 +33,19 @@ export function PlanSurface({ view }: { view?: PlanView }) {
 
   // Honor the ?view= deep link (the /roadmap, /prds, and /stakeholder legacy
   // redirects all carry one): scroll the named section into view and move
-  // focus to its heading so keyboard/AT users land there too.
+  // focus to its heading so keyboard/AT users land there too. The sections
+  // above the target load async and grow the page after the first scroll, so
+  // the scroll re-asserts once, shortly after, when the layout has settled.
   useEffect(() => {
     if (!view) return;
     const el = sectionRefs[view].current;
     if (!el) return;
     el.scrollIntoView({ block: "start" });
     el.focus({ preventScroll: true });
+    const settle = window.setTimeout(() => {
+      sectionRefs[view].current?.scrollIntoView({ block: "start" });
+    }, 450);
+    return () => window.clearTimeout(settle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 

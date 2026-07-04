@@ -65,7 +65,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
     mutationFn: () => fDesignCritic({ data: { prdId, html: scaffold?.html ?? "" } }),
     onSuccess: (res) => {
       setDesignReview(res.review);
-      if (!res.review) toast.error("Design review could not run — try again.");
+      if (!res.review) toast.error("Design review could not run. Try again.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -118,7 +118,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
           <span>
             {mutation.error instanceof Error
               ? mutation.error.message
-              : "Generation failed — try again."}
+              : "Generation failed. Try again."}
           </span>
         </div>
       )}

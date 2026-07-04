@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
-import { Row, EmptyRow, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
 
 // LOOM W2 fold: /govern?tab=budgets lives here as CAPS (the one home for cap
 // management) and /govern?tab=analytics as USAGE (the full rollup), each
@@ -39,6 +39,16 @@ function TrendView() {
   const week = cost7Q.data?.summary.totalCost ?? 0;
   const prevWeek = Math.max(0, (cost14Q.data?.summary.totalCost ?? 0) - week);
   const trendPct = prevWeek > 0 ? Math.round(((week - prevWeek) / prevWeek) * 100) : 0;
+  // Honesty (LOOM §9b): the comparison line only makes a claim once the
+  // 14-day read genuinely loaded. A failed read is named, never dressed as
+  // "no prior week to compare".
+  const trendNote = cost14Q.isError
+    ? "prior week did not load"
+    : cost14Q.isLoading
+      ? "comparing to the week before"
+      : prevWeek > 0
+        ? `${trendPct >= 0 ? "+" : ""}${trendPct}% vs the week before`
+        : "no prior week to compare";
   // Same query as the totals above (queryKey ["analytics-overview", 7]), so
   // this is a cache hit, not a second fetch. Zero-filled to a fixed 7-day
   // window (getAnalyticsOverview's `daily` omits a day with no events
@@ -47,7 +57,7 @@ function TrendView() {
   const filled = zeroFillDaily(cost7Q.data?.daily ?? [], 7);
   if (cost7Q.isError) {
     return (
-      <EmptyErrorRetry
+      <ErrorRetry
         message="Spend for this week did not load."
         onRetry={() => void cost7Q.refetch()}
       />
@@ -56,55 +66,13 @@ function TrendView() {
   if (cost7Q.isLoading) return <PanelPending />;
   return (
     <div className="flex flex-col gap-3">
-      <AuroraCard
-        label="SPEND THIS WEEK"
-        value={fmtUsd(week)}
-        note={
-          prevWeek > 0
-            ? `${trendPct >= 0 ? "+" : ""}${trendPct}% vs the week before`
-            : "no prior week to compare"
-        }
-      />
+      <AuroraCard label="SPEND THIS WEEK" value={fmtUsd(week)} note={trendNote} />
       {filled.some((c) => c > 0) ? (
         <div>
           <MonoLabel tone="muted">SPEND · LAST 7 DAYS</MonoLabel>
           <Sparkline data={filled} w={260} h={44} />
         </div>
       ) : null}
-    </div>
-  );
-}
-
-/** Error state that never wears empty-state clothes (LOOM §9b). */
-function EmptyErrorRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div style={{ padding: "18px 0" }}>
-      <p
-        style={{
-          fontFamily: "var(--font-ui)",
-          fontSize: "var(--text-base)",
-          color: "var(--madder-bright)",
-          marginBottom: "10px",
-        }}
-      >
-        {message}
-      </p>
-      <button
-        type="button"
-        className="uppercase cursor-pointer"
-        onClick={onRetry}
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
-          letterSpacing: "0.11em",
-          color: "var(--glacier)",
-          background: "none",
-          border: "none",
-          padding: 0,
-        }}
-      >
-        RETRY
-      </button>
     </div>
   );
 }
@@ -124,7 +92,7 @@ function ByAgentView({ agent }: { agent?: string }) {
     );
   }
   if (q.isError) {
-    return <EmptyErrorRetry message="Agent spend did not load." onRetry={() => void q.refetch()} />;
+    return <ErrorRetry message="Agent spend did not load." onRetry={() => void q.refetch()} />;
   }
   if (q.isLoading) return <PanelPending />;
   const agents = q.data?.agents ?? [];

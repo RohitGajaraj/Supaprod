@@ -11,10 +11,17 @@
  *
  * OBS-13 - re-skinned to Obsidian v3 (chrome-only): tokens, Newsreader card
  * titles, JetBrains-mono table headers, zero lucide. Data/logic unchanged.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): the error state gained a retry, loading is
+ * a layout-shaped skeleton, "Superseded" reads as the plain word "Replaced",
+ * and the footer stopped naming the SQL refresh function (plain words). The
+ * freshness stamp + manual recompute (register D-31) needs a server-fn
+ * change in observability.functions.ts, which another lane owns; deferred.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { AdminErrorCard, AdminSkeleton } from "@/components/admin/admin-ui";
 import {
   getMoatMetrics,
   type DecisionVelocityRow,
@@ -36,28 +43,27 @@ function AdminAiCosts() {
 
   if (metrics.isLoading) {
     return (
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-label)",
-          letterSpacing: "0.11em",
-          textTransform: "uppercase",
-          color: "var(--text-subtle)",
-          marginTop: 16,
-        }}
-      >
-        Reading spend data…
-      </p>
+      <div style={{ marginTop: 16 }}>
+        <AdminSkeleton rows={3} height={56} />
+      </div>
     );
   }
 
   if (!metrics.data || "error" in metrics.data) {
     return (
-      <p style={{ marginTop: 16, fontSize: 13, color: "var(--madder)" }}>
-        {"error" in (metrics.data ?? {})
-          ? (metrics.data as { error: string }).error
-          : "Could not load spend data."}
-      </p>
+      <div style={{ marginTop: 16 }}>
+        <AdminErrorCard
+          what="spend data"
+          message={
+            metrics.data && "error" in metrics.data
+              ? (metrics.data as { error: string }).error
+              : metrics.error instanceof Error
+                ? metrics.error.message
+                : undefined
+          }
+          onRetry={() => metrics.refetch()}
+        />
+      </div>
     );
   }
 
@@ -84,7 +90,7 @@ function AdminAiCosts() {
                   <th style={th()}>Week</th>
                   <th style={th()}>Made</th>
                   <th style={th()}>Shipped</th>
-                  <th style={th()}>Superseded</th>
+                  <th style={th()}>Replaced</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,20 +189,8 @@ function AdminAiCosts() {
           </div>
         )}
         <p style={{ marginTop: "var(--space-3)", fontSize: 11.5, color: "var(--text-subtle)" }}>
-          Refreshes overnight. Turn on{" "}
-          <code
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 10.5,
-              color: "var(--text-muted)",
-              background: "var(--raised)",
-              borderRadius: "var(--radius-control)",
-              padding: "1px 5px",
-            }}
-          >
-            refresh_observability_mvs()
-          </code>{" "}
-          in Supabase Cron to keep these numbers live.
+          These numbers refresh overnight. If they look stale, ask an engineer to turn on the
+          nightly refresh job.
         </p>
       </section>
     </div>

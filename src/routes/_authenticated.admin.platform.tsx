@@ -6,6 +6,14 @@
  * branch changed. This file is only the "Platform" tab body — the parent
  * admin layout already renders the TopBar, the Newsreader question header,
  * and the mono sub-tabs.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): flag/banner/audit query errors no longer
+ * masquerade as empty states (register D-11); every mutation checks the
+ * in-band `{error}` result and surfaces thrown failures; the free-text flag
+ * payload is validated as JSON before submit; the hosting proof-of-concept
+ * panel (dev scaffolding, BYO-P5b) is gated behind the `hosting.poc` feature
+ * flag and remembers its last deploy URL across navigation (D-41); raw
+ * secret and table names moved out of user-facing copy.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -33,6 +41,7 @@ import {
   type ProvisionHostingPocResult,
 } from "@/lib/hosting/hosting-poc.functions";
 import { Button, MonoLabel, type MonoLabelTone } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
 
 export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,
@@ -46,7 +55,7 @@ function AdminPlatform() {
   return (
     <div style={{ display: "grid", gap: "var(--space-6)" }}>
       <p style={{ ...bodyTextStyle() }}>
-        Pull kill switches · post banners · trigger deploys · read the audit trail
+        Turn features on or off · post a notice to everyone · trigger deploys · read the audit trail
       </p>
       <DeployPanel />
       <HostingPocPanel />
@@ -71,22 +80,21 @@ function DeployPanel() {
         );
         setReason("");
       } else if (result.reason === "no_hook_configured") {
-        toast.error(
-          "No deploy hook configured. Set CLOUDFLARE_DEPLOY_HOOK_URL as a wrangler secret to activate.",
-        );
+        toast.error("No deploy hook is connected. Ask an engineer to add one in hosting settings.");
       } else {
         toast.error(result.message);
       }
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "The deploy request failed. Nothing shipped."),
   });
 
   return (
     <div style={cardStyle()}>
       <div style={sectionTitleStyle()}>Deploy</div>
       <p style={bodyTextStyle()}>
-        Trigger a production deploy. Requires{" "}
-        <code style={codeStyle()}>CLOUDFLARE_DEPLOY_HOOK_URL</code> or{" "}
-        <code style={codeStyle()}>LOVABLE_DEPLOY_HOOK_URL</code> to be set as a wrangler secret.
+        Trigger a production deploy. An engineer must connect a deploy hook in the hosting settings
+        first.
       </p>
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
@@ -104,34 +112,61 @@ function DeployPanel() {
   );
 }
 
-/** BYO-P5 P5b: deploys a real, minimal shell for one of the admin's own Products to Deno Deploy. */
+/** BYO-P5 P5b: deploys a real, minimal shell for one of the admin's own Products to Deno Deploy.
+ * Dev scaffolding, not user-facing: hidden unless the `hosting.poc` feature
+ * flag is turned on (master-inventory verdict: remove or gate this panel). */
+const HOSTING_POC_URL_KEY = "admin-hosting-poc-last-url";
+
 function HostingPocPanel() {
+  const fListFlags = useServerFn(adminListFlags);
   const fListProjects = useServerFn(listProjects);
   const fProvision = useServerFn(provisionHostingPoc);
+  // Same key as FlagsPanel, so react-query dedupes the request.
+  const flags = useQuery({ queryKey: ["admin-flags"], queryFn: () => fListFlags() });
+  const pocEnabled =
+    Array.isArray(flags.data) &&
+    (flags.data as FeatureFlag[]).some((f) => f.key === "hosting.poc" && f.enabled);
   const projectsQuery = useQuery({
     queryKey: ["admin-hosting-poc-projects"],
     queryFn: () => fListProjects({ data: {} }),
+    enabled: pocEnabled,
   });
   const projects: Array<{ id: string; name: string }> = (projectsQuery.data?.projects ?? []).map(
     (p) => ({ id: p.id, name: p.name }),
   );
 
   const [projectId, setProjectId] = useState("");
-  const [lastUrl, setLastUrl] = useState<string | null>(null);
+  // Register D-41: survive navigation within the session.
+  const [lastUrl, setLastUrl] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(HOSTING_POC_URL_KEY);
+    } catch {
+      return null;
+    }
+  });
 
   const deploy = useMutation({
     mutationFn: () => fProvision({ data: { projectId } }),
     onSuccess: (result: ProvisionHostingPocResult) => {
       if (result.ok) {
         setLastUrl(result.url);
+        try {
+          sessionStorage.setItem(HOSTING_POC_URL_KEY, result.url);
+        } catch {
+          // storage unavailable; the in-memory URL still shows
+        }
         toast.success("Deployed. Live at the URL below.");
       } else if (result.reason === "not_configured") {
-        toast.error("DENO_DEPLOY_TOKEN is not set. Add it as a wrangler secret to activate.");
+        toast.error("Hosting is not set up. Ask an engineer to add the deploy token.");
       } else {
         toast.error(result.message);
       }
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "The deploy failed. Nothing shipped."),
   });
+
+  if (!pocEnabled) return null;
 
   return (
     <div style={cardStyle()}>
@@ -212,19 +247,33 @@ function BannerPanel() {
       setMessage("");
       qc.invalidateQueries({ queryKey: ["admin-banner"] });
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Publishing failed. No banner went out."),
   });
   const clear = useMutation({
     mutationFn: () => fClear(),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
       toast.success("Banner cleared");
       qc.invalidateQueries({ queryKey: ["admin-banner"] });
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Clearing failed. The banner is still up."),
   });
 
   return (
     <div style={cardStyle()}>
       <div style={sectionTitleStyle()}>System banner</div>
-      {banner ? (
+      {cur.isLoading ? (
+        <AdminSkeleton rows={1} height={40} />
+      ) : cur.isError ? (
+        // A failed read is not "No active banner." (register D-11).
+        <AdminErrorCard
+          what="the current banner"
+          message={cur.error instanceof Error ? cur.error.message : undefined}
+          onRetry={() => cur.refetch()}
+        />
+      ) : banner ? (
         <div
           style={{
             display: "flex",
@@ -318,6 +367,11 @@ function FlagsPanel() {
   const fUpsert = useServerFn(adminUpsertFlag);
   const fDelete = useServerFn(adminDeleteFlag);
   const list = useQuery({ queryKey: ["admin-flags"], queryFn: () => fList() });
+  const listError = list.isError
+    ? list.error instanceof Error
+      ? list.error.message
+      : "Request failed."
+    : inBandError(list.data);
   const rows: FeatureFlag[] = Array.isArray(list.data) ? (list.data as FeatureFlag[]) : [];
 
   const [key, setKey] = useState("");
@@ -334,17 +388,37 @@ function FlagsPanel() {
       setPayload("{}");
       qc.invalidateQueries({ queryKey: ["admin-flags"] });
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Save failed. The flag was not changed."),
   });
   const del = useMutation({
     mutationFn: (id: string) => fDelete({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-flags"] }),
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success("Flag deleted");
+      qc.invalidateQueries({ queryKey: ["admin-flags"] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Delete failed. The flag is still set."),
   });
+
+  // The payload field is free text; catch bad JSON before it reaches the
+  // server (register: unvalidated free-text JSON flag payload).
+  function saveFlag(vars: { key: string; enabled: boolean; payloadJson: string }) {
+    try {
+      JSON.parse(vars.payloadJson || "{}");
+    } catch {
+      toast.error('Details must be valid JSON, for example {"rolloutPct":10}.');
+      return;
+    }
+    upsert.mutate(vars);
+  }
 
   return (
     <div style={cardStyle()}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div style={sectionTitleStyle()}>Feature flags</div>
-        <MonoLabel tone="faint">
+        <MonoLabel tone="muted">
           {rows.length} flag{rows.length === 1 ? "" : "s"}
         </MonoLabel>
       </div>
@@ -387,95 +461,103 @@ function FlagsPanel() {
         <Button
           variant="secondary"
           disabled={!key || upsert.isPending}
-          onClick={() => upsert.mutate({ key, enabled, payloadJson: payload })}
+          onClick={() => saveFlag({ key, enabled, payloadJson: payload })}
         >
           {upsert.isPending ? "Saving…" : "Save flag"}
         </Button>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={th()}>Key</th>
-              <th style={th()}>Enabled</th>
-              <th style={th()}>Details</th>
-              <th style={th()}>Updated</th>
-              <th style={th()}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((f) => (
-              <tr key={f.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                <td style={td()}>
-                  <code style={codeStyle()}>{f.key}</code>
-                </td>
-                <td style={td()}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                    <MonoLabel tone={f.enabled ? "moss" : "faint"}>
-                      {f.enabled ? "on" : "off"}
-                    </MonoLabel>
+      {list.isLoading ? (
+        <AdminSkeleton rows={3} height={40} />
+      ) : listError ? (
+        <AdminErrorCard what="feature flags" message={listError} onRetry={() => list.refetch()} />
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={th()}>Key</th>
+                <th style={th()}>Enabled</th>
+                <th style={th()}>Details</th>
+                <th style={th()}>Updated</th>
+                <th style={th()}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((f) => (
+                <tr key={f.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                  <td style={td()}>
+                    <code style={codeStyle()}>{f.key}</code>
+                  </td>
+                  <td style={td()}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                      <MonoLabel tone={f.enabled ? "moss" : "faint"}>
+                        {f.enabled ? "on" : "off"}
+                      </MonoLabel>
+                      <Button
+                        variant="secondary"
+                        disabled={upsert.isPending}
+                        style={{ fontSize: 11.5, padding: "6px 10px" }}
+                        onClick={() =>
+                          saveFlag({ key: f.key, enabled: !f.enabled, payloadJson: f.payload })
+                        }
+                      >
+                        {f.enabled ? "Turn off" : "Turn on"}
+                      </Button>
+                    </div>
+                  </td>
+                  <td style={td()}>
+                    <code style={{ ...codeStyle(), fontSize: 11 }}>{f.payload}</code>
+                  </td>
+                  <td style={td()}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {f.updated_at.slice(0, 10)}
+                    </span>
+                  </td>
+                  <td style={td()}>
                     <Button
                       variant="secondary"
-                      style={{ fontSize: 11.5, padding: "6px 10px" }}
-                      onClick={() =>
-                        upsert.mutate({ key: f.key, enabled: !f.enabled, payloadJson: f.payload })
-                      }
+                      disabled={del.isPending}
+                      style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Delete flag?",
+                          body: `${f.key} will be removed.`,
+                          confirmLabel: "Delete",
+                          destructive: true,
+                        });
+                        if (ok) del.mutate(f.id);
+                      }}
                     >
-                      {f.enabled ? "Turn off" : "Turn on"}
+                      Delete
                     </Button>
-                  </div>
-                </td>
-                <td style={td()}>
-                  <code style={{ ...codeStyle(), fontSize: 11 }}>{f.payload}</code>
-                </td>
-                <td style={td()}>
-                  <span
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-sm)",
-                      color: "var(--text-muted)",
+                      ...td(),
+                      padding: "var(--space-3)",
+                      textAlign: "center",
+                      color: "var(--text-subtle)",
                     }}
                   >
-                    {f.updated_at.slice(0, 10)}
-                  </span>
-                </td>
-                <td style={td()}>
-                  <Button
-                    variant="secondary"
-                    style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
-                    onClick={async () => {
-                      const ok = await confirm({
-                        title: "Delete flag?",
-                        body: `${f.key} will be removed.`,
-                        confirmLabel: "Delete",
-                        destructive: true,
-                      });
-                      if (ok) del.mutate(f.id);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    ...td(),
-                    padding: "var(--space-3)",
-                    textAlign: "center",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  No flags yet.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+                    No flags yet.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -490,6 +572,11 @@ function MemoryExpiryPanel() {
     queryKey: ["admin-memory-expiry"],
     queryFn: () => fGet(),
   });
+  const curError = cur.isError
+    ? cur.error instanceof Error
+      ? cur.error.message
+      : "Request failed."
+    : inBandError(cur.data);
   const enabled =
     cur.data && !("error" in cur.data) ? (cur.data as { enabled: boolean }).enabled : false;
 
@@ -502,6 +589,8 @@ function MemoryExpiryPanel() {
       );
       qc.invalidateQueries({ queryKey: ["admin-memory-expiry"] });
     },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Save failed. The setting did not change."),
   });
 
   const handleToggle = async () => {
@@ -509,7 +598,7 @@ function MemoryExpiryPanel() {
     if (next) {
       const ok = await confirm({
         title: "Enable memory expiry?",
-        body: "Free-tier users' agent memory rows older than 14 days will start expiring on new inserts. Existing rows are grandfathered. This cannot be silently reversed once users rely on it.",
+        body: "New memories for free-tier users will start expiring after 14 days. Existing memories are kept. This cannot be silently reversed once users rely on it.",
         confirmLabel: "Enable",
         destructive: true,
       });
@@ -522,22 +611,31 @@ function MemoryExpiryPanel() {
     <div style={cardStyle()}>
       <div style={sectionTitleStyle()}>Memory expiry · free tier</div>
       <p style={bodyTextStyle()}>
-        When enabled, new <code style={codeStyle()}>agent_memory</code> rows for free-tier users are
-        stamped with a 14-day <code style={codeStyle()}>expires_at</code>. The nightly cron prunes
-        expired rows. Existing rows are grandfathered.
+        When enabled, new memories the machine keeps for free-tier users start expiring 14 days
+        after they are written, and expired ones are cleaned up automatically each night. Memories
+        that already exist are not touched.
       </p>
-      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-        <MonoLabel tone={enabled ? "moss" : "faint"}>
-          {cur.isLoading ? "loading" : enabled ? "enabled" : "disabled"}
-        </MonoLabel>
-        <Button
-          variant="secondary"
-          disabled={cur.isLoading || toggle.isPending}
-          onClick={handleToggle}
-        >
-          {toggle.isPending ? "Saving…" : enabled ? "Disable" : "Enable"}
-        </Button>
-      </div>
+      {curError ? (
+        // A failed read must not present as "disabled" (register D-11).
+        <AdminErrorCard
+          what="the memory expiry setting"
+          message={curError}
+          onRetry={() => cur.refetch()}
+        />
+      ) : (
+        <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+          <MonoLabel tone={enabled ? "moss" : "muted"}>
+            {cur.isLoading ? "loading" : enabled ? "enabled" : "disabled"}
+          </MonoLabel>
+          <Button
+            variant="secondary"
+            disabled={cur.isLoading || toggle.isPending}
+            onClick={handleToggle}
+          >
+            {toggle.isPending ? "Saving…" : enabled ? "Disable" : "Enable"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -550,6 +648,11 @@ function AuditPanel() {
     queryFn: () =>
       fList({ data: { targetKind: targetKind || null, targetId: null, limit: 200, offset: 0 } }),
   });
+  const listError = list.isError
+    ? list.error instanceof Error
+      ? list.error.message
+      : "Request failed."
+    : inBandError(list.data);
   const rows: AuditRow[] = Array.isArray(list.data) ? (list.data as AuditRow[]) : [];
 
   return (
@@ -558,7 +661,7 @@ function AuditPanel() {
         style={{ display: "flex", gap: "var(--space-2)", alignItems: "center", flexWrap: "wrap" }}
       >
         <div style={sectionTitleStyle()}>Audit log</div>
-        <MonoLabel tone="faint">
+        <MonoLabel tone="muted">
           {rows.length} {rows.length === 1 ? "entry" : "entries"}
         </MonoLabel>
         <select
@@ -579,51 +682,57 @@ function AuditPanel() {
           <option value="signup_approval">Signup approval</option>
         </select>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={th()}>When</th>
-              <th style={th()}>Actor</th>
-              <th style={th()}>Action</th>
-              <th style={th()}>Target</th>
-              <th style={th()}>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                <td style={td()}>{r.created_at.slice(0, 16).replace("T", " ")}</td>
-                <td style={td()}>{r.actor_email ?? r.actor_user_id?.slice(0, 8) ?? "-"}</td>
-                <td style={td()}>
-                  <code style={codeStyle()}>{r.action}</code>
-                </td>
-                <td style={td()}>
-                  {r.target_kind} · {r.target_id?.slice(0, 8) ?? "-"}
-                </td>
-                <td style={td()}>
-                  <code style={{ ...codeStyle(), fontSize: 10 }}>{r.payload}</code>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 ? (
+      {list.isLoading ? (
+        <AdminSkeleton rows={4} height={36} />
+      ) : listError ? (
+        <AdminErrorCard what="the audit log" message={listError} onRetry={() => list.refetch()} />
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    ...td(),
-                    padding: "var(--space-3)",
-                    textAlign: "center",
-                    color: "var(--text-subtle)",
-                  }}
-                >
-                  No entries.
-                </td>
+                <th style={th()}>When</th>
+                <th style={th()}>Actor</th>
+                <th style={th()}>Action</th>
+                <th style={th()}>Target</th>
+                <th style={th()}>Details</th>
               </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                  <td style={td()}>{r.created_at.slice(0, 16).replace("T", " ")}</td>
+                  <td style={td()}>{r.actor_email ?? r.actor_user_id?.slice(0, 8) ?? "-"}</td>
+                  <td style={td()}>
+                    <code style={codeStyle()}>{r.action}</code>
+                  </td>
+                  <td style={td()}>
+                    {r.target_kind} · {r.target_id?.slice(0, 8) ?? "-"}
+                  </td>
+                  <td style={td()}>
+                    <code style={{ ...codeStyle(), fontSize: 10 }}>{r.payload}</code>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{
+                      ...td(),
+                      padding: "var(--space-3)",
+                      textAlign: "center",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    No entries.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

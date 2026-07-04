@@ -112,7 +112,7 @@ export function OpportunityQueue() {
     onMutate: (id) => setBusy(id, true),
     onSuccess: (r) => {
       toast.success("Spec drafted");
-      navigate({ to: "/prds/$id", params: { id: r.prd.id } });
+      navigate({ to: "/plan/spec/$id", params: { id: r.prd.id } });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: (_d, _e, id) => setBusy(id, false),

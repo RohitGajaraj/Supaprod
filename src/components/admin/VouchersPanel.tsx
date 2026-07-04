@@ -1,6 +1,13 @@
 /**
  * People · Vouchers panel: create / list / deactivate vouchers, view
  * redemptions per voucher.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): ported off the parchment classes
+ * (bento/btn/--ink-* hexes) to the Obsidian tokens the parent People tab
+ * uses; list errors render as errors with retry, never as "No vouchers yet."
+ * (register D-11); the deactivate/create mutations check the in-band
+ * `{error}` result and surface thrown failures. Queries, mutations, and
+ * data shapes are unchanged.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +15,8 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import { MonoLabel, Button } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
 import {
   adminListVouchers,
   adminCreateVoucher,
@@ -15,6 +24,12 @@ import {
   adminListVoucherRedemptions,
   type AdminVoucher,
 } from "@/lib/admin-vouchers.functions";
+
+const FOCUS_RING =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
+const mutationFailed = (e: unknown) =>
+  toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
 
 export function VouchersPanel() {
   const qc = useQueryClient();
@@ -25,84 +40,121 @@ export function VouchersPanel() {
     queryKey: ["admin-vouchers"],
     queryFn: () => fList({ data: { active: null } }),
   });
+  const listError = list.isError
+    ? list.error instanceof Error
+      ? list.error.message
+      : "Request failed."
+    : inBandError(list.data);
   const rows: AdminVoucher[] = Array.isArray(list.data) ? (list.data as AdminVoucher[]) : [];
   const [openId, setOpenId] = useState<string | null>(null);
 
   const deactivate = useMutation({
     mutationFn: (id: string) => fDeact({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-vouchers"] }),
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success("Voucher deactivated");
+      qc.invalidateQueries({ queryKey: ["admin-vouchers"] });
+    },
+    onError: mutationFailed,
   });
 
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <VoucherCreator />
-      <div className="bento" style={{ padding: 16 }}>
-        <div className="mono-label" style={{ marginBottom: 8 }}>
-          Vouchers · {rows.length}
-        </div>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-          <thead>
-            <tr className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-              <th style={th()}>Code</th>
-              <th style={th()}>Kind</th>
-              <th style={th()}>Plan</th>
-              <th style={th()}>Credits</th>
-              <th style={th()}>Used / Max</th>
-              <th style={th()}>Expires</th>
-              <th style={th()}>Active</th>
-              <th style={th()}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((v) => (
-              <tr key={v.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-                <td style={td()}>
-                  <code>{v.code}</code>
-                </td>
-                <td style={td()}>{v.kind}</td>
-                <td style={td()}>{v.plan_tier ?? "-"}</td>
-                <td style={td()}>{v.credits ?? "-"}</td>
-                <td style={td()}>
-                  {v.redemptions_count} / {v.max_redemptions ?? "∞"}
-                </td>
-                <td style={td()}>{v.expires_at?.slice(0, 10) ?? "-"}</td>
-                <td style={td()}>{v.active ? "yes" : "no"}</td>
-                <td style={td()}>
-                  <button className="btn btn-sm" onClick={() => setOpenId(v.id)}>
-                    Redemptions
-                  </button>
-                  {v.active ? (
-                    <button
-                      className="btn btn-sm"
-                      style={{ marginLeft: 6 }}
-                      onClick={async () => {
-                        const ok = await confirm({
-                          title: "Deactivate voucher?",
-                          body: `${v.code} can no longer be redeemed. Existing redemptions are kept.`,
-                          confirmLabel: "Deactivate",
-                          destructive: true,
-                        });
-                        if (ok) deactivate.mutate(v.id);
+      <div style={card()}>
+        <MonoLabel>Vouchers · {list.isLoading ? "…" : rows.length}</MonoLabel>
+        {list.isLoading ? (
+          <AdminSkeleton rows={3} height={38} />
+        ) : listError ? (
+          <AdminErrorCard what="vouchers" message={listError} onRetry={() => list.refetch()} />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={th()}>Code</th>
+                  <th style={th()}>Kind</th>
+                  <th style={th()}>Plan</th>
+                  <th style={th()}>Credits</th>
+                  <th style={th()}>Used / Max</th>
+                  <th style={th()}>Expires</th>
+                  <th style={th()}>Active</th>
+                  <th style={th()}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((v) => (
+                  <tr key={v.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                    <td style={td()}>
+                      <code
+                        style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}
+                      >
+                        {v.code}
+                      </code>
+                    </td>
+                    <td style={td()}>{v.kind}</td>
+                    <td style={td()}>{v.plan_tier ?? "-"}</td>
+                    <td style={td()}>{v.credits ?? "-"}</td>
+                    <td style={td()}>
+                      {v.redemptions_count} / {v.max_redemptions ?? "no limit"}
+                    </td>
+                    <td style={td()}>{v.expires_at?.slice(0, 10) ?? "-"}</td>
+                    <td style={td()}>{v.active ? "yes" : "no"}</td>
+                    <td style={td()}>
+                      <div style={{ display: "flex", gap: "var(--space-1)" }}>
+                        <Button
+                          variant="secondary"
+                          style={{ fontSize: 11.5, padding: "6px 10px" }}
+                          onClick={() => setOpenId(v.id)}
+                        >
+                          Redemptions
+                        </Button>
+                        {v.active ? (
+                          <Button
+                            variant="secondary"
+                            disabled={deactivate.isPending}
+                            style={{
+                              fontSize: 11.5,
+                              padding: "6px 10px",
+                              color: "var(--text-subtle)",
+                            }}
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: "Deactivate voucher?",
+                                body: `${v.code} can no longer be redeemed. Existing redemptions are kept.`,
+                                confirmLabel: "Deactivate",
+                                destructive: true,
+                              });
+                              if (ok) deactivate.mutate(v.id);
+                            }}
+                          >
+                            Deactivate
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      style={{
+                        padding: "var(--space-3)",
+                        textAlign: "center",
+                        fontFamily: "var(--font-ui)",
+                        fontSize: "var(--text-sm)",
+                        color: "var(--text-subtle)",
                       }}
                     >
-                      Deactivate
-                    </button>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  style={{ padding: 12, textAlign: "center", color: "var(--ink-subtle)" }}
-                >
-                  No vouchers yet.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
+                      No vouchers yet.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       <RedemptionsDrawer voucherId={openId} onClose={() => setOpenId(null)} />
     </div>
@@ -149,21 +201,24 @@ function VoucherCreator() {
       setTag("");
       qc.invalidateQueries({ queryKey: ["admin-vouchers"] });
     },
+    onError: mutationFailed,
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 8 }}>
-      <div className="mono-label">New voucher</div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div style={card()}>
+      <MonoLabel>New voucher</MonoLabel>
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="LAUNCH50"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(140)}
         />
         <select
           value={kind}
           onChange={(e) => setKind(e.target.value as typeof kind)}
+          className={FOCUS_RING}
           style={input(140)}
         >
           <option value="credit_grant">credit_grant</option>
@@ -174,6 +229,7 @@ function VoucherCreator() {
           value={planTier}
           onChange={(e) => setPlanTier(e.target.value)}
           placeholder="plan tier"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(120)}
         />
         <input
@@ -181,6 +237,7 @@ function VoucherCreator() {
           value={credits}
           onChange={(e) => setCredits(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="credits"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(100)}
         />
         <input
@@ -188,6 +245,7 @@ function VoucherCreator() {
           value={maxRedemptions}
           onChange={(e) => setMaxRedemptions(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="max uses"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(100)}
         />
         <input
@@ -195,29 +253,42 @@ function VoucherCreator() {
           value={days}
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(80)}
         />
         <input
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           placeholder="campaign tag"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(140)}
         />
-        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-body)",
+          }}
+        >
           <input
             type="checkbox"
             checked={autoLogin}
             onChange={(e) => setAutoLogin(e.target.checked)}
+            className={FOCUS_RING}
+            style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
           />{" "}
           auto-login (signup)
         </label>
-        <button
-          className="btn btn-primary btn-sm"
+        <Button
+          variant="secondary"
           disabled={!code || create.isPending}
           onClick={() => create.mutate()}
         >
           {create.isPending ? "Creating…" : "Create voucher"}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -236,51 +307,113 @@ function RedemptionsDrawer({
     enabled: !!voucherId,
     queryFn: () => fList({ data: { voucherId: voucherId! } }),
   });
+  const listError = list.isError
+    ? list.error instanceof Error
+      ? list.error.message
+      : "Request failed."
+    : inBandError(list.data);
   const rows = Array.isArray(list.data) ? list.data : [];
 
   return (
     <Sheet open={!!voucherId} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" style={{ width: "min(480px, 100vw)", overflow: "auto" }}>
+      <SheetContent
+        side="right"
+        style={{
+          width: "min(480px, 100vw)",
+          overflow: "auto",
+          backgroundColor: "var(--card)",
+        }}
+      >
         <SheetHeader>
-          <SheetTitle>Redemptions</SheetTitle>
+          <SheetTitle
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 460,
+              fontSize: "var(--text-card-title)",
+              lineHeight: 1.3,
+              color: "var(--text-primary)",
+            }}
+          >
+            Redemptions
+          </SheetTitle>
         </SheetHeader>
-        <ul
-          style={{
-            marginTop: 12,
-            padding: 0,
-            listStyle: "none",
-            display: "grid",
-            gap: 6,
-            fontSize: 12.5,
-          }}
-        >
-          {rows.length === 0 ? (
-            <li style={{ color: "var(--ink-subtle)" }}>No redemptions yet.</li>
-          ) : null}
-          {rows.map((r) => (
-            <li key={r.id}>
-              {r.user_email ?? r.user_id} · {new Date(r.redeemed_at).toLocaleString()}
-            </li>
-          ))}
-        </ul>
+        {list.isLoading ? (
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminSkeleton rows={3} height={28} />
+          </div>
+        ) : listError ? (
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminErrorCard what="redemptions" message={listError} onRetry={() => list.refetch()} />
+          </div>
+        ) : (
+          <ul
+            style={{
+              marginTop: "var(--space-4)",
+              padding: 0,
+              listStyle: "none",
+              display: "grid",
+              gap: 6,
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-sm)",
+              color: "var(--text-body)",
+            }}
+          >
+            {rows.length === 0 ? (
+              <li style={{ color: "var(--text-subtle)" }}>No redemptions yet.</li>
+            ) : null}
+            {rows.map((r) => (
+              <li key={r.id}>
+                {r.user_email ?? r.user_id} · {new Date(r.redeemed_at).toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        )}
       </SheetContent>
     </Sheet>
   );
 }
 
+function card(): React.CSSProperties {
+  return {
+    background: "var(--card)",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-card)",
+    padding: "var(--space-4)",
+    display: "grid",
+    gap: "var(--space-3)",
+  };
+}
 function input(width?: number): React.CSSProperties {
   return {
-    padding: "6px 8px",
-    border: "1px solid var(--hairline)",
-    borderRadius: 6,
-    background: "var(--canvas)",
+    padding: "8px 10px",
+    border: "1px solid var(--hairline-strong)",
+    borderRadius: "var(--radius-control)",
+    background: "var(--raised)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-ui)",
     fontSize: 12.5,
     width,
   };
 }
 function th(): React.CSSProperties {
-  return { padding: "8px 10px", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase" };
+  return {
+    padding: "8px 10px",
+    fontFamily: "var(--font-mono)",
+    fontSize: "var(--text-mono-label)",
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    textAlign: "left",
+    fontWeight: 400,
+    color: "var(--text-subtle)",
+    borderBottom: "1px solid var(--hairline-strong)",
+  };
 }
 function td(): React.CSSProperties {
-  return { padding: "10px", verticalAlign: "middle" };
+  return {
+    padding: "10px",
+    verticalAlign: "middle",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+    color: "var(--text-body)",
+  };
 }

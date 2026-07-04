@@ -42,7 +42,11 @@ function HeaderRow({ label, count }: { label: string; count: number | null }) {
       {count === null ? null : (
         <MonoLabel
           tone="glacier"
-          style={{ fontSize: "10.5px", letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}
+          style={{
+            fontSize: "10.5px",
+            letterSpacing: "0.08em",
+            fontVariantNumeric: "tabular-nums",
+          }}
         >
           {count}
         </MonoLabel>
@@ -241,7 +245,7 @@ export function StrategySection() {
             style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
           >
             Nothing tracked yet. The watch list seeds itself from your workspace's focus and top
-            opportunities once Scout runs.
+            opportunities. Nothing to add by hand.
           </p>
         ) : (
           <div>

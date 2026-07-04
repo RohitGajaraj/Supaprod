@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Direction 3: The Decision Path. Three states of one call:
+       open signal (ring), the decision made (solid), the outcome verified (ring).
+       The two threads trace a quiet upward check without drawing a checkmark. -->
+  <g stroke="currentColor" fill="none" stroke-width="3" stroke-linecap="round">
+    <line x1="9.9" y1="21.6" x2="14.7" y2="29.2"/>
+    <line x1="23.9" y1="29.7" x2="35" y2="15.6"/>
+    <circle cx="7" cy="17" r="3.5"/>
+    <circle cx="39" cy="10.5" r="4.5"/>
+  </g>
+  <circle cx="19" cy="36" r="6" fill="currentColor"/>
+</svg>

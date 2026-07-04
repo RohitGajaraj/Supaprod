@@ -1,12 +1,21 @@
 /**
  * People · Invitations panel: single + bulk invitations, revoke,
  * auto-approve domain rules, and the pending signup-approvals queue.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): ported off the parchment classes
+ * (bento/btn/--ink-* hexes) to the Obsidian tokens the parent People tab
+ * uses; list errors render as errors with retry, never as "No invitations
+ * yet." (register D-11); every mutation checks the in-band `{error}` result
+ * and surfaces thrown failures. Queries, mutations, and data shapes are
+ * unchanged.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import { MonoLabel, Button } from "@/components/obsidian";
+import { AdminErrorCard, AdminSkeleton, inBandError } from "@/components/admin/admin-ui";
 import {
   adminListInvitations,
   adminCreateInvitation,
@@ -22,9 +31,20 @@ import {
   type SignupApproval,
 } from "@/lib/admin-invitations.functions";
 
+const FOCUS_RING =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+
+const mutationFailed = (e: unknown) =>
+  toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+
+function queryError(q: { isError: boolean; error: unknown; data: unknown }): string | null {
+  if (q.isError) return q.error instanceof Error ? q.error.message : "Request failed.";
+  return inBandError(q.data);
+}
+
 export function InvitationsPanel() {
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <InviteCreator />
       <InviteList />
       <DomainList />
@@ -49,6 +69,7 @@ function InviteCreator() {
       setEmail("");
       qc.invalidateQueries({ queryKey: ["admin-invitations"] });
     },
+    onError: mutationFailed,
   });
   const bulk = useMutation({
     mutationFn: () => {
@@ -65,49 +86,55 @@ function InviteCreator() {
       setCsv("");
       qc.invalidateQueries({ queryKey: ["admin-invitations"] });
     },
+    onError: mutationFailed,
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">New invitation</div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div style={card()}>
+      <MonoLabel>New invitation</MonoLabel>
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(220)}
         />
-        <select value={role} onChange={(e) => setRole(e.target.value)} style={input(120)}>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className={FOCUS_RING}
+          style={input(120)}
+        >
           <option value="member">member</option>
           <option value="admin">admin</option>
           <option value="owner">owner</option>
         </select>
-        <button
-          className="btn btn-primary btn-sm"
+        <Button
+          variant="secondary"
           disabled={!email || single.isPending}
           onClick={() => single.mutate()}
         >
           {single.isPending ? "Sending…" : "Create invitation · emails link"}
-        </button>
+        </Button>
       </div>
-      <div className="mono-label" style={{ marginTop: 6 }}>
-        Bulk CSV (one email per line)
-      </div>
+      <MonoLabel style={{ marginTop: 6 }}>Bulk CSV (one email per line)</MonoLabel>
       <textarea
         value={csv}
         onChange={(e) => setCsv(e.target.value)}
         rows={4}
         placeholder={"alice@co.com\nbob@co.com"}
-        style={{ ...input(), width: "100%", fontFamily: "var(--font-mono, monospace)" }}
+        className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
+        style={{ ...input(), width: "100%", fontFamily: "var(--font-mono)" }}
       />
-      <button
-        className="btn btn-sm"
+      <Button
+        variant="secondary"
         disabled={!csv.trim() || bulk.isPending}
-        style={{ alignSelf: "start" }}
+        style={{ justifySelf: "start" }}
         onClick={() => bulk.mutate()}
       >
         {bulk.isPending ? "Creating…" : "Create from CSV"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -121,6 +148,7 @@ function InviteList() {
     queryKey: ["admin-invitations"],
     queryFn: () => fList({ data: { state: null, limit: 100, offset: 0 } }),
   });
+  const listError = queryError(list);
   const rows: AdminInvitation[] = Array.isArray(list.data) ? (list.data as AdminInvitation[]) : [];
   const revoke = useMutation({
     mutationFn: (id: string) => fRevoke({ data: { id } }),
@@ -129,63 +157,77 @@ function InviteList() {
       toast.success("Invitation revoked");
       qc.invalidateQueries({ queryKey: ["admin-invitations"] });
     },
+    onError: mutationFailed,
   });
 
   return (
-    <div className="bento" style={{ padding: 16 }}>
-      <div className="mono-label" style={{ marginBottom: 8 }}>
-        Invitations · {rows.length}
-      </div>
-      <table style={tableStyle}>
-        <thead>
-          <tr className="mono-label" style={{ color: "var(--ink-subtle)" }}>
-            <th style={th()}>Email</th>
-            <th style={th()}>Role</th>
-            <th style={th()}>State</th>
-            <th style={th()}>Expires</th>
-            <th style={th()}></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
-              <td style={td()}>{r.email}</td>
-              <td style={td()}>{r.role}</td>
-              <td style={td()}>{r.state}</td>
-              <td style={td()}>{r.expires_at?.slice(0, 10)}</td>
-              <td style={td()}>
-                {r.state === "pending" ? (
-                  <button
-                    className="btn btn-sm"
-                    disabled={revoke.isPending}
-                    onClick={async () => {
-                      const ok = await confirm({
-                        title: "Revoke invitation?",
-                        body: `${r.email} will no longer be able to accept.`,
-                        confirmLabel: "Revoke · invalidates link",
-                        destructive: true,
-                      });
-                      if (ok) revoke.mutate(r.id);
+    <div style={card()}>
+      <MonoLabel>Invitations · {list.isLoading ? "…" : rows.length}</MonoLabel>
+      {list.isLoading ? (
+        <AdminSkeleton rows={3} height={38} />
+      ) : listError ? (
+        <AdminErrorCard what="invitations" message={listError} onRetry={() => list.refetch()} />
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={th()}>Email</th>
+                <th style={th()}>Role</th>
+                <th style={th()}>State</th>
+                <th style={th()}>Expires</th>
+                <th style={th()}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} style={{ borderTop: "1px solid var(--hairline)" }}>
+                  <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
+                  <td style={td()}>{r.role}</td>
+                  <td style={td()}>{r.state}</td>
+                  <td style={td()}>{r.expires_at?.slice(0, 10)}</td>
+                  <td style={td()}>
+                    {r.state === "pending" ? (
+                      <Button
+                        variant="secondary"
+                        disabled={revoke.isPending}
+                        style={{ fontSize: 11.5, padding: "6px 10px" }}
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "Revoke invitation?",
+                            body: `${r.email} will no longer be able to accept.`,
+                            confirmLabel: "Revoke · invalidates link",
+                            destructive: true,
+                          });
+                          if (ok) revoke.mutate(r.id);
+                        }}
+                      >
+                        Revoke
+                      </Button>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{
+                      padding: "var(--space-3)",
+                      textAlign: "center",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-subtle)",
                     }}
                   >
-                    Revoke
-                  </button>
-                ) : null}
-              </td>
-            </tr>
-          ))}
-          {rows.length === 0 ? (
-            <tr>
-              <td
-                colSpan={5}
-                style={{ padding: 12, textAlign: "center", color: "var(--ink-subtle)" }}
-              >
-                No invitations yet.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+                    No invitations yet.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -197,6 +239,7 @@ function DomainList() {
   const fUpsert = useServerFn(adminUpsertAutoApproveDomain);
   const fDelete = useServerFn(adminDeleteAutoApproveDomain);
   const list = useQuery({ queryKey: ["admin-domains"], queryFn: () => fList() });
+  const listError = queryError(list);
   const rows: AutoApproveDomain[] = Array.isArray(list.data)
     ? (list.data as AutoApproveDomain[])
     : [];
@@ -211,36 +254,63 @@ function DomainList() {
       setDomain("");
       qc.invalidateQueries({ queryKey: ["admin-domains"] });
     },
+    onError: mutationFailed,
   });
   const del = useMutation({
     mutationFn: (id: string) => fDelete({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-domains"] }),
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success("Domain removed");
+      qc.invalidateQueries({ queryKey: ["admin-domains"] });
+    },
+    onError: mutationFailed,
   });
 
   return (
-    <div className="bento" style={{ padding: 16, display: "grid", gap: 10 }}>
-      <div className="mono-label">Auto-approve email domains</div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+    <div style={card()}>
+      <MonoLabel>Auto-approve email domains</MonoLabel>
+      <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
           placeholder="acme.com"
+          className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(200)}
         />
-        <select value={role} onChange={(e) => setRole(e.target.value)} style={input(120)}>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className={FOCUS_RING}
+          style={input(120)}
+        >
           <option value="member">member</option>
           <option value="admin">admin</option>
         </select>
-        <button
-          className="btn btn-sm"
+        <Button
+          variant="secondary"
           disabled={!domain || upsert.isPending}
           onClick={() => upsert.mutate()}
         >
           {upsert.isPending ? "Saving…" : "Add domain · auto-accepts signups"}
-        </button>
+        </Button>
       </div>
-      {rows.length === 0 ? (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: 0 }}>
+      {list.isLoading ? (
+        <AdminSkeleton rows={2} height={30} />
+      ) : listError ? (
+        <AdminErrorCard
+          what="the domain rules"
+          message={listError}
+          onRetry={() => list.refetch()}
+        />
+      ) : rows.length === 0 ? (
+        <p
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-subtle)",
+            margin: 0,
+          }}
+        >
           No domains configured. All signups go to manual review.
         </p>
       ) : (
@@ -248,12 +318,23 @@ function DomainList() {
           {rows.map((d) => (
             <li
               key={d.id}
-              style={{ fontSize: 12.5, display: "flex", gap: 8, alignItems: "center" }}
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-body)",
+                display: "flex",
+                gap: "var(--space-2)",
+                alignItems: "center",
+              }}
             >
-              <code>{d.domain}</code> · {d.default_role}
-              <button
-                className="btn btn-sm"
-                style={{ marginLeft: "auto" }}
+              <code style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>
+                {d.domain}
+              </code>{" "}
+              · {d.default_role}
+              <Button
+                variant="secondary"
+                disabled={del.isPending}
+                style={{ marginLeft: "auto", fontSize: 11.5, padding: "6px 10px" }}
                 onClick={async () => {
                   const ok = await confirm({
                     title: "Remove domain?",
@@ -265,7 +346,7 @@ function DomainList() {
                 }}
               >
                 Remove
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -282,42 +363,69 @@ function SignupApprovalsList() {
     queryKey: ["admin-signup-approvals"],
     queryFn: () => fList({ data: { state: "pending" } }),
   });
+  const listError = queryError(list);
   const rows: SignupApproval[] = Array.isArray(list.data) ? (list.data as SignupApproval[]) : [];
 
   const review = useMutation({
     mutationFn: (vars: { id: string; approve: boolean }) =>
       fReview({ data: { id: vars.id, approve: vars.approve, note: "" } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-signup-approvals"] }),
+    onSuccess: (r, vars) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success(vars.approve ? "Signup approved." : "Signup rejected.");
+      qc.invalidateQueries({ queryKey: ["admin-signup-approvals"] });
+    },
+    onError: mutationFailed,
   });
 
   return (
-    <div className="bento" style={{ padding: 16 }}>
-      <div className="mono-label" style={{ marginBottom: 8 }}>
-        Pending signup approvals · {rows.length}
-      </div>
-      {rows.length === 0 ? (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: 0 }}>Nothing waiting.</p>
+    <div style={card()}>
+      <MonoLabel>Pending signup approvals · {list.isLoading ? "…" : rows.length}</MonoLabel>
+      {list.isLoading ? (
+        <AdminSkeleton rows={2} height={34} />
+      ) : listError ? (
+        <AdminErrorCard what="pending signups" message={listError} onRetry={() => list.refetch()} />
+      ) : rows.length === 0 ? (
+        <p
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-sm)",
+            color: "var(--text-subtle)",
+            margin: 0,
+          }}
+        >
+          Nothing waiting.
+        </p>
       ) : (
         <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "grid", gap: 6 }}>
           {rows.map((s) => (
             <li
               key={s.id}
-              style={{ display: "flex", gap: 8, fontSize: 12.5, alignItems: "center" }}
+              style={{
+                display: "flex",
+                gap: "var(--space-2)",
+                alignItems: "center",
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-body)",
+              }}
             >
               {s.email} · {new Date(s.created_at).toLocaleDateString()}
-              <button
-                className="btn btn-primary btn-sm"
-                style={{ marginLeft: "auto" }}
+              <Button
+                variant="secondary"
+                disabled={review.isPending}
+                style={{ marginLeft: "auto", fontSize: 11.5, padding: "6px 10px" }}
                 onClick={() => review.mutate({ id: s.id, approve: true })}
               >
                 Approve · grants access
-              </button>
-              <button
-                className="btn btn-sm"
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={review.isPending}
+                style={{ fontSize: 11.5, padding: "6px 10px", color: "var(--text-subtle)" }}
                 onClick={() => review.mutate({ id: s.id, approve: false })}
               >
                 Reject
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -326,24 +434,47 @@ function SignupApprovalsList() {
   );
 }
 
+function card(): React.CSSProperties {
+  return {
+    background: "var(--card)",
+    border: "1px solid var(--hairline)",
+    borderRadius: "var(--radius-card)",
+    padding: "var(--space-4)",
+    display: "grid",
+    gap: "var(--space-3)",
+  };
+}
 function input(width?: number): React.CSSProperties {
   return {
-    padding: "6px 8px",
-    border: "1px solid var(--hairline)",
-    borderRadius: 6,
-    background: "var(--canvas)",
+    padding: "8px 10px",
+    border: "1px solid var(--hairline-strong)",
+    borderRadius: "var(--radius-control)",
+    background: "var(--raised)",
+    color: "var(--text-primary)",
+    fontFamily: "var(--font-ui)",
     fontSize: 12.5,
     width,
   };
 }
 function th(): React.CSSProperties {
-  return { padding: "8px 10px", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase" };
+  return {
+    padding: "8px 10px",
+    fontFamily: "var(--font-mono)",
+    fontSize: "var(--text-mono-label)",
+    letterSpacing: "0.11em",
+    textTransform: "uppercase",
+    textAlign: "left",
+    fontWeight: 400,
+    color: "var(--text-subtle)",
+    borderBottom: "1px solid var(--hairline-strong)",
+  };
 }
 function td(): React.CSSProperties {
-  return { padding: "10px", verticalAlign: "middle" };
+  return {
+    padding: "10px",
+    verticalAlign: "middle",
+    fontFamily: "var(--font-ui)",
+    fontSize: "var(--text-sm)",
+    color: "var(--text-body)",
+  };
 }
-const tableStyle: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-  fontSize: 12.5,
-};

@@ -14,7 +14,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
           padding: "48px 0",
           textAlign: "center",
           fontSize: 12.5,
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         No runs yet, so nothing spent.
@@ -49,7 +49,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 minWidth: 0,
                 fontFamily: "var(--font-mono)",
                 fontSize: 11.5,
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
               }}
             >
               {r.model ?? "default model"}
@@ -62,7 +62,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 textAlign: "right",
                 flexShrink: 0,
                 fontSize: 11.5,
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
               }}
             >
               {r.tokens.toLocaleString()} tok
@@ -74,7 +74,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
                 textAlign: "right",
                 flexShrink: 0,
                 fontSize: 11.5,
-                color: "var(--ink)",
+                color: "var(--text-primary)",
               }}
             >
               {fmtCost(r.cost_usd)}
@@ -96,7 +96,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
         <MonoLabel>Session total</MonoLabel>
         <span
           className="tabular-nums"
-          style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)" }}
+          style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-primary)" }}
         >
           {fmtCost(total)}
         </span>

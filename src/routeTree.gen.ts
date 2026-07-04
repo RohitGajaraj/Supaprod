@@ -38,7 +38,6 @@ import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
 import { Route as AuthenticatedProductRouteImport } from './routes/_authenticated.product'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
-import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated.plan'
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
@@ -76,6 +75,7 @@ import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedStudioIndexRouteImport } from './routes/_authenticated.studio.index'
 import { Route as AuthenticatedPrdsIndexRouteImport } from './routes/_authenticated.prds.index'
+import { Route as AuthenticatedPlanIndexRouteImport } from './routes/_authenticated.plan.index'
 import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authenticated.missions.index'
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
@@ -125,6 +125,7 @@ import { Route as ApiPublicHooksAgentTickRouteImport } from './routes/api/public
 import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/public/hooks/admin-expiry-tick'
 import { Route as ApiPublicArdSchemaRouteImport } from './routes/api/public/ard.schema'
 import { Route as ApiPublicA2aTasksRouteImport } from './routes/api/public/a2a.tasks'
+import { Route as AuthenticatedPlanSpecIdRouteImport } from './routes/_authenticated.plan.spec.$id'
 import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api/public/connect/github/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
 import { Route as ApiPublicA2aMessageSendRouteImport } from './routes/api/public/a2a.message.send'
@@ -274,11 +275,6 @@ const AuthenticatedProductRoute = AuthenticatedProductRouteImport.update({
 const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
   id: '/prds',
   path: '/prds',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOutcomeRoute = AuthenticatedOutcomeRouteImport.update({
@@ -470,6 +466,11 @@ const AuthenticatedPrdsIndexRoute = AuthenticatedPrdsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedPrdsRoute,
+} as any)
+const AuthenticatedPlanIndexRoute = AuthenticatedPlanIndexRouteImport.update({
+  id: '/plan/',
+  path: '/plan/',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMissionsIndexRoute =
   AuthenticatedMissionsIndexRouteImport.update({
@@ -750,6 +751,11 @@ const ApiPublicA2aTasksRoute = ApiPublicA2aTasksRouteImport.update({
   path: '/api/public/a2a/tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPlanSpecIdRoute = AuthenticatedPlanSpecIdRouteImport.update({
+  id: '/plan/spec/$id',
+  path: '/plan/spec/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ApiPublicConnectGithubCallbackRoute =
   ApiPublicConnectGithubCallbackRouteImport.update({
     id: '/api/public/connect/github/callback',
@@ -819,7 +825,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
-  '/plan': typeof AuthenticatedPlanRoute
   '/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
@@ -858,8 +863,10 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
   '/missions/': typeof AuthenticatedMissionsIndexRoute
+  '/plan/': typeof AuthenticatedPlanIndexRoute
   '/prds/': typeof AuthenticatedPrdsIndexRoute
   '/studio/': typeof AuthenticatedStudioIndexRoute
+  '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
@@ -939,7 +946,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
-  '/plan': typeof AuthenticatedPlanRoute
   '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
@@ -977,8 +983,10 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
   '/missions': typeof AuthenticatedMissionsIndexRoute
+  '/plan': typeof AuthenticatedPlanIndexRoute
   '/prds': typeof AuthenticatedPrdsIndexRoute
   '/studio': typeof AuthenticatedStudioIndexRoute
+  '/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
@@ -1061,7 +1069,6 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
-  '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/_authenticated/product': typeof AuthenticatedProductRoute
   '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
@@ -1100,8 +1107,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
   '/_authenticated/missions/': typeof AuthenticatedMissionsIndexRoute
+  '/_authenticated/plan/': typeof AuthenticatedPlanIndexRoute
   '/_authenticated/prds/': typeof AuthenticatedPrdsIndexRoute
   '/_authenticated/studio/': typeof AuthenticatedStudioIndexRoute
+  '/_authenticated/plan/spec/$id': typeof AuthenticatedPlanSpecIdRoute
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
@@ -1184,7 +1193,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
-    | '/plan'
     | '/prds'
     | '/product'
     | '/prompts'
@@ -1223,8 +1231,10 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/build/'
     | '/missions/'
+    | '/plan/'
     | '/prds/'
     | '/studio/'
+    | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
@@ -1304,7 +1314,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
-    | '/plan'
     | '/product'
     | '/prompts'
     | '/roadmap'
@@ -1342,8 +1351,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/build'
     | '/missions'
+    | '/plan'
     | '/prds'
     | '/studio'
+    | '/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
@@ -1425,7 +1436,6 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
-    | '/_authenticated/plan'
     | '/_authenticated/prds'
     | '/_authenticated/product'
     | '/_authenticated/prompts'
@@ -1464,8 +1474,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
     | '/_authenticated/missions/'
+    | '/_authenticated/plan/'
     | '/_authenticated/prds/'
     | '/_authenticated/studio/'
+    | '/_authenticated/plan/spec/$id'
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
@@ -1764,13 +1776,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrdsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/plan': {
-      id: '/_authenticated/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof AuthenticatedPlanRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/outcome': {
       id: '/_authenticated/outcome'
       path: '/outcome'
@@ -2029,6 +2034,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/prds/'
       preLoaderRoute: typeof AuthenticatedPrdsIndexRouteImport
       parentRoute: typeof AuthenticatedPrdsRoute
+    }
+    '/_authenticated/plan/': {
+      id: '/_authenticated/plan/'
+      path: '/plan'
+      fullPath: '/plan/'
+      preLoaderRoute: typeof AuthenticatedPlanIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/missions/': {
       id: '/_authenticated/missions/'
@@ -2373,6 +2385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicA2aTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/plan/spec/$id': {
+      id: '/_authenticated/plan/spec/$id'
+      path: '/plan/spec/$id'
+      fullPath: '/plan/spec/$id'
+      preLoaderRoute: typeof AuthenticatedPlanSpecIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/api/public/connect/github/callback': {
       id: '/api/public/connect/github/callback'
       path: '/api/public/connect/github/callback'
@@ -2502,7 +2521,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
-  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRouteWithChildren
   AuthenticatedProductRoute: typeof AuthenticatedProductRoute
   AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
@@ -2520,7 +2538,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
+  AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
+  AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2559,7 +2579,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
-  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedPrdsRoute: AuthenticatedPrdsRouteWithChildren,
   AuthenticatedProductRoute: AuthenticatedProductRoute,
   AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
@@ -2577,7 +2596,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
+  AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
+  AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

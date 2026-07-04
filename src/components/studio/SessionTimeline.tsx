@@ -25,7 +25,7 @@ const stepNum: CSSProperties = {
   width: 18,
   textAlign: "right",
   flexShrink: 0,
-  color: "var(--ink-faint)",
+  color: "var(--text-subtle)",
 };
 
 function fmtClock(iso: string): string {
@@ -46,7 +46,7 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
         <span
           style={{
             minWidth: 0,
-            color: "var(--ink-faint)",
+            color: "var(--text-subtle)",
             fontStyle: "italic",
             wordBreak: "break-word",
           }}
@@ -66,16 +66,16 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
           {idx + 1}.
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ color: "var(--agent)", fontWeight: 600 }}>{step.name}</span>
+          <span style={{ color: "var(--mauve)", fontWeight: 600 }}>{step.name}</span>
           {step.status !== "executed" ? (
-            <span style={{ color: failed ? "var(--madder)" : "var(--ink-muted)" }}>
+            <span style={{ color: failed ? "var(--madder)" : "var(--text-body)" }}>
               {" "}
               · {step.status}
             </span>
           ) : null}
           <div
             className="line-clamp-1 break-words"
-            style={{ color: step.error ? "var(--madder)" : "var(--ink-muted)" }}
+            style={{ color: step.error ? "var(--madder)" : "var(--text-body)" }}
           >
             {step.error
               ? `error: ${step.error}`
@@ -97,7 +97,7 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
           margin: 0,
           fontSize: 12.5,
           lineHeight: 1.55,
-          color: "var(--ink-muted)",
+          color: "var(--text-body)",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }}
@@ -117,7 +117,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
     <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <StatusIcon s={run.status} />
-        <span className="mono-label" style={{ color: "var(--ink)", fontWeight: 600 }}>
+        <span className="mono-label" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           Run {index + 1}
         </span>
         <StatusChip status={run.status} />
@@ -129,7 +129,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
               ...rail,
               fontSize: 12.5,
               lineHeight: 1.8,
-              color: "var(--ink-faint)",
+              color: "var(--text-subtle)",
               fontStyle: "italic",
             }}
           >
@@ -150,7 +150,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
                 alignItems: "center",
                 gap: 6,
                 fontStyle: "italic",
-                color: "var(--ink-faint)",
+                color: "var(--text-subtle)",
               }}
             >
               <span className="dot dot-running" style={{ width: 5, height: 5 }} />
@@ -169,7 +169,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
           fontFamily: "var(--font-mono)",
           fontSize: 9.5,
           letterSpacing: "0.05em",
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         {footer}
@@ -201,7 +201,7 @@ function SteerRow({ steer }: { steer: Steer }) {
           flexShrink: 0,
           marginTop: 1,
           borderRadius: 99,
-          border: "1px solid color-mix(in oklab, var(--ember) 55%, transparent)",
+          border: "1px solid var(--ember-line)",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
@@ -209,7 +209,7 @@ function SteerRow({ steer }: { steer: Steer }) {
           fontSize: 8.5,
           fontWeight: 700,
           letterSpacing: "0.04em",
-          color: "var(--ember)",
+          color: "var(--ember-text)",
         }}
       >
         Y
@@ -221,7 +221,7 @@ function SteerRow({ steer }: { steer: Steer }) {
           margin: 0,
           fontSize: 12.5,
           lineHeight: 1.55,
-          color: "var(--ink-muted)",
+          color: "var(--text-body)",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }}
@@ -230,7 +230,7 @@ function SteerRow({ steer }: { steer: Steer }) {
       </p>
       <span
         className="mono-label tabular-nums"
-        style={{ fontSize: 9, flexShrink: 0, marginTop: 3, color: "var(--ink-faint)" }}
+        style={{ fontSize: 9, flexShrink: 0, marginTop: 3, color: "var(--text-subtle)" }}
       >
         {fmtClock(steer.created_at)} · {steer.consumed ? "read" : "queued"}
       </span>
@@ -273,7 +273,7 @@ export function SessionTimeline({
           padding: "48px 0",
           textAlign: "center",
           fontSize: 12.5,
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         No activity yet. The build starts in a moment.

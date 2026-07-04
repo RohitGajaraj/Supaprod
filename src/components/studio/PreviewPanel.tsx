@@ -27,7 +27,7 @@ function EmptyState({ message }: { message: string }) {
         textAlign: "center",
         fontSize: 12.5,
         lineHeight: 1.5,
-        color: "var(--ink-faint)",
+        color: "var(--text-subtle)",
       }}
     >
       {message}
@@ -78,7 +78,7 @@ export function PreviewPanel({
           justifyContent: "center",
           gap: 8,
           padding: "48px 0",
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         <span className="spinner" style={{ width: 12, height: 12 }} />
@@ -111,7 +111,7 @@ export function PreviewPanel({
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 11.5,
-              color: "var(--ink-muted)",
+              color: "var(--text-body)",
               minWidth: 0,
               flex: 1,
             }}
@@ -128,8 +128,8 @@ export function PreviewPanel({
                 gap: 5,
                 fontSize: 11,
                 fontWeight: 600,
-                color: "var(--ember)",
-                background: "color-mix(in oklab, var(--ember) 10%, transparent)",
+                color: "var(--glacier)",
+                background: "color-mix(in oklab, var(--glacier) 10%, transparent)",
                 padding: "2px 8px",
                 borderRadius: 999,
                 flex: "none",
@@ -137,14 +137,14 @@ export function PreviewPanel({
             >
               <span
                 className="pulse-dot"
-                style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ember)" }}
+                style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--glacier)" }}
               />
               Building live
             </span>
           ) : null}
         </div>
         <p
-          style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--ink-faint)", lineHeight: 1.4 }}
+          style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.4 }}
         >
           {isLive
             ? "Updating live as the build works on the page."

@@ -80,14 +80,16 @@ export function studioVerdict(
  * `listStudioSessions` row shape) carries no current-step-name or per-step
  * history field, only `getStudioSession`'s detail query does. Fabricating a
  * step name the list data doesn't have would violate the spec's own
- * "do not fabricate, render what exists" rule (§13), so the row shows the
- * plain status word instead; the real step-by-step detail lives one layer
- * deeper, in the slide-over. */
+ * "do not fabricate, render what exists" rule (§13), so the row's right slot
+ * says what the status MEANS instead (LOOM v4: the old copy repeated the
+ * StatusDot's word verbatim, so "WAITING ON YOU" printed twice per row);
+ * the real step-by-step detail lives one layer deeper, in the slide-over.
+ * Every phrase still derives purely from the 4-bucket status. */
 export const MISSION_ROW_STEP_LABEL: Record<MissionRowStatus, string> = {
-  working: "WORKING",
-  gate: "WAITING ON YOU",
-  done: "SHIPPED",
-  queued: "QUEUED",
+  working: "RUNNING UNATTENDED",
+  gate: "ONE ANSWER UNBLOCKS IT",
+  done: "FINISHED",
+  queued: "STARTS SHORTLY",
 };
 
 /** The mission slide-over's gate block shows at most one approval · the oldest

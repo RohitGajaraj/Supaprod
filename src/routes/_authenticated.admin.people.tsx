@@ -8,6 +8,11 @@
  * OBS-13 chrome pass: re-skinned from parchment to Obsidian v3 (dark cockpit,
  * mono metadata, no icon set). Every query, mutation, and data shape below
  * is unchanged — only the markup, tokens, and copy-that-was-jargon changed.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): search errors no longer read as "No users
+ * match." (register D-11), the drawer shows a real error with retry instead
+ * of going blank, the search is debounced (D-22), and every mutation
+ * surfaces thrown failures via onError.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -17,6 +22,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { MonoLabel, Button } from "@/components/obsidian";
+import {
+  AdminErrorCard,
+  AdminSkeleton,
+  inBandError,
+  useDebouncedValue,
+} from "@/components/admin/admin-ui";
 import {
   adminSearchUsers,
   adminGetUserDetail,
@@ -115,11 +126,22 @@ import { VouchersPanel } from "@/components/admin/VouchersPanel";
 function UsersPanel() {
   const fSearch = useServerFn(adminSearchUsers);
   const [q, setQ] = useState("");
+  // One query per pause, not per keystroke (register D-22).
+  const debouncedQ = useDebouncedValue(q);
   const [selected, setSelected] = useState<string | null>(null);
   const search = useQuery({
-    queryKey: ["admin-users", q],
-    queryFn: () => fSearch({ data: { q, limit: 50, offset: 0 } }),
+    queryKey: ["admin-users", debouncedQ],
+    queryFn: () => fSearch({ data: { q: debouncedQ, limit: 50, offset: 0 } }),
   });
+
+  // A failed search must never wear the empty state's clothes (D-11): the
+  // server fn returns errors in-band, so check both the thrown and the
+  // in-band shape before deciding "no users match".
+  const searchError = search.isError
+    ? search.error instanceof Error
+      ? search.error.message
+      : "Request failed."
+    : inBandError(search.data);
 
   const rows = useMemo<AdminUserRow[]>(() => {
     const d = search.data;
@@ -155,89 +177,97 @@ function UsersPanel() {
             fontSize: "var(--text-base)",
           }}
         />
-        <MonoLabel tone="muted">{search.isLoading ? "Loading…" : `${rows.length} users`}</MonoLabel>
+        <MonoLabel tone="muted">
+          {search.isLoading ? "Loading…" : searchError ? "search failed" : `${rows.length} users`}
+        </MonoLabel>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--hairline-strong)" }}>
-              <th style={th()}>Email</th>
-              <th style={th()}>Name</th>
-              <th style={th()}>Plan</th>
-              <th style={th()}>Credits</th>
-              <th style={th()}>Suspended</th>
-              <th style={th()}>Joined</th>
-              <th style={th()}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr
-                key={r.user_id}
-                className="hover:[background-color:var(--hover)]"
-                style={{
-                  borderTop: "1px solid var(--hairline)",
-                  transitionProperty: "background-color",
-                  transitionDuration: "var(--dur-control)",
-                  transitionTimingFunction: "var(--ease)",
-                }}
-              >
-                <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
-                <td style={td()}>{r.display_name ?? "-"}</td>
-                <td style={{ ...td(), textTransform: "capitalize" }}>{r.plan_tier}</td>
-                <td
-                  style={{
-                    ...td(),
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {r.balance_credits.toLocaleString()}
-                </td>
-                <td
-                  style={{
-                    ...td(),
-                    color: r.suspended ? "var(--madder)" : "var(--text-body)",
-                  }}
-                >
-                  {r.suspended ? "yes" : "no"}
-                </td>
-                <td
-                  style={{
-                    ...td(),
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-helper)",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  {new Date(r.created_at).toLocaleDateString()}
-                </td>
-                <td style={td()}>
-                  <Button variant="quiet" onClick={() => setSelected(r.user_id)}>
-                    Open →
-                  </Button>
-                </td>
+      {search.isLoading ? (
+        <AdminSkeleton rows={5} height={44} />
+      ) : searchError ? (
+        <AdminErrorCard what="users" message={searchError} onRetry={() => search.refetch()} />
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--hairline-strong)" }}>
+                <th style={th()}>Email</th>
+                <th style={th()}>Name</th>
+                <th style={th()}>Plan</th>
+                <th style={th()}>Credits</th>
+                <th style={th()}>Suspended</th>
+                <th style={th()}>Joined</th>
+                <th style={th()}></th>
               </tr>
-            ))}
-            {!search.isLoading && rows.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr
+                  key={r.user_id}
+                  className="hover:[background-color:var(--hover)]"
                   style={{
-                    padding: "var(--space-4)",
-                    textAlign: "center",
-                    fontFamily: "var(--font-ui)",
-                    fontSize: "var(--text-base)",
-                    color: "var(--text-subtle)",
+                    borderTop: "1px solid var(--hairline)",
+                    transitionProperty: "background-color",
+                    transitionDuration: "var(--dur-control)",
+                    transitionTimingFunction: "var(--ease)",
                   }}
                 >
-                  No users match.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+                  <td style={{ ...td(), color: "var(--text-primary)" }}>{r.email}</td>
+                  <td style={td()}>{r.display_name ?? "-"}</td>
+                  <td style={{ ...td(), textTransform: "capitalize" }}>{r.plan_tier}</td>
+                  <td
+                    style={{
+                      ...td(),
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {r.balance_credits.toLocaleString()}
+                  </td>
+                  <td
+                    style={{
+                      ...td(),
+                      color: r.suspended ? "var(--madder)" : "var(--text-body)",
+                    }}
+                  >
+                    {r.suspended ? "yes" : "no"}
+                  </td>
+                  <td
+                    style={{
+                      ...td(),
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--text-helper)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </td>
+                  <td style={td()}>
+                    <Button variant="quiet" onClick={() => setSelected(r.user_id)}>
+                      Open →
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    style={{
+                      padding: "var(--space-4)",
+                      textAlign: "center",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: "var(--text-base)",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    No users match.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      )}
       <UserDrawer userId={selected} onClose={() => setSelected(null)} />
     </div>
   );
@@ -315,6 +345,11 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
     qc.invalidateQueries({ queryKey: ["admin-users"] });
   };
 
+  // Every mutation also handles the thrown (network/transport) failure path:
+  // a failed admin action must never end in silence (register D-11).
+  const mutationFailed = (e: unknown) =>
+    toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+
   const grant = useMutation({
     mutationFn: (vars: { delta: number; reason: string }) =>
       fGrant({ data: { userId: userId!, delta: vars.delta, reason: vars.reason } }),
@@ -323,6 +358,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
       toast.success(`Balance now ${r.balance.toLocaleString()}`);
       invalidate();
     },
+    onError: mutationFailed,
   });
   const reset = useMutation({
     mutationFn: () => fReset({ data: { userId: userId! } }),
@@ -331,6 +367,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
       toast.success("Monthly cycle reset.");
       invalidate();
     },
+    onError: mutationFailed,
   });
   const override = useMutation({
     mutationFn: (vars: { planTier: string; expiresAt: string | null; reason: string }) =>
@@ -340,6 +377,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
       toast.success("Plan override saved.");
       invalidate();
     },
+    onError: mutationFailed,
   });
   const clearOverride = useMutation({
     mutationFn: () => fClear({ data: { userId: userId! } }),
@@ -348,6 +386,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
       toast.success("Override cleared.");
       invalidate();
     },
+    onError: mutationFailed,
   });
   const suspend = useMutation({
     mutationFn: (vars: { suspend: boolean; reason: string }) =>
@@ -357,6 +396,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
       toast.success(vars.suspend ? "Account suspended." : "Account restored.");
       invalidate();
     },
+    onError: mutationFailed,
   });
 
   const d = detail.data;
@@ -385,16 +425,18 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
           </SheetTitle>
         </SheetHeader>
         {detail.isLoading ? (
-          <p
-            style={{
-              marginTop: "var(--space-4)",
-              fontFamily: "var(--font-ui)",
-              fontSize: "var(--text-base)",
-              color: "var(--text-subtle)",
-            }}
-          >
-            Loading…
-          </p>
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminSkeleton rows={5} height={40} />
+          </div>
+        ) : detail.isError ? (
+          // A failed detail read used to leave the drawer blank (D-11).
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminErrorCard
+              what="this user"
+              message={detail.error instanceof Error ? detail.error.message : undefined}
+              onRetry={() => detail.refetch()}
+            />
+          </div>
         ) : !d ? null : (
           <div style={{ marginTop: "var(--space-4)", display: "grid", gap: "var(--space-6)" }}>
             <section>

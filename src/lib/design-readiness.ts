@@ -126,7 +126,7 @@ const DIMENSIONS: Dimension[] = [
   {
     key: "permissions",
     label: "Permissions & roles (who can see/do this)",
-    hint: "State who can see and do this — the roles and permissions.",
+    hint: "State who can see and do this: the roles and permissions.",
     terms: [
       "permission",
       "role",

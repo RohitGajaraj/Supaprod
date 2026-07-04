@@ -348,7 +348,7 @@ export function ChangesPanel({
           padding: "48px 0",
           textAlign: "center",
           fontSize: 12.5,
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         No changes staged yet. The session stages edits as it works.
@@ -372,7 +372,7 @@ export function ChangesPanel({
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11.5,
-            color: "var(--ink-muted)",
+            color: "var(--text-body)",
             minWidth: 0,
           }}
         >
@@ -384,7 +384,7 @@ export function ChangesPanel({
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 11.5,
-              color: "var(--ink-subtle)",
+              color: "var(--text-subtle)",
               minWidth: 0,
             }}
           >
@@ -404,7 +404,7 @@ export function ChangesPanel({
               borderRadius: 6,
               border: "1px solid var(--hairline)",
               background: "transparent",
-              color: "var(--ink-muted)",
+              color: "var(--text-body)",
               cursor: rollbackMut.isPending ? "default" : "pointer",
               whiteSpace: "nowrap",
             }}
@@ -424,7 +424,7 @@ export function ChangesPanel({
               borderRadius: 6,
               border: "1px solid var(--hairline)",
               background: "transparent",
-              color: "var(--ink-muted)",
+              color: "var(--text-body)",
               cursor: abandonMut.isPending ? "default" : "pointer",
               whiteSpace: "nowrap",
             }}
@@ -459,7 +459,7 @@ export function ChangesPanel({
                 borderRadius: 6,
                 padding: "3px 10px",
                 background: "transparent",
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 cursor: genNotesMut.isPending ? "default" : "pointer",
               }}
             >
@@ -476,7 +476,7 @@ export function ChangesPanel({
                 padding: "12px 18px",
                 fontSize: 12.5,
                 lineHeight: 1.6,
-                color: "var(--ink)",
+                color: "var(--text-primary)",
                 whiteSpace: "pre-wrap",
               }}
             >
@@ -511,7 +511,7 @@ export function ChangesPanel({
                 borderRadius: 6,
                 padding: "3px 10px",
                 background: "transparent",
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 cursor: genKitMut.isPending ? "default" : "pointer",
               }}
             >
@@ -534,7 +534,7 @@ export function ChangesPanel({
                 launchKit[key] ? (
                   <div key={key}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span className="mono-label" style={{ flex: 1, color: "var(--ink-muted)" }}>
+                      <span className="mono-label" style={{ flex: 1, color: "var(--text-body)" }}>
                         {label}
                       </span>
                       <button
@@ -551,7 +551,7 @@ export function ChangesPanel({
                           borderRadius: 6,
                           padding: "2px 8px",
                           background: "transparent",
-                          color: "var(--ink-muted)",
+                          color: "var(--text-body)",
                           cursor: "pointer",
                         }}
                       >
@@ -562,7 +562,7 @@ export function ChangesPanel({
                       style={{
                         fontSize: 12.5,
                         lineHeight: 1.6,
-                        color: "var(--ink)",
+                        color: "var(--text-primary)",
                         whiteSpace: "pre-wrap",
                       }}
                     >
@@ -571,7 +571,7 @@ export function ChangesPanel({
                   </div>
                 ) : null,
               )}
-              <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+              <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
                 Drafts only. Nothing is sent, so copy what you want to use.
               </span>
             </div>
@@ -608,14 +608,14 @@ export function ChangesPanel({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                <span style={{ fontSize: 11.5, color: "var(--ink-muted)" }}>
+                <span style={{ fontSize: 11.5, color: "var(--text-body)" }}>
                   {rb.status === "reverted" ? "done" : "open"}
                 </span>
                 <span
                   style={{
                     flex: 1,
                     fontSize: 12,
-                    color: "var(--ink)",
+                    color: "var(--text-primary)",
                     fontFamily: "var(--font-mono)",
                   }}
                 >
@@ -628,7 +628,7 @@ export function ChangesPanel({
                     rel="noopener noreferrer"
                     style={{
                       fontSize: 11,
-                      color: "var(--ink-link)",
+                      color: "var(--blossom)",
                       textDecoration: "none",
                       whiteSpace: "nowrap",
                     }}
@@ -641,7 +641,7 @@ export function ChangesPanel({
                 <p
                   style={{
                     fontSize: 11.5,
-                    color: "var(--ink-muted)",
+                    color: "var(--text-body)",
                     fontStyle: "italic",
                     margin: 0,
                     lineHeight: 1.4,
@@ -656,7 +656,7 @@ export function ChangesPanel({
                   disabled={noteMut.isPending}
                   style={{
                     fontSize: 11,
-                    color: "var(--ink-link)",
+                    color: "var(--blossom)",
                     background: "none",
                     border: "none",
                     padding: 0,
@@ -688,7 +688,7 @@ export function ChangesPanel({
             <span className="mono-label" style={{ flex: 1, minWidth: 0 }}>
               Revisions ({revisions.length})
             </span>
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               commit history
             </span>
           </div>
@@ -703,12 +703,12 @@ export function ChangesPanel({
                 borderBottom: i < revisions.length - 1 ? "1px solid var(--hairline)" : "none",
               }}
             >
-              <span className="mono-label" style={{ width: 36, color: "var(--ink-muted)" }}>
+              <span className="mono-label" style={{ width: 36, color: "var(--text-body)" }}>
                 r{r.revision_no}
               </span>
               <span
                 className="truncate"
-                style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--ink)" }}
+                style={{ flex: 1, minWidth: 0, fontSize: 12, color: "var(--text-primary)" }}
               >
                 {r.message || "(no message)"}
               </span>
@@ -717,7 +717,7 @@ export function ChangesPanel({
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-subtle)",
                 }}
               >
                 {r.files.length} file{r.files.length === 1 ? "" : "s"}
@@ -731,7 +731,7 @@ export function ChangesPanel({
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: 10.5,
-                    color: "var(--ink-muted)",
+                    color: "var(--text-body)",
                   }}
                 >
                   {r.commit_sha.slice(0, 7)}
@@ -742,7 +742,7 @@ export function ChangesPanel({
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: 10.5,
-                    color: "var(--ink-subtle)",
+                    color: "var(--text-subtle)",
                   }}
                 >
                   {r.commit_sha.slice(0, 7)}
@@ -768,7 +768,7 @@ export function ChangesPanel({
                     borderRadius: 6,
                     padding: "2px 8px",
                     fontSize: 10,
-                    color: "var(--ink-muted)",
+                    color: "var(--text-body)",
                     background: "transparent",
                     cursor: revertMut.isPending ? "default" : "pointer",
                   }}
@@ -802,7 +802,7 @@ export function ChangesPanel({
               <span
                 style={{
                   fontSize: 11.5,
-                  color: fileSetPolicy.clean ? "var(--ink-muted)" : "var(--amber)",
+                  color: fileSetPolicy.clean ? "var(--text-body)" : "var(--marigold)",
                 }}
               >
                 {fileSetPolicy.clean
@@ -819,7 +819,7 @@ export function ChangesPanel({
                       .join(" · ")}
               </span>
             ) : (
-              <span style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>No scope set</span>
+              <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>No scope set</span>
             )}
             {canCurate && fileSetPolicy?.hasTouchList && fileSetPolicy.outOfPolicy.length > 0 ? (
               <button
@@ -832,7 +832,7 @@ export function ChangesPanel({
                   borderRadius: 6,
                   padding: "3px 10px",
                   background: "transparent",
-                  color: "var(--ink-muted)",
+                  color: "var(--text-body)",
                   cursor: enforceMut.isPending ? "default" : "pointer",
                 }}
               >
@@ -848,7 +848,7 @@ export function ChangesPanel({
                 borderRadius: 6,
                 padding: "3px 10px",
                 background: "transparent",
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 cursor: "pointer",
               }}
             >
@@ -859,7 +859,7 @@ export function ChangesPanel({
             <div
               style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
-              <label className="mono-label" style={{ color: "var(--ink-muted)" }}>
+              <label className="mono-label" style={{ color: "var(--text-body)" }}>
                 Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
               </label>
               <textarea
@@ -874,15 +874,15 @@ export function ChangesPanel({
                   fontFamily: "var(--font-mono)",
                   fontSize: 11.5,
                   lineHeight: 1.6,
-                  color: "var(--ink)",
-                  background: "var(--surface-1)",
+                  color: "var(--text-primary)",
+                  background: "var(--surface-raised)",
                   border: "1px solid var(--hairline)",
                   borderRadius: 8,
                   padding: "8px 10px",
                 }}
               />
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <label className="mono-label" style={{ color: "var(--ink-muted)" }}>
+                <label className="mono-label" style={{ color: "var(--text-body)" }}>
                   Max files
                 </label>
                 <input
@@ -895,8 +895,8 @@ export function ChangesPanel({
                     width: 90,
                     fontFamily: "var(--font-mono)",
                     fontSize: 11.5,
-                    color: "var(--ink)",
-                    background: "var(--surface-1)",
+                    color: "var(--text-primary)",
+                    background: "var(--surface-raised)",
                     border: "1px solid var(--hairline)",
                     borderRadius: 6,
                     padding: "5px 8px",
@@ -913,7 +913,7 @@ export function ChangesPanel({
                     borderRadius: 6,
                     padding: "4px 12px",
                     background: "transparent",
-                    color: "var(--ink)",
+                    color: "var(--text-primary)",
                     cursor: setScopeMut.isPending ? "default" : "pointer",
                   }}
                 >
@@ -964,7 +964,7 @@ export function ChangesPanel({
                 textAlign: "left",
                 padding: "11px 18px",
                 borderBottom: i < changes.length - 1 ? "1px solid var(--hairline)" : "none",
-                background: active ? "var(--surface-1)" : "transparent",
+                background: active ? "var(--surface-raised)" : "transparent",
                 transition: "background var(--dur-fast, 140ms)",
               }}
             >
@@ -975,7 +975,7 @@ export function ChangesPanel({
                   minWidth: 0,
                   fontFamily: "var(--font-mono)",
                   fontSize: 11.5,
-                  color: "var(--ink)",
+                  color: "var(--text-primary)",
                 }}
               >
                 {c.path}
@@ -986,8 +986,8 @@ export function ChangesPanel({
                   title="Not in the declared touch list"
                   style={{
                     flexShrink: 0,
-                    color: "var(--amber)",
-                    border: "1px solid var(--amber)",
+                    color: "var(--marigold)",
+                    border: "1px solid var(--marigold)",
                     borderRadius: 5,
                     padding: "1px 6px",
                     fontSize: 9.5,
@@ -998,7 +998,7 @@ export function ChangesPanel({
               ) : null}
               <span
                 className="mono-label"
-                style={{ width: 52, textAlign: "right", color: "var(--ink-muted)" }}
+                style={{ width: 52, textAlign: "right", color: "var(--text-body)" }}
               >
                 {c.op}
               </span>
@@ -1009,7 +1009,7 @@ export function ChangesPanel({
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
-                  color: "var(--ink-muted)",
+                  color: "var(--text-body)",
                 }}
               >
                 +{fmtCompact(c.new_chars)}
@@ -1021,7 +1021,7 @@ export function ChangesPanel({
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
-                  color: "var(--ink-subtle)",
+                  color: "var(--text-subtle)",
                 }}
               >
                 −{fmtCompact(c.base_chars)}
@@ -1035,7 +1035,7 @@ export function ChangesPanel({
               padding: "24px 18px",
               textAlign: "center",
               fontSize: 12,
-              color: "var(--ink-faint)",
+              color: "var(--text-subtle)",
             }}
           >
             The changeset is empty.
@@ -1061,12 +1061,12 @@ export function ChangesPanel({
                 minWidth: 0,
                 fontFamily: "var(--font-mono)",
                 fontSize: 11.5,
-                color: "var(--ink)",
+                color: "var(--text-primary)",
               }}
             >
               {selectedPath}
             </span>
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               base vs staged
             </span>
             {canCurate && selectedPath ? (
@@ -1080,7 +1080,7 @@ export function ChangesPanel({
                   borderRadius: 6,
                   padding: "3px 8px",
                   background: "transparent",
-                  color: "var(--ink-muted)",
+                  color: "var(--text-body)",
                   cursor: rejectFileMut.isPending ? "default" : "pointer",
                 }}
               >
@@ -1139,8 +1139,8 @@ export function ChangesPanel({
                     border: "1px solid var(--hairline)",
                     borderRadius: 6,
                     padding: "3px 10px",
-                    background: rejected.size === 0 ? "transparent" : "var(--surface-1)",
-                    color: rejected.size === 0 ? "var(--ink-faint)" : "var(--ink)",
+                    background: rejected.size === 0 ? "transparent" : "var(--surface-raised)",
+                    color: rejected.size === 0 ? "var(--text-subtle)" : "var(--text-primary)",
                     cursor: applyMut.isPending || rejected.size === 0 ? "default" : "pointer",
                   }}
                 >
@@ -1171,7 +1171,7 @@ export function ChangesPanel({
                       padding: "8px 10px",
                       borderRadius: 8,
                       border: "1px solid var(--hairline)",
-                      background: isRejected ? "var(--surface-1)" : "transparent",
+                      background: isRejected ? "var(--surface-raised)" : "transparent",
                       opacity: isRejected ? 0.6 : 1,
                       transition: "opacity var(--dur-fast, 140ms)",
                     }}
@@ -1180,7 +1180,7 @@ export function ChangesPanel({
                       className="mono-label"
                       style={{
                         width: 64,
-                        color: isRejected ? "var(--ink-faint)" : "var(--ink-muted)",
+                        color: isRejected ? "var(--text-subtle)" : "var(--text-body)",
                       }}
                     >
                       {isRejected ? "rejected" : `hunk ${h.id + 1}`}
@@ -1190,7 +1190,7 @@ export function ChangesPanel({
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: 10.5,
-                        color: "var(--ink-subtle)",
+                        color: "var(--text-subtle)",
                       }}
                     >
                       +{h.modifiedLines.length} / −{h.baseLines.length}
@@ -1202,7 +1202,7 @@ export function ChangesPanel({
                         minWidth: 0,
                         fontFamily: "var(--font-mono)",
                         fontSize: 11,
-                        color: "var(--ink-muted)",
+                        color: "var(--text-body)",
                       }}
                     >
                       {preview || "(blank line)"}

@@ -49,7 +49,7 @@ function withCitations(children: ReactNode, citations: CitationRecord[]): ReactN
  * OBS-07 §5 step 6: read-only spec detail, depth layer two. Newsreader serif
  * body with inline `[n]` markers replaced by the OBS-03 `Citation` chip
  * (superscript, verbatim quote + source on hover/focus). Editing stays in the
- * existing `/prds/$id` editor.
+ * full editor at `/plan/spec/$id` (re-homed from `/prds/$id`, LOOM W2).
  */
 export function SpecDetail({ id, onClose }: SpecDetailProps) {
   const fGetPrd = useServerFn(getPrd);

@@ -218,14 +218,14 @@ function GatePanel({
         style={{
           padding: "14px 16px",
           borderRadius: 10,
-          background: "color-mix(in oklab, var(--ember) 9%, transparent)",
-          border: "1px solid color-mix(in oklab, var(--ember) 35%, transparent)",
+          background: "var(--ember-tint)",
+          border: "1px solid var(--ember-line)",
         }}
       >
         <div
           className="mono-label"
           style={{
-            color: "var(--ember)",
+            color: "var(--ember-text)",
             display: "flex",
             alignItems: "center",
             gap: 6,
@@ -239,7 +239,7 @@ function GatePanel({
             <p
               style={{
                 fontSize: 13,
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 margin: "6px 0 12px",
                 lineHeight: 1.5,
               }}
@@ -247,7 +247,7 @@ function GatePanel({
               {agentName ?? "The agent"} wants{" "}
               <span
                 className="mono-label"
-                style={{ color: "var(--agent)", fontSize: 10.5, display: "inline-flex" }}
+                style={{ color: "var(--mauve)", fontSize: 10.5, display: "inline-flex" }}
               >
                 {appr.tool_name}
               </span>
@@ -255,8 +255,13 @@ function GatePanel({
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button
-                className="btn btn-approve"
+                className="btn loom-press"
                 disabled={decide.isPending}
+                style={{
+                  background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                  color: "var(--cta-ink)",
+                  fontWeight: 600,
+                }}
                 onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
               >
                 <Check size={12} />
@@ -299,16 +304,16 @@ const preStyle: CSSProperties = {
   wordBreak: "break-word",
   maxHeight: 200,
   overflowY: "auto",
-  color: "var(--ink-subtle)",
+  color: "var(--text-subtle)",
 };
 const handoffChip: CSSProperties = {
   fontSize: 10.5,
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
-  color: "var(--action-blue)",
-  border: "1px solid color-mix(in oklab, var(--action-blue) 30%, transparent)",
-  background: "color-mix(in oklab, var(--action-blue) 8%, transparent)",
+  color: "var(--cornflower)",
+  border: "1px solid color-mix(in oklab, var(--cornflower) 30%, transparent)",
+  background: "color-mix(in oklab, var(--cornflower) 8%, transparent)",
   borderRadius: 99,
   padding: "2px 8px",
 };
@@ -333,9 +338,9 @@ function TraceHop({
   const [showPayload, setShowPayload] = useState(false);
   const live = h.status === "running" || h.status === "queued" || h.status === "dispatched";
   const tint = (st: Hop["steps"][number]): CSSProperties => {
-    if (st.kind === "tool_call") return { color: "var(--agent)" };
-    if (st.kind === "thought") return { color: "var(--ink-faint)", fontStyle: "italic" };
-    return { color: "var(--emerald)" };
+    if (st.kind === "tool_call") return { color: "var(--mauve)" };
+    if (st.kind === "thought") return { color: "var(--text-subtle)", fontStyle: "italic" };
+    return { color: "var(--moss)" };
   };
   return (
     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, marginBottom: 10 }}>
@@ -372,11 +377,11 @@ function TraceHop({
         }}
       >
         {open ? (
-          <ChevronDown size={11} style={{ color: "var(--ink-faint)" }} />
+          <ChevronDown size={11} style={{ color: "var(--text-faint)" }} />
         ) : (
-          <ChevronRight size={11} style={{ color: "var(--ink-faint)" }} />
+          <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
         )}
-        <span style={{ color: "var(--agent)", fontWeight: 600 }}>
+        <span style={{ color: "var(--mauve)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
         </span>
         <span
@@ -384,7 +389,7 @@ function TraceHop({
             flex: 1,
             height: 3,
             borderRadius: 99,
-            background: "var(--surface-2)",
+            background: "var(--raised)",
             overflow: "hidden",
             maxWidth: 160,
           }}
@@ -394,7 +399,7 @@ function TraceHop({
               display: "block",
               height: "100%",
               width: `${pct}%`,
-              background: live ? "var(--action-blue)" : "var(--emerald)",
+              background: live ? "var(--cornflower)" : "var(--moss)",
             }}
           ></span>
         </span>
@@ -424,7 +429,7 @@ function TraceHop({
               <Link
                 to="/traces/$traceId"
                 params={{ traceId: h.trace_id }}
-                style={{ color: "var(--action-blue)" }}
+                style={{ color: "var(--cornflower)" }}
               >
                 trace
               </Link>
@@ -442,8 +447,8 @@ function TraceHop({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  color: "var(--agent)",
-                  border: "1px solid color-mix(in oklab, var(--agent) 30%, transparent)",
+                  color: "var(--mauve)",
+                  border: "1px solid color-mix(in oklab, var(--mauve) 30%, transparent)",
                   borderRadius: 99,
                   padding: "2px 8px",
                 }}
@@ -456,7 +461,7 @@ function TraceHop({
                   {h.recalled_memories.map((mem, mi) => (
                     <div
                       key={mi}
-                      style={{ fontSize: 10.5, color: "var(--ink-subtle)", lineHeight: 1.7 }}
+                      style={{ fontSize: 10.5, color: "var(--text-subtle)", lineHeight: 1.7 }}
                     >
                       · {mem}
                     </div>
@@ -467,7 +472,7 @@ function TraceHop({
           ) : null}
           {h.steps.length === 0 ? (
             <div
-              style={{ ...rail, lineHeight: 1.8, color: "var(--ink-faint)", fontStyle: "italic" }}
+              style={{ ...rail, lineHeight: 1.8, color: "var(--text-subtle)", fontStyle: "italic" }}
             >
               {live ? "waiting for the first checkpoint" : "no recorded steps"}
             </div>
@@ -490,7 +495,7 @@ function TraceHop({
               className="mono-label loom-press"
               style={{
                 fontSize: 10.5,
-                color: "var(--action-blue)",
+                color: "var(--cornflower)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
@@ -505,7 +510,7 @@ function TraceHop({
                 className="mono-label loom-press"
                 style={{
                   fontSize: 10.5,
-                  color: "var(--action-blue)",
+                  color: "var(--cornflower)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
@@ -610,14 +615,14 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
           <button
             onClick={copySnapshot}
             className="mono-label loom-press"
-            style={{ color: "var(--action-blue)" }}
+            style={{ color: "var(--cornflower)" }}
           >
             Copy snapshot
           </button>
         )}
       </div>
       {n === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-body)", lineHeight: 1.5 }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
           that memory compounds here. The next mission on this product will not start cold.
         </p>
@@ -626,11 +631,11 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
             <span
               className="font-display tabular-nums"
-              style={{ fontSize: 30, lineHeight: 1, color: "var(--ink)" }}
+              style={{ fontSize: 30, lineHeight: 1, color: "var(--text-primary)" }}
             >
               {n}
             </span>
-            <span style={{ fontSize: 13, color: "var(--ink-muted)", lineHeight: 1.4 }}>
+            <span style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.4 }}>
               prior {n === 1 ? "memory" : "memories"} this mission drew on, instead of starting cold
             </span>
           </div>
@@ -646,13 +651,13 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
               >
-                <span style={{ color: "var(--ink-muted)", flex: 1, lineHeight: 1.45 }}>
+                <span style={{ color: "var(--text-body)", flex: 1, lineHeight: 1.45 }}>
                   {mem.summary}
                 </span>
                 {mem.agents.size > 0 && (
                   <span
                     className="mono-label"
-                    style={{ color: "var(--ink-faint)", flexShrink: 0, whiteSpace: "nowrap" }}
+                    style={{ color: "var(--text-subtle)", flexShrink: 0, whiteSpace: "nowrap" }}
                   >
                     {[...mem.agents].join(" · ")}
                   </span>
@@ -660,7 +665,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               </div>
             ))}
             {moreCount > 0 && (
-              <span className="mono-label" style={{ color: "var(--ink-faint)", marginTop: 4 }}>
+              <span className="mono-label" style={{ color: "var(--text-subtle)", marginTop: 4 }}>
                 +{moreCount} more in the snapshot
               </span>
             )}
@@ -856,7 +861,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           }}
         >
           <div>
-            <MonoLabel style={{ color: "color-mix(in oklab, var(--hero-ink) 60%, transparent)" }}>
+            <MonoLabel style={{ color: "color-mix(in oklab, var(--text-primary) 60%, transparent)" }}>
               Mission · {data.mission.id.slice(0, 8)}
             </MonoLabel>
             <h1
@@ -885,7 +890,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <p
               style={{
                 fontSize: 13.5,
-                color: "color-mix(in oklab, var(--hero-ink) 70%, transparent)",
+                color: "color-mix(in oklab, var(--text-primary) 70%, transparent)",
               }}
             >
               {data.mission.goal}
@@ -901,7 +906,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   gap: 5,
                   marginTop: 8,
                   fontSize: 10.5,
-                  color: "color-mix(in oklab, var(--hero-ink) 65%, transparent)",
+                  color: "color-mix(in oklab, var(--text-primary) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
               >
@@ -923,8 +928,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   fontSize: 10.5,
                   padding: "3px 10px",
                   borderRadius: 5,
-                  border: "1px solid color-mix(in oklab, var(--ember) 45%, transparent)",
-                  color: "var(--ember)",
+                  border: "1px solid var(--ember-line)",
+                  color: "var(--ember-text)",
                   background: "transparent",
                   opacity: promote.isPending ? 0.5 : 1,
                 }}
@@ -976,9 +981,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     fontSize: 10.5,
                     padding: "3px 6px",
                     borderRadius: 5,
-                    border: "1px solid color-mix(in oklab, var(--hero-ink) 35%, transparent)",
+                    border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
                     background: "transparent",
-                    color: "var(--hero-ink)",
+                    color: "var(--text-primary)",
                     maxWidth: 160,
                   }}
                 >
@@ -1000,8 +1005,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     fontSize: 10.5,
                     padding: "3px 10px",
                     borderRadius: 5,
-                    border: "1px solid color-mix(in oklab, var(--hero-ink) 35%, transparent)",
-                    color: "var(--hero-ink)",
+                    border: "1px solid color-mix(in oklab, var(--text-primary) 35%, transparent)",
+                    color: "var(--text-primary)",
                     background: "transparent",
                     opacity: replay.isPending ? 0.5 : 1,
                   }}
@@ -1034,12 +1039,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <span
               key={l}
               className="mono-label"
-              style={{ color: "color-mix(in oklab, var(--hero-ink) 55%, transparent)" }}
+              style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
             >
               {l}{" "}
               <strong
                 className="tabular-nums"
-                style={{ color: "var(--hero-ink)", fontWeight: 600 }}
+                style={{ color: "var(--text-primary)", fontWeight: 600 }}
               >
                 {v}
               </strong>
@@ -1047,14 +1052,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           ))}
           <span
             className="mono-label"
-            style={{ color: "color-mix(in oklab, var(--hero-ink) 55%, transparent)" }}
+            style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
           >
             trace{" "}
             {data.usage.trace_id ? (
               <Link to="/traces/$traceId" params={{ traceId: data.usage.trace_id }}>
                 <strong
                   className="tabular-nums"
-                  style={{ color: "var(--hero-ink)", fontWeight: 600 }}
+                  style={{ color: "var(--text-primary)", fontWeight: 600 }}
                 >
                   {data.usage.trace_id.slice(0, 8)}
                 </strong>
@@ -1062,7 +1067,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             ) : (
               <strong
                 className="tabular-nums"
-                style={{ color: "var(--hero-ink)", fontWeight: 600 }}
+                style={{ color: "var(--text-primary)", fontWeight: 600 }}
               >
                 none yet
               </strong>
@@ -1092,7 +1097,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              color: "var(--action-blue)",
+              color: "var(--cornflower)",
             }}
           >
             <span className="dot dot-running" style={{ width: 5, height: 5 }} />
@@ -1124,8 +1129,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               fontSize: 10.5,
               padding: "3px 10px",
               borderRadius: 5,
-              border: "1px solid color-mix(in oklab, var(--ink-faint) 45%, transparent)",
-              color: "var(--ink-muted)",
+              border: "1px solid color-mix(in oklab, var(--text-subtle) 45%, transparent)",
+              color: "var(--text-body)",
               background: "transparent",
               marginBottom: showDiff ? 10 : 0,
             }}
@@ -1167,7 +1172,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--hairline)",
-                  color: "var(--action-blue)",
+                  color: "var(--cornflower)",
                   opacity: advance.isPending ? 0.5 : 1,
                 }}
               >
@@ -1197,8 +1202,8 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     fontSize: 10.5,
                     padding: "3px 10px",
                     borderRadius: 5,
-                    background: view === id ? "var(--surface-2)" : "transparent",
-                    color: view === id ? "var(--ink)" : "var(--ink-subtle)",
+                    background: view === id ? "var(--raised)" : "transparent",
+                    color: view === id ? "var(--text-primary)" : "var(--text-subtle)",
                   }}
                 >
                   {label}
@@ -1210,7 +1215,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         {view === "plan" ? (
           <div style={{ display: "flex", flexDirection: "column" }}>
             {planRows.length === 0 ? (
-              <div style={{ fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
+              <div style={{ fontSize: 12.5, color: "var(--text-subtle)", fontStyle: "italic" }}>
                 No steps yet. The plan lands with the first hop.
               </div>
             ) : (
@@ -1236,20 +1241,20 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span className="mono-label" style={{ color: "var(--agent)" }}>
+                      <span className="mono-label" style={{ color: "var(--mauve)" }}>
                         {s.agent}
                       </span>
                       <StatusBadge status={badgeStatus(s.status)} />
                       {s.deps.length > 0 ? (
                         <span
                           className="mono-label"
-                          style={{ fontSize: 10.5, color: "var(--ink-faint)" }}
+                          style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
                         >
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
                       ) : null}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 3 }}>
+                    <div style={{ fontSize: 13, color: "var(--text-body)", marginTop: 3 }}>
                       {s.goal}
                     </div>
                     {s.note ? (
@@ -1297,7 +1302,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               {unattended.length} action{unattended.length !== 1 ? "s" : ""}
             </span>
           </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", marginBottom: 12 }}>
+          <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginBottom: 12 }}>
             The loop ran these actions without a gate; the agents&rsquo; trust arc had earned auto.
             You reviewed nothing in advance; each row notes whether it can be undone.
           </p>
@@ -1326,7 +1331,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     <span
                       style={{
                         display: "block",
-                        color: "var(--ink-muted)",
+                        color: "var(--text-body)",
                         lineHeight: 1.5,
                         marginTop: 2,
                       }}
@@ -1358,7 +1363,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </span>
         </div>
         {hops.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
+          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", fontStyle: "italic" }}>
             No hops yet. The mission is queued.
           </div>
         ) : (
@@ -1403,12 +1408,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             {failedStep?.error ?? "see the trace below"}
           </div>
           {failedStep ? (
-            <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "6px 0 10px" }}>
+            <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "6px 0 10px" }}>
               {agentDisplayName(failedStep.agent_slug)} could not finish "{failedStep.sub_goal}"
               {failedStep.error ? `: ${failedStep.error}` : ""}.
             </p>
           ) : (
-            <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "6px 0 10px" }}>
+            <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "6px 0 10px" }}>
               The mission stopped before completing. The execution trace above carries the details.
             </p>
           )}

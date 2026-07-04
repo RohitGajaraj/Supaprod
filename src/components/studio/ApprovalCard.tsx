@@ -54,13 +54,13 @@ export function ApprovalCard({
     <div
       className="fade-up"
       style={{
-        background: "color-mix(in oklab, var(--ember) 9%, transparent)",
-        border: "1px solid color-mix(in oklab, var(--ember) 35%, transparent)",
+        background: "var(--ember-tint)",
+        border: "1px solid var(--ember-line)",
         borderRadius: 12,
         padding: 14,
       }}
     >
-      <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember)", fontWeight: 700 }}>
+      <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember-text)", fontWeight: 700 }}>
         Waiting on you
       </MonoLabel>
       <div style={{ marginTop: 8 }}>
@@ -68,7 +68,7 @@ export function ApprovalCard({
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            background: "var(--surface-1)",
+            background: "var(--surface-raised)",
             border: "1px solid var(--hairline)",
             borderRadius: 6,
             padding: "1px 6px",
@@ -83,7 +83,7 @@ export function ApprovalCard({
             margin: "6px 0 0",
             fontSize: 11.5,
             lineHeight: 1.55,
-            color: "var(--ink-muted)",
+            color: "var(--text-body)",
           }}
         >
           {toolDescription(approval.tool_name)}
@@ -94,7 +94,7 @@ export function ApprovalCard({
           marginTop: 6,
           fontSize: 11.5,
           lineHeight: 1.55,
-          color: "var(--ink-muted)",
+          color: "var(--text-body)",
           wordBreak: "break-word",
         }}
       >
@@ -107,7 +107,7 @@ export function ApprovalCard({
             fontSize: 11.5,
             lineHeight: 1.55,
             fontStyle: "italic",
-            color: "var(--ink-subtle)",
+            color: "var(--text-subtle)",
           }}
         >
           "{approval.rationale}"
@@ -116,7 +116,12 @@ export function ApprovalCard({
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         <button
           type="button"
-          className="btn btn-approve btn-sm"
+          className="btn btn-sm loom-press"
+          style={{
+            background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+            color: "var(--cta-ink)",
+            fontWeight: 600,
+          }}
           disabled={decide.isPending}
           onClick={() => decide.mutate("approve")}
         >

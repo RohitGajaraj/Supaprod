@@ -4,7 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listTraces } from "@/lib/traces.functions";
 import { getLedgerSeal, verifyLedgerSeal } from "@/lib/trust-ledger.functions";
-import { Row, EmptyRow, VerdictSentence, PanelPending, type RoomBodyProps } from "../RoomDetail";
+import {
+  Row,
+  EmptyRow,
+  ErrorRetry,
+  VerdictSentence,
+  PanelPending,
+  type RoomBodyProps,
+} from "../RoomDetail";
 
 // LOOM W2 fold: /govern's approvals and support tabs live in this room now.
 // Approvals are ANSWERED on Today (the one queue); this room keeps the
@@ -42,36 +49,7 @@ function TracesView() {
     queryFn: () => fTraces({ data: { days: 30, status: "all", limit: 200 } }),
   });
   if (q.isError) {
-    return (
-      <div style={{ padding: "18px 0" }}>
-        <p
-          style={{
-            fontFamily: "var(--font-ui)",
-            fontSize: "var(--text-base)",
-            color: "var(--madder-bright)",
-            marginBottom: "10px",
-          }}
-        >
-          The record did not load.
-        </p>
-        <button
-          type="button"
-          className="uppercase cursor-pointer"
-          onClick={() => void q.refetch()}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
-            letterSpacing: "0.11em",
-            color: "var(--glacier)",
-            background: "none",
-            border: "none",
-            padding: 0,
-          }}
-        >
-          RETRY
-        </button>
-      </div>
-    );
+    return <ErrorRetry message="The record did not load." onRetry={() => void q.refetch()} />;
   }
   if (q.isLoading) return <PanelPending />;
   const traces = q.data?.traces ?? [];
@@ -115,22 +93,43 @@ function LedgerView() {
   });
 
   if (sealQ.isLoading) return <PanelPending />;
+  // Honesty (LOOM §9b): a failed seal read is an error with a retry, never
+  // the "no workspace" sentence.
+  if (sealQ.isError) {
+    return (
+      <ErrorRetry message="The ledger seal did not load." onRetry={() => void sealQ.refetch()} />
+    );
+  }
   if (!sealQ.data?.available) {
     return <VerdictSentence>No workspace to seal yet.</VerdictSentence>;
   }
-  const intact = verifyQ.data?.ok ?? true;
+  // Three honest self-check outcomes: it ran and passed, it ran and caught a
+  // change, or it did not run. "Verifies" is only claimed when it ran.
+  const checked = verifyQ.data != null;
+  const intact = verifyQ.data?.ok ?? false;
+  const count = sealQ.data.count.toLocaleString("en-US");
   return (
     <div>
       <VerdictSentence>
-        The ledger {intact ? "verifies" : "changed mid-check"}.{" "}
-        {sealQ.data.count.toLocaleString("en-US")} record
-        {sealQ.data.count === 1 ? "" : "s"}, one {intact ? "intact" : "broken"} chain.
+        {verifyQ.isError
+          ? `The self-check did not run. ${count} record${sealQ.data.count === 1 ? "" : "s"} on the ledger; the fingerprint below is unchecked.`
+          : checked
+            ? `The ledger ${intact ? "verifies" : "changed mid-check"}. ${count} record${sealQ.data.count === 1 ? "" : "s"}, one ${intact ? "intact" : "broken"} chain.`
+            : `Checking the ledger. ${count} record${sealQ.data.count === 1 ? "" : "s"} on the record.`}
       </VerdictSentence>
       <Row
         subject="Fingerprint"
         value={sealQ.data.head.slice(0, 12)}
-        statusWord={intact ? "verified" : "changed"}
-        statusColor={intact ? "var(--moss-bright)" : "var(--marigold)"}
+        statusWord={
+          verifyQ.isError ? "unchecked" : checked ? (intact ? "verified" : "changed") : "checking"
+        }
+        statusColor={
+          verifyQ.isError || !checked
+            ? "var(--text-muted)"
+            : intact
+              ? "var(--moss-bright)"
+              : "var(--marigold)"
+        }
       />
     </div>
   );

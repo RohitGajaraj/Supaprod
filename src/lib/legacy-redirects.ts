@@ -45,6 +45,12 @@ export const DOOR_INTERNAL_PATHS = [
   "/sync",
   "/traces",
   "/traces/$traceId",
+  // LOOM W2 caveat: /govern is a pure redirect stub now (see LEGACY_REDIRECTS
+  // below), but it stays in this allow-list because the ⌘K catalog
+  // (palette-catalog.ts, W1's file) still targets /govern?tab=prompts - that
+  // entry lands correctly via the one-hop redirect. W4: repoint the catalog
+  // entry to /engine-room?room=quality&view=prompts, then remove this line.
+  "/govern",
 ] as const;
 
 /**

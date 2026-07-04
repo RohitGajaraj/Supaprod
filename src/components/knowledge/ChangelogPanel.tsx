@@ -179,7 +179,7 @@ export function ChangelogPanel() {
       <div style={{ marginTop: 24 }}>
         <Link
           to="/brain"
-          search={{ tab: "impact" }}
+          search={{ tab: "insights" }}
           style={{
             fontSize: 12.5,
             color: "var(--text-subtle)",

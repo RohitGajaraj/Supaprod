@@ -456,7 +456,7 @@ function AddDesignMemoryDialog({
           ) : (
             <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
               Starts with a small generic set (type scale, spacing rhythm, one primary action, two
-              button styles, plain-worded copy) — approved automatically since they are safe
+              button styles, plain-worded copy), approved automatically since they are safe
               defaults, not a claim about your brand. Approve/reject on future mockups teaches it
               your actual language from there.
             </p>

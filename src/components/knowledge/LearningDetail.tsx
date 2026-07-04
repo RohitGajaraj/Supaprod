@@ -82,7 +82,7 @@ export function LearningDetail({ id }: { id: string }) {
     return (
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 10 }}>
-          learning not found — it may have been removed
+          learning not found · it may have been removed
         </MonoLabel>
         <button className="btn btn-ghost btn-sm" onClick={onBack}>
           Back · all learnings
@@ -114,7 +114,7 @@ export function LearningDetail({ id }: { id: string }) {
         title="What the swarm learned"
         right={
           l.prd_id ? (
-            <Link to="/prds/$id" params={{ id: l.prd_id }} className="btn btn-ghost btn-sm">
+            <Link to="/plan/spec/$id" params={{ id: l.prd_id }} className="btn btn-ghost btn-sm">
               <ExternalLink size={11} /> Open spec
             </Link>
           ) : null

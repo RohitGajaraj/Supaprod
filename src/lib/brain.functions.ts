@@ -111,11 +111,11 @@ export const getCompanyBrainStats = createServerFn({ method: "GET" })
     const db = context.supabase as unknown as SupabaseClient;
     const wid = data?.workspaceId ?? null;
     const head = { count: "exact" as const, head: true };
-    const scope = <T extends { eq: (c: string, v: string) => T }>(q: T): T =>
-      wid ? q.eq("workspace_id", wid) : q;
+    const conversationsQ = db.from("conversations").select("id", head);
+    const learningsQ = db.from("learnings").select("id", head);
     const [conversations, learnings, connections] = await Promise.all([
-      scope(db.from("conversations").select("id", head)),
-      scope(db.from("learnings").select("id", head)),
+      wid ? conversationsQ.eq("workspace_id", wid) : conversationsQ,
+      wid ? learningsQ.eq("workspace_id", wid) : learningsQ,
       // Connections are ACCOUNT-level (Settings > Connected accounts), not
       // workspace rows; their count stays RLS-scoped on purpose.
       db.from("connections").select("id", head).eq("status", "connected"),

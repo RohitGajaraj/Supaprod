@@ -7,6 +7,13 @@
  * for the shared look). Visual only · every query, mutation, and data shape
  * below is unchanged; only colors, type, spacing, and a few plain-words label
  * renames (Engine-Room Test) changed.
+ *
+ * Loom W2-ADMIN pass (2026-07-04): the destructive mutations (role change,
+ * remove member, transfer, delete, restore) now check the in-band `{error}`
+ * result and surface thrown failures (register D-07: a failed ownership
+ * transfer used to show the success path); search errors render as errors,
+ * not "No workspaces." (D-11); a failed drawer read no longer shows a
+ * permanent "reading workspace" line; the search is debounced (D-22).
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -16,6 +23,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { MonoLabel, Button } from "@/components/obsidian";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
+import {
+  AdminErrorCard,
+  AdminSkeleton,
+  inBandError,
+  useDebouncedValue,
+} from "@/components/admin/admin-ui";
 import {
   adminSearchWorkspaces,
   adminGetWorkspaceDetail,
@@ -31,6 +44,12 @@ import { adminResetDemoWorkspace } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/workspaces")({
   component: AdminWorkspaces,
 });
+
+// Register D-23: the demo-account domain, hoisted out of the render path.
+// The value matches the pre-provisioned demo logins in the live DB (see
+// docs/operations/demo-credentials.md), so it cannot be renamed client-side
+// alone; moving it to a feature flag or server config is the follow-up.
+const DEMO_ACCOUNT_DOMAIN = "@redcadence.app";
 
 type WSDetail = {
   workspace?: {
@@ -49,11 +68,19 @@ type WSDetail = {
 function AdminWorkspaces() {
   const fSearch = useServerFn(adminSearchWorkspaces);
   const [q, setQ] = useState("");
+  // One query per pause, not per keystroke (register D-22).
+  const debouncedQ = useDebouncedValue(q);
   const [selected, setSelected] = useState<string | null>(null);
   const search = useQuery({
-    queryKey: ["admin-workspaces", q],
-    queryFn: () => fSearch({ data: { q } }),
+    queryKey: ["admin-workspaces", debouncedQ],
+    queryFn: () => fSearch({ data: { q: debouncedQ } }),
   });
+  // A failed search must never read as "No workspaces." (register D-11).
+  const searchError = search.isError
+    ? search.error instanceof Error
+      ? search.error.message
+      : "Request failed."
+    : inBandError(search.data);
   const rows: AdminWorkspaceRow[] = Array.isArray(search.data)
     ? (search.data as AdminWorkspaceRow[])
     : [];
@@ -90,100 +117,112 @@ function AdminWorkspaces() {
           />
           {search.isLoading ? (
             <span
-              style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-faint)" }}
+              style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-subtle)" }}
             >
               reading workspaces…
             </span>
+          ) : searchError ? (
+            <MonoLabel tone="madder">search failed</MonoLabel>
           ) : (
             <MonoLabel>{rows.length} workspaces</MonoLabel>
           )}
         </div>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={th()}>Name</th>
-                <th style={th()}>Owner</th>
-                <th style={th()}>Plan</th>
-                <th style={th()}>Members</th>
-                <th style={th()}>Deleted</th>
-                <th style={th()}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((w) => (
-                <tr
-                  key={w.id}
-                  className="transition-colors hover:[background-color:var(--hover)]"
-                  style={{
-                    borderTop: "1px solid var(--hairline)",
-                    transitionDuration: "var(--dur-control)",
-                    transitionTimingFunction: "var(--ease)",
-                  }}
-                >
-                  <td style={td()}>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-ui)",
-                        fontWeight: 500,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {w.name}
-                    </span>
-                  </td>
-                  <td style={{ ...td(), color: "var(--text-body)" }}>{w.owner_email ?? "-"}</td>
-                  <td style={td()}>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "var(--text-mono-label)",
-                        letterSpacing: "0.11em",
-                        color: "var(--text-muted)",
-                      }}
-                      className="uppercase"
-                    >
-                      {w.plan_tier}
-                    </span>
-                  </td>
-                  <td style={td()}>
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
-                      {w.member_count}
-                    </span>
-                  </td>
-                  <td style={td()}>
-                    {w.deleted_at ? (
-                      <MonoLabel tone="madder">yes</MonoLabel>
-                    ) : (
-                      <MonoLabel>no</MonoLabel>
-                    )}
-                  </td>
-                  <td style={td()}>
-                    <Button variant="quiet" onClick={() => setSelected(w.id)}>
-                      Open →
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 && !search.isLoading ? (
+        {search.isLoading ? (
+          <AdminSkeleton rows={5} height={44} />
+        ) : searchError ? (
+          <AdminErrorCard
+            what="workspaces"
+            message={searchError}
+            onRetry={() => search.refetch()}
+          />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
                 <tr>
-                  <td
-                    colSpan={6}
+                  <th style={th()}>Name</th>
+                  <th style={th()}>Owner</th>
+                  <th style={th()}>Plan</th>
+                  <th style={th()}>Members</th>
+                  <th style={th()}>Deleted</th>
+                  <th style={th()}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((w) => (
+                  <tr
+                    key={w.id}
+                    className="transition-colors hover:[background-color:var(--hover)]"
                     style={{
-                      padding: "var(--space-4)",
-                      textAlign: "center",
-                      fontFamily: "var(--font-ui)",
-                      fontSize: "var(--text-base)",
-                      color: "var(--text-subtle)",
+                      borderTop: "1px solid var(--hairline)",
+                      transitionDuration: "var(--dur-control)",
+                      transitionTimingFunction: "var(--ease)",
                     }}
                   >
-                    No workspaces.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
+                    <td style={td()}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-ui)",
+                          fontWeight: 500,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {w.name}
+                      </span>
+                    </td>
+                    <td style={{ ...td(), color: "var(--text-body)" }}>{w.owner_email ?? "-"}</td>
+                    <td style={td()}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "var(--text-mono-label)",
+                          letterSpacing: "0.11em",
+                          color: "var(--text-muted)",
+                        }}
+                        className="uppercase"
+                      >
+                        {w.plan_tier}
+                      </span>
+                    </td>
+                    <td style={td()}>
+                      <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-body)" }}>
+                        {w.member_count}
+                      </span>
+                    </td>
+                    <td style={td()}>
+                      {w.deleted_at ? (
+                        <MonoLabel tone="madder">yes</MonoLabel>
+                      ) : (
+                        <MonoLabel>no</MonoLabel>
+                      )}
+                    </td>
+                    <td style={td()}>
+                      <Button variant="quiet" onClick={() => setSelected(w.id)}>
+                        Open →
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{
+                        padding: "var(--space-4)",
+                        textAlign: "center",
+                        fontFamily: "var(--font-ui)",
+                        fontSize: "var(--text-base)",
+                        color: "var(--text-subtle)",
+                      }}
+                    >
+                      No workspaces match.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       <WorkspaceDrawer workspaceId={selected} onClose={() => setSelected(null)} />
     </div>
@@ -221,14 +260,30 @@ function WorkspaceDrawer({
     qc.invalidateQueries({ queryKey: ["admin-workspaces"] });
   };
 
+  // Register D-07: these are destructive, and the server fns return errors
+  // in-band (`{error}`), so every one checks the result shape AND handles
+  // the thrown path. A failed transfer/delete must never show success.
+  const mutationFailed = (e: unknown) =>
+    toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
+
   const setRole = useMutation({
     mutationFn: (vars: { userId: string; role: string }) =>
       fRole({ data: { workspaceId: workspaceId!, ...vars } }),
-    onSuccess: () => invalidate(),
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success("Role updated.");
+      invalidate();
+    },
+    onError: mutationFailed,
   });
   const remove = useMutation({
     mutationFn: (userId: string) => fRemove({ data: { workspaceId: workspaceId!, userId } }),
-    onSuccess: () => invalidate(),
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
+      toast.success("Member removed.");
+      invalidate();
+    },
+    onError: mutationFailed,
   });
   const transfer = useMutation({
     mutationFn: (newOwnerId: string) =>
@@ -240,20 +295,25 @@ function WorkspaceDrawer({
         invalidate();
       }
     },
+    onError: mutationFailed,
   });
   const softDel = useMutation({
     mutationFn: () => fSoftDel({ data: { workspaceId: workspaceId! } }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
       toast.success("Workspace deleted. Restore any time within 30 days.");
       invalidate();
     },
+    onError: mutationFailed,
   });
   const restore = useMutation({
     mutationFn: () => fRestore({ data: { workspaceId: workspaceId! } }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      if ("error" in r) return toast.error(r.error);
       toast.success("Workspace restored.");
       invalidate();
     },
+    onError: mutationFailed,
   });
 
   const fDemoReset = useServerFn(adminResetDemoWorkspace);
@@ -265,12 +325,11 @@ function WorkspaceDrawer({
       } else {
         const del = r.deleted as Record<string, number>;
         const total = Object.values(del).reduce((a, b) => a + b, 0);
-        toast.success(
-          `Demo reset complete. ${total} rows cleared. Reseed using the Supabase SQL editor.`,
-        );
+        toast.success(`Demo reset complete. ${total} rows cleared. Reseed to restore the sample.`);
         invalidate();
       }
     },
+    onError: mutationFailed,
   });
 
   return (
@@ -306,17 +365,19 @@ function WorkspaceDrawer({
             {d?.workspace?.name ?? "Workspace"}
           </SheetTitle>
         </SheetHeader>
-        {!d ? (
-          <p
-            style={{
-              marginTop: "var(--space-4)",
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              color: "var(--text-faint)",
-            }}
-          >
-            reading workspace…
-          </p>
+        {detail.isError ? (
+          // A failed read used to sit on "reading workspace" forever (D-11).
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminErrorCard
+              what="this workspace"
+              message={detail.error instanceof Error ? detail.error.message : undefined}
+              onRetry={() => detail.refetch()}
+            />
+          </div>
+        ) : !d ? (
+          <div style={{ marginTop: "var(--space-4)" }}>
+            <AdminSkeleton rows={5} height={40} />
+          </div>
         ) : (
           <div style={{ marginTop: "var(--space-4)", display: "grid", gap: "var(--space-6)" }}>
             <section>
@@ -367,8 +428,19 @@ function WorkspaceDrawer({
                     {m.email ?? m.user_id.slice(0, 8)} ·
                     <select
                       value={m.role}
-                      onChange={(e) => setRole.mutate({ userId: m.user_id, role: e.target.value })}
-                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      disabled={setRole.isPending}
+                      onChange={(e) => {
+                        const role = e.target.value;
+                        void (async () => {
+                          const ok = await confirm({
+                            title: `Change ${m.email ?? "this member"} to ${role}?`,
+                            body: "Their access changes immediately.",
+                            confirmLabel: "Change role",
+                          });
+                          if (ok) setRole.mutate({ userId: m.user_id, role });
+                        })();
+                      }}
+                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
                       style={{
                         padding: "5px 8px",
                         background: "var(--raised)",
@@ -386,6 +458,7 @@ function WorkspaceDrawer({
                     </select>
                     <Button
                       variant="secondary"
+                      disabled={remove.isPending}
                       style={{ marginLeft: "auto", padding: "6px 12px", fontSize: 12 }}
                       onClick={async () => {
                         const ok = await confirm({
@@ -402,6 +475,7 @@ function WorkspaceDrawer({
                     {d.workspace?.owner_id !== m.user_id ? (
                       <Button
                         variant="secondary"
+                        disabled={transfer.isPending}
                         style={{ padding: "6px 12px", fontSize: 12 }}
                         onClick={async () => {
                           const ok = await confirm({
@@ -424,12 +498,17 @@ function WorkspaceDrawer({
                 <MonoLabel>Delete &amp; restore</MonoLabel>
               </div>
               {d.workspace?.deleted_at ? (
-                <Button variant="secondary" onClick={() => restore.mutate()}>
+                <Button
+                  variant="secondary"
+                  disabled={restore.isPending}
+                  onClick={() => restore.mutate()}
+                >
                   Restore · re-enables workspace
                 </Button>
               ) : (
                 <Button
                   variant="secondary"
+                  disabled={softDel.isPending}
                   onClick={async () => {
                     const ok = await confirm({
                       title: "Delete this workspace?",
@@ -444,8 +523,8 @@ function WorkspaceDrawer({
                 </Button>
               )}
             </section>
-            {/* WM-S5: Demo reset · only shown for @redcadence.app demo accounts */}
-            {(d.members ?? []).some((m) => m.email?.endsWith("@redcadence.app")) && (
+            {/* WM-S5: Demo reset · only shown for demo-domain accounts */}
+            {(d.members ?? []).some((m) => m.email?.endsWith(DEMO_ACCOUNT_DOMAIN)) && (
               <section>
                 <div style={{ marginBottom: "var(--space-2)" }}>
                   <MonoLabel>Demo reset</MonoLabel>
@@ -459,8 +538,8 @@ function WorkspaceDrawer({
                   }}
                 >
                   Deletes all user content (signals, decisions, opportunities, and more) from this
-                  demo workspace. Restore the seed data by re-running the TEST-SEED and
-                  DEMO-SEED-RICH migrations in the Supabase SQL editor.
+                  demo workspace. An engineer can restore the sample content afterward by re-running
+                  the demo seed scripts.
                 </p>
                 <Button
                   variant="secondary"
