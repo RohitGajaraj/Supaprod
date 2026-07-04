@@ -18,6 +18,7 @@ import { listTasks, createTask, updateTask } from "@/lib/tasks.functions";
 import { getFocusNext } from "@/lib/brain/insights.functions";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { FocusNext } from "./FocusNext";
+import { FocusTimer } from "./FocusTimer";
 
 type TaskRow = {
   id: string;
@@ -278,6 +279,11 @@ export function MyDayStrip() {
             </SegmentButton>
           </>
         ) : null}
+
+        {/* Founder ask (2026-07-04): the PM's day-in-day-out focus timer,
+            as a strip segment rather than a new surface. */}
+        <Dot />
+        <FocusTimer />
       </div>
 
       {open === "tasks" ? (

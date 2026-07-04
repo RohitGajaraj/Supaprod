@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { Button } from "@/components/obsidian";
@@ -104,6 +105,146 @@ function gateConsequence(toolName: string | null): string {
 
 /** Loom v4 §9: every empty state whispers the moat — a faint static
  * constellation of nodes and threads. Decorative, hidden from AT. */
+/**
+ * The brief as a spotlight (founder ruling 2026-07-04): three scannable
+ * lines composed from live objects — the call that outranks the rest, the
+ * newest outcome that moved a priority — with the AI prose one disclosure
+ * deeper. Deterministic, instant, honest: it renders from data Today has
+ * already loaded, so it can never dump a paragraph or wait on a model.
+ */
+function TodaySpotlight({
+  callTitle,
+  callKind,
+  provedOut,
+  briefSummary,
+  onRefreshBrief,
+  refreshing,
+}: {
+  callTitle: string | null;
+  callKind: string | null;
+  provedOut: string | null;
+  briefSummary: string | null;
+  onRefreshBrief: () => void;
+  refreshing: boolean;
+}) {
+  const [fullOpen, setFullOpen] = React.useState(false);
+  const monoLabel: React.CSSProperties = {
+    fontFamily: "var(--font-mono)",
+    fontSize: 10.5,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "var(--text-subtle)",
+    flexShrink: 0,
+  };
+  const row: React.CSSProperties = {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 12,
+    fontSize: 13,
+    lineHeight: 1.5,
+    color: "var(--text-body)",
+    minWidth: 0,
+  };
+  return (
+    <section
+      aria-label="Today's brief"
+      className="loom-hairline-fade"
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "14px 18px",
+        marginBottom: 12,
+        boxShadow: "var(--top-light)",
+      }}
+    >
+      <div className="flex flex-col" style={{ gap: 7 }}>
+        {callTitle ? (
+          <div style={row}>
+            <span style={{ ...monoLabel, color: "var(--ember-text)" }}>The call that matters</span>
+            <span className="min-w-0 flex-1 truncate" style={{ color: "var(--text-primary)" }}>
+              {callTitle}
+              {callKind ? (
+                <span style={{ color: "var(--text-subtle)" }}> · {callKind.toLowerCase()}</span>
+              ) : null}
+            </span>
+            <span style={{ ...monoLabel, color: "var(--text-faint)" }} aria-hidden="true">
+              A approves · S sends back
+            </span>
+          </div>
+        ) : (
+          <div style={row}>
+            <span style={{ ...monoLabel, color: "var(--moss)" }}>All quiet</span>
+            <span style={{ color: "var(--text-muted)" }}>
+              Nothing needs your judgment right now. The loop is running itself.
+            </span>
+          </div>
+        )}
+        {provedOut ? (
+          <div style={row}>
+            <span style={monoLabel}>Proved out</span>
+            <span className="min-w-0 flex-1 truncate">{provedOut}</span>
+          </div>
+        ) : null}
+        <div style={row}>
+          <button
+            type="button"
+            onClick={() => setFullOpen((v) => !v)}
+            className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              ...monoLabel,
+              color: "var(--glacier)",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+            }}
+          >
+            {fullOpen ? "Hide the full brief" : "Read the full brief"}
+          </button>
+          {fullOpen ? (
+            <button
+              type="button"
+              onClick={onRefreshBrief}
+              disabled={refreshing}
+              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
+              style={{
+                ...monoLabel,
+                color: "var(--glacier)",
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+              }}
+            >
+              {refreshing ? "Refreshing" : "Refresh"}
+            </button>
+          ) : null}
+        </div>
+        {fullOpen ? (
+          briefSummary ? (
+            <p
+              style={{
+                fontSize: 13,
+                lineHeight: 1.6,
+                color: "var(--text-body)",
+                margin: "2px 0 0",
+                maxWidth: "68ch",
+              }}
+            >
+              {briefSummary}
+            </p>
+          ) : (
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "2px 0 0" }}>
+              No written brief yet today. Refresh drafts one from this workspace.
+            </p>
+          )
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 function ConstellationMotif() {
   return (
     <svg
@@ -565,6 +706,20 @@ function Dashboard() {
             />
           </>
         )}
+        {/* Founder ruling (2026-07-04): the brief LEADS the ritual — a
+            spotlight composed from live objects (the call that matters, what
+            proved out), never a paragraph dump; the AI prose is one
+            disclosure deeper. */}
+        {needsYouLoaded ? (
+          <TodaySpotlight
+            callTitle={featured?.props.title ?? null}
+            callKind={featured?.props.kind ?? null}
+            provedOut={whatChangedItems[0]?.text ?? null}
+            briefSummary={dash.data?.brief?.summary ?? null}
+            onRefreshBrief={() => regenBrief.mutate()}
+            refreshing={regenBrief.isPending}
+          />
+        ) : null}
         <MyDayStrip />
         <QuickCapture />
         <LoopStrip
@@ -692,57 +847,6 @@ function Dashboard() {
               </div>
             )}
             <WhatChanged items={whatChangedItems} />
-            <div
-              style={{
-                background: "var(--card)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-card)",
-                padding: "16px 18px",
-                boxShadow: "var(--top-light)",
-              }}
-            >
-              <div className="flex items-center" style={{ gap: 8, marginBottom: 8 }}>
-                <span
-                  className="flex-1"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    letterSpacing: "0.12em",
-                    color: "var(--text-subtle)",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Today's brief
-                </span>
-                <button
-                  type="button"
-                  onClick={() => regenBrief.mutate()}
-                  disabled={regenBrief.isPending}
-                  className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    color: "var(--glacier)",
-                    background: "transparent",
-                    border: "none",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {regenBrief.isPending ? "Refreshing" : "Refresh"}
-                </button>
-              </div>
-              {dash.data?.brief?.summary ? (
-                <p style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)", margin: 0 }}>
-                  {dash.data.brief.summary}
-                </p>
-              ) : (
-                <p
-                  style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-muted)", margin: 0 }}
-                >
-                  No brief yet today. Refresh drafts one from this workspace.
-                </p>
-              )}
-            </div>
           </div>
           <div className="flex flex-col" style={{ gap: 14 }}>
             <LoopHealthCard score={loopScore} note={loopNote} hue={loopHue} />
