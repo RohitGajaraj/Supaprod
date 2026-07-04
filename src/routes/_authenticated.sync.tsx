@@ -567,7 +567,12 @@ function ConnectorCatalogSection() {
                       color: "var(--ink-subtle)",
                     }}
                   >
-                    {e.resourceLabel && <span>Binds a {e.resourceLabel.toLowerCase()}</span>}
+                    {e.resourceLabel && (
+                      <span>
+                        Binds {/^[aeiou]/i.test(e.resourceLabel) ? "an" : "a"}{" "}
+                        {e.resourceLabel.toLowerCase()}
+                      </span>
+                    )}
                     <Link
                       to="/settings"
                       search={{ section: "connections" }}

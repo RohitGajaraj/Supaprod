@@ -59,8 +59,14 @@ export const Route = createFileRoute("/_authenticated/build/")({
       })
       .parse(search),
   errorComponent: ({ error, reset }) => (
-    <div style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}>
-    width: "100%",
+    <div
+      style={{
+        padding: "30px 44px 56px",
+        maxWidth: "var(--container-work)",
+        width: "100%",
+        margin: "0 auto",
+      }}
+    >
       <div
         style={{
           padding: 24,
@@ -340,7 +346,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 <span
                   style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                 >
-                  {selectedPrd ? selectedPrd.title : "No PRD"}
+                  {selectedPrd ? selectedPrd.title : "No spec"}
                 </span>
                 <span aria-hidden="true">↓</span>
               </button>
@@ -349,7 +355,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               align="start"
               style={{ maxHeight: 288, width: 288, overflowY: "auto" }}
             >
-              <DropdownMenuItem onClick={() => setPrdId(null)}>No PRD</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPrdId(null)}>No spec</DropdownMenuItem>
               {approvedPrds.map((p) => (
                 <DropdownMenuItem key={p.id} onClick={() => setPrdId(p.id)}>
                   <span

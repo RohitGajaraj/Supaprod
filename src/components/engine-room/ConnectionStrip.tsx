@@ -3,6 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
+import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+
+/** Brand-true provider label ("GitHub", not css-capitalized "Github"). */
+function providerLabel(provider: string): string {
+  return CONNECTOR_REGISTRY[provider as ProviderId]?.label ?? provider;
+}
 
 /** Connection glance strip (§7). Connections live in Settings / Connections
  * (one home); this is a read-only glance, never a Connect/manage action.
@@ -124,10 +130,9 @@ export function ConnectionStrip() {
                 fontSize: "13px",
                 fontWeight: 600,
                 color: "var(--text-primary)",
-                textTransform: "capitalize",
               }}
             >
-              {b.provider}
+              {providerLabel(b.provider)}
             </span>
             <span
               className="uppercase"

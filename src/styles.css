@@ -378,12 +378,10 @@
     font-weight: 470;
   }
 
-  main,
-  [role="main"] {
-    font-feature-settings: "tnum";
-  }
-
-  /* Tabular numerals everywhere — dashboards, traces, budgets read cleaner. */
+  /* Tabular numerals where numbers live (tables, mono metadata) — NOT on all
+     prose: Schibsted Grotesk's tnum widens . , : to digit cells and breaks
+     body copy ("pain ． The"). Loom §4: tabular-nums wherever a NUMBER lives. */
+  main :is(td, th, time),
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }

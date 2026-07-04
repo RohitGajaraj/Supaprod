@@ -569,12 +569,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
 
-          {/* Search affordance — opens the command palette. */}
-          <div style={{ padding: "10px 10px 4px" }}>
+          {/* Search + Ask affordances — the two summonable utilities get
+              visible doors (founder ruling 2026-07-04: Ask is a most-used
+              feature and may not hide behind ⌘J alone; Loom §8 nothing
+              hidden). Same quiet chrome, one row. */}
+          <div className="flex" style={{ padding: "10px 10px 4px", gap: 6 }}>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="loom-press flex w-full items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+              className="loom-press flex flex-1 items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
               style={{
                 gap: 8,
                 border: "1px solid var(--hairline)",
@@ -588,6 +591,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <span className="flex-1 text-left">Search</span>
               <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘K</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-ask"))}
+              className="loom-press flex items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+              style={{
+                gap: 8,
+                border: "1px solid var(--hairline)",
+                background: "var(--card)",
+                boxShadow: "var(--top-light)",
+                borderRadius: 8,
+                padding: "7px 10px",
+                fontSize: 12,
+                color: "var(--text-subtle)",
+              }}
+              aria-label="Ask about this screen"
+            >
+              <span className="text-left">Ask</span>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘J</span>
             </button>
           </div>
 

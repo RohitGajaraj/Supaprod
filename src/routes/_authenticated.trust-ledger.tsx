@@ -30,6 +30,7 @@ import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { shortHead } from "@/lib/trust-verify";
 
 export const Route = createFileRoute("/_authenticated/trust-ledger")({
+  head: () => ({ meta: [{ title: "Trust Ledger · Cadence" }] }),
   component: TrustLedgerPage,
 });
 
@@ -175,8 +176,11 @@ function ShareControl({ decisionId }: { decisionId: string }) {
 function ReceiptCard({ r }: { r: TrustReceipt }) {
   const KindIcon = r.kind === "decision" ? Gavel : Zap;
   const statusColor = STATUS_COLOR[r.status] ?? "var(--ink-subtle)";
+  // Honest verdict line (LOOM §9b): the status chip carries the verdict, so
+  // the actor label stays neutral — a rejected receipt used to read
+  // "approved by you" beside its REJECTED chip.
   const decidedBy = r.humanDecided
-    ? { Icon: User, label: "approved by you" }
+    ? { Icon: User, label: "decided by you" }
     : { Icon: Bot, label: r.actor ? `${r.actor}` : "agent" };
   return (
     <article

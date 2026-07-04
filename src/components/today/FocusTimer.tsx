@@ -83,11 +83,7 @@ export function FocusTimer() {
 
   const running = session?.state === "running";
   const remaining =
-    session == null
-      ? 0
-      : session.state === "running"
-        ? session.endsAt - now
-        : session.remainingMs;
+    session == null ? 0 : session.state === "running" ? session.endsAt - now : session.remainingMs;
 
   // Tick once a second only while a block runs; text-only updates.
   React.useEffect(() => {
@@ -153,7 +149,11 @@ export function FocusTimer() {
             <span style={{ ...mono, color: "var(--text-subtle)" }}>Focus for</span>
             <GhostButton onClick={() => start(25)}>25 min</GhostButton>
             <GhostButton onClick={() => start(50)}>50 min</GhostButton>
-            <GhostButton onClick={() => setOpen(false)} tone="var(--text-subtle)" label="Close focus presets">
+            <GhostButton
+              onClick={() => setOpen(false)}
+              tone="var(--text-subtle)"
+              label="Close focus presets"
+            >
               Close
             </GhostButton>
           </>
