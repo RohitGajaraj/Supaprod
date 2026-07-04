@@ -148,14 +148,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head suppressHydrationWarning>
-        {/* Pre-hydration theme bootstrap — avoid FOUC. Default = light
-            (parchment). Legacy stored 'aurora' resolves to dark (char). */}
-        <script
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('cadence.theme');if(t==='dark'||t==='aurora'){document.documentElement.classList.add('dark');}}catch(e){/* default light */}})();`,
-          }}
-        />
+        <ThemeBootstrapScript />
         <HeadContent />
       </head>
       <body suppressHydrationWarning>
@@ -163,6 +156,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
+  );
+}
+
+function ThemeBootstrapScript() {
+  // Pre-hydration theme bootstrap: avoid FOUC. Default is light; legacy
+  // stored "aurora" resolves to dark.
+  return (
+    <script
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{
+        __html: `(function(){try{var t=localStorage.getItem('cadence.theme');if(t==='dark'||t==='aurora'){document.documentElement.classList.add('dark');}}catch(e){/* default light */}})();`,
+      }}
+    />
   );
 }
 
