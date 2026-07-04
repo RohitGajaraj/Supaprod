@@ -19,6 +19,9 @@ export interface CallCardProps {
   onOk: () => void;
   onNo: () => void;
   compact?: boolean;
+  /** Loom v4 §3: the screen's ONE featured call carries the solid top-lit
+   * ember CTA; every other card's approve is ember tint/line/text. */
+  featured?: boolean;
   className?: string;
 }
 
@@ -41,6 +44,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
       onOk,
       onNo,
       compact = false,
+      featured = false,
       className,
     },
     ref,
@@ -54,6 +58,9 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         borderRadius: "var(--radius-card)",
         padding: compact ? "16px 18px" : "var(--density-card-pad) var(--density-card-pad-lg)",
         gap: "12px",
+        // Loom v4 §2: raised decision cards catch the light; the featured
+        // call also casts the ambient shadow.
+        boxShadow: featured ? "var(--shadow-elevated)" : "var(--top-light)",
       }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -134,7 +141,26 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
 
       <div className="flex flex-col gap-2 pt-1">
         <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={onOk}>
+          <Button
+            variant="primary"
+            onClick={onOk}
+            className={featured ? "hover:brightness-110" : "hover:brightness-125"}
+            style={
+              featured
+                ? {
+                    // §3: the one primary CTA is a top-lit gradient.
+                    background:
+                      "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                    color: "var(--cta-ink)",
+                  }
+                : {
+                    // §3: everything else speaks ember as tint + line + text.
+                    background: "var(--ember-tint)",
+                    color: "var(--ember-text)",
+                    border: "1px solid var(--ember-line)",
+                  }
+            }
+          >
             {okLabel}
           </Button>
           <Button variant="secondary" onClick={onNo}>

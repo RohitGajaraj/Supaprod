@@ -32,8 +32,11 @@ export interface HeroProps {
 export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
   const { heroA, heroB } = computeHero(pendingCalls);
   const allClear = pendingCalls <= 0;
+  // Loom W2-TODAY: tightened vertical rhythm so the hero + the featured call
+  // + the My-day strip + the machine pulse all land above the fold at 1440px
+  // (DESIGN-LOOM §8b's 1.5-screen budget).
   return (
-    <div style={{ marginBottom: 28 }}>
+    <div style={{ marginBottom: 18 }}>
       <div
         style={{
           fontFamily: "var(--font-mono)",
@@ -54,7 +57,7 @@ export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
           lineHeight: 1.15,
           letterSpacing: "-0.015em",
           color: "var(--text-primary)",
-          margin: "0 0 24px",
+          margin: 0,
           textWrap: "balance",
         }}
       >

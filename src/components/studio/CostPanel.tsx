@@ -1,6 +1,6 @@
 import type { StudioRunDetail } from "@/lib/studio.functions";
 import { MonoLabel } from "@/components/cadence/Primitives";
-import { StatusChip } from "./studio-ui";
+import { StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost } from "./studio-format";
 
 /** Cost tab — per-run model, status, tokens, and cost, with the session total. */
@@ -22,7 +22,7 @@ export function CostPanel({ runs, total }: { runs: StudioRunDetail[]; total: num
     );
   }
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
       <MonoLabel>Spend by run</MonoLabel>
       <div style={{ marginTop: 8 }}>
         {runs.map((r, i) => (

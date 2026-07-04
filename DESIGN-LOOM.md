@@ -59,6 +59,34 @@ light, never heavy borders:
   radial vignette (edges ~3% darker than center) + monochrome grain at 1.5%
   opacity. Kills the dead-flat void; never on scrolling containers.
 
+## 2b. The gradient language (founder direction 2026-07-04: gradients and
+patterns as a modern signature — adopted with restraint rules)
+
+Gradients in Loom are atmosphere and meaning, never decoration. Six legal
+homes, and only these:
+
+1. The thread (§6): glacier → violet → blossom. Identity.
+2. The CTA: the one solid button's top-lit ember gradient (§3).
+3. Aurora score cards (v3 law): drifting radial washes on score moments.
+4. Glow fields (NEW): one ultra-subtle radial wash anchored behind a
+   surface's hero zone — 600-900px radius, role-colored at 3-4% alpha
+   fading to transparent (ember-warm on Today where calls pend, glacier on
+   machine surfaces, moss on healthy summaries). Maximum ONE per screen;
+   fixed, never scrolling; aria-hidden; passes grayscale (it reads as
+   light, not color).
+5. Gradient hairlines (NEW): a featured card (the top call, the flagship
+   graph, the active room) may replace its flat hairline with a fading one
+   (white 10% → transparent, left to right) — the light catching an edge.
+   At most two per screen.
+6. The graph nebula (NEW, flagship only): the knowledge-graph canvas may
+   carry a faint multi-hue radial field behind the constellation (the
+   working-palette hues at ≤3%), making memory read as a living space.
+
+Patterns: the constellation motif (nodes + threads, §6) is the ONE pattern,
+reserved for empty states and the graph. The grain (§2 atmosphere) is
+texture, not pattern. No other patterns; no gradient text except the v3
+shimmer on live machine words; nothing animates unless the machine is live.
+
 ## 3. Ember, re-tuned (fixes harsh orange)
 
 Law: saturation scales inversely with area. Ember keeps its single meaning

@@ -1,7 +1,21 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { VerdictChip } from "@/components/obsidian";
-import type { RoomGlance } from "@/lib/engine-room-glance";
+import { Button, VerdictChip } from "@/components/obsidian";
+import {
+  ROOM_QUESTIONS,
+  ROOM_NAMES,
+  type RoomGlance,
+  type RoomKey,
+} from "@/lib/engine-room-glance";
+
+const CARD_BASE: React.CSSProperties = {
+  backgroundColor: "var(--card)",
+  border: "1px solid var(--hairline)",
+  borderRadius: "var(--radius-card)",
+  padding: "18px 20px",
+  // LOOM §2: raised surfaces catch the light from above and cast ambient depth.
+  boxShadow: "var(--shadow-elevated)",
+};
 
 export interface RoomCardProps {
   glance: RoomGlance;
@@ -10,7 +24,9 @@ export interface RoomCardProps {
 }
 
 /** One 2x2 glance card (§7 RoomCard anatomy). A real `<button>`: opening a
- * room is a state change (`?room=`), never a page navigation surprise. */
+ * room is a state change (`?room=`), never a page navigation surprise.
+ * LOOM v4: top-light + ambient shadow; hover lifts one surface step and
+ * brightens the top-light; press answers the finger (scale 0.98, 140ms). */
 export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
   ({ glance, onOpen, className }, ref) => (
     <button
@@ -20,17 +36,16 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
       className={cn(
         "grid text-left outline-none",
         "hover:[background-color:#141416]",
+        "hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
+        "active:scale-[0.98]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
         className,
       )}
       style={{
+        ...CARD_BASE,
         gap: "7px",
-        backgroundColor: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "18px 20px",
-        transitionProperty: "background-color",
-        transitionDuration: "var(--dur-control)",
+        transitionProperty: "background-color, box-shadow, transform",
+        transitionDuration: "var(--dur-press)",
         transitionTimingFunction: "var(--ease)",
       }}
     >
@@ -39,7 +54,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
           className="flex-1"
           style={{
             fontFamily: "var(--font-ui)",
-            fontSize: "14px",
+            fontSize: "var(--text-base)",
             fontWeight: 700,
             color: "var(--text-primary)",
           }}
@@ -52,13 +67,16 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
           {glance.state === "watch" ? "WATCH" : "HEALTHY"}
         </VerdictChip>
       </span>
-      <span style={{ fontFamily: "var(--font-ui)", fontSize: "12px", color: "var(--text-faint)" }}>
+      <span
+        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+      >
         {glance.question}
       </span>
       <span
+        className="tabular-nums"
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "10px",
+          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.04em",
           color: "var(--text-muted)",
         }}
@@ -69,3 +87,115 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
   ),
 );
 RoomCard.displayName = "RoomCard";
+
+function ShimmerBar({ width, height = 10 }: { width: number | string; height?: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="block rounded-full"
+      style={{
+        width,
+        height,
+        background:
+          "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.11), rgba(255,255,255,0.05))",
+        backgroundSize: "280% 100%",
+        animation: "cadShimmer 1.6s linear infinite",
+      }}
+    />
+  );
+}
+
+/** The loading state matches the loaded card's layout (LOOM §9): name row,
+ * question line, verdict line - shimmer where the number will land, never a
+ * fabricated number. */
+export function RoomCardSkeleton({ room }: { room: RoomKey }) {
+  return (
+    <div className="grid" style={{ ...CARD_BASE, gap: "9px" }}>
+      <span className="flex items-center gap-[10px]">
+        <span
+          className="flex-1"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+          }}
+        >
+          {ROOM_NAMES[room]}
+        </span>
+        <ShimmerBar width={56} height={16} />
+      </span>
+      <span
+        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+      >
+        {ROOM_QUESTIONS[room]}
+      </span>
+      <ShimmerBar width="55%" />
+    </div>
+  );
+}
+
+/** An error may never wear an empty state's clothes (LOOM §9b): a room whose
+ * reads failed says so, shows the cause, and offers one retry. */
+export function RoomCardError({
+  room,
+  message,
+  onRetry,
+}: {
+  room: RoomKey;
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div
+      className="grid"
+      style={{ ...CARD_BASE, gap: "7px", borderColor: "rgba(224, 101, 87, 0.4)" }}
+    >
+      <span className="flex items-center gap-[10px]">
+        <span
+          className="flex-1"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: "var(--text-base)",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+          }}
+        >
+          {ROOM_NAMES[room]}
+        </span>
+        <span
+          className="uppercase"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            letterSpacing: "0.1em",
+            color: "var(--madder-bright)",
+          }}
+        >
+          NOT LOADED
+        </span>
+      </span>
+      <span
+        style={{ fontFamily: "var(--font-ui)", fontSize: "12.5px", color: "var(--text-subtle)" }}
+      >
+        {ROOM_QUESTIONS[room]}
+      </span>
+      <span
+        className="truncate"
+        title={message}
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          color: "var(--text-muted)",
+        }}
+      >
+        {message}
+      </span>
+      <span>
+        <Button variant="quiet" onClick={onRetry}>
+          RETRY
+        </Button>
+      </span>
+    </div>
+  );
+}

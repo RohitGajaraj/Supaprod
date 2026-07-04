@@ -14,15 +14,17 @@ import {
   type TrackedEntity,
   type StrategyBrief,
 } from "@/lib/strategy-registry.functions";
-import { relTimeCaps } from "./format";
+import { relTimeCaps, withTimeout } from "./format";
+import { SkeletonBar } from "./SkeletonBar";
 
 function PanelShell({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        backgroundColor: "#111113",
-        border: "1px solid rgba(255,255,255,0.07)",
+        backgroundColor: "var(--card)",
+        border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
+        boxShadow: "var(--top-light), var(--shadow-ambient)",
         padding: "18px 20px",
       }}
     >
@@ -34,11 +36,14 @@ function PanelShell({ children }: { children: ReactNode }) {
 function HeaderRow({ label, count }: { label: string; count: number | null }) {
   return (
     <div className="mb-3.5 flex items-baseline">
-      <span className="flex-1">
-        <MonoLabel style={{ fontSize: "9px", letterSpacing: "0.12em" }}>{label}</MonoLabel>
-      </span>
+      <h3 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
+        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>{label}</MonoLabel>
+      </h3>
       {count === null ? null : (
-        <MonoLabel tone="glacier" style={{ fontSize: "9px", letterSpacing: "0.08em" }}>
+        <MonoLabel
+          tone="glacier"
+          style={{ fontSize: "10.5px", letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}
+        >
           {count}
         </MonoLabel>
       )}
@@ -61,18 +66,18 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
         display: "grid",
         gap: "5px",
         paddingBottom: "13px",
-        borderBottom: isLast ? undefined : "1px solid rgba(255,255,255,0.05)",
+        borderBottom: isLast ? undefined : "1px solid var(--hairline-faint)",
       }}
     >
       <div className="flex items-center gap-2">
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "8.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
             color: "var(--blossom)",
-            border: "1px solid rgba(229,189,223,0.35)",
-            borderRadius: "99px",
+            border: "1px solid color-mix(in srgb, var(--blossom) 35%, transparent)",
+            borderRadius: "var(--radius-pill)",
             padding: "1px 7px",
           }}
         >
@@ -81,15 +86,15 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "8.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "var(--text-faint)",
+            color: "var(--text-subtle)",
           }}
         >
           {relTimeCaps(brief.created_at)}
         </span>
       </div>
-      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "var(--text-primary)" }}>
+      <div style={{ fontSize: "var(--text-base)", fontWeight: 600, color: "var(--text-primary)" }}>
         {brief.title}
       </div>
       <p
@@ -113,15 +118,15 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
       className="flex items-center gap-2"
       style={{
         padding: "8px 0",
-        borderBottom: isLast ? undefined : "1px solid rgba(255,255,255,0.05)",
+        borderBottom: isLast ? undefined : "1px solid var(--hairline-faint)",
       }}
     >
       <span
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "8px",
+          fontSize: "10.5px",
           letterSpacing: "0.08em",
-          color: "var(--text-faint)",
+          color: "var(--text-subtle)",
           flexShrink: 0,
         }}
       >
@@ -140,10 +145,10 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
       >
         {entity.label}
       </span>
-      <MonoLabel tone="faint" style={{ fontSize: "8.5px", letterSpacing: "0.08em" }}>
+      <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
         {entity.cadence.toUpperCase()}
       </MonoLabel>
-      <MonoLabel tone="faint" style={{ fontSize: "8.5px", letterSpacing: "0.08em" }}>
+      <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
         {entity.enabled ? lastCheckedCaps(entity.last_checked_at) : "PAUSED"}
       </MonoLabel>
     </div>
@@ -153,8 +158,14 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
 export function StrategySection() {
   const fEntities = useServerFn(listTrackedEntities);
   const fBriefs = useServerFn(listStrategyBriefs);
-  const entitiesQ = useQuery({ queryKey: ["strategy-entities"], queryFn: () => fEntities() });
-  const briefsQ = useQuery({ queryKey: ["strategy-briefs"], queryFn: () => fBriefs() });
+  const entitiesQ = useQuery({
+    queryKey: ["strategy-entities"],
+    queryFn: () => withTimeout(fEntities()),
+  });
+  const briefsQ = useQuery({
+    queryKey: ["strategy-briefs"],
+    queryFn: () => withTimeout(fBriefs()),
+  });
 
   const entities = entitiesQ.data ?? [];
   const briefs = briefsQ.data ?? [];
@@ -164,12 +175,14 @@ export function StrategySection() {
       <PanelShell>
         <HeaderRow label="Weekly briefs" count={briefsQ.isLoading ? null : briefs.length} />
         {briefsQ.isLoading ? (
-          <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
-            Reading briefs
-          </MonoLabel>
+          <div className="grid gap-2" aria-label="Loading briefs" role="status">
+            <SkeletonBar width="96px" height={14} />
+            <SkeletonBar width="60%" height={13} />
+            <SkeletonBar width="92%" />
+          </div>
         ) : briefsQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
               Could not load briefs
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
@@ -202,12 +215,14 @@ export function StrategySection() {
       <PanelShell>
         <HeaderRow label="Tracked entities" count={entitiesQ.isLoading ? null : entities.length} />
         {entitiesQ.isLoading ? (
-          <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
-            Reading watch list
-          </MonoLabel>
+          <div className="grid gap-2" aria-label="Loading the watch list" role="status">
+            <SkeletonBar width="80%" />
+            <SkeletonBar width="70%" />
+            <SkeletonBar width="75%" />
+          </div>
         ) : entitiesQ.error ? (
           <div>
-            <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+            <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
               Could not load the watch list
             </MonoLabel>
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>

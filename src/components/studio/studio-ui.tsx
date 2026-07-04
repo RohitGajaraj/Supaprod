@@ -1,5 +1,37 @@
+import type { CSSProperties } from "react";
 import { StatusBadge, StepDot } from "@/components/cadence/Primitives";
 import { changesetColor, changesetLabel, statusLabel } from "./studio-format";
+
+/**
+ * LOOM v4 (W2-BUILD): the shared raised-card treatment for the Build spine.
+ * DESIGN-LOOM §2: depth = surface tint + top-light + ambient shadow, never a
+ * heavy border. Replaces the parchment `.bento` class on every ported panel
+ * so the whole mission detail reads as one Obsidian surface.
+ */
+export const LOOM_CARD: CSSProperties = {
+  background: "var(--surface-card)",
+  borderRadius: "var(--radius-panel)",
+  boxShadow: "var(--top-light), var(--shadow-ambient)",
+};
+
+/**
+ * Loading skeleton block (DESIGN-LOOM §9: shimmer skeletons that match the
+ * real layout, never spinners for primary content). Pure presentation.
+ */
+export function SkeletonBlock({ height, style }: { height: number; style?: CSSProperties }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        height,
+        borderRadius: "var(--radius-panel)",
+        background: "var(--surface-raised)",
+        animation: "cadGlow 1.8s ease-in-out infinite",
+        ...style,
+      }}
+    />
+  );
+}
 
 /**
  * Build (engine: F-STUDIO) shared status components — screen 9 Ember port.
@@ -23,8 +55,10 @@ const BADGE_STATE: Record<string, string> = {
 export function StatusChip({ status }: { status: string }) {
   const mapped = BADGE_STATE[status];
   if (mapped) return <StatusBadge status={mapped} />;
-  // halted (kill switch / engine stop) — madder pill, no pulse.
-  const c = status === "halted" ? "var(--rose)" : "var(--ink-faint)";
+  // halted (kill switch / engine stop) — madder pill, no pulse. Madder is the
+  // failure-outcome role; --rose is a data color under Obsidian and may not
+  // carry a failure meaning (role-color law).
+  const c = status === "halted" ? "var(--madder)" : "var(--text-faint)";
   return (
     <span
       className="mono-label"

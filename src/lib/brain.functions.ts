@@ -42,24 +42,41 @@ export const rememberMessage = createServerFn({ method: "POST" })
     return { ok: true as const, indexed };
   });
 
+// Loom W2-BRAIN (honesty law): the Brain counts must be the ACTIVE workspace's
+// numbers. RLS alone scopes to the USER, so a member of several workspaces got
+// cross-workspace totals. The optional workspaceId narrows every count; a null
+// (pre-init) leaves the read RLS-scoped, matching the meetings precedent.
+const WorkspaceScopeSchema = z
+  .object({ workspaceId: z.string().uuid().nullable().optional() })
+  .strip();
+
 export const getBrainStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<BrainStatus> => {
+  .inputValidator((i: unknown) => WorkspaceScopeSchema.parse(i ?? {}))
+  .handler(async ({ context, data }): Promise<BrainStatus> => {
     const { supabase } = context;
+    const wid = data?.workspaceId ?? null;
     const head = { count: "exact" as const, head: true };
+    const scoped = (table: string) => {
+      const q = supabase.from(table as "signals").select("id", head);
+      return wid ? q.eq("workspace_id", wid) : q;
+    };
+    let findingsQ = supabase.from("rag_chunks").select("id", head).eq("source_kind", "finding");
+    if (wid) findingsQ = findingsQ.eq("workspace_id", wid);
+    let latestQ = supabase
+      .from("rag_chunks")
+      .select("created_at")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (wid) latestQ = latestQ.eq("workspace_id", wid);
     const [signals, docs, meetings, decisions, prds, findings, latestRes] = await Promise.all([
-      supabase.from("signals").select("id", head),
-      supabase.from("docs").select("id", head),
-      supabase.from("meetings").select("id", head),
-      supabase.from("decisions").select("id", head),
-      supabase.from("prds").select("id", head),
-      supabase.from("rag_chunks").select("id", head).eq("source_kind", "finding"),
-      supabase
-        .from("rag_chunks")
-        .select("created_at")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+      scoped("signals"),
+      scoped("docs"),
+      scoped("meetings"),
+      scoped("decisions"),
+      scoped("prds"),
+      findingsQ,
+      latestQ.maybeSingle(),
     ]);
     return {
       counts: {
@@ -89,12 +106,18 @@ export type CompanyBrainStats = {
 
 export const getCompanyBrainStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<CompanyBrainStats> => {
+  .inputValidator((i: unknown) => WorkspaceScopeSchema.parse(i ?? {}))
+  .handler(async ({ context, data }): Promise<CompanyBrainStats> => {
     const db = context.supabase as unknown as SupabaseClient;
+    const wid = data?.workspaceId ?? null;
     const head = { count: "exact" as const, head: true };
+    const scope = <T extends { eq: (c: string, v: string) => T }>(q: T): T =>
+      wid ? q.eq("workspace_id", wid) : q;
     const [conversations, learnings, connections] = await Promise.all([
-      db.from("conversations").select("id", head),
-      db.from("learnings").select("id", head),
+      scope(db.from("conversations").select("id", head)),
+      scope(db.from("learnings").select("id", head)),
+      // Connections are ACCOUNT-level (Settings > Connected accounts), not
+      // workspace rows; their count stays RLS-scoped on purpose.
       db.from("connections").select("id", head).eq("status", "connected"),
     ]);
     return {

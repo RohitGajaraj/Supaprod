@@ -1,13 +1,15 @@
-// BRN-01: the compounding metrics strip + a growth-over-time read on the Brain
-// graph itself. Composes what already exists (memory depth + lift from the
-// Gauntlet, FS-01's calibration read) with one client-side computation (weekly
-// node growth from the already-fetched graph): no new heavy machinery.
+// BRN-01: the compounding metrics strip + a growth-over-time read on the
+// Brain graph itself. Composes what already exists (memory depth + lift from
+// the Gauntlet, FS-01's calibration read) with one client-side computation
+// (weekly node growth from the already-fetched graph): no new heavy
+// machinery. W3 (Loom): v4 tokens, plain words ("beliefs revised", not
+// supersession jargon), tabular numerals.
 import { useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/obsidian/primitives";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
 const WEEK_MS = 7 * 86_400_000;
@@ -29,23 +31,32 @@ function weeklyGrowth(nodes: GraphNode[]): number[] {
 function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div style={{ minWidth: 110 }}>
-      <div className="font-display tabular-nums" style={{ fontSize: 18, color: "var(--ink)" }}>
+      <div
+        className="tabular-nums"
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontWeight: 450,
+          fontSize: 19,
+          color: "var(--text-primary)",
+        }}
+      >
         {value}
       </div>
-      <div className="mono-label" style={{ fontSize: 8, color: "var(--ink-faint)", marginTop: 1 }}>
+      <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginTop: 2, display: "block" }}>
         {label}
-      </div>
-      <div style={{ fontSize: 10, color: "var(--ink-subtle)", marginTop: 2 }}>{sub}</div>
+      </MonoLabel>
+      <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 2 }}>{sub}</div>
     </div>
   );
 }
 
 export function GraphCompoundingStrip({
   nodes,
-  supersessionsCaught,
+  beliefsRevised,
 }: {
   nodes: GraphNode[];
-  supersessionsCaught: number;
+  /** Count of live supersession threads in the current view (real edges only). */
+  beliefsRevised: number;
 }) {
   const fMem = useServerFn(getMemoryCompounding);
   const fLift = useServerFn(getMemoryLift);
@@ -88,21 +99,29 @@ export function GraphCompoundingStrip({
   const predSub = prediction?.recentLabel ?? "not enough data yet";
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)", marginBottom: 12 }}>
-      <MonoLabel style={{ marginBottom: 8 }}>your brain, compounding</MonoLabel>
-      <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "flex-start" }}>
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        boxShadow: "var(--top-light)",
+        padding: "14px 18px",
+        marginBottom: 12,
+      }}
+    >
+      <MonoLabel style={{ marginBottom: 8, display: "block" }}>your brain, compounding</MonoLabel>
+      <div className="flex flex-wrap items-start" style={{ gap: 22 }}>
         <Stat label="memory depth" value={depthValue} sub={depthSub} />
         <Stat label="lift" value={liftValue} sub={liftSub} />
-        <Stat label="supersessions caught" value={String(supersessionsCaught)} sub="in this view" />
+        <Stat label="beliefs revised" value={String(beliefsRevised)} sub="in this view" />
         <Stat label="prediction hit rate" value={predValue} sub={predSub} />
         <div style={{ minWidth: 140, flex: 1 }}>
-          <div
-            className="mono-label"
-            style={{ fontSize: 8, color: "var(--ink-faint)", marginBottom: 4 }}
+          <MonoLabel
+            style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4, display: "block" }}
           >
             growth, last {WEEKS} weeks
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 24 }}>
+          </MonoLabel>
+          <div className="flex items-end" style={{ gap: 3, height: 24 }}>
             {growth.map((count, i) => (
               <div
                 key={i}
@@ -110,7 +129,7 @@ export function GraphCompoundingStrip({
                 style={{
                   flex: 1,
                   height: `${Math.max(2, (count / maxGrowth) * 24)}px`,
-                  background: count > 0 ? "var(--ink-muted, #555555)" : "var(--hairline, #e5e0d8)",
+                  background: count > 0 ? "var(--teal)" : "var(--hairline)",
                   borderRadius: 1,
                 }}
               />

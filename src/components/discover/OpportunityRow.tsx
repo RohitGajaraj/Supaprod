@@ -64,10 +64,10 @@ export function OpportunityRow({
   const hasActions = onDraftSpec || onLineage || onDelete || onSetStatus;
   return (
     <div
-      className="relative flex items-center transition-colors hover:[background-color:#141416]"
+      className="relative flex items-center transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]"
       style={{
-        backgroundColor: "#111113",
-        border: "1px solid rgba(255,255,255,0.07)",
+        backgroundColor: "var(--card)",
+        border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "16px 18px",
         gap: "16px",
@@ -92,6 +92,7 @@ export function OpportunityRow({
             fontWeight: 460,
             color: "var(--text-primary)",
             lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {ice.toFixed(1)}
@@ -99,9 +100,9 @@ export function OpportunityRow({
         <div
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "7.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.14em",
-            color: "var(--text-faint)",
+            color: "var(--text-subtle)",
             marginTop: "3px",
           }}
         >
@@ -112,7 +113,7 @@ export function OpportunityRow({
       <div className="min-w-0 flex-1">
         <div
           style={{
-            fontSize: "13.5px",
+            fontSize: "var(--text-base)",
             fontWeight: 600,
             color: "var(--text-primary)",
             marginBottom: "3px",
@@ -120,7 +121,9 @@ export function OpportunityRow({
         >
           {title}
         </div>
-        <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
+        <div style={{ fontSize: "12.5px", lineHeight: 1.5, color: "var(--text-subtle)" }}>
+          {sub}
+        </div>
       </div>
 
       <VerdictChip tone={verdict} className="flex-none" />
@@ -148,11 +151,12 @@ export function OpportunityRow({
               aria-label="Opportunity actions"
               disabled={actionsPending}
               onClick={(event) => event.stopPropagation()}
+              className="loom-press"
               style={{
                 flexShrink: 0,
                 fontFamily: "var(--font-mono)",
                 fontSize: "14px",
-                color: "var(--text-faint)",
+                color: "var(--text-subtle)",
                 background: "none",
                 border: "none",
                 cursor: actionsPending ? "default" : "pointer",
@@ -167,7 +171,9 @@ export function OpportunityRow({
             {onDraftSpec ? (
               <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
             ) : null}
-            {onLineage ? <DropdownMenuItem onClick={onLineage}>Lineage</DropdownMenuItem> : null}
+            {onLineage ? (
+              <DropdownMenuItem onClick={onLineage}>Where this came from</DropdownMenuItem>
+            ) : null}
             {onSetStatus ? (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>Move to…</DropdownMenuSubTrigger>

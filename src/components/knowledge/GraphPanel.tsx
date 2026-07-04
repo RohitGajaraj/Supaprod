@@ -1,13 +1,14 @@
-// O1 - the Graph tab shell. A view toggle over two complementary explorers of the
-// same artifact_lineage: "Graph" = the visual canvas (DBR-1 v1 / B+), "List" = the
-// indented downstream lineage tree. Both honor the same route focus, so "Center the
-// graph here" in the canvas feeds the tree (founder ruling 2026-06-20: keep both).
-//
-// OBS-08: the toggle is ported to Obsidian — mono-caps text, no icon set
-// (iconography law). GraphCanvasView / GraphTreeView data logic is UNCHANGED.
-import { useState } from "react";
+// O1, reframed by W3 (Loom) - the Graph tab shell. Two complementary views of
+// the same artifact_lineage: "Graph" is the living physics canvas (the
+// flagship), "List" the indented downstream lineage tree, kept as the
+// reduced-motion and screen-reader path (founder ruling 2026-06-20: keep
+// both). When the OS or the in-product toggle asks for reduced motion the
+// List leads by default; the Graph stays one click away and renders as a
+// settled still there.
+import { useEffect, useState } from "react";
 import { GraphCanvasView } from "./GraphCanvasView";
 import { GraphTreeView } from "./GraphTreeView";
+import { usePrefersReducedMotion } from "./graph-visual";
 
 type GraphView = "graph" | "list";
 
@@ -17,11 +18,22 @@ const VIEWS: { id: GraphView; label: string }[] = [
 ];
 
 export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
+  const reducedMotion = usePrefersReducedMotion();
   const [view, setView] = useState<GraphView>("graph");
+  const [userChose, setUserChose] = useState(false);
+
+  // Auto-switch to the a11y path when reduced motion turns on, unless the
+  // user has explicitly picked a view this visit.
+  useEffect(() => {
+    if (reducedMotion && !userChose) setView("list");
+  }, [reducedMotion, userChose]);
+
   return (
     <div>
       <div
         className="flex w-fit"
+        role="tablist"
+        aria-label="Graph view"
         style={{
           gap: 2,
           marginBottom: 12,
@@ -34,15 +46,20 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
           <button
             key={id}
             type="button"
-            onClick={() => setView(id)}
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => {
+              setUserChose(true);
+              setView(id);
+            }}
             className={
               view === id
-                ? "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                : "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
+                ? "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
             }
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
+              fontSize: "var(--text-mono-floor)",
               letterSpacing: "0.08em",
               padding: "4px 12px",
               borderRadius: 6,
@@ -56,7 +73,7 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
         ))}
       </div>
       {view === "graph" ? (
-        <GraphCanvasView focusKind={focusKind} focusId={focusId} />
+        <GraphCanvasView focusKind={focusKind} focusId={focusId} reducedMotion={reducedMotion} />
       ) : (
         <GraphTreeView focusKind={focusKind} focusId={focusId} />
       )}

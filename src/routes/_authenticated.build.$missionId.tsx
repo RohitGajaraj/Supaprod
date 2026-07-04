@@ -1,12 +1,15 @@
-// Build session detail — screen 9 of the Ember Editorial migration
-// (2026-06-12 Build rename). The surface moved here from
-// _authenticated.studio.$missionId.tsx and was Ember-ported: missions-detail
-// header family (a Build session IS a mission), the pipeline journey strip
-// (REAL stages only — every dot derives from an existing field), SubTabs in
-// place of the colored icon tiles. User-facing name is Build; internal
-// identifiers intentionally stay studio.* (CLAUDE.md rename-disclaimer
-// pattern). Functionality is kept exactly: 4s live polling contract, steer
-// mutation + ⌘Enter, work-order toggle, the three panels' props.
+// Build session detail — LOOM v4 port (W2-BUILD, 2026-07-04). This was the
+// last parchment island on the Build spine (audit D-13); it now speaks the
+// Obsidian/Loom tokens: surface-card + top-light + ambient shadow for depth,
+// the work-surface container width (§4b), the lightened ink ramp, and four
+// designed states (skeleton that matches the layout, error with retry, a
+// designed not-found for stale deep links, loaded). Functionality is kept
+// exactly: 4s live polling contract, steer mutation + ⌘Enter, brief toggle,
+// the three panels' props, cancel/replay/gates via MissionOrchestratorDetail.
+// D-13 fixes: tab switches merge search params (functional updater) instead
+// of clobbering them; steering closes on ALL terminal states, not just
+// completed. User-facing name is Build; internal identifiers intentionally
+// stay studio.* (CLAUDE.md rename-disclaimer pattern).
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +35,7 @@ import { EngineRoomDisclosure } from "@/components/studio/EngineRoomDisclosure";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 import { CostPanel } from "@/components/studio/CostPanel";
-import { StatusChip } from "@/components/studio/studio-ui";
+import { StatusChip, LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { fmtCost } from "@/components/studio/studio-format";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 
@@ -54,23 +57,47 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
   },
   component: BuildSessionPage,
   head: () => ({ meta: [{ title: "Build · Cadence" }] }),
-  errorComponent: ({ error, reset }) => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <div className="bento" style={{ padding: 24, maxWidth: 560 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load this session
-          </div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
-            {(error as Error)?.message ?? "Unknown error"}
+  errorComponent: ({ error, reset }) => {
+    // A stale or deleted mission id deep-links here (quality register: param'd
+    // detail routes had no designed not-found). getStudioSession throws
+    // "Session not found" for a missing row; render that as a real not-found,
+    // never as a generic failure (an error may not wear another state's clothes).
+    const message = (error as Error)?.message ?? "Unknown error";
+    const isNotFound = message === "Session not found";
+    return (
+      <div
+        style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}
+      >
+        <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
+          <MonoLabel style={{ color: isNotFound ? "var(--text-subtle)" : "var(--madder)" }}>
+            {isNotFound ? "No mission at this address" : "Couldn't load this session"}
+          </MonoLabel>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            {isNotFound
+              ? "This mission doesn't exist in your workspace, or it was deleted. Its decisions and learnings stay in your Brain."
+              : message}
           </p>
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={reset}>
-            Retry · reloads the session
-          </button>
+          {isNotFound ? (
+            <Link
+              to="/build"
+              className="mono-label loom-press"
+              style={{ display: "inline-flex", marginTop: 14, color: "var(--glacier)" }}
+            >
+              ← All missions
+            </Link>
+          ) : (
+            <button
+              className="btn btn-ghost btn-sm loom-press"
+              style={{ marginTop: 14 }}
+              onClick={reset}
+            >
+              Retry · reloads the session
+            </button>
+          )}
         </div>
       </div>
-    </>
-  ),
+    );
+  },
 });
 
 type MissionRow = {
@@ -106,7 +133,7 @@ function fmtStarted(iso: string): string {
 /* Pipeline journey strip — the station made visible: build → PR → CI →
    shipped, one quiet mono rail. REAL stages only: every dot derives from an
    existing field (runs, changeset.status, ci.overall); a stage with no datum
-   renders as a planned dot with an ink-faint label. The spec stage is omitted
+   renders as a planned dot with a faint label. The spec stage is omitted
    entirely — getStudioSession carries no prd context (no filler). When the
    mission completes, the rail links onward to Releases (zero dead ends). */
 function JourneyStrip({
@@ -161,8 +188,10 @@ function JourneyStrip({
 
   return (
     <div
-      className="band-stone"
       style={{
+        background: "var(--surface-raised)",
+        borderRadius: "var(--radius-card)",
+        boxShadow: "var(--top-light)",
         padding: "12px 18px",
         display: "flex",
         alignItems: "center",
@@ -174,7 +203,7 @@ function JourneyStrip({
       {stages.map((stage, i) => (
         <span key={stage.label} style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
           {i > 0 && (
-            <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+            <span className="mono-label" style={{ color: "var(--text-faint)" }}>
               →
             </span>
           )}
@@ -186,7 +215,7 @@ function JourneyStrip({
                 target="_blank"
                 rel="noreferrer"
                 className="mono-label tabular-nums"
-                style={{ fontSize: 9.5, color: "var(--action-blue)" }}
+                style={{ fontSize: "var(--text-mono-floor)", color: "var(--blossom)" }}
               >
                 {stage.label}
               </a>
@@ -194,8 +223,8 @@ function JourneyStrip({
               <span
                 className="mono-label tabular-nums"
                 style={{
-                  fontSize: 9.5,
-                  color: stage.status === "planned" ? "var(--ink-faint)" : "var(--ink-subtle)",
+                  fontSize: "var(--text-mono-floor)",
+                  color: stage.status === "planned" ? "var(--text-faint)" : "var(--text-subtle)",
                 }}
               >
                 {stage.label}
@@ -207,21 +236,28 @@ function JourneyStrip({
       {missionStatus === "completed" && (
         <Link
           to="/brain"
-          search={{ tab: "changelog" }}
+          search={{ tab: "docs" }}
           className="mono-label"
-          style={{ fontSize: 9, color: "var(--action-blue)", marginLeft: 4 }}
+          style={{ fontSize: "var(--text-mono-floor)", color: "var(--blossom)", marginLeft: 4 }}
         >
-          lands in Releases · the outcome loop re-scores →
+          lands in Releases →
         </Link>
       )}
     </div>
   );
 }
 
-function SteerComposer({ missionId, disabled }: { missionId: string; disabled: boolean }) {
+function SteerComposer({
+  missionId,
+  closedReason,
+}: {
+  missionId: string;
+  closedReason: string | null;
+}) {
   const qc = useQueryClient();
   const fSteer = useServerFn(steerStudioSession);
   const [message, setMessage] = useState("");
+  const disabled = closedReason != null;
   const steer = useMutation({
     mutationFn: () => fSteer({ data: { missionId, message: message.trim() } }),
     onSuccess: () => {
@@ -234,7 +270,7 @@ function SteerComposer({ missionId, disabled }: { missionId: string; disabled: b
   const canSend = !disabled && message.trim().length > 0 && !steer.isPending;
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
         <textarea
           value={message}
@@ -248,15 +284,43 @@ function SteerComposer({ missionId, disabled }: { missionId: string; disabled: b
           rows={2}
           disabled={disabled}
           placeholder="Steer the session in plain language…"
-          className="input"
-          style={{ resize: "none", flex: 1, minWidth: 0, opacity: disabled ? 0.5 : 1 }}
+          style={{
+            resize: "none",
+            flex: 1,
+            minWidth: 0,
+            opacity: disabled ? 0.5 : 1,
+            background: "var(--surface-hover)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            padding: 10,
+            fontSize: 13,
+            color: "var(--text-primary)",
+          }}
         />
+        {/* Neutral, not ember: sending a steer is the user's own utterance,
+            not a needs-a-human gate (restraint budget; the one ember CTA on
+            this screen is a pending gate's Approve). */}
         <button
           type="button"
           onClick={() => steer.mutate()}
           disabled={!canSend}
-          className="btn btn-primary"
-          style={{ flexShrink: 0, opacity: canSend ? 1 : 0.5 }}
+          className="loom-press"
+          style={{
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "var(--font-ui)",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            background: "var(--surface-raised)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            opacity: canSend ? 1 : 0.5,
+            cursor: canSend ? "pointer" : "default",
+          }}
         >
           {steer.isPending ? <span className="spinner" /> : <Send size={11} />}
           Send · steers the next step
@@ -265,9 +329,9 @@ function SteerComposer({ missionId, disabled }: { missionId: string; disabled: b
       {disabled && (
         <div
           className="mono-label"
-          style={{ marginTop: 8, fontSize: 9, color: "var(--ink-faint)" }}
+          style={{ marginTop: 8, fontSize: "var(--text-mono-floor)", color: "var(--text-subtle)" }}
         >
-          Session completed. Steering is closed.
+          {closedReason}
         </div>
       )}
     </div>
@@ -298,6 +362,39 @@ function currentAction(runs: StudioRunDetail[]): string | null {
   return "working";
 }
 
+/** Why steering is closed, or null while it is open. All terminal states close
+ *  the composer (audit D-13: steers were accepted on failed/halted missions,
+ *  where no agent will ever read them). */
+function steerClosedReason(status: string | undefined): string | null {
+  if (status === "completed") return "Session completed. Steering is closed.";
+  if (status === "failed")
+    return "Session failed. Steering is closed; replay to run the goal again.";
+  if (status === "halted")
+    return "Session halted. Steering is closed; replay to run the goal again.";
+  if (status === "cancelled") return "Session cancelled. Steering is closed.";
+  return null;
+}
+
+/** Loading skeleton that matches the loaded two-column layout (§9). */
+function SessionSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <SkeletonBlock height={64} style={{ maxWidth: 560, marginBottom: 16 }} />
+      <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SkeletonBlock height={180} />
+          <SkeletonBlock height={88} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SkeletonBlock height={36} />
+          <SkeletonBlock height={232} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BuildSessionPage() {
   const { missionId } = Route.useParams();
   const tab = Route.useSearch().tab ?? "changes";
@@ -322,7 +419,7 @@ function BuildSessionPage() {
     },
   });
 
-  const [showWorkOrder, setShowWorkOrder] = useState(false);
+  const [showBrief, setShowBrief] = useState(false);
 
   const data = session.data;
   // OBS-10: a mission with no 'builder' agent run is an orchestrator goal-run,
@@ -365,42 +462,64 @@ function BuildSessionPage() {
       />
       <div
         data-screen-label="Build session"
-        style={{ padding: "30px 44px 56px", maxWidth: 1240, margin: "0 auto" }}
+        style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}
       >
         <Link
           to="/build"
-          className="mono-label"
+          className="mono-label loom-press"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 4,
             marginBottom: 18,
-            color: "var(--action-blue)",
+            color: "var(--glacier)",
           }}
         >
-          ← All sessions
+          ← All missions
         </Link>
 
         {!isOrchestratorMission && mission && (
           <header style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <h1 className="font-display" style={{ fontSize: 22, fontWeight: 430 }}>
+              <h1
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: 25,
+                  fontWeight: 460,
+                  letterSpacing: "-0.015em",
+                  lineHeight: 1.2,
+                  color: "var(--text-primary)",
+                  margin: 0,
+                }}
+              >
                 {mission.title}
               </h1>
               <StatusChip status={mission.status} />
             </div>
+            {/* §6: the maker's mark — a static 24px thread under the title. */}
+            <div
+              aria-hidden="true"
+              style={{
+                width: 24,
+                height: 1,
+                background: "var(--thread-gradient)",
+                opacity: 0.4,
+                marginTop: 8,
+              }}
+            />
             <div
               className="mono-label"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                marginTop: 7,
+                marginTop: 8,
+                fontSize: "var(--text-mono-floor)",
                 flexWrap: "wrap",
               }}
             >
               <span>started {fmtStarted(mission.created_at)}</span>
-              <span style={{ color: "var(--ink-faint)" }}>·</span>
+              <span style={{ color: "var(--text-faint)" }}>·</span>
               <span className="tabular-nums">{fmtCost(totalCost)}</span>
               {isLive && (
                 <span
@@ -408,7 +527,7 @@ function BuildSessionPage() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    color: "var(--action-blue)",
+                    color: "var(--glacier)",
                   }}
                 >
                   <span className="dot dot-running" style={{ width: 5, height: 5 }} />
@@ -417,16 +536,22 @@ function BuildSessionPage() {
               )}
               <button
                 type="button"
-                onClick={() => setShowWorkOrder((v) => !v)}
-                aria-expanded={showWorkOrder}
-                className="mono-label"
-                style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                onClick={() => setShowBrief((v) => !v)}
+                aria-expanded={showBrief}
+                className="mono-label loom-press"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: "var(--text-mono-floor)",
+                  cursor: "pointer",
+                }}
               >
-                {showWorkOrder ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-                work order
+                {showBrief ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                the brief
               </button>
             </div>
-            {showWorkOrder && (
+            {showBrief && (
               <pre
                 className="fade-up"
                 style={{
@@ -434,14 +559,14 @@ function BuildSessionPage() {
                   maxHeight: 240,
                   overflow: "auto",
                   whiteSpace: "pre-wrap",
-                  background: "var(--surface-1)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
+                  background: "var(--surface-recessed)",
+                  borderRadius: "var(--radius-control)",
+                  boxShadow: "var(--top-light)",
                   padding: 12,
                   fontSize: 11,
                   fontFamily: "var(--font-mono)",
                   lineHeight: 1.6,
-                  color: "var(--ink-muted)",
+                  color: "var(--text-muted)",
                 }}
               >
                 {mission.goal}
@@ -455,15 +580,13 @@ function BuildSessionPage() {
         )}
 
         {session.isError ? (
-          <div className="bento" style={{ padding: 24, maxWidth: 560 }}>
-            <div className="mono-label" style={{ color: "var(--rose)" }}>
-              Couldn't load this session
-            </div>
-            <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          <div style={{ ...LOOM_CARD, padding: 24, maxWidth: 560 }}>
+            <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load this session</MonoLabel>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
               {(session.error as Error)?.message?.slice(0, 160)}
             </p>
             <button
-              className="btn btn-ghost btn-sm"
+              className="btn btn-ghost btn-sm loom-press"
               style={{ marginTop: 14 }}
               onClick={() => session.refetch()}
             >
@@ -471,29 +594,30 @@ function BuildSessionPage() {
             </button>
           </div>
         ) : session.isLoading || !data ? (
-          <div
-            style={{
-              fontSize: 12.5,
-              color: "var(--ink-faint)",
-              padding: "32px 0",
-              textAlign: "center",
-            }}
-          >
-            Loading the session…
-          </div>
+          <SessionSkeleton />
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-              <MonoLabel>Session timeline</MonoLabel>
+              {/* Real heading (quality register: MonoLabel spans left the page
+                  with no navigable outline); the mono-caps look stays via style. */}
+              <h2
+                className="mono-label"
+                style={{ margin: 0, fontSize: "var(--text-mono-floor)", fontWeight: 500 }}
+              >
+                Session timeline
+              </h2>
               <SessionTimeline
                 runs={runs}
                 steers={steers}
                 approvals={approvals}
                 onChanged={invalidate}
               />
-              <SteerComposer missionId={missionId} disabled={mission?.status === "completed"} />
+              <SteerComposer
+                missionId={missionId}
+                closedReason={steerClosedReason(mission?.status)}
+              />
             </div>
 
             <div style={{ minWidth: 0 }}>
@@ -502,7 +626,9 @@ function BuildSessionPage() {
                 active={activeTabLabel}
                 onSet={(label) => {
                   const next = TAB_DISPLAY.find(([, l]) => l === label)?.[0] ?? "changes";
-                  navigate({ search: { tab: next } });
+                  // Functional updater: merge, never clobber, the search state
+                  // (audit D-13: the plain object dropped sibling params).
+                  navigate({ search: (prev) => ({ ...prev, tab: next }) });
                 }}
               />
               {tab === "changes" && (

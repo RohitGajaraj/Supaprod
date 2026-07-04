@@ -1,82 +1,71 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { getGuardrailOverview } from "@/lib/guardrails.functions";
-import { getIncidents } from "@/lib/incidents.functions";
-import { Row, EmptyRow, VerdictSentence } from "../RoomDetail";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { PanelPending, type RoomBodyProps } from "../RoomDetail";
 
-function RulesView() {
-  const fGuardrails = useServerFn(getGuardrailOverview);
-  const q = useQuery({ queryKey: ["guardrails"], queryFn: () => fGuardrails() });
-  const rules = q.data?.rules ?? [];
-  if (!q.isLoading && rules.length === 0) {
-    return (
-      <EmptyRow message="No guardrails yet. Turn one on in Settings and it applies to every AI call." />
-    );
-  }
-  const onCount = rules.filter((r: { enabled: boolean }) => r.enabled).length;
-  return (
-    <div>
-      <VerdictSentence>
-        {onCount === rules.length
-          ? `All ${rules.length} guardrails are on. Nothing has tripped them this week.`
-          : `${onCount} of ${rules.length} guardrails are on.`}
-      </VerdictSentence>
-      {rules.map((r: { id: string; name: string; kind: string; enabled: boolean }) => (
-        <Row
-          key={r.id}
-          subject={r.name}
-          value={r.kind}
-          statusWord={r.enabled ? "on" : "off"}
-          statusColor={r.enabled ? "var(--moss-bright)" : "var(--text-faint)"}
-        />
-      ))}
-    </div>
-  );
-}
+// LOOM W2 fold: /govern's controls (pause/kill switch), team (roster + trust
+// arcs - "what is it allowed to do?" is exactly the trust question), house
+// rules, guardrails (RULES, the one home for rule management) and incidents
+// all live in this room now. ControlsPanel and AgentRosterPanel carry the v4
+// reskin (two of the four most-used views); the rest ride the OBS-01 bridge
+// with a lighter pass, noted for W4.
+const GuardrailsPanel = React.lazy(() =>
+  import("@/components/governance/GuardrailsPanel").then((m) => ({ default: m.GuardrailsPanel })),
+);
+const ControlsPanel = React.lazy(() =>
+  import("@/components/governance/ControlsPanel").then((m) => ({ default: m.ControlsPanel })),
+);
+const AgentRosterPanel = React.lazy(() =>
+  import("@/components/governance/AgentRosterPanel").then((m) => ({
+    default: m.AgentRosterPanel,
+  })),
+);
+const HouseRulesPanel = React.lazy(() =>
+  import("@/components/governance/HouseRulesPanel").then((m) => ({ default: m.HouseRulesPanel })),
+);
+const IncidentsPanel = React.lazy(() =>
+  import("@/components/governance/IncidentsPanel").then((m) => ({ default: m.IncidentsPanel })),
+);
 
-function IncidentsView() {
+export function SafetyRoom({ view }: RoomBodyProps) {
   const navigate = useNavigate();
-  const fIncidents = useServerFn(getIncidents);
-  const q = useQuery({ queryKey: ["incidents"], queryFn: () => fIncidents() });
-  const incidents = q.data?.incidents ?? [];
-  if (!q.isLoading && incidents.length === 0) {
+  const { activeWorkspace } = useWorkspace();
+
+  if (view === "controls") {
     return (
-      <VerdictSentence>
-        Zero incidents. The last block was a redaction, not a breach.
-      </VerdictSentence>
+      <React.Suspense fallback={<PanelPending />}>
+        <ControlsPanel
+          onOpenQueue={() =>
+            navigate({ to: "/engine-room", search: { room: "record", view: "approvals" } })
+          }
+        />
+      </React.Suspense>
+    );
+  }
+  if (view === "team") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <AgentRosterPanel workspaceId={activeWorkspace?.id ?? null} />
+      </React.Suspense>
+    );
+  }
+  if (view === "house-rules") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <HouseRulesPanel />
+      </React.Suspense>
+    );
+  }
+  if (view === "incidents") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <IncidentsPanel />
+      </React.Suspense>
     );
   }
   return (
-    <div>
-      {incidents.map(
-        (i: {
-          id: string;
-          kind: string;
-          title: string;
-          at: string | null;
-          traceId: string | null;
-        }) => (
-          <Row
-            key={i.id}
-            subject={i.title}
-            value={i.at ? new Date(i.at).toLocaleDateString() : "-"}
-            statusWord={i.kind}
-            statusColor="var(--marigold)"
-            onOpen={
-              i.traceId
-                ? () => navigate({ to: "/traces/$traceId", params: { traceId: i.traceId! } })
-                : undefined
-            }
-          />
-        ),
-      )}
-    </div>
+    <React.Suspense fallback={<PanelPending />}>
+      <GuardrailsPanel />
+    </React.Suspense>
   );
-}
-
-export function SafetyRoom({ view }: { view: string }) {
-  if (view === "incidents") return <IncidentsView />;
-  return <RulesView />;
 }

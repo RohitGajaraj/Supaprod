@@ -73,7 +73,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
         id ? (
           <div className="flex items-center justify-between">
             <Link
-              to="/prds/$id"
+              to="/plan/spec/$id"
               params={{ id }}
               style={{ color: "var(--glacier)", fontFamily: "var(--font-mono)", fontSize: 11 }}
             >

@@ -5,6 +5,12 @@ import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { CadenceMark } from "@/components/cadence/Primitives";
+import {
+  planPresentation,
+  CREDIT_DROPDOWN_TIERS,
+  type PlanTier,
+  type CreditTier,
+} from "@/lib/entitlements";
 
 // Screen 8 (F-DESIGN-EMBER) — signup on the login stage from
 // design-reference/cadence/onboard.jsx. Creates the account with
@@ -22,14 +28,47 @@ function safeNextPath(next: unknown): string {
   return next;
 }
 
+// Purchasable tiers a /pricing CTA can carry into signup. "max" is internal,
+// "free" and "enterprise" never send a plan param.
+const PURCHASABLE_TIERS = ["pro", "team"] as const satisfies readonly PlanTier[];
+type PurchasableTier = (typeof PURCHASABLE_TIERS)[number];
+
+type SignupSearch = {
+  next?: string;
+  from?: string;
+  plan?: PurchasableTier;
+  credits?: CreditTier;
+  billing?: "monthly" | "annual";
+};
+
+// The /pricing → /signup purchase intent (D-03): the params were previously
+// dropped on the floor. Validate each strictly; anything malformed reads as
+// no intent (never fake a plan pick).
+function parsePlanIntent(search: Record<string, unknown>): Omit<SignupSearch, "next" | "from"> {
+  const plan = PURCHASABLE_TIERS.find((t) => t === search.plan);
+  if (!plan) return {};
+  const credits = CREDIT_DROPDOWN_TIERS.find((c) => c === Number(search.credits));
+  const billing =
+    search.billing === "annual" || search.billing === "monthly" ? search.billing : undefined;
+  return { plan, credits, billing };
+}
+
 export const Route = createFileRoute("/signup")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { next?: string } =>
-    typeof search.next === "string" ? { next: search.next } : {},
+  validateSearch: (search: Record<string, unknown>): SignupSearch => ({
+    ...(typeof search.next === "string" ? { next: search.next } : {}),
+    ...(typeof search.from === "string" ? { from: search.from } : {}),
+    ...parsePlanIntent(search),
+  }),
   beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getUser();
     if (!data.user) return;
+    // Already signed in: honor a purchase intent from /pricing by landing on
+    // the plan section directly instead of dropping it at the front door.
+    if (search.plan) {
+      throw redirect({ to: "/settings", search: { section: "plan" } });
+    }
     const dest = safeNextPath(search.next);
     if (dest === "/") throw redirect({ to: "/" });
     window.location.replace(dest);
@@ -38,21 +77,37 @@ export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Sign up · Cadence" }] }),
 });
 
+// Small mono-caps field label above each input — the a11y fix for the
+// placeholder-only pattern (SC 1.3.1, 3.3.2), styled to the design language.
+const fieldLabelStyle: React.CSSProperties = {
+  display: "block",
+  textAlign: "left",
+  fontSize: 9,
+  marginBottom: 5,
+};
+
+const fieldErrorStyle: React.CSSProperties = {
+  fontSize: 11.5,
+  color: "var(--rose)",
+  textAlign: "left",
+  lineHeight: 1.5,
+  margin: "0 0 10px",
+};
+
 function SignupPage() {
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
+  const { next, from, plan, credits, billing } = Route.useSearch();
   const dest = safeNextPath(next);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // PLG continuity: when the user arrives from a public funnel surface
   // (a shared teardown/decision or /pricing), carry that context into a
   // welcome line so the jump from "I saw a teardown" to "create account"
   // feels like one flow. Read-only; never changes the signup logic.
-  const from =
-    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("from");
   const contextLine =
     from === "teardown"
       ? "Continue from the teardown you just read"
@@ -62,9 +117,26 @@ function SignupPage() {
           ? "Every plan starts free"
           : null;
 
+  // The honest handoff for a /pricing pick: name it here, and confirm it on
+  // the plan section after setup. No subscription exists until the user
+  // upgrades there; this note never claims otherwise.
+  const planPickLine = plan
+    ? [
+        `Your pick: ${planPresentation(plan).name}`,
+        credits ? `${credits.toLocaleString()} credits a month` : null,
+        billing ? `billed ${billing === "annual" ? "annually" : "monthly"}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : null;
+
   async function signup(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 6) return toast.error("Password must be at least 6 characters");
+    setFormError(null);
+    if (password.length < 6) {
+      setFormError("Password must be at least 6 characters");
+      return toast.error("Password must be at least 6 characters");
+    }
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
@@ -75,6 +147,7 @@ function SignupPage() {
     });
     if (error) {
       setLoading(false);
+      setFormError(error.message);
       return toast.error(error.message);
     }
     // Auto-confirm is on; session should be present. Mark the account
@@ -82,12 +155,22 @@ function SignupPage() {
     // where the first step now captures name + role (the single identity-capture
     // surface shared with the Google path). onboarded stays false.
     if (data.user) {
-      await supabase
+      const { error: profileError } = await supabase
         .from("profiles")
         .upsert({ id: data.user.id, onboarded: false }, { onConflict: "id" });
+      // Non-fatal: the handle_new_user trigger seeds the profile row anyway;
+      // surface the miss instead of swallowing it (audit D-30).
+      if (profileError) console.error("profiles upsert after signup failed", profileError);
     }
     setLoading(false);
     toast.success("Account created");
+    // Carry a /pricing purchase intent toward the plan section. First-run
+    // accounts detour through /onboarding (the gate always wins); the pick
+    // note above told the user where to confirm the plan.
+    if (plan && dest === "/") {
+      window.location.assign("/settings?section=plan");
+      return;
+    }
     if (dest === "/") navigate({ to: "/" });
     else window.location.assign(dest);
   }
@@ -161,7 +244,7 @@ function SignupPage() {
             Create your workspace
           </h1>
           <div className="mono-label" style={{ marginTop: 6 }}>
-            agents execute · you govern
+            you make the calls · Cadence runs the rest
           </div>
           <p
             style={{
@@ -172,9 +255,23 @@ function SignupPage() {
               maxWidth: 290,
             }}
           >
-            Free to start, no card required. Cadence red-teams your calls and remembers every
+            Free to start, no card required. Cadence pressure-tests your calls and remembers every
             outcome.
           </p>
+          {planPickLine ? (
+            <p
+              style={{
+                fontSize: 11.5,
+                color: "var(--ink-muted)",
+                marginTop: 8,
+                lineHeight: 1.5,
+                maxWidth: 290,
+              }}
+            >
+              {planPickLine}. Confirm it in Settings under Plan once setup finishes; nothing is
+              charged until you do.
+            </p>
+          ) : null}
         </div>
 
         <div className="bento" style={{ padding: 22 }}>
@@ -199,25 +296,50 @@ function SignupPage() {
             <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
           </div>
           <form onSubmit={signup}>
+            <label htmlFor="signup-email" className="mono-label" style={fieldLabelStyle}>
+              Work email
+            </label>
             <input
+              id="signup-email"
               className="input"
               type="email"
               required
-              placeholder="work email"
+              autoComplete="email"
+              placeholder="you@company.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{ marginBottom: 8, width: "100%" }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFormError(null);
+              }}
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? "signup-error" : undefined}
+              style={{ marginBottom: 10, width: "100%" }}
             />
+            <label htmlFor="signup-password" className="mono-label" style={fieldLabelStyle}>
+              Password
+            </label>
             <input
+              id="signup-password"
               className="input"
               type="password"
               required
               minLength={6}
-              placeholder="password, at least 6 characters"
+              autoComplete="new-password"
+              placeholder="at least 6 characters"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ marginBottom: 8, width: "100%" }}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setFormError(null);
+              }}
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? "signup-error" : undefined}
+              style={{ marginBottom: formError ? 8 : 10, width: "100%" }}
             />
+            {formError ? (
+              <p id="signup-error" role="alert" style={fieldErrorStyle}>
+                {formError}
+              </p>
+            ) : null}
             <button
               className="btn btn-primary"
               type="submit"
@@ -236,7 +358,7 @@ function SignupPage() {
         <p
           style={{
             fontSize: 11.5,
-            color: "var(--ink-faint)",
+            color: "var(--ink-subtle)",
             textAlign: "center",
             marginTop: 16,
             lineHeight: 1.5,

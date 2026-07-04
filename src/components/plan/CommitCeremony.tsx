@@ -47,8 +47,10 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-panel)",
             padding: "24px",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
-            animation: "cadRise 200ms var(--ease)",
+            // v4 overlay depth (§2): glass hairline top-light + the deep
+            // overlay shadow, in place of the old ad-hoc drop shadow.
+            boxShadow: "var(--shadow-glass), var(--shadow-overlay)",
+            animation: "cadRise var(--dur-panel) var(--ease)",
           }}
         >
           <DialogPrimitive.Title

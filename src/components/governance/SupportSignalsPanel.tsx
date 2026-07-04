@@ -236,7 +236,7 @@ export function SupportSignalsPanel() {
             className="btn btn-sm"
             disabled={importing || !text.trim()}
             onClick={handleImport}
-            style={{ background: "var(--ember)", color: "#fff", border: "none" }}
+            style={{ background: "var(--ember)", color: "var(--cta-ink)", border: "none" }}
           >
             {importing ? "Adding..." : "Add tickets"}
           </button>

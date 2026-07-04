@@ -10,9 +10,16 @@ export interface WhatChangedProps {
   items: WhatChangedItem[];
 }
 
+/** Loom W2-TODAY (DESIGN-LOOM §8b): the list stays capped at five lines;
+ * anything beyond folds behind a quiet inline disclosure. */
+const CAP = 5;
+
 /** "What changed overnight" — causal one-liners, each with a status dot and
  * a mono cause tag. The empty state is an instruction, never a blank box. */
 export function WhatChanged({ items }: WhatChangedProps) {
+  const [showAll, setShowAll] = React.useState(false);
+  const visible = showAll ? items : items.slice(0, CAP);
+  const folded = items.length - CAP;
   return (
     <div>
       <div
@@ -33,7 +40,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
         </p>
       ) : (
         <div className="flex flex-col" style={{ gap: 11 }}>
-          {items.map((it, i) => (
+          {visible.map((it, i) => (
             <div key={i} className="flex items-baseline" style={{ gap: 10 }}>
               <span
                 aria-hidden="true"
@@ -64,6 +71,25 @@ export function WhatChanged({ items }: WhatChangedProps) {
               </div>
             </div>
           ))}
+          {folded > 0 ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "none",
+                padding: "2px 0",
+              }}
+            >
+              {showAll ? "Show fewer" : `${folded} more`}
+            </button>
+          ) : null}
         </div>
       )}
     </div>

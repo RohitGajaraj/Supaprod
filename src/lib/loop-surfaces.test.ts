@@ -27,14 +27,14 @@ describe("loopIndexForPath — where the operator currently sits", () => {
   test("matches each surface on its exact route", () => {
     expect(loopIndexForPath("/")).toBe(0);
     expect(loopIndexForPath("/discover")).toBe(1);
-    expect(loopIndexForPath("/prds")).toBe(2);
+    expect(loopIndexForPath("/plan")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
     expect(loopIndexForPath("/brain")).toBe(5);
     expect(loopIndexForPath("/trust-ledger")).toBe(6);
   });
 
-  test("matches detail routes via longest-prefix (PRD/Build detail)", () => {
-    expect(loopIndexForPath("/prds/abc-123")).toBe(2);
+  test("matches detail routes via longest-prefix (spec/Build detail)", () => {
+    expect(loopIndexForPath("/plan/spec/abc-123")).toBe(2);
     expect(loopIndexForPath("/build/m1")).toBe(3);
   });
 

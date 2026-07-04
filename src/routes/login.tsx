@@ -41,6 +41,23 @@ export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in · Cadence" }] }),
 });
 
+// Small mono-caps field label above each input — the a11y fix for the
+// placeholder-only pattern (SC 1.3.1, 3.3.2), styled to the design language.
+const fieldLabelStyle: React.CSSProperties = {
+  display: "block",
+  textAlign: "left",
+  fontSize: 9,
+  marginBottom: 5,
+};
+
+const fieldErrorStyle: React.CSSProperties = {
+  fontSize: 11.5,
+  color: "var(--rose)",
+  textAlign: "left",
+  lineHeight: 1.5,
+  margin: "0 0 10px",
+};
+
 function LoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
@@ -50,13 +67,18 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   async function signInEmail(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     setLoadingEmail(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoadingEmail(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      setFormError(error.message);
+      return toast.error(error.message);
+    }
     toast.success("Welcome back");
     if (dest === "/") navigate({ to: "/" });
     else window.location.assign(dest);
@@ -122,7 +144,7 @@ function LoginPage() {
             Cadence
           </h1>
           <div className="mono-label" style={{ marginTop: 6 }}>
-            agents execute · you govern
+            you make the calls · Cadence runs the rest
           </div>
         </div>
 
@@ -148,23 +170,43 @@ function LoginPage() {
             <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
           </div>
           <form onSubmit={signInEmail}>
+            <label htmlFor="login-email" className="mono-label" style={fieldLabelStyle}>
+              Work email
+            </label>
             <input
+              id="login-email"
               className="input"
               type="email"
               required
-              placeholder="work email"
+              autoComplete="email"
+              placeholder="you@company.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{ marginBottom: 8, width: "100%" }}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFormError(null);
+              }}
+              aria-invalid={formError ? true : undefined}
+              aria-describedby={formError ? "login-error" : undefined}
+              style={{ marginBottom: 10, width: "100%" }}
             />
-            <div style={{ position: "relative", marginBottom: 8 }}>
+            <label htmlFor="login-password" className="mono-label" style={fieldLabelStyle}>
+              Password
+            </label>
+            <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>
               <input
+                id="login-password"
                 className="input"
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="password"
+                autoComplete="current-password"
+                placeholder="your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFormError(null);
+                }}
+                aria-invalid={formError ? true : undefined}
+                aria-describedby={formError ? "login-error" : undefined}
                 style={{ width: "100%", paddingRight: 34 }}
               />
               <button
@@ -176,13 +218,18 @@ function LoginPage() {
                   right: 10,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: "var(--ink-faint)",
+                  color: "var(--ink-subtle)",
                   display: "flex",
                 }}
               >
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
+            {formError ? (
+              <p id="login-error" role="alert" style={fieldErrorStyle}>
+                {formError}
+              </p>
+            ) : null}
             <button
               className="btn btn-primary"
               type="submit"
@@ -201,7 +248,7 @@ function LoginPage() {
         <p
           style={{
             fontSize: 11.5,
-            color: "var(--ink-faint)",
+            color: "var(--ink-subtle)",
             textAlign: "center",
             marginTop: 16,
             lineHeight: 1.5,
@@ -230,7 +277,7 @@ function LoginPage() {
             Forgot password?
           </Link>
           <br />
-          Trouble signing in? Ask your workspace admin, or email founders@cadence.dev.
+          Trouble signing in? Ask your workspace admin to check your invite.
         </p>
       </div>
     </div>

@@ -520,10 +520,13 @@ export type SupersessionDirection =
   | "supersedes"
   | "contradicts";
 
+// Plain words on every user-facing chip (Loom W3, quality register: no
+// "superseded/supersession" jargon in the UI; the relation values themselves
+// stay untouched in the data).
 const SUPERSESSION_LABEL: Record<SupersessionDirection, string> = {
-  "superseded-by": "Superseded by",
+  "superseded-by": "Replaced by",
   "contradicted-by": "Contradicted by",
-  supersedes: "Supersedes",
+  supersedes: "Replaces",
   contradicts: "Contradicts",
 };
 

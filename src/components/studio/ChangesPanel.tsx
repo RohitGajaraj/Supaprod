@@ -23,7 +23,7 @@ import {
 } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
-import { ChangesetChip } from "./studio-ui";
+import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
 
 // Monaco stays out of the main bundle — it only loads when a file is opened.
@@ -436,7 +436,7 @@ export function ChangesPanel({
 
       {/* K1 release notes: the ship artifact for this changeset (factual, AI-drafted). */}
       {changeset.release_notes || changes.length > 0 || revisions.length > 0 ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",
@@ -488,7 +488,7 @@ export function ChangesPanel({
 
       {/* LCH-01 launch kit: human-approved launch artifacts drafted from the ship (no send). */}
       {changeset.release_notes || revisions.length > 0 ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",
@@ -581,7 +581,7 @@ export function ChangesPanel({
 
       {/* K2: Rollback history card (if any rollbacks exist for this product) */}
       {rollbacks.length > 0 ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",
@@ -675,7 +675,7 @@ export function ChangesPanel({
 
       {/* I1b revision history: one row per studio.commit, newest first. */}
       {revisions.length > 0 ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",
@@ -785,7 +785,7 @@ export function ChangesPanel({
           cap, with the live in/out-of-scope + over-cap read against the staged
           files, and a one-click "stay in scope" before the gated commit. */}
       {missionId ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",
@@ -926,7 +926,7 @@ export function ChangesPanel({
       ) : null}
 
       {/* File list — table-bento: padding 0, mono-label header, hairline rows. */}
-      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+      <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
         <div
           style={{
             display: "flex",
@@ -1044,7 +1044,7 @@ export function ChangesPanel({
       </div>
 
       {selectedPath ? (
-        <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        <div style={{ ...LOOM_CARD, padding: 0, overflow: "hidden" }}>
           <div
             style={{
               display: "flex",

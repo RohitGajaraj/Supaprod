@@ -1,9 +1,24 @@
 /**
- * OBS-09: pure view-model for the Engine Room glance. No React, no server
- * calls. EngineRoomSurface fetches the read queries and hands their outputs
- * here. Every verdict falls back to the prototype's exact literal when its
- * inputs are absent (loading or truly empty), so a cold render still matches
- * the design floor (`design-reference/obsidian-v3/.../cadence-app.html`).
+ * OBS-09 / LOOM W2: pure view-model for the Engine Room glance. No React, no
+ * server calls. EngineRoomSurface fetches the read queries and hands their
+ * outputs here.
+ *
+ * Honesty law (DESIGN-LOOM §9b): numbers are real or absent. The old
+ * FALLBACK_VERDICT prototype literals ("$482 of $600 · trending +12%") are
+ * gone; a builder is only called once its inputs have genuinely loaded, and
+ * the surface renders a skeleton (loading) or an error card (failure) until
+ * then. A dead backend must never read as "all clear."
+ *
+ * Spend figures, one truth per line (audit: three contradictory figures):
+ * - When a cap is set, the glance verdict reads the budget meter
+ *   (ai_budgets.*_usd_used vs its cap) - the same number that actually gates
+ *   AI calls - and says so ("monthly cap"). State (watch/healthy) derives
+ *   from that same pair, never from a second source.
+ * - When no cap is set, the verdict reads the analytics rollup (ai_events,
+ *   7 days) and labels its window ("this week").
+ * - The old glance line mixed both sources plus a cross-window trend in one
+ *   sentence; the trend now lives only in the Spend room's TREND view, where
+ *   it is labeled "vs the week before."
  */
 
 export type RoomState = "healthy" | "watch";
@@ -24,24 +39,18 @@ export const ROOM_QUESTIONS: Record<RoomKey, string> = {
   record: "What exactly happened?",
 };
 
-const ROOM_NAMES: Record<RoomKey, string> = {
+export const ROOM_NAMES: Record<RoomKey, string> = {
   spend: "Spend",
   quality: "Quality",
   safety: "Safety",
   record: "Record",
 };
 
-// Prototype literals (design-reference/obsidian-v3/design-reference/cadence-app.html
-// `rooms` array). The exact fallback for a loading/empty cold render.
-const FALLBACK_VERDICT: Record<RoomKey, string> = {
-  spend: "$482 of $600 · trending +12%",
-  quality: "Evals 94 / 88 / 91 · no drift",
-  safety: "3 guardrails on · 0 incidents",
-  record: "1,284 traces · ledger intact",
-};
-
 function fmtUsd(n: number): string {
-  return n >= 1000 ? `$${Math.round(n).toLocaleString("en-US")}` : `$${n.toFixed(0)}`;
+  if (n >= 1000) return `$${Math.round(n).toLocaleString("en-US")}`;
+  if (n >= 10) return `$${n.toFixed(0)}`;
+  // Small real amounts must not round to a fabricated "$0".
+  return `$${n.toFixed(2)}`;
 }
 
 /**
@@ -67,11 +76,6 @@ export function zeroFillDaily(
   return out;
 }
 
-function fmtSignedPct(pct: number): string {
-  const rounded = Math.round(pct);
-  return `${rounded >= 0 ? "+" : ""}${rounded}%`;
-}
-
 export interface SpendGlanceInput {
   /** `getBudgetOverview().global`: real DB row, `null` when unconfigured. */
   global: {
@@ -82,47 +86,32 @@ export interface SpendGlanceInput {
   } | null;
   /** `getAnalyticsOverview({ days: 7 }).summary.totalCost`: this week's spend. */
   costThisWeek: number;
-  /** `getAnalyticsOverview({ days: 14 }).summary.totalCost`: trailing 14 days.
-   * Used to derive the previous week (`cost14d - cost7d`) for the trend,
-   * without a dedicated range-offset server fn. */
-  costTrailing14d: number;
 }
 
-function buildSpendGlance(input: SpendGlanceInput | undefined): RoomGlance {
-  if (!input || !input.global) {
+export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
+  const { global, costThisWeek } = input;
+  const monthlyCap = global?.monthly_usd_cap != null ? Number(global.monthly_usd_cap) : 0;
+  const dailyCap = global?.daily_usd_cap != null ? Number(global.daily_usd_cap) : 0;
+  if (monthlyCap > 0 || dailyCap > 0) {
+    // One source: the budget meter that actually gates calls, cap + used
+    // from the same row, window named in the sentence.
+    const monthly = monthlyCap > 0;
+    const cap = monthly ? monthlyCap : dailyCap;
+    const used = Number((monthly ? global?.monthly_usd_used : global?.daily_usd_used) ?? 0);
     return {
       key: "spend",
       name: ROOM_NAMES.spend,
       question: ROOM_QUESTIONS.spend,
-      verdict: FALLBACK_VERDICT.spend,
-      state: "healthy",
+      verdict: `${fmtUsd(used)} of ${fmtUsd(cap)} ${monthly ? "monthly" : "daily"} cap`,
+      state: used / cap >= 0.8 ? "watch" : "healthy",
     };
   }
-  const { global, costThisWeek, costTrailing14d } = input;
-  // Monthly cap answers "what is this costing me" at a glance; fall back to the
-  // daily cap only when no monthly cap is configured.
-  const cap = Number(global.monthly_usd_cap ?? global.daily_usd_cap ?? 0);
-  const used = Number(
-    global.monthly_usd_cap != null ? (global.monthly_usd_used ?? 0) : (global.daily_usd_used ?? 0),
-  );
-  const prevWeek = Math.max(0, costTrailing14d - costThisWeek);
-  const trendPct = prevWeek > 0 ? ((costThisWeek - prevWeek) / prevWeek) * 100 : 0;
-  if (cap <= 0) {
-    return {
-      key: "spend",
-      name: ROOM_NAMES.spend,
-      question: ROOM_QUESTIONS.spend,
-      verdict: `${fmtUsd(costThisWeek)} this week · no cap set`,
-      state: "healthy",
-    };
-  }
-  const state: RoomState = used / cap >= 0.8 ? "watch" : "healthy";
   return {
     key: "spend",
     name: ROOM_NAMES.spend,
     question: ROOM_QUESTIONS.spend,
-    verdict: `${fmtUsd(used)} of ${fmtUsd(cap)} · trending ${fmtSignedPct(trendPct)}`,
-    state,
+    verdict: `${fmtUsd(costThisWeek)} this week · no cap set`,
+    state: "healthy",
   };
 }
 
@@ -136,22 +125,22 @@ export interface QualityGlanceInput {
   driftOpenCount: number;
 }
 
-function buildQualityGlance(input: QualityGlanceInput | undefined): RoomGlance {
-  if (!input || input.suites.length === 0) {
+export function buildQualityGlance(input: QualityGlanceInput): RoomGlance {
+  const { suites, driftOpenCount } = input;
+  const driftOpen = driftOpenCount > 0;
+  if (suites.length === 0) {
     return {
       key: "quality",
       name: ROOM_NAMES.quality,
       question: ROOM_QUESTIONS.quality,
-      verdict: FALLBACK_VERDICT.quality,
-      state: "healthy",
+      verdict: `No eval suites yet · ${driftOpen ? "drift open" : "no drift"}`,
+      state: driftOpen ? "watch" : "healthy",
     };
   }
-  const { suites, driftOpenCount } = input;
   const scored = suites.filter((s) => s.last_run?.avg_score != null);
   const belowBaseline = scored.some(
     (s) => Math.round(s.last_run!.avg_score as number) < Number(s.pass_threshold ?? 0),
   );
-  const driftOpen = driftOpenCount > 0;
   const state: RoomState = belowBaseline || driftOpen ? "watch" : "healthy";
   const scoreLine = scored.length
     ? scored
@@ -175,16 +164,7 @@ export interface SafetyGlanceInput {
   incidentCount: number;
 }
 
-function buildSafetyGlance(input: SafetyGlanceInput | undefined): RoomGlance {
-  if (!input) {
-    return {
-      key: "safety",
-      name: ROOM_NAMES.safety,
-      question: ROOM_QUESTIONS.safety,
-      verdict: FALLBACK_VERDICT.safety,
-      state: "healthy",
-    };
-  }
+export function buildSafetyGlance(input: SafetyGlanceInput): RoomGlance {
   const onCount = input.rules.filter((r) => r.enabled).length;
   const state: RoomState = input.incidentCount > 0 ? "watch" : "healthy";
   return {
@@ -197,22 +177,13 @@ function buildSafetyGlance(input: SafetyGlanceInput | undefined): RoomGlance {
 }
 
 export interface RecordGlanceInput {
-  /** `listTraces({ days: 30, limit: 200 }).traces.length` */
+  /** `listTraces({ days: 7, limit: 200 }).traces.length` (window named in the verdict). */
   traceCount: number;
   /** `getLedgerSeal().available`: the fingerprint computed cleanly. */
   ledgerVerifies: boolean;
 }
 
-function buildRecordGlance(input: RecordGlanceInput | undefined): RoomGlance {
-  if (!input) {
-    return {
-      key: "record",
-      name: ROOM_NAMES.record,
-      question: ROOM_QUESTIONS.record,
-      verdict: FALLBACK_VERDICT.record,
-      state: "healthy",
-    };
-  }
+export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
   const traceLabel = input.traceCount.toLocaleString("en-US");
   return {
     key: "record",
@@ -220,24 +191,7 @@ function buildRecordGlance(input: RecordGlanceInput | undefined): RoomGlance {
     question: ROOM_QUESTIONS.record,
     // Record is always healthy when the ledger verifies (extensions §5); a
     // broken fingerprint is a Call on Today, never a silent room state.
-    verdict: `${traceLabel} trace${input.traceCount === 1 ? "" : "s"} · ${input.ledgerVerifies ? "ledger intact" : "ledger unverified"}`,
+    verdict: `${traceLabel} run${input.traceCount === 1 ? "" : "s"} this week · ${input.ledgerVerifies ? "ledger intact" : "ledger unverified"}`,
     state: "healthy",
   };
-}
-
-export interface GlanceInputs {
-  spend?: SpendGlanceInput;
-  quality?: QualityGlanceInput;
-  safety?: SafetyGlanceInput;
-  record?: RecordGlanceInput;
-}
-
-/** Maps the four rooms' existing read-query outputs to their glance state + verdict. */
-export function buildGlance(inputs: GlanceInputs): RoomGlance[] {
-  return [
-    buildSpendGlance(inputs.spend),
-    buildQualityGlance(inputs.quality),
-    buildSafetyGlance(inputs.safety),
-    buildRecordGlance(inputs.record),
-  ];
 }

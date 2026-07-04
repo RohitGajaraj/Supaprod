@@ -28,6 +28,22 @@ export function sourceCaps(source: string): string {
   return source.toUpperCase();
 }
 
+/** Loom W2 (audit D-12): a hung server fn must reject instead of leaving the
+ * surface on a permanent skeleton (the h3-swallowed-500 class never settles
+ * react-query on its own). Race the call against a deadline so the error
+ * state, with its retry, gets to render. The timer is cleared on settle so
+ * tests hold no open handles. */
+export function withTimeout<T>(promise: Promise<T>, ms = 15_000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("The server took too long to answer. Retry in a moment.")),
+      ms,
+    );
+  });
+  return Promise.race([promise, deadline]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
+
 /**
  * Maps a production opportunity to one of the five Discover verdict words.
  * The Critic's own verdict wins when present (OBS-06.md step 1); otherwise

@@ -1,13 +1,13 @@
-// O1 / DBR-1 v1 - the visual graph canvas view (the "Graph" mode of the tab).
-// Fetches the typed knowledge graph around a focus artifact, renders the SVG
-// explorer + node-story panel, a type legend, a truthful "as of" time filter
-// (over real edge created_at), and a truncation notice. Bounded + fail-safe by
-// the server fn; this layer only presents it.
-import { useMemo, useState } from "react";
+// O1 / DBR-1, reframed by W3 (Loom): the Graph tab's data container. Fetches
+// the typed knowledge graph around a focus artifact and hands it to the
+// physics renderer (GraphForceCanvas, the flagship view), with the legend,
+// the honest "as of" time scrubber plus replay, the drift and confidence
+// notices, and the node story panel (opened by double-click). Bounded and
+// fail-safe by the server fn; this layer only presents what is real.
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Share2 } from "lucide-react";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
 import {
   filterByTime,
@@ -16,12 +16,108 @@ import {
   summarizeEdgeConfidence,
   type GraphNodeKind,
 } from "@/lib/knowledge-graph-view";
-import { MonoLabel } from "@/components/cadence/Primitives";
-import { GraphExplorer, KIND_COLOR, KIND_LABEL } from "./GraphExplorer";
+import { MonoLabel } from "@/components/obsidian/primitives";
+import { GraphForceCanvas } from "./GraphForceCanvas";
 import { GraphNodeStory } from "./GraphNodeStory";
 import { GraphCompoundingStrip } from "./GraphCompoundingStrip";
+import { kindCssColor, kindLabel } from "./graph-visual";
 
-export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
+const REPLAY_STEP_MS = 650;
+
+function NoticeLine({ color, children }: { color?: string; children: React.ReactNode }) {
+  return (
+    <MonoLabel
+      style={{
+        marginBottom: 8,
+        display: "block",
+        fontSize: "var(--text-mono-floor)",
+        color: color ?? "var(--text-subtle)",
+      }}
+    >
+      {children}
+    </MonoLabel>
+  );
+}
+
+/** Loading skeleton that matches the loaded layout (strip, legend, canvas). */
+function GraphSkeleton() {
+  const bar = (w: number | string, h: number) => (
+    <div
+      style={{
+        width: w,
+        height: h,
+        borderRadius: 8,
+        background:
+          "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
+        animation: "cadShimmer 1.6s linear infinite",
+      }}
+    />
+  );
+  return (
+    <div aria-hidden="true">
+      <div
+        style={{
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          padding: "14px 18px",
+          marginBottom: 12,
+          display: "flex",
+          gap: 22,
+        }}
+      >
+        {bar(90, 34)}
+        {bar(90, 34)}
+        {bar(90, 34)}
+        <div style={{ flex: 1 }} />
+        {bar(140, 34)}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+        {bar(64, 14)}
+        {bar(64, 14)}
+        {bar(64, 14)}
+      </div>
+      <div style={{ height: "clamp(420px, 58vh, 640px)" }}>{bar("100%", 460)}</div>
+    </div>
+  );
+}
+
+/** The empty state whispers the moat: a faint static constellation motif. */
+function ConstellationMotif() {
+  return (
+    <svg width="200" height="88" viewBox="0 0 200 88" aria-hidden="true" style={{ opacity: 0.5 }}>
+      <defs>
+        <linearGradient id="graph-empty-thread" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="var(--glacier)" />
+          <stop offset="55%" stopColor="#5b7cfa" />
+          <stop offset="100%" stopColor="var(--blossom)" />
+        </linearGradient>
+      </defs>
+      <g stroke="url(#graph-empty-thread)" strokeWidth="1" opacity="0.4">
+        <line x1="26" y1="58" x2="74" y2="30" />
+        <line x1="74" y1="30" x2="128" y2="48" />
+        <line x1="128" y1="48" x2="172" y2="24" />
+        <line x1="74" y1="30" x2="110" y2="72" />
+      </g>
+      <g fill="var(--text-subtle)">
+        <circle cx="26" cy="58" r="4" />
+        <circle cx="74" cy="30" r="6" opacity="0.9" />
+        <circle cx="128" cy="48" r="4.5" />
+        <circle cx="172" cy="24" r="3.5" />
+        <circle cx="110" cy="72" r="3" />
+      </g>
+    </svg>
+  );
+}
+
+export function GraphCanvasView({
+  focusKind,
+  focusId,
+  reducedMotion,
+}: {
+  focusKind?: string;
+  focusId?: string;
+  reducedMotion: boolean;
+}) {
   const navigate = useNavigate();
   const fGraph = useServerFn(getKnowledgeGraph);
   const graphQ = useQuery({
@@ -30,7 +126,10 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
   });
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [storyKey, setStoryKey] = useState<string | null>(null);
   const [asOf, setAsOf] = useState<string | null>(null);
+  const [replaying, setReplaying] = useState(false);
+  const replayTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fullGraph = graphQ.data ?? null;
 
@@ -46,9 +145,9 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
     [fullGraph, asOf],
   );
 
-  const selectedNode = useMemo(
-    () => graph?.nodes.find((n) => n.key === selectedKey) ?? null,
-    [graph, selectedKey],
+  const storyNode = useMemo(
+    () => graph?.nodes.find((n) => n.key === storyKey) ?? null,
+    [graph, storyKey],
   );
 
   const presentKinds = useMemo(() => {
@@ -57,93 +156,165 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
     return [...set];
   }, [graph]);
 
-  // O3 drift slice: which facts have gone stale (no fresh evidence lately).
+  // O3 drift: facts with no fresh evidence lately (dashed ring on the canvas).
   const staleness = useMemo(
     () => (graph ? computeStaleness(graph, { nowMs: Date.now() }) : null),
     [graph],
   );
 
-  // O3 contradiction drift: which facts have been contradicted/superseded by a
-  // recorded outcome, and that revision is still in effect (not itself reversed).
+  // O3 contradiction drift: beliefs a recorded outcome revised, still in effect.
   const contradictionDrift = useMemo(
     () => (graph ? computeContradictionDrift(graph) : null),
     [graph],
   );
 
-  // DBR-1.5 read-side: how many edges in view mark a belief a recorded outcome
-  // later revised (supersedes / contradicts), split by bi-temporal state. Derived
-  // from the already-loaded, time-filtered graph, so both honor the "as of" axis.
-  // Zero until the engine runs (no supersession edges, no retirements).
   const revisedCount = useMemo(
     () => (graph ? graph.edges.filter((e) => e.superseding && !e.retired).length : 0),
     [graph],
   );
-  // Retired: a supersession assertion that was itself reversed by a later outcome
-  // and kept as faded history (invalidate-don't-delete).
   const retiredCount = useMemo(
     () => (graph ? graph.edges.filter((e) => e.retired).length : 0),
     [graph],
   );
-
-  // Edge-confidence (DBR-EDGE-CONF): how trustworthy the current revisions are, from the
-  // supersession engine's own scoring. Surfaced so the trust the engine built at write-time
-  // is legible on the graph (and degrades to nothing before any scored edge exists).
   const confidence = useMemo(
     () => (graph ? summarizeEdgeConfidence(graph.edges) : { scored: 0, strong: 0, tentative: 0 }),
     [graph],
   );
 
+  // Replay: step the "as of" cursor through real edge timestamps so memory
+  // visibly grows. Manual scrubbing stays available under reduced motion;
+  // autoplay does not run there.
+  useEffect(() => {
+    if (!replaying) return;
+    if (timeline.length < 2) {
+      setReplaying(false);
+      return;
+    }
+    let idx = 0;
+    setAsOf(timeline[0]);
+    replayTimer.current = setInterval(() => {
+      idx++;
+      if (idx >= timeline.length - 1) {
+        setAsOf(null);
+        setReplaying(false);
+      } else {
+        setAsOf(timeline[idx]);
+      }
+    }, REPLAY_STEP_MS);
+    return () => {
+      if (replayTimer.current) clearInterval(replayTimer.current);
+      replayTimer.current = null;
+    };
+  }, [replaying, timeline]);
+
+  // Esc releases focus, then closes the story panel.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selectedKey) setSelectedKey(null);
+      else if (storyKey) setStoryKey(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedKey, storyKey]);
+
   const recenter = (kind: string, id: string) => {
     setSelectedKey(null);
+    setStoryKey(null);
     setAsOf(null);
     navigate({ to: "/brain", search: { tab: "graph", focusKind: kind, focusId: id } });
   };
 
-  if (graphQ.isLoading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 2px" }}>
-        <span className="spinner" />
-        <span className="mono-label" style={{ fontSize: 9 }}>
-          building the graph…
-        </span>
-      </div>
-    );
-  }
+  if (graphQ.isLoading) return <GraphSkeleton />;
+
   if (graphQ.isError) {
+    // An error never wears the empty state's clothes: name the cause, offer retry.
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 8 }}>graph · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 12 }}>
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--top-light)",
+          padding: "16px 18px",
+        }}
+      >
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Graph · failed to load</MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(graphQ.error as Error)?.message ?? "Unknown error"}
         </p>
-        <button className="btn btn-ghost btn-sm" onClick={() => void graphQ.refetch()}>
+        <button
+          type="button"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--glacier)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+          }}
+          onClick={() => void graphQ.refetch()}
+        >
           Retry · rebuilds the graph
         </button>
       </div>
     );
   }
+
   if (
     !graph ||
     graph.nodes.length === 0 ||
     (graph.nodes.length === 1 && graph.edges.length === 0)
   ) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)", textAlign: "center" }}>
-        <Share2 size={20} style={{ color: "var(--ink-faint)", margin: "4px auto 10px" }} />
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>No lineage to map yet</div>
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--top-light)",
+          padding: "36px 24px",
+          textAlign: "center",
+        }}
+      >
+        <ConstellationMotif />
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            margin: "10px 0 6px",
+          }}
+        >
+          Nothing to map yet
+        </div>
         <p
           style={{
             fontSize: 12.5,
-            color: "var(--ink-subtle)",
+            color: "var(--text-muted)",
             maxWidth: 440,
-            margin: "0 auto",
-            lineHeight: 1.5,
+            margin: "0 auto 14px",
+            lineHeight: 1.55,
           }}
         >
-          The graph draws itself as the loop runs: promote a signal to an opportunity, a spec into
-          tasks, or log a decision, and the links appear here automatically. Nothing to wire by
-          hand.
+          The map draws itself as you work: promote a signal, approve a spec, or record a decision
+          and the connections appear here on their own.
         </p>
+        <button
+          type="button"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--glacier)",
+            background: "transparent",
+            border: "none",
+          }}
+          onClick={() => navigate({ to: "/discover" })}
+        >
+          Capture a signal on Discover
+        </button>
       </div>
     );
   }
@@ -152,115 +323,137 @@ export function GraphCanvasView({ focusKind, focusId }: { focusKind?: string; fo
 
   return (
     <div>
-      <GraphCompoundingStrip nodes={graph.nodes} supersessionsCaught={revisedCount} />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          marginBottom: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <GraphCompoundingStrip nodes={graph.nodes} beliefsRevised={revisedCount} />
+
+      <div className="flex flex-wrap items-center" style={{ gap: 14, marginBottom: 12 }}>
+        <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
           {presentKinds.map((kind) => (
-            <span key={kind} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span key={kind} className="flex items-center" style={{ gap: 5 }}>
               <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2.5,
-                  background: KIND_COLOR[kind] ?? "#999999",
-                }}
+                aria-hidden="true"
+                style={{ width: 8, height: 8, borderRadius: 2.5, background: kindCssColor(kind) }}
               />
-              <span className="mono-label" style={{ fontSize: 8.5 }}>
-                {KIND_LABEL[kind] ?? kind}
-              </span>
+              <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>
+                {kindLabel(kind)}
+              </MonoLabel>
             </span>
           ))}
         </div>
         <span style={{ flex: 1 }} />
         {timeline.length > 1 && (
-          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="mono-label" style={{ fontSize: 8.5 }}>
-              as of
-            </span>
+          <span className="flex items-center" style={{ gap: 8 }}>
+            {!reducedMotion ? (
+              <button
+                type="button"
+                className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-floor)",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: replaying ? "var(--glacier)" : "var(--text-subtle)",
+                  background: "transparent",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "3px 9px",
+                }}
+                onClick={() => setReplaying((r) => !r)}
+              >
+                {replaying ? "Stop" : "Replay growth"}
+              </button>
+            ) : null}
+            <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>as of</MonoLabel>
             <input
               type="range"
               min={0}
               max={timeline.length - 1}
               value={sliderIdx}
               onChange={(e) => {
+                setReplaying(false);
                 const idx = Number(e.target.value);
                 setAsOf(idx >= timeline.length - 1 ? null : timeline[idx]);
               }}
               style={{ width: 130 }}
               aria-label="Show the graph as of a past date"
             />
-            <span className="mono-label tabular-nums" style={{ fontSize: 8.5, minWidth: 64 }}>
+            <MonoLabel
+              className="tabular-nums"
+              style={{ fontSize: "var(--text-mono-floor)", minWidth: 64 }}
+            >
               {asOf ? new Date(asOf).toLocaleDateString() : "now · all"}
-            </span>
+            </MonoLabel>
           </span>
         )}
       </div>
 
       {graph.truncated && (
-        <MonoLabel style={{ marginBottom: 8, color: "var(--ink-faint)" }}>
+        <NoticeLine>
           showing the {graph.stats.nodeCount} closest nodes · center on a node to explore further
-        </MonoLabel>
+        </NoticeLine>
       )}
-
       {staleness && staleness.staleCount > 0 && (
-        <MonoLabel style={{ marginBottom: 8, color: "#9a7b1f" }}>
+        <NoticeLine color="var(--marigold)">
           {staleness.staleCount} of {staleness.datedCount} facts may be stale · no fresh evidence in{" "}
           {staleness.thresholdDays}d (dashed ring)
-        </MonoLabel>
+        </NoticeLine>
       )}
-
       {contradictionDrift && contradictionDrift.driftedCount > 0 && (
-        <MonoLabel style={{ marginBottom: 8, color: "var(--madder, #b0573f)" }}>
+        <NoticeLine color="var(--madder)">
           {contradictionDrift.driftedCount}{" "}
-          {contradictionDrift.driftedCount === 1 ? "fact has" : "facts have"} been contradicted or
-          superseded by a recorded outcome · their revised state is current
-        </MonoLabel>
+          {contradictionDrift.driftedCount === 1 ? "belief was" : "beliefs were"} revised by a
+          recorded outcome · the revision still stands
+        </NoticeLine>
       )}
-
       {revisedCount > 0 && (
-        <MonoLabel style={{ marginBottom: 8, color: "var(--madder, #b0573f)" }}>
-          {revisedCount} {revisedCount === 1 ? "link" : "links"} here mark a belief a recorded
-          outcome later revised (madder, dashed)
-        </MonoLabel>
+        <NoticeLine color="var(--madder)">
+          {revisedCount} {revisedCount === 1 ? "thread" : "threads"} here mark a belief a later
+          outcome revised (the drifting dashes)
+        </NoticeLine>
       )}
-
       {retiredCount > 0 && (
-        <MonoLabel style={{ marginBottom: 8, color: "var(--ink-faint)" }}>
+        <NoticeLine>
           {retiredCount} {retiredCount === 1 ? "revision was" : "revisions were"} themselves later
-          reversed · kept as faded history (invalidate, don&rsquo;t delete)
-        </MonoLabel>
+          reversed · kept as faded history, never deleted
+        </NoticeLine>
       )}
-
       {confidence.scored > 0 && (
-        <MonoLabel style={{ marginBottom: 8, color: "var(--ink-muted)" }}>
+        <NoticeLine color="var(--text-muted)">
           {confidence.strong} of {confidence.scored}{" "}
           {confidence.scored === 1 ? "current revision is" : "current revisions are"}{" "}
           high-confidence
           {confidence.tentative > 0 ? ` · ${confidence.tentative} tentative` : ""}
-        </MonoLabel>
+        </NoticeLine>
       )}
 
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
+      <div className="flex flex-wrap items-start" style={{ gap: 14 }}>
         <div style={{ flex: 1, minWidth: 320 }}>
-          <GraphExplorer
+          <GraphForceCanvas
             graph={graph}
             selectedKey={selectedKey}
             onSelect={setSelectedKey}
+            onOpenStory={(key) => setStoryKey(key)}
             staleKeys={staleness?.staleKeys}
             hotKeys={contradictionDrift?.driftedKeys}
+            reducedMotion={reducedMotion}
           />
+          <p
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.06em",
+              color: "var(--text-subtle)",
+              margin: "8px 2px 0",
+            }}
+          >
+            drag to explore · scroll to zoom · click focuses · double-click opens the story · Esc
+            releases
+          </p>
         </div>
-        <div style={{ width: 280, flexShrink: 0 }}>
-          <GraphNodeStory node={selectedNode} onFocus={recenter} />
-        </div>
+        {storyNode ? (
+          <div style={{ width: 300, flexShrink: 0 }}>
+            <GraphNodeStory node={storyNode} onFocus={recenter} onClose={() => setStoryKey(null)} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

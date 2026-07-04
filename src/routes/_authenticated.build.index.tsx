@@ -5,7 +5,7 @@
 // Build; internal identifiers intentionally stay studio.* (CLAUDE.md rename
 // disclaimer). Functionality kept exactly: dispatch mutation, 5s session
 // polling, PRD picker mechanics, ModelSwitcher, Enter dispatch.
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type CSSProperties, type RefObject } from "react";
@@ -59,13 +59,14 @@ export const Route = createFileRoute("/_authenticated/build/")({
       })
       .parse(search),
   errorComponent: ({ error, reset }) => (
-    <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
+    <div style={{ padding: "30px 44px 56px", maxWidth: "var(--container-work)", margin: "0 auto" }}>
       <div
         style={{
           padding: 24,
           maxWidth: 560,
           background: "var(--surface-card)",
           borderRadius: "var(--radius-panel)",
+          boxShadow: "var(--top-light), var(--shadow-ambient)",
         }}
       >
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
@@ -76,6 +77,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
         </p>
         <button
           onClick={reset}
+          className="loom-press"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
@@ -95,13 +97,80 @@ export const Route = createFileRoute("/_authenticated/build/")({
 
 const MODE_PILL: CSSProperties = {
   fontFamily: "var(--font-mono)",
-  fontSize: 9,
+  fontSize: "var(--text-mono-floor)",
   letterSpacing: "0.08em",
   padding: "4px 10px",
   borderRadius: "var(--radius-control)",
   border: "1px solid var(--hairline)",
   cursor: "pointer",
 };
+
+/** §9: empty states whisper the moat — a faint, static constellation motif. */
+function ConstellationMotif() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="120"
+      height="44"
+      viewBox="0 0 120 44"
+      style={{ display: "block", margin: "0 auto 12px", opacity: 0.3 }}
+    >
+      <g stroke="var(--glacier)" strokeWidth="0.6" opacity="0.5">
+        <line x1="14" y1="30" x2="42" y2="12" />
+        <line x1="42" y1="12" x2="70" y2="26" />
+        <line x1="70" y1="26" x2="102" y2="14" />
+        <line x1="42" y1="12" x2="88" y2="36" />
+      </g>
+      <g fill="var(--glacier)">
+        <circle cx="14" cy="30" r="2" />
+        <circle cx="42" cy="12" r="2.5" />
+        <circle cx="70" cy="26" r="2" />
+        <circle cx="102" cy="14" r="2" />
+        <circle cx="88" cy="36" r="1.5" />
+      </g>
+    </svg>
+  );
+}
+
+/** Loading skeleton matching the loaded list layout (§9: never bare text). */
+function MissionListSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div
+        style={{
+          height: 12,
+          width: 88,
+          borderRadius: 4,
+          background: "var(--surface-raised)",
+          marginBottom: 12,
+          animation: "cadGlow 1.8s ease-in-out infinite",
+        }}
+      />
+      <div
+        style={{
+          background: "var(--surface-card)",
+          borderRadius: "var(--radius-panel)",
+          boxShadow: "var(--top-light), var(--shadow-ambient)",
+          padding: "6px 0",
+        }}
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            style={{
+              height: 52,
+              margin: "6px 16px",
+              borderRadius: "var(--radius-control)",
+              background: "var(--surface-raised)",
+              animation: "cadGlow 1.8s ease-in-out infinite",
+              animationDelay: `${i * 120}ms`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement | null> }) {
   const navigate = useNavigate();
@@ -145,7 +214,14 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
     mutationFn: () =>
       fStartMission({ data: { goal: prompt.trim(), title: goalTitle.trim() || undefined } }),
     onSuccess: (r) => {
-      toast.success(`Chief of Staff dispatched ${r.approvals_queued ?? 0} approval(s); running.`);
+      const queued = r.approvals_queued ?? 0;
+      toast.success(
+        queued === 0
+          ? "Mission running."
+          : queued === 1
+            ? "Mission running · 1 approval waits for you."
+            : `Mission running · ${queued} approvals wait for you.`,
+      );
       navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -163,6 +239,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       style={{
         background: "var(--surface-card)",
         borderRadius: "var(--radius-panel)",
+        boxShadow: "var(--top-light), var(--shadow-ambient)",
         padding: 18,
         display: "flex",
         flexDirection: "column",
@@ -174,9 +251,10 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         <button
           type="button"
           onClick={() => setMode("ship")}
+          className="loom-press"
           style={{
             ...MODE_PILL,
-            color: mode === "ship" ? "var(--text-primary)" : "var(--text-faint)",
+            color: mode === "ship" ? "var(--text-primary)" : "var(--text-subtle)",
             background: mode === "ship" ? "var(--surface-raised)" : "none",
           }}
         >
@@ -185,9 +263,10 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         <button
           type="button"
           onClick={() => setMode("goal")}
+          className="loom-press"
           style={{
             ...MODE_PILL,
-            color: mode === "goal" ? "var(--text-primary)" : "var(--text-faint)",
+            color: mode === "goal" ? "var(--text-primary)" : "var(--text-subtle)",
             background: mode === "goal" ? "var(--surface-raised)" : "none",
           }}
         >
@@ -280,21 +359,33 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 </DropdownMenuItem>
               ))}
               {approvedPrds.length === 0 && (
-                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-faint)" }}>
-                  No approved PRDs yet.
+                // Not a dead end (audit D-42): the way to get an approved spec
+                // is /plan, so say so and link there.
+                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
+                  No approved specs yet.{" "}
+                  <Link to="/plan" style={{ color: "var(--blossom)" }}>
+                    Approve one in Plan →
+                  </Link>
                 </div>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-faint)" }}>
-            The Chief of Staff plans a 1-6 step DAG and dispatches the right specialists.
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-subtle)",
+            }}
+          >
+            The Chief of Staff breaks the goal into steps and sends each to the right specialist.
           </span>
         )}
         <button
           type="button"
           onClick={runStart}
           disabled={!canStart}
+          className="loom-press"
           style={{
             marginLeft: "auto",
             flexShrink: 0,
@@ -320,9 +411,9 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: 9,
+          fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.1em",
-          color: "var(--text-faint)",
+          color: "var(--text-subtle)",
         }}
       >
         ⌘Enter to start · gates come back to you
@@ -385,22 +476,37 @@ function BuildPage() {
       <div
         data-screen-label="Build"
         className="cadRise"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
+        style={{
+          padding: "30px 44px 56px",
+          maxWidth: "var(--container-work)",
+          margin: "0 auto",
+        }}
       >
         <div style={{ marginBottom: 22 }}>
           <h1
             style={{
               fontFamily: "var(--font-serif)",
-              fontSize: 34,
-              fontWeight: 430,
+              fontSize: "var(--text-hero)",
+              fontWeight: 420,
               letterSpacing: "-0.015em",
-              lineHeight: 1.15,
+              lineHeight: 1.12,
               color: "var(--text-primary)",
               margin: 0,
             }}
           >
-            <em style={{ color: "var(--ember)", fontStyle: "italic" }}>Build</em>
+            <em style={{ color: "var(--ember-text)", fontStyle: "italic" }}>Build</em>
           </h1>
+          {/* §6: the maker's mark — a static 24px thread under the surface title. */}
+          <div
+            aria-hidden="true"
+            style={{
+              width: 24,
+              height: 1,
+              background: "var(--thread-gradient)",
+              opacity: 0.4,
+              marginTop: 8,
+            }}
+          />
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
             Validated work becomes shipped code. Approved specs come in · merged work moves on.
           </p>
@@ -435,9 +541,10 @@ function BuildPage() {
                   search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
                 })
               }
+              className="loom-press"
               style={{
                 ...MODE_PILL,
-                color: viewMode === id ? "var(--text-primary)" : "var(--text-faint)",
+                color: viewMode === id ? "var(--text-primary)" : "var(--text-subtle)",
                 background: viewMode === id ? "var(--surface-raised)" : "none",
               }}
             >
@@ -449,23 +556,14 @@ function BuildPage() {
         {viewMode === "missions" && (
           <>
             {sessions.isLoading ? (
-              <div
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 11,
-                  color: "var(--text-faint)",
-                  padding: "32px 0",
-                  textAlign: "center",
-                }}
-              >
-                Loading missions…
-              </div>
+              <MissionListSkeleton />
             ) : sessions.isError ? (
               <div
                 style={{
                   padding: 24,
                   background: "var(--surface-card)",
                   borderRadius: "var(--radius-panel)",
+                  boxShadow: "var(--top-light), var(--shadow-ambient)",
                 }}
               >
                 <div
@@ -478,6 +576,7 @@ function BuildPage() {
                 </p>
                 <button
                   onClick={() => sessions.refetch()}
+                  className="loom-press"
                   style={{
                     marginTop: 14,
                     fontFamily: "var(--font-mono)",
@@ -497,10 +596,11 @@ function BuildPage() {
                   <button
                     type="button"
                     onClick={() => setShowArchived((v) => !v)}
+                    className="loom-press"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
-                      color: "var(--text-faint)",
+                      fontSize: "var(--text-mono-floor)",
+                      color: "var(--text-subtle)",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
@@ -515,8 +615,10 @@ function BuildPage() {
                     textAlign: "center",
                     background: "var(--surface-card)",
                     borderRadius: "var(--radius-panel)",
+                    boxShadow: "var(--top-light), var(--shadow-ambient)",
                   }}
                 >
+                  <ConstellationMotif />
                   <p style={{ fontSize: 15, color: "var(--text-primary)", margin: 0 }}>
                     Nothing building yet
                   </p>
@@ -554,23 +656,27 @@ function BuildPage() {
                     justifyContent: "space-between",
                   }}
                 >
-                  <span
+                  {/* Real heading (quality register: no h2 under the lone h1). */}
+                  <h2
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 10,
+                      fontSize: "var(--text-mono-floor)",
+                      fontWeight: 500,
                       letterSpacing: "0.11em",
                       color: "var(--text-subtle)",
+                      margin: 0,
                     }}
                   >
                     MISSIONS
-                  </span>
+                  </h2>
                   <button
                     type="button"
                     onClick={() => setShowArchived((v) => !v)}
+                    className="loom-press"
                     style={{
                       fontFamily: "var(--font-mono)",
-                      fontSize: 9.5,
-                      color: "var(--text-faint)",
+                      fontSize: "var(--text-mono-floor)",
+                      color: "var(--text-subtle)",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
@@ -580,7 +686,11 @@ function BuildPage() {
                   </button>
                 </div>
                 <div
-                  style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}
+                  style={{
+                    background: "var(--surface-card)",
+                    borderRadius: "var(--radius-panel)",
+                    boxShadow: "var(--top-light), var(--shadow-ambient)",
+                  }}
                 >
                   {rows.map((s) => (
                     <BuildMissionRow

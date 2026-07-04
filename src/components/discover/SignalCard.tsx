@@ -23,7 +23,7 @@ export interface SignalCardProps {
 }
 
 /** One verbatim signal: source pill, timestamp, quote, theme line, and the
- * quiet `⋯` action menu (promote / draft spec / lineage / delete) ported
+ * quiet `⋯` action menu (promote / draft spec / provenance / delete) ported
  * from the retired /product Signals tab — same overflow pattern
  * `BuildMissionRow` already established for a row's secondary actions. */
 export function SignalCard({
@@ -45,18 +45,18 @@ export function SignalCard({
         display: "grid",
         gap: "5px",
         paddingBottom: "13px",
-        borderBottom: isLast ? undefined : "1px solid rgba(255,255,255,0.05)",
+        borderBottom: isLast ? undefined : "1px solid var(--hairline-faint)",
       }}
     >
       <div className="flex items-center gap-2">
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "8.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "#E5BDDF",
-            border: "1px solid rgba(229,189,223,0.35)",
-            borderRadius: "99px",
+            color: "var(--blossom)",
+            border: "1px solid color-mix(in srgb, var(--blossom) 35%, transparent)",
+            borderRadius: "var(--radius-pill)",
             padding: "1px 7px",
           }}
         >
@@ -65,9 +65,9 @@ export function SignalCard({
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "8.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "#55524C",
+            color: "var(--text-subtle)",
           }}
         >
           {when}
@@ -79,11 +79,12 @@ export function SignalCard({
                 type="button"
                 aria-label="Signal actions"
                 disabled={actionsPending}
+                className="loom-press"
                 style={{
                   marginLeft: "auto",
                   fontFamily: "var(--font-mono)",
-                  fontSize: "13px",
-                  color: "var(--text-faint)",
+                  fontSize: "14px",
+                  color: "var(--text-subtle)",
                   background: "none",
                   border: "none",
                   cursor: actionsPending ? "default" : "pointer",
@@ -103,7 +104,9 @@ export function SignalCard({
               {onDraftSpec ? (
                 <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
               ) : null}
-              {onLineage ? <DropdownMenuItem onClick={onLineage}>Lineage</DropdownMenuItem> : null}
+              {onLineage ? (
+                <DropdownMenuItem onClick={onLineage}>Where this came from</DropdownMenuItem>
+              ) : null}
               {onDelete ? (
                 <DropdownMenuItem onClick={onDelete} className="text-[var(--madder)]">
                   Delete
@@ -113,14 +116,23 @@ export function SignalCard({
           </DropdownMenu>
         ) : null}
       </div>
-      <p style={{ fontSize: "13px", lineHeight: 1.6, color: "#B5AFA6", margin: 0 }}>{quote}</p>
+      <p
+        style={{
+          fontSize: "var(--text-base)",
+          lineHeight: 1.55,
+          color: "var(--text-body)",
+          margin: 0,
+        }}
+      >
+        {quote}
+      </p>
       {theme ? (
         <span
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "8.5px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "#7D786F",
+            color: "var(--text-subtle)",
           }}
         >
           {theme}

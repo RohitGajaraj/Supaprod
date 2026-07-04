@@ -112,7 +112,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
   const [sub, setSub] = useState("Runs");
   const [failRunId, setFailRunId] = useState<string | null>(null);
 
-  const back = () => navigate({ to: "/govern", search: { tab: "evals" } });
+  const back = () => navigate({ to: "/engine-room", search: { room: "quality", view: "suites" } });
 
   const suiteQ = useQuery({
     queryKey: ["eval_suite", id],
@@ -166,7 +166,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
         />
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
-            This eval suite doesn't exist in this workspace — it may have been deleted.
+            This eval suite doesn't exist in this workspace; it may have been deleted.
           </p>
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={back}>
             Back · all eval suites
@@ -496,7 +496,7 @@ function FailingCases({ runId }: { runId: string | null }) {
     return (
       <div className="bento" style={{ padding: 32, textAlign: "center" }}>
         <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
-          Not run yet — failing cases appear after the first completed run.
+          Not run yet. Failing cases appear after the first completed run.
         </p>
       </div>
     );
@@ -680,7 +680,7 @@ function CaseList({
       {cases.length === 0 && !formOpen ? (
         <div className="bento" style={{ padding: 32, textAlign: "center" }}>
           <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
-            No cases yet. Add one — each case is an input, an optional expected output, and a rubric
+            No cases yet. Add one: each case is an input, an optional expected output, and a rubric
             the judge scores against.
           </p>
         </div>

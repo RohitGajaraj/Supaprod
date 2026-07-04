@@ -4,9 +4,23 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
-import { getBudgetOverview } from "@/lib/budgets.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
-import { Row, EmptyRow } from "../RoomDetail";
+import { Row, EmptyRow, PanelPending, type RoomBodyProps } from "../RoomDetail";
+
+// LOOM W2 fold: /govern?tab=budgets lives here as CAPS (the one home for cap
+// management) and /govern?tab=analytics as USAGE (the full rollup), each
+// lazy-loaded so the room chunk stays light. The OBS-01 semantic bridge keeps
+// the folded panels coherent on the dark canvas; full v4 reskin of these two
+// is noted for W4.
+const BudgetsPanel = React.lazy(() =>
+  import("@/components/governance/BudgetsPanel").then((m) => ({ default: m.BudgetsPanel })),
+);
+const AnalyticsPanel = React.lazy(() =>
+  import("@/components/observe/AnalyticsPanel").then((m) => ({ default: m.AnalyticsPanel })),
+);
+const AgentSpendDetail = React.lazy(() =>
+  import("@/components/observe/AgentSpendDetail").then((m) => ({ default: m.AgentSpendDetail })),
+);
 
 function fmtUsd(n: number): string {
   return n < 0.01 && n > 0 ? `$${n.toFixed(4)}` : `$${n.toFixed(2)}`;
@@ -14,8 +28,6 @@ function fmtUsd(n: number): string {
 
 function TrendView() {
   const fAnalytics = useServerFn(getAnalyticsOverview);
-  // Same keys as EngineRoomSurface's glance queries. TanStack Query dedupes,
-  // so opening this tab right after the glance is an instant cache hit.
   const cost7Q = useQuery({
     queryKey: ["analytics-overview", 7],
     queryFn: () => fAnalytics({ data: { days: 7 } }),
@@ -33,6 +45,15 @@ function TrendView() {
   // entirely, and Sparkline plots by index) so a quiet day renders as a
   // real zero, not as if it were adjacent to its neighbors.
   const filled = zeroFillDaily(cost7Q.data?.daily ?? [], 7);
+  if (cost7Q.isError) {
+    return (
+      <EmptyErrorRetry
+        message="Spend for this week did not load."
+        onRetry={() => void cost7Q.refetch()}
+      />
+    );
+  }
+  if (cost7Q.isLoading) return <PanelPending />;
   return (
     <div className="flex flex-col gap-3">
       <AuroraCard
@@ -44,7 +65,7 @@ function TrendView() {
             : "no prior week to compare"
         }
       />
-      {cost7Q.data && filled.some((c) => c > 0) ? (
+      {filled.some((c) => c > 0) ? (
         <div>
           <MonoLabel tone="muted">SPEND · LAST 7 DAYS</MonoLabel>
           <Sparkline data={filled} w={260} h={44} />
@@ -54,15 +75,60 @@ function TrendView() {
   );
 }
 
-function ByAgentView() {
+/** Error state that never wears empty-state clothes (LOOM §9b). */
+function EmptyErrorRetry({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div style={{ padding: "18px 0" }}>
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          color: "var(--madder-bright)",
+          marginBottom: "10px",
+        }}
+      >
+        {message}
+      </p>
+      <button
+        type="button"
+        className="uppercase cursor-pointer"
+        onClick={onRetry}
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          letterSpacing: "0.11em",
+          color: "var(--glacier)",
+          background: "none",
+          border: "none",
+          padding: 0,
+        }}
+      >
+        RETRY
+      </button>
+    </div>
+  );
+}
+
+function ByAgentView({ agent }: { agent?: string }) {
   const navigate = useNavigate();
   const fByAgent = useServerFn(getAgentSpendBreakdown);
   const q = useQuery({
     queryKey: ["analytics-by-agent", 30],
     queryFn: () => fByAgent({ data: { days: 30 } }),
   });
+  if (agent) {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <AgentSpendDetail id={agent} />
+      </React.Suspense>
+    );
+  }
+  if (q.isError) {
+    return <EmptyErrorRetry message="Agent spend did not load." onRetry={() => void q.refetch()} />;
+  }
+  if (q.isLoading) return <PanelPending />;
   const agents = q.data?.agents ?? [];
-  if (!q.isLoading && agents.length === 0) {
+  if (agents.length === 0) {
     return (
       <EmptyRow message="No spend yet. The first mission draws this line in about a minute." />
     );
@@ -76,41 +142,33 @@ function ByAgentView() {
           value={fmtUsd(a.cost)}
           statusWord={`${Math.round(a.pct)}%`}
           statusColor="var(--text-muted)"
-          onOpen={() => navigate({ to: "/govern", search: { tab: "analytics", agent: a.slug } })}
+          onOpen={() =>
+            navigate({
+              to: "/engine-room",
+              search: { room: "spend", view: "by-agent", agent: a.slug },
+            })
+          }
         />
       ))}
     </div>
   );
 }
 
-function CapsView() {
-  const fBudget = useServerFn(getBudgetOverview);
-  const q = useQuery({ queryKey: ["budget_overview"], queryFn: () => fBudget() });
-  const surfaces = q.data?.surfaces ?? [];
-  if (!q.isLoading && surfaces.length === 0) {
+export function SpendRoom({ view, agent }: RoomBodyProps) {
+  if (view === "by-agent") return <ByAgentView agent={agent} />;
+  if (view === "caps") {
     return (
-      <EmptyRow message="No per-surface caps set. Every AI surface shares the global budget." />
+      <React.Suspense fallback={<PanelPending />}>
+        <BudgetsPanel />
+      </React.Suspense>
     );
   }
-  return (
-    <div>
-      {surfaces.map(
-        (s: { surface: string; daily_usd_cap: number | string | null; enabled: boolean }) => (
-          <Row
-            key={s.surface}
-            subject={s.surface}
-            value={s.daily_usd_cap != null ? `${fmtUsd(Number(s.daily_usd_cap))}/day` : "no cap"}
-            statusWord={s.enabled ? "on" : "off"}
-            statusColor={s.enabled ? "var(--moss-bright)" : "var(--text-faint)"}
-          />
-        ),
-      )}
-    </div>
-  );
-}
-
-export function SpendRoom({ view }: { view: string }) {
-  if (view === "by-agent") return <ByAgentView />;
-  if (view === "caps") return <CapsView />;
+  if (view === "usage") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        {agent ? <AgentSpendDetail id={agent} /> : <AnalyticsPanel />}
+      </React.Suspense>
+    );
+  }
   return <TrendView />;
 }

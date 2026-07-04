@@ -15,19 +15,25 @@ import {
   generatePrd,
   deleteSignal,
 } from "@/lib/discovery.functions";
-import { relTimeCaps, sourceCaps } from "./format";
+import { relTimeCaps, sourceCaps, withTimeout } from "./format";
 import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
+import { SkeletonBar } from "./SkeletonBar";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Loom v4 §2: the card catches the ambient light — top-light hairline plus
+ * the ambient shadow, tokens only. */
+const CARD_SHADOW = "var(--top-light), var(--shadow-ambient)";
 
 function PanelShell({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        backgroundColor: "#111113",
-        border: "1px solid rgba(255,255,255,0.07)",
+        backgroundColor: "var(--card)",
+        border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
+        boxShadow: CARD_SHADOW,
         padding: "18px 20px",
       }}
     >
@@ -39,31 +45,38 @@ function PanelShell({ children }: { children: ReactNode }) {
 function HeaderRow({ count }: { count: number }) {
   return (
     <div className="mb-3.5 flex items-baseline">
-      <span className="flex-1">
-        <MonoLabel style={{ fontSize: "9px", letterSpacing: "0.12em" }}>Live signal feed</MonoLabel>
-      </span>
-      <MonoLabel tone="glacier" style={{ fontSize: "9px", letterSpacing: "0.08em" }}>
+      <h2 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
+        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>
+          Live signal feed
+        </MonoLabel>
+      </h2>
+      <MonoLabel
+        tone="glacier"
+        style={{ fontSize: "10.5px", letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}
+      >
         {count} THIS WEEK
       </MonoLabel>
     </div>
   );
 }
 
+/** Loading skeleton that matches the loaded layout (pill row, quote line,
+ * theme line), never a spinner and never a blank block (DESIGN-LOOM §9). */
 function LoadingBody() {
   return (
-    <div className="grid gap-3.5">
-      <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
-        Reading signals
-      </MonoLabel>
+    <div className="grid gap-3.5" aria-label="Loading signals" role="status">
       {[0, 1, 2, 3].map((i) => (
         <div
           key={i}
+          className="grid gap-2"
           style={{
             paddingBottom: "13px",
-            borderBottom: i === 3 ? undefined : "1px solid rgba(255,255,255,0.05)",
+            borderBottom: i === 3 ? undefined : "1px solid var(--hairline-faint)",
           }}
         >
-          <div style={{ height: "34px", backgroundColor: "#111113", borderRadius: "6px" }} />
+          <SkeletonBar width="88px" height={14} />
+          <SkeletonBar width="92%" />
+          <SkeletonBar width="40%" height={10} />
         </div>
       ))}
     </div>
@@ -98,13 +111,15 @@ export function SignalFeed() {
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
 
+  // withTimeout (audit D-12): a hung server fn rejects into the error state
+  // with its retry instead of leaving a permanent skeleton.
   const signals = useQuery({
     queryKey: ["signals", activeProductId],
-    queryFn: () => fSignals({ data: { productId: activeProductId } }),
+    queryFn: () => withTimeout(fSignals({ data: { productId: activeProductId } })),
   });
   const themes = useQuery({
     queryKey: ["themes", activeProductId],
-    queryFn: () => fThemes({ data: { productId: activeProductId } }),
+    queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
   });
 
   const themeById = useMemo(() => {
@@ -167,7 +182,7 @@ export function SignalFeed() {
       // aggregate every member quote (not just this one signal's), plus the
       // theme's own summary when it has one.
       const brief = theme
-        ? `Theme: ${theme.title}\n${theme.summary ? `Summary: ${theme.summary}\n` : ""}Evidence:\n${members.map((m) => `- "${m.content}" — ${m.source}`).join("\n")}`.slice(
+        ? `Theme: ${theme.title}\n${theme.summary ? `Summary: ${theme.summary}\n` : ""}Evidence:\n${members.map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
             0,
             4000,
           )
@@ -207,24 +222,23 @@ export function SignalFeed() {
     return (
       <div
         style={{
-          backgroundColor: "#111113",
-          border: "1px solid rgba(255,255,255,0.07)",
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-card)",
+          boxShadow: CARD_SHADOW,
           padding: "20px",
         }}
       >
-        <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
           Could not load signals
         </MonoLabel>
-        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
           {(signals.error as Error).message}
         </p>
         <Button variant="secondary" style={{ marginTop: "14px" }} onClick={() => signals.refetch()}>
           Retry
         </Button>
-        <p
-          style={{ fontSize: "var(--text-helper)", color: "var(--text-subtle)", marginTop: "6px" }}
-        >
+        <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
           Reloads the feed · nothing is lost
         </p>
       </div>
@@ -242,9 +256,10 @@ export function SignalFeed() {
       <HeaderRow count={thisWeekCount} />
       <SignalComposer unclusteredCount={unclusteredCount} />
       {rows.length === 0 ? (
-        <MonoLabel tone="faint" style={{ fontSize: "11.5px" }}>
-          Nothing sensed yet.
-        </MonoLabel>
+        <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}>
+          Nothing sensed yet. Capture what you heard, or connect a source and let the feed fill
+          itself.
+        </p>
       ) : (
         <div className="grid gap-3.5">
           {rows.map((s, i) => {
@@ -275,7 +290,7 @@ export function SignalFeed() {
           })}
         </div>
       )}
-      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: "12px" }}>
+      <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "12px" }}>
         Every quote is verbatim and keeps its source. Nothing here is a summary.
       </p>
       <LineageDrawer

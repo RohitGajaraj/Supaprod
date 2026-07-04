@@ -3,8 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
-import { Surface } from "@/components/obsidian/Surface";
-import { CallCard } from "@/components/obsidian/callcard";
+import { Button } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { Hero } from "@/components/obsidian/today/Hero";
 import { LoopStrip, type LoopSurface } from "@/components/obsidian/today/LoopStrip";
@@ -12,8 +11,10 @@ import { WhatChanged, type WhatChangedItem } from "@/components/obsidian/today/W
 import { MachineNow, type MachineNowRow } from "@/components/obsidian/today/MachineNow";
 import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
 import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
-import { TriageQueue } from "@/components/today/TriageQueue";
+import { TriageQueue, type QueueCall, type QueueGroup } from "@/components/today/TriageQueue";
 import { MyDayStrip } from "@/components/today/MyDayStrip";
+import { QuickCapture } from "@/components/today/QuickCapture";
+import { sortWithinGroup, expiryLabel } from "@/components/today/triage";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -27,8 +28,8 @@ import { recordRitualSession, getAcceptanceRate, getAutonomyRatio } from "@/lib/
 import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
-import { listMeetings } from "@/lib/meetings.functions";
-import { listTasks } from "@/lib/tasks.functions";
+import { savePrd, updateOpportunity } from "@/lib/discovery.functions";
+import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { CriticReview } from "@/lib/discovery.functions";
 import {
   TodayCoachMark,
@@ -41,25 +42,31 @@ export const Route = createFileRoute("/_authenticated/today")({
   head: () => ({ meta: [{ title: "Today · Cadence" }] }),
 });
 
-// OBS-04 — Today ported to Obsidian: the ritual screen. Hero (one ember
-// italic count word) -> the loop strip -> the two-column grid (calls queue +
-// the calls-answered bar + what-changed + the brief on the left, the one
-// Loop Health aurora + machine-right-now on the right). No feature work
-// rides along: every query below is consumed read-only exactly as the
-// parchment Today did (OBS-04.md §8 "Keep" list, incl. `dashboard` for the
-// brief); the only mutations are the existing resolveApproval and
-// generateDailyBrief. Dropped without a re-skin, per the OBS-04 spec's scope
-// (none have a clean Obsidian home in the prototype; a later item re-homes
-// them if warranted): cold-start onramp, insight rail, focus-next, wedge
-// teardown, the getting-started checklist, the tasks widget, and the
-// command-center Bottlenecks/Top-priorities tiles (not part of the
-// prototype's Today IA — §3 Scope IN names exactly what this screen shows).
-// The session-local "Not now" defer is explicitly retired (see `decide`
-// below), not silently dropped: the Obsidian Call object model has no defer
-// verb.
+// OBS-04 built the ritual screen; Loom W2-TODAY (DESIGN-LOOM §8b) rebuilt the
+// queue as triage: calls group by family (Ship it? · Worth building? · Worth
+// re-examining?), each group shows its top card in full and folds the rest
+// behind a quiet inline "N more" expander — never a flat wall of cards. The
+// single highest-stakes call carries the screen's one solid ember CTA. Under
+// the hero: the My-day strip (meetings · tasks due, the tasks object's first
+// UI since /tasks retired · Focus-next) and one quick-capture affordance that
+// writes through the Discover composer path. Answering a call invalidates the
+// queue so the next card advances into the top slot with no reload.
+//
+// Loom honesty fixes (register D-26 + §9b): tool gates now state their own
+// catalogued consequence instead of borrowed PR copy; spec calls answer
+// through savePrd (approve logs the decision, send-back returns to draft) and
+// opportunity calls through updateOpportunity (keep -> Now, drop -> dropped) —
+// the old wiring sent PRD/opportunity ids to resolveApproval, which matched
+// nothing. A failed queue fetch shows an error card with a retry, never the
+// all-clear.
+//
+// The "Later" defer verb was checked against the live schema and SKIPPED:
+// agent_approvals has status ('pending','approved','rejected','executed',
+// 'failed','cancelled','expired') and escalation_state ('pending','expired',
+// 'escalated','resolved') — no snooze/defer column exists, and tonight ships
+// no migration. Documented for a follow-up migration.
 
-// OBS-10: re-pointed at the real Discover/Plan destinations (was the interim
-// /product?tab= scope, from before OBS-06/07 shipped their own routes).
+// OBS-10: re-pointed at the real Discover/Plan destinations.
 const LOOP_SURFACE_TO: Record<LoopSurface, { to: string; search?: Record<string, string> }> = {
   discover: { to: "/discover" },
   today: { to: "/today" },
@@ -86,6 +93,42 @@ function criticEvidence(cr: CriticReview | null): {
   if (cr.risks.length) ev.push({ src: "RISK", text: cr.risks[0] });
   if (cr.missing_evidence.length) ev.push({ src: "GAP", text: cr.missing_evidence[0] });
   return { body: cr.summary, ev };
+}
+
+/** Honest per-tool consequence line (register D-26): the catalogued effect +
+ * its reversibility, never borrowed pull-request copy. */
+function gateConsequence(toolName: string | null): string {
+  const c = toolConsequence(toolName);
+  return `${c.effect.replace(/\.$/, "")} · ${REVERSIBILITY_LABEL[c.reversible]}`;
+}
+
+/** Loom v4 §9: every empty state whispers the moat — a faint static
+ * constellation of nodes and threads. Decorative, hidden from AT. */
+function ConstellationMotif() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="180"
+      height="64"
+      viewBox="0 0 180 64"
+      fill="none"
+      style={{ display: "block", marginBottom: 14, opacity: 0.35 }}
+    >
+      <path
+        d="M14 46 L54 20 L92 40 L128 14 L164 34"
+        stroke="var(--hairline-strong)"
+        strokeWidth="1"
+      />
+      <path d="M54 20 L84 8 M92 40 L114 54" stroke="var(--hairline)" strokeWidth="1" />
+      <circle cx="14" cy="46" r="2.5" fill="var(--glacier)" opacity="0.55" />
+      <circle cx="54" cy="20" r="3" fill="var(--blossom)" opacity="0.5" />
+      <circle cx="84" cy="8" r="2" fill="var(--text-subtle)" />
+      <circle cx="92" cy="40" r="2.5" fill="var(--glacier)" opacity="0.45" />
+      <circle cx="114" cy="54" r="2" fill="var(--text-subtle)" />
+      <circle cx="128" cy="14" r="3" fill="var(--blossom)" opacity="0.5" />
+      <circle cx="164" cy="34" r="2.5" fill="var(--glacier)" opacity="0.55" />
+    </svg>
+  );
 }
 
 function Dashboard() {
@@ -116,6 +159,8 @@ function Dashboard() {
   const fetchTasks = useServerFn(listTasks);
   const mResolveApproval = useServerFn(resolveApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
+  const mSavePrd = useServerFn(savePrd);
+  const mUpdateOpp = useServerFn(updateOpportunity);
   const mBrief = useServerFn(generateDailyBrief);
   const recordRitual = useServerFn(recordRitualSession);
 
@@ -191,16 +236,11 @@ function Dashboard() {
     (ny?.oppCalls.length ?? 0) +
     (ny?.assumptionCalls.length ?? 0);
 
-  // The parchment "Not now" session-local defer is explicitly retired, not
-  // silently carried over: the Obsidian Call object model (OBS-04.md hub
-  // §5.10) has no defer verb, only decide(id, ok) — CallCard exposes exactly
-  // two actions (Approve / Send back).
-  const visibleApprovals = ny?.approvals ?? [];
-  const visiblePrd = ny?.prdCalls ?? [];
-  const visibleOpp = ny?.oppCalls ?? [];
-  const visibleAssumption = ny?.assumptionCalls ?? [];
-
   const [clearedSession, setClearedSession] = useState(0);
+  const answered = () => setClearedSession((c) => c + 1);
+
+  // SHIP IT? — resolving an agent tool gate also executes the tool
+  // server-side (resolveApproval semantics), so the copy says so.
   const decideApproval = useMutation({
     mutationFn: (data: { approvalId: string; decision: "approved" | "rejected" }) =>
       mResolveApproval({ data }),
@@ -217,25 +257,56 @@ function Dashboard() {
       ]) {
         qc.invalidateQueries({ queryKey: [key] });
       }
-      setClearedSession((c) => c + 1);
+      answered();
       showToast(
         vars.decision === "approved"
-          ? "Good call. The PR is open."
-          : "Sent back. Builder is revising · nothing ships.",
+          ? "Approved. The agent is unblocked."
+          : "Sent back. Nothing runs without you.",
       );
     },
     onError: (e: Error) => showToast(e.message),
   });
-  const decide = (id: string, ok: boolean) =>
-    decideApproval.mutate({ approvalId: id, decision: ok ? "approved" : "rejected" });
 
-  // FS-02: a separate mutation — resolveAssumptionChallenge, not resolveApproval,
-  // since a challenge id is not an approval id.
+  // WORTH BUILDING? (spec) — savePrd is the Plan surface's own write path:
+  // approve logs the decision, send-back returns the spec to draft.
+  const decidePrd = useMutation({
+    mutationFn: (v: { id: string; ok: boolean }) =>
+      mSavePrd({ data: { id: v.id, status: v.ok ? "approved" : "draft" } }),
+    onSuccess: (_res, vars) => {
+      for (const key of ["needs-you", "prds", "specs", "dashboard", "decisions"]) {
+        qc.invalidateQueries({ queryKey: [key] });
+      }
+      answered();
+      showToast(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
+
+  // WORTH BUILDING? (opportunity) — the Critic said revise/kill; the human's
+  // call moves it out of backlog either way.
+  const decideOpp = useMutation({
+    mutationFn: (v: { id: string; ok: boolean }) =>
+      mUpdateOpp({ data: { id: v.id, status: v.ok ? "now" : "dropped" } }),
+    onSuccess: (_res, vars) => {
+      for (const key of ["needs-you", "opportunities"]) {
+        qc.invalidateQueries({ queryKey: [key] });
+      }
+      answered();
+      showToast(
+        vars.ok ? "Kept. It moves to Now on the roadmap." : "Dropped. The Critic's concern stands.",
+      );
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
+
+  // FS-02: a separate mutation — resolveAssumptionChallenge, not
+  // resolveApproval, since a challenge id is not an approval id.
   const decideChallenge = useMutation({
     mutationFn: (data: { id: string; action: "confirm" | "dismiss" }) =>
       mResolveChallenge({ data }),
     onSuccess: (_res, vars) => {
       for (const key of ["needs-you", "decisions"]) qc.invalidateQueries({ queryKey: [key] });
+      answered();
       showToast(
         vars.action === "confirm"
           ? "Reopened for review. The decision is back in your queue."
@@ -245,13 +316,121 @@ function Dashboard() {
     onError: (e: Error) => showToast(e.message),
   });
 
-  // OBS-04.md §5 step 11: A/S answer the current (first-rendered) Call.
-  // Ignored inside inputs/textareas and when a modifier is held — the 1-5/g
-  // rail map (OBS-02) owns the rest of the keyboard.
-  const currentCallId = visiblePrd[0]?.id ?? visibleOpp[0]?.id ?? visibleApprovals[0]?.id ?? null;
+  const anyDeciding =
+    decideApproval.isPending ||
+    decidePrd.isPending ||
+    decideOpp.isPending ||
+    decideChallenge.isPending;
+
+  // ---- Triage grouping (DESIGN-LOOM §8b) --------------------------------
+  const shipCalls: QueueCall[] = sortWithinGroup(
+    (ny?.approvals ?? []).map((a) => ({
+      id: a.id,
+      expiresAt: a.expires_at ? Date.parse(a.expires_at) : null,
+      raisedAt: Date.parse(a.created_at) || 0,
+      props: {
+        kind: "SHIP IT?",
+        expiry: expiryLabel(a.expires_at),
+        title: `${a.agent_slug ?? "An agent"} wants to run ${a.tool_name}`,
+        body: a.rationale ?? "Waiting on your approval.",
+        ev: [
+          ...(a.model ? [{ src: "MODEL", text: a.model }] : []),
+          ...(a.est_cost_usd != null
+            ? [{ src: "SPEND", text: `${fmtUsd(a.est_cost_usd)} so far on this call` }]
+            : []),
+        ],
+        okLabel: "Approve",
+        noLabel: "Send back",
+        consequence: gateConsequence(a.tool_name),
+        onOk: () => decideApproval.mutate({ approvalId: a.id, decision: "approved" }),
+        onNo: () => decideApproval.mutate({ approvalId: a.id, decision: "rejected" }),
+      },
+    })),
+  );
+
+  const buildCalls: QueueCall[] = sortWithinGroup([
+    ...(ny?.prdCalls ?? []).map((p) => {
+      const { body, ev } = criticEvidence(p.critic_review);
+      return {
+        id: p.id,
+        expiresAt: null,
+        raisedAt: Date.parse(p.updated_at) || 0,
+        props: {
+          kind: "WORTH BUILDING?",
+          expiry: "",
+          title: p.title,
+          body,
+          ev,
+          okLabel: "Approve",
+          noLabel: "Send back",
+          consequence:
+            "Approve marks the spec approved and logs the decision · Send back returns it to draft",
+          onOk: () => decidePrd.mutate({ id: p.id, ok: true }),
+          onNo: () => decidePrd.mutate({ id: p.id, ok: false }),
+        },
+      };
+    }),
+    ...(ny?.oppCalls ?? []).map((o) => {
+      const { body, ev } = criticEvidence(o.critic_review);
+      return {
+        id: o.id,
+        expiresAt: null,
+        raisedAt: Date.parse(o.created_at) || 0,
+        props: {
+          kind: "WORTH BUILDING?",
+          expiry: "",
+          title: o.title,
+          body,
+          ev,
+          okLabel: "Keep it",
+          noLabel: "Drop it",
+          consequence: "Keep moves it to Now on the roadmap · Drop retires it from the backlog",
+          onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
+          onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
+        },
+      };
+    }),
+  ]);
+
+  const reexamineCalls: QueueCall[] = sortWithinGroup(
+    (ny?.assumptionCalls ?? []).map((c) => ({
+      id: c.id,
+      expiresAt: null,
+      raisedAt: Date.parse(c.created_at) || 0,
+      props: {
+        kind: "WORTH RE-EXAMINING?",
+        expiry: "",
+        title: c.decisionTitle,
+        body: `${c.assumptionStatement}. ${c.rationale}`,
+        ev: c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : [],
+        okLabel: "Re-examine",
+        noLabel: "Still holds",
+        consequence: "Reopens the decision for review · nothing changes without you",
+        onOk: () => decideChallenge.mutate({ id: c.id, action: "confirm" }),
+        onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
+      },
+    })),
+  );
+
+  const groups: QueueGroup[] = [
+    { family: "ship", calls: shipCalls },
+    { family: "build", calls: buildCalls },
+    { family: "reexamine", calls: reexamineCalls },
+  ];
+
+  // OBS-04.md §5 step 11 + Loom: A/S answer the current featured Call (the
+  // first card of the first non-empty group). The handler reads refs so the
+  // effect never closes over a stale queue (register D-47), and stays quiet
+  // while a decision is in flight.
+  const featured = shipCalls[0] ?? buildCalls[0] ?? reexamineCalls[0] ?? null;
+  const featuredRef = useRef<QueueCall | null>(featured);
+  featuredRef.current = featured;
+  const decidingRef = useRef(anyDeciding);
+  decidingRef.current = anyDeciding;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!currentCallId) return;
+      const current = featuredRef.current;
+      if (!current || decidingRef.current) return;
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
         return;
@@ -259,15 +438,15 @@ function Dashboard() {
       const key = e.key.toLowerCase();
       if (key === "a") {
         e.preventDefault();
-        decide(currentCallId, true);
+        current.props.onOk();
       } else if (key === "s") {
         e.preventDefault();
-        decide(currentCallId, false);
+        current.props.onNo();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [currentCallId]);
+  }, []);
 
   const totalCalls = callCount + clearedSession;
   const clearedPct = totalCalls > 0 ? Math.round((clearedSession / totalCalls) * 100) : 100;
@@ -284,8 +463,9 @@ function Dashboard() {
   ).length;
 
   const learningRows = learnings.data?.learnings ?? [];
+  // Capped at 5 visible lines inside WhatChanged; 12 total bounds the fold.
   const whatChangedItems: WhatChangedItem[] = rescoresOf(learningRows)
-    .slice(0, 4)
+    .slice(0, 12)
     .map((r) => ({
       dot:
         r.verdict === "validated"
@@ -350,13 +530,22 @@ function Dashboard() {
   // Never assert "All clear" before the true call count has actually
   // arrived — OBS-04.md §7 "Loading" state: skeleton, no spinner, and the
   // hero must not flash a false all-clear ahead of real data.
-  const needsYouLoaded = !needsYou.isPending;
+  const needsYouLoaded = !needsYou.isPending && !needsYou.isError;
 
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]} />
       {showCoachMark ? <TodayCoachMark onDismiss={() => setShowCoachMark(false)} /> : null}
-      <Surface>
+      {/* Loom v4 §4b: Today rides the standard desktop container (1240px),
+          not the v3 1060px column — the room is used, not framed. */}
+      <div
+        style={{
+          maxWidth: "var(--container-standard)",
+          margin: "0 auto",
+          padding: "32px 32px 64px",
+          animation: "cadRise 260ms var(--ease) both",
+        }}
+      >
         {needsYouLoaded ? (
           <Hero
             greeting={greeting.data?.greeting ?? "Hello"}
@@ -364,150 +553,112 @@ function Dashboard() {
             pendingCalls={callCount}
           />
         ) : (
-          <div
-            aria-hidden="true"
-            style={{
-              height: 60,
-              marginBottom: 28,
-              borderRadius: "var(--radius-card)",
-              background: "var(--surface-card-deep)",
-            }}
-          />
+          <>
+            <h1 className="sr-only">Today</h1>
+            <div
+              aria-hidden="true"
+              style={{
+                height: 60,
+                marginBottom: 18,
+                borderRadius: "var(--radius-card)",
+                background: "var(--surface-card-deep)",
+                boxShadow: "var(--top-light)",
+              }}
+            />
+          </>
         )}
+        <MyDayStrip />
+        <QuickCapture />
         <LoopStrip
           counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
           pendingCalls={callCount}
           workingCount={workingCount}
           onGo={goSurface}
         />
-        <div
-          className="grid"
-          style={{ gridTemplateColumns: "1.7fr 1fr", gap: 20, alignItems: "start" }}
-        >
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
           <div className="flex flex-col" style={{ gap: 14 }}>
-            {!needsYouLoaded ? (
+            {needsYou.isError ? (
               <div
-                aria-hidden="true"
                 style={{
-                  height: 140,
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline-strong)",
                   borderRadius: "var(--radius-card)",
-                  background: "var(--surface-card-deep)",
+                  padding: "24px 26px",
+                  boxShadow: "var(--top-light)",
                 }}
-              />
-            ) : (
-              <>
-                {/* LOOM W2-TODAY: My-day strip (meetings + tasks + focus-next) */}
-                <MyDayStrip
-                  meetings={meetings.data?.meetings?.length ?? 0}
-                  tasksDue={tasks.data?.tasks?.filter((t: any) => !t.completed).length ?? 0}
-                  onViewMeetings={() => goSurface("brain")}
-                  onViewTasks={() => {}}
-                />
-
-                {/* LOOM W2-TODAY: Triage-grouped call queue */}
-                <TriageQueue
-                  isEmpty={callCount === 0}
-                  emptyState={
-                    <div
-                      style={{
-                        background: "var(--card)",
-                        border: "1px solid rgba(127,191,142,0.3)",
-                        borderRadius: "var(--radius-card)",
-                        padding: "28px 26px",
-                      }}
-                    >
-                      <h2
-                        style={{
-                          fontFamily: "var(--font-serif)",
-                          fontSize: 21,
-                          fontWeight: 450,
-                          color: "var(--text-primary)",
-                          margin: "0 0 6px",
-                        }}
-                      >
-                        All clear.{" "}
-                        <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
-                          Enjoy the quiet roadmap.
-                        </em>
-                      </h2>
-                      <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                        The loop is running itself. New calls will find you here first.
-                      </p>
-                    </div>
-                  }
-                  calls={[
-                    // PRDs
-                    ...visiblePrd.map((p) => {
-                      const { body, ev } = criticEvidence(p.critic_review);
-                      return {
-                        id: p.id,
-                        kind: "WORTH BUILDING?" as const,
-                        expiry: "",
-                        title: p.title,
-                        body,
-                        ev,
-                        okLabel: "Approve",
-                        noLabel: "Send back",
-                        consequence: "Opens the pull request · nothing ships without you",
-                      };
-                    }),
-                    // Opportunities
-                    ...visibleOpp.map((o) => {
-                      const { body, ev } = criticEvidence(o.critic_review);
-                      return {
-                        id: o.id,
-                        kind: "WORTH BUILDING?" as const,
-                        expiry: "",
-                        title: o.title,
-                        body,
-                        ev,
-                        okLabel: "Approve",
-                        noLabel: "Send back",
-                        consequence: "Opens the pull request · nothing ships without you",
-                      };
-                    }),
-                    // Approvals
-                    ...visibleApprovals.map((a) => ({
-                      id: a.id,
-                      kind: "SHIP IT?" as const,
-                      expiry: a.expires_at ? new Date(a.expires_at).toLocaleTimeString() : "",
-                      title: `${a.agent_slug} wants to run ${a.tool_name}`,
-                      body: a.rationale ?? "Waiting on your approval.",
-                      ev: [] as { src: string; text: string }[],
-                      okLabel: "Approve",
-                      noLabel: "Send back",
-                      consequence: "Opens the pull request · nothing ships without you",
-                    })),
-                    // Assumptions/Challenges
-                    ...visibleAssumption.map((c) => ({
-                      id: c.id,
-                      kind: "WORTH RE-EXAMINING?" as const,
-                      expiry: "",
-                      title: c.decisionTitle,
-                      body: `${c.assumptionStatement}. ${c.rationale}`,
-                      ev: c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : [],
-                      okLabel: "Re-examine",
-                      noLabel: "Still holds",
-                      consequence: "Reopens the decision for review · nothing changes without you",
-                    })),
-                  ]}
-                  onDecide={(id, approved) => {
-                    // Determine whether this is an approval or a challenge
-                    if (visibleApprovals.some((a) => a.id === id)) {
-                      decide(id, approved);
-                    } else if (visibleAssumption.some((c) => c.id === id)) {
-                      decideChallenge.mutate({
-                        id,
-                        action: approved ? "confirm" : "dismiss",
-                      });
-                    } else {
-                      decide(id, approved);
-                    }
+              >
+                <h2
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 19,
+                    fontWeight: 460,
+                    color: "var(--text-primary)",
+                    margin: "0 0 6px",
+                  }}
+                >
+                  Your calls didn't load.
+                </h2>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
+                  {needsYou.error instanceof Error
+                    ? needsYou.error.message
+                    : "The queue request failed."}
+                </p>
+                <Button variant="secondary" onClick={() => void needsYou.refetch()}>
+                  Try again
+                </Button>
+              </div>
+            ) : !needsYouLoaded ? (
+              <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
+                <div
+                  style={{
+                    height: 12,
+                    width: 130,
+                    borderRadius: 4,
+                    background: "var(--surface-card-deep)",
                   }}
                 />
-              </>
+                <div
+                  style={{
+                    height: 190,
+                    borderRadius: "var(--radius-card)",
+                    background: "var(--surface-card-deep)",
+                    boxShadow: "var(--top-light)",
+                  }}
+                />
+              </div>
+            ) : callCount === 0 ? (
+              <div
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid rgba(127,191,142,0.3)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "28px 26px",
+                  boxShadow: "var(--top-light)",
+                }}
+              >
+                <ConstellationMotif />
+                <h2
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 21,
+                    fontWeight: 450,
+                    color: "var(--text-primary)",
+                    margin: "0 0 6px",
+                  }}
+                >
+                  All clear.{" "}
+                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
+                    Enjoy the quiet roadmap.
+                  </em>
+                </h2>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                  The loop is running itself. New calls will find you here first.
+                </p>
+              </div>
+            ) : (
+              <TriageQueue groups={groups} />
             )}
-            {totalCalls > 0 && (
+            {totalCalls > 0 && needsYouLoaded && (
               <div>
                 <div
                   style={{
@@ -529,7 +680,7 @@ function Dashboard() {
                 <div
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9,
+                    fontSize: 10.5,
                     color: "var(--text-subtle)",
                     marginTop: 6,
                     textTransform: "uppercase",
@@ -546,6 +697,7 @@ function Dashboard() {
                 border: "1px solid var(--hairline)",
                 borderRadius: "var(--radius-card)",
                 padding: "16px 18px",
+                boxShadow: "var(--top-light)",
               }}
             >
               <div className="flex items-center" style={{ gap: 8, marginBottom: 8 }}>
@@ -553,7 +705,7 @@ function Dashboard() {
                   className="flex-1"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9,
+                    fontSize: 10.5,
                     letterSpacing: "0.12em",
                     color: "var(--text-subtle)",
                     textTransform: "uppercase",
@@ -565,10 +717,10 @@ function Dashboard() {
                   type="button"
                   onClick={() => regenBrief.mutate()}
                   disabled={regenBrief.isPending}
-                  className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
+                  className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 9,
+                    fontSize: 10.5,
                     color: "var(--glacier)",
                     background: "transparent",
                     border: "none",
@@ -586,7 +738,7 @@ function Dashboard() {
                 <p
                   style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-muted)", margin: 0 }}
                 >
-                  Drafting your brief from this workspace · about a minute.
+                  No brief yet today. Refresh drafts one from this workspace.
                 </p>
               )}
             </div>
@@ -597,7 +749,7 @@ function Dashboard() {
             <StrategicBriefCard />
           </div>
         </div>
-      </Surface>
+      </div>
     </>
   );
 }

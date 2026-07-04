@@ -39,13 +39,17 @@ export function ReliabilityGlance() {
   // Calm front: nothing to flag (or nothing has answered yet) -> render nothing.
   if (spinning === 0 && !budgetStrained) return null;
 
+  // §9b (audit D-10): the raw "error budget spent, 7.07% succeeded" line read
+  // as a broken product. The number stays true; the line now says what it
+  // means and where it applies (this workspace's AI calls, this week), and
+  // the deep per-call breakdown stays behind the popover (Engine Room depth).
   const parts: string[] = [];
   if (spinning > 0 && runaway?.summary) parts.push(runaway.summary);
   if (budgetStrained && slo) {
     parts.push(
       budgetStatus === "exhausted"
-        ? `AI error budget spent, ${slo.metrics.availabilityPct}% of calls succeeded this week`
-        : `AI error budget low, ${slo.metrics.availabilityPct}% of calls succeeded this week`,
+        ? `AI calls failed more than usual this week (${slo.metrics.availabilityPct}% succeeded); missions retry, and the details are one click away`
+        : `AI calls are failing a little more than usual this week (${slo.metrics.availabilityPct}% succeeded)`,
     );
   }
   if (parts.length === 0) return null;
@@ -68,8 +72,9 @@ export function ReliabilityGlance() {
             cursor: "pointer",
           }}
         >
-          <span style={{ color: "var(--ink-faint)" }}>Heads up</span>
-          <span style={{ color: "var(--ink)" }}>{parts.join(" · ")}</span>
+          <span style={{ color: "var(--text-subtle)" }}>Heads up</span>
+          <span style={{ color: "var(--text-body)" }}>{parts.join(" · ")}</span>
+          <span style={{ color: "var(--glacier)" }}>details →</span>
         </div>
       </PopoverTrigger>
       <PopoverContent

@@ -3,6 +3,8 @@ import {
   type CompoundingLearning,
   describeCompounding,
   iceNum,
+  rescoreCauseOf,
+  rescoreNoteOf,
   rescoresOf,
   summarizeCompounding,
 } from "./moat-vis";
@@ -124,5 +126,59 @@ describe("describeCompounding (honest, neutral)", () => {
       ]),
     );
     expect(flat).toBe("Memory has re-scored 2 decisions from real outcomes · net ICE unchanged.");
+  });
+});
+
+describe("rescoreNoteOf (quote-guarded row note)", () => {
+  test("hostile title never reads as prose: it is quoted", () => {
+    // The live bug: a pasted test artifact rendered "…+0.3 after This is an
+    // Test Message - By RG" as if it were a sentence. Quoted, grammar holds.
+    const note = rescoreNoteOf({
+      prior_ice: 8.0,
+      new_ice: 8.3,
+      summary: "This is an Test Message - By RG",
+    });
+    expect(note).toBe('+0.3 after "This is an Test Message - By RG"');
+  });
+
+  test("signed delta, coerced string numerics, negative moves", () => {
+    expect(rescoreNoteOf({ prior_ice: "6", new_ice: "4", summary: "churn spiked" })).toBe(
+      '-2.0 after "churn spiked"',
+    );
+  });
+
+  test("null when ICE is missing or the rounded score did not move", () => {
+    expect(rescoreNoteOf({ prior_ice: null, new_ice: 7, summary: "x" })).toBeNull();
+    expect(rescoreNoteOf({ prior_ice: 8.31, new_ice: 8.34, summary: "x" })).toBeNull();
+  });
+
+  test("empty summary falls back to a neutral phrase, unquoted", () => {
+    expect(rescoreNoteOf({ prior_ice: 5, new_ice: 7, summary: "   " })).toBe(
+      "+2.0 after the latest outcome",
+    );
+    expect(rescoreNoteOf({ prior_ice: 5, new_ice: 7, summary: null })).toBe(
+      "+2.0 after the latest outcome",
+    );
+  });
+});
+
+describe("rescoreCauseOf (summary guard)", () => {
+  test("collapses whitespace and strips wrapping quotes", () => {
+    expect(rescoreCauseOf('  "retention   held\n in week one"  ')).toBe(
+      '"retention held in week one"',
+    );
+  });
+
+  test("inner double quotes become singles so the citation never nests", () => {
+    expect(rescoreCauseOf('users said "meh" repeatedly')).toBe("\"users said 'meh' repeatedly\"");
+  });
+
+  test("caps a 2000-char summary at a word boundary", () => {
+    const long = "word ".repeat(400).trim();
+    const out = rescoreCauseOf(long);
+    expect(out.length).toBeLessThanOrEqual(80 + 5); // quotes + trailing dots
+    expect(out.startsWith('"word word')).toBe(true);
+    expect(out.endsWith('..."')).toBe(true);
+    expect(out).not.toContain("wor..."); // never cut mid-word when a space exists
   });
 });

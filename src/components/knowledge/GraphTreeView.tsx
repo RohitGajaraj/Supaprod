@@ -49,15 +49,15 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
         {superseding && (
           <span
             className="mono-label"
-            style={{ fontSize: 8.5, color: "var(--madder, #b0573f)" }}
+            style={{ fontSize: 10.5, color: "var(--madder)" }}
             title={
               node.retired
-                ? "This supersession was itself later reversed (kept as history)"
+                ? "This revision was itself later reversed (kept as history)"
                 : "A later outcome revised this belief"
             }
           >
-            {node.relation}
-            {node.retired ? " (reversed)" : ""}
+            {node.relation === "contradicts" ? "contradicted" : "replaced"}
+            {node.retired ? " · later reversed" : ""}
           </span>
         )}
         {node.rationale && (

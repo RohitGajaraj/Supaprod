@@ -33,6 +33,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "16px 18px",
+        boxShadow: "var(--top-light)",
       }}
     >
       <div className="flex items-center" style={{ gap: 8, marginBottom: rows.length ? 4 : 0 }}>

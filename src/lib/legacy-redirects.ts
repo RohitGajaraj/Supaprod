@@ -9,7 +9,9 @@
  * with `/govern` as its live drill layer. LOOM W1 (2026-07-04) finished the
  * rename the OBS-10 spec originally assumed: Brain canonical = `/brain`
  * (label and URL agree); `/knowledge` is now itself a legacy key below.
- * Engine Room canonical stays `/engine-room`.
+ * Engine Room canonical stays `/engine-room`; LOOM W2 (2026-07-04) folded
+ * `/govern`'s live tabs into the four rooms, so `/govern` is a legacy key
+ * below too (its stub branches ?tab= onto ?room=&view=).
  */
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
@@ -41,10 +43,8 @@ export const DOOR_INTERNAL_PATHS = [
   "/admin",
   "/trust-ledger",
   "/sync",
-  "/govern",
   "/traces",
   "/traces/$traceId",
-  "/prds/$id",
 ] as const;
 
 /**
@@ -56,16 +56,24 @@ export const DOOR_INTERNAL_PATHS = [
  * these away would be redundant, speculative work against a link that
  * already works - never re-list these under "genuinely remaining work":
  *
- * - `/govern` - Engine Room's own detail/drill layer; still renders its own
- *   live tabs (traces/evals/drift/guardrails/budgets/team/approvals/etc).
- * - `/prds/$id` - the full PRD editor (AI assist, GitHub issue creation, task
- *   graphs, design scaffolding, Linear issues, Studio dispatch). Plan's
- *   `SpecDetail` is explicitly read-only and links here itself as its own
- *   "Open full spec ->" drill-in ("`src/components/plan/SpecDetail.tsx`).
- *   Duplicating this into Plan would be a second full PRD editor, not a fold.
  * - `/traces`, `/traces/$traceId` - Engine Room's own `RecordRoom` navigates
- *   here for trace detail; `/govern?tab=traces` is a second live consumer.
- *   Same drill-in-layer shape as `/govern` itself, one level deeper.
+ *   here for trace detail. A live drill-in layer, one level deeper than the
+ *   Record room.
+ *
+ * `/govern` left this list on 2026-07-04 (LOOM W2, the audit's #1 IA
+ * insight: ONE Engine Room). Its 15 live tabs were folded into the four
+ * rooms as ?view= sub-tabs; /govern is now a permanent redirect stub that
+ * maps ?tab= (and the suite/agent/surface drill params) onto
+ * /engine-room?room=&view= - a per-tab branching a single static map entry
+ * cannot express (same shape as `/product`), so the map entry below carries
+ * the bare-URL default only.
+ *
+ * `/prds/$id` left this list on 2026-07-04 (LOOM W2): the full spec editor
+ * was re-homed to `/plan/spec/$id` (Plan's own drill layer) and `/prds/$id`
+ * is now a permanent param-forwarding redirect stub - a param route cannot
+ * be expressed in the static map below (same shape as `/product`'s ?tab=
+ * branching), so the stub `src/routes/_authenticated.prds.$id.tsx` carries
+ * the id + ?tab= forward itself.
  *
  * Genuinely remaining work: NONE as of 2026-07-03 (lane3) - every legacy
  * surface below is closed. `/product` itself (2026-07-03, lane3, final
@@ -117,13 +125,13 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/product": { to: "/discover" },
 
   // -- Plan --
-  "/prds": { to: "/plan" }, // bare list only; /prds/$id stays live (see above)
+  // LOOM W2 (2026-07-04): /plan honors ?view= (roadmap · specs ·
+  // stakeholders) via validateSearch + section scroll, so the params these
+  // redirects carry are no longer dead. /prds/$id -> /plan/spec/$id lives in
+  // its own param-forwarding stub (see the module doc above).
+  "/prds": { to: "/plan", search: { view: "specs" } },
   "/roadmap": { to: "/plan", search: { view: "roadmap" } },
-  // OBS-10 (2026-07-03, resumed, lane3): Plan gained a "Stakeholder Pack."
-  // section (StakeholderPackPanel, same decision picker + exec/eng/board
-  // tabs + copy/download the legacy page had) - no longer in the
-  // "Genuinely remaining work" list above.
-  "/stakeholder": { to: "/plan" },
+  "/stakeholder": { to: "/plan", search: { view: "stakeholders" } },
 
   // -- Brain (canonical /brain since LOOM W1; /knowledge is legacy) --
   "/knowledge": { to: "/brain" },
@@ -160,18 +168,26 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/inbox": { to: "/today" },
   "/chat": { to: "/today" }, // Ask is the Cmd+J panel now (OBS-12), not a page.
 
-  // -- Engine Room (canonical /engine-room; /govern stays live as its detail layer) --
-  "/agents": { to: "/govern", search: { tab: "team" } },
-  "/swarm": { to: "/govern", search: { tab: "team" } },
+  // -- Engine Room (canonical /engine-room; /govern folded 2026-07-04, LOOM W2) --
+  // The stub itself branches ?tab= 14 ways and forwards drill params; this
+  // entry is the bare-URL default (the glance), per the /product precedent.
+  "/govern": { to: "/engine-room" },
+  "/agents": { to: "/engine-room", search: { room: "safety", view: "team" } },
+  "/swarm": { to: "/engine-room", search: { room: "safety", view: "team" } },
   "/evals": { to: "/engine-room", search: { room: "quality", view: "suites" } },
   "/eval-health": { to: "/engine-room", search: { room: "quality", view: "score" } },
   "/drift": { to: "/engine-room", search: { room: "quality", view: "drift" } },
-  "/guardrails": { to: "/engine-room", search: { room: "safety" } },
-  "/budgets": { to: "/engine-room", search: { room: "spend" } },
-  "/analytics": { to: "/engine-room", search: { room: "spend" } },
+  "/guardrails": { to: "/engine-room", search: { room: "safety", view: "rules" } },
+  "/budgets": { to: "/engine-room", search: { room: "spend", view: "caps" } },
+  "/analytics": { to: "/engine-room", search: { room: "spend", view: "usage" } },
+  // Bare /observe lands on the glance (the audit flagged the old Spend-room
+  // landing as semantically odd); the stub still maps ?tab= to the room.
   "/observe": { to: "/engine-room" },
-  "/prompts": { to: "/engine-room" },
-  "/governance": { to: "/govern" },
+  // Prompt Studio's first reachable home (the audit found it dormant: the
+  // old redirect dropped it on the bare glance with no prompts anchor).
+  "/prompts": { to: "/engine-room", search: { room: "quality", view: "prompts" } },
+  // The old default tab (controls) preserved; the stub branches per ?tab=.
+  "/governance": { to: "/engine-room", search: { room: "safety", view: "controls" } },
 
   // -- Settings --
   "/notifications": { to: "/settings" },

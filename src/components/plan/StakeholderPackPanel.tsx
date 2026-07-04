@@ -180,10 +180,10 @@ export function StakeholderPackPanel() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setAudience(tab.id)}
-                className={active ? undefined : "hover:[color:var(--text-body)]"}
+                className={`loom-press ${active ? "" : "hover:[color:var(--text-body)]"}`}
                 style={{
                   fontFamily: "var(--font-mono)",
-                  fontSize: "9.5px",
+                  fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   color: active ? "var(--text-primary)" : "var(--text-subtle)",
@@ -222,6 +222,7 @@ export function StakeholderPackPanel() {
             borderRadius: "var(--radius-panel)",
             padding: "22px 24px",
             background: "var(--surface-card)",
+            boxShadow: "var(--shadow-elevated)",
           }}
         >
           {rendered.pack.sections.map((s, i) => (

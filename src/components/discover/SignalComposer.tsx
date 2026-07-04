@@ -82,11 +82,21 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Loom v4 §3 ember discipline: the surface's ONE solid-fill CTA is Capture
+  // (the PM's own write action). While the capture form is open the solid
+  // fill moves to its submit button, so exactly one ember fill is ever
+  // visible at a time.
+  const emberFill = {
+    background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+    color: "var(--cta-ink)",
+  } as const;
+
   return (
     <div className="mb-3.5" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={rowStyle}>
         <Button
-          variant="secondary"
+          variant={mode === "capture" ? "secondary" : "primary"}
+          style={mode === "capture" ? undefined : emberFill}
           onClick={() => setMode(mode === "capture" ? "none" : "capture")}
         >
           + Capture
@@ -101,14 +111,12 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
           disabled={unclusteredCount === 0}
         >
           {unclusteredCount > 0
-            ? `Cluster ${unclusteredCount} · Scout themes them`
+            ? `Cluster ${unclusteredCount} · groups them into themes`
             : "Nothing to cluster"}
         </Button>
         {settings.data?.is_owner ? (
           <span className="ml-auto flex items-center gap-2">
-            <MonoLabel tone="faint" style={{ fontSize: "9px" }}>
-              Auto-cluster
-            </MonoLabel>
+            <MonoLabel style={{ fontSize: "10.5px" }}>Auto-cluster</MonoLabel>
             <Switch
               checked={settings.data.enabled}
               disabled={toggleAuto.isPending}
@@ -131,19 +139,21 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What did you hear, and from where?"
+            aria-label="New signal"
             style={{
               flex: 1,
-              background: "#111113",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--surface-recessed)",
+              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               padding: "8px 10px",
-              fontSize: "13px",
+              fontSize: "var(--text-base)",
               color: "var(--text-primary)",
             }}
           />
           <Button
             type="submit"
-            variant="secondary"
+            variant="primary"
+            style={emberFill}
             loading={capture.isPending}
             disabled={content.trim().length < 2}
           >
@@ -160,12 +170,13 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             onChange={(e) => setBulkText(e.target.value)}
             rows={4}
             placeholder={"One signal per line…"}
+            aria-label="Signals to import, one per line"
             style={{
-              background: "#111113",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--surface-recessed)",
+              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               padding: "10px",
-              fontSize: "13px",
+              fontSize: "var(--text-base)",
               color: "var(--text-primary)",
               resize: "vertical",
             }}

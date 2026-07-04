@@ -122,6 +122,60 @@ export function summarizeCompounding(learnings: CompoundingLearning[]): Compound
   };
 }
 
+/** Longest cause text we quote inline before capping at a word boundary. */
+const RESCORE_CAUSE_MAX = 80;
+
+/**
+ * PURE. Quote-guard a learning's summary for inline prose. The summary is free
+ * user text (recordOutcome stores whatever was typed in the outcome form, and an
+ * LLM draft can prefill it), so it can be any fragment, e.g. a pasted test title.
+ * Dropped raw into a sentence shaped "+0.3 after <summary>", a non-sentence
+ * breaks the grammar (the live "Critic says revise · +0.3 after This is an Test
+ * Message - By RG" bug). Guard: collapse whitespace, strip wrapping quotes, swap
+ * inner double quotes for singles, cap at a word boundary, then wrap in quotes
+ * so any text reads as a citation, not as prose. Empty or whitespace-only
+ * summaries fall back to a neutral unquoted phrase.
+ */
+export function rescoreCauseOf(summary: string | null | undefined): string {
+  const clean = (summary ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^["'“”]+|["'“”]+$/g, "")
+    .replace(/["“”]/g, "'")
+    .trim();
+  if (!clean) return "the latest outcome";
+  let capped = clean;
+  if (capped.length > RESCORE_CAUSE_MAX) {
+    const cut = capped.slice(0, RESCORE_CAUSE_MAX);
+    const atWord = cut.lastIndexOf(" ");
+    capped =
+      (atWord > RESCORE_CAUSE_MAX / 2 ? cut.slice(0, atWord) : cut).replace(/[\s.,;:]+$/, "") +
+      "...";
+  }
+  return `"${capped}"`;
+}
+
+/**
+ * PURE. One short "why the score moved" note for an opportunity row, e.g.
+ * `+0.3 after "retention held in week one"`, or null when the learning did not
+ * actually move the score at display precision (same rounded-move rule as
+ * rescoresOf, so a sub-0.1 drift never renders a "+0.0 after ..." note).
+ * The caller joins it into its own separator chain.
+ */
+export function rescoreNoteOf(l: {
+  prior_ice: number | string | null;
+  new_ice: number | string | null;
+  summary?: string | null;
+}): string | null {
+  const prior = iceNum(l.prior_ice);
+  const next = iceNum(l.new_ice);
+  if (prior == null || next == null) return null;
+  const delta = round1(round1(next) - round1(prior));
+  if (delta === 0) return null;
+  const signed = `${delta > 0 ? "+" : ""}${delta.toFixed(1)}`;
+  return `${signed} after ${rescoreCauseOf(l.summary)}`;
+}
+
 /**
  * PURE. One honest, neutral sentence describing the compounding, or null when no
  * decision has been re-scored yet (so the caller can stay silent). No hype: it

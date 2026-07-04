@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { Surface } from "@/components/obsidian/Surface";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
 import { getAnalyticsOverview } from "@/lib/analytics.functions";
 import { listEvalSuites } from "@/lib/evals.functions";
@@ -11,15 +10,77 @@ import { getGuardrailOverview } from "@/lib/guardrails.functions";
 import { getIncidents } from "@/lib/incidents.functions";
 import { listTraces } from "@/lib/traces.functions";
 import { getLedgerSeal } from "@/lib/trust-ledger.functions";
-import { buildGlance, type GlanceInputs, type RoomKey } from "@/lib/engine-room-glance";
-import { RoomCard } from "./RoomCard";
+import {
+  buildSpendGlance,
+  buildQualityGlance,
+  buildSafetyGlance,
+  buildRecordGlance,
+  type RoomGlance,
+  type RoomKey,
+} from "@/lib/engine-room-glance";
+import { RoomCard, RoomCardSkeleton, RoomCardError } from "./RoomCard";
 import { ConnectionStrip } from "./ConnectionStrip";
 
+/** LOOM §4b: the Engine Room is a work surface - fluid to --container-work
+ * (1520px), not the 1060px standard cap. Local to this folder because the
+ * shared Surface component is other lanes' dependency. */
+export function EngineRoomContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        maxWidth: "var(--container-work)",
+        margin: "0 auto",
+        padding: "36px 32px 64px",
+        animation: "cadRise 260ms var(--ease) both",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** One room's glance, honestly staged: loading | error | ready. */
+export interface RoomStatus {
+  key: RoomKey;
+  loading: boolean;
+  error: string | null;
+  glance: RoomGlance | null;
+  retry: () => void;
+}
+
+function roomStatus(
+  key: RoomKey,
+  queries: UseQueryResult<unknown>[],
+  build: () => RoomGlance,
+): RoomStatus {
+  const failed = queries.filter((q) => q.isError);
+  const retry = () => {
+    for (const q of failed) void q.refetch();
+  };
+  if (failed.length > 0) {
+    const cause = failed[0]!.error;
+    return {
+      key,
+      loading: false,
+      error: cause instanceof Error ? cause.message : "The read failed.",
+      glance: null,
+      retry,
+    };
+  }
+  if (queries.some((q) => q.isLoading)) {
+    return { key, loading: true, error: null, glance: null, retry };
+  }
+  return { key, loading: false, error: null, glance: build(), retry };
+}
+
 /** Shared glance data source: EngineRoomSurface (the grid) and RoomDetail
- * (a single room's header) both need the same four verdicts, so the nine
- * read queries live in one hook rather than being wired twice. TanStack
- * Query dedupes by key regardless of which mounts first. */
-export function useEngineRoomGlance() {
+ * (a single room's header) both need the same four verdicts, so the read
+ * queries live in one hook rather than being wired twice. TanStack Query
+ * dedupes by key regardless of which mounts first.
+ *
+ * Honesty (LOOM §9b): every room reports its own loading/error/ready state;
+ * a failed read renders as an error, never as a healthy verdict. */
+export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
   const fBudget = useServerFn(getBudgetOverview);
   const fAnalytics = useServerFn(getAnalyticsOverview);
   const fSuites = useServerFn(listEvalSuites);
@@ -34,110 +95,127 @@ export function useEngineRoomGlance() {
     queryKey: ["analytics-overview", 7],
     queryFn: () => fAnalytics({ data: { days: 7 } }),
   });
-  const cost14Q = useQuery({
-    queryKey: ["analytics-overview", 14],
-    queryFn: () => fAnalytics({ data: { days: 14 } }),
-  });
   const suitesQ = useQuery({ queryKey: ["eval_suites"], queryFn: () => fSuites() });
   const driftQ = useQuery({ queryKey: ["drift_overview"], queryFn: () => fDrift() });
   const guardrailsQ = useQuery({ queryKey: ["guardrails"], queryFn: () => fGuardrails() });
   const incidentsQ = useQuery({ queryKey: ["incidents"], queryFn: () => fIncidents() });
+  // The glance needs a count, not an archive: 7 days (window named in the
+  // verdict), against the audit's 30-day/200-row count-only read (D-43).
   const tracesQ = useQuery({
-    queryKey: ["traces", 30, "all"],
-    queryFn: () => fTraces({ data: { days: 30, status: "all", limit: 200 } }),
+    queryKey: ["traces", 7, "all"],
+    queryFn: () => fTraces({ data: { days: 7, status: "all", limit: 200 } }),
   });
   const sealQ = useQuery({ queryKey: ["ledger-seal"], queryFn: () => fSeal({ data: {} }) });
 
-  const loading =
-    budgetQ.isLoading ||
-    cost7Q.isLoading ||
-    cost14Q.isLoading ||
-    suitesQ.isLoading ||
-    driftQ.isLoading ||
-    guardrailsQ.isLoading ||
-    incidentsQ.isLoading ||
-    tracesQ.isLoading ||
-    sealQ.isLoading;
+  const rooms: RoomStatus[] = [
+    roomStatus("spend", [budgetQ, cost7Q], () =>
+      buildSpendGlance({
+        global: budgetQ.data?.global ?? null,
+        costThisWeek: cost7Q.data?.summary.totalCost ?? 0,
+      }),
+    ),
+    roomStatus("quality", [suitesQ, driftQ], () =>
+      buildQualityGlance({
+        suites: (suitesQ.data ?? []).map((s) => ({
+          pass_threshold: s.pass_threshold,
+          last_run: s.last_run,
+        })),
+        driftOpenCount: driftQ.data?.openIncidents.length ?? 0,
+      }),
+    ),
+    roomStatus("safety", [guardrailsQ, incidentsQ], () =>
+      buildSafetyGlance({
+        rules: guardrailsQ.data?.rules ?? [],
+        incidentCount: incidentsQ.data?.count ?? 0,
+      }),
+    ),
+    roomStatus("record", [tracesQ, sealQ], () =>
+      buildRecordGlance({
+        traceCount: tracesQ.data?.traces.length ?? 0,
+        ledgerVerifies: sealQ.data?.available ?? false,
+      }),
+    ),
+  ];
 
-  const inputs: GlanceInputs = loading
-    ? {}
-    : {
-        spend: {
-          global: budgetQ.data?.global ?? null,
-          costThisWeek: cost7Q.data?.summary.totalCost ?? 0,
-          costTrailing14d: cost14Q.data?.summary.totalCost ?? 0,
-        },
-        quality: {
-          suites: (suitesQ.data ?? []).map((s) => ({
-            pass_threshold: s.pass_threshold,
-            last_run: s.last_run,
-          })),
-          driftOpenCount: driftQ.data?.openIncidents.length ?? 0,
-        },
-        safety: {
-          rules: guardrailsQ.data?.rules ?? [],
-          incidentCount: incidentsQ.data?.count ?? 0,
-        },
-        record: {
-          traceCount: tracesQ.data?.traces.length ?? 0,
-          ledgerVerifies: sealQ.data?.available ?? false,
-        },
-      };
-
-  return { rooms: buildGlance(inputs), loading };
+  return { rooms };
 }
 
 /** The glance: hero, 2x2 room grid, connection strip. Every number is a
  * read-only consumer of an existing query (OBS-09 §3 no-feature-work
- * boundary). Nothing here writes. */
+ * boundary). Nothing here writes. The four doors are always visible (LOOM
+ * §0: nothing hidden); an all-healthy day earns one quiet line, never a
+ * banner that swallows the grid. */
 export function EngineRoomSurface() {
   const navigate = useNavigate({ from: "/engine-room" });
-  const { rooms, loading } = useEngineRoomGlance();
-  const allClear = !loading && rooms.every((r) => r.state === "healthy");
+  const { rooms } = useEngineRoomGlance();
+  const allHealthy =
+    rooms.length > 0 && rooms.every((r) => r.glance !== null && r.glance.state === "healthy");
   const openRoom = (key: RoomKey) => navigate({ search: { room: key } });
 
   return (
-    <Surface>
+    <EngineRoomContainer>
       <h1
         style={{
           fontFamily: "var(--font-serif)",
           fontWeight: 430,
-          fontSize: "28px",
+          fontSize: "var(--text-h1)",
           letterSpacing: "-0.015em",
+          lineHeight: 1.15,
           color: "var(--text-primary)",
           margin: "0 0 6px",
         }}
       >
-        The engine, at a <em style={{ fontStyle: "italic", color: "var(--glacier)" }}>glance</em>.
+        The engine, at a <em style={{ fontStyle: "italic", color: "var(--ember-text)" }}>glance</em>
+        .
       </h1>
-      <p style={{ fontSize: "13px", color: "var(--text-subtle)", marginBottom: "24px" }}>
-        Four rooms, one verdict each. Your calls never live here · they find you on Today.
+      <p
+        style={{
+          fontSize: "var(--text-base)",
+          color: "var(--text-subtle)",
+          marginBottom: allHealthy ? "10px" : "24px",
+        }}
+      >
+        Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record.
       </p>
 
-      {allClear ? (
-        <div
+      {allHealthy ? (
+        <p
+          className="uppercase"
           style={{
-            borderRadius: "var(--radius-panel)",
-            border: "1px solid rgba(127, 191, 142, 0.45)",
-            backgroundColor: "var(--surface-card-deep)",
-            padding: "24px",
-            marginBottom: "20px",
-            fontFamily: "var(--font-ui)",
-            fontSize: "13px",
-            color: "var(--text-body)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            letterSpacing: "0.1em",
+            color: "var(--moss-bright)",
+            margin: "0 0 18px",
           }}
         >
-          Four rooms, nothing burning. Come back when a chip turns marigold.
-        </div>
-      ) : (
-        <div className="grid grid-cols-2" style={{ gap: "14px", marginBottom: "20px" }}>
-          {rooms.map((room) => (
-            <RoomCard key={room.key} glance={room} onOpen={() => openRoom(room.key)} />
-          ))}
-        </div>
-      )}
+          All four rooms are healthy
+        </p>
+      ) : null}
+
+      <div
+        className="grid grid-cols-1 md:grid-cols-2"
+        style={{ gap: "14px", marginBottom: "20px" }}
+      >
+        {rooms.map((room) => {
+          if (room.error !== null) {
+            return (
+              <RoomCardError
+                key={room.key}
+                room={room.key}
+                message={room.error}
+                onRetry={room.retry}
+              />
+            );
+          }
+          if (room.loading || room.glance === null) {
+            return <RoomCardSkeleton key={room.key} room={room.key} />;
+          }
+          return <RoomCard key={room.key} glance={room.glance} onOpen={() => openRoom(room.key)} />;
+        })}
+      </div>
 
       <ConnectionStrip />
-    </Surface>
+    </EngineRoomContainer>
   );
 }

@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import type { StudioApproval, StudioRunDetail } from "@/lib/studio.functions";
 import { ApprovalCard } from "./ApprovalCard";
-import { StatusIcon, StatusChip } from "./studio-ui";
+import { StatusIcon, StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost, summarizeArgs } from "./studio-format";
 
 type LoopStep = StudioRunDetail["steps"][number];
@@ -68,14 +68,14 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
         <div style={{ minWidth: 0, flex: 1 }}>
           <span style={{ color: "var(--agent)", fontWeight: 600 }}>{step.name}</span>
           {step.status !== "executed" ? (
-            <span style={{ color: failed ? "var(--rose)" : "var(--ink-muted)" }}>
+            <span style={{ color: failed ? "var(--madder)" : "var(--ink-muted)" }}>
               {" "}
               · {step.status}
             </span>
           ) : null}
           <div
             className="line-clamp-1 break-words"
-            style={{ color: step.error ? "var(--rose)" : "var(--ink-muted)" }}
+            style={{ color: step.error ? "var(--madder)" : "var(--ink-muted)" }}
           >
             {step.error
               ? `error: ${step.error}`
@@ -114,7 +114,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
     .filter(Boolean)
     .join(" · ");
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <StatusIcon s={run.status} />
         <span className="mono-label" style={{ color: "var(--ink)", fontWeight: 600 }}>

@@ -9,7 +9,6 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Play, RotateCcw, ShieldCheck, Share2 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { updateDecision } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
@@ -30,12 +29,10 @@ function copyShareLink(slug: string) {
 }
 
 function ActionButton({
-  icon: Icon,
   label,
   pending,
   onClick,
 }: {
-  icon: typeof Play;
   label: string;
   pending: boolean;
   onClick: () => void;
@@ -43,12 +40,21 @@ function ActionButton({
   return (
     <button
       type="button"
-      className="btn btn-ghost btn-sm"
-      style={{ fontSize: 10.5, justifyContent: "flex-start" }}
+      className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.06em",
+        color: pending ? "var(--text-faint)" : "var(--text-subtle)",
+        background: "transparent",
+        border: "none",
+        padding: "3px 0",
+        textAlign: "left",
+      }}
       disabled={pending}
       onClick={onClick}
     >
-      <Icon size={11} style={{ marginRight: 5 }} /> {pending ? "working…" : label}
+      {pending ? "working…" : `${label} ->`}
     </button>
   );
 }
@@ -121,7 +127,6 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       key: "reopen",
       el: (
         <ActionButton
-          icon={RotateCcw}
           label="Reopen decision"
           pending={reopen.isPending}
           onClick={() => reopen.mutate()}
@@ -132,7 +137,6 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       key: "share",
       el: (
         <ActionButton
-          icon={Share2}
           label="Share receipt"
           pending={share.isPending || shareLoading}
           onClick={() => share.mutate()}
@@ -146,7 +150,6 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       key: "critic",
       el: (
         <ActionButton
-          icon={ShieldCheck}
           label="Run the Critic"
           pending={critic.isPending}
           onClick={() => critic.mutate()}
@@ -159,7 +162,6 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
     key: "mission",
     el: (
       <ActionButton
-        icon={Play}
         label="Start a mission from this"
         pending={startMission.isPending}
         onClick={() => startMission.mutate()}
@@ -172,7 +174,7 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       style={{
         marginTop: 12,
         paddingTop: 10,
-        borderTop: "1px solid var(--hairline, #e5e0d8)",
+        borderTop: "1px solid var(--hairline)",
         display: "flex",
         flexDirection: "column",
         gap: 2,

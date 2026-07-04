@@ -265,6 +265,8 @@ export function MissionSlideOver({
           <button
             type="button"
             onClick={() => setTraceOpen((v) => !v)}
+            aria-expanded={traceOpen}
+            className="loom-press"
             style={{
               alignSelf: "flex-start",
               fontFamily: "var(--font-mono)",
@@ -282,7 +284,7 @@ export function MissionSlideOver({
           {traceOpen ? (
             <div
               style={{
-                backgroundColor: "#0B0B0D",
+                backgroundColor: "var(--surface-recessed)",
                 borderRadius: "var(--radius-control)",
                 padding: 12,
                 display: "flex",

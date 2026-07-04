@@ -5,11 +5,12 @@
 // madder for real regressions), a right-aligned blue "runs · cases · config →"
 // mono, and a 4px progress bar (moss at/above the suite's own pass gate, ember
 // below — production's real threshold, not the reference's hardcoded 90).
-// Screen-7 drill contract: cards navigate to /govern?tab=evals&suite=<id> —
-// the URL-driven EvalSuiteDetail (govern-detail.jsx EvalDetail port) renders
-// in the tab body. The panel's old internal state-driven SuiteDetail is
-// retired; its functionality (run now, enable/disable, delete confirmed,
-// case CRUD, run history with judge reasoning) lives in EvalSuiteDetail.
+// Drill contract (LOOM W2, the /govern fold): cards navigate to
+// /engine-room?room=quality&view=suites&suite=<id> — the URL-driven
+// EvalSuiteDetail renders in the room body. The panel's old internal
+// state-driven SuiteDetail is retired; its functionality (run now,
+// enable/disable, delete confirmed, case CRUD, run history with judge
+// reasoning) lives in EvalSuiteDetail.
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -72,15 +73,23 @@ export function EvalsPanel() {
   const trends = trendsQ.data?.trends ?? {};
 
   const openSuite = (id: string) =>
-    navigate({ to: "/govern", search: { tab: "evals", suite: id } });
+    navigate({ to: "/engine-room", search: { room: "quality", view: "suites", suite: id } });
 
   if (suitesQ.error) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+      <div
+        style={{
+          padding: 24,
+          backgroundColor: "var(--card)",
+          border: "1px solid rgba(224, 101, 87, 0.4)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--shadow-elevated)",
+        }}
+      >
+        <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
           Couldn't load eval suites
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(suitesQ.error as Error).message}
         </p>
         <button
@@ -288,9 +297,20 @@ export function EvalsPanel() {
             return (
               <button
                 key={s.id}
-                className="bento lift"
+                className="hover:[background-color:#141416] hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)] active:scale-[0.98] cursor-pointer"
                 onClick={() => openSuite(s.id)}
-                style={{ textAlign: "left", display: "block", padding: "var(--card-pad)" }}
+                style={{
+                  textAlign: "left",
+                  display: "block",
+                  padding: "18px 20px",
+                  backgroundColor: "var(--card)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-card)",
+                  boxShadow: "var(--shadow-elevated)",
+                  transitionProperty: "background-color, box-shadow, transform",
+                  transitionDuration: "var(--dur-press)",
+                  transitionTimingFunction: "var(--ease)",
+                }}
               >
                 <div
                   style={{
@@ -300,9 +320,11 @@ export function EvalsPanel() {
                   }}
                 >
                   <MonoLabel>{s.name}</MonoLabel>
-                  <span className="mono-label" style={{ fontSize: 9 }}>
+                  <span className="mono-label" style={{ fontSize: 10.5 }}>
                     {s.case_count} cases
-                    {!s.enabled ? <span style={{ color: "var(--ink-faint)" }}> · off</span> : null}
+                    {!s.enabled ? (
+                      <span style={{ color: "var(--text-subtle)" }}> · off</span>
+                    ) : null}
                   </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
@@ -312,7 +334,14 @@ export function EvalsPanel() {
                     </span>
                   ) : (
                     <>
-                      <span className="font-display tabular-nums" style={{ fontSize: 30 }}>
+                      <span
+                        className="tabular-nums"
+                        style={{
+                          fontFamily: "var(--font-serif)",
+                          fontSize: 30,
+                          color: "var(--text-primary)",
+                        }}
+                      >
                         {score}
                       </span>
                       {diff != null ? (
@@ -321,10 +350,10 @@ export function EvalsPanel() {
                           style={{
                             color:
                               diff > 0.5
-                                ? "var(--emerald)"
+                                ? "var(--moss-bright)"
                                 : diff < -0.5
-                                  ? "var(--rose)"
-                                  : "var(--ink-subtle)",
+                                  ? "var(--madder-bright)"
+                                  : "var(--text-subtle)",
                           }}
                         >
                           {diff > 0.5 ? "↑ improving" : diff < -0.5 ? "↓ falling" : "→ steady"}
@@ -335,7 +364,7 @@ export function EvalsPanel() {
                   <span style={{ flex: 1 }}></span>
                   <span
                     className="mono-label"
-                    style={{ fontSize: 8.5, color: "var(--action-blue)" }}
+                    style={{ fontSize: 10.5, color: "var(--action-blue)" }}
                   >
                     runs · cases · config →
                   </span>
@@ -354,7 +383,9 @@ export function EvalsPanel() {
                       style={{
                         height: "100%",
                         width: `${score}%`,
-                        background: score >= s.pass_threshold ? "var(--emerald)" : "var(--ember)",
+                        // Outcome colors: moss = at/above the gate, madder =
+                        // a real regression (ember means needs-a-human only).
+                        background: score >= s.pass_threshold ? "var(--moss)" : "var(--madder)",
                       }}
                     ></div>
                   </div>
@@ -456,8 +487,8 @@ function CreateSuiteForm({
           />
         </label>
         <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
-            Pass gate (0–100)
+          <div className="mono-label" style={{ fontSize: 10.5, marginBottom: 4 }}>
+            Pass gate (0 to 100)
           </div>
           <input
             className="input"

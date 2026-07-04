@@ -21,19 +21,41 @@ export const Route = createFileRoute("/forgot-password")({
   head: () => ({ meta: [{ title: "Forgot password · Cadence" }] }),
 });
 
+// Small mono-caps field label above each input — the a11y fix for the
+// placeholder-only pattern (SC 1.3.1, 3.3.2), styled to the design language.
+const fieldLabelStyle: React.CSSProperties = {
+  display: "block",
+  textAlign: "left",
+  fontSize: 9,
+  marginBottom: 5,
+};
+
+const fieldErrorStyle: React.CSSProperties = {
+  fontSize: 11.5,
+  color: "var(--rose)",
+  textAlign: "left",
+  lineHeight: 1.5,
+  margin: "0 0 10px",
+};
+
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   async function sendResetLink(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      setFormError(error.message);
+      return toast.error(error.message);
+    }
     setSent(true);
     toast.success("Check your email for the reset link");
   }
@@ -85,7 +107,7 @@ function ForgotPasswordPage() {
             Reset your password
           </h1>
           <div className="mono-label" style={{ marginTop: 6 }}>
-            agents execute · you govern
+            you make the calls · Cadence runs the rest
           </div>
         </div>
 
@@ -114,15 +136,30 @@ function ForgotPasswordPage() {
             </div>
           ) : (
             <form onSubmit={sendResetLink}>
+              <label htmlFor="forgot-email" className="mono-label" style={fieldLabelStyle}>
+                Work email
+              </label>
               <input
+                id="forgot-email"
                 className="input"
                 type="email"
                 required
-                placeholder="work email"
+                autoComplete="email"
+                placeholder="you@company.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{ marginBottom: 8, width: "100%" }}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFormError(null);
+                }}
+                aria-invalid={formError ? true : undefined}
+                aria-describedby={formError ? "forgot-error" : undefined}
+                style={{ marginBottom: formError ? 8 : 10, width: "100%" }}
               />
+              {formError ? (
+                <p id="forgot-error" role="alert" style={fieldErrorStyle}>
+                  {formError}
+                </p>
+              ) : null}
               <button
                 className="btn btn-primary"
                 type="submit"
@@ -142,7 +179,7 @@ function ForgotPasswordPage() {
         <p
           style={{
             fontSize: 11.5,
-            color: "var(--ink-faint)",
+            color: "var(--ink-subtle)",
             textAlign: "center",
             marginTop: 16,
             lineHeight: 1.5,

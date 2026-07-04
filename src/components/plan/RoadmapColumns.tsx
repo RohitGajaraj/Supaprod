@@ -124,15 +124,28 @@ export function RoadmapColumns() {
       >
         <span className="sr-only">Loading the roadmap…</span>
         {COLUMNS.map((c) => (
-          <div
-            key={c.key}
-            aria-hidden="true"
-            style={{
-              borderRadius: "var(--radius-card)",
-              border: "1px solid var(--hairline)",
-              minHeight: 160,
-            }}
-          />
+          <div key={c.key} aria-hidden="true">
+            <div
+              style={{
+                height: 10,
+                width: 72,
+                marginBottom: 10,
+                borderRadius: 4,
+                backgroundImage: "var(--shimmer-gradient)",
+                backgroundSize: "280% 100%",
+                animation: "cadShimmer 5s linear infinite",
+                opacity: 0.35,
+              }}
+            />
+            <div
+              style={{
+                borderRadius: "var(--radius-card)",
+                border: "1px solid var(--hairline)",
+                boxShadow: "var(--top-light)",
+                minHeight: 132,
+              }}
+            />
+          </div>
         ))}
       </div>
     );
@@ -219,6 +232,7 @@ export function RoadmapColumns() {
                 type="button"
                 disabled={bulkMove.isPending}
                 onClick={() => bulkMove.mutate({ ids: [...selectedIds], bucket: col.key })}
+                className="loom-press"
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-label)",
@@ -239,6 +253,7 @@ export function RoadmapColumns() {
             <button
               type="button"
               onClick={() => setSelectedIds(new Set())}
+              className="loom-press"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "var(--text-mono-label)",

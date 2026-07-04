@@ -4,6 +4,7 @@ import { MonitorPlay } from "lucide-react";
 import { getStudioPreview, type StudioChangesetSummary } from "@/lib/studio.functions";
 import { resolveBuildPreview } from "@/lib/exec/provider";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { LOOM_CARD } from "./studio-ui";
 
 /**
  * SANDBOX — the Build "Preview" tab. Renders the best standalone HTML the
@@ -102,7 +103,7 @@ export function PreviewPanel({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <MonoLabel icon={MonitorPlay}>Live preview</MonoLabel>
           <span

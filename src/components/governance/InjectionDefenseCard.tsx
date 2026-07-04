@@ -195,7 +195,7 @@ export function InjectionDefenseCard() {
             </div>
           ) : (
             <p style={{ marginTop: 8, fontSize: 11.5, color: "var(--ink-faint)" }}>
-              No injection signals fired — this reads as clean first-party content.
+              No injection signals fired; this reads as clean first-party content.
             </p>
           )}
         </div>

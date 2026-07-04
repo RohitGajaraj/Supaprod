@@ -1,8 +1,12 @@
-// Loop Health Monitor (E8) — a thin always-on strip on the Missions surface that
+// Loop Health Monitor (E8) — a thin always-on strip on the Build surface that
 // reads the loop's vitals (getLoopHealth) so a stall is caught before it bites.
-// Three verdicts: on watch (idle, clean), working (runs in flight), stalled
-// (stuck runs / expired calls → needs you, links to the engine room). Plus the
-// context line: queue depth, last ingest, last run. Polls every 30s for liveness.
+// LOOM v4 reframe (W2-BUILD, audit D-10 + DESIGN-LOOM §9b): raw telemetry may
+// never read as a broken product. The old strip said "Loop stalled · 7 calls
+// expired · 19 in queue" with no meaning, no scope, and no way to act. The
+// numbers stay exactly as true; each now ships with what it means and ONE
+// action. Ember marks the needs-a-human state only (expired approvals are
+// decisions nobody answered); a stall with no expired calls stays neutral ink.
+// Polls every 30s for liveness.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -19,11 +23,35 @@ function rel(iso: string | null): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-const VERDICT: Record<LoopHealth["verdict"], { label: string; color: string }> = {
-  idle: { label: "Loop on watch", color: "var(--ink-faint)" },
-  working: { label: "Loop working", color: "var(--action-blue)" },
-  stalled: { label: "Loop stalled", color: "var(--ember)" },
-};
+/** Verdict word + dot color. Ember is reserved for needs-a-human (expired
+ *  approvals); a stuck run with nothing to approve stays neutral ink. */
+function verdictDisplay(h: LoopHealth): { label: string; color: string } {
+  if (h.verdict === "idle") return { label: "Loop on watch", color: "var(--text-faint)" };
+  if (h.verdict === "working") return { label: "Loop working", color: "var(--glacier)" };
+  return h.expiredCalls > 0
+    ? { label: "Loop waiting on you", color: "var(--ember)" }
+    : { label: "Loop needs a look", color: "var(--text-muted)" };
+}
+
+/** The stalled line, with its meaning: what stopped, why, in plain words. */
+function stalledSummary(h: LoopHealth): string {
+  const parts: string[] = [];
+  if (h.expiredCalls > 0) {
+    parts.push(
+      h.expiredCalls === 1
+        ? "1 approval expired before anyone answered, so its work is on hold"
+        : `${h.expiredCalls} approvals expired before anyone answered, so their work is on hold`,
+    );
+  }
+  if (h.stalledRuns > 0) {
+    parts.push(
+      h.stalledRuns === 1
+        ? `1 run has been quiet for over ${h.stallMinutes}m`
+        : `${h.stalledRuns} runs have been quiet for over ${h.stallMinutes}m`,
+    );
+  }
+  return parts.join(" · ");
+}
 
 export function LoopHealthBanner() {
   const fHealth = useServerFn(getLoopHealth);
@@ -34,20 +62,22 @@ export function LoopHealthBanner() {
   });
   const h = q.data;
   if (!h) return null;
-  const v = VERDICT[h.verdict];
+  const v = verdictDisplay(h);
 
   return (
     <section
-      className="bento"
       style={{
+        background: "var(--surface-card)",
+        borderRadius: "var(--radius-panel)",
+        boxShadow: "var(--top-light), var(--shadow-ambient)",
         padding: "10px var(--card-pad)",
         marginBottom: 18,
         display: "flex",
         alignItems: "center",
         gap: 14,
         flexWrap: "wrap",
-        ...(h.verdict === "stalled"
-          ? { borderColor: "color-mix(in oklab, var(--ember) 45%, var(--hairline))" }
+        ...(h.verdict === "stalled" && h.expiredCalls > 0
+          ? { border: "1px solid var(--ember-line)" }
           : {}),
       }}
     >
@@ -63,28 +93,19 @@ export function LoopHealthBanner() {
             flexShrink: 0,
           }}
         />
-        <strong style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>{v.label}</strong>
+        <strong style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
+          {v.label}
+        </strong>
       </span>
 
       {h.verdict === "stalled" ? (
-        <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>
-          {[
-            h.stalledRuns > 0
-              ? `${h.stalledRuns} run${h.stalledRuns === 1 ? "" : "s"} stuck >${h.stallMinutes}m`
-              : null,
-            h.expiredCalls > 0
-              ? `${h.expiredCalls} call${h.expiredCalls === 1 ? "" : "s"} expired`
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{stalledSummary(h)}</span>
       ) : h.verdict === "working" ? (
-        <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
           {h.inFlightRuns} run{h.inFlightRuns === 1 ? "" : "s"} in flight
         </span>
       ) : (
-        <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
+        <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
           nothing in flight, nothing stuck
         </span>
       )}
@@ -93,23 +114,54 @@ export function LoopHealthBanner() {
 
       <span
         className="mono-label tabular-nums"
-        style={{ display: "flex", gap: 14, color: "var(--ink-subtle)", flexWrap: "wrap" }}
+        style={{
+          display: "flex",
+          gap: 14,
+          fontSize: "var(--text-mono-floor)",
+          color: "var(--text-subtle)",
+          flexWrap: "wrap",
+        }}
       >
-        <span>{h.queueDepth} in queue</span>
+        {/* Scope on the number (§9b): the queue is calls waiting on a human. */}
+        {h.queueDepth > 0 ? (
+          <Link to="/today" style={{ color: "var(--text-subtle)" }}>
+            {h.queueDepth} call{h.queueDepth === 1 ? "" : "s"} waiting on you
+          </Link>
+        ) : (
+          <span>no calls waiting</span>
+        )}
         <span>ingest {rel(h.lastIngestAt)}</span>
         <span>run {rel(h.lastRunAt)}</span>
       </span>
 
-      {h.verdict === "stalled" && (
-        <Link
-          to="/govern"
-          search={{ tab: "approvals" }}
-          className="mono-label"
-          style={{ color: "var(--action-blue)", whiteSpace: "nowrap" }}
-        >
-          Open engine room →
-        </Link>
-      )}
+      {h.verdict === "stalled" &&
+        (h.expiredCalls > 0 ? (
+          <Link
+            to="/govern"
+            search={{ tab: "approvals" }}
+            className="mono-label loom-press"
+            style={{
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--ember-text)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Review expired →
+          </Link>
+        ) : (
+          <Link
+            to="/govern"
+            search={{ tab: "incidents" }}
+            className="mono-label loom-press"
+            style={{
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--glacier)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Open the engine room →
+          </Link>
+        ))}
     </section>
   );
 }

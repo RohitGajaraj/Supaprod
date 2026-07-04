@@ -15,7 +15,6 @@ import {
   ExternalLink,
   Link2,
   Plus,
-  Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/notify";
@@ -468,7 +467,7 @@ export function CalendarPanel({
               marginBottom: 10,
             }}
           >
-            <MonoLabel icon={Sparkles}>Schedule · Scheduler finds open time</MonoLabel>
+            <MonoLabel>Schedule · Scheduler finds open time</MonoLabel>
             <button
               className="mono-label"
               style={{ fontSize: 9, color: "var(--ink-subtle)" }}
@@ -540,7 +539,7 @@ export function CalendarPanel({
               marginBottom: 10,
             }}
           >
-            <MonoLabel icon={Sparkles}>Plan deep work · blocks inside your working hours</MonoLabel>
+            <MonoLabel>Plan deep work · blocks inside your working hours</MonoLabel>
             <button
               className="mono-label"
               style={{ fontSize: 9, color: "var(--ink-subtle)" }}
@@ -610,7 +609,7 @@ export function CalendarPanel({
                         opacity: added ? 0.8 : 1,
                       }}
                     >
-                      {added ? "added ✓" : "Add to calendar"}
+                      {added ? "Added" : "Add to calendar"}
                     </button>
                   </div>
                 );

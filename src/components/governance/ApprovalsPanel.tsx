@@ -290,7 +290,7 @@ function ApprovalCard({
             <span
               className="mono-label"
               style={{ color: "var(--ink-faint)", fontSize: 9.5 }}
-              title="This agent's recorded outcome record — did the decided-on work actually turn out well, not just whether the gate was approved"
+              title="This agent's recorded outcome record: did the decided-on work actually turn out well, not just whether the gate was approved"
             >
               {outcomeLabel}
             </span>

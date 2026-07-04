@@ -19,9 +19,12 @@ export interface BetCardProps {
   editPending?: boolean;
 }
 
+// LOOM W2: v4 card treatment (DESIGN-LOOM §2) — every raised bet card
+// carries the top-light + ambient shadow; NOW keeps its ember border via the
+// layered --ember-line token (a line role, never a fill).
 const COLUMN_STYLE: Record<RoadmapBucket, { border: string; background: string; ink: string }> = {
   now: {
-    border: "1px solid rgba(255, 107, 44, 0.25)",
+    border: "1px solid var(--ember-line)",
     background: "var(--card)",
     ink: "var(--text-primary)",
   },
@@ -115,9 +118,19 @@ export function BetCard({
         padding: "16px 18px",
         border: style.border,
         background: style.background,
+        boxShadow: "var(--shadow-elevated)",
+        transitionProperty: "box-shadow",
+        transitionDuration: "var(--dur-press)",
         display: "flex",
         flexDirection: "column",
         gap: 6,
+      }}
+      onMouseEnter={(e) => {
+        // Hover catches the light: the top-light brightens one step (§2).
+        e.currentTarget.style.boxShadow = "var(--top-light-hover), var(--shadow-ambient)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = "var(--shadow-elevated)";
       }}
     >
       {/* REVISE resolves to the ember hex (#FF6B2C) — the primitive's existing ember-tone
@@ -153,7 +166,7 @@ export function BetCard({
         </span>
       </span>
       {capped && (
-        <MonoLabel style={{ fontSize: 8, color: "var(--text-faint)" }}>
+        <MonoLabel style={{ fontSize: "var(--text-mono-floor)", color: "var(--text-subtle)" }}>
           <MeasureLine measure={capped} />
         </MonoLabel>
       )}
@@ -193,6 +206,7 @@ export function BetCard({
             <button
               type="button"
               onClick={() => setEditing(false)}
+              className="loom-press"
               style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
             >
               cancel
@@ -201,6 +215,7 @@ export function BetCard({
               type="button"
               disabled={editPending || !outcomeVal.trim() || !measureVal.trim()}
               onClick={saveEdit}
+              className="loom-press"
               style={{
                 ...QUIET_MONO_STYLE,
                 color: "var(--glacier)",
@@ -226,7 +241,7 @@ export function BetCard({
                   e.stopPropagation();
                   onMoveTo(t.bucket);
                 }}
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-label)",
@@ -252,6 +267,7 @@ export function BetCard({
           <button
             type="button"
             onClick={startEdit}
+            className="loom-press"
             style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
           >
             {hasOutcome ? "EDIT OUTCOME" : "+ OUTCOME"}

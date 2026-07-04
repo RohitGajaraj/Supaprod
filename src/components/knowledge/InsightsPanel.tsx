@@ -1,20 +1,7 @@
 // BRAIN-UX-V11 — human-lens Insights tab (floor) + AI analyst ceiling.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import {
-  TrendingUp,
-  AlertTriangle,
-  Activity,
-  Scale,
-  GraduationCap,
-  Lightbulb,
-  HelpCircle,
-  Sparkles,
-  ArrowRight,
-  Zap,
-  Link2,
-} from "lucide-react";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/obsidian/primitives";
 import {
   getBrainInsights,
   getBrainAnalysis,
@@ -24,33 +11,43 @@ import {
 } from "@/lib/brain-insights.functions";
 import { LoopClosureBadge } from "@/components/knowledge/LoopClosureBadge";
 
-const SIGNAL_ICON: Record<BrainSignal["kind"], typeof TrendingUp> = {
-  prediction: TrendingUp,
-  action: ArrowRight,
-  risk: Zap,
-  connection: Link2,
-};
-
 const SIGNAL_COLOR: Record<BrainSignal["kind"], string> = {
-  prediction: "var(--ember)",
-  action: "var(--emerald)",
-  risk: "var(--coral)",
-  connection: "var(--ink-subtle)",
+  prediction: "var(--glacier)",
+  action: "var(--moss)",
+  risk: "var(--madder)",
+  connection: "var(--blossom)",
 };
 
-const TONE: Record<BrainInsight["tone"], { color: string; Icon: typeof TrendingUp }> = {
-  positive: { color: "var(--emerald)", Icon: TrendingUp },
-  watch: { color: "var(--coral)", Icon: AlertTriangle },
-  neutral: { color: "var(--ink-subtle)", Icon: Activity },
+const TONE: Record<BrainInsight["tone"], { color: string }> = {
+  positive: { color: "var(--moss)" },
+  watch: { color: "var(--madder)" },
+  neutral: { color: "var(--text-subtle)" },
 };
 
 const VERDICT_COLOR: Record<string, string> = {
-  validated: "var(--emerald)",
-  confirmed: "var(--emerald)",
-  missed: "var(--coral)",
-  invalidated: "var(--coral)",
-  mixed: "var(--ink-subtle)",
+  validated: "var(--moss-bright)",
+  confirmed: "var(--moss-bright)",
+  missed: "var(--madder-bright)",
+  invalidated: "var(--madder-bright)",
+  mixed: "var(--text-subtle)",
 };
+
+/** No icon set (the iconography law): a small role-colored dot marks tone. */
+function ToneDot({ color }: { color: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 7,
+        height: 7,
+        borderRadius: "50%",
+        background: color,
+        flexShrink: 0,
+        marginTop: 6,
+      }}
+    />
+  );
+}
 
 function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
   return (
@@ -95,7 +92,7 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
                 maxWidth: 34,
                 height: Math.max(3, h),
                 borderRadius: 4,
-                background: "var(--ember)",
+                background: "var(--teal)",
                 opacity: 0.85,
                 display: "flex",
                 flexDirection: "column",
@@ -106,7 +103,7 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
                 <div
                   style={{
                     height: `${Math.round((b.superseded / Math.max(1, b.decisions + b.learnings)) * Math.max(3, h))}px`,
-                    background: "var(--ink-faint)",
+                    background: "var(--slate)",
                     borderRadius: "0 0 4px 4px",
                     opacity: 0.7,
                   }}
@@ -162,28 +159,15 @@ export function InsightsPanel() {
 
       {/* AI analyst ceiling — agent-volunteered intelligence (predictions, actions, risks, connections). */}
       {qa.data && !qa.data.sparse && qa.data.signals.length > 0 ? (
-        <div className="bento" style={{ padding: 16, borderLeft: "2px solid var(--ember)" }}>
-          <MonoLabel icon={Sparkles} style={{ marginBottom: 12 }}>
-            What the data suggests
-          </MonoLabel>
+        <div className="bento" style={{ padding: 16, borderLeft: "2px solid var(--glacier)" }}>
+          <MonoLabel style={{ marginBottom: 12 }}>What the data suggests</MonoLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {qa.data.signals.map((s, i) => {
-              const Icon = SIGNAL_ICON[s.kind] ?? TrendingUp;
-              const color = SIGNAL_COLOR[s.kind] ?? "var(--ink-subtle)";
-              return (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <Icon
-                    size={14}
-                    strokeWidth={1.9}
-                    color={color}
-                    style={{ flexShrink: 0, marginTop: 2 }}
-                  />
-                  <span style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>
-                    {s.text}
-                  </span>
-                </div>
-              );
-            })}
+            {qa.data.signals.map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <ToneDot color={SIGNAL_COLOR[s.kind] ?? "var(--text-subtle)"} />
+                <span style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>{s.text}</span>
+              </div>
+            ))}
           </div>
         </div>
       ) : null}
@@ -204,12 +188,7 @@ export function InsightsPanel() {
                 borderLeft: `2px solid ${t.color}`,
               }}
             >
-              <t.Icon
-                size={15}
-                strokeWidth={1.9}
-                color={t.color}
-                style={{ flexShrink: 0, marginTop: 1 }}
-              />
+              <ToneDot color={t.color} />
               <span style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5 }}>
                 {ins.text}
               </span>
@@ -221,16 +200,10 @@ export function InsightsPanel() {
       {/* Beliefs + Learned at a glance. */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <div className="bento" style={{ padding: 16 }}>
-          <MonoLabel icon={Scale} style={{ marginBottom: 12 }}>
-            Beliefs
-          </MonoLabel>
+          <MonoLabel style={{ marginBottom: 12 }}>Beliefs</MonoLabel>
           <div style={{ display: "flex", gap: 24 }}>
-            <Stat value={String(d.beliefs.standing)} label="still stand" color="var(--emerald)" />
-            <Stat
-              value={String(d.beliefs.superseded)}
-              label="revised since"
-              color="var(--ink-subtle)"
-            />
+            <Stat value={String(d.beliefs.standing)} label="still stand" color="var(--moss-bright)" />
+            <Stat value={String(d.beliefs.superseded)} label="revised since" />
           </div>
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {totalDecisions === 0
@@ -239,17 +212,14 @@ export function InsightsPanel() {
           </p>
         </div>
         <div className="bento" style={{ padding: 16 }}>
-          <MonoLabel icon={GraduationCap} style={{ marginBottom: 12 }}>
-            What Cadence has learned
-          </MonoLabel>
+          <MonoLabel style={{ marginBottom: 12 }}>What Cadence has learned</MonoLabel>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
             <Stat
               value={d.learned.hitRate === null ? "-" : `${d.learned.hitRate}%`}
               label="hit rate"
-              color="var(--ember)"
             />
-            <Stat value={String(d.learned.validated)} label="validated" color="var(--emerald)" />
-            <Stat value={String(d.learned.missed)} label="missed" color="var(--coral)" />
+            <Stat value={String(d.learned.validated)} label="validated" color="var(--moss-bright)" />
+            <Stat value={String(d.learned.missed)} label="missed" color="var(--madder-bright)" />
             <Stat value={String(d.learned.mixed)} label="mixed" color="var(--ink-subtle)" />
           </div>
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
@@ -263,9 +233,7 @@ export function InsightsPanel() {
       {/* Per-decision WHY — current beliefs in plain language: why decided, and (if revised) what changed it. */}
       {d.recentBeliefs.length > 0 ? (
         <div className="bento" style={{ padding: 16 }}>
-          <MonoLabel icon={Lightbulb} style={{ marginBottom: 12 }}>
-            Why we believe this
-          </MonoLabel>
+          <MonoLabel style={{ marginBottom: 12 }}>Why we believe this</MonoLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {d.recentBeliefs.map((b, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -274,7 +242,7 @@ export function InsightsPanel() {
                     className="mono-label"
                     style={{
                       fontSize: 8.5,
-                      color: b.superseded ? "var(--ink-faint)" : "var(--emerald)",
+                      color: b.superseded ? "var(--ink-subtle)" : "var(--moss-bright)",
                       flexShrink: 0,
                       textTransform: "uppercase",
                     }}
@@ -297,7 +265,7 @@ export function InsightsPanel() {
                   <span
                     style={{
                       fontSize: 12,
-                      color: "var(--ink-muted, #4a443c)",
+                      color: "var(--ink-muted)",
                       lineHeight: 1.5,
                       paddingLeft: 2,
                     }}
@@ -319,9 +287,9 @@ export function InsightsPanel() {
                 {b.superseded && b.revisedBy ? (
                   <span
                     className="mono-label"
-                    style={{ fontSize: 9, color: "var(--ember)", paddingLeft: 2 }}
+                    style={{ fontSize: 10.5, color: "var(--madder-bright)", paddingLeft: 2 }}
                   >
-                    now superseded by: {b.revisedBy}
+                    now replaced by: {b.revisedBy}
                   </span>
                 ) : null}
               </div>
@@ -335,29 +303,22 @@ export function InsightsPanel() {
         className="bento"
         style={{
           padding: 16,
-          borderLeft: d.unresolved.count > 0 ? "2px solid var(--coral)" : undefined,
+          borderLeft: d.unresolved.count > 0 ? "2px solid var(--madder)" : undefined,
         }}
       >
-        <MonoLabel icon={HelpCircle} style={{ marginBottom: 10 }}>
-          What is unresolved
-        </MonoLabel>
+        <MonoLabel style={{ marginBottom: 10 }}>What is unresolved</MonoLabel>
         {d.unresolved.count === 0 ? (
           <p style={{ fontSize: 12.5, color: "var(--ink-faint)", lineHeight: 1.5 }}>
-            Nothing open right now — no recorded decisions are in active conflict, and no outcomes
+            Nothing open right now: no recorded decisions are in active conflict, and no outcomes
             are sitting mixed.
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {d.unresolved.contradictions.map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
-                <AlertTriangle
-                  size={13}
-                  strokeWidth={1.9}
-                  color="var(--coral)"
-                  style={{ flexShrink: 0, marginTop: 2 }}
-                />
+                <ToneDot color="var(--madder)" />
                 <span style={{ fontSize: 12.5, color: "var(--ink)", lineHeight: 1.5 }}>
-                  <span style={{ color: "var(--ink-muted, #4a443c)" }}>{c.title}</span> — {c.detail}
+                  <span style={{ color: "var(--ink-muted)" }}>{c.title}</span> · {c.detail}
                 </span>
               </div>
             ))}
@@ -366,7 +327,7 @@ export function InsightsPanel() {
                 style={{ fontSize: 11.5, color: "var(--ink-faint)", lineHeight: 1.5, marginTop: 2 }}
               >
                 {d.unresolved.mixedOutcomes} outcome{d.unresolved.mixedOutcomes === 1 ? "" : "s"}{" "}
-                came back mixed — partial signal, still waiting on a clean result.
+                came back mixed: partial signal, still waiting on a clean result.
               </p>
             ) : null}
           </div>
@@ -376,9 +337,7 @@ export function InsightsPanel() {
       {/* Timeline. */}
       {d.timeline.length > 0 ? (
         <div className="bento" style={{ padding: 16 }}>
-          <MonoLabel icon={Activity} style={{ marginBottom: 10 }}>
-            How it accrued
-          </MonoLabel>
+          <MonoLabel style={{ marginBottom: 10 }}>How it accrued</MonoLabel>
           <Timeline buckets={d.timeline} />
           <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 8 }}>
             Decisions + outcomes per month; the darker base marks revised decisions.
@@ -408,7 +367,7 @@ export function InsightsPanel() {
                 <span
                   style={{
                     fontSize: 12.5,
-                    color: "var(--ink-muted, #4a443c)",
+                    color: "var(--ink-muted)",
                     lineHeight: 1.5,
                     flex: 1,
                   }}
@@ -428,7 +387,7 @@ export function InsightsPanel() {
                       style={{
                         fontSize: 9,
                         marginLeft: 6,
-                        color: l.iceShift > 0 ? "var(--emerald)" : "var(--coral)",
+                        color: l.iceShift > 0 ? "var(--moss-bright)" : "var(--madder-bright)",
                       }}
                     >
                       ICE {l.iceShift > 0 ? "+" : ""}

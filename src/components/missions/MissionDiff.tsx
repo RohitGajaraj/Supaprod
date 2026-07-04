@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { getMission, type MissionDetail } from "@/lib/missions.functions";
+import { LOOM_CARD } from "@/components/studio/studio-ui";
 import { diffMissions } from "@/lib/mission-diff";
 
 function fmtCost(n: number): string {
@@ -52,7 +53,7 @@ function Delta({
     <span
       style={{
         fontSize: 10,
-        color: regressed ? "var(--rose)" : "var(--ink-muted)",
+        color: regressed ? "var(--madder)" : "var(--ink-muted)",
         whiteSpace: "nowrap",
       }}
     >
@@ -112,7 +113,7 @@ export function MissionDiff({
 
   if (q.isLoading) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <MonoLabel>comparing with the original…</MonoLabel>
       </div>
     );
@@ -126,7 +127,7 @@ export function MissionDiff({
   );
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 4 }}>replay vs original · what changed</MonoLabel>
 
       {diff.finalOutputChanged ? (
@@ -200,7 +201,7 @@ export function MissionDiff({
         replay={fmtDur(diff.replay.durationMs)}
         delta={
           diff.deltas.durationMs === null ? (
-            <span style={{ fontSize: 10, color: "var(--ink-faint)" }}>—</span>
+            <span style={{ fontSize: 10, color: "var(--ink-faint)" }}>-</span>
           ) : (
             <Delta value={diff.deltas.durationMs} render={fmtDur} desirable="lower" />
           )

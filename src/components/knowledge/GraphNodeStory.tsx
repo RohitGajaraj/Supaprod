@@ -1,18 +1,12 @@
-// O1 / DBR-1 v1 - the "story" side panel for a selected graph node. Reuses the
-// existing getLineage (immediate parents/children with hydrated titles), so the
-// graph stays a thin read surface over the lineage we already record.
+// O1 / DBR-1 - the "story" side panel for a graph node, opened by
+// double-click on the canvas. Reuses getLineage (immediate parents/children
+// with hydrated titles), so the graph stays a thin read surface over the
+// lineage we already record. W3 (Loom): ported to v4 tokens, no icon set
+// (text affordances only), close affordance, plain-word revision labels.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Crosshair,
-  History,
-  MousePointerClick,
-  type LucideIcon,
-} from "lucide-react";
 import { getLineage } from "@/lib/lineage.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel } from "@/components/obsidian/primitives";
 import {
   buildSupersessionStory,
   isSupersessionRelation,
@@ -20,20 +14,50 @@ import {
   type LineageRowLike,
   type SupersessionStory,
 } from "@/lib/knowledge-graph-view";
-import { KIND_COLOR, KIND_LABEL } from "./GraphExplorer";
+import { kindCssColor, kindLabel } from "./graph-visual";
 import { GraphNodeActions } from "./GraphNodeActions";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
 
-/** Madder accent for the supersession mechanic; matches the canvas edge colour. */
-const MADDER = "var(--madder, #b0573f)";
+function GhostButton({
+  onClick,
+  children,
+  style,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.06em",
+        color: "var(--text-subtle)",
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        textAlign: "left",
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function GraphNodeStory({
   node,
   onFocus,
+  onClose,
 }: {
   node: GraphNode | null;
   onFocus: (kind: string, id: string) => void;
+  onClose?: () => void;
 }) {
   const fLineage = useServerFn(getLineage);
   const story = useQuery({
@@ -42,30 +66,11 @@ export function GraphNodeStory({
     enabled: !!node && !!node.id,
   });
 
-  if (!node) {
-    return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 6 }}>node story</MonoLabel>
-        <p
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            fontSize: 12.5,
-            color: "var(--ink-subtle)",
-          }}
-        >
-          <MousePointerClick size={13} /> Click any node to trace where it came from and what it led
-          to.
-        </p>
-      </div>
-    );
-  }
+  if (!node) return null;
 
-  // Raw rows carry the full edge fields (parent/child kind+id) the supersession
-  // story needs. The generic came-from / led-to lists then drop the supersession
-  // edges, so the moat mechanic reads once, in its own section, not as a cryptic
-  // "supersedes" tag buried in the lineage.
+  // Raw rows carry the full edge fields the revision story needs. The generic
+  // came-from / led-to lists then drop those edges, so the moat mechanic reads
+  // once, in its own section, not as a cryptic tag buried in the lineage.
   const ancestorsRaw = (story.data?.ancestors ?? []) as LineageRowLike[];
   const descendantsRaw = (story.data?.descendants ?? []) as LineageRowLike[];
   const supersession = buildSupersessionStory(ancestorsRaw, descendantsRaw);
@@ -75,53 +80,60 @@ export function GraphNodeStory({
   ) as StoryRow[];
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        boxShadow: "var(--top-light), var(--shadow-ambient)",
+        padding: "16px 18px",
+      }}
+    >
+      <div className="flex items-center" style={{ gap: 7, marginBottom: 4 }}>
         <span
+          aria-hidden="true"
           style={{
             width: 9,
             height: 9,
             borderRadius: 3,
-            background: KIND_COLOR[node.kind] ?? "#999999",
+            background: kindCssColor(node.kind),
             flexShrink: 0,
           }}
         />
-        <span className="mono-label" style={{ fontSize: 8.5 }}>
-          {KIND_LABEL[node.kind] ?? node.kind}
-        </span>
+        <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>{kindLabel(node.kind)}</MonoLabel>
+        <span style={{ flex: 1 }} />
+        {onClose ? <GhostButton onClick={onClose}>Close · Esc</GhostButton> : null}
       </div>
-      <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 10, lineHeight: 1.3 }}>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 500,
+          color: "var(--text-primary)",
+          marginBottom: 10,
+          lineHeight: 1.35,
+        }}
+      >
         {node.title || "(untitled)"}
       </div>
-      <button
-        className="btn btn-ghost btn-sm"
-        style={{ fontSize: 10.5, marginBottom: 4 }}
-        onClick={() => onFocus(node.kind, node.id)}
-      >
-        <Crosshair size={11} style={{ marginRight: 5 }} /> Center the graph here
-      </button>
+      <GhostButton onClick={() => onFocus(node.kind, node.id)} style={{ marginBottom: 4 }}>
+        Center the graph here
+      </GhostButton>
 
       <GraphNodeActions node={node} />
 
       {story.isLoading ? (
-        <p className="mono-label" style={{ fontSize: 9, marginTop: 10 }}>
+        <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginTop: 10, display: "block" }}>
           tracing…
+        </MonoLabel>
+      ) : story.isError ? (
+        <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
+          Could not trace this node: {(story.error as Error)?.message ?? "unknown error"}
         </p>
       ) : (
         <>
           <SupersessionSection story={supersession} onFocus={onFocus} />
-          <StorySection
-            icon={ArrowUpRight}
-            label="came from"
-            rows={ancestors}
-            emptyText="no recorded source"
-          />
-          <StorySection
-            icon={ArrowDownRight}
-            label="led to"
-            rows={descendants}
-            emptyText="nothing downstream yet"
-          />
+          <StorySection label="came from" rows={ancestors} emptyText="no recorded source" />
+          <StorySection label="led to" rows={descendants} emptyText="nothing downstream yet" />
         </>
       )}
     </div>
@@ -129,45 +141,38 @@ export function GraphNodeStory({
 }
 
 function StorySection({
-  icon: Icon,
   label,
   rows,
   emptyText,
 }: {
-  icon: LucideIcon;
   label: string;
   rows: StoryRow[];
   emptyText: string;
 }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <div
-        className="mono-label"
-        style={{ fontSize: 8.5, marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}
-      >
-        <Icon size={11} /> {label}
-      </div>
+      <MonoLabel style={{ fontSize: "var(--text-mono-floor)", marginBottom: 6, display: "block" }}>
+        {label}
+      </MonoLabel>
       {rows.length === 0 ? (
-        <p style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>{emptyText}</p>
+        <p style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>{emptyText}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {rows.slice(0, 8).map((r) => (
             <div
               key={r.id}
-              style={{
-                fontSize: 12,
-                color: "var(--ink-muted)",
-                display: "flex",
-                gap: 6,
-                alignItems: "baseline",
-              }}
+              className="flex items-baseline"
+              style={{ fontSize: 12, color: "var(--text-body)", gap: 6 }}
             >
-              <span
-                className="mono-label"
-                style={{ fontSize: 8, color: "var(--ink-faint)", flexShrink: 0 }}
+              <MonoLabel
+                style={{
+                  fontSize: "var(--text-mono-floor)",
+                  color: "var(--text-subtle)",
+                  flexShrink: 0,
+                }}
               >
                 {r.relation}
-              </span>
+              </MonoLabel>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {r.peer_title || "(untitled)"}
               </span>
@@ -179,12 +184,11 @@ function StorySection({
   );
 }
 
-// DBR-1.5 read-side: the supersession "decision history" for the selected node.
-// Renders nothing until the engine writes a supersedes/contradicts edge, so the
-// panel is byte-identical in the current dormant state (fail-safe). When edges do
-// exist, it names, in plain language (madder-accented to match the canvas), which
-// beliefs this decision revised, and whether a later outcome revised IT (the moat
-// mechanic made legible). Links recenter the graph on the counterpart artifact.
+// DBR-1.5 read-side: the revision history for the selected node. Renders
+// nothing until the engine writes a supersedes/contradicts edge. When edges
+// exist it names, in plain language (madder-accented to match the canvas),
+// which beliefs this node replaced, and whether a later outcome replaced IT.
+// Links recenter the graph on the counterpart artifact.
 function SupersessionSection({
   story,
   onFocus,
@@ -195,21 +199,18 @@ function SupersessionSection({
   if (story.links.length === 0) return null;
   return (
     <div style={{ marginTop: 12 }}>
-      <div
-        className="mono-label"
+      <MonoLabel
         style={{
-          fontSize: 8.5,
+          fontSize: "var(--text-mono-floor)",
           marginBottom: 6,
-          display: "flex",
-          alignItems: "center",
-          gap: 5,
-          color: MADDER,
+          display: "block",
+          color: "var(--madder)",
         }}
       >
-        <History size={11} /> decision history
-      </div>
+        decision history
+      </MonoLabel>
       {story.revised && (
-        <p style={{ fontSize: 11.5, color: MADDER, marginBottom: 8, lineHeight: 1.4 }}>
+        <p style={{ fontSize: 11.5, color: "var(--madder)", marginBottom: 8, lineHeight: 1.4 }}>
           A later recorded outcome revised this belief.
         </p>
       )}
@@ -230,6 +231,7 @@ function SupersessionSection({
               aria-label={`${l.label} ${l.peerTitle || "untitled"}${
                 l.retired ? " (no longer current)" : ""
               }`}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
               style={{
                 background: "none",
                 border: "none",
@@ -244,18 +246,20 @@ function SupersessionSection({
                 gap: 6,
                 alignItems: "baseline",
                 fontSize: 12,
-                color: "var(--ink-muted)",
+                color: "var(--text-body)",
                 // Retired (reversed) assertions stay visible as history, de-emphasized.
                 opacity: l.retired ? 0.5 : 1,
               }}
             >
               <span
-                className="mono-label"
                 style={{
-                  fontSize: 8,
-                  color: MADDER,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10.5,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--madder)",
                   flexShrink: 0,
-                  border: `1px solid ${MADDER}`,
+                  border: "1px solid var(--madder)",
                   borderRadius: 4,
                   padding: "1px 4px",
                   opacity: 0.85,
@@ -277,8 +281,12 @@ function SupersessionSection({
               </span>
               {l.retired && (
                 <span
-                  className="mono-label"
-                  style={{ fontSize: 8, color: "var(--ink-faint)", flexShrink: 0 }}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    color: "var(--text-subtle)",
+                    flexShrink: 0,
+                  }}
                 >
                   {retiredOn ? `· no longer current · ${retiredOn}` : "· no longer current"}
                 </span>

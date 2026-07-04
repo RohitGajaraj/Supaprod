@@ -93,6 +93,14 @@ function PillSwitch({
 
 const RUNS_GRID = "1fr 100px 130px 140px 70px";
 
+// LOOM v4 (§2): cards catch the light from above and cast ambient depth.
+const V4_CARD = {
+  backgroundColor: "var(--card)",
+  border: "1px solid var(--hairline)",
+  borderRadius: "var(--radius-card)",
+  boxShadow: "var(--shadow-elevated)",
+} as const;
+
 export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
@@ -201,11 +209,11 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
 
   if (overview.error) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+      <div style={{ ...V4_CARD, padding: 24, borderColor: "rgba(224, 101, 87, 0.4)" }}>
+        <div className="mono-label" style={{ color: "var(--madder-bright)" }}>
           Couldn't load controls
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(overview.error as Error)?.message}
         </p>
         <button
@@ -224,7 +232,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       <div
         style={{
           fontSize: 12.5,
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
           padding: "32px 0",
           textAlign: "center",
         }}
@@ -238,11 +246,11 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
       {/* Kill switch — span 2 */}
       <div
-        className="bento"
         style={{
+          ...V4_CARD,
           gridColumn: "span 2",
           padding: "16px 18px",
-          borderColor: killed ? "color-mix(in oklab, var(--rose) 45%, transparent)" : undefined,
+          borderColor: killed ? "color-mix(in oklab, var(--madder) 45%, transparent)" : undefined,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -258,7 +266,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
             on={killed}
             disabled={killDisabled}
             size="lg"
-            onColor="var(--rose)"
+            onColor="var(--madder)"
             label="Kill switch"
             onToggle={() => pauseMut.mutate(!ks?.workspace_paused)}
           />
@@ -276,25 +284,25 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           style={{ marginTop: 10, fontSize: 12 }}
         />
         {ks?.reason ? (
-          <div className="mono-label" style={{ marginTop: 8, color: "var(--ink-faint)" }}>
+          <div className="mono-label" style={{ marginTop: 8, color: "var(--text-subtle)" }}>
             reason on record · {ks.reason}
           </div>
         ) : null}
         {ks?.system_paused ? (
-          <div style={{ fontSize: 11.5, color: "var(--rose)", marginTop: 6 }}>
+          <div style={{ fontSize: 11.5, color: "var(--madder-bright)", marginTop: 6 }}>
             System-wide pause is active. The workspace switch unlocks when the system resumes.
           </div>
         ) : null}
       </div>
 
       {/* Mission cap */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...V4_CARD, padding: "18px 20px" }}>
         <MonoLabel icon={Gauge} style={{ marginBottom: 8 }}>
           Mission cap
         </MonoLabel>
         <div className="font-display tabular-nums" style={{ fontSize: 28 }}>
           {MISSION_CONCURRENCY_CAP}{" "}
-          <span style={{ fontSize: 13, color: "var(--ink-faint)" }}>concurrent</span>
+          <span style={{ fontSize: 13, color: "var(--text-subtle)" }}>concurrent</span>
         </div>
         <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 4 }}>
           New goals queue when the mesh is at capacity.
@@ -302,7 +310,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       </div>
 
       {/* Stuck approvals */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...V4_CARD, padding: "18px 20px" }}>
         <MonoLabel icon={Clock} style={{ marginBottom: 8 }}>
           Stuck approvals
         </MonoLabel>
@@ -321,14 +329,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         </button>
       </div>
 
-      {/* Auto-pipelines — span 2 */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
+      {/* Auto-pipelines, span 2 */}
+      <div style={{ ...V4_CARD, gridColumn: "span 2", padding: "18px 20px" }}>
         <MonoLabel icon={Zap} style={{ marginBottom: 10 }}>
           Auto-pipelines
         </MonoLabel>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {subs.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "8px 0" }}>
+            <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
               No pipeline rules yet.
             </div>
           ) : (
@@ -358,8 +366,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     <div style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>{desc}</div>
                   </div>
                   <button
-                    className="mono-label"
-                    style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
+                    className="mono-label cursor-pointer"
+                    style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
                     disabled={deleteSubMut.isPending}
                     onClick={() => deleteSubMut.mutate(s.id)}
                   >
@@ -367,7 +375,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   </button>
                   <PillSwitch
                     on={s.enabled}
-                    onColor="var(--deep-green)"
+                    onColor="var(--moss)"
                     label={`${pipeName(s)} pipeline`}
                     disabled={toggleSubMut.isPending}
                     onToggle={() =>
@@ -476,7 +484,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
 
       {/* Recent runs — production usage-vs-caps table (the reference has no
           equivalent); kept and restyled quiet. Halted runs carry the reason. */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: 0, overflow: "hidden" }}>
+      <div style={{ ...V4_CARD, gridColumn: "span 2", padding: 0, overflow: "hidden" }}>
         <div
           className="mono-label"
           style={{
@@ -497,7 +505,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           <div
             style={{
               fontSize: 12.5,
-              color: "var(--ink-faint)",
+              color: "var(--text-subtle)",
               padding: "20px 18px",
               textAlign: "center",
             }}
@@ -512,14 +520,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
             const tokHot = tokCap ? (r.tokens_used ?? 0) / tokCap >= 0.8 : false;
             const spendHot = spendCap ? Number(r.spend_used_usd ?? 0) / spendCap >= 0.8 : false;
             const statusColor = halted
-              ? "var(--rose)"
+              ? "var(--madder-bright)"
               : r.status === "running"
                 ? "var(--action-blue)"
                 : r.status === "completed"
-                  ? "var(--emerald)"
+                  ? "var(--moss-bright)"
                   : r.status === "failed"
-                    ? "var(--rose)"
-                    : "var(--ink-subtle)";
+                    ? "var(--madder-bright)"
+                    : "var(--text-subtle)";
             return (
               <div
                 key={r.id}
@@ -536,7 +544,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 <span style={{ minWidth: 0 }}>
                   <span style={{ fontWeight: 500 }}>{r.agent_name}</span>
                   {halted && r.halted_reason ? (
-                    <span style={{ display: "block", fontSize: 11.5, color: "var(--rose)" }}>
+                    <span style={{ display: "block", fontSize: 11.5, color: "var(--madder-bright)" }}>
                       {r.halted_reason}
                     </span>
                   ) : null}
@@ -567,13 +575,13 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
 
       {/* Reactor activity — production confirm-mode dispatch queue (no
           reference equivalent); kept and restyled quiet. */}
-      <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
+      <div style={{ ...V4_CARD, gridColumn: "span 2", padding: "18px 20px" }}>
         <MonoLabel icon={Zap} style={{ marginBottom: 10 }}>
           Reactor activity · confirm-mode rows wait on you
         </MonoLabel>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {events.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "8px 0" }}>
+            <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
               No reactor events yet.
             </div>
           ) : (
@@ -583,12 +591,12 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 e.source_id.slice(0, 8);
               const statusColor =
                 e.status === "dispatched"
-                  ? "var(--emerald)"
+                  ? "var(--moss-bright)"
                   : e.status === "failed"
-                    ? "var(--rose)"
+                    ? "var(--madder-bright)"
                     : e.status === "skipped"
-                      ? "var(--ink-faint)"
-                      : "var(--ember)";
+                      ? "var(--text-subtle)"
+                      : "var(--ember-text)";
               const isPending = e.status === "pending" && e.approval_mode === "confirm";
               return (
                 <div
@@ -617,7 +625,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                       {title}
                     </div>
                     {e.error ? (
-                      <div style={{ fontSize: 11.5, color: "var(--rose)" }}>{e.error}</div>
+                      <div style={{ fontSize: 11.5, color: "var(--madder-bright)" }}>{e.error}</div>
                     ) : null}
                   </div>
                   <span className="mono-label tabular-nums">{relTime(e.created_at)}</span>

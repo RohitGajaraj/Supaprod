@@ -103,6 +103,10 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         .from("opportunities")
         .select("id,title,critic_review,created_at")
         .filter("critic_review->>verdict", "in", '("revise","kill")')
+        // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
+        // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
+        // the call is decided and must not resurface on the next visit.
+        .eq("status", "backlog")
         .order("created_at", { ascending: false })
         .limit(5),
       supabase

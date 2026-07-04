@@ -479,7 +479,7 @@ function TemplateDetail({
           </>
         ) : right ? (
           <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
-            Published versions are immutable — fork a new draft to edit.
+            Published versions are immutable; fork a new draft to edit.
           </span>
         ) : null}
       </div>
@@ -730,7 +730,7 @@ function AssignmentPanel({
             Variant A
           </div>
           <select className="input" value={aId} onChange={(e) => setAId(e.target.value)}>
-            <option value="">— none —</option>
+            <option value="">none</option>
             {versions.map((v) => (
               <option key={v.id} value={v.id}>
                 v{v.version} ({v.status})
@@ -743,7 +743,7 @@ function AssignmentPanel({
             Variant B · optional
           </div>
           <select className="input" value={bId} onChange={(e) => setBId(e.target.value)}>
-            <option value="">— none —</option>
+            <option value="">none</option>
             {versions.map((v) => (
               <option key={v.id} value={v.id}>
                 v{v.version} ({v.status})

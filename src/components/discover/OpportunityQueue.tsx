@@ -16,8 +16,10 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
-import { relTimeCaps, verdictFor } from "./format";
+import { rescoreNoteOf } from "@/lib/moat-vis";
+import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
+import { SkeletonBar } from "./SkeletonBar";
 
 const CHALLENGE_TOAST_ID = "obs-discover-challenge";
 const CHALLENGE_TOAST_MS = 3600;
@@ -50,11 +52,16 @@ export function OpportunityQueue() {
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
 
-  const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => fOpps() });
-  const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fLearnings() });
+  // withTimeout (audit D-12): a hung server fn rejects into the error state
+  // with its retry instead of leaving a permanent skeleton.
+  const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => withTimeout(fOpps()) });
+  const learnings = useQuery({
+    queryKey: ["learnings"],
+    queryFn: () => withTimeout(fLearnings()),
+  });
   const themes = useQuery({
     queryKey: ["themes", activeProductId],
-    queryFn: () => fThemes({ data: { productId: activeProductId } }),
+    queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
   });
 
   const themeById = useMemo(() => {
@@ -135,23 +142,31 @@ export function OpportunityQueue() {
   });
 
   if (opps.isLoading) {
+    // Loom v4 §9: skeleton rows that match the loaded card layout (ICE
+    // numeral block, title line, sub line), shimmering in the raised tone.
     return (
-      <div className="grid gap-3">
+      <div className="grid gap-3" aria-label="Loading opportunities" role="status">
         <HeaderRow rerankedAgo={null} />
-        <MonoLabel tone="faint" style={{ fontSize: "9px", padding: "0 4px" }}>
-          Ranking opportunities
-        </MonoLabel>
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
+            className="flex items-center"
             style={{
-              backgroundColor: "#111113",
-              border: "1px solid rgba(255,255,255,0.07)",
+              backgroundColor: "var(--card)",
+              border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-card)",
+              boxShadow: "var(--top-light), var(--shadow-ambient)",
               padding: "16px 18px",
+              gap: "16px",
               height: "62px",
             }}
-          />
+          >
+            <SkeletonBar width="40px" height={22} />
+            <div className="grid flex-1 gap-2">
+              <SkeletonBar width="55%" height={13} />
+              <SkeletonBar width="80%" height={10} />
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -161,24 +176,23 @@ export function OpportunityQueue() {
     return (
       <div
         style={{
-          backgroundColor: "#111113",
-          border: "1px solid rgba(255,255,255,0.07)",
+          backgroundColor: "var(--card)",
+          border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-card)",
+          boxShadow: "var(--top-light), var(--shadow-ambient)",
           padding: "20px",
         }}
       >
-        <MonoLabel tone="madder" style={{ fontSize: "9px" }}>
+        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
           Could not load opportunities
         </MonoLabel>
-        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "8px" }}>
+        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
           {(opps.error as Error).message}
         </p>
         <Button variant="secondary" style={{ marginTop: "14px" }} onClick={() => opps.refetch()}>
           Retry
         </Button>
-        <p
-          style={{ fontSize: "var(--text-helper)", color: "var(--text-subtle)", marginTop: "6px" }}
-        >
+        <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "6px" }}>
           Reloads the queue
         </p>
       </div>
@@ -191,16 +205,25 @@ export function OpportunityQueue() {
     <div className="grid gap-3">
       <HeaderRow rerankedAgo={lastRescoreAgo} />
       {rows.length === 0 ? (
-        <MonoLabel tone="faint" style={{ fontSize: "11.5px", padding: "0 4px" }}>
-          Nothing ranked yet.
-        </MonoLabel>
+        <p
+          style={{
+            fontSize: "12.5px",
+            lineHeight: 1.6,
+            color: "var(--text-subtle)",
+            margin: 0,
+            padding: "0 4px",
+          }}
+        >
+          Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
+        </p>
       ) : (
         rows.map((o, i) => {
           const learning = latestLearningByOpp.get(o.id);
-          const rescoreNote =
-            learning && learning.prior_ice != null && learning.new_ice != null
-              ? ` · ${Number(learning.new_ice) >= Number(learning.prior_ice) ? "+" : ""}${(Number(learning.new_ice) - Number(learning.prior_ice)).toFixed(1)} after ${learning.summary ?? "the latest learning"}`
-              : "";
+          // rescoreNoteOf quote-guards the learning's free-text summary so an
+          // arbitrary title can never break the sentence (the garbled
+          // "+0.3 after This is an Test Message" bug), and returns null when
+          // the score did not actually move at display precision.
+          const rescoreNote = learning ? rescoreNoteOf(learning) : null;
           const theme = o.theme_id ? themeById.get(o.theme_id) : undefined;
           const signalPart = theme
             ? `${theme.frequency} signal${theme.frequency === 1 ? "" : "s"}`
@@ -210,7 +233,7 @@ export function OpportunityQueue() {
             verdict === "PENDING"
               ? "not yet reviewed by the Critic"
               : `Critic says ${verdict.toLowerCase()}`;
-          const sub = `${[signalPart, criticPart].filter(Boolean).join(" · ")}${rescoreNote}`;
+          const sub = [signalPart, criticPart, rescoreNote].filter(Boolean).join(" · ");
           const rowBusy = busyIds.has(o.id);
           return (
             <OpportunityRow
@@ -239,7 +262,7 @@ export function OpportunityQueue() {
           );
         })
       )}
-      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", padding: "0 4px" }}>
+      <p style={{ fontSize: "12px", color: "var(--text-subtle)", padding: "0 4px" }}>
         Challenge any bet, even your own. The Critic answers with evidence, never with vibes.
       </p>
       <LineageDrawer
@@ -256,13 +279,13 @@ export function OpportunityQueue() {
 function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
   return (
     <div className="flex items-baseline" style={{ padding: "0 4px" }}>
-      <span className="flex-1">
-        <MonoLabel style={{ fontSize: "9px", letterSpacing: "0.12em" }}>
-          The opportunity queue · ranked by ICE
+      <h2 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
+        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>
+          The opportunity queue · strongest bets first
         </MonoLabel>
-      </span>
+      </h2>
       {rerankedAgo ? (
-        <MonoLabel tone="faint" style={{ fontSize: "9px", letterSpacing: "0.08em" }}>
+        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
           RE-RANKED {rerankedAgo}
         </MonoLabel>
       ) : null}

@@ -48,6 +48,7 @@ import {
 } from "@/lib/orchestrator.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { createDecision } from "@/lib/decisions.functions";
+import { LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { useConfirm } from "@/hooks/use-confirm";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -145,9 +146,9 @@ function CaptureMissionDecision({
       type="button"
       onClick={() => cap.mutate()}
       disabled={cap.isPending}
-      className="mono-label"
+      className="mono-label loom-press"
       style={{
-        fontSize: 9,
+        fontSize: 10.5,
         display: "inline-flex",
         alignItems: "center",
         gap: 5,
@@ -301,7 +302,7 @@ const preStyle: CSSProperties = {
   color: "var(--ink-subtle)",
 };
 const handoffChip: CSSProperties = {
-  fontSize: 9,
+  fontSize: 10.5,
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
@@ -343,7 +344,7 @@ function TraceHop({
           <button
             onClick={() => setShowPayload(!showPayload)}
             aria-expanded={showPayload}
-            className="mono-label"
+            className="mono-label loom-press"
             style={handoffChip}
           >
             {showPayload ? <ChevronDown size={9} /> : <ChevronRight size={9} />}
@@ -409,7 +410,7 @@ function TraceHop({
             className="mono-label"
             style={{
               ...rail,
-              fontSize: 9,
+              fontSize: 10.5,
               lineHeight: 1.8,
               display: "flex",
               alignItems: "center",
@@ -435,9 +436,9 @@ function TraceHop({
               <button
                 onClick={() => setShowMemories(!showMemories)}
                 aria-expanded={showMemories}
-                className="mono-label"
+                className="mono-label loom-press"
                 style={{
-                  fontSize: 9,
+                  fontSize: 10.5,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
@@ -457,7 +458,7 @@ function TraceHop({
                       key={mi}
                       style={{ fontSize: 10.5, color: "var(--ink-subtle)", lineHeight: 1.7 }}
                     >
-                      – {mem}
+                      · {mem}
                     </div>
                   ))}
                 </div>
@@ -486,9 +487,9 @@ function TraceHop({
             <button
               onClick={() => setShowInput(!showInput)}
               aria-expanded={showInput}
-              className="mono-label"
+              className="mono-label loom-press"
               style={{
-                fontSize: 9,
+                fontSize: 10.5,
                 color: "var(--action-blue)",
                 display: "inline-flex",
                 alignItems: "center",
@@ -501,9 +502,9 @@ function TraceHop({
               <button
                 onClick={() => setShowOutput(!showOutput)}
                 aria-expanded={showOutput}
-                className="mono-label"
+                className="mono-label loom-press"
                 style={{
-                  fontSize: 9,
+                  fontSize: 10.5,
                   color: "var(--action-blue)",
                   display: "inline-flex",
                   alignItems: "center",
@@ -595,7 +596,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
   };
 
   return (
-    <section className="bento" style={{ padding: "var(--card-pad)", marginBottom: 16 }}>
+    <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
       <div
         style={{
           display: "flex",
@@ -608,7 +609,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
         {n > 0 && (
           <button
             onClick={copySnapshot}
-            className="mono-label"
+            className="mono-label loom-press"
             style={{ color: "var(--action-blue)" }}
           >
             Copy snapshot
@@ -822,16 +823,28 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   if (m.isLoading || !data) {
+    // Skeleton that matches the loaded layout: hero, relay strip, two cards
+    // (DESIGN-LOOM §9 — never a lone spinner for primary content).
     return (
-      <div style={{ display: "flex", justifyContent: "center", padding: "64px 0" }}>
-        <span className="spinner" />
+      <div aria-hidden="true" style={{ maxWidth: 980, margin: "0 auto" }}>
+        <SkeletonBlock height={140} style={{ marginBottom: 20 }} />
+        <SkeletonBlock height={56} style={{ marginBottom: 16 }} />
+        <SkeletonBlock height={120} style={{ marginBottom: 16 }} />
+        <SkeletonBlock height={220} />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto" }}>
-      <header className="hero-editorial" style={{ padding: "28px 32px", marginBottom: 20 }}>
+    <div style={{ maxWidth: 980, margin: "0 auto" }}>
+      <header
+        style={{
+          ...LOOM_CARD,
+          background: "var(--surface-card-deep)",
+          padding: "28px 32px",
+          marginBottom: 20,
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -850,13 +863,25 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{
                 fontSize: 30,
                 margin: "8px 0 6px",
-                fontFamily: "'Newsreader', serif",
-                fontWeight: 400,
-                letterSpacing: "-0.02em",
+                fontFamily: "var(--font-serif)",
+                fontWeight: 430,
+                letterSpacing: "-0.015em",
+                color: "var(--text-primary)",
               }}
             >
               {data.mission.title}
             </h1>
+            {/* §6: the maker's mark — a static 24px thread under the title. */}
+            <div
+              aria-hidden="true"
+              style={{
+                width: 24,
+                height: 1,
+                background: "var(--thread-gradient)",
+                opacity: 0.4,
+                margin: "2px 0 8px",
+              }}
+            />
             <p
               style={{
                 fontSize: 13.5,
@@ -875,7 +900,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   alignItems: "center",
                   gap: 5,
                   marginTop: 8,
-                  fontSize: 9,
+                  fontSize: 10.5,
                   color: "color-mix(in oklab, var(--hero-ink) 65%, transparent)",
                 }}
                 title="Open the mission this one was replayed from"
@@ -890,12 +915,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               <button
                 onClick={() => promote.mutate()}
                 disabled={promote.isPending}
-                className="mono-label"
+                className="mono-label loom-press"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: 9,
+                  fontSize: 10.5,
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid color-mix(in oklab, var(--ember) 45%, transparent)",
@@ -920,16 +945,16 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   if (ok) cancel.mutate();
                 }}
                 disabled={cancel.isPending}
-                className="mono-label"
+                className="mono-label loom-press"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  fontSize: 9,
+                  fontSize: 10.5,
                   padding: "3px 10px",
                   borderRadius: 5,
-                  border: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
-                  color: "var(--rose)",
+                  border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
+                  color: "var(--madder)",
                   background: "transparent",
                   opacity: cancel.isPending ? 0.5 : 1,
                 }}
@@ -948,7 +973,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   onChange={(e) => setReplayModel(e.target.value)}
                   className="mono-label"
                   style={{
-                    fontSize: 9,
+                    fontSize: 10.5,
                     padding: "3px 6px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--hero-ink) 35%, transparent)",
@@ -967,12 +992,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 <button
                   onClick={() => replay.mutate()}
                   disabled={replay.isPending}
-                  className="mono-label"
+                  className="mono-label loom-press"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 5,
-                    fontSize: 9,
+                    fontSize: 10.5,
                     padding: "3px 10px",
                     borderRadius: 5,
                     border: "1px solid color-mix(in oklab, var(--hero-ink) 35%, transparent)",
@@ -1039,7 +1064,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 className="tabular-nums"
                 style={{ color: "var(--hero-ink)", fontWeight: 600 }}
               >
-                —
+                none yet
               </strong>
             )}
           </span>
@@ -1091,12 +1116,12 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         <div style={{ marginBottom: 16 }}>
           <button
             onClick={() => setShowDiff((v) => !v)}
-            className="mono-label"
+            className="mono-label loom-press"
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 5,
-              fontSize: 9,
+              fontSize: 10.5,
               padding: "3px 10px",
               borderRadius: 5,
               border: "1px solid color-mix(in oklab, var(--ink-faint) 45%, transparent)",
@@ -1121,7 +1146,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       ) : null}
 
       {/* Steps — plan list or live graph */}
-      <section className="bento" style={{ padding: "var(--card-pad)", marginBottom: 16 }}>
+      <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
         <div
           style={{
             display: "flex",
@@ -1136,9 +1161,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               <button
                 onClick={() => advance.mutate()}
                 disabled={advance.isPending}
-                className="mono-label"
+                className="mono-label loom-press"
                 style={{
-                  fontSize: 9,
+                  fontSize: 10.5,
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--hairline)",
@@ -1167,9 +1192,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 <button
                   key={id}
                   onClick={() => setView(id)}
-                  className="mono-label"
+                  className="mono-label loom-press"
                   style={{
-                    fontSize: 9,
+                    fontSize: 10.5,
                     padding: "3px 10px",
                     borderRadius: 5,
                     background: view === id ? "var(--surface-2)" : "transparent",
@@ -1186,7 +1211,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           <div style={{ display: "flex", flexDirection: "column" }}>
             {planRows.length === 0 ? (
               <div style={{ fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                No steps yet — the plan lands with the first hop.
+                No steps yet. The plan lands with the first hop.
               </div>
             ) : (
               planRows.map((s, i) => (
@@ -1218,7 +1243,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.deps.length > 0 ? (
                         <span
                           className="mono-label"
-                          style={{ fontSize: 9, color: "var(--ink-faint)" }}
+                          style={{ fontSize: 10.5, color: "var(--ink-faint)" }}
                         >
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
@@ -1228,7 +1253,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.goal}
                     </div>
                     {s.note ? (
-                      <div style={{ fontSize: 12, color: "var(--rose)", marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: "var(--madder)", marginTop: 2 }}>
                         {s.note}
                       </div>
                     ) : null}
@@ -1258,7 +1283,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           no gate because the agent's trust arc had earned auto. The counterpart to
           the gate above: that's what needs you; this is what already ran. */}
       {unattended.length > 0 ? (
-        <section className="bento" style={{ padding: "var(--card-pad)", marginBottom: 16 }}>
+        <section style={{ ...LOOM_CARD, padding: "var(--card-pad)", marginBottom: 16 }}>
           <div
             style={{
               display: "flex",
@@ -1273,7 +1298,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </span>
           </div>
           <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", marginBottom: 12 }}>
-            The loop ran these actions without a gate — the agents&rsquo; trust arc had earned auto.
+            The loop ran these actions without a gate; the agents&rsquo; trust arc had earned auto.
             You reviewed nothing in advance; each row notes whether it can be undone.
           </p>
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1310,7 +1335,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </span>
                     <span
                       className="mono-label tabular-nums"
-                      style={{ fontSize: 8.5, display: "block", marginTop: 3 }}
+                      style={{ fontSize: 10, display: "block", marginTop: 3 }}
                     >
                       {REVERSIBILITY_LABEL[c.reversible]} · {tc.ok ? "ok" : "failed"} ·{" "}
                       {tc.latency_ms}ms
@@ -1324,7 +1349,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
       ) : null}
 
       {/* Hops trace — per-hop expand/collapse, tinted tool calls, timing bars */}
-      <section className="bento" style={{ padding: "var(--card-pad)" }}>
+      <section style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
           <MonoLabel icon={Activity}>Execution trace</MonoLabel>
           <span className="mono-label">
@@ -1334,7 +1359,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         </div>
         {hops.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "var(--ink-faint)", fontStyle: "italic" }}>
-            No hops yet — mission queued.
+            No hops yet. The mission is queued.
           </div>
         ) : (
           hops.map((h, i) => (
@@ -1359,14 +1384,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             borderRadius: 10,
             marginTop: 16,
             marginBottom: 16,
-            background: "color-mix(in oklab, var(--rose) 7%, transparent)",
-            border: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
+            background: "color-mix(in oklab, var(--madder) 7%, transparent)",
+            border: "1px solid color-mix(in oklab, var(--madder) 35%, transparent)",
           }}
         >
           <div
             className="mono-label"
             style={{
-              color: "var(--rose)",
+              color: "var(--madder)",
               display: "flex",
               alignItems: "center",
               gap: 6,

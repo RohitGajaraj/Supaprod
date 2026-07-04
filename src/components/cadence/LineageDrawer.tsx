@@ -15,7 +15,7 @@ const ROUTES: Partial<
   Record<ArtifactKind, (id: string) => { to: string; params?: Record<string, string> }>
 > = {
   opportunity: () => ({ to: "/discover" }),
-  prd: (id) => ({ to: "/prds/$id", params: { id } }),
+  prd: (id) => ({ to: "/plan/spec/$id", params: { id } }),
   task: () => ({ to: "/tasks" }),
   signal: () => ({ to: "/discover" }),
   theme: () => ({ to: "/discover" }),
@@ -29,7 +29,9 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   signal: "Signal",
   theme: "Theme",
   opportunity: "Opportunity",
-  prd: "PRD",
+  // LOOM W2: the IA word is "spec" on every user-facing surface; the
+  // ArtifactKind stays `prd` (internal identifier, CLAUDE.md disclaimer).
+  prd: "Spec",
   roadmap_item: "Roadmap item",
   task: "Task",
   meeting: "Meeting",

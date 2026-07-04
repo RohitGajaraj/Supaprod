@@ -1,16 +1,43 @@
 import * as React from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
-import { listEvalSuites, getEvalScoreTrends } from "@/lib/evals.functions";
 import { getEvalHealth } from "@/lib/eval-health.functions";
-import { getDriftOverview } from "@/lib/drift.functions";
-import { Row, EmptyRow } from "../RoomDetail";
+import { PanelPending, type RoomBodyProps } from "../RoomDetail";
+
+// LOOM W2 fold: /govern's evals (SUITES, with the ?suite= drill), drift
+// (DRIFT, with the ?surface= drill), prompts (PROMPTS - Prompt Studio's
+// first reachable home since /prompts went lossy) and gauntlet (PROOF) all
+// live in this room now. Lazy-loaded; the OBS-01 bridge keeps them coherent
+// dark. EvalsPanel is v4-reskinned (one of the four most-used views); the
+// others carry a lighter pass, noted for W4.
+const EvalsPanel = React.lazy(() =>
+  import("@/components/governance/EvalsPanel").then((m) => ({ default: m.EvalsPanel })),
+);
+const EvalSuiteDetail = React.lazy(() =>
+  import("@/components/governance/EvalSuiteDetail").then((m) => ({ default: m.EvalSuiteDetail })),
+);
+const DriftPanel = React.lazy(() =>
+  import("@/components/observe/DriftPanel").then((m) => ({ default: m.DriftPanel })),
+);
+const DriftSurfaceDetail = React.lazy(() =>
+  import("@/components/observe/DriftSurfaceDetail").then((m) => ({
+    default: m.DriftSurfaceDetail,
+  })),
+);
+const PromptsPanel = React.lazy(() =>
+  import("@/components/governance/PromptsPanel").then((m) => ({ default: m.PromptsPanel })),
+);
+const GauntletMetricsPanel = React.lazy(() =>
+  import("@/components/observe/GauntletMetricsPanel").then((m) => ({
+    default: m.GauntletMetricsPanel,
+  })),
+);
 
 function ScoreView() {
   const fHealth = useServerFn(getEvalHealth);
   const q = useQuery({ queryKey: ["eval-health"], queryFn: () => fHealth() });
+  if (q.isLoading) return <PanelPending />;
   const health = q.data?.health;
   const passRatePct = health?.passRate != null ? Math.round(health.passRate * 100) : null;
   const trend = health?.scoreTrend ?? [];
@@ -38,75 +65,34 @@ function ScoreView() {
   );
 }
 
-function DriftView() {
-  const navigate = useNavigate();
-  const fDrift = useServerFn(getDriftOverview);
-  const q = useQuery({ queryKey: ["drift_overview"], queryFn: () => fDrift() });
-  const open = q.data?.openIncidents ?? [];
-  if (!q.isLoading && open.length === 0) {
+export function QualityRoom({ view, suite, surface }: RoomBodyProps) {
+  if (view === "suites") {
     return (
-      <EmptyRow message="No open drift. The last check found every surface within baseline." />
+      <React.Suspense fallback={<PanelPending />}>
+        {suite ? <EvalSuiteDetail id={suite} /> : <EvalsPanel />}
+      </React.Suspense>
     );
   }
-  return (
-    <div>
-      {open.map((i: { surface: string; severity: string; detected_at: string }, idx: number) => (
-        <Row
-          key={`${i.surface}-${idx}`}
-          subject={i.surface}
-          value={new Date(i.detected_at).toLocaleDateString()}
-          statusWord={i.severity}
-          statusColor={i.severity === "high" ? "var(--madder-bright)" : "var(--marigold)"}
-          onOpen={() => navigate({ to: "/govern", search: { tab: "drift", surface: i.surface } })}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SuitesView() {
-  const navigate = useNavigate();
-  const fSuites = useServerFn(listEvalSuites);
-  const fTrends = useServerFn(getEvalScoreTrends);
-  const suitesQ = useQuery({ queryKey: ["eval_suites"], queryFn: () => fSuites() });
-  const trendsQ = useQuery({ queryKey: ["eval_suite_trends"], queryFn: () => fTrends() });
-  const suites = suitesQ.data ?? [];
-  if (!suitesQ.isLoading && suites.length === 0) {
+  if (view === "drift") {
     return (
-      <EmptyRow message="No eval yet. Point a suite at a prompt and the score lands in about five minutes." />
+      <React.Suspense fallback={<PanelPending />}>
+        {surface ? <DriftSurfaceDetail id={surface} /> : <DriftPanel />}
+      </React.Suspense>
     );
   }
-  return (
-    <div>
-      {suites.map((s) => {
-        const t = trendsQ.data?.trends[s.id];
-        const arrow =
-          !t || t.previous == null
-            ? "→"
-            : t.latest > t.previous
-              ? "↑"
-              : t.latest < t.previous
-                ? "↓"
-                : "→";
-        return (
-          <Row
-            key={s.id}
-            subject={s.name}
-            value={
-              s.last_run?.avg_score != null ? `${Math.round(s.last_run.avg_score)}` : "no runs"
-            }
-            statusWord={arrow}
-            statusColor="var(--text-muted)"
-            onOpen={() => navigate({ to: "/govern", search: { tab: "evals", suite: s.id } })}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
-export function QualityRoom({ view }: { view: string }) {
-  if (view === "drift") return <DriftView />;
-  if (view === "suites") return <SuitesView />;
+  if (view === "prompts") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <PromptsPanel />
+      </React.Suspense>
+    );
+  }
+  if (view === "proof") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <GauntletMetricsPanel />
+      </React.Suspense>
+    );
+  }
   return <ScoreView />;
 }

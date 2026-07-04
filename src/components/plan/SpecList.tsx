@@ -182,7 +182,14 @@ export function SpecList({ onOpen }: SpecListProps) {
 
   return (
     <>
-      <div style={{ background: "var(--surface-card)", borderRadius: "var(--radius-panel)" }}>
+      <div
+        style={{
+          background: "var(--surface-card)",
+          borderRadius: "var(--radius-panel)",
+          border: "1px solid var(--hairline)",
+          boxShadow: "var(--shadow-elevated)",
+        }}
+      >
         {specList.map((spec, i) => {
           const chip = stateChip(spec.status);
           const cites = citesLabel(spec.citations);
@@ -276,11 +283,11 @@ export function SpecList({ onOpen }: SpecListProps) {
                 )}
                 <VerdictChip tone={TONE_TO_VERDICT[chip.tone]}>{chip.label}</VerdictChip>
                 {cites && (
-                  <MonoLabel tone="blossom" style={{ fontSize: 9 }}>
+                  <MonoLabel tone="blossom" style={{ fontSize: "var(--text-mono-floor)" }}>
                     {cites}
                   </MonoLabel>
                 )}
-                <MonoLabel tone="faint" style={{ fontSize: 9 }}>
+                <MonoLabel tone="muted" style={{ fontSize: "var(--text-mono-floor)" }}>
                   {relTime(spec.updated_at)}
                 </MonoLabel>
               </div>
@@ -290,6 +297,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                     type="button"
                     aria-label="Spec actions"
                     onClick={(e) => e.stopPropagation()}
+                    className="loom-press"
                     style={{
                       flexShrink: 0,
                       padding: "4px 16px",

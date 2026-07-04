@@ -456,7 +456,7 @@ describe("buildSupersessionStory", () => {
     ...o,
   });
 
-  it("reads an ancestor supersedes edge as 'Superseded by' and marks self revised", () => {
+  it("reads an ancestor supersedes edge as 'Replaced by' and marks self revised", () => {
     // parent (opportunity O) --supersedes--> THIS node => this node was superseded.
     const ancestors = [
       row({
@@ -472,7 +472,7 @@ describe("buildSupersessionStory", () => {
     expect(story.links).toHaveLength(1);
     expect(story.links[0]).toMatchObject({
       direction: "superseded-by",
-      label: "Superseded by",
+      label: "Replaced by",
       peerTitle: "Drop live-chat",
       peerKind: "opportunity",
       peerId: "O",

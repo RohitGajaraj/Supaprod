@@ -31,8 +31,8 @@ function RosterRow({ entry, muted }: { entry: CatalogEntry; muted?: boolean }) {
     <div style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "7px 2px" }}>
       <AgentMark slug={entry.slug} size={26} />
       <div style={{ minWidth: 0, opacity: muted ? 0.7 : 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 540, color: hue }}>{entry.name}</div>
-        <div style={{ fontSize: 12, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+        <div style={{ fontSize: 14, fontWeight: 540, color: hue }}>{entry.name}</div>
+        <div style={{ fontSize: 12.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {entry.blurb}
         </div>
       </div>
@@ -49,7 +49,7 @@ function StationGroup({ label, children }: { label: string; children: React.Reac
           fontSize: 10.5,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "var(--ink-faint)",
+          color: "var(--text-subtle)",
           marginBottom: 4,
         }}
       >
@@ -80,13 +80,14 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
       <section
         style={{
           border: "1px solid var(--hairline)",
-          borderRadius: 12,
-          background: "var(--surface-1)",
-          padding: "16px 18px",
+          borderRadius: "var(--radius-card)",
+          background: "var(--card)",
+          boxShadow: "var(--shadow-elevated)",
+          padding: "18px 20px",
         }}
       >
         <MonoLabel>The team, by station</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", marginTop: 6, maxWidth: 560 }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 6, maxWidth: 560 }}>
           The full mesh lives here. The user never sees this roster; they meet these agents in
           motion, as the relay, named for what they do.
         </p>

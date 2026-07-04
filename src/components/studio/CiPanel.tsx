@@ -8,7 +8,7 @@ import {
   type StudioCi,
 } from "@/lib/studio.functions";
 import { MonoLabel, StatusBadge, StepDot, VerdictChip } from "@/components/cadence/Primitives";
-import { ChangesetChip } from "./studio-ui";
+import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 
 /** Per-check StepDot vocabulary — live = running, outcomes = moss/madder. */
@@ -83,7 +83,7 @@ export function CiPanel({
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* BLD-05 Inspector gate: test + preview bar before the operator clears the merge. */}
       {inspection ? (
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
+        <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <MonoLabel>Inspector</MonoLabel>
             <span
@@ -140,7 +140,7 @@ export function CiPanel({
           )}
         </div>
       ) : null}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <a
             href={changeset.pr_url}
@@ -181,7 +181,7 @@ export function CiPanel({
         ) : null}
       </div>
 
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <div
           style={{
             display: "flex",

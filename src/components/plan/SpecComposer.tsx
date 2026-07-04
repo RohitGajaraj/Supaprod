@@ -27,7 +27,7 @@ export function SpecComposer() {
           : "Contract drafted. Critic reviewed it.",
       );
       if (r.prd?.id) {
-        navigate({ to: "/prds/$id", params: { id: r.prd.id }, search: { tab: "contract" } });
+        navigate({ to: "/plan/spec/$id", params: { id: r.prd.id }, search: { tab: "contract" } });
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -46,6 +46,7 @@ export function SpecComposer() {
         background: "var(--surface-card)",
         borderRadius: "var(--radius-panel)",
         border: "1px solid var(--hairline)",
+        boxShadow: "var(--shadow-elevated)",
         padding: "14px 16px",
         marginBottom: 16,
       }}
@@ -74,6 +75,11 @@ export function SpecComposer() {
           disabled={draft.isPending || !intent.trim()}
           loading={draft.isPending}
           onClick={submit}
+          className="loom-press"
+          // Plan's ONE primary CTA wears the v4 top-lit ember gradient (§3).
+          style={{
+            background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+          }}
         >
           Draft the contract
         </Button>
