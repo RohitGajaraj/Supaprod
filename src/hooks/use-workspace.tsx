@@ -128,34 +128,34 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveWorkspaceId = useCallback(
     (id: string | null) => {
-    // WM-F8: on a real switch, clear every workspace-scoped query so no stale
-    // data from the previous workspace flashes before the refetch (which reads
-    // like a cross-workspace leak). Active observers refetch automatically
-    // under the new workspace context. USER-global queries (the workspaces list,
-    // profile, personal keys) are always preserved; ACCOUNT-global queries
-    // (billing/connections/integrations) are preserved on a same-account switch
-    // but ALSO cleared when the switch crosses accounts (WM-F8b), so a new
-    // account never renders the previous account's billing/connections.
-    if (id !== activeWorkspaceId) {
-      // The FIRST activation (activeWorkspaceId === null) is not a switch: there is no
-      // prior account whose cached data could be stale, so it must NOT clear account-global
-      // queries (which would drop SSR-hydrated billing/connections on first load). Only a
-      // real switch from an existing workspace can cross accounts; gate the cross-account
-      // clear on that, so first mount stays byte-identical to the pre-WM-F8b behavior.
-      const accountChanged =
-        activeWorkspaceId !== null && accountChangedOnSwitch(workspaces, activeWorkspaceId, id);
-      queryClient.removeQueries({
-        predicate: (query) => shouldClearOnWorkspaceSwitch(query.queryKey, { accountChanged }),
-      });
-    }
-    setActiveWorkspaceState(id);
-    if (id) {
-      localStorage.setItem(WORKSPACE_STORAGE_KEY, id);
-    } else {
-      localStorage.removeItem(WORKSPACE_STORAGE_KEY);
-    }
-    // Clear product when workspace switches
-    setActiveProductState(null);
+      // WM-F8: on a real switch, clear every workspace-scoped query so no stale
+      // data from the previous workspace flashes before the refetch (which reads
+      // like a cross-workspace leak). Active observers refetch automatically
+      // under the new workspace context. USER-global queries (the workspaces list,
+      // profile, personal keys) are always preserved; ACCOUNT-global queries
+      // (billing/connections/integrations) are preserved on a same-account switch
+      // but ALSO cleared when the switch crosses accounts (WM-F8b), so a new
+      // account never renders the previous account's billing/connections.
+      if (id !== activeWorkspaceId) {
+        // The FIRST activation (activeWorkspaceId === null) is not a switch: there is no
+        // prior account whose cached data could be stale, so it must NOT clear account-global
+        // queries (which would drop SSR-hydrated billing/connections on first load). Only a
+        // real switch from an existing workspace can cross accounts; gate the cross-account
+        // clear on that, so first mount stays byte-identical to the pre-WM-F8b behavior.
+        const accountChanged =
+          activeWorkspaceId !== null && accountChangedOnSwitch(workspaces, activeWorkspaceId, id);
+        queryClient.removeQueries({
+          predicate: (query) => shouldClearOnWorkspaceSwitch(query.queryKey, { accountChanged }),
+        });
+      }
+      setActiveWorkspaceState(id);
+      if (id) {
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, id);
+      } else {
+        localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+      }
+      // Clear product when workspace switches
+      setActiveProductState(null);
     },
     [activeWorkspaceId, workspaces, queryClient],
   );

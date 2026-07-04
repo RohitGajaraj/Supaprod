@@ -109,5 +109,35 @@ a call, expand "N more", add a task on the My-day strip, capture a note;
 then `/govern?tab=prompts` redirecting into Quality/Prompt Studio; (5)
 `/plan/spec` on any spec; (6) open the workspace switcher — it stays dark.
 
-_W4 (cross-cutting sweeps) and W5 (live production validation + seed) status:
-see the tail of this file once appended._
+## W4 — done (commit `df9bb3f1`)
+
+All eleven sweeps landed: route error boundaries, the eval-tick judge calls
+routed through the chokepoint (judge spend now visible in ai_events — a new
+"judge" line in AI costs is old spend made visible, not new spend), money
+paths fail closed (a failed top-up cap check now blocks with a retry
+message), the RLS prd-scope migration authored, polling pauses in hidden
+tabs, dialog-safe shortcuts, the gradient language applied and verified,
+honest Today numbers, 66 em-dash fixes.
+
+## W5 — the one blocker found, and it is not the code
+
+**Lovable has not deployed anything pushed tonight.** The live app still
+serves a build from before `24fccc59` (its console still throws the Stripe
+error that commit fixed). GitHub `main` carries all seven mission commits;
+the local production build compiles green; the full experience is verified
+on the dev server. The deploy pipeline between GitHub and
+cadence-flow-beta.lovable.app is stuck — only your Lovable dashboard (or
+authorizing the Lovable MCP) can show why and republish.
+
+**Morning sequence (10 minutes):**
+1. Open Lovable → the project → check build/deploy status. One publish
+   deploys all seven commits.
+2. Applying pending migrations at publish: `20260704110900_loom_prd_scope
+   _consistency.sql` (+ any earlier unapplied ones Lovable lists).
+3. Then run the 10-minute verification path above on the live app.
+4. Authorize the Lovable MCP when convenient — it unlocks live-DB checks,
+   the "This is an Test Message - By RG" debris cleanup, and the rich demo
+   seed (deliberately last, per your mission: only after stable).
+
+The demo seed was NOT run: the mission gates it on a stable, deployed
+production — that gate is yours to open after the publish.
