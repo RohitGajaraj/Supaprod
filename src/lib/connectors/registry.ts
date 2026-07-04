@@ -77,7 +77,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   github: {
     id: "github",
     label: "GitHub",
-    description: "Ship PRDs as issues and detect shipped work from closed issues and PRs.",
+    description: "Ship specs as issues and detect shipped work from closed issues and PRs.",
     authMethods: [
       {
         kind: "github_app",

@@ -124,7 +124,7 @@ export const generateLaunchPlan = createServerFn({ method: "POST" })
     const res = await callModel(supabase as never, userId, {
       surface: "prd",
       surface_ref: "generate_launch_plan",
-      model: "claude-haiku-4-5-20251001",
+      model: "anthropic/claude-haiku-4-5-20251001",
       workspaceId: prd.workspace_id as string,
       responseFormat: "json_object",
       messages: [

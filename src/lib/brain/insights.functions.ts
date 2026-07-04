@@ -13,7 +13,7 @@ import { callModel } from "@/lib/ai/runtime.server"; // imported (called), never
 import { scoreTheme } from "@/lib/brain/score";
 import { summarizeCalibration } from "@/lib/brain/calibrate-insights.server";
 
-const MODEL = "claude-haiku-4-5-20251001" as const; // same as getBrainAnalysis
+const MODEL = "anthropic/claude-haiku-4-5-20251001" as const; // same as getBrainAnalysis
 const MIN_SCORE = 0.12; // calm gate: below this, there is no clear "next" → return null
 const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 min
 
