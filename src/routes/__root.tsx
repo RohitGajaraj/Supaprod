@@ -146,8 +146,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
+    <html lang="en" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         {/* Pre-hydration theme bootstrap — avoid FOUC. Default = light
             (parchment). Legacy stored 'aurora' resolves to dark (char). */}
         <script
@@ -157,7 +157,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         />
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
