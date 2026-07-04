@@ -49,31 +49,48 @@ describe("engine-room-glance builders (LOOM honesty law: real numbers or none)",
     expect(spend.verdict).toBe("$0.01 this week · no cap set");
   });
 
-  it("flags Quality as watch when a suite falls below its own pass threshold", () => {
+  it("reads the pass-rate report (the room's own source) with the scope labeled", () => {
     const quality = buildQualityGlance({
-      suites: [
-        { pass_threshold: 90, last_run: { avg_score: 82 } },
-        { pass_threshold: 80, last_run: { avg_score: 88 } },
-      ],
+      passRate: 0.75,
+      totalRuns: 12,
+      verdict: "watch",
       driftOpenCount: 0,
     });
     expect(quality.state).toBe("watch");
-    expect(quality.verdict).toBe("Evals 82 / 88 · no drift");
+    expect(quality.verdict).toBe("Pass rate 75% across 12 runs · no drift");
   });
 
-  it("flags Quality as watch when drift is open even with passing scores", () => {
+  it("flags Quality as watch when drift is open even with a healthy pass rate", () => {
     const quality = buildQualityGlance({
-      suites: [{ pass_threshold: 80, last_run: { avg_score: 91 } }],
+      passRate: 0.95,
+      totalRuns: 1,
+      verdict: "healthy",
       driftOpenCount: 2,
     });
     expect(quality.state).toBe("watch");
-    expect(quality.verdict).toBe("Evals 91 · drift open");
+    expect(quality.verdict).toBe("Pass rate 95% across 1 run · drift open");
   });
 
-  it("says 'no eval suites yet' honestly instead of inventing scores", () => {
-    const quality = buildQualityGlance({ suites: [], driftOpenCount: 0 });
+  it("stays healthy when the report is healthy and no drift is open", () => {
+    const quality = buildQualityGlance({
+      passRate: 0.92,
+      totalRuns: 20,
+      verdict: "healthy",
+      driftOpenCount: 0,
+    });
     expect(quality.state).toBe("healthy");
-    expect(quality.verdict).toBe("No eval suites yet · no drift");
+    expect(quality.verdict).toBe("Pass rate 92% across 20 runs · no drift");
+  });
+
+  it("says 'no eval runs yet' honestly instead of inventing a rate", () => {
+    const quality = buildQualityGlance({
+      passRate: null,
+      totalRuns: 0,
+      verdict: "no-data",
+      driftOpenCount: 0,
+    });
+    expect(quality.state).toBe("healthy");
+    expect(quality.verdict).toBe("No eval runs yet · no drift");
   });
 
   it("flags Safety as watch on any open incident", () => {

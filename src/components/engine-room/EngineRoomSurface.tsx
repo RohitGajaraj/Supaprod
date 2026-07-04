@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
 import { getAnalyticsOverview } from "@/lib/analytics.functions";
-import { listEvalSuites } from "@/lib/evals.functions";
+import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getDriftOverview } from "@/lib/drift.functions";
 import { getGuardrailOverview } from "@/lib/guardrails.functions";
 import { getIncidents } from "@/lib/incidents.functions";
@@ -93,7 +93,7 @@ function roomStatus(
 export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
   const fBudget = useServerFn(getBudgetOverview);
   const fAnalytics = useServerFn(getAnalyticsOverview);
-  const fSuites = useServerFn(listEvalSuites);
+  const fEvalHealth = useServerFn(getEvalHealth);
   const fDrift = useServerFn(getDriftOverview);
   const fGuardrails = useServerFn(getGuardrailOverview);
   const fIncidents = useServerFn(getIncidents);
@@ -105,7 +105,9 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
     queryKey: ["analytics-overview", 7],
     queryFn: () => fAnalytics({ data: { days: 7 } }),
   });
-  const suitesQ = useQuery({ queryKey: ["eval_suites"], queryFn: () => fSuites() });
+  // Same key as the Quality room's SCORE view: the glance and the score card
+  // share one cached read of one report (the audit's three-way-conflict fix).
+  const evalHealthQ = useQuery({ queryKey: ["eval-health"], queryFn: () => fEvalHealth() });
   const driftQ = useQuery({ queryKey: ["drift_overview"], queryFn: () => fDrift() });
   const guardrailsQ = useQuery({ queryKey: ["guardrails"], queryFn: () => fGuardrails() });
   const incidentsQ = useQuery({ queryKey: ["incidents"], queryFn: () => fIncidents() });
@@ -124,12 +126,11 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
         costThisWeek: cost7Q.data?.summary.totalCost ?? 0,
       }),
     ),
-    roomStatus("quality", [suitesQ, driftQ], () =>
+    roomStatus("quality", [evalHealthQ, driftQ], () =>
       buildQualityGlance({
-        suites: (suitesQ.data ?? []).map((s) => ({
-          pass_threshold: s.pass_threshold,
-          last_run: s.last_run,
-        })),
+        passRate: evalHealthQ.data?.health.passRate ?? null,
+        totalRuns: evalHealthQ.data?.health.totalRuns ?? 0,
+        verdict: evalHealthQ.data?.health.verdict ?? "no-data",
         driftOpenCount: driftQ.data?.openIncidents.length ?? 0,
       }),
     ),

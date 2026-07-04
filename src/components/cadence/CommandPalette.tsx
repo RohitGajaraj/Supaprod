@@ -9,7 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, ENGINE_GROUP } from "@/lib/nav-model";
+import { PRIMARY_NAV, ENGINE_GROUP, FOOTER_NAV } from "@/lib/nav-model";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
 // parchment cmdk palette. Four sections (JUMP · ACT · ASK · CATALOG), a flat
@@ -20,6 +20,14 @@ import { PRIMARY_NAV, ENGINE_GROUP } from "@/lib/nav-model";
 
 type PaletteRow =
   | { section: "JUMP"; label: string; hint: string; to: string; search?: Record<string, string> }
+  | { section: "ENGINE"; label: string; hint: string; to: string; search?: Record<string, string> }
+  | {
+      section: "SETTINGS";
+      label: string;
+      hint: string;
+      to: string;
+      search?: Record<string, string>;
+    }
   | { section: "RECENT"; label: string; kind: string; to: string; search?: Record<string, string> }
   | { section: "ACT"; label: string; to: string; search?: Record<string, string>; event?: string }
   | { section: "ASK"; label: string; intent: string }
@@ -34,6 +42,26 @@ type PaletteRow =
 function jumpToRow(d: JumpDestination): PaletteRow {
   return { section: "JUMP", label: d.label, hint: d.hint, to: d.run.to, search: d.run.search };
 }
+
+// LOOM QA R2 (§9b): the default view mirrors the whole grouped rail — the
+// loop, the engine, settings/admin, and the act verbs (incl. Ask) — so no
+// destination is invisible until the user guesses a search term. The engine
+// row hints reuse the rail indexes; "g" is the Engine Room shortcut.
+const ENGINE_ROWS: PaletteRow[] = ENGINE_GROUP.map((d) => ({
+  section: "ENGINE" as const,
+  label: d.label,
+  hint: d.to === "/engine-room" ? "g" : "",
+  to: d.to,
+  search: d.search,
+}));
+
+const SETTINGS_ROWS: PaletteRow[] = FOOTER_NAV.map((d) => ({
+  section: "SETTINGS" as const,
+  label: d.label,
+  hint: "",
+  to: d.to,
+  search: d.search,
+}));
 
 function actToRow(v: ActVerb): PaletteRow {
   return { section: "ACT", label: v.label, to: v.run.to, search: v.run.search, event: v.run.event };
@@ -79,13 +107,21 @@ export function CommandPalette() {
   const rows: PaletteRow[] = useMemo(() => {
     const q = query.trim();
     if (!q) {
-      return [...JUMP_DESTINATIONS.map(jumpToRow), ...getRecents().map(recentToRow)];
+      return [
+        ...JUMP_DESTINATIONS.map(jumpToRow),
+        ...ENGINE_ROWS,
+        ...SETTINGS_ROWS,
+        ...ACT_VERBS.map(actToRow),
+        ...getRecents().map(recentToRow),
+      ];
     }
     const ql = q.toLowerCase();
     const jump = JUMP_DESTINATIONS.filter((d) => d.label.toLowerCase().includes(ql)).map(jumpToRow);
+    const engine = ENGINE_ROWS.filter((r) => r.label.toLowerCase().includes(ql));
+    const settings = SETTINGS_ROWS.filter((r) => r.label.toLowerCase().includes(ql));
     const act = ACT_VERBS.filter((v) => v.label.toLowerCase().includes(ql)).map(actToRow);
     const catalog = filterCatalog(q).map(catalogToRow);
-    const matched = [...jump, ...act, ...catalog];
+    const matched = [...jump, ...engine, ...settings, ...act, ...catalog];
     const ask: PaletteRow[] =
       matched.length === 0 ? [{ section: "ASK", label: `Ask Cadence: "${q}"`, intent: q }] : [];
     return [...matched, ...ask];
@@ -126,11 +162,22 @@ export function CommandPalette() {
   const sectioned: { label: string; items: { row: PaletteRow; i: number }[] }[] = [];
   const bySection = new Map<string, { row: PaletteRow; i: number }[]>();
   for (const row of rows) {
-    const key = row.section === "RECENT" ? "JUMP" : row.section;
+    const key = row.section;
     if (!bySection.has(key)) bySection.set(key, []);
     bySection.get(key)!.push({ row, i: renderIndex++ });
   }
-  for (const label of ["JUMP", "ACT", "ASK", "CATALOG"]) {
+  // Header text per section: the default view reads like the rail (the loop,
+  // the engine, settings), not like an internal enum.
+  const SECTION_HEADING: Record<string, string> = {
+    JUMP: "The loop",
+    ENGINE: "The engine",
+    SETTINGS: "Settings",
+    ACT: "Act",
+    RECENT: "Recent",
+    ASK: "Ask",
+    CATALOG: "Catalog",
+  };
+  for (const label of ["JUMP", "ENGINE", "SETTINGS", "ACT", "RECENT", "ASK", "CATALOG"]) {
     const items = bySection.get(label);
     if (items?.length) sectioned.push({ label, items });
   }
@@ -220,13 +267,15 @@ export function CommandPalette() {
                       padding: "12px 16px 6px",
                     }}
                   >
-                    {group.label}
+                    {SECTION_HEADING[group.label] ?? group.label}
                   </div>
                   {group.items.map(({ row, i }) => {
                     const active = i === activeIndex;
                     const isCatalog = row.section === "CATALOG";
                     const rightHint =
-                      row.section === "JUMP"
+                      row.section === "JUMP" ||
+                      row.section === "ENGINE" ||
+                      row.section === "SETTINGS"
                         ? row.hint
                         : row.section === "ASK" ||
                             (row.section === "ACT" && row.event === "cadence:open-ask")

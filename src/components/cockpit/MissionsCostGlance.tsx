@@ -34,10 +34,14 @@ export function MissionsCostGlance() {
   if (!d || !spendQ.data) return null;
   const weekSpendUsd = spendQ.data.summary.totalCost;
 
+  // LOOM QA R2 (§9b honesty): each outcome carries its own verb — specs are
+  // drafted, decisions are recorded (never "shipped"), missions ship. The old
+  // shared "the fleet shipped 12 decisions · 1 shipped" read garbled and
+  // claimed the wrong verb for decisions.
   const outcomes = [
-    d.specs > 0 ? `${d.specs} spec${d.specs === 1 ? "" : "s"}` : null,
-    d.decisions > 0 ? `${d.decisions} decision${d.decisions === 1 ? "" : "s"}` : null,
-    d.missions > 0 ? `${d.missions} shipped` : null,
+    d.specs > 0 ? `${d.specs} spec${d.specs === 1 ? "" : "s"} drafted` : null,
+    d.decisions > 0 ? `${d.decisions} decision${d.decisions === 1 ? "" : "s"} recorded` : null,
+    d.missions > 0 ? `${d.missions} mission${d.missions === 1 ? "" : "s"} shipped` : null,
   ].filter((x): x is string => x !== null);
 
   // Quiet week (nothing shipped, nothing spent): stay silent, keep the header calm.
@@ -56,9 +60,9 @@ export function MissionsCostGlance() {
         color: "var(--text-subtle)",
       }}
     >
-      <span style={{ color: "var(--text-subtle)" }}>This week the fleet shipped</span>
+      <span style={{ color: "var(--text-subtle)" }}>This week</span>
       <span style={{ color: "var(--text-primary)" }}>
-        {outcomes.length > 0 ? outcomes.join(" · ") : "nothing yet"}
+        {outcomes.length > 0 ? outcomes.join(" · ") : "no outcomes yet"}
       </span>
       <span style={{ color: "var(--text-subtle)" }}>for</span>
       <span style={{ color: "var(--text-primary)" }}>{fmtCost(weekSpendUsd)}</span>

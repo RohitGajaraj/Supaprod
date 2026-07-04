@@ -400,8 +400,10 @@ export function GraphCanvasView({
       {contradictionDrift && contradictionDrift.driftedCount > 0 && (
         <NoticeLine color="var(--madder)">
           {contradictionDrift.driftedCount}{" "}
-          {contradictionDrift.driftedCount === 1 ? "belief was" : "beliefs were"} revised by a
-          recorded outcome · the revision still stands
+          {contradictionDrift.driftedCount === 1
+            ? "belief in this view was"
+            : "beliefs in this view were"}{" "}
+          revised by a recorded outcome · the revision still stands
         </NoticeLine>
       )}
       {revisedCount > 0 && (

@@ -268,7 +268,7 @@ export function InsightsPanel() {
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {totalDecisions === 0
               ? "No decisions recorded yet."
-              : "Current beliefs are the calls that still hold; revised ones were replaced by a later call."}
+              : "Counts your recorded decisions only: the calls that still hold, and the ones a later call replaced. The loop trail above counts revision links across everything on the graph."}
           </p>
         </div>
         <div className="bento" style={{ padding: 16 }}>

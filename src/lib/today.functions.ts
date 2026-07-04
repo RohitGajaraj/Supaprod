@@ -23,6 +23,8 @@ import {
 } from "@/lib/moat-vis";
 
 export type NeedsYou = {
+  /** LIVE tool gates only (pending and not past their window). Expired gates
+   *  leave the live queue and land in `expiredApprovals` (R2-ATTENTION #2). */
   approvals: {
     id: string;
     agent_slug: string;
@@ -37,6 +39,15 @@ export type NeedsYou = {
     model: string | null;
     /** Spend on this call so far in USD (Appendix D), or null if none recorded. */
     est_cost_usd: number | null;
+  }[];
+  /** Gates that expired before anyone answered. Out of the live count and the
+   *  hero slot; rendered as the quiet "Expired · N" group at the queue's end. */
+  expiredApprovals: {
+    id: string;
+    agent_slug: string;
+    tool_name: string;
+    expires_at: string | null;
+    created_at: string;
   }[];
   prdCalls: {
     id: string;
@@ -66,7 +77,102 @@ export type NeedsYou = {
    *  Null until at least one gate has been decided. Backs the Today
    *  throughput panel ("Gate response · your median"). */
   gateMedianMinutes: number | null;
+  /** THE needs-you truth (R2-ATTENTION #1): uncapped server-side counts.
+   *  Every surface that shows an attention figure (the Today hero, the rail
+   *  badge, the Build loop-health banner) reads these, never an array length,
+   *  so the counts can never disagree when a display cap bites. */
+  counts: NeedsYouCounts;
 };
+
+export type NeedsYouCounts = {
+  /** Live tool gates (pending, not past their window). */
+  approvals: number;
+  /** Specs in review awaiting the human's call. */
+  specs: number;
+  /** Critic-challenged opportunities still in backlog. */
+  opportunities: number;
+  /** Open assumption-supersession challenges. */
+  assumptions: number;
+  /** Gates that expired unanswered. NOT part of liveCalls. */
+  expired: number;
+  /** The one number every "needs you" surface shows: the live calls total. */
+  liveCalls: number;
+};
+
+/** Top-level OR predicate: a gate is LIVE while pending and inside its window. */
+const liveGateOr = (nowIso: string) => `expires_at.is.null,expires_at.gt.${nowIso}`;
+/** Top-level OR predicate: expired state, or pending but past its window
+ *  (the sweeper may not have flipped the row yet — honesty over lag). */
+const expiredGateOr = (nowIso: string) =>
+  `escalation_state.eq.expired,and(escalation_state.eq.pending,expires_at.lte.${nowIso})`;
+
+/**
+ * The ONE server-side derivation of the needs-you counts (R2-ATTENTION #1).
+ * getNeedsYou (Today + rail) and getLoopHealth (the Build banner) both call
+ * this, so "calls waiting on you" is a single truth everywhere. Cheap head
+ * counts, RLS-scoped. Pass workspaceId when the caller already resolved it;
+ * leave it undefined to have it looked up here.
+ */
+export async function countNeedsYouCalls(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId?: string | null,
+): Promise<NeedsYouCounts> {
+  const nowIso = new Date().toISOString();
+  let wsId: string | null;
+  if (workspaceId === undefined) {
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    wsId =
+      ((member as { workspace_id?: string } | null)?.workspace_id as string | undefined) ?? null;
+  } else {
+    wsId = workspaceId;
+  }
+
+  const [live, expired, specs, opps, challenges] = await Promise.all([
+    supabase
+      .from("agent_approvals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("escalation_state", "pending")
+      .or(liveGateOr(nowIso)),
+    supabase
+      .from("agent_approvals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .or(expiredGateOr(nowIso)),
+    supabase.from("prds").select("id", { count: "exact", head: true }).eq("status", "review"),
+    supabase
+      .from("opportunities")
+      .select("id", { count: "exact", head: true })
+      .filter("critic_review->>verdict", "in", '("revise","kill")')
+      .eq("status", "backlog"),
+    wsId
+      ? supabase
+          .from("assumption_challenges")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wsId)
+          .eq("status", "open")
+      : Promise.resolve({ count: 0 }),
+  ]);
+
+  const approvals = live.count ?? 0;
+  const specCount = specs.count ?? 0;
+  const oppCount = opps.count ?? 0;
+  const assumptionCount = challenges.count ?? 0;
+  return {
+    approvals,
+    specs: specCount,
+    opportunities: oppCount,
+    assumptions: assumptionCount,
+    expired: expired.count ?? 0,
+    liveCalls: approvals + specCount + oppCount + assumptionCount,
+  };
+}
 
 export const getNeedsYou = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -74,6 +180,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const dayStart = new Date();
     dayStart.setHours(0, 0, 0, 0);
+    const nowIso = new Date().toISOString();
 
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -85,52 +192,67 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       .maybeSingle();
     const workspaceId = (member?.workspace_id as string | undefined) ?? null;
 
-    const [approvals, prds, opps, events, decided, challenges] = await Promise.all([
-      supabase
-        .from("agent_approvals")
-        .select("id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id")
-        .eq("user_id", userId)
-        .in("escalation_state", ["pending", "expired"])
-        .order("expires_at", { ascending: true })
-        .limit(10),
-      supabase
-        .from("prds")
-        .select("id,title,status,critic_review,updated_at")
-        .eq("status", "review")
-        .order("updated_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("opportunities")
-        .select("id,title,critic_review,created_at")
-        .filter("critic_review->>verdict", "in", '("revise","kill")')
-        // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
-        // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
-        // the call is decided and must not resurface on the next visit.
-        .eq("status", "backlog")
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabase
-        .from("ai_events")
-        .select("est_cost_usd")
-        .gte("created_at", dayStart.toISOString())
-        .limit(1000),
-      supabase
-        .from("agent_approvals")
-        .select("created_at,decided_at")
-        .eq("user_id", userId)
-        .not("decided_at", "is", null)
-        .gte("decided_at", weekAgo)
-        .limit(200),
-      workspaceId
-        ? supabase
-            .from("assumption_challenges")
-            .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
-            .eq("workspace_id", workspaceId)
-            .eq("status", "open")
-            .order("created_at", { ascending: false })
-            .limit(5)
-        : Promise.resolve({ data: [] as unknown[] }),
-    ]);
+    // R2-ATTENTION #2: expired gates leave the live queue. The live fetch takes
+    // pending-and-inside-window rows only; expired rows (state or window) come
+    // back separately for the quiet end-of-queue group.
+    const [counts, approvals, expiredRows, prds, opps, events, decided, challenges] =
+      await Promise.all([
+        countNeedsYouCalls(supabase as unknown as SupabaseClient, userId, workspaceId),
+        supabase
+          .from("agent_approvals")
+          .select(
+            "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id",
+          )
+          .eq("user_id", userId)
+          .eq("escalation_state", "pending")
+          .or(liveGateOr(nowIso))
+          .order("expires_at", { ascending: true })
+          .limit(10),
+        supabase
+          .from("agent_approvals")
+          .select("id,agent_slug,tool_name,expires_at,created_at")
+          .eq("user_id", userId)
+          .or(expiredGateOr(nowIso))
+          .order("expires_at", { ascending: false })
+          .limit(8),
+        supabase
+          .from("prds")
+          .select("id,title,status,critic_review,updated_at")
+          .eq("status", "review")
+          .order("updated_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("opportunities")
+          .select("id,title,critic_review,created_at")
+          .filter("critic_review->>verdict", "in", '("revise","kill")')
+          // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
+          // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
+          // the call is decided and must not resurface on the next visit.
+          .eq("status", "backlog")
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("ai_events")
+          .select("est_cost_usd")
+          .gte("created_at", dayStart.toISOString())
+          .limit(1000),
+        supabase
+          .from("agent_approvals")
+          .select("created_at,decided_at")
+          .eq("user_id", userId)
+          .not("decided_at", "is", null)
+          .gte("decided_at", weekAgo)
+          .limit(200),
+        workspaceId
+          ? supabase
+              .from("assumption_challenges")
+              .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+              .eq("workspace_id", workspaceId)
+              .eq("status", "open")
+              .order("created_at", { ascending: false })
+              .limit(5)
+          : Promise.resolve({ data: [] as unknown[] }),
+      ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(
       (s, e) => s + Number((e as { est_cost_usd: number | null }).est_cost_usd || 0),
@@ -299,11 +421,13 @@ export const getNeedsYou = createServerFn({ method: "GET" })
 
     return {
       approvals: enrichedApprovals,
+      expiredApprovals: (expiredRows.data ?? []) as NeedsYou["expiredApprovals"],
       prdCalls: (prds.data ?? []) as NeedsYou["prdCalls"],
       oppCalls: (opps.data ?? []) as NeedsYou["oppCalls"],
       assumptionCalls,
       spendTodayUsd,
       gateMedianMinutes,
+      counts,
     };
   });
 

@@ -64,7 +64,10 @@ export type DelegateDesk = {
 const LANE_ORDER: DeskLaneId[] = ["needsYou", "working", "awaiting", "done", "attention"];
 
 const LANE_META: Record<DeskLaneId, { label: string; blurb: string }> = {
-  needsYou: { label: "Needs you", blurb: "Paused at a gate. A decision unblocks the work." },
+  // R2-ATTENTION #1: this lane counts MISSIONS paused at a gate, not calls.
+  // It is a different subset from the Today "needs you" calls count, so its
+  // label names its own scope instead of borrowing the attention vocabulary.
+  needsYou: { label: "Paused at a gate", blurb: "A call on Today unblocks the work." },
   working: { label: "Working", blurb: "Agents are on it. Walk away; come back to it done." },
   awaiting: { label: "Queued", blurb: "Handed off, waiting to start." },
   done: { label: "Done", blurb: "Finished. The full trail is kept." },
@@ -178,7 +181,14 @@ export function summarizeDesk(counts: Record<DeskLaneId, number>, total: number)
     return "Nothing delegated yet. Hand a task to your agents and it shows up here.";
   }
   const parts: string[] = [];
-  if (counts.needsYou > 0) parts.push(`${counts.needsYou} needs you`);
+  // Scope-labeled (R2-ATTENTION #1): these are missions paused at a gate, a
+  // different subset from the Today calls count — never "N needs you".
+  if (counts.needsYou > 0)
+    parts.push(
+      counts.needsYou === 1
+        ? "1 mission paused at a gate"
+        : `${counts.needsYou} missions paused at a gate`,
+    );
   if (counts.working > 0) parts.push(`${counts.working} working`);
   if (counts.awaiting > 0) parts.push(`${counts.awaiting} queued`);
   if (counts.done > 0) parts.push(`${counts.done} done`);

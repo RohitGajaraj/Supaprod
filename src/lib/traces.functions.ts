@@ -72,6 +72,7 @@ export const listTraces = createServerFn({ method: "POST" })
         errors: number;
         root_surface: string | null;
         root_at: string;
+        root_event_id: string;
       }
     >();
     for (const r of (rows ?? []) as EventRow[]) {
@@ -89,6 +90,7 @@ export const listTraces = createServerFn({ method: "POST" })
         errors: 0,
         root_surface: null,
         root_at: r.created_at,
+        root_event_id: r.id,
       };
       t.spans += 1;
       t.tokens += r.total_tokens || 0;
@@ -101,30 +103,91 @@ export const listTraces = createServerFn({ method: "POST" })
         t.first_at = r.created_at;
         t.root_surface = r.surface;
         t.root_at = r.created_at;
+        t.root_event_id = r.id;
       }
       if (r.created_at > t.last_at) t.last_at = r.created_at;
       byTrace.set(r.trace_id, t);
     }
-    const traces = [...byTrace.values()]
-      .map((t) => ({
-        trace_id: t.trace_id,
-        first_at: t.first_at,
-        last_at: t.last_at,
-        spans: t.spans,
-        tokens: t.tokens,
-        cost: t.cost,
-        latency_ms: t.latency_ms,
-        errors: t.errors,
-        surfaces: [...t.surfaces],
-        models: [...t.models],
-        root_surface: t.root_surface ?? [...t.surfaces][0] ?? "unknown",
-        wall_ms: new Date(t.last_at).getTime() - new Date(t.first_at).getTime(),
-      }))
+    const sliced = [...byTrace.values()]
       .filter((t) =>
         data.status === "all" ? true : data.status === "error" ? t.errors > 0 : t.errors === 0,
       )
       .sort((a, b) => b.last_at.localeCompare(a.last_at))
       .slice(0, data.limit);
+
+    // Human titles (Record room readability): a trace row named only by its
+    // surface ("agent" x13) is unreadable. Two bounded batch lookups, never
+    // per-trace: mission titles via agent_messages.source_trace_id (the same
+    // join getTrace uses, batched), then the root event's input preview as
+    // the fallback snippet. A trace with neither keeps title null and the UI
+    // falls back to the surface (real or absent, LOOM section 9b).
+    const traceIds = sliced.map((t) => t.trace_id);
+    const titleByTrace = new Map<string, string>();
+    if (traceIds.length) {
+      const { data: msgs } = await context.supabase
+        .from("agent_messages")
+        .select("source_trace_id,mission_id")
+        .in("source_trace_id", traceIds);
+      const missionByTrace = new Map<string, string>();
+      for (const m of (msgs ?? []) as { source_trace_id: string | null; mission_id: string }[]) {
+        if (m.source_trace_id && m.mission_id && !missionByTrace.has(m.source_trace_id)) {
+          missionByTrace.set(m.source_trace_id, m.mission_id);
+        }
+      }
+      const missionIds = [...new Set(missionByTrace.values())];
+      if (missionIds.length) {
+        const { data: missions } = await context.supabase
+          .from("missions")
+          .select("id,title")
+          .in("id", missionIds);
+        const titleByMission = new Map(
+          ((missions ?? []) as { id: string; title: string | null }[]).map((m) => [m.id, m.title]),
+        );
+        for (const [traceId, missionId] of missionByTrace) {
+          const title = titleByMission.get(missionId);
+          if (title) titleByTrace.set(traceId, title);
+        }
+      }
+      const rootIdsNeedingPreview = sliced
+        .filter((t) => !titleByTrace.has(t.trace_id))
+        .map((t) => t.root_event_id);
+      if (rootIdsNeedingPreview.length) {
+        const { data: roots } = await context.supabase
+          .from("ai_events")
+          .select("id,trace_id,input_preview")
+          .in("id", rootIdsNeedingPreview);
+        for (const r of (roots ?? []) as {
+          id: string;
+          trace_id: string | null;
+          input_preview: string | null;
+        }[]) {
+          const snippet = (r.input_preview ?? "").replace(/\s+/g, " ").trim();
+          if (r.trace_id && snippet) {
+            titleByTrace.set(
+              r.trace_id,
+              snippet.length > 80 ? `${snippet.slice(0, 77)}...` : snippet,
+            );
+          }
+        }
+      }
+    }
+
+    const traces = sliced.map((t) => ({
+      trace_id: t.trace_id,
+      first_at: t.first_at,
+      last_at: t.last_at,
+      spans: t.spans,
+      tokens: t.tokens,
+      cost: t.cost,
+      latency_ms: t.latency_ms,
+      errors: t.errors,
+      surfaces: [...t.surfaces],
+      models: [...t.models],
+      root_surface: t.root_surface ?? [...t.surfaces][0] ?? "unknown",
+      /** Mission title, else the first message snippet, else null. */
+      title: titleByTrace.get(t.trace_id) ?? null,
+      wall_ms: new Date(t.last_at).getTime() - new Date(t.first_at).getTime(),
+    }));
 
     return { traces };
   });

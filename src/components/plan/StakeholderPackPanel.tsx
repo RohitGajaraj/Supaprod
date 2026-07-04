@@ -5,6 +5,7 @@ import { Copy, Check, Download } from "lucide-react";
 import { Button } from "@/components/obsidian";
 import { getStakeholderPack } from "@/lib/stakeholder-pack.functions";
 import type { PackAudience } from "@/lib/stakeholder-pack";
+import { decisionOptionLabel } from "./format";
 
 const AUDIENCE_TABS: { id: PackAudience; label: string }[] = [
   { id: "exec", label: "EXECUTIVE" },
@@ -160,8 +161,11 @@ export function StakeholderPackPanel() {
         }}
       >
         {decisions.map((d) => (
-          <option key={d.id} value={d.id}>
-            {d.title}
+          // LOOM QA R2: the machine "[auto]" prefix never reaches the picker,
+          // and long titles trim on a word boundary; the full title stays on
+          // the tooltip.
+          <option key={d.id} value={d.id} title={d.title}>
+            {decisionOptionLabel(d.title)}
           </option>
         ))}
       </select>

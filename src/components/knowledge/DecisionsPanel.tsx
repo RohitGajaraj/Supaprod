@@ -17,7 +17,6 @@ import { toast } from "@/lib/notify";
 import {
   listDecisions,
   createDecision,
-  updateDecision,
   type DecisionRow,
   type DecisionSource,
 } from "@/lib/decisions.functions";
@@ -150,7 +149,6 @@ export function DecisionsPanel() {
   const qc = useQueryClient();
   const fList = useServerFn(listDecisions);
   const fCreate = useServerFn(createDecision);
-  const fUpdate = useServerFn(updateDecision);
 
   const listInput = {
     source: source === "all" ? undefined : source,
@@ -168,15 +166,6 @@ export function DecisionsPanel() {
       qc.invalidateQueries({ queryKey: ["decisions"] });
       toast.success("Decision logged · the swarm reads it");
       setOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const update = useMutation({
-    mutationFn: (data: { id: string; status: "approved" | "rejected" | "pending" }) =>
-      fUpdate({ data }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["decisions"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -320,43 +309,22 @@ export function DecisionsPanel() {
                   </span>
                 </span>
                 {d.status === "pending" ? (
+                  // LOOM QA R2 (one-home law, §9b): approvals have ONE
+                  // actionable home — Today's queue. This row stays the
+                  // record; deciding happens there.
                   <span className="flex" style={{ gap: 6, marginTop: 7 }}>
-                    <button
-                      type="button"
+                    {/* span, not button: the row itself is a <button>, and a
+                        nested button is invalid HTML (hydration warning). */}
+                    <span
+                      role="link"
                       onClick={(e) => {
                         e.stopPropagation();
-                        update.mutate({ id: d.id, status: "approved" });
+                        navigate({ to: "/today" });
                       }}
-                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                      style={{
-                        fontSize: 11,
-                        color: "var(--moss)",
-                        background: "transparent",
-                        border: "1px solid rgba(127,191,142,0.35)",
-                        borderRadius: 6,
-                        padding: "3px 9px",
-                      }}
+                      style={{ fontSize: 11, color: "var(--glacier)", cursor: "pointer" }}
                     >
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        update.mutate({ id: d.id, status: "rejected" });
-                      }}
-                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                      style={{
-                        fontSize: 11,
-                        color: "var(--madder)",
-                        background: "transparent",
-                        border: "1px solid rgba(224,101,87,0.35)",
-                        borderRadius: 6,
-                        padding: "3px 9px",
-                      }}
-                    >
-                      Send back
-                    </button>
+                      Decide on Today &rarr;
+                    </span>
                   </span>
                 ) : null}
               </span>

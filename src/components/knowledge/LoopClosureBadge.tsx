@@ -10,6 +10,7 @@ import { Activity, ChevronRight } from "lucide-react";
 import { getLoopClosure } from "@/lib/moat.functions";
 import { summarizeLoopClosure } from "@/lib/moat/loop-closure-display";
 import type { LoopWarmth } from "@/lib/moat/loop-closure";
+import { useWorkspace } from "@/hooks/use-workspace";
 
 const DOT: Record<LoopWarmth, string> = {
   warm: "var(--emerald)",
@@ -17,9 +18,26 @@ const DOT: Record<LoopWarmth, string> = {
   cold: "var(--ink-faint)",
 };
 
+// One number per meaning (the audit's contradiction fix): the engine's
+// "revised" counts supersession LINKS in the lineage graph (an outcome that
+// replaced any artifact), not decisions currently marked revised - that
+// number belongs to the Beliefs card below. The trail says which it means.
+function trailLabel(label: string, value: number): string {
+  if (label === "revised") return value === 1 ? "revision link" : "revision links";
+  if (label === "resolved") return "resolved forward";
+  return label;
+}
+
 export function LoopClosureBadge() {
+  // Scoped to the ACTIVE workspace (the same scope as every other number on
+  // this page); an unscoped call falls back server-side to the DEFAULT
+  // workspace, which is how this funnel once contradicted the Beliefs card.
+  const { activeWorkspaceId } = useWorkspace();
   const fLoop = useServerFn(getLoopClosure);
-  const q = useQuery({ queryKey: ["loop-closure"], queryFn: () => fLoop({ data: {} }) });
+  const q = useQuery({
+    queryKey: ["loop-closure", activeWorkspaceId],
+    queryFn: () => fLoop({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
 
   const report = q.data;
   // Calm by default: while loading, on error, or on a workspace with no decisions at all, show
@@ -65,7 +83,9 @@ export function LoopClosureBadge() {
             ) : null}
             <span className="tabular-nums" style={{ fontSize: 11.5, color: "var(--ink)" }}>
               <strong style={{ fontWeight: 600 }}>{step.value}</strong>{" "}
-              <span style={{ color: "var(--ink-faint)" }}>{step.label}</span>
+              <span style={{ color: "var(--ink-faint)" }}>
+                {trailLabel(step.label, step.value)}
+              </span>
             </span>
           </span>
         ))}

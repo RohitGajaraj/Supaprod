@@ -46,12 +46,24 @@ function ScoreView() {
   const health = q.data?.health;
   const passRatePct = health?.passRate != null ? Math.round(health.passRate * 100) : null;
   const trend = health?.scoreTrend ?? [];
+  // Scope-labeled, plain words (LOOM section 9b: a figure ships with its
+  // meaning and its scope; never the raw "unknown · watch" telemetry pair).
+  const TREND_WORDS: Record<string, string> = {
+    improving: "improving",
+    declining: "declining",
+    stable: "holding steady",
+    unknown: "too few runs to call a trend",
+  };
+  const note =
+    health && passRatePct != null
+      ? `across ${health.totalRuns} run${health.totalRuns === 1 ? "" : "s"} · ${TREND_WORDS[health.trend] ?? "too few runs to call a trend"}`
+      : "no eval runs yet";
   return (
     <div className="flex flex-col gap-3">
       <AuroraCard
         label="PASS RATE"
         value={passRatePct != null ? `${passRatePct}%` : "-"}
-        note={health ? `${health.trend} · ${health.verdict}` : "no eval runs yet"}
+        note={note}
         hue={
           health?.verdict === "at-risk"
             ? "failing"

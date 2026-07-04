@@ -186,8 +186,12 @@ function NotConnectedRow({
 }
 
 /** One stored connection rendered per the §8 anatomy: glowing status word +
- * the one action button (Reconnect when failing, else Disconnect), with
- * Verify/Remove as quiet secondary text so neither capability is dropped. */
+ * ONE visible verb (Reconnect when failing, else Disconnect), with Verify as
+ * quiet secondary text. LOOM QA R2 (destructive-actions convention): Remove
+ * no longer sits beside Disconnect unexplained — removal lives BEHIND
+ * disconnect. A live row offers Disconnect; once the credential is gone
+ * (status "disconnected") the row's one action becomes Remove, whose confirm
+ * names the consequence (bindings deleted, irreversible). */
 function ConnectedRow({
   connection: c,
   busy,
@@ -201,6 +205,27 @@ function ConnectedRow({
   onDisconnect?: (c: AccountConnection) => void;
   onRemove?: (c: AccountConnection) => void;
 }) {
+  if (c.status === "disconnected") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+        <StatusDot
+          state="queued"
+          word="DISCONNECTED"
+          title="The stored credential is deleted. Remove clears the record and its workspace bindings."
+        />
+        {onRemove ? (
+          <GhostAction
+            onClick={() => onRemove(c)}
+            disabled={busy}
+            title="Deletes this connection record and every workspace binding that uses it."
+          >
+            Remove
+          </GhostAction>
+        ) : null}
+      </div>
+    );
+  }
+
   const state = connectionState(c);
   const word = state === "failing" ? "FAILING" : state === "stale" ? "STALE" : "LIVE";
 
@@ -215,16 +240,6 @@ function ConnectedRow({
       <GhostAction onClick={() => onDisconnect?.(c)} disabled={busy}>
         {state === "failing" ? "Reconnect" : "Disconnect"}
       </GhostAction>
-      {onRemove ? (
-        <QuietTextAction
-          onClick={() => onRemove(c)}
-          disabled={busy}
-          title="Removes the connection and its workspace bindings. Nothing else is deleted."
-          tone="madder"
-        >
-          Remove
-        </QuietTextAction>
-      ) : null}
     </div>
   );
 }
@@ -285,7 +300,20 @@ export function ConnectionRow({
             {primary ? (
               <>
                 <span>&middot;</span>
-                <span>LAST SYNC &middot; {timeAgoCaps(primary.last_verified_at)}</span>
+                {/* last_verified_at is a credential check, not a data sync — name it honestly. */}
+                <span>LAST CHECK &middot; {timeAgoCaps(primary.last_verified_at)}</span>
+              </>
+            ) : null}
+            {primary &&
+            primary.status !== "disconnected" &&
+            connectionState(primary) === "stale" ? (
+              // LOOM QA R2: STALE explained where it appears — the credential
+              // is only re-checked when it is used or when you press Verify.
+              <>
+                <span>&middot;</span>
+                <span style={{ color: "var(--text-subtle)" }}>
+                  STALE &middot; NO CHECK IN OVER A DAY &middot; VERIFY RE-CHECKS IT
+                </span>
               </>
             ) : null}
             {permissions ? (

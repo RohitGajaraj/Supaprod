@@ -116,43 +116,40 @@ export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
 }
 
 export interface QualityGlanceInput {
-  /** `listEvalSuites()` rows, each carrying `pass_threshold` + `last_run`. */
-  suites: Array<{
-    pass_threshold: number | string | null;
-    last_run: { avg_score: number | null } | null;
-  }>;
+  /**
+   * `getEvalHealth().health` - the ONE quality truth. The audit found a
+   * three-way conflict (header "Evals 81" - a suite's average score - vs the
+   * room's "PASS RATE 75%" vs a raw "unknown · watch" note); the glance now
+   * reads the same pass-rate report the room's score card renders, so the
+   * header and the card can never disagree.
+   */
+  passRate: number | null;
+  totalRuns: number;
+  verdict: "healthy" | "watch" | "at-risk" | "no-data";
   /** `getDriftOverview().openIncidents` */
   driftOpenCount: number;
 }
 
 export function buildQualityGlance(input: QualityGlanceInput): RoomGlance {
-  const { suites, driftOpenCount } = input;
+  const { passRate, totalRuns, verdict, driftOpenCount } = input;
   const driftOpen = driftOpenCount > 0;
-  if (suites.length === 0) {
+  const driftWord = driftOpen ? "drift open" : "no drift";
+  if (passRate == null || totalRuns === 0 || verdict === "no-data") {
     return {
       key: "quality",
       name: ROOM_NAMES.quality,
       question: ROOM_QUESTIONS.quality,
-      verdict: `No eval suites yet · ${driftOpen ? "drift open" : "no drift"}`,
+      verdict: `No eval runs yet · ${driftWord}`,
       state: driftOpen ? "watch" : "healthy",
     };
   }
-  const scored = suites.filter((s) => s.last_run?.avg_score != null);
-  const belowBaseline = scored.some(
-    (s) => Math.round(s.last_run!.avg_score as number) < Number(s.pass_threshold ?? 0),
-  );
-  const state: RoomState = belowBaseline || driftOpen ? "watch" : "healthy";
-  const scoreLine = scored.length
-    ? scored
-        .slice(0, 3)
-        .map((s) => Math.round(s.last_run!.avg_score as number))
-        .join(" / ")
-    : "no runs yet";
+  // State derives from the same report as the number (never a second source).
+  const state: RoomState = verdict !== "healthy" || driftOpen ? "watch" : "healthy";
   return {
     key: "quality",
     name: ROOM_NAMES.quality,
     question: ROOM_QUESTIONS.quality,
-    verdict: `Evals ${scoreLine} · ${driftOpen ? "drift open" : "no drift"}`,
+    verdict: `Pass rate ${Math.round(passRate * 100)}% across ${totalRuns} run${totalRuns === 1 ? "" : "s"} · ${driftWord}`,
     state,
   };
 }

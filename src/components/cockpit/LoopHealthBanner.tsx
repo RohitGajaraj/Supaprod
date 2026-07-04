@@ -136,9 +136,10 @@ export function LoopHealthBanner() {
 
       {h.verdict === "stalled" &&
         (h.expiredCalls > 0 ? (
+          // Expired gates now have ONE home: the quiet Expired group at the
+          // end of Today's queue (R2-ATTENTION #2), so the action goes there.
           <Link
-            to="/govern"
-            search={{ tab: "approvals" }}
+            to="/today"
             className="mono-label loom-press"
             style={{
               fontSize: "var(--text-mono-floor)",

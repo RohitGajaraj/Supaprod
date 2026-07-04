@@ -12,10 +12,15 @@ import { WhatChanged, type WhatChangedItem } from "@/components/obsidian/today/W
 import { MachineNow, type MachineNowRow } from "@/components/obsidian/today/MachineNow";
 import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
 import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
-import { TriageQueue, type QueueCall, type QueueGroup } from "@/components/today/TriageQueue";
+import {
+  TriageQueue,
+  type ExpiredCall,
+  type QueueCall,
+  type QueueGroup,
+} from "@/components/today/TriageQueue";
 import { MyDayStrip } from "@/components/today/MyDayStrip";
 import { QuickCapture } from "@/components/today/QuickCapture";
-import { sortWithinGroup, expiryLabel } from "@/components/today/triage";
+import { sortWithinGroup, expiryLabel, expiredAgo, gateHeadline } from "@/components/today/triage";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -359,11 +364,11 @@ function Dashboard() {
   }, []);
 
   const ny = needsYou.data;
-  const callCount =
-    (ny?.approvals.length ?? 0) +
-    (ny?.prdCalls.length ?? 0) +
-    (ny?.oppCalls.length ?? 0) +
-    (ny?.assumptionCalls.length ?? 0);
+  // R2-ATTENTION #1: the ONE needs-you truth is the server-side count —
+  // never an array-length sum, which display caps can understate. Expired
+  // gates are excluded server-side (they live in the quiet Expired group).
+  const callCount = ny?.counts.liveCalls ?? 0;
+  const expiredTotal = ny?.counts.expired ?? 0;
 
   const [clearedSession, setClearedSession] = useState(0);
   const answered = () => setClearedSession((c) => c + 1);
@@ -460,9 +465,12 @@ function Dashboard() {
       props: {
         kind: "SHIP IT?",
         expiry: expiryLabel(a.expires_at),
-        title: `${a.agent_slug ?? "An agent"} wants to run ${a.tool_name}`,
+        // R2-ATTENTION #3: the headline names the catalogued outcome, never
+        // the tool slug. The raw slug stays below, in the mono metadata rows.
+        title: gateHeadline(a.agent_slug, a.tool_name),
         body: a.rationale ?? "Waiting on your approval.",
         ev: [
+          { src: "TOOL", text: a.tool_name },
           ...(a.model ? [{ src: "MODEL", text: a.model }] : []),
           ...(a.est_cost_usd != null
             ? [{ src: "SPEND", text: `${fmtUsd(a.est_cost_usd)} so far on this call` }]
@@ -541,11 +549,29 @@ function Dashboard() {
     })),
   );
 
+  // Group chips read the server counts, so a display cap can never make a
+  // chip understate (R2-ATTENTION #1).
   const groups: QueueGroup[] = [
-    { family: "ship", calls: shipCalls },
-    { family: "build", calls: buildCalls },
-    { family: "reexamine", calls: reexamineCalls },
+    { family: "ship", calls: shipCalls, total: ny?.counts.approvals },
+    {
+      family: "build",
+      calls: buildCalls,
+      total: ny ? ny.counts.specs + ny.counts.opportunities : undefined,
+    },
+    { family: "reexamine", calls: reexamineCalls, total: ny?.counts.assumptions },
   ];
+
+  // R2-ATTENTION #2: expired gates, out of the live queue. resolveApproval
+  // accepts an expired row (approve executes the tool now, reject closes it),
+  // so both affordances are wired, not decorative.
+  const expiredCalls: ExpiredCall[] = (ny?.expiredApprovals ?? []).map((x) => ({
+    id: x.id,
+    headline: gateHeadline(x.agent_slug, x.tool_name),
+    tool: x.tool_name,
+    agoLabel: expiredAgo(x.expires_at),
+    onRun: () => decideApproval.mutate({ approvalId: x.id, decision: "approved" }),
+    onDismiss: () => decideApproval.mutate({ approvalId: x.id, decision: "rejected" }),
+  }));
 
   // OBS-04.md §5 step 11 + Loom: A/S answer the current featured Call (the
   // first card of the first non-empty group). The handler reads refs so the
@@ -779,7 +805,7 @@ function Dashboard() {
                   }}
                 />
               </div>
-            ) : callCount === 0 ? (
+            ) : callCount === 0 && expiredTotal === 0 ? (
               <div
                 style={{
                   background: "var(--card)",
@@ -809,7 +835,7 @@ function Dashboard() {
                 </p>
               </div>
             ) : (
-              <TriageQueue groups={groups} />
+              <TriageQueue groups={groups} expired={{ total: expiredTotal, calls: expiredCalls }} />
             )}
             {totalCalls > 0 && needsYouLoaded && (
               <div>

@@ -57,9 +57,15 @@ export const AuroraCard = React.forwardRef<HTMLDivElement, AuroraCardProps>(
       />
       <div className="relative flex flex-col gap-2">
         <MonoLabel>{label}</MonoLabel>
+        {/* LOOM section 4 / v3 section 5: Codystar is aurora-DECORATIVE only.
+            These numerals carry meaning (a score, a spend, a pass rate), so
+            they render legibly in the serif display voice with tabular
+            figures; the aurora washes stay the decoration. */}
         <span
+          className="tabular-nums"
           style={{
-            fontFamily: "var(--font-dotted)",
+            fontFamily: "var(--font-serif)",
+            fontWeight: 460,
             fontSize: "var(--text-score)",
             color: "var(--text-primary)",
             lineHeight: 1,

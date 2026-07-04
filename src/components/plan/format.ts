@@ -28,6 +28,21 @@ export function measureCaps(measure: string | null): string | null {
   return measure.toUpperCase();
 }
 
+/**
+ * LOOM QA R2: display label for a decision in a picker. Stored titles can
+ * carry the machine "[auto]" prefix and can already be long; strip the prefix
+ * at render and, when trimming, cut on a word boundary (never mid-word) with
+ * an ellipsis. Callers keep the untouched title in a `title=` attribute.
+ */
+export function decisionOptionLabel(title: string, max = 96): string {
+  const t = title.replace(/^\[auto\]\s*/i, "").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  const head = lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut;
+  return `${head.trimEnd()}…`;
+}
+
 export type BodySegment = { type: "text"; value: string } | { type: "citation"; index: number };
 
 /**

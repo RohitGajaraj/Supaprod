@@ -285,8 +285,13 @@ function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
         </MonoLabel>
       </h2>
       {rerankedAgo ? (
-        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
-          RE-RANKED {rerankedAgo}
+        // LOOM QA R2: an old "RE-RANKED 22D AGO" stamp alone reads like a
+        // stuck machine; say honestly when the next re-rank happens.
+        <MonoLabel
+          title="Scores re-rank automatically when new signals land. Nothing to press."
+          style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}
+        >
+          RE-RANKED {rerankedAgo} &middot; RE-RANKS WHEN NEW SIGNALS LAND
         </MonoLabel>
       ) : null}
     </div>

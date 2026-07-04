@@ -39,17 +39,18 @@ export function ReliabilityGlance() {
   // Calm front: nothing to flag (or nothing has answered yet) -> render nothing.
   if (spinning === 0 && !budgetStrained) return null;
 
-  // §9b (audit D-10): the raw "error budget spent, 7.07% succeeded" line read
-  // as a broken product. The number stays true; the line now says what it
-  // means and where it applies (this workspace's AI calls, this week), and
-  // the deep per-call breakdown stays behind the popover (Engine Room depth).
+  // LOOM QA R2 (§9b): no unscoped percentage alarms in Build's chrome. A raw
+  // "3.56% succeeded" figure reads as a broken product; the number itself
+  // stays in the Engine Room's Quality depth (the popover breakdown). The
+  // chrome line keeps only the scope (this workspace's AI calls, this week),
+  // the meaning (quality needs a look), and the one action (details).
   const parts: string[] = [];
   if (spinning > 0 && runaway?.summary) parts.push(runaway.summary);
   if (budgetStrained && slo) {
     parts.push(
       budgetStatus === "exhausted"
-        ? `AI calls failed more than usual this week (${slo.metrics.availabilityPct}% succeeded); missions retry, and the details are one click away`
-        : `AI calls are failing a little more than usual this week (${slo.metrics.availabilityPct}% succeeded)`,
+        ? "more AI calls failed than usual this week; missions retry on their own, and quality needs a look"
+        : "AI calls are failing a little more than usual this week",
     );
   }
   if (parts.length === 0) return null;

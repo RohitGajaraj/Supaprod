@@ -118,9 +118,14 @@ describe("delegate-desk — composition", () => {
 });
 
 describe("delegate-desk — summary", () => {
-  it("mentions only non-empty lanes, urgent first", () => {
+  it("mentions only non-empty lanes, urgent first, with the gate lane scope-labeled", () => {
+    // R2-ATTENTION #1: the lane counts MISSIONS paused at a gate — a different
+    // subset from Today's calls count, so it never reads "N needs you".
     expect(summarizeDesk({ needsYou: 1, working: 2, awaiting: 0, done: 5, attention: 0 }, 8)).toBe(
-      "1 needs you · 2 working · 5 done.",
+      "1 mission paused at a gate · 2 working · 5 done.",
+    );
+    expect(summarizeDesk({ needsYou: 3, working: 0, awaiting: 0, done: 0, attention: 0 }, 3)).toBe(
+      "3 missions paused at a gate.",
     );
   });
 

@@ -41,7 +41,7 @@ import { MeetingDetailBody } from "@/components/cadence/MeetingDetailBody";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { EmptyState, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
 
 type View = "list" | "month" | "year";
 const VIEW_KEY = "cadence.calendar.view";
@@ -351,6 +351,13 @@ export function CalendarPanel({
     })
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
 
+  // Everything loaded that sits before the list window: the strip above
+  // counts every meeting ever logged, so the empty list names where the
+  // rest live instead of claiming an empty calendar.
+  const pastCount = allItems.filter(
+    (it) => new Date(it.start_at).getTime() < _now - 12 * 60 * 60 * 1000,
+  ).length;
+
   // Month/year occupancy buckets from everything loaded (events + meetings).
   const buckets: Record<string, DayItem[]> = {};
   for (const it of allItems) {
@@ -414,8 +421,10 @@ export function CalendarPanel({
         >
           {mPlan.isPending ? "Planning…" : "Plan deep work"}
         </button>
+        {/* Machine work is never the screen's ember CTA (LOOM section 3: at
+            most one solid fill per screen, and sync is not it). */}
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-ghost btn-sm"
           onClick={() => mSync.mutate()}
           disabled={mSync.isPending}
         >
@@ -656,13 +665,51 @@ export function CalendarPanel({
           </button>
         </div>
       ) : view === "list" && feed.length === 0 ? (
-        <EmptyState
-          icon={CalIcon}
-          title="Nothing on the calendar yet"
-          body="Sync pulls events from your connected calendar; meetings logged on the dashboard land here too."
-          cta="Sync · pulls 14 days"
-          onCta={() => mSync.mutate()}
-        />
+        // Window-named empty state (the honesty law): the list only shows the
+        // next 14 days, so an empty list must say so - the count strip above
+        // counts every meeting ever logged, and "Nothing on the calendar yet"
+        // read as a contradiction of it. Ghost CTA: sync is machine work,
+        // never the screen's one solid fill (the EmptyState primitive's CTA
+        // is hard-wired primary, so this state renders locally).
+        <div className="bento" style={{ padding: 48, textAlign: "center" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: "var(--soft-stone)",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--ink-subtle)",
+              marginBottom: 14,
+            }}
+          >
+            <CalIcon size={18} />
+          </span>
+          <h3 className="font-display" style={{ fontSize: 19 }}>
+            Nothing in the next 14 days
+          </h3>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--ink-subtle)",
+              margin: "6px auto 16px",
+              maxWidth: 380,
+            }}
+          >
+            {pastCount > 0
+              ? `The list shows the coming two weeks only. Your ${pastCount} earlier ${pastCount === 1 ? "entry lives" : "entries live"} in the Month and Year views.`
+              : "Sync pulls the next 14 days from your connected calendar; meetings from the last 30 days appear here too. Older meetings stay on the record in the counts above."}
+          </p>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => mSync.mutate()}
+            disabled={mSync.isPending}
+          >
+            {mSync.isPending ? "Syncing…" : "Sync · pulls 14 days"}
+          </button>
+        </div>
       ) : view === "month" ? (
         <MonthGrid
           cursor={calCursor}

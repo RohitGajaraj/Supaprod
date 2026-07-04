@@ -66,8 +66,13 @@ function TracesView() {
       {traces.slice(0, 40).map((t) => (
         <Row
           key={t.trace_id}
-          subject={t.root_surface}
-          value={`${fmtUsd(t.cost)} · ${relTime(t.last_at)}`}
+          // A run is named by what it was about (mission title or first-message
+          // snippet); the surface is metadata, not the name. Thirteen rows all
+          // reading "agent" was the audit defect this fixes.
+          subject={t.title ?? t.root_surface}
+          value={[t.title ? t.root_surface : null, fmtUsd(t.cost), relTime(t.last_at)]
+            .filter(Boolean)
+            .join(" · ")}
           statusWord={t.errors > 0 ? "error" : "ok"}
           statusColor={t.errors > 0 ? "var(--madder-bright)" : "var(--moss-bright)"}
           onOpen={() => navigate({ to: "/traces/$traceId", params: { traceId: t.trace_id } })}

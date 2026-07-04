@@ -9,7 +9,9 @@
  * on. Powers the LoopHealthBanner on the Missions surface.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { countNeedsYouCalls } from "@/lib/today.functions";
 
 /** A run still running/queued past this window (the resume cron runs per minute)
  *  is treated as stuck — it should have advanced or failed by now. */
@@ -20,9 +22,12 @@ export type LoopHealth = {
   verdict: "idle" | "working" | "stalled";
   /** Runs in running/queued past the stall window — should have advanced. */
   stalledRuns: number;
-  /** Calls that expired waiting for a human (a stall symptom). */
+  /** Gates that expired waiting for a human (a stall symptom). Same definition
+   *  as Today's Expired group: state expired, or pending past its window. */
   expiredCalls: number;
-  /** Calls currently waiting on a human decision (the queue depth). */
+  /** Calls waiting on a human decision. THE shared needs-you truth
+   *  (countNeedsYouCalls, R2-ATTENTION #1) — the same number Today's hero and
+   *  the rail badge show, so the three can never disagree. */
   queueDepth: number;
   /** Runs currently running or queued. */
   inFlightRuns: number;
@@ -39,17 +44,10 @@ export const getLoopHealth = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const cutoff = new Date(Date.now() - STALL_MINUTES * 60 * 1000).toISOString();
 
-    const [queue, expired, inflight, stalled, lastSignal, lastRun] = await Promise.all([
-      supabase
-        .from("agent_approvals")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("escalation_state", "pending"),
-      supabase
-        .from("agent_approvals")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("escalation_state", "expired"),
+    const [needsYou, inflight, stalled, lastSignal, lastRun] = await Promise.all([
+      // R2-ATTENTION #1: one shared derivation with Today/rail — never a
+      // separate raw-pending query that can disagree with the calls queue.
+      countNeedsYouCalls(supabase as unknown as SupabaseClient, userId),
       supabase
         .from("agent_runs")
         .select("id", { count: "exact", head: true })
@@ -77,8 +75,8 @@ export const getLoopHealth = createServerFn({ method: "GET" })
         .maybeSingle(),
     ]);
 
-    const queueDepth = queue.count ?? 0;
-    const expiredCalls = expired.count ?? 0;
+    const queueDepth = needsYou.liveCalls;
+    const expiredCalls = needsYou.expired;
     const inFlightRuns = inflight.count ?? 0;
     const stalledRuns = stalled.count ?? 0;
 

@@ -191,10 +191,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     queryFn: () => fetchNeedsYou(),
     refetchInterval: pollWhenVisible(60_000),
   });
-  const callCount =
-    (needsYou?.approvals.length ?? 0) +
-    (needsYou?.prdCalls.length ?? 0) +
-    (needsYou?.oppCalls.length ?? 0);
+  // R2-ATTENTION #1: the badge reads the server-side needs-you truth
+  // (counts.liveCalls) — the same number the Today hero shows. An array-length
+  // sum understates once a display cap bites, and the rail may never disagree
+  // with the hero.
+  const callCount = needsYou?.counts.liveCalls ?? 0;
 
   // The shimmer working line — a dedicated unbounded count (listAgentRuns'
   // 20-row window can drop a long-running run, and a "live" line must never

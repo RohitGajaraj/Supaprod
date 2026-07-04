@@ -469,7 +469,7 @@ function TrustLedgerPage() {
         style={{ padding: "30px 44px 56px", maxWidth: 880, margin: "0 auto" }}
       >
         <SurfaceHeader
-          kicker="Govern · Trust"
+          kicker="The Engine · Trust"
           icon={ScrollText}
           title="Trust Ledger"
           sub="Every decision and autonomous action, as a receipt: what changed, why, the evidence, who approved it and when, and whether it still stands or was superseded."
