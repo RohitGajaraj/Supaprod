@@ -143,6 +143,14 @@ Brain graph → Engine Room → Settings) → fix → repeat until stable. Clean
 live-DB test debris ("This is an Test Message - By RG") via Lovable MCP once
 authorized (or the UI as the demo user). THEN the rich demo seed (goal §6).
 
+**Round 1 DONE (2026-07-04, `7174acbc` pushed):** full live tour of every
+surface; 8 fixes shipped (headline: the main-wide `tnum` punctuation bug that
+broke every sentence's readability; the visible Ask door in the rail —
+founder ruling). The ranked remaining catalog (18 rows + the data-sweep
+list, each re-verified against the post-publish bundle) lives in
+[`live-qa-round-1.md`](./live-qa-round-1.md) — **round 2 starts at the top of
+that table and must not re-tour what its verification notes already clear.**
+
 ## Parked for the founder (each with the recommended closure)
 
 1. Lovable MCP OAuth — URL issued 2026-07-04 ~04:15 IST; click to enable
