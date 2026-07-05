@@ -466,14 +466,9 @@ export const getBrainAnalysis = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<BrainAnalysis> => {
     const { supabase, userId } = context;
 
-    // Get workspace scope
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    const workspaceId = member?.workspace_id ?? null;
+    // Workspace scope: the caller's default workspace (deterministic), not an arbitrary membership row.
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return { signals: [], sparse: true };
 
     const [decisionsRes, learningsRes] = await Promise.all([

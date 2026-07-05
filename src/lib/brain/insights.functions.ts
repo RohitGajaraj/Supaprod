@@ -89,13 +89,8 @@ export const getFocusNext = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<FocusInsight | null> => {
     const { supabase, userId } = context as unknown as { supabase: SupabaseClient; userId: string };
 
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    const workspaceId = (member?.workspace_id as string | undefined) ?? null;
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return null;
 
     // Rank themes LIVE — no AI for ranking.
@@ -252,13 +247,8 @@ export const getInsightRail = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<InsightRailItem[]> => {
     const { supabase, userId } = context as unknown as { supabase: SupabaseClient; userId: string };
 
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", userId)
-      .limit(1)
-      .maybeSingle();
-    const workspaceId = (member?.workspace_id as string | undefined) ?? null;
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return [];
 
     const { data: rows } = await supabase
