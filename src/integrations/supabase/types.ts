@@ -8022,6 +8022,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      seed_sample_workspace: { Args: { _user_id: string }; Returns: string }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
