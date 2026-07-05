@@ -370,7 +370,7 @@ export type Database = {
           payload: Json
           source_run_id: string | null
           source_trace_id: string | null
-          to_agent_id: string
+          to_agent_id: string | null
           to_agent_slug: string
           user_id: string
           workspace_id: string
@@ -387,7 +387,7 @@ export type Database = {
           payload?: Json
           source_run_id?: string | null
           source_trace_id?: string | null
-          to_agent_id: string
+          to_agent_id?: string | null
           to_agent_slug: string
           user_id: string
           workspace_id: string
@@ -404,7 +404,7 @@ export type Database = {
           payload?: Json
           source_run_id?: string | null
           source_trace_id?: string | null
-          to_agent_id?: string
+          to_agent_id?: string | null
           to_agent_slug?: string
           user_id?: string
           workspace_id?: string
