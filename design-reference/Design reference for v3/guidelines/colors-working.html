@@ -1,0 +1,91 @@
+<!-- @dsCard group="Colors" viewport="700x230" subtitle="Data only · each family has one home · max three families per chart" name="Working palette" -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--canvas);
+        font-family: var(--font-ui);
+        padding: 16px;
+        box-sizing: border-box;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 5px 0;
+        border-bottom: 1px solid var(--hairline-faint);
+      }
+      .sw {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        flex: none;
+      }
+      .nm {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-primary);
+        width: 210px;
+        flex: none;
+      }
+      .job {
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <span class="sw" style="background: var(--tangerine)"></span
+      ><span class="sw" style="background: var(--marigold-data)"></span
+      ><span class="sw" style="background: var(--melon)"></span
+      ><span class="nm">Tangerine · Marigold · Melon</span><span class="job">Spend and cost</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--scarlet)"></span
+      ><span class="sw" style="background: var(--poppy)"></span
+      ><span class="sw" style="visibility: hidden"></span><span class="nm">Scarlet · Poppy</span
+      ><span class="job">Severity, Safety room only</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--flamingo)"></span
+      ><span class="sw" style="background: var(--magenta)"></span
+      ><span class="sw" style="background: var(--rose)"></span
+      ><span class="nm">Flamingo · Magenta · Rose</span><span class="job">User-behavior data</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--mauve)"></span
+      ><span class="sw" style="background: var(--amethyst)"></span
+      ><span class="sw" style="visibility: hidden"></span><span class="nm">Mauve · Amethyst</span
+      ><span class="job">Agent identity</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--cornflower)"></span
+      ><span class="sw" style="background: var(--cobalt)"></span
+      ><span class="sw" style="visibility: hidden"></span><span class="nm">Cornflower · Cobalt</span
+      ><span class="job">Benchmarks, baselines</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--lemon)"></span
+      ><span class="sw" style="background: var(--daffodil)"></span
+      ><span class="sw" style="visibility: hidden"></span><span class="nm">Lemon · Daffodil</span
+      ><span class="job">Annotations, highlights</span>
+    </div>
+    <div class="row">
+      <span class="sw" style="background: var(--teal)"></span
+      ><span class="sw" style="visibility: hidden"></span
+      ><span class="sw" style="visibility: hidden"></span><span class="nm">Teal</span
+      ><span class="job">The machine's data series</span>
+    </div>
+    <div class="row" style="border-bottom: none">
+      <span class="sw" style="background: var(--pearl)"></span
+      ><span class="sw" style="background: var(--ash)"></span
+      ><span class="sw" style="background: var(--slate)"></span
+      ><span class="nm">Pearl · Ash · Slate</span><span class="job">Axes, grids, disabled</span>
+    </div>
+  </body>
+</html>

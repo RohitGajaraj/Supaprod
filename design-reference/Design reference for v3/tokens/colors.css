@@ -1,0 +1,95 @@
+/* Cadence · Obsidian v3 — color tokens.
+ * Source of truth: handoff/DESIGN-OBSIDIAN.md sections 1-3.
+ * Dark-only system: the app is a jet-black cockpit. Never invent a hex. */
+
+:root {
+  /* === Surfaces · depth from tint, not shadow === */
+  --canvas: #0a0a0b; /* page background */
+  --rail: #0d0d0f; /* sidebar */
+  --card: #111113; /* default card */
+  --raised: #17171a; /* raised surface, table header, secondary button */
+  --hover: #1d1d21; /* hover fill, avatar chip */
+  --surface-canvas: var(--canvas);
+  --surface-rail: var(--rail);
+  --surface-card: var(--card);
+  --surface-card-deep: #0e0e10; /* alternating rows, call-card base */
+  --surface-raised: var(--raised);
+  --surface-hover: var(--hover);
+
+  /* Hairlines replace shadows */
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.09);
+  --hairline-faint: rgba(255, 255, 255, 0.05);
+
+  /* === Ink === */
+  --text-primary: #f2f0ed;
+  --text-body: #b5afa6;
+  --text-muted: #9c978f;
+  --text-subtle: #7d786f;
+  --text-faint: #55524c;
+
+  /* === Role colors · each has exactly ONE job === */
+  /* Ember: needs a human. Calls, gates, the one primary CTA. Never decoration. */
+  --ember: #ff6b2c;
+  --ember-deep: #c2571f; /* pressed/active ember */
+  --ember-soft: #ffa477; /* tints, highlights, sparing */
+  /* Glacier: THE machine voice. Live state, agent presence, mono-label accent. */
+  --glacier: #7fd1dc;
+  /* Royal violet: ONLY inside the shimmer gradient and the working butterfly. */
+  --violet-shimmer: #c77dff;
+  /* Blossom: information. Links, focus rings, selection, citation chips. */
+  --blossom: #e5bddf;
+  --fuchsia: #c2337e; /* blossom's pressed depth */
+  /* Moss: outcomes only, positive (validated, shipped, kept). */
+  --moss: #7fbf8e;
+  --moss-bright: #8fd9a0; /* chip text on tinted fill */
+  /* Madder: outcomes only, negative (missed, failed, killed). */
+  --madder: #e06557;
+  --madder-bright: #ee7a6c;
+  /* Marigold: in-review status only. */
+  --marigold: #e8b44c;
+  /* Blush: alternate light tint for small mono-caps labels. */
+  --blush: #f3c1c1;
+
+  /* === Working palette · data only; role colors never plot data === */
+  /* Spend and cost */
+  --tangerine: #f97316;
+  --marigold-data: #e8a33d;
+  --melon: #ff9466;
+  /* Severity, Safety room only */
+  --scarlet: #e23d33;
+  --poppy: #f0533f;
+  /* User-behavior data */
+  --flamingo: #f26b8a;
+  --magenta: #c2337e;
+  --rose: #e89ab0;
+  /* Agent identity (one fixed shade per face) */
+  --mauve: #b78bc7;
+  --amethyst: #7e5aa6;
+  /* Benchmarks, baselines, comparisons */
+  --cornflower: #6b8afd;
+  --cobalt: #3b5bdb;
+  /* Chart annotations, calendar density */
+  --lemon: #f2e27a;
+  --daffodil: #f5d94e;
+  /* The machine's data series */
+  --teal: #2e9e8f;
+  /* Axes, grids, de-emphasized, disabled */
+  --pearl: #edeae4;
+  --ash: #a8a29a;
+  --slate: #6e6a64;
+
+  /* === Pencil annotations (the PM's own ink) === */
+  --pencil-lime: #cde07a; /* strongest bet */
+  --pencil-blossom: #e5bddf; /* pet feature */
+  --pencil-apricot: #ffb27a; /* scope creep */
+
+  /* === Semantic aliases === */
+  --cta: var(--ember);
+  --cta-pressed: var(--ember-deep);
+  --cta-ink: #0a0a0b; /* text on ember fill */
+  --machine: var(--glacier);
+  --link: var(--blossom);
+  --focus-ring: var(--glacier); /* 2px glacier focus ring */
+  --selection: rgba(255, 107, 44, 0.28);
+}

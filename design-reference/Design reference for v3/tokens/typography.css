@@ -1,0 +1,30 @@
+/* Cadence · Obsidian v3 — type tokens. Three voices + two special inks.
+ * Newsreader: the editorial voice (display, heroes, spec bodies, ICE scores).
+ * Schibsted Grotesk: the working voice (all UI, 13px base).
+ * JetBrains Mono: the machine voice (counts, costs, status, traces).
+ * Codystar: dotted-matrix numerals on aurora score cards ONLY.
+ * Caveat: pencil annotations ONLY. */
+
+:root {
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-dotted: "Codystar", cursive;
+  --font-pencil: "Caveat", cursive;
+
+  /* Scale */
+  --text-hero: 34px; /* Newsreader 420-440, -0.015em, 1.15 */
+  --text-h2: 28px; /* Newsreader 430-440 */
+  --text-card-title: 20px; /* Newsreader 450-460, 1.3 */
+  --text-score: 52px; /* Codystar, aurora cards only */
+  --text-base: 13px; /* Schibsted, 1.55 line height */
+  --text-sm: 12px;
+  --text-helper: 11.5px;
+  --text-mono-label: 9.5px; /* mono caps, 0.10-0.12em tracking */
+  --text-mono-micro: 8.5px;
+
+  --leading-body: 1.55;
+  --leading-display: 1.15;
+  --tracking-mono: 0.12em;
+  --tracking-display: -0.015em;
+}

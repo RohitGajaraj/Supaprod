@@ -1,0 +1,1076 @@
+<!-- @dsCard group="Cadence App" viewport="1440x820" subtitle="The Obsidian shell · Today, Discover, Build · press 1/2/4" name="App shell" -->
+<!-- @startingPoint section="Cadence App" subtitle="Full Obsidian shell with Today, Discover, and Build" viewport="1440x820" -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../styles.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--text-body);
+        font-family: var(--font-ui);
+        overflow: hidden;
+      }
+      button {
+        font-family: inherit;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        background: transparent;
+        color: var(--text-muted);
+        transition: background 140ms var(--ease);
+      }
+      .nav-item:hover {
+        background: var(--raised);
+        color: var(--text-primary);
+      }
+      .nav-item.active {
+        background: #1a1a1e;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+      .nav-item .num {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        color: var(--text-faint);
+      }
+      .nav-item.active .num {
+        color: var(--ember);
+      }
+      .badge {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        font-weight: 700;
+        background: var(--ember);
+        color: #0a0a0b;
+        border-radius: 99px;
+        min-width: 17px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        box-shadow: 0 0 10px rgba(255, 107, 44, 0.4);
+      }
+      .mono-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--text-subtle);
+        text-transform: uppercase;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+      }
+      .surface {
+        display: none;
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 36px 32px 64px;
+        animation: cadRise 260ms var(--ease) both;
+      }
+      .surface.on {
+        display: block;
+      }
+      .btn-primary {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0a0a0b;
+        background: var(--ember);
+        border: none;
+        border-radius: 8px;
+        padding: 9px 18px;
+        cursor: pointer;
+        transition: background 140ms;
+      }
+      .btn-primary:hover {
+        background: var(--ember-deep);
+      }
+      .btn-secondary {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        background: var(--hover);
+        border: 1px solid var(--hairline-strong);
+        border-radius: 8px;
+        padding: 8px 18px;
+        cursor: pointer;
+        transition: background 140ms;
+      }
+      .btn-secondary:hover {
+        background: #242429;
+      }
+      .m-row {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        width: 100%;
+        padding: 14px 18px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--hairline-faint);
+        cursor: pointer;
+        text-align: left;
+        transition: background 140ms;
+      }
+      .m-row:hover {
+        background: #141416;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="height: 100vh; display: flex">
+      <aside
+        style="
+          width: 236px;
+          flex: none;
+          display: flex;
+          flex-direction: column;
+          background: var(--rail);
+          border-right: 1px solid var(--hairline);
+        "
+      >
+        <div
+          style="
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--hairline-faint);
+            display: flex;
+            align-items: center;
+            gap: 11px;
+          "
+        >
+          <img
+            src="../../assets/butterfly-ember.svg"
+            width="24"
+            height="24"
+            alt="Cadence"
+            style="filter: drop-shadow(0 0 6px rgba(255, 107, 44, 0.4))"
+          />
+          <div>
+            <div
+              style="
+                font-size: 13.5px;
+                font-weight: 700;
+                color: var(--text-primary);
+                letter-spacing: -0.01em;
+              "
+            >
+              Cadence
+            </div>
+            <div style="font-size: 10.5px; color: var(--text-subtle)">Lumen · Growth team</div>
+          </div>
+        </div>
+        <div style="padding: 10px 10px 4px">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              border: 1px solid var(--hairline);
+              background: var(--card);
+              border-radius: 8px;
+              padding: 7px 10px;
+              font-size: 12px;
+              color: var(--text-subtle);
+              cursor: pointer;
+            "
+          >
+            <span>Search</span><span style="flex: 1"></span
+            ><span style="font-family: var(--font-mono); font-size: 9.5px">⌘K</span>
+          </div>
+        </div>
+        <nav style="padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; flex: 1">
+          <button class="nav-item active" data-s="today">
+            <span class="num">01</span><span style="flex: 1">Today</span
+            ><span class="badge">2</span>
+          </button>
+          <button class="nav-item" data-s="discover">
+            <span class="num">02</span><span style="flex: 1">Discover</span>
+          </button>
+          <button class="nav-item" data-s="plan" disabled style="opacity: 0.45; cursor: default">
+            <span class="num">03</span><span style="flex: 1">Plan</span>
+          </button>
+          <button class="nav-item" data-s="build">
+            <span class="num">04</span><span style="flex: 1">Build</span>
+          </button>
+          <button class="nav-item" data-s="brain" disabled style="opacity: 0.45; cursor: default">
+            <span class="num">05</span><span style="flex: 1">Brain</span>
+          </button>
+        </nav>
+        <div
+          style="
+            border-top: 1px solid var(--hairline-faint);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-family: var(--font-mono);
+              font-size: 9.5px;
+              letter-spacing: 0.1em;
+              text-transform: uppercase;
+            "
+          >
+            <span
+              style="
+                width: 5px;
+                height: 5px;
+                border-radius: 99px;
+                background: var(--glacier);
+                animation: cadPulse 2s ease-in-out infinite;
+                flex: none;
+              "
+            ></span>
+            <span
+              style="
+                background: var(--shimmer-gradient);
+                background-size: 280% 100%;
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                animation: cadShimmer 5s linear infinite;
+              "
+              >2 agents working</span
+            >
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 9px;
+              border: 1px solid var(--hairline);
+              border-radius: 8px;
+              padding: 7px 10px;
+              font-size: 12px;
+              color: var(--text-muted);
+              cursor: pointer;
+            "
+          >
+            <span style="font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint)"
+              >G</span
+            >
+            <span style="flex: 1">Engine Room</span>
+            <span
+              style="
+                font-family: var(--font-mono);
+                font-size: 8.5px;
+                letter-spacing: 0.08em;
+                color: var(--text-faint);
+              "
+              >ALL CLEAR</span
+            >
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px">
+            <span
+              style="
+                width: 24px;
+                height: 24px;
+                border-radius: 99px;
+                background: var(--hover);
+                border: 1px solid rgba(255, 107, 44, 0.45);
+                color: var(--text-primary);
+                font-size: 9.5px;
+                font-weight: 700;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+              "
+              >R</span
+            >
+            <span style="font-size: 12px; color: var(--text-muted); flex: 1">Rohit</span>
+            <span
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 99px;
+                background: var(--moss);
+                box-shadow: 0 0 7px rgba(127, 191, 142, 0.6);
+              "
+            ></span>
+          </div>
+        </div>
+      </aside>
+
+      <main style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+        <div
+          style="
+            height: 52px;
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 28px;
+            border-bottom: 1px solid var(--hairline-faint);
+          "
+        >
+          <span
+            id="surface-title"
+            style="font-size: 13.5px; font-weight: 600; color: var(--text-primary)"
+            >Today</span
+          >
+          <span style="flex: 1"></span>
+          <span
+            style="
+              font-family: var(--font-mono);
+              font-size: 9px;
+              letter-spacing: 0.1em;
+              color: var(--text-muted);
+              border: 1px solid var(--hairline-strong);
+              border-radius: 99px;
+              padding: 3px 10px;
+            "
+            >LUMEN</span
+          >
+        </div>
+        <div style="flex: 1; min-height: 0; overflow-y: auto">
+          <div class="surface on" id="s-today" data-screen-label="Today">
+            <div class="mono-label" style="margin-bottom: 10px">Good morning, Rohit</div>
+            <h1
+              style="
+                font-family: var(--font-serif);
+                font-weight: 430;
+                font-size: 34px;
+                line-height: 1.15;
+                letter-spacing: -0.015em;
+                color: var(--text-primary);
+                margin: 0 0 28px;
+                text-wrap: balance;
+              "
+            >
+              <em style="font-style: italic; color: var(--ember)">Two calls</em> need your judgment
+              today.
+            </h1>
+            <div
+              style="display: grid; grid-template-columns: 1.7fr 1fr; gap: 20px; align-items: start"
+            >
+              <div style="display: grid; gap: 14px">
+                <div
+                  style="
+                    background: var(--surface-card-deep);
+                    border: 1px solid rgba(255, 107, 44, 0.25);
+                    border-radius: 12px;
+                    padding: 20px 22px;
+                  "
+                >
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px">
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 9px;
+                        letter-spacing: 0.1em;
+                        font-weight: 600;
+                        color: var(--ember);
+                        border: 1px solid rgba(255, 107, 44, 0.4);
+                        border-radius: 99px;
+                        padding: 2px 9px;
+                      "
+                      >SHIP IT?</span
+                    >
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 9px;
+                        letter-spacing: 0.1em;
+                        color: var(--text-faint);
+                      "
+                      >EXPIRES IN 6H</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      font-family: var(--font-serif);
+                      font-size: 20px;
+                      font-weight: 460;
+                      color: var(--text-primary);
+                      line-height: 1.3;
+                      margin-bottom: 8px;
+                    "
+                  >
+                    Ship the checkout fix?
+                  </div>
+                  <div
+                    style="
+                      font-size: 13px;
+                      line-height: 1.65;
+                      color: var(--text-muted);
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Builder finished the drop-off fix: 14 files changed, tests green. The evidence
+                    says the friction was price opacity, not step count.
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                    <button class="btn-primary" onclick="toast('Good call. The PR is open.')">
+                      Approve
+                    </button>
+                    <button
+                      class="btn-secondary"
+                      onclick="toast('Sent back. Builder is revising · nothing ships.')"
+                    >
+                      Send back
+                    </button>
+                    <span style="font-size: 11.5px; color: var(--text-subtle)"
+                      >Opens the pull request · nothing ships without you</span
+                    >
+                  </div>
+                </div>
+                <div class="card" style="padding: 18px 22px">
+                  <div class="mono-label" style="margin-bottom: 12px">What changed overnight</div>
+                  <div style="display: grid; gap: 11px; font-size: 13px; line-height: 1.55">
+                    <div style="display: flex; gap: 10px; align-items: baseline">
+                      <span
+                        style="
+                          width: 5px;
+                          height: 5px;
+                          border-radius: 99px;
+                          background: var(--moss);
+                          flex: none;
+                        "
+                      ></span
+                      ><span style="flex: 1"
+                        >Checkout fix outcome landed: predicted −12% drop-off, actual −19%.
+                        <span
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: 9px;
+                            color: var(--text-faint);
+                          "
+                          >LEARNING → RE-RANKED 2 BETS</span
+                        ></span
+                      >
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: baseline">
+                      <span
+                        style="
+                          width: 5px;
+                          height: 5px;
+                          border-radius: 99px;
+                          background: var(--glacier);
+                          flex: none;
+                        "
+                      ></span
+                      ><span style="flex: 1"
+                        >Scout clustered 31 new signals overnight; mobile capture keeps climbing.
+                        <span
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: 9px;
+                            color: var(--text-faint);
+                          "
+                          >SENSE · 12M AGO</span
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="display: grid; gap: 14px">
+                <div
+                  style="
+                    border-radius: 16px;
+                    padding: 20px 22px;
+                    position: relative;
+                    overflow: hidden;
+                    background: #0f1b12;
+                    border: 1px solid var(--hairline-strong);
+                    box-shadow: 0 0 55px rgba(127, 191, 142, 0.09);
+                  "
+                >
+                  <div
+                    aria-hidden="true"
+                    style="
+                      position: absolute;
+                      top: -40%;
+                      left: -25%;
+                      width: 110%;
+                      height: 110%;
+                      border-radius: 99px;
+                      background: radial-gradient(
+                        closest-side,
+                        rgba(232, 180, 76, 0.34),
+                        transparent 70%
+                      );
+                      animation: cadDriftA 9s ease-in-out infinite;
+                    "
+                  ></div>
+                  <div
+                    aria-hidden="true"
+                    style="
+                      position: absolute;
+                      bottom: -45%;
+                      left: -15%;
+                      width: 130%;
+                      height: 120%;
+                      border-radius: 99px;
+                      background: radial-gradient(
+                        closest-side,
+                        rgba(120, 200, 150, 0.4),
+                        transparent 70%
+                      );
+                      animation: cadDriftB 12s ease-in-out infinite;
+                    "
+                  ></div>
+                  <div style="position: relative">
+                    <div
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.14em;
+                        color: rgba(242, 240, 237, 0.75);
+                      "
+                    >
+                      LOOP HEALTH
+                    </div>
+                    <div
+                      style="
+                        font-family: var(--font-dotted);
+                        font-size: 52px;
+                        line-height: 1.1;
+                        color: var(--text-primary);
+                        letter-spacing: 0.04em;
+                        margin: 4px 0 0;
+                      "
+                    >
+                      84
+                    </div>
+                    <div
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.12em;
+                        color: rgba(242, 240, 237, 0.65);
+                      "
+                    >
+                      ON TRACK · +3.2 THIS WEEK
+                    </div>
+                  </div>
+                </div>
+                <div class="card" style="padding: 16px 18px">
+                  <div class="mono-label" style="margin-bottom: 12px">The machine right now</div>
+                  <div style="display: grid; gap: 9px; font-size: 12.5px">
+                    <div style="display: flex; align-items: center; gap: 9px">
+                      <span
+                        style="
+                          width: 6px;
+                          height: 6px;
+                          border-radius: 99px;
+                          background: var(--glacier);
+                          box-shadow: 0 0 8px 1px rgba(127, 209, 220, 0.6);
+                          animation: cadPulse 2s ease-in-out infinite;
+                          flex: none;
+                        "
+                      ></span
+                      ><span style="flex: 1">Churn-signal triage</span
+                      ><span
+                        style="
+                          font-family: var(--font-mono);
+                          font-size: 8.5px;
+                          color: var(--glacier);
+                        "
+                        >STEP 2/5</span
+                      >
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 9px">
+                      <span
+                        style="
+                          width: 6px;
+                          height: 6px;
+                          border-radius: 99px;
+                          background: var(--ember);
+                          box-shadow: 0 0 10px 2px rgba(255, 107, 44, 0.55);
+                          animation: cadGlow 1.8s ease-in-out infinite;
+                          flex: none;
+                        "
+                      ></span
+                      ><span style="flex: 1">Checkout drop-off fix</span
+                      ><span
+                        style="font-family: var(--font-mono); font-size: 8.5px; color: var(--ember)"
+                        >WAITING</span
+                      >
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 9px">
+                      <span
+                        style="
+                          width: 6px;
+                          height: 6px;
+                          border-radius: 99px;
+                          background: var(--moss);
+                          flex: none;
+                        "
+                      ></span
+                      ><span style="flex: 1">Competitor pricing brief</span
+                      ><span
+                        style="font-family: var(--font-mono); font-size: 8.5px; color: var(--moss)"
+                        >DONE</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface" id="s-discover" data-screen-label="Discover">
+            <h1
+              style="
+                font-family: var(--font-serif);
+                font-weight: 430;
+                font-size: 28px;
+                letter-spacing: -0.015em;
+                color: var(--text-primary);
+                margin: 0 0 24px;
+              "
+            >
+              The evidence desk.
+              <em style="font-style: italic; color: var(--glacier)">Signal</em> on the left,
+              judgment on the right.
+            </h1>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1.15fr;
+                gap: 20px;
+                align-items: start;
+              "
+            >
+              <div class="card" style="padding: 18px 20px">
+                <div class="mono-label" style="margin-bottom: 14px">Live signal feed</div>
+                <div style="display: grid; gap: 13px">
+                  <div
+                    style="
+                      display: grid;
+                      gap: 5px;
+                      padding-bottom: 12px;
+                      border-bottom: 1px solid var(--hairline-faint);
+                    "
+                  >
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.08em;
+                        color: var(--blossom);
+                      "
+                      >INTERCOM · 12M AGO</span
+                    >
+                    <span style="font-size: 13px; line-height: 1.6"
+                      >"We lose the draft every time the app backgrounds. Third time this
+                      week."</span
+                    >
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.08em;
+                        color: var(--text-subtle);
+                      "
+                      >→ MOBILE QUICK-CAPTURE · 23 SIGNALS</span
+                    >
+                  </div>
+                  <div style="display: grid; gap: 5px">
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.08em;
+                        color: var(--blossom);
+                      "
+                      >GONG · 1H AGO</span
+                    >
+                    <span style="font-size: 13px; line-height: 1.6"
+                      >"Billing surprises are the number one objection on renewal calls."</span
+                    >
+                    <span
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 8.5px;
+                        letter-spacing: 0.08em;
+                        color: var(--text-subtle);
+                      "
+                      >→ USAGE-BASED ALERTS · 12 SIGNALS</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div style="display: grid; gap: 12px">
+                <div class="mono-label" style="padding: 0 4px">
+                  The opportunity queue · ranked by ICE
+                </div>
+                <div
+                  class="card"
+                  style="
+                    padding: 16px 18px;
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                    position: relative;
+                  "
+                >
+                  <span
+                    style="
+                      position: absolute;
+                      top: -11px;
+                      right: 14px;
+                      font-family: var(--font-pencil);
+                      font-size: 17px;
+                      font-weight: 600;
+                      color: var(--pencil-lime);
+                      transform: rotate(-2deg);
+                      text-shadow: 0 0 12px rgba(205, 224, 122, 0.4);
+                      border-bottom: 2px solid rgba(205, 224, 122, 0.75);
+                      padding: 0 2px;
+                    "
+                    >best bet</span
+                  >
+                  <div style="flex: none; width: 56px; text-align: center">
+                    <div
+                      style="
+                        font-family: var(--font-serif);
+                        font-size: 23px;
+                        font-weight: 460;
+                        color: var(--text-primary);
+                        line-height: 1;
+                      "
+                    >
+                      8.6
+                    </div>
+                    <div
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 7.5px;
+                        letter-spacing: 0.14em;
+                        color: var(--text-faint);
+                        margin-top: 3px;
+                      "
+                    >
+                      ICE
+                    </div>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div
+                      style="
+                        font-size: 13.5px;
+                        font-weight: 600;
+                        color: var(--text-primary);
+                        margin-bottom: 3px;
+                      "
+                    >
+                      Mobile quick-capture
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-subtle)">
+                      23 signals · spec in Critic review
+                    </div>
+                  </div>
+                  <span
+                    style="
+                      font-family: var(--font-mono);
+                      font-size: 9px;
+                      letter-spacing: 0.1em;
+                      font-weight: 600;
+                      color: var(--moss-bright);
+                      background: rgba(127, 191, 142, 0.12);
+                      border: 1px solid rgba(127, 191, 142, 0.45);
+                      border-radius: 99px;
+                      padding: 2px 9px;
+                    "
+                    >SHIP</span
+                  >
+                  <button
+                    class="btn-secondary"
+                    style="font-size: 12px; padding: 6px 13px"
+                    onclick="
+                      toast('Critic engaged. The teardown lands on Today, receipts attached.')
+                    "
+                  >
+                    Challenge
+                  </button>
+                </div>
+                <div
+                  class="card"
+                  style="padding: 16px 18px; display: flex; gap: 16px; align-items: center"
+                >
+                  <div style="flex: none; width: 56px; text-align: center">
+                    <div
+                      style="
+                        font-family: var(--font-serif);
+                        font-size: 23px;
+                        font-weight: 460;
+                        color: var(--text-primary);
+                        line-height: 1;
+                      "
+                    >
+                      4.1
+                    </div>
+                    <div
+                      style="
+                        font-family: var(--font-mono);
+                        font-size: 7.5px;
+                        letter-spacing: 0.14em;
+                        color: var(--text-faint);
+                        margin-top: 3px;
+                      "
+                    >
+                      ICE
+                    </div>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div
+                      style="
+                        font-size: 13.5px;
+                        font-weight: 600;
+                        color: var(--text-primary);
+                        margin-bottom: 3px;
+                      "
+                    >
+                      AI meeting summaries
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-subtle)">
+                      6 signals · killed by red-team · saved ~$40k
+                    </div>
+                  </div>
+                  <span
+                    style="
+                      font-family: var(--font-mono);
+                      font-size: 9px;
+                      letter-spacing: 0.1em;
+                      font-weight: 600;
+                      color: var(--madder-bright);
+                      background: rgba(224, 101, 87, 0.12);
+                      border: 1px solid rgba(224, 101, 87, 0.45);
+                      border-radius: 99px;
+                      padding: 2px 9px;
+                    "
+                    >KILL</span
+                  >
+                  <button
+                    class="btn-secondary"
+                    style="font-size: 12px; padding: 6px 13px"
+                    onclick="
+                      toast('Critic engaged. The teardown lands on Today, receipts attached.')
+                    "
+                  >
+                    Challenge
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface" id="s-build" data-screen-label="Build">
+            <h1
+              style="
+                font-family: var(--font-serif);
+                font-weight: 430;
+                font-size: 28px;
+                letter-spacing: -0.015em;
+                color: var(--text-primary);
+                margin: 0 0 6px;
+              "
+            >
+              The machine, <em style="font-style: italic; color: var(--glacier)">working</em>.
+            </h1>
+            <div style="font-size: 13px; color: var(--text-subtle); margin-bottom: 24px">
+              Every mission is observable, cited, and gated where it touches the world.
+            </div>
+            <div style="border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden">
+              <button class="m-row">
+                <span
+                  style="
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 99px;
+                    background: var(--glacier);
+                    box-shadow: 0 0 8px 1px rgba(127, 209, 220, 0.6);
+                    animation: cadPulse 2s ease-in-out infinite;
+                    flex: none;
+                  "
+                ></span
+                ><span
+                  style="font-size: 13.5px; font-weight: 600; color: var(--text-primary); flex: 1"
+                  >Churn-signal triage</span
+                ><span style="font-family: var(--font-mono); font-size: 9px; color: var(--glacier)"
+                  >SCOUT · STEP 2/5</span
+                ><span
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    color: var(--text-faint);
+                    min-width: 44px;
+                    text-align: right;
+                  "
+                  >$0.84</span
+                >
+              </button>
+              <button class="m-row">
+                <span
+                  style="
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 99px;
+                    background: var(--ember);
+                    box-shadow: 0 0 10px 2px rgba(255, 107, 44, 0.55);
+                    animation: cadGlow 1.8s ease-in-out infinite;
+                    flex: none;
+                  "
+                ></span
+                ><span
+                  style="font-size: 13.5px; font-weight: 600; color: var(--text-primary); flex: 1"
+                  >Checkout drop-off fix</span
+                ><span style="font-family: var(--font-mono); font-size: 9px; color: var(--ember)"
+                  >WAITING ON YOU</span
+                ><span
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    color: var(--text-faint);
+                    min-width: 44px;
+                    text-align: right;
+                  "
+                  >$2.10</span
+                >
+              </button>
+              <button class="m-row">
+                <span
+                  style="
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 99px;
+                    background: var(--moss);
+                    box-shadow: 0 0 8px 1px rgba(127, 191, 142, 0.5);
+                    flex: none;
+                  "
+                ></span
+                ><span
+                  style="font-size: 13.5px; font-weight: 600; color: var(--text-primary); flex: 1"
+                  >Competitor pricing brief</span
+                ><span
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 8.5px;
+                    letter-spacing: 0.1em;
+                    font-weight: 600;
+                    color: var(--moss-bright);
+                    background: rgba(127, 191, 142, 0.12);
+                    border: 1px solid rgba(127, 191, 142, 0.45);
+                    border-radius: 99px;
+                    padding: 1px 8px;
+                  "
+                  >VALIDATED</span
+                ><span
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    color: var(--text-faint);
+                    min-width: 44px;
+                    text-align: right;
+                  "
+                  >$1.12</span
+                >
+              </button>
+              <button class="m-row" style="border-bottom: none">
+                <span
+                  style="
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 99px;
+                    background: var(--text-faint);
+                    flex: none;
+                  "
+                ></span
+                ><span
+                  style="font-size: 13.5px; font-weight: 600; color: var(--text-primary); flex: 1"
+                  >Slack onboarding spike</span
+                ><span
+                  style="font-family: var(--font-mono); font-size: 9px; color: var(--text-subtle)"
+                  >QUEUED</span
+                ><span
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 9px;
+                    color: var(--text-faint);
+                    min-width: 44px;
+                    text-align: right;
+                  "
+                  >—</span
+                >
+              </button>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-faint); margin-top: 12px">
+              One dispatch in, one merge approval out. External build tools are an implementation
+              detail.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div
+      id="toast"
+      style="
+        display: none;
+        position: fixed;
+        bottom: 26px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--raised);
+        border: 1px solid rgba(127, 191, 142, 0.4);
+        border-radius: 99px;
+        padding: 9px 20px;
+        font-size: 13px;
+        color: var(--text-primary);
+        box-shadow:
+          0 8px 30px rgba(0, 0, 0, 0.5),
+          0 0 18px rgba(127, 191, 142, 0.12);
+        z-index: 60;
+      "
+    ></div>
+    <script>
+      const TITLES = { today: "Today", discover: "Discover", build: "Build" };
+      function go(s) {
+        if (!TITLES[s]) return;
+        document.querySelectorAll(".surface").forEach((el) => el.classList.remove("on"));
+        document.getElementById("s-" + s).classList.add("on");
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.toggle("active", el.dataset.s === s));
+        document.getElementById("surface-title").textContent = TITLES[s];
+      }
+      document
+        .querySelectorAll(".nav-item:not([disabled])")
+        .forEach((el) => el.addEventListener("click", () => go(el.dataset.s)));
+      window.addEventListener("keydown", (e) => {
+        const map = { 1: "today", 2: "discover", 4: "build" };
+        if (map[e.key]) go(map[e.key]);
+      });
+      let tt;
+      function toast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.display = "block";
+        t.style.animation = "cadRise 200ms var(--ease) both";
+        clearTimeout(tt);
+        tt = setTimeout(() => {
+          t.style.display = "none";
+        }, 3600);
+      }
+    </script>
+  </body>
+</html>

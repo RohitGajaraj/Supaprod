@@ -1,0 +1,2502 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&amp;family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Codystar:wght@300;400&amp;family=Caveat:wght@500;600;700&amp;display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          body {
+            margin: 0;
+            background: #0a0a0b;
+          }
+          ::selection {
+            background: rgba(255, 107, 44, 0.28);
+            color: #f2f0ed;
+          }
+          button:focus-visible,
+          a:focus-visible {
+            outline: 2px solid #7fd1dc;
+            outline-offset: 2px;
+          }
+          ::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: #1d1d21;
+            border-radius: 9px;
+            border: 2px solid #0a0a0b;
+          }
+          @keyframes cadPulse {
+            0%,
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1.55);
+              opacity: 0.45;
+            }
+          }
+          @keyframes cadGlow {
+            0%,
+            100% {
+              opacity: 0.5;
+            }
+            50% {
+              opacity: 1;
+            }
+          }
+          @keyframes cadFlutter {
+            0%,
+            100% {
+              transform: scaleX(1);
+            }
+            50% {
+              transform: scaleX(0.72);
+            }
+          }
+          @keyframes cadShimmer {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
+          }
+          @keyframes cadDriftA {
+            0%,
+            100% {
+              transform: translate(0, 0) scale(1);
+            }
+            50% {
+              transform: translate(18px, 10px) scale(1.12);
+            }
+          }
+          @keyframes cadDriftB {
+            0%,
+            100% {
+              transform: translate(0, 0) scale(1.08);
+            }
+            50% {
+              transform: translate(-16px, -9px) scale(1);
+            }
+          }
+          @keyframes cadRise {
+            from {
+              transform: translateY(10px);
+            }
+            to {
+              transform: translateY(0);
+            }
+          }
+          @keyframes cadSlideIn {
+            from {
+              transform: translateX(60px);
+              opacity: 0.4;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+        </style>
+      </helmet>
+
+      <div
+        style="
+          height: 100vh;
+          display: flex;
+          background: #0a0a0b;
+          color: #b5afa6;
+          font-family: &quot;Schibsted Grotesk&quot;, ui-sans-serif, system-ui, sans-serif;
+          overflow: hidden;
+        "
+      >
+        <!-- ============ SIDEBAR ============ -->
+        <aside
+          style="
+            width: 236px;
+            flex: none;
+            display: flex;
+            flex-direction: column;
+            background: #0d0d0f;
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
+          "
+        >
+          <div
+            style="
+              padding: 16px 16px 12px;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+              display: flex;
+              align-items: center;
+              gap: 11px;
+            "
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              style="flex: none; filter: drop-shadow(0 0 6px rgba(255, 107, 44, 0.4))"
+            >
+              <g
+                style="animation: cadFlutter 3.4s ease-in-out infinite; transform-origin: 12px 12px"
+              >
+                <path
+                  d="M 12.9 11.2 C 13.6 7.6 16.4 4.9 19.1 4.9 C 21.2 4.9 21.9 6.6 21.0 8.6 C 20.0 10.8 16.9 12.4 13.4 12.2 Z"
+                  fill="#FF6B2C"
+                  opacity="0.9"
+                ></path>
+                <path
+                  d="M 13.2 12.9 C 16.1 12.9 18.6 14.3 19.2 16.2 C 19.7 17.9 18.4 19.1 16.5 18.6 C 14.6 18.1 13.1 16.0 12.9 13.4 Z"
+                  fill="#E8A93D"
+                  opacity="0.9"
+                ></path>
+                <path
+                  d="M 12.9 11.2 C 13.6 7.6 16.4 4.9 19.1 4.9 C 21.2 4.9 21.9 6.6 21.0 8.6 C 20.0 10.8 16.9 12.4 13.4 12.2 Z"
+                  fill="#FF6B2C"
+                  opacity="0.9"
+                  transform="scale(-1 1) translate(-24 0)"
+                ></path>
+                <path
+                  d="M 13.2 12.9 C 16.1 12.9 18.6 14.3 19.2 16.2 C 19.7 17.9 18.4 19.1 16.5 18.6 C 14.6 18.1 13.1 16.0 12.9 13.4 Z"
+                  fill="#E8A93D"
+                  opacity="0.9"
+                  transform="scale(-1 1) translate(-24 0)"
+                ></path>
+              </g>
+              <path
+                d="M 12 6.8 C 12.35 8.2 12.35 15.8 12 18.0 C 11.65 15.8 11.65 8.2 12 6.8 Z"
+                fill="#F2F0ED"
+                opacity="0.95"
+              ></path>
+              <circle cx="12" cy="6.1" r="0.95" fill="#F2F0ED" opacity="0.95"></circle>
+            </svg>
+            <div style="flex: 1; min-width: 0">
+              <div
+                style="font-size: 13.5px; font-weight: 700; color: #f2f0ed; letter-spacing: -0.01em"
+              >
+                Cadence
+              </div>
+              <div
+                style="
+                  font-size: 10.5px;
+                  color: #7d786f;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+              >
+                {{ workspaceName }}
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 10px 10px 4px">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                background: #111113;
+                border-radius: 8px;
+                padding: 7px 10px;
+                font-size: 12px;
+                color: #7d786f;
+                cursor: pointer;
+              "
+              style-hover="color:#B5AFA6;background:#141416"
+              title="Search, act, and ask · the whole catalog lives here"
+            >
+              <span>Search</span><span style="flex: 1"></span
+              ><span style="font-family: &quot;JetBrains Mono&quot;, monospace; font-size: 9.5px"
+                >⌘K</span
+              >
+            </div>
+          </div>
+
+          <nav
+            style="
+              padding: 8px 10px;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+              flex: 1;
+              min-height: 0;
+            "
+          >
+            <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+              <button
+                onClick="{{ n.go }}"
+                title="{{ n.hint }}"
+                style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:8px 10px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;background:{{ n.bg }};color:{{ n.c }};font-weight:{{ n.w }};transition:background 140ms cubic-bezier(0.23,1,0.32,1)"
+                style-hover="background:#17171A;color:#F2F0ED"
+              >
+                <span
+                  style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:{{ n.numC }}"
+                  >{{ n.num }}</span
+                >
+                <span style="flex: 1">{{ n.label }}</span>
+                <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}">
+                  <span
+                    style="
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      font-size: 9.5px;
+                      font-weight: 700;
+                      background: #ff6b2c;
+                      color: #0a0a0b;
+                      border-radius: 99px;
+                      min-width: 17px;
+                      height: 16px;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      padding: 0 5px;
+                      box-shadow: 0 0 10px rgba(255, 107, 44, 0.4);
+                    "
+                    >{{ n.badge }}</span
+                  >
+                </sc-if>
+              </button>
+            </sc-for>
+          </nav>
+
+          <div
+            style="
+              border-top: 1px solid rgba(255, 255, 255, 0.06);
+              padding: 12px 14px;
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 9.5px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+              "
+            >
+              <span
+                style="
+                  width: 5px;
+                  height: 5px;
+                  border-radius: 99px;
+                  background: #7fd1dc;
+                  animation: cadPulse 2s ease-in-out infinite;
+                  flex: none;
+                "
+              ></span>
+              <span
+                style="
+                  background: linear-gradient(
+                    90deg,
+                    #7fd1dc,
+                    #5b7cfa,
+                    #8b5cf6,
+                    #c77dff,
+                    #eaf6ff,
+                    #3b5bdb,
+                    #7fd1dc
+                  );
+                  background-size: 280% 100%;
+                  -webkit-background-clip: text;
+                  background-clip: text;
+                  color: transparent;
+                  animation: cadShimmer 5s linear infinite;
+                "
+                >{{ workingLine }}</span
+              >
+            </div>
+            <button
+              onClick="{{ goGovern }}"
+              title="Spend, quality, safety, and the full record · G"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                width: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                background: transparent;
+                border-radius: 8px;
+                padding: 7px 10px;
+                font-family: inherit;
+                font-size: 12px;
+                color: #9c978f;
+                cursor: pointer;
+                transition: background 140ms;
+              "
+              style-hover="color:#F2F0ED;background:#141416"
+            >
+              <span
+                style="
+                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                  font-size: 9.5px;
+                  color: #55524c;
+                "
+                >G</span
+              >
+              <span style="flex: 1; text-align: left">Engine Room</span>
+              <span
+                style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:0.08em;color:{{ engineC }}"
+                >{{ engineNote }}</span
+              >
+            </button>
+            <div style="display: flex; align-items: center; gap: 9px">
+              <span
+                style="
+                  width: 24px;
+                  height: 24px;
+                  border-radius: 99px;
+                  background: #1d1d21;
+                  border: 1px solid rgba(255, 107, 44, 0.45);
+                  color: #f2f0ed;
+                  font-size: 9.5px;
+                  font-weight: 700;
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex: none;
+                "
+                >{{ initials }}</span
+              >
+              <span
+                style="
+                  font-size: 12px;
+                  color: #9c978f;
+                  flex: 1;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                "
+                >{{ userName }}</span
+              >
+              <span
+                style="
+                  width: 6px;
+                  height: 6px;
+                  border-radius: 99px;
+                  background: #7fbf8e;
+                  box-shadow: 0 0 7px rgba(127, 191, 142, 0.6);
+                "
+                title="All systems normal"
+              ></span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ============ MAIN ============ -->
+        <main style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+          <div
+            style="
+              height: 52px;
+              flex: none;
+              display: flex;
+              align-items: center;
+              gap: 14px;
+              padding: 0 28px;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            "
+          >
+            <span style="font-size: 13.5px; font-weight: 600; color: #f2f0ed"
+              >{{ surfaceTitle }}</span
+            >
+            <span style="font-size: 12px; color: #55524c">{{ surfaceSub }}</span>
+            <span style="flex: 1"></span>
+            <span
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 9.5px;
+                letter-spacing: 0.12em;
+                color: #7d786f;
+              "
+              >WED · JUL 2</span
+            >
+            <span
+              style="
+                font-family: &quot;JetBrains Mono&quot;, monospace;
+                font-size: 9px;
+                letter-spacing: 0.1em;
+                color: #9c978f;
+                border: 1px solid rgba(255, 255, 255, 0.09);
+                border-radius: 99px;
+                padding: 3px 10px;
+              "
+              >LUMEN</span
+            >
+          </div>
+
+          <div style="flex: 1; min-height: 0; overflow-y: auto">
+            <!-- ============ TODAY ============ -->
+            <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+              <div
+                data-screen-label="Today"
+                style="
+                  max-width: 1060px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+              >
+                <div
+                  style="
+                    font-family: &quot;JetBrains Mono&quot;, monospace;
+                    font-size: 9.5px;
+                    letter-spacing: 0.14em;
+                    color: #7d786f;
+                    text-transform: uppercase;
+                    margin-bottom: 10px;
+                  "
+                >
+                  Good morning, {{ userName }}
+                </div>
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 34px;
+                    line-height: 1.15;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 24px;
+                    text-wrap: balance;
+                  "
+                >
+                  <em style="font-style: italic; color: #ff6b2c">{{ heroA }}</em>{{ heroB }}
+                </h1>
+
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    margin-bottom: 28px;
+                  "
+                >
+                  <sc-for list="{{ loopPills }}" as="p" hint-placeholder-count="5">
+                    <span style="color: #55524c; font-size: 11px">{{ p.arrow }}</span>
+                    <button
+                      onClick="{{ p.go }}"
+                      style="display:inline-flex;align-items:center;gap:7px;border:1px solid {{ p.bc }};border-radius:99px;padding:6px 13px;background:transparent;color:{{ p.c }};cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.1em;box-shadow:{{ p.sh }};transition:background 140ms"
+                      style-hover="background:#141416"
+                    >
+                      <sc-if value="{{ p.pulse }}" hint-placeholder-val="{{ false }}"
+                        ><span
+                          style="
+                            width: 5px;
+                            height: 5px;
+                            border-radius: 99px;
+                            background: #7fd1dc;
+                            animation: cadPulse 2s ease-in-out infinite;
+                          "
+                        ></span
+                      ></sc-if>
+                      {{ p.label }}
+                    </button>
+                  </sc-for>
+                </div>
+
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1.7fr 1fr;
+                    gap: 20px;
+                    align-items: start;
+                  "
+                >
+                  <div style="display: grid; gap: 14px">
+                    <sc-if value="{{ noCalls }}" hint-placeholder-val="{{ false }}">
+                      <div
+                        style="
+                          background: #111113;
+                          border: 1px solid rgba(127, 191, 142, 0.3);
+                          border-radius: 12px;
+                          padding: 28px 26px;
+                        "
+                      >
+                        <div
+                          style="
+                            font-family: Newsreader, serif;
+                            font-size: 21px;
+                            font-weight: 450;
+                            color: #f2f0ed;
+                            margin-bottom: 6px;
+                          "
+                        >
+                          All clear.
+                          <em style="font-style: italic; color: #7fbf8e"
+                            >Enjoy the quiet roadmap.</em
+                          >
+                        </div>
+                        <div style="font-size: 13px; color: #9c978f">
+                          The loop is running itself. New calls will find you here first.
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-for list="{{ callCards }}" as="c" hint-placeholder-count="2">
+                      <div
+                        style="
+                          background: #0e0e10;
+                          border: 1px solid rgba(255, 107, 44, 0.25);
+                          border-radius: 12px;
+                          padding: 20px 22px;
+                        "
+                      >
+                        <div
+                          style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px"
+                        >
+                          <span
+                            style="
+                              font-family: &quot;JetBrains Mono&quot;, monospace;
+                              font-size: 9px;
+                              letter-spacing: 0.1em;
+                              font-weight: 600;
+                              color: #ff6b2c;
+                              border: 1px solid rgba(255, 107, 44, 0.4);
+                              border-radius: 99px;
+                              padding: 2px 9px;
+                            "
+                            >{{ c.kind }}</span
+                          >
+                          <span
+                            style="
+                              font-family: &quot;JetBrains Mono&quot;, monospace;
+                              font-size: 9px;
+                              letter-spacing: 0.1em;
+                              color: #55524c;
+                              text-transform: uppercase;
+                            "
+                            >{{ c.expiry }}</span
+                          >
+                        </div>
+                        <div
+                          style="
+                            font-family: Newsreader, serif;
+                            font-size: 20px;
+                            font-weight: 460;
+                            color: #f2f0ed;
+                            line-height: 1.3;
+                            margin-bottom: 8px;
+                          "
+                        >
+                          {{ c.title }}
+                        </div>
+                        <div
+                          style="
+                            font-size: 13px;
+                            line-height: 1.65;
+                            color: #9c978f;
+                            margin-bottom: 12px;
+                          "
+                        >
+                          {{ c.body }}
+                        </div>
+                        <div style="display: grid; gap: 5px; margin-bottom: 16px">
+                          <sc-for list="{{ c.ev }}" as="e" hint-placeholder-count="2">
+                            <div
+                              style="
+                                display: flex;
+                                gap: 9px;
+                                align-items: baseline;
+                                font-size: 12.5px;
+                                line-height: 1.5;
+                                color: #b5afa6;
+                              "
+                            >
+                              <span
+                                style="
+                                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                                  font-size: 8.5px;
+                                  letter-spacing: 0.08em;
+                                  color: #e5bddf;
+                                  border: 1px solid rgba(229, 189, 223, 0.35);
+                                  border-radius: 99px;
+                                  padding: 0 6px;
+                                  flex: none;
+                                "
+                                >{{ e.src }}</span
+                              >
+                              <span>{{ e.text }}</span>
+                            </div>
+                          </sc-for>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                          <button
+                            onClick="{{ c.ok }}"
+                            style="
+                              font-family: inherit;
+                              font-size: 13px;
+                              font-weight: 600;
+                              color: #0a0a0b;
+                              background: #ff6b2c;
+                              border: none;
+                              border-radius: 8px;
+                              padding: 9px 18px;
+                              cursor: pointer;
+                              transition: background 140ms;
+                            "
+                            style-hover="background:#C2571F"
+                          >
+                            {{ c.okLabel }}
+                          </button>
+                          <button
+                            onClick="{{ c.no }}"
+                            style="
+                              font-family: inherit;
+                              font-size: 13px;
+                              font-weight: 500;
+                              color: #f2f0ed;
+                              background: #1d1d21;
+                              border: 1px solid rgba(255, 255, 255, 0.09);
+                              border-radius: 8px;
+                              padding: 8px 18px;
+                              cursor: pointer;
+                              transition: background 140ms;
+                            "
+                            style-hover="background:#242429"
+                          >
+                            {{ c.noLabel }}
+                          </button>
+                          <span style="font-size: 11.5px; color: #7d786f">{{ c.consequence }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+
+                    <div
+                      style="
+                        background: #111113;
+                        border: 1px solid rgba(255, 255, 255, 0.07);
+                        border-radius: 12px;
+                        padding: 18px 22px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.12em;
+                          color: #7d786f;
+                          text-transform: uppercase;
+                          margin-bottom: 12px;
+                        "
+                      >
+                        What changed overnight
+                      </div>
+                      <div style="display: grid; gap: 11px">
+                        <sc-for list="{{ changed }}" as="ch" hint-placeholder-count="3">
+                          <div style="display: flex; gap: 10px; align-items: baseline">
+                            <span
+                              style="width:5px;height:5px;border-radius:99px;background:{{ ch.dot }};flex:none;position:relative;top:-2px"
+                            ></span>
+                            <span
+                              style="font-size: 13px; line-height: 1.55; color: #b5afa6; flex: 1"
+                              >{{ ch.text }}
+                              <span
+                                style="
+                                  font-family: &quot;JetBrains Mono&quot;, monospace;
+                                  font-size: 9px;
+                                  letter-spacing: 0.06em;
+                                  color: #55524c;
+                                "
+                                >{{ ch.cause }}</span
+                              ></span
+                            >
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: grid; gap: 14px">
+                    <div
+                      style="
+                        border-radius: 16px;
+                        padding: 20px 22px;
+                        position: relative;
+                        overflow: hidden;
+                        background: #0f1b12;
+                        border: 1px solid rgba(255, 255, 255, 0.09);
+                        box-shadow: 0 0 55px rgba(127, 191, 142, 0.09);
+                      "
+                    >
+                      <div
+                        aria-hidden="true"
+                        style="
+                          position: absolute;
+                          top: -40%;
+                          left: -25%;
+                          width: 110%;
+                          height: 110%;
+                          border-radius: 99px;
+                          background: radial-gradient(
+                            closest-side,
+                            rgba(232, 180, 76, 0.34),
+                            transparent 70%
+                          );
+                          animation: cadDriftA 9s ease-in-out infinite;
+                        "
+                      ></div>
+                      <div
+                        aria-hidden="true"
+                        style="
+                          position: absolute;
+                          bottom: -45%;
+                          left: -15%;
+                          width: 130%;
+                          height: 120%;
+                          border-radius: 99px;
+                          background: radial-gradient(
+                            closest-side,
+                            rgba(120, 200, 150, 0.4),
+                            transparent 70%
+                          );
+                          animation: cadDriftB 12s ease-in-out infinite;
+                        "
+                      ></div>
+                      <div style="position: relative">
+                        <div
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 8.5px;
+                            letter-spacing: 0.14em;
+                            color: rgba(242, 240, 237, 0.75);
+                          "
+                        >
+                          LOOP HEALTH
+                        </div>
+                        <div
+                          style="
+                            font-family: Codystar, cursive;
+                            font-size: 52px;
+                            line-height: 1.1;
+                            color: #f2f0ed;
+                            letter-spacing: 0.04em;
+                            margin: 4px 0 0;
+                          "
+                        >
+                          84
+                        </div>
+                        <div
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 8.5px;
+                            letter-spacing: 0.12em;
+                            color: rgba(242, 240, 237, 0.65);
+                          "
+                        >
+                          ON TRACK · +3.2 THIS WEEK
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style="
+                        background: #111113;
+                        border: 1px solid rgba(255, 255, 255, 0.07);
+                        border-radius: 12px;
+                        padding: 16px 18px;
+                      "
+                    >
+                      <div
+                        style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px"
+                      >
+                        <span
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9px;
+                            letter-spacing: 0.12em;
+                            color: #7d786f;
+                            text-transform: uppercase;
+                            flex: 1;
+                          "
+                          >The machine right now</span
+                        >
+                        <button
+                          onClick="{{ goBuild }}"
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9px;
+                            letter-spacing: 0.08em;
+                            color: #7fd1dc;
+                            background: none;
+                            border: none;
+                            cursor: pointer;
+                            padding: 0;
+                          "
+                          style-hover="color:#EAF6FF"
+                        >
+                          OPEN →
+                        </button>
+                      </div>
+                      <div style="display: grid; gap: 9px">
+                        <sc-for list="{{ runningRows }}" as="r" hint-placeholder-count="3">
+                          <button
+                            onClick="{{ r.open }}"
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 9px;
+                              width: 100%;
+                              background: none;
+                              border: none;
+                              padding: 2px 0;
+                              cursor: pointer;
+                              font-family: inherit;
+                              text-align: left;
+                            "
+                            style-hover="opacity:0.85"
+                          >
+                            <span
+                              style="width:6px;height:6px;border-radius:99px;background:{{ r.dot }};box-shadow:{{ r.dotSh }};flex:none;animation:{{ r.anim }}"
+                            ></span>
+                            <span
+                              style="
+                                font-size: 12.5px;
+                                color: #b5afa6;
+                                flex: 1;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                              "
+                              >{{ r.title }}</span
+                            >
+                            <span
+                              style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:0.06em;color:{{ r.stepC }};flex:none"
+                              >{{ r.step }}</span
+                            >
+                          </button>
+                        </sc-for>
+                      </div>
+                    </div>
+
+                    <div
+                      style="
+                        background: #111113;
+                        border: 1px solid rgba(255, 255, 255, 0.07);
+                        border-radius: 12px;
+                        padding: 16px 18px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.12em;
+                          color: #7d786f;
+                          text-transform: uppercase;
+                          margin-bottom: 10px;
+                        "
+                      >
+                        Calls answered
+                      </div>
+                      <div
+                        style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px"
+                      >
+                        <span
+                          style="font-family: Newsreader, serif; font-size: 24px; color: #f2f0ed"
+                          >{{ answered }}</span
+                        >
+                        <span
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9.5px;
+                            color: #55524c;
+                          "
+                          >OF {{ totalCalls }} TODAY</span
+                        >
+                      </div>
+                      <div
+                        style="
+                          height: 4px;
+                          border-radius: 99px;
+                          background: #1d1d21;
+                          overflow: hidden;
+                        "
+                      >
+                        <div
+                          style="height:100%;width:{{ clearedPct }};background:#FF6B2C;border-radius:99px;transition:width 280ms cubic-bezier(0.23,1,0.32,1)"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ============ DISCOVER ============ -->
+            <sc-if value="{{ isDiscover }}" hint-placeholder-val="{{ false }}">
+              <div
+                data-screen-label="Discover"
+                style="
+                  max-width: 1160px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+                id="discover-root"
+              >
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 28px;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 24px;
+                  "
+                >
+                  The evidence desk. <em style="font-style: italic; color: #7fd1dc">Signal</em> on
+                  the left, judgment on the right.
+                </h1>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1.15fr;
+                    gap: 20px;
+                    align-items: start;
+                  "
+                >
+                  <div
+                    style="
+                      background: #111113;
+                      border: 1px solid rgba(255, 255, 255, 0.07);
+                      border-radius: 12px;
+                      padding: 18px 20px;
+                    "
+                  >
+                    <div style="display: flex; align-items: baseline; margin-bottom: 14px">
+                      <span
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.12em;
+                          color: #7d786f;
+                          text-transform: uppercase;
+                          flex: 1;
+                        "
+                        >Live signal feed</span
+                      >
+                      <span
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.08em;
+                          color: #7fd1dc;
+                        "
+                        >128 THIS WEEK</span
+                      >
+                    </div>
+                    <div style="display: grid; gap: 14px">
+                      <sc-for list="{{ signals }}" as="g" hint-placeholder-count="4">
+                        <div
+                          style="
+                            display: grid;
+                            gap: 5px;
+                            padding-bottom: 13px;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                          "
+                        >
+                          <div style="display: flex; align-items: center; gap: 8px">
+                            <span
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8.5px;
+                                letter-spacing: 0.08em;
+                                color: #e5bddf;
+                                border: 1px solid rgba(229, 189, 223, 0.35);
+                                border-radius: 99px;
+                                padding: 1px 7px;
+                              "
+                              >{{ g.src }}</span
+                            >
+                            <span
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8.5px;
+                                letter-spacing: 0.08em;
+                                color: #55524c;
+                              "
+                              >{{ g.when }}</span
+                            >
+                          </div>
+                          <div style="font-size: 13px; line-height: 1.6; color: #b5afa6">
+                            {{ g.quote }}
+                          </div>
+                          <div
+                            style="
+                              font-family: &quot;JetBrains Mono&quot;, monospace;
+                              font-size: 8.5px;
+                              letter-spacing: 0.08em;
+                              color: #7d786f;
+                            "
+                          >
+                            {{ g.theme }}
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font-size: 11.5px; color: #55524c; margin-top: 12px">
+                      Every quote is verbatim and keeps its source. Nothing here is a summary.
+                    </div>
+                  </div>
+
+                  <div style="display: grid; gap: 12px">
+                    <div style="display: flex; align-items: baseline; padding: 0 4px">
+                      <span
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.12em;
+                          color: #7d786f;
+                          text-transform: uppercase;
+                          flex: 1;
+                        "
+                        >The opportunity queue · ranked by ICE</span
+                      >
+                      <span
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          letter-spacing: 0.08em;
+                          color: #55524c;
+                        "
+                        >RE-RANKED 2H AGO</span
+                      >
+                    </div>
+                    <sc-for list="{{ opps }}" as="o" hint-placeholder-count="4">
+                      <div
+                        style="
+                          position: relative;
+                          background: #111113;
+                          border: 1px solid rgba(255, 255, 255, 0.07);
+                          border-radius: 12px;
+                          padding: 16px 18px;
+                          display: flex;
+                          gap: 16px;
+                          align-items: center;
+                          transition: background 140ms;
+                        "
+                        style-hover="background:#141416"
+                      >
+                        <sc-if value="{{ o.hasPencil }}" hint-placeholder-val="{{ false }}">
+                          <span
+                            style="
+                              position: absolute;
+                              top: -11px;
+                              right: 14px;
+                              font-family: Caveat, cursive;
+                              font-size: 17px;
+                              font-weight: 600;
+                              color: #cde07a;
+                              transform: rotate(-2deg);
+                              text-shadow: 0 0 12px rgba(205, 224, 122, 0.4);
+                              border-bottom: 2px solid rgba(205, 224, 122, 0.75);
+                              padding: 0 2px;
+                            "
+                            >{{ o.pencil }}</span
+                          >
+                        </sc-if>
+                        <div style="flex: none; width: 56px; text-align: center">
+                          <div
+                            style="
+                              font-family: Newsreader, serif;
+                              font-size: 23px;
+                              font-weight: 460;
+                              color: #f2f0ed;
+                              line-height: 1;
+                            "
+                          >
+                            {{ o.ice }}
+                          </div>
+                          <div
+                            style="
+                              font-family: &quot;JetBrains Mono&quot;, monospace;
+                              font-size: 7.5px;
+                              letter-spacing: 0.14em;
+                              color: #55524c;
+                              margin-top: 3px;
+                            "
+                          >
+                            ICE
+                          </div>
+                        </div>
+                        <div style="flex: 1; min-width: 0">
+                          <div
+                            style="
+                              font-size: 13.5px;
+                              font-weight: 600;
+                              color: #f2f0ed;
+                              margin-bottom: 3px;
+                            "
+                          >
+                            {{ o.title }}
+                          </div>
+                          <div style="font-size: 12px; line-height: 1.5; color: #7d786f">
+                            {{ o.sub }}
+                          </div>
+                        </div>
+                        <span
+                          style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;font-weight:600;color:{{ o.vC }};background:{{ o.vBg }};border:1px solid {{ o.vBc }};border-radius:99px;padding:2px 9px;flex:none"
+                          >{{ o.verdict }}</span
+                        >
+                        <button
+                          onClick="{{ o.challenge }}"
+                          title="The Critic red-teams this bet · receipts attached"
+                          style="
+                            font-family: inherit;
+                            font-size: 12px;
+                            font-weight: 500;
+                            color: #f2f0ed;
+                            background: #1d1d21;
+                            border: 1px solid rgba(255, 255, 255, 0.09);
+                            border-radius: 7px;
+                            padding: 6px 13px;
+                            cursor: pointer;
+                            flex: none;
+                            transition: background 140ms;
+                          "
+                          style-hover="background:#242429"
+                        >
+                          Challenge
+                        </button>
+                      </div>
+                    </sc-for>
+                    <div style="font-size: 11.5px; color: #55524c; padding: 0 4px">
+                      Challenge any bet, even your own. The Critic answers with evidence, never with
+                      vibes.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ============ PLAN ============ -->
+            <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+              <div
+                data-screen-label="Plan"
+                style="
+                  max-width: 1160px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+                id="plan-root"
+              >
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 28px;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 24px;
+                  "
+                >
+                  Every bet declares its
+                  <em style="font-style: italic; color: #ff6b2c">measure</em> before it moves.
+                </h1>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1.5fr;
+                    gap: 20px;
+                    align-items: start;
+                  "
+                >
+                  <div
+                    style="
+                      background: #111113;
+                      border: 1px solid rgba(255, 255, 255, 0.07);
+                      border-radius: 12px;
+                      padding: 18px 20px;
+                    "
+                  >
+                    <div
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 9px;
+                        letter-spacing: 0.12em;
+                        color: #7d786f;
+                        text-transform: uppercase;
+                        margin-bottom: 14px;
+                      "
+                    >
+                      Specs · cited, never blank
+                    </div>
+                    <div style="display: grid; gap: 13px">
+                      <sc-for list="{{ specs }}" as="sp" hint-placeholder-count="3">
+                        <div
+                          style="
+                            display: grid;
+                            gap: 4px;
+                            padding-bottom: 12px;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                          "
+                        >
+                          <div style="display: flex; align-items: center; gap: 9px">
+                            <span
+                              style="font-size: 13.5px; font-weight: 600; color: #f2f0ed; flex: 1"
+                              >{{ sp.title }}</span
+                            >
+                            <span
+                              style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;font-weight:600;color:{{ sp.c }};background:{{ sp.bg }};border:1px solid {{ sp.bc }};border-radius:99px;padding:1px 8px"
+                              >{{ sp.state }}</span
+                            >
+                          </div>
+                          <div style="display: flex; gap: 10px; align-items: baseline">
+                            <span
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8.5px;
+                                letter-spacing: 0.08em;
+                                color: #e5bddf;
+                              "
+                              >{{ sp.cites }}</span
+                            >
+                            <span style="font-size: 12px; color: #7d786f">{{ sp.note }}</span>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font-size: 11.5px; color: #55524c; margin-top: 10px">
+                      Serif body, citations in the margin, the Critic beside the text.
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px">
+                      <div style="display: grid; gap: 10px; align-content: start">
+                        <div
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9px;
+                            letter-spacing: 0.14em;
+                            color: #ff6b2c;
+                          "
+                        >
+                          NOW
+                        </div>
+                        <sc-for list="{{ roadNow }}" as="b" hint-placeholder-count="2">
+                          <div
+                            style="
+                              background: #111113;
+                              border: 1px solid rgba(255, 107, 44, 0.22);
+                              border-radius: 10px;
+                              padding: 13px 15px;
+                            "
+                          >
+                            <div
+                              style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #f2f0ed;
+                                margin-bottom: 5px;
+                                line-height: 1.35;
+                              "
+                            >
+                              {{ b.t }}
+                            </div>
+                            <div
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8px;
+                                letter-spacing: 0.08em;
+                                color: #7d786f;
+                              "
+                            >
+                              {{ b.m }}
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display: grid; gap: 10px; align-content: start">
+                        <div
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9px;
+                            letter-spacing: 0.14em;
+                            color: #9c978f;
+                          "
+                        >
+                          NEXT
+                        </div>
+                        <sc-for list="{{ roadNext }}" as="b" hint-placeholder-count="2">
+                          <div
+                            style="
+                              background: #111113;
+                              border: 1px solid rgba(255, 255, 255, 0.07);
+                              border-radius: 10px;
+                              padding: 13px 15px;
+                            "
+                          >
+                            <div
+                              style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: #f2f0ed;
+                                margin-bottom: 5px;
+                                line-height: 1.35;
+                              "
+                            >
+                              {{ b.t }}
+                            </div>
+                            <div
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8px;
+                                letter-spacing: 0.08em;
+                                color: #7d786f;
+                              "
+                            >
+                              {{ b.m }}
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display: grid; gap: 10px; align-content: start">
+                        <div
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 9px;
+                            letter-spacing: 0.14em;
+                            color: #55524c;
+                          "
+                        >
+                          LATER
+                        </div>
+                        <sc-for list="{{ roadLater }}" as="b" hint-placeholder-count="2">
+                          <div
+                            style="
+                              background: #0e0e10;
+                              border: 1px solid rgba(255, 255, 255, 0.05);
+                              border-radius: 10px;
+                              padding: 13px 15px;
+                            "
+                          >
+                            <div
+                              style="
+                                font-size: 13px;
+                                font-weight: 500;
+                                color: #b5afa6;
+                                margin-bottom: 5px;
+                                line-height: 1.35;
+                              "
+                            >
+                              {{ b.t }}
+                            </div>
+                            <div
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8px;
+                                letter-spacing: 0.08em;
+                                color: #55524c;
+                              "
+                            >
+                              {{ b.m }}
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <div style="font-size: 11.5px; color: #55524c; margin-top: 14px">
+                      Placing a bet into Now is a ceremony: it states the promise being made, and
+                      the outcome review will keep the score.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ============ BUILD ============ -->
+            <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ false }}">
+              <div
+                data-screen-label="Build"
+                style="
+                  max-width: 1060px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+                id="build-root"
+              >
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 28px;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 6px;
+                  "
+                >
+                  The machine, <em style="font-style: italic; color: #7fd1dc">working</em>.
+                </h1>
+                <div style="font-size: 13px; color: #7d786f; margin-bottom: 24px">
+                  Every mission is observable, cited, and gated where it touches the world. Click
+                  one to watch it.
+                </div>
+                <div
+                  style="
+                    border: 1px solid rgba(255, 255, 255, 0.07);
+                    border-radius: 12px;
+                    overflow: hidden;
+                  "
+                >
+                  <sc-for list="{{ missions }}" as="m" hint-placeholder-count="5">
+                    <button
+                      onClick="{{ m.open }}"
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 13px;
+                        width: 100%;
+                        padding: 14px 18px;
+                        background: transparent;
+                        border: none;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                        cursor: pointer;
+                        font-family: inherit;
+                        text-align: left;
+                        transition: background 140ms;
+                      "
+                      style-hover="background:#141416"
+                    >
+                      <span
+                        style="width:6px;height:6px;border-radius:99px;background:{{ m.dot }};box-shadow:{{ m.dotSh }};animation:{{ m.anim }};flex:none"
+                      ></span>
+                      <span
+                        style="
+                          font-size: 13.5px;
+                          font-weight: 600;
+                          color: #f2f0ed;
+                          flex: 1;
+                          min-width: 0;
+                          white-space: nowrap;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                        "
+                        >{{ m.title }}</span
+                      >
+                      <sc-if value="{{ m.hasVerdict }}" hint-placeholder-val="{{ false }}">
+                        <span
+                          style="
+                            font-family: &quot;JetBrains Mono&quot;, monospace;
+                            font-size: 8.5px;
+                            letter-spacing: 0.1em;
+                            font-weight: 600;
+                            color: #8fd9a0;
+                            background: rgba(127, 191, 142, 0.12);
+                            border: 1px solid rgba(127, 191, 142, 0.45);
+                            border-radius: 99px;
+                            padding: 1px 8px;
+                            flex: none;
+                          "
+                          >{{ m.verdict }}</span
+                        >
+                      </sc-if>
+                      <span
+                        style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;color:{{ m.stepC }};flex:none;min-width:96px;text-align:right"
+                        >{{ m.stepLabel }}</span
+                      >
+                      <span
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 9px;
+                          color: #55524c;
+                          flex: none;
+                          min-width: 44px;
+                          text-align: right;
+                        "
+                        >{{ m.cost }}</span
+                      >
+                    </button>
+                  </sc-for>
+                </div>
+                <div style="font-size: 11.5px; color: #55524c; margin-top: 12px">
+                  One dispatch in, one merge approval out. External build tools are an
+                  implementation detail the engine picks itself.
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ============ BRAIN ============ -->
+            <sc-if value="{{ isBrain }}" hint-placeholder-val="{{ false }}">
+              <div
+                data-screen-label="Brain"
+                style="
+                  max-width: 1060px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+                id="brain-root"
+              >
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 28px;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 6px;
+                  "
+                >
+                  What you decided, and whether you were
+                  <em style="font-style: italic; color: #7fbf8e">right</em>.
+                </h1>
+                <div style="font-size: 13px; color: #7d786f; margin-bottom: 24px">
+                  The record no competitor can backfill. It compounds while you sleep.
+                </div>
+                <div style="display: flex; gap: 26px; margin-bottom: 22px; flex-wrap: wrap">
+                  <div>
+                    <span style="font-family: Newsreader, serif; font-size: 24px; color: #f2f0ed"
+                      >128</span
+                    >
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8.5px;
+                        letter-spacing: 0.1em;
+                        color: #55524c;
+                      "
+                      >CALLS MADE</span
+                    >
+                  </div>
+                  <div>
+                    <span style="font-family: Newsreader, serif; font-size: 24px; color: #f2f0ed"
+                      >71%</span
+                    >
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8.5px;
+                        letter-spacing: 0.1em;
+                        color: #55524c;
+                      "
+                      >VALIDATED</span
+                    >
+                  </div>
+                  <div>
+                    <span style="font-family: Newsreader, serif; font-size: 24px; color: #f2f0ed"
+                      >$214k</span
+                    >
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8.5px;
+                        letter-spacing: 0.1em;
+                        color: #55524c;
+                      "
+                      >SAVED BY KILLS</span
+                    >
+                  </div>
+                  <span style="flex: 1"></span>
+                  <button
+                    title="Your portable track record · Markdown"
+                    style="
+                      font-family: inherit;
+                      font-size: 12px;
+                      font-weight: 500;
+                      color: #f2f0ed;
+                      background: #1d1d21;
+                      border: 1px solid rgba(255, 255, 255, 0.09);
+                      border-radius: 7px;
+                      padding: 6px 14px;
+                      cursor: pointer;
+                      align-self: center;
+                    "
+                    style-hover="background:#242429"
+                  >
+                    Export my record
+                  </button>
+                </div>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr;
+                    gap: 20px;
+                    align-items: start;
+                  "
+                >
+                  <div
+                    style="
+                      background: #111113;
+                      border: 1px solid rgba(255, 255, 255, 0.07);
+                      border-radius: 12px;
+                      padding: 18px 20px;
+                    "
+                  >
+                    <div
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 9px;
+                        letter-spacing: 0.12em;
+                        color: #7d786f;
+                        text-transform: uppercase;
+                        margin-bottom: 14px;
+                      "
+                    >
+                      Decisions · with their outcomes
+                    </div>
+                    <div style="display: grid; gap: 13px">
+                      <sc-for list="{{ decisions }}" as="d" hint-placeholder-count="3">
+                        <div
+                          style="
+                            display: grid;
+                            gap: 4px;
+                            padding-bottom: 12px;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                          "
+                        >
+                          <div style="display: flex; align-items: center; gap: 9px">
+                            <span
+                              style="font-size: 13.5px; font-weight: 600; color: #f2f0ed; flex: 1"
+                              >{{ d.t }}</span
+                            >
+                            <span
+                              style="
+                                font-family: &quot;JetBrains Mono&quot;, monospace;
+                                font-size: 8.5px;
+                                color: #55524c;
+                              "
+                              >{{ d.when }}</span
+                            >
+                            <span
+                              style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;font-weight:600;color:{{ d.c }};background:{{ d.bg }};border:1px solid {{ d.bc }};border-radius:99px;padding:1px 8px"
+                              >{{ d.v }}</span
+                            >
+                          </div>
+                          <div style="font-size: 12px; color: #7d786f">{{ d.note }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      background: #111113;
+                      border: 1px solid rgba(255, 255, 255, 0.07);
+                      border-radius: 12px;
+                      padding: 18px 20px;
+                    "
+                  >
+                    <div
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 9px;
+                        letter-spacing: 0.12em;
+                        color: #7d786f;
+                        text-transform: uppercase;
+                        margin-bottom: 14px;
+                      "
+                    >
+                      Learnings · and what they moved
+                    </div>
+                    <div style="display: grid; gap: 13px">
+                      <sc-for list="{{ learnings }}" as="l" hint-placeholder-count="3">
+                        <div
+                          style="
+                            display: grid;
+                            gap: 5px;
+                            padding-bottom: 12px;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                          "
+                        >
+                          <div style="display: flex; align-items: baseline; gap: 9px">
+                            <span
+                              style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;font-weight:600;color:{{ l.c }};background:{{ l.bg }};border:1px solid {{ l.bc }};border-radius:99px;padding:1px 8px;flex:none"
+                              >{{ l.v }}</span
+                            >
+                            <span style="font-size: 13px; line-height: 1.5; color: #b5afa6"
+                              >{{ l.t }}</span
+                            >
+                          </div>
+                          <div
+                            style="
+                              font-family: &quot;JetBrains Mono&quot;, monospace;
+                              font-size: 8.5px;
+                              letter-spacing: 0.08em;
+                              color: #7fd1dc;
+                            "
+                          >
+                            {{ l.moved }}
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font-size: 11.5px; color: #55524c; margin-top: 10px">
+                      A learning that moves nothing is trivia. Every one here re-ranked a bet.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- ============ ENGINE ROOM ============ -->
+            <sc-if value="{{ isGovern }}" hint-placeholder-val="{{ false }}">
+              <div
+                data-screen-label="Engine Room"
+                style="
+                  max-width: 1060px;
+                  margin: 0 auto;
+                  padding: 36px 32px 64px;
+                  animation: cadRise 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+                "
+                id="govern-root"
+              >
+                <h1
+                  style="
+                    font-family: Newsreader, ui-serif, Georgia, serif;
+                    font-weight: 430;
+                    font-size: 28px;
+                    letter-spacing: -0.015em;
+                    color: #f2f0ed;
+                    margin: 0 0 6px;
+                  "
+                >
+                  The engine, at a <em style="font-style: italic; color: #7fd1dc">glance</em>.
+                </h1>
+                <div style="font-size: 13px; color: #7d786f; margin-bottom: 24px">
+                  Four rooms, one verdict each. Your calls never live here — they find you on Today.
+                </div>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 14px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <sc-for list="{{ rooms }}" as="rm" hint-placeholder-count="4">
+                    <button
+                      style="
+                        display: grid;
+                        gap: 7px;
+                        text-align: left;
+                        background: #111113;
+                        border: 1px solid rgba(255, 255, 255, 0.07);
+                        border-radius: 12px;
+                        padding: 18px 20px;
+                        cursor: pointer;
+                        font-family: inherit;
+                        transition: background 140ms;
+                      "
+                      style-hover="background:#141416"
+                      title="Opens the room · every row drills into runs, cases, and config"
+                    >
+                      <div style="display: flex; align-items: center; gap: 10px">
+                        <span style="font-size: 14px; font-weight: 700; color: #f2f0ed; flex: 1"
+                          >{{ rm.name }}</span
+                        >
+                        <span
+                          style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;font-weight:600;color:{{ rm.c }};background:{{ rm.bg }};border:1px solid {{ rm.bc }};border-radius:99px;padding:1px 8px"
+                          >{{ rm.state }}</span
+                        >
+                      </div>
+                      <div style="font-size: 12px; color: #55524c">{{ rm.q }}</div>
+                      <div
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 10px;
+                          letter-spacing: 0.04em;
+                          color: #9c978f;
+                        "
+                      >
+                        {{ rm.verdict }}
+                      </div>
+                    </button>
+                  </sc-for>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    background: #0e0e10;
+                    border: 1px solid rgba(255, 255, 255, 0.07);
+                    border-radius: 10px;
+                    padding: 12px 16px;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <span style="font-size: 13px; font-weight: 600; color: #f2f0ed">GitHub</span>
+                  <span
+                    style="
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      font-size: 9px;
+                      color: #7d786f;
+                    "
+                    >ACME/LUMEN-APP · CONNECTED BY ROHIT</span
+                  >
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 6px;
+                      font-family: &quot;JetBrains Mono&quot;, monospace;
+                      font-size: 9px;
+                      letter-spacing: 0.08em;
+                      color: #8fd9a0;
+                    "
+                    ><span
+                      style="
+                        width: 6px;
+                        height: 6px;
+                        border-radius: 99px;
+                        background: #7fbf8e;
+                        box-shadow: 0 0 8px 1px rgba(127, 191, 142, 0.6);
+                        animation: cadPulse 2.4s ease-in-out infinite;
+                      "
+                    ></span
+                    >LIVE · SYNCED 4 MIN AGO</span
+                  >
+                  <span style="flex: 1"></span>
+                  <span style="font-size: 11.5px; color: #55524c"
+                    >Connections live in Settings · one home, no duplicates</span
+                  >
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </main>
+
+        <!-- ============ MISSION SLIDE-OVER ============ -->
+        <sc-if value="{{ hasM }}" hint-placeholder-val="{{ false }}">
+          <div
+            onClick="{{ closeM }}"
+            style="
+              position: fixed;
+              inset: 0;
+              background: rgba(4, 4, 5, 0.6);
+              backdrop-filter: blur(3px);
+              z-index: 40;
+            "
+          ></div>
+          <div
+            data-screen-label="Mission detail"
+            style="
+              position: fixed;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              width: 480px;
+              max-width: 92vw;
+              background: #101013;
+              border-left: 1px solid rgba(255, 255, 255, 0.09);
+              z-index: 50;
+              display: flex;
+              flex-direction: column;
+              animation: cadSlideIn 240ms cubic-bezier(0.23, 1, 0.32, 1) both;
+              box-shadow: -30px 0 60px rgba(0, 0, 0, 0.5);
+            "
+          >
+            <div
+              style="
+                padding: 20px 24px 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                flex: none;
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
+                <span
+                  style="
+                    font-family: &quot;JetBrains Mono&quot;, monospace;
+                    font-size: 8.5px;
+                    letter-spacing: 0.14em;
+                    color: #7d786f;
+                  "
+                  >MISSION</span
+                >
+                <span
+                  style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:0.1em;color:{{ selM.statusC }}"
+                  >{{ selM.statusLabel }}</span
+                >
+                <span style="flex: 1"></span>
+                <span
+                  style="
+                    font-family: &quot;JetBrains Mono&quot;, monospace;
+                    font-size: 9px;
+                    color: #55524c;
+                  "
+                  >{{ selM.cost }}</span
+                >
+                <button
+                  onClick="{{ closeM }}"
+                  title="Close · Esc"
+                  style="
+                    font-family: inherit;
+                    font-size: 12px;
+                    color: #7d786f;
+                    background: none;
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 7px;
+                    padding: 3px 10px;
+                    cursor: pointer;
+                  "
+                  style-hover="color:#F2F0ED;background:#17171A"
+                >
+                  Close
+                </button>
+              </div>
+              <div
+                style="
+                  font-family: Newsreader, serif;
+                  font-size: 21px;
+                  font-weight: 460;
+                  color: #f2f0ed;
+                  line-height: 1.25;
+                "
+              >
+                {{ selM.title }}
+              </div>
+            </div>
+            <div
+              style="
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+                padding: 20px 24px;
+                display: grid;
+                gap: 18px;
+                align-content: start;
+              "
+            >
+              <div style="display: grid; gap: 12px">
+                <sc-for list="{{ selM.steps }}" as="p" hint-placeholder-count="5">
+                  <div style="display: flex; gap: 12px; align-items: baseline">
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 9px;
+                        color: #55524c;
+                        flex: none;
+                      "
+                      >{{ p.n }}</span
+                    >
+                    <span
+                      style="width:6px;height:6px;border-radius:99px;background:{{ p.dot }};box-shadow:{{ p.dotSh }};animation:{{ p.anim }};flex:none;position:relative;top:-1px"
+                    ></span>
+                    <span style="flex:1;font-size:13px;line-height:1.5;color:{{ p.textC }}"
+                      >{{ p.what }}</span
+                    >
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8px;
+                        letter-spacing: 0.1em;
+                        color: #7d786f;
+                        flex: none;
+                      "
+                      >{{ p.agent }}</span
+                    >
+                  </div>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{ selM.hasGate }}" hint-placeholder-val="{{ false }}">
+                <div
+                  style="
+                    background: #0e0e10;
+                    border: 1px solid rgba(255, 107, 44, 0.3);
+                    border-radius: 12px;
+                    padding: 16px 18px;
+                  "
+                >
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8.5px;
+                        letter-spacing: 0.1em;
+                        font-weight: 600;
+                        color: #ff6b2c;
+                        border: 1px solid rgba(255, 107, 44, 0.4);
+                        border-radius: 99px;
+                        padding: 2px 8px;
+                      "
+                      >YOUR CALL</span
+                    >
+                    <span
+                      style="
+                        font-family: &quot;JetBrains Mono&quot;, monospace;
+                        font-size: 8.5px;
+                        color: #55524c;
+                        text-transform: uppercase;
+                      "
+                      >{{ selM.gate.expiry }}</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      font-family: Newsreader, serif;
+                      font-size: 17px;
+                      font-weight: 460;
+                      color: #f2f0ed;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    {{ selM.gate.title }}
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 9px; flex-wrap: wrap">
+                    <button
+                      onClick="{{ selM.gate.ok }}"
+                      style="
+                        font-family: inherit;
+                        font-size: 12.5px;
+                        font-weight: 600;
+                        color: #0a0a0b;
+                        background: #ff6b2c;
+                        border: none;
+                        border-radius: 8px;
+                        padding: 8px 15px;
+                        cursor: pointer;
+                        transition: background 140ms;
+                      "
+                      style-hover="background:#C2571F"
+                    >
+                      {{ selM.gate.okLabel }}
+                    </button>
+                    <button
+                      onClick="{{ selM.gate.no }}"
+                      style="
+                        font-family: inherit;
+                        font-size: 12.5px;
+                        font-weight: 500;
+                        color: #f2f0ed;
+                        background: #1d1d21;
+                        border: 1px solid rgba(255, 255, 255, 0.09);
+                        border-radius: 8px;
+                        padding: 7px 15px;
+                        cursor: pointer;
+                        transition: background 140ms;
+                      "
+                      style-hover="background:#242429"
+                    >
+                      {{ selM.gate.noLabel }}
+                    </button>
+                    <span style="font-size: 11px; color: #7d786f">{{ selM.gate.consequence }}</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div>
+                <button
+                  onClick="{{ toggleTrace }}"
+                  style="
+                    font-family: &quot;JetBrains Mono&quot;, monospace;
+                    font-size: 9px;
+                    letter-spacing: 0.1em;
+                    color: #7fd1dc;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    padding: 0;
+                    text-transform: uppercase;
+                  "
+                  style-hover="color:#EAF6FF"
+                >
+                  {{ traceLabel }} →
+                </button>
+                <sc-if value="{{ traceOpen }}" hint-placeholder-val="{{ false }}">
+                  <div
+                    style="
+                      margin-top: 10px;
+                      background: #0b0b0d;
+                      border: 1px solid rgba(255, 255, 255, 0.06);
+                      border-radius: 10px;
+                      padding: 14px 16px;
+                      display: grid;
+                      gap: 6px;
+                    "
+                  >
+                    <sc-for list="{{ selM.trace }}" as="t" hint-placeholder-count="4">
+                      <div
+                        style="
+                          font-family: &quot;JetBrains Mono&quot;, monospace;
+                          font-size: 10.5px;
+                          line-height: 1.5;
+                          color: #7d786f;
+                        "
+                      >
+                        {{ t }}
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div
+              style="
+                flex: none;
+                padding: 12px 24px;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+                font-size: 11px;
+                color: #55524c;
+              "
+            >
+              Every hop cites the memory it drew on · Esc closes
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ============ TOAST ============ -->
+        <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+          <div
+            style="
+              position: fixed;
+              bottom: 26px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: #17171a;
+              border: 1px solid rgba(127, 191, 142, 0.4);
+              border-radius: 99px;
+              padding: 9px 20px;
+              font-size: 13px;
+              color: #f2f0ed;
+              box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.5),
+                0 0 18px rgba(127, 191, 142, 0.12);
+              animation: cadRise 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+              z-index: 60;
+            "
+          >
+            {{ toastMsg }}
+          </div>
+        </sc-if>
+      </div>
+    </x-dc>
+    <script
+      type="text/x-dc"
+      data-dc-script
+      data-props='{"defaultSurface":{"editor":"enum","options":["today","discover","plan","build","brain","govern"],"default":"today","tsType":"string","section":"Behavior"},"userName":{"editor":"text","default":"Rohit","tsType":"string","section":"Identity"},"workspaceName":{"editor":"text","default":"Lumen · Growth team","tsType":"string","section":"Identity"}}'
+    >
+      class Component extends DCLogic {
+        state = {
+          surface: this.props.defaultSurface ?? "today",
+          missionOpen: null,
+          traceOpen: false,
+          answeredCalls: {},
+          toast: null,
+        };
+
+        CALLS = [
+          { id: "c1", kind: "SHIP IT?", expiry: "Expires in 6h",
+            title: "Ship the checkout fix?",
+            body: "Builder finished the drop-off fix: 14 files changed, tests green. The evidence says the friction was price opacity, not step count.",
+            ev: [
+              { src: "GONG", text: "Meridian renewal call: \u201cthe total surprised us at the very end.\u201d" },
+              { src: "REPLAYS", text: "61% of abandoning sessions stall on the summary step." },
+            ],
+            okLabel: "Approve", noLabel: "Send back",
+            consequence: "Opens the pull request \u00b7 nothing ships without you",
+            okToast: "Good call. The PR is open.",
+            noToast: "Sent back. Builder is revising \u00b7 nothing ships." },
+          { id: "c2", kind: "WORTH BUILDING?", expiry: "Expires tomorrow",
+            title: "Commit Slack-first onboarding to Next?",
+            body: "Strategist ranks it 8.2 ICE from 17 signals. The Critic says revise: trial users live in Slack, but two enterprise accounts contradict the pattern.",
+            ev: [
+              { src: "G2", text: "\u201cGreat product, but setup took our team a week.\u201d" },
+              { src: "CRITIC", text: "Evidence thin on enterprise fit \u00b7 two accounts contradict." },
+            ],
+            okLabel: "Commit", noLabel: "Send back",
+            consequence: "Places the bet in Next with its measure \u00b7 reversible",
+            okToast: "Good call. Slack onboarding sits in Next.",
+            noToast: "Sent back to Discover. The Critic keeps digging." },
+          { id: "c3", kind: "SPEND", expiry: "No rush",
+            title: "Raise this month\u2019s agent budget to $720?",
+            body: "The swarm hit 80% of budget with nine days left, driven almost entirely by the churn-triage mission.",
+            ev: [
+              { src: "SPEND", text: "$482 of $600 used \u00b7 trending +12% week over week." },
+            ],
+            okLabel: "Raise it", noLabel: "Keep the cap",
+            consequence: "Adds $120 headroom \u00b7 you can lower it anytime",
+            okToast: "Done. Headroom added, the cap stays yours.",
+            noToast: "Cap kept. Agents will queue non-urgent work." },
+        ];
+
+        MISSIONS = [
+          { id: "m1", title: "Churn-signal triage", agent: "SCOUT", cost: "$0.84", status: "working", step: "STEP 2/5",
+            steps: [
+              { n: "01", agent: "SCOUT", what: "Pull 48 hours of Intercom and Gong signals", state: "done" },
+              { n: "02", agent: "SCOUT", what: "Cluster into themes and score novelty", state: "working" },
+              { n: "03", agent: "STRATEGIST", what: "Re-rank the opportunity queue", state: "queued" },
+              { n: "04", agent: "CRITIC", what: "Red-team the top mover", state: "queued" },
+              { n: "05", agent: "SCRIBE", what: "Draft the morning brief", state: "queued" },
+            ],
+            trace: ["02:14 scout.pull intercom \u00b7 312 tickets \u00b7 $0.22", "02:15 scout.pull gong \u00b7 9 calls \u00b7 $0.31", "02:17 embed.cluster k=14 \u00b7 $0.18", "02:19 score.novelty top=3 \u00b7 $0.13"] },
+          { id: "m2", title: "Checkout drop-off fix", agent: "BUILDER", cost: "$2.10", status: "gate", gateId: "c1", step: "WAITING ON YOU",
+            steps: [
+              { n: "01", agent: "PLANNER", what: "Graph the work from the approved spec", state: "done" },
+              { n: "02", agent: "BUILDER", what: "Implement on an isolated branch \u00b7 14 files", state: "done" },
+              { n: "03", agent: "INSPECTOR", what: "Run the test bar \u00b7 all green", state: "done" },
+              { n: "04", agent: "CRITIC", what: "Review the diff against the spec", state: "done" },
+              { n: "05", agent: "YOU", what: "Approve the pull request", state: "gate" },
+            ],
+            trace: ["09:02 planner.graph 6 units \u00b7 $0.09", "09:31 builder.diff +412 \u2212208 \u00b7 $1.44", "10:12 ci.run 214 tests \u00b7 green \u00b7 $0.31", "10:19 critic.review score 92 \u00b7 $0.26"] },
+          { id: "m3", title: "Release notes v0.9", agent: "SCRIBE", cost: "$0.41", status: "working", step: "STEP 4/6",
+            steps: [
+              { n: "01", agent: "SCRIBE", what: "Collect merged PRs since v0.8", state: "done" },
+              { n: "02", agent: "SCRIBE", what: "Draft notes in brand voice", state: "done" },
+              { n: "03", agent: "CRITIC", what: "Check claims against the diffs", state: "done" },
+              { n: "04", agent: "SCRIBE", what: "Humanize and tighten the copy", state: "working" },
+              { n: "05", agent: "HISTORIAN", what: "File to Brain with lineage", state: "queued" },
+              { n: "06", agent: "YOU", what: "Approve for publish", state: "queued" },
+            ],
+            trace: ["07:40 scribe.collect 23 PRs \u00b7 $0.07", "07:52 scribe.draft 640 words \u00b7 $0.19", "08:03 critic.check 0 flags \u00b7 $0.11"] },
+          { id: "m4", title: "Competitor pricing brief", agent: "HISTORIAN", cost: "$1.12", status: "done", verdict: "VALIDATED", step: "SHIPPED",
+            steps: [
+              { n: "01", agent: "RESEARCHER", what: "Crawl four competitor pricing pages", state: "done" },
+              { n: "02", agent: "RESEARCHER", what: "Diff against last quarter", state: "done" },
+              { n: "03", agent: "SCRIBE", what: "Write the brief with citations", state: "done" },
+              { n: "04", agent: "HISTORIAN", what: "File to Brain \u00b7 re-rank pricing bets", state: "done" },
+            ],
+            trace: ["06:01 research.crawl 4 pages \u00b7 $0.48", "06:22 diff.compare 11 changes \u00b7 $0.21", "06:40 scribe.brief 9 cites \u00b7 $0.30", "06:51 brain.file +2 memories \u00b7 $0.13"] },
+          { id: "m5", title: "Slack onboarding spike", agent: "QUEUED", cost: "\u2014", status: "queued", step: "QUEUED",
+            steps: [
+              { n: "01", agent: "SCOUT", what: "Gather Slack-install friction signals", state: "queued" },
+              { n: "02", agent: "SCRIBE", what: "Draft the spike doc", state: "queued" },
+            ],
+            trace: ["queued \u00b7 waiting on your call about the bet"] },
+        ];
+
+        CHANGED = [
+          { dot: "#7FBF8E", text: "Checkout fix outcome landed: predicted \u221212% drop-off, actual \u221219%.", cause: "LEARNING \u2192 RE-RANKED 2 BETS" },
+          { dot: "#7FD1DC", text: "Scout clustered 31 new signals overnight; mobile capture keeps climbing.", cause: "SENSE \u00b7 12M AGO" },
+          { dot: "#E5BDDF", text: "Acme upgraded to the team plan after the usage-alerts demo.", cause: "SIGNAL \u2192 EVIDENCE" },
+        ];
+
+        SIGNALS = [
+          { src: "INTERCOM", when: "12M AGO", quote: "\u201cWe lose the draft every time the app backgrounds. Third time this week.\u201d", theme: "\u2192 MOBILE QUICK-CAPTURE \u00b7 23 SIGNALS" },
+          { src: "GONG", when: "1H AGO", quote: "\u201cBilling surprises are the number one objection on renewal calls.\u201d", theme: "\u2192 USAGE-BASED ALERTS \u00b7 12 SIGNALS" },
+          { src: "GITHUB", when: "3H AGO", quote: "Issue #412 (draft loss on iOS) gained 28 reactions this week.", theme: "\u2192 MOBILE QUICK-CAPTURE \u00b7 23 SIGNALS" },
+          { src: "G2", when: "5H AGO", quote: "\u201cGreat product, but onboarding took our team a week.\u201d", theme: "\u2192 SLACK-FIRST ONBOARDING \u00b7 17 SIGNALS" },
+          { src: "AMPLITUDE", when: "6H AGO", quote: "Weekly capture per mobile user fell 8% after the iOS 19 update.", theme: "\u2192 MOBILE QUICK-CAPTURE \u00b7 23 SIGNALS" },
+        ];
+
+        OPPS = [
+          { title: "Mobile quick-capture", ice: "8.6", sub: "23 signals \u00b7 spec in Critic review \u00b7 +1.4 after the checkout learning", verdict: "SHIP", pencil: "best bet" },
+          { title: "Slack-first onboarding", ice: "8.2", sub: "17 signals \u00b7 your call is waiting on Today", verdict: "REVISE", pencil: "" },
+          { title: "Usage-based alerts", ice: "7.4", sub: "12 signals \u00b7 building now", verdict: "SHIP", pencil: "" },
+          { title: "AI meeting summaries", ice: "4.1", sub: "6 signals \u00b7 killed by red-team \u00b7 saved ~$40k of eng", verdict: "KILL", pencil: "" },
+        ];
+
+        SURFACES = {
+          today: { title: "Today", sub: "Your calls, what changed, all clear" },
+          discover: { title: "Discover", sub: "Signal becomes a Critic-checked decision" },
+          plan: { title: "Plan", sub: "Cited specs and outcome-declared bets" },
+          build: { title: "Build", sub: "Watch the machine work \u00b7 every step cited" },
+          brain: { title: "Brain", sub: "Decisions, outcomes, and what they moved" },
+          govern: { title: "Engine Room", sub: "Spend \u00b7 Quality \u00b7 Safety \u00b7 Record" },
+        };
+
+        componentDidMount() {
+          this.onKey = (e) => {
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+            const t = e.target && e.target.tagName;
+            if (t === "INPUT" || t === "TEXTAREA") return;
+            const map = { "1": "today", "2": "discover", "3": "plan", "4": "build", "5": "brain", "g": "govern" };
+            if (map[e.key]) this.setState({ surface: map[e.key], missionOpen: null });
+            if (e.key === "Escape") this.setState({ missionOpen: null });
+          };
+          window.addEventListener("keydown", this.onKey);
+        }
+        componentWillUnmount() { window.removeEventListener("keydown", this.onKey); }
+
+        decide(id, ok) {
+          const call = this.CALLS.find((c) => c.id === id);
+          const answered = { ...this.state.answeredCalls, [id]: ok ? "ok" : "no" };
+          this.setState({ answeredCalls: answered, toast: ok ? call.okToast : call.noToast });
+          clearTimeout(this._tt);
+          this._tt = setTimeout(() => this.setState({ toast: null }), 3600);
+        }
+
+        missionStatus(m) {
+          if (m.gateId && this.state.answeredCalls[m.gateId] === "ok") return "done";
+          if (m.gateId && this.state.answeredCalls[m.gateId] === "no") return "working";
+          return m.status;
+        }
+
+        renderVals() {
+          const s = this.state;
+          const pending = this.CALLS.filter((c) => !s.answeredCalls[c.id]);
+          const answered = this.CALLS.length - pending.length + 2;
+          const totalCalls = this.CALLS.length + 2;
+          const userName = this.props.userName ?? "Rohit";
+
+          const STATUS = {
+            working: { dot: "#7FD1DC", sh: "0 0 8px 1px rgba(127,209,220,0.6)", anim: "cadPulse 2s ease-in-out infinite", c: "#7FD1DC" },
+            gate: { dot: "#FF6B2C", sh: "0 0 10px 2px rgba(255,107,44,0.55)", anim: "cadGlow 1.8s ease-in-out infinite", c: "#FF6B2C" },
+            done: { dot: "#7FBF8E", sh: "0 0 8px 1px rgba(127,191,142,0.5)", anim: "none", c: "#7FBF8E" },
+            queued: { dot: "#55524C", sh: "none", anim: "none", c: "#7D786F" },
+          };
+
+          const navDefs = [
+            ["01", "Today", "today", "The morning ritual \u00b7 press 1"],
+            ["02", "Discover", "discover", "Signals and the opportunity queue \u00b7 press 2"],
+            ["03", "Plan", "plan", "Specs and the roadmap \u00b7 press 3"],
+            ["04", "Build", "build", "The mission cockpit \u00b7 press 4"],
+            ["05", "Brain", "brain", "The decision record \u00b7 press 5"],
+          ];
+          const navItems = navDefs.map(([num, label, key, hint]) => {
+            const active = s.surface === key;
+            return {
+              num, label, hint,
+              bg: active ? "#1A1A1E" : "transparent",
+              c: active ? "#F2F0ED" : "#9C978F",
+              w: active ? 600 : 400,
+              numC: active ? "#FF6B2C" : "#55524C",
+              badge: key === "today" && pending.length > 0 ? String(pending.length) : false,
+              go: () => this.setState({ surface: key, missionOpen: null }),
+            };
+          });
+
+          const workingCount = this.MISSIONS.filter((m) => this.missionStatus(m) === "working").length;
+          const pillDefs = [
+            ["SENSE \u00b7 128", "discover", false, "quiet"],
+            [`DECIDE \u00b7 ${pending.length} CALL${pending.length === 1 ? "" : "S"}`, "today", false, pending.length ? "ember" : "quiet"],
+            ["DEFINE \u00b7 2", "plan", false, "quiet"],
+            [`BUILD \u00b7 ${workingCount}`, "build", true, "glacier"],
+            ["LEARN \u00b7 1", "brain", false, "quiet"],
+          ];
+          const loopPills = pillDefs.map(([label, key, pulse, tone], i) => ({
+            label, pulse,
+            arrow: i === 0 ? "" : "\u2192",
+            bc: tone === "ember" ? "rgba(255,107,44,0.5)" : tone === "glacier" ? "rgba(127,209,220,0.35)" : "rgba(255,255,255,0.12)",
+            c: tone === "ember" ? "#FF6B2C" : tone === "glacier" ? "#7FD1DC" : "#9C978F",
+            sh: tone === "ember" ? "0 0 14px rgba(255,107,44,0.15)" : "none",
+            go: () => this.setState({ surface: key, missionOpen: null }),
+          }));
+
+          const callCards = pending.map((c) => ({
+            ...c,
+            ok: () => this.decide(c.id, true),
+            no: () => this.decide(c.id, false),
+          }));
+
+          const runningRows = this.MISSIONS.filter((m) => this.missionStatus(m) !== "queued").slice(0, 4).map((m) => {
+            const st = STATUS[this.missionStatus(m)];
+            const step = this.missionStatus(m) === "done" ? "DONE" : m.gateId && s.answeredCalls[m.gateId] ? "MERGING" : m.step;
+            return { title: m.title, dot: st.dot, dotSh: st.sh, anim: st.anim, step, stepC: st.c,
+              open: () => this.setState({ surface: "build", missionOpen: m.id }) };
+          });
+
+          const heroA = pending.length === 0 ? "All clear." : pending.length === 1 ? "One call" : ["", "One call", "Two calls", "Three calls"][pending.length] || pending.length + " calls";
+          const heroB = pending.length === 0 ? " The loop is running itself." : " need your judgment today.";
+
+          return {
+            userName,
+            workspaceName: this.props.workspaceName ?? "Lumen \u00b7 Growth team",
+            initials: userName.split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase(),
+            surfaceTitle: this.SURFACES[s.surface].title,
+            surfaceSub: this.SURFACES[s.surface].sub,
+            isToday: s.surface === "today", isDiscover: s.surface === "discover", isPlan: s.surface === "plan",
+            isBuild: s.surface === "build", isBrain: s.surface === "brain", isGovern: s.surface === "govern",
+            navItems, loopPills, callCards, runningRows,
+            changed: this.CHANGED,
+            noCalls: pending.length === 0,
+            heroA, heroB,
+            answered: String(answered), totalCalls: String(totalCalls),
+            clearedPct: Math.round((answered / totalCalls) * 100) + "%",
+            workingLine: workingCount + " agent" + (workingCount === 1 ? "" : "s") + " working",
+            engineNote: "ALL CLEAR", engineC: "#55524C",
+            goGovern: () => this.setState({ surface: "govern", missionOpen: null }),
+            goBuild: () => this.setState({ surface: "build", missionOpen: null }),
+            hasToast: !!s.toast, toastMsg: s.toast,
+            signals: this.SIGNALS,
+            missions: this.MISSIONS.map((m) => {
+              const st0 = this.missionStatus(m);
+              const st = STATUS[st0];
+              const stepLabel = st0 === "done" ? (m.gateId ? "SHIPPED" : m.step) : m.gateId && s.answeredCalls[m.gateId] === "no" ? "REVISING" : m.step;
+              return { title: m.title, agent: m.agent, cost: m.cost, dot: st.dot, dotSh: st.sh, anim: st.anim,
+                stepLabel: st0 === "done" ? "" : stepLabel, stepC: st.c,
+                verdict: st0 === "done" ? (m.verdict || "SHIPPED") : "",
+                hasVerdict: st0 === "done",
+                open: () => this.setState({ missionOpen: m.id, traceOpen: false }) };
+            }),
+            hasM: !!s.missionOpen,
+            selM: (() => {
+              const m = this.MISSIONS.find((x) => x.id === s.missionOpen);
+              if (!m) return { steps: [], trace: [], gate: null };
+              const st0 = this.missionStatus(m);
+              const st = STATUS[st0];
+              const gateCall = m.gateId && !s.answeredCalls[m.gateId] ? this.CALLS.find((c) => c.id === m.gateId) : null;
+              const steps = m.steps.map((p) => {
+                let state = p.state;
+                if (m.gateId && s.answeredCalls[m.gateId] === "ok" && state === "gate") state = "done";
+                if (m.gateId && s.answeredCalls[m.gateId] === "no" && state === "gate") state = "working";
+                const ss = { done: ["#7FBF8E", "none", "#9C978F", "none"], working: ["#7FD1DC", "0 0 8px 1px rgba(127,209,220,0.6)", "#F2F0ED", "cadPulse 2s ease-in-out infinite"], queued: ["#55524C", "none", "#7D786F", "none"], gate: ["#FF6B2C", "0 0 10px 2px rgba(255,107,44,0.55)", "#F2F0ED", "cadGlow 1.8s ease-in-out infinite"] }[state];
+                return { ...p, dot: ss[0], dotSh: ss[1], textC: ss[2], anim: ss[3] };
+              });
+              return { title: m.title, cost: m.cost, statusLabel: st0 === "done" ? (m.verdict || "SHIPPED") : m.gateId && s.answeredCalls[m.gateId] === "no" ? "REVISING" : m.step, statusC: st.c,
+                steps, trace: m.trace, hasGate: !!gateCall,
+                gate: gateCall ? { ...gateCall, ok: () => this.decide(gateCall.id, true), no: () => this.decide(gateCall.id, false) } : { ev: [] } };
+            })(),
+            traceOpen: s.traceOpen,
+            specs: [
+              { title: "Usage-based alerts", state: "APPROVED", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)", cites: "11 SOURCES", note: "Mission dispatched to Build" },
+              { title: "Mobile quick-capture", state: "CRITIC REVIEW", c: "#E8B44C", bc: "rgba(232,180,76,0.45)", bg: "rgba(232,180,76,0.12)", cites: "9 SOURCES", note: "Stress-test in progress" },
+              { title: "Slack-first onboarding", state: "DRAFTING", c: "#7FD1DC", bc: "rgba(127,209,220,0.45)", bg: "rgba(127,209,220,0.12)", cites: "6 SOURCES", note: "Scribe is writing \u00b7 waiting on your bet" },
+            ],
+            roadNow: [
+              { t: "Checkout drop-off fix", m: "DROP-OFF \u221220% BY AUG 1" },
+              { t: "Usage-based alerts", m: "ALERT CTR ABOVE 30%" },
+            ],
+            roadNext: [
+              { t: "Mobile quick-capture", m: "WEEKLY CAPTURE PER USER \u00d72" },
+              { t: "Slack-first onboarding", m: "FIRST WIN UNDER 1 DAY" },
+            ],
+            roadLater: [
+              { t: "Pricing page test", m: "MEASURE AT COMMIT" },
+              { t: "SSO + audit trail", m: "MEASURE AT COMMIT" },
+            ],
+            decisions: [
+              { t: "Ship the checkout drop-off fix", when: "JUN 24", v: "VALIDATED", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)", note: "Predicted \u221212% drop-off \u00b7 actual \u221219%" },
+              { t: "Kill AI meeting summaries", when: "JUN 18", v: "KEPT", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)", note: "Critic red-team \u00b7 saved ~$40k of eng time" },
+              { t: "Commit usage-based alerts", when: "JUN 12", v: "PENDING", c: "#7D786F", bc: "rgba(255,255,255,0.14)", bg: "transparent", note: "Measure: alert CTR above 30% by August" },
+            ],
+            learnings: [
+              { v: "VALIDATED", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)", t: "Checkout friction is price opacity, not step count.", moved: "RE-RANKED USAGE-BASED ALERTS +1.1 ICE" },
+              { v: "MISSED", c: "#EE7A6C", bc: "rgba(224,101,87,0.45)", bg: "rgba(224,101,87,0.12)", t: "\u201cUsers want templates\u201d \u00b7 shipped to 4% adoption.", moved: "TEMPLATE GALLERY RESCORED 7.2 \u2192 3.8" },
+              { v: "VALIDATED", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)", t: "Trials live in Slack, not email.", moved: "SLACK ONBOARDING +1.4 ICE" },
+            ],
+            rooms: [
+              { name: "Spend", q: "What is this costing me?", verdict: "$482 of $600 \u00b7 trending +12%", state: "WATCH", c: "#E8B44C", bc: "rgba(232,180,76,0.45)", bg: "rgba(232,180,76,0.12)" },
+              { name: "Quality", q: "Is the machine still good?", verdict: "Evals 94 / 88 / 91 \u00b7 no drift", state: "HEALTHY", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)" },
+              { name: "Safety", q: "What is it allowed to do?", verdict: "3 guardrails on \u00b7 0 incidents", state: "HEALTHY", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)" },
+              { name: "Record", q: "What exactly happened?", verdict: "1,284 traces \u00b7 ledger intact", state: "HEALTHY", c: "#8FD9A0", bc: "rgba(127,191,142,0.45)", bg: "rgba(127,191,142,0.12)" },
+            ],
+            traceLabel: s.traceOpen ? "Hide the raw trace" : "Show the raw trace",
+            toggleTrace: () => this.setState({ traceOpen: !s.traceOpen }),
+            closeM: () => this.setState({ missionOpen: null }),
+            opps: this.OPPS.map((o) => {
+              const vc = { SHIP: ["#8FD9A0", "rgba(127,191,142,0.45)", "rgba(127,191,142,0.12)"], REVISE: ["#FF8B52", "rgba(255,107,44,0.45)", "rgba(255,107,44,0.12)"], KILL: ["#EE7A6C", "rgba(224,101,87,0.45)", "rgba(224,101,87,0.12)"] }[o.verdict];
+              return { ...o, vC: vc[0], vBc: vc[1], vBg: vc[2], hasPencil: !!o.pencil,
+                challenge: () => {
+                  this.setState({ toast: "Critic engaged. The teardown lands on Today, receipts attached." });
+                  clearTimeout(this._tt);
+                  this._tt = setTimeout(() => this.setState({ toast: null }), 3600);
+                } };
+            }),
+          };
+        }
+      }
+    </script>
+  </body>
+</html>

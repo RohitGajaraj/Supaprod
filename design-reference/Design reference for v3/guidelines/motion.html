@@ -1,0 +1,83 @@
+<!-- @dsCard group="Foundations" viewport="700x160" subtitle="One easing, three durations · motion means something is alive" name="Motion" -->
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../styles.css" />
+    <style>
+      body {
+        margin: 0;
+        background: var(--canvas);
+        font-family: var(--font-ui);
+        padding: 20px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      style="
+        display: flex;
+        gap: 26px;
+        flex-wrap: wrap;
+        align-items: center;
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+      "
+    >
+      <span style="display: inline-flex; align-items: center; gap: 7px"
+        ><span
+          style="
+            width: 6px;
+            height: 6px;
+            border-radius: 99px;
+            background: var(--glacier);
+            box-shadow: 0 0 8px 1px rgba(127, 209, 220, 0.6);
+            animation: cadPulse 2s ease-in-out infinite;
+          "
+        ></span
+        ><span style="color: var(--glacier)">LIVE PULSE</span></span
+      >
+      <span style="display: inline-flex; align-items: center; gap: 7px; color: var(--ember)"
+        ><span
+          style="
+            width: 6px;
+            height: 6px;
+            border-radius: 99px;
+            background: var(--ember);
+            box-shadow: 0 0 10px 2px rgba(255, 107, 44, 0.55);
+            animation: cadGlow 1.8s ease-in-out infinite;
+          "
+        ></span
+        >EMBER FLARE</span
+      >
+      <span
+        style="
+          background: var(--shimmer-gradient);
+          background-size: 280% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: cadShimmer 5s linear infinite;
+        "
+        >THE AI SHIMMER · MAX ONE PER SCREEN</span
+      >
+    </div>
+    <div
+      style="
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.12em;
+        color: var(--text-faint);
+        margin-top: 18px;
+      "
+    >
+      CUBIC-BEZIER(0.23, 1, 0.32, 1) · 140MS CONTROLS · 200MS PANELS · 280MS PAGES
+    </div>
+    <div style="font-size: 11.5px; color: var(--text-subtle); margin-top: 8px">
+      Only three things move on their own: the live pulse, step progress, and the arrival of
+      something new.
+    </div>
+  </body>
+</html>

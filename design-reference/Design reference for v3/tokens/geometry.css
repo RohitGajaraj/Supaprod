@@ -1,0 +1,19 @@
+/* Cadence · Obsidian v3 — geometry. 4px grid; rhythm 8/12/16/24/40. */
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-10: 40px;
+
+  /* Radii: 8 controls, 12 cards, 14 panels, 99 pills */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 14px;
+  --radius-pill: 99px;
+
+  /* Aurora score cards get 16px */
+  --radius-aurora: 16px;
+}
