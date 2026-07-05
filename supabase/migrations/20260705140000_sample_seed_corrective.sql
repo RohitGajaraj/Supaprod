@@ -92,9 +92,9 @@ BEGIN
       DELETE FROM public.projects          WHERE user_id = v_user;
       -- drop the old demo/sample workspaces (content gone); keep any 'My workspace'
       DELETE FROM public.workspace_members wm USING public.workspaces w
-        WHERE wm.workspace_id = w.id AND w.owner_id = v_user AND w.name IN ('Demo workspace','Sample workspace');
+        WHERE wm.workspace_id = w.id AND w.owner_id = v_user AND w.name IN ('Demo workspace','Sample workspace','Explore workspace');
       DELETE FROM public.workspaces w
-        WHERE w.owner_id = v_user AND w.name IN ('Demo workspace','Sample workspace');
+        WHERE w.owner_id = v_user AND w.name IN ('Demo workspace','Sample workspace','Explore workspace');
       -- reseed with the full function (Prism + Trellis)
       PERFORM public.seed_sample_workspace(v_user);
       RAISE NOTICE 'reseeded demo2@ with Prism + Trellis';
@@ -102,4 +102,13 @@ BEGIN
       RAISE NOTICE 'demo2@ reseed failed: %', SQLERRM;
     END;
   END IF;
+
+  -- ── Rename the seeded workspace to a clearer, non-'sample' display name ──────────────
+  -- The function still creates 'Sample workspace'; rename it (name + slug) on both demo
+  -- accounts so the user sees "Explore workspace" (a space to explore the product) instead.
+  UPDATE public.workspaces
+     SET name = 'Explore workspace',
+         slug = 'explore-' || substr(owner_id::text, 1, 8)
+   WHERE name = 'Sample workspace'
+     AND owner_id IN (SELECT id FROM auth.users WHERE email IN ('demo@redcadence.app','demo2@redcadence.app'));
 END $$;

@@ -70,7 +70,7 @@ BEGIN
     SELECT 1 FROM agent_memory
      WHERE user_id = _user_id AND metadata->>'seed' = 'sample-workspace-v1'
   ) THEN
-    SELECT id INTO ws_id FROM workspaces WHERE owner_id = _user_id AND name = 'Sample workspace' LIMIT 1;
+    SELECT id INTO ws_id FROM workspaces WHERE owner_id = _user_id AND name = 'Explore workspace' LIMIT 1;
     RETURN ws_id;
   END IF;
 
@@ -80,12 +80,12 @@ BEGIN
     INSERT INTO workspace_members (workspace_id, user_id, role) VALUES (ws_id, _user_id, 'owner');
   END IF;
 
-  -- The Sample workspace (per-owner slug to dodge the global UNIQUE(slug) constraint).
-  v_slug := 'sample-' || substr(_user_id::text, 1, 8);
+  -- The Explore workspace (per-owner slug to dodge the global UNIQUE(slug) constraint).
+  v_slug := 'explore-' || substr(_user_id::text, 1, 8);
   IF EXISTS (SELECT 1 FROM workspaces WHERE slug = v_slug) THEN v_slug := NULL; END IF;
 
   INSERT INTO workspaces (owner_id, name, slug)
-  VALUES (_user_id, 'Sample workspace', v_slug)
+  VALUES (_user_id, 'Explore workspace', v_slug)
   RETURNING id INTO ws_id;
   INSERT INTO workspace_members (workspace_id, user_id, role) VALUES (ws_id, _user_id, 'owner');
 
@@ -916,10 +916,10 @@ BEGIN
      'pending', 'pending', now() + INTERVAL '2 days', ws_id);
 
   -- The set_row_workspace_from_user BEFORE-INSERT trigger fills an omitted workspace_id
-  -- with the owner's DEFAULT workspace (the empty "My workspace"), not this Sample workspace.
+  -- with the owner's DEFAULT workspace (the empty "My workspace"), not this Explore workspace.
   -- agent_memory is inserted without workspace_id above, and meetings/notes gained a
   -- workspace_id in WM-F9; retag all three to THIS workspace so the Brain, Meetings, and
-  -- Notes surfaces render under the Sample workspace. Safe at seed time: the demo wipe clears
+  -- Notes surfaces render under the Explore workspace. Safe at seed time: the demo wipe clears
   -- prior content and a fresh signup has none, and the idempotency guard makes this run once.
   UPDATE agent_memory SET workspace_id = ws_id WHERE user_id = _user_id AND metadata->>'seed' = 'sample-workspace-v1';
   UPDATE meetings     SET workspace_id = ws_id WHERE user_id = _user_id AND workspace_id IS DISTINCT FROM ws_id;
@@ -983,10 +983,10 @@ BEGIN
         USING public.workspaces w
        WHERE wm.workspace_id = w.id
          AND w.owner_id = v_user
-         AND w.name IN ('Demo workspace','Sample workspace');
+         AND w.name IN ('Demo workspace','Sample workspace','Explore workspace');
       DELETE FROM public.workspaces w
        WHERE w.owner_id = v_user
-         AND w.name IN ('Demo workspace','Sample workspace');
+         AND w.name IN ('Demo workspace','Sample workspace','Explore workspace');
 
       -- Reseed the rich sample workspace.
       PERFORM public.seed_sample_workspace(v_user);

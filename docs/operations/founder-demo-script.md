@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-05 · Last updated: 2026-07-05_
 
-> **Purpose:** a tight, spoken founder demo of Cadence in under 3 minutes, driven by the seeded **Prism** (consumer money app) sample workspace. Problem, why you built it, the capabilities, and why it matters. No future-roadmap section (bootstrapped, pre-seed). Log in as `demo@redcadence.app` first; open the **Sample workspace**, **Prism** product. Full seed detail: [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md).
+> **Purpose:** a tight, spoken founder demo of Cadence in under 3 minutes, driven by the seeded **Prism** (consumer money app) sample workspace. Problem, why you built it, the capabilities, and why it matters. No future-roadmap section (bootstrapped, pre-seed). Log in as `demo@redcadence.app` first; open the **Explore workspace**, **Prism** product. Full seed detail: [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md).
 
 **How to use this:** the left column is what you *say* (spoken, plain, no jargon). The right column in brackets is what you *do* on screen. Aim for a calm pace, roughly 150 words a minute. Practice the click path once so the talk track and the screen stay in sync.
 

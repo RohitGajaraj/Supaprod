@@ -57,7 +57,7 @@ export const isDemoSeedEnabled = createServerFn({ method: "GET" }).handler(async
 
 /**
  * Layer A (SAMPLE-SEED): give the authenticated new user their own rich,
- * clearly-labelled "Sample workspace" (the Prism + Trellis showcase) so they
+ * clearly-labelled "Explore workspace" (the Prism + Trellis showcase) so they
  * see the whole product on real data in their first session. userId comes from
  * the verified JWT, never client input. Dormant unless SAMPLE_WORKSPACE_ENABLED=1;
  * the underlying DB function is idempotent and never throws to the caller.

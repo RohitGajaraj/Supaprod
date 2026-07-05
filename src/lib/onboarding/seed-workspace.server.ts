@@ -1,5 +1,5 @@
 /**
- * WM-S1: Sample workspace seeder.
+ * WM-S1: Explore workspace seeder.
  *
  * Seeds a freshly created workspace with lightweight starter content so every
  * new signup lands in a populated space. Gated by ONBOARDING_SEED_ENABLED=1.
@@ -179,7 +179,7 @@ interface RpcClient {
 
 /**
  * Layer A: give a new signup their own clearly-labelled, fully-populated
- * "Sample workspace" (the two-product Prism + Trellis showcase) so they see the
+ * "Explore workspace" (the two-product Prism + Trellis showcase) so they see the
  * whole product on real data in their first session, alongside their own empty
  * workspace. Delegates to the idempotent, SECURITY DEFINER DB function
  * `seed_sample_workspace(_user_id)` (migration 20260705120000).
