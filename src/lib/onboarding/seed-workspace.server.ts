@@ -166,3 +166,40 @@ export async function seedWorkspace(workspaceId: string, userId: string): Promis
     console.error("[WM-S1] seedWorkspace failed:", err);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Layer A (rich sample workspace) · SAMPLE-SEED
+// ---------------------------------------------------------------------------
+
+/** Minimal shape of the admin client's rpc() we call, to avoid depending on
+ *  regenerated DB types for the new function (types are Lovable-managed). */
+interface RpcClient {
+  rpc(fn: string, args: Record<string, unknown>): Promise<{ error: { message: string } | null }>;
+}
+
+/**
+ * Layer A: give a new signup their own clearly-labelled, fully-populated
+ * "Sample workspace" (the two-product Prism + Trellis showcase) so they see the
+ * whole product on real data in their first session, alongside their own empty
+ * workspace. Delegates to the idempotent, SECURITY DEFINER DB function
+ * `seed_sample_workspace(_user_id)` (migration 20260705120000).
+ *
+ * Dormant by design: no-op unless SAMPLE_WORKSPACE_ENABLED=1, so wiring it in
+ * changes nothing until the founder flips the flag in Lovable. The DB function
+ * has its own idempotency guard (the 'sample-workspace-v1' sentinel), so a
+ * double call is safe. Errors are logged and swallowed so a seeding failure
+ * never blocks the signup / first-run path. The sample workspace is not billed
+ * (it is seeded data, not user AI usage).
+ */
+export async function seedSampleWorkspace(userId: string): Promise<void> {
+  if (process.env.SAMPLE_WORKSPACE_ENABLED !== "1") return;
+  try {
+    const { error } = await (supabaseAdmin as unknown as RpcClient).rpc(
+      "seed_sample_workspace",
+      { _user_id: userId },
+    );
+    if (error) throw new Error(error.message);
+  } catch (err) {
+    console.error("[SAMPLE-SEED] seedSampleWorkspace failed:", err);
+  }
+}

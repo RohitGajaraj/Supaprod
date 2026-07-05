@@ -13,7 +13,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { seedWorkspace } from "./seed-workspace.server";
+import { seedWorkspace, seedSampleWorkspace } from "./seed-workspace.server";
 
 export const triggerWorkspaceSeed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -53,4 +53,27 @@ export const triggerWorkspaceSeed = createServerFn({ method: "POST" })
  */
 export const isDemoSeedEnabled = createServerFn({ method: "GET" }).handler(async () => {
   return { enabled: process.env.ONBOARDING_SEED_ENABLED === "1" };
+});
+
+/**
+ * Layer A (SAMPLE-SEED): give the authenticated new user their own rich,
+ * clearly-labelled "Sample workspace" (the Prism + Trellis showcase) so they
+ * see the whole product on real data in their first session. userId comes from
+ * the verified JWT, never client input. Dormant unless SAMPLE_WORKSPACE_ENABLED=1;
+ * the underlying DB function is idempotent and never throws to the caller.
+ */
+export const triggerSampleWorkspace = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await seedSampleWorkspace(context.userId);
+    return { ok: true };
+  });
+
+/**
+ * Whether the rich per-signup sample workspace is live, so the onboarding UI
+ * can decide whether to offer "Explore a sample workspace" without a click
+ * that silently no-ops. Reveals only a boolean; no auth required.
+ */
+export const isSampleWorkspaceEnabled = createServerFn({ method: "GET" }).handler(async () => {
+  return { enabled: process.env.SAMPLE_WORKSPACE_ENABLED === "1" };
 });

@@ -11,6 +11,9 @@ Two pre-provisioned demo accounts ship with the database. Use them for YC / inve
 
 Sign in at [`/login`](https://cadence-flow-beta.lovable.app/login) (or the preview URL).
 
+> [!IMPORTANT]
+> **New comprehensive sample seed (SAMPLE-SEED, authored 2026-07-05).** A richer, two-product showcase seed supersedes the single Lumen narrative below for the demo accounts: **Prism** (a consumer money app, the deep hero) + **Trellis** (a warehouse-native product-analytics platform), covering every surface with rich business/product/stakeholder data, including a live outcome-driven **supersession** on both products (the moat proof). It ships as `supabase/migrations/20260705120000_sample_workspace_seed.sql` and, when applied via Lovable, **wipes the demo accounts' prior content and reseeds** them into a "Sample workspace". Full coverage guide: [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md). A ready-to-read under-3-minute founder demo script driven by this data: [`founder-demo-script.md`](./founder-demo-script.md). The Lumen section below is retained as the prior narrative until that migration is applied.
+
 ## What ships in each account
 
 Each account lands in a fully populated **Demo workspace** seeded with the Lumen narrative (an AI customer-support operator for B2B SaaS):

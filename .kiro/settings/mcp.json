@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lovable": {
+      "url": "https://mcp.lovable.dev",
+      "timeout": 120000
+    }
+  }
+}
