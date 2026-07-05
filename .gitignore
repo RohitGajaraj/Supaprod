@@ -106,3 +106,7 @@ docs/screenshots/
 
 # Claude Code runtime lock (machine-local state, never commit)
 .claude/scheduled_tasks.lock
+
+# Large local-only v3 design reference exports (kept local, per founder 2026-07-05)
+design-reference/Design reference for v3/
+design-reference/Latest Design System - v3 /
