@@ -76,7 +76,7 @@ function TraceChip({ id }: { id: string }) {
         fontFamily: "var(--font-mono)",
         fontSize: "9.5px",
         letterSpacing: "0.06em",
-        color: "var(--text-subtle)",
+        color: "var(--text-faint)",
       }}
     >
       OPP·{traceRef(id)}

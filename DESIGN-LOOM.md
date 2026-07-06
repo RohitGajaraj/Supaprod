@@ -321,6 +321,13 @@ are brought into line as they are touched.
   `SIG·XXXXXX`), shown on the object and copyable as the full id in the detail,
   so anything can be cited, searched, and audited. Use the shared `traceRef()`
   helper, never a bespoke inline formatter.
+- **Visual weight: the id is subtle, the time is present.** The trace ref is
+  rendered deliberately quiet (the faintest text tone, small mono, no heavy
+  chrome or border): it is there for an agent or a curious human to read or
+  copy, never a prominent badge that competes with the content. Timestamps
+  carry a touch more presence than the id (a readable subtle tone), because
+  recency is valuable to both the user and the agent. This weighting is the
+  same on every surface, for every object type.
 - **Timestamps + activity.** Every object and activity shows created and
   last-updated (relative AND absolute), and when it MOVED between stages; the
   detail carries an activity/time section. Time and recency are first-class,

@@ -225,18 +225,17 @@ export function OpportunityDetailSheet({
                 onClick={copyTraceId}
                 aria-label="Copy trace id"
                 title="Copy the full trace id"
-                className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                className="loom-press flex items-center hover:[color:var(--text-subtle)]"
                 style={{
                   marginLeft: "auto",
                   gap: "6px",
                   fontFamily: "var(--font-mono)",
                   fontSize: "10px",
                   letterSpacing: "0.06em",
-                  color: "var(--text-subtle)",
-                  background: "var(--card)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "999px",
-                  padding: "3px 9px",
+                  color: "var(--text-faint)",
+                  background: "transparent",
+                  border: "none",
+                  padding: "3px 2px",
                   cursor: "pointer",
                 }}
               >
