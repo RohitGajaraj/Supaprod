@@ -155,11 +155,10 @@ function BrainTabRow({
                   : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
               }
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                padding: "7px 13px",
+                fontFamily: "var(--font-ui)",
+                fontSize: "12.5px",
+                fontWeight: isActive ? 600 : 500,
+                padding: "8px 14px",
                 borderRadius: "var(--radius-control) var(--radius-control) 0 0",
                 background: isActive ? "var(--raised)" : "transparent",
                 color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
