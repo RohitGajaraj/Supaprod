@@ -175,7 +175,7 @@ function ThemesForming({
               key={t.id}
               themeId={t.id}
               title={t.title}
-              signalCount={members.length}
+              signalCount={t.frequency}
               sourceCount={sourceCount}
               newestCreatedAt={newest}
               actionsPending={busyIds.has(t.id)}
@@ -509,8 +509,10 @@ export function SignalFeed() {
         onOpenChange={(next) => {
           if (!next) setOpenThemeId(null);
         }}
+        themeId={openThemeId}
         title={openThemeId ? (themeById.get(openThemeId)?.title ?? null) : null}
         summary={openThemeId ? (themeById.get(openThemeId)?.summary ?? null) : null}
+        frequency={openThemeId ? (themeById.get(openThemeId)?.frequency ?? 0) : 0}
         members={openThemeId ? (signalsByTheme.get(openThemeId) ?? []) : []}
         busy={openThemeId ? busyIds.has(openThemeId) : false}
         onPromote={() => {
