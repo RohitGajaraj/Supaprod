@@ -78,7 +78,7 @@ const STATIONS = [
   {
     id: "sense",
     num: "01",
-    label: "Sense",
+    label: "Discover",
     icon: "◎",
     kicker: "The signal arrives",
     orbitKicker: "any source, live",
@@ -300,7 +300,7 @@ const STATS = [
 const MACHINE_CONTENT = `## Cadence - The product OS for the full product lifecycle
 
 Cadence is the product operating system that owns your entire product lifecycle end to end.
-Six stations: Sense, Decide, Define, Build, Ship, Learn.
+Six stations: Discover, Decide, Define, Build, Ship, Learn.
 One governed engine. Zero manual handoffs.
 
 When something breaks, Cadence diagnoses, revises the spec, and recovers autonomously.
