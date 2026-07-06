@@ -20,17 +20,24 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
   ice_score: number | null;
   confidence: number;
   impact: number;
+  ease: number;
   created_at: string;
   theme_id?: string | null;
 }
 
+/** A system-derived bet designation drawn from the PM pencil-ink vocabulary,
+ * so a user or an agent reads what each bet IS at a glance and which to pick.
+ * `null` means the bet earns no designation (a plain ranked bet). */
+export type Designation = "best bet" | "pet feature?" | "scope creep" | "watch this week" | null;
+
 /** One ranked bet: the source opportunity, its 1-based position, the single
- * best-bet flag, and the human-and-agent readable rationale plus the
- * recommended next action. */
+ * best-bet flag, its system-derived designation, and the human-and-agent
+ * readable rationale plus the recommended next action. */
 export interface RankedOpportunity<T> {
   opp: T;
   rank: number;
   isBestBet: boolean;
+  designation: Designation;
   rationale: string;
   nextAction: string;
 }
@@ -148,6 +155,37 @@ function nextActionFor(opp: RankableOpportunity): string {
 }
 
 /**
+ * The pure, deterministic bet designation. Names each ranked bet in the PM's
+ * pencil-ink vocabulary so a human or an agent knows what the bet IS and which
+ * to pick, without a model call. Evaluated in strict order (the first match
+ * wins), so rank 1 is always the single best bet even if a lower rule would
+ * also match it:
+ *   1. rank === 1                                      -> "best bet"
+ *   2. NOT endorsed (verdict rank below the endorsed
+ *      top, SHIP) AND impact >= 6                      -> "pet feature?"
+ *   3. ease <= 3                                       -> "scope creep"
+ *   4. corroboration >= 3                              -> "watch this week"
+ *   5. otherwise                                       -> null (a plain bet)
+ * "Not endorsed" is the Critic having not endorsed the bet (pending, watch,
+ * revise, or kill, i.e. a verdict rank below SHIP's).
+ */
+export function deriveDesignation(input: {
+  rank: number;
+  verdict: VerdictWord;
+  impact: number;
+  ease: number;
+  corroboration: number;
+}): Designation {
+  const { rank, verdict, impact, ease, corroboration } = input;
+  if (rank === 1) return "best bet";
+  const endorsed = verdictRankOf(verdict) >= verdictRankOf("SHIP");
+  if (!endorsed && impact >= 6) return "pet feature?";
+  if (ease <= 3) return "scope creep";
+  if (corroboration >= 3) return "watch this week";
+  return null;
+}
+
+/**
  * Rank a list of opportunities into a deterministic total order. Returns a new
  * array (does not mutate the input) of ranked entries, 1-based and contiguous,
  * with exactly one `isBestBet` (rank 1) whenever the list is non-empty.
@@ -159,11 +197,19 @@ export function rankOpportunities<T extends RankableOpportunity>(
   const sorted = [...opps].sort((a, b) => compareOpportunities(a, b, corroborationOf));
   return sorted.map((opp, index) => {
     const rank = index + 1;
+    const corroboration = corroborationOf(opp);
     return {
       opp,
       rank,
       isBestBet: rank === 1,
-      rationale: rationaleFor(opp, rank, corroborationOf(opp)),
+      designation: deriveDesignation({
+        rank,
+        verdict: verdictFor(opp),
+        impact: opp.impact,
+        ease: opp.ease,
+        corroboration,
+      }),
+      rationale: rationaleFor(opp, rank, corroboration),
       nextAction: nextActionFor(opp),
     };
   });

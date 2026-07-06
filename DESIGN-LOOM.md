@@ -359,7 +359,13 @@ are brought into line as they are touched.
   action, with secondary actions kept in the ⋯ menu. The color is meaningful
   and semantic (score tier, status, verdict), never black-and-white monochrome;
   ember stays scarce, reserved for the single Capture CTA, so it is never a
-  card accent. The Decide opportunity card is the built exemplar.
+  card accent. The Decide opportunity card is the built exemplar. On the Decide
+  queue, the single best bet carries one system-driven lime pencil wink (the
+  only pencil on the screen, per the one-wink law); the other ranks carry quiet
+  system designations from the PM pencil vocabulary ("pet feature?", "scope
+  creep", "watch this week") as small tags in their own ink, so a user or an
+  agent reads what each bet IS and which to pick, and the card never shows two
+  best-bet markers.
 - **Detail-view anatomy (the standard for every object detail / side-panel,
   founder ruling 2026-07-07).** Every object detail view (the panel that opens
   on click) shares one premium skeleton, built from the shared DetailKit

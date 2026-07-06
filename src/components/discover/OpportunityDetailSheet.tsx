@@ -23,7 +23,10 @@ import {
   toneForScore,
 } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
+import type { Designation } from "./ranking";
 import {
+  DESIGNATION_MEANING,
+  DesignationTag,
   OPPORTUNITY_STATUSES,
   STATUS_META,
   StatusPill,
@@ -110,6 +113,10 @@ export interface OpportunityDetailSheetProps {
   rank?: number;
   rationale?: string;
   nextAction?: string;
+  /** The system-derived bet designation (from ranking.ts), shown in the
+   * priority band with its one-line meaning so a human or an agent reads what
+   * the bet is and what to do. Absent renders nothing. */
+  designation?: Designation;
 }
 
 /**
@@ -135,6 +142,7 @@ export function OpportunityDetailSheet({
   rank,
   rationale,
   nextAction,
+  designation,
 }: OpportunityDetailSheetProps) {
   const copyTraceId = () => {
     if (!opportunity) return;
@@ -143,6 +151,11 @@ export function OpportunityDetailSheet({
   };
 
   const isBestBet = rank === 1;
+  // The one-line meaning shown in the band for a non-best designation, so the
+  // reader knows what the bet is and what to do about it. Best bet is already
+  // communicated by the band's tint + rank + rationale, so it carries none.
+  const designationMeaning =
+    designation && designation !== "best bet" ? DESIGNATION_MEANING[designation] : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -236,7 +249,7 @@ export function OpportunityDetailSheet({
                 next action, and the rationale. A tasteful amber tint marks the
                 best bet; everything else is calm. Rendered only when threaded
                 in; absent members render nothing. */}
-            {rank != null || rationale || nextAction ? (
+            {rank != null || rationale || nextAction || designation ? (
               <div
                 style={{
                   display: "grid",
@@ -251,19 +264,21 @@ export function OpportunityDetailSheet({
                   padding: "13px 15px",
                 }}
               >
-                {rank != null ? (
+                {rank != null || designation ? (
                   <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "11px",
-                        letterSpacing: "0.04em",
-                        color: "var(--text-muted)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      Priority #{rank}
-                    </span>
+                    {rank != null ? (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "11px",
+                          letterSpacing: "0.04em",
+                          color: "var(--text-muted)",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        Priority #{rank}
+                      </span>
+                    ) : null}
                     {isBestBet ? (
                       <span
                         title="The single top-ranked bet in the queue"
@@ -280,8 +295,22 @@ export function OpportunityDetailSheet({
                       >
                         Best bet
                       </span>
-                    ) : null}
+                    ) : (
+                      <DesignationTag designation={designation} />
+                    )}
                   </div>
+                ) : null}
+                {designationMeaning ? (
+                  <p
+                    style={{
+                      fontSize: "12.5px",
+                      lineHeight: 1.6,
+                      color: "var(--text-body)",
+                      margin: 0,
+                    }}
+                  >
+                    {designationMeaning}
+                  </p>
                 ) : null}
                 {nextAction ? (
                   <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>

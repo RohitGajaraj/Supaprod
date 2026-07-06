@@ -233,7 +233,7 @@ export function OpportunityQueue() {
           Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
         </p>
       ) : (
-        (showAll ? ranked : ranked.slice(0, VISIBLE_OPPS)).map((r, i) => {
+        (showAll ? ranked : ranked.slice(0, VISIBLE_OPPS)).map((r) => {
           const o = r.opp;
           const learning = latestLearningByOpp.get(o.id);
           // rescoreNoteOf quote-guards the learning's free-text summary so an
@@ -257,11 +257,10 @@ export function OpportunityQueue() {
               key={o.id}
               ice={o.ice_score ?? 0}
               rank={r.rank}
-              isBestBet={r.isBestBet}
+              designation={r.designation}
               title={o.title}
               sub={sub}
               verdict={verdict}
-              hasPencil={i === 0}
               onOpen={() => setOpenId(o.id)}
               status={o.status}
               id={o.id}
@@ -321,6 +320,7 @@ export function OpportunityQueue() {
         opportunity={activeOpp}
         verdict={activeOpp ? verdictFor(activeOpp) : "PENDING"}
         rank={activeRanked?.rank}
+        designation={activeRanked?.designation}
         rationale={activeRanked?.rationale}
         nextAction={activeRanked?.nextAction}
         onChallenge={() => activeOpp && challenge.mutate(activeOpp.id)}

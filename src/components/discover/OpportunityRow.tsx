@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
+import type { Designation } from "./ranking";
 
 export const OPPORTUNITY_STATUSES = [
   "backlog",
@@ -67,6 +68,61 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
+/** The pencil-ink color for each non-best designation. The best bet is the one
+ * lime pencil wink (rendered as a PencilNote, not a tag), so it is not here;
+ * the others read as quiet tags in their own ink: pet feature? in blossom,
+ * scope creep in apricot, watch this week in a quiet muted tone. Semantic
+ * tokens only; ember stays reserved for the single Capture CTA. */
+export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
+  "pet feature?": "var(--pencil-blossom)",
+  "scope creep": "var(--pencil-apricot)",
+  "watch this week": "var(--text-muted)",
+};
+
+/** The one-line meaning behind each non-best designation, so hovering the tag
+ * (and the detail sheet) tells a human or an agent what to do about the bet. */
+export const DESIGNATION_MEANING: Record<
+  Exclude<NonNullable<Designation>, "best bet">,
+  string
+> = {
+  "pet feature?": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
+  "scope creep": "Large effort for the expected return. Consider slicing it smaller.",
+  "watch this week": "Gaining signals, not yet the top bet. Keep it in view.",
+};
+
+/** A quiet system designation tag for a non-best bet: small mono text on a
+ * rounded hairline chip, colored by its pencil ink, low emphasis so it informs
+ * without shouting. The best bet is the single loud pencil wink (a PencilNote),
+ * never a tag; and `null` / "best bet" render nothing here. */
+export function DesignationTag({
+  designation,
+  className,
+}: {
+  designation?: Designation;
+  className?: string;
+}) {
+  if (!designation || designation === "best bet") return null;
+  return (
+    <span
+      className={className}
+      title={DESIGNATION_MEANING[designation]}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "10px",
+        letterSpacing: "0.02em",
+        color: DESIGNATION_INK[designation],
+        border: "1px solid var(--hairline)",
+        borderRadius: "999px",
+        padding: "2px 8px",
+        lineHeight: 1.4,
+        flexShrink: 0,
+      }}
+    >
+      {designation}
+    </span>
+  );
+}
+
 /** A quiet mono trace chip, `OPP·XXXXXX`, so every bet carries a stable,
  * human-quotable reference. Display-only on the card (the sheet adds copy). */
 function TraceChip({ id }: { id: string }) {
@@ -89,7 +145,10 @@ export interface OpportunityRowProps {
   title: string;
   sub: string;
   verdict: VerdictWord;
-  hasPencil: boolean;
+  /** The system-derived bet designation (from ranking.ts). Drives the single
+   * marker on the card: "best bet" renders the one lime pencil wink; the other
+   * designations render a quiet tag; null renders nothing. */
+  designation?: Designation;
   onChallenge: () => void;
   challengePending: boolean;
   /** OBS-10: write actions ported from the retired /product Opportunities
@@ -113,8 +172,6 @@ export interface OpportunityRowProps {
    * quiet mono ordering index next to the ICE anchor, distinct from the
    * colored ICE numeral. */
   rank?: number;
-  /** True only for the single #1 bet: renders one refined "Best bet" tag. */
-  isBestBet?: boolean;
 }
 
 /**
@@ -136,7 +193,7 @@ export function OpportunityRow({
   title,
   sub,
   verdict,
-  hasPencil,
+  designation,
   onChallenge,
   challengePending,
   onDraftSpec,
@@ -149,7 +206,6 @@ export function OpportunityRow({
   id,
   updatedAt,
   rank,
-  isBestBet = false,
 }: OpportunityRowProps) {
   const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
   const clickable = Boolean(onOpen);
@@ -193,7 +249,7 @@ export function OpportunityRow({
           : undefined
       }
     >
-      {hasPencil ? (
+      {designation === "best bet" ? (
         <PencilNote
           ink="best-bet"
           style={{ position: "absolute", top: "-11px", right: "14px", fontSize: "17px" }}
@@ -315,23 +371,8 @@ export function OpportunityRow({
 
       <div className="flex flex-none flex-col items-end" style={{ gap: "8px" }}>
         <div className="flex items-center" style={{ gap: "6px" }}>
-          {isBestBet ? (
-            <span
-              title="The single top-ranked bet in the queue"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                letterSpacing: "0.02em",
-                color: "var(--amber)",
-                border: "1px solid var(--hairline-strong)",
-                borderRadius: "999px",
-                padding: "2px 8px",
-                lineHeight: 1.4,
-                flexShrink: 0,
-              }}
-            >
-              Best bet
-            </span>
+          {designation && designation !== "best bet" ? (
+            <DesignationTag designation={designation} />
           ) : null}
           {status ? <StatusPill status={status} /> : null}
           <VerdictChip tone={verdict} />

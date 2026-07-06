@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { CriticReview } from "@/lib/discovery.functions";
 import {
   compareOpportunities,
+  deriveDesignation,
   rankOpportunities,
   verdictRankOf,
   type RankableOpportunity,
@@ -29,6 +30,7 @@ function mk(over: Partial<RankableOpportunity> & { id: string }): RankableOpport
     ice_score: 5,
     confidence: 5,
     impact: 5,
+    ease: 5,
     created_at: "2026-01-01T00:00:00Z",
     status: "backlog",
     critic_review: null,
@@ -176,5 +178,87 @@ describe("rankOpportunities", () => {
   test("next action: shipped bets are told to review the outcome", () => {
     const opps = [mk({ id: "s", status: "shipped", critic_review: critic("ship") })];
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Review the outcome");
+  });
+});
+
+describe("deriveDesignation", () => {
+  test("rank 1 is always 'best bet', even when a lower rule would also match", () => {
+    // A rank-1 bet that is also a pet feature (not endorsed, high impact) and a
+    // scope creep (low ease) and well corroborated still reads 'best bet': the
+    // rank-1 rule is evaluated first and wins.
+    expect(
+      deriveDesignation({ rank: 1, verdict: "PENDING", impact: 9, ease: 2, corroboration: 8 }),
+    ).toBe("best bet");
+  });
+
+  test("a high-impact, not-endorsed, non-#1 bet is 'pet feature?'", () => {
+    expect(
+      deriveDesignation({ rank: 2, verdict: "PENDING", impact: 7, ease: 5, corroboration: 0 }),
+    ).toBe("pet feature?");
+  });
+
+  test("an endorsed bet is never a 'pet feature?' (endorsed skips rule 2)", () => {
+    // SHIP is the endorsed top, so even a high-impact SHIP bet with low ease
+    // falls through rule 2 to 'scope creep'.
+    expect(
+      deriveDesignation({ rank: 3, verdict: "SHIP", impact: 9, ease: 2, corroboration: 0 }),
+    ).toBe("scope creep");
+  });
+
+  test("'pet feature?' outranks 'scope creep' when a bet matches both", () => {
+    // Not endorsed + high impact AND low ease: rule 2 (pet feature?) is
+    // evaluated before rule 3 (scope creep), so pet feature? wins.
+    expect(
+      deriveDesignation({ rank: 2, verdict: "PENDING", impact: 8, ease: 2, corroboration: 0 }),
+    ).toBe("pet feature?");
+  });
+
+  test("a low-ease, endorsed, non-#1 bet is 'scope creep'", () => {
+    expect(
+      deriveDesignation({ rank: 3, verdict: "SHIP", impact: 4, ease: 3, corroboration: 0 }),
+    ).toBe("scope creep");
+  });
+
+  test("a well-corroborated otherwise-plain bet is 'watch this week'", () => {
+    // Endorsed (skips pet feature?), ample ease (skips scope creep), 3+ backing
+    // signals -> watch this week.
+    expect(
+      deriveDesignation({ rank: 4, verdict: "SHIP", impact: 5, ease: 8, corroboration: 3 }),
+    ).toBe("watch this week");
+  });
+
+  test("a plain bet earns no designation (null)", () => {
+    expect(
+      deriveDesignation({ rank: 5, verdict: "SHIP", impact: 5, ease: 8, corroboration: 2 }),
+    ).toBe(null);
+  });
+});
+
+describe("rankOpportunities designation", () => {
+  test("populates a designation on every ranked entry and best bet on #1", () => {
+    const opps = [
+      // #1 by ICE: the best bet.
+      mk({ id: "top", ice_score: 9, critic_review: critic("ship") }),
+      // Not endorsed + high impact: a pet feature.
+      mk({ id: "pet", ice_score: 6, critic_review: null, impact: 8, ease: 6 }),
+      // Endorsed + low ease: scope creep.
+      mk({ id: "big", ice_score: 5, critic_review: critic("ship"), impact: 4, ease: 2 }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    const byId = new Map(ranked.map((r) => [r.opp.id, r]));
+    expect(byId.get("top")!.designation).toBe("best bet");
+    expect(byId.get("pet")!.designation).toBe("pet feature?");
+    expect(byId.get("big")!.designation).toBe("scope creep");
+  });
+
+  test("uses corroboration for 'watch this week' via corroborationOf", () => {
+    const opps = [
+      mk({ id: "top", ice_score: 9, critic_review: critic("ship") }),
+      // Endorsed, ample ease, plain on its own but well corroborated.
+      mk({ id: "watch", ice_score: 5, critic_review: critic("ship"), impact: 5, ease: 8 }),
+    ];
+    const corr = (o: RankableOpportunity) => (o.id === "watch" ? 5 : 0);
+    const ranked = rankOpportunities(opps, corr);
+    expect(ranked.find((r) => r.opp.id === "watch")!.designation).toBe("watch this week");
   });
 });
