@@ -274,7 +274,17 @@ export function SignalFeed() {
     for (const s of signals.data?.signals ?? []) {
       if (!s.theme_id) continue;
       const arr = map.get(s.theme_id) ?? [];
-      arr.push({ id: s.id, content: s.content, source: s.source, created_at: s.created_at });
+      arr.push({
+        id: s.id,
+        content: s.content,
+        source: s.source,
+        created_at: s.created_at,
+        title: s.title ?? null,
+        url: s.url ?? null,
+        sentiment: s.sentiment ?? null,
+        sourceKind: s.source_kind ?? null,
+        tags: s.tags ?? [],
+      });
       map.set(s.theme_id, arr);
     }
     return map;

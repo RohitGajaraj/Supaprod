@@ -17,6 +17,12 @@ export interface ThemeMember {
   content: string;
   source: string;
   created_at: string;
+  /** Real signal columns surfaced in the drill-in (never fabricated). */
+  title?: string | null;
+  url?: string | null;
+  sentiment?: string | null;
+  sourceKind?: string | null;
+  tags?: string[];
 }
 
 export interface ThemeDetailProps {
@@ -46,6 +52,18 @@ function kindLabel(kind: string): string {
   return kind.charAt(0).toUpperCase() + kind.slice(1);
 }
 
+/** A labelled fact in the signal record (mono label over its value). */
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: "grid", gap: "3px" }}>
+      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+        {label}
+      </MonoLabel>
+      <div style={{ fontSize: "12.5px", color: "var(--text-body)", lineHeight: 1.5 }}>{value}</div>
+    </div>
+  );
+}
+
 /** Second level of the theme pane: one member signal in full, plus how it
  * connects across the lifecycle (getLineage, the same source the lineage
  * drawer reads). Peers are shown as quiet tags, not links, so the user stays
@@ -58,6 +76,7 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
   });
   const ancestors = q.data?.ancestors ?? [];
   const descendants = q.data?.descendants ?? [];
+  const tags = member.tags ?? [];
 
   const peerRow = (tag: string, label: string, key: string) => (
     <li key={key} className="flex items-start" style={{ gap: 8, fontSize: "12.5px" }}>
@@ -104,9 +123,20 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
       </button>
 
       <div style={{ display: "grid", gap: "7px" }}>
-        <MonoLabel tone="blossom" style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
-          {sourceCaps(member.source)} · {relTimeCaps(member.created_at)}
-        </MonoLabel>
+        {member.title ? (
+          <h3
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-ui)",
+              fontSize: "14.5px",
+              fontWeight: 600,
+              color: "var(--text-primary)",
+              lineHeight: 1.35,
+            }}
+          >
+            {member.title}
+          </h3>
+        ) : null}
         <p
           style={{
             fontSize: "var(--text-base)",
@@ -118,6 +148,68 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
           {member.content}
         </p>
       </div>
+
+      <section style={{ display: "grid", gap: "12px" }}>
+        <Field
+          label="Source"
+          value={`${sourceCaps(member.source)}${member.sourceKind ? ` · ${member.sourceKind}` : ""}`}
+        />
+        <div style={{ display: "grid", gap: "3px" }}>
+          <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+            Reference
+          </MonoLabel>
+          {member.url ? (
+            <a
+              href={member.url}
+              target="_blank"
+              rel="noreferrer"
+              className="loom-press hover:underline"
+              style={{
+                fontSize: "12.5px",
+                color: "var(--glacier)",
+                wordBreak: "break-all",
+                lineHeight: 1.5,
+              }}
+            >
+              {member.url}
+            </a>
+          ) : (
+            <span style={{ fontSize: "12.5px", color: "var(--text-subtle)", fontStyle: "italic" }}>
+              Captured directly, no external link.
+            </span>
+          )}
+        </div>
+        {member.sentiment ? <Field label="Sentiment" value={member.sentiment} /> : null}
+        {tags.length > 0 ? (
+          <div style={{ display: "grid", gap: "5px" }}>
+            <MonoLabel
+              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+            >
+              Tags
+            </MonoLabel>
+            <div className="flex flex-wrap" style={{ gap: 6 }}>
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.04em",
+                    color: "var(--text-body)",
+                    background: "var(--surface-raised)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: "999px",
+                    padding: "2px 8px",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <Field label="Landed" value={relTimeCaps(member.created_at)} />
+      </section>
 
       <section style={{ display: "grid", gap: "8px" }}>
         <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
