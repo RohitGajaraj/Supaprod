@@ -186,13 +186,25 @@ export function ImpactLedgerPanel() {
             color: "var(--text-primary)",
           }}
         />
-        <Button variant="secondary" onClick={() => copyMarkdown(markdown)}>
+        <Button
+          variant="tertiary"
+          size="sm"
+          onClick={() => copyMarkdown(markdown)}
+          aria-label={copied ? "Copied" : "Copy to clipboard"}
+          title={copied ? "Copied" : "Copy to clipboard"}
+          style={{ padding: "6px 9px" }}
+        >
           {copied ? <Check size={14} /> : <Copy size={14} />}
-          {copied ? "Copied" : "Copy"}
         </Button>
-        <Button variant="secondary" onClick={() => downloadMarkdown(markdown)}>
+        <Button
+          variant="tertiary"
+          size="sm"
+          onClick={() => downloadMarkdown(markdown)}
+          aria-label="Download as Markdown"
+          title="Download as Markdown"
+          style={{ padding: "6px 9px" }}
+        >
           <Download size={14} />
-          Download .md
         </Button>
       </div>
 

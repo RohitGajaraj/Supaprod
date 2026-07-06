@@ -3,6 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, Check, Download } from "lucide-react";
 import { Button } from "@/components/obsidian";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getStakeholderPack } from "@/lib/stakeholder-pack.functions";
 import type { PackAudience } from "@/lib/stakeholder-pack";
 import { decisionOptionLabel } from "./format";
@@ -144,31 +151,22 @@ export function StakeholderPackPanel() {
       >
         Decision
       </label>
-      <select
-        id="stakeholder-decision"
-        value={selected.decisionId}
-        onChange={(e) => setDecisionId(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "9px 12px",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-control)",
-          fontSize: 13,
-          fontFamily: "var(--font-ui)",
-          color: "var(--text-primary)",
-          background: "var(--surface-hover)",
-          marginBottom: 20,
-        }}
-      >
-        {decisions.map((d) => (
-          // LOOM QA R2: the machine "[auto]" prefix never reaches the picker,
-          // and long titles trim on a word boundary; the full title stays on
-          // the tooltip.
-          <option key={d.id} value={d.id} title={d.title}>
-            {decisionOptionLabel(d.title)}
-          </option>
-        ))}
-      </select>
+      <Select value={selected.decisionId} onValueChange={(v) => setDecisionId(v)}>
+        <SelectTrigger
+          id="stakeholder-decision"
+          aria-label="Decision"
+          style={{ marginBottom: 20, height: 40 }}
+        >
+          <SelectValue placeholder="Pick a decision" />
+        </SelectTrigger>
+        <SelectContent>
+          {decisions.map((d) => (
+            <SelectItem key={d.id} value={d.id} title={d.title}>
+              {decisionOptionLabel(d.title)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <div
         className="flex items-center justify-between"
@@ -203,18 +201,26 @@ export function StakeholderPackPanel() {
             );
           })}
         </div>
-        <div className="flex items-center" style={{ gap: 8, paddingBottom: 8 }}>
-          <Button variant="secondary" onClick={copy} style={{ fontSize: 12, padding: "6px 12px" }}>
-            {copied ? <Check size={13} /> : <Copy size={13} />}
-            {copied ? "Copied" : "Copy"}
+        <div className="flex items-center" style={{ gap: 6, paddingBottom: 8 }}>
+          <Button
+            variant="tertiary"
+            size="sm"
+            onClick={copy}
+            aria-label={copied ? "Copied" : "Copy to clipboard"}
+            title={copied ? "Copied" : "Copy to clipboard"}
+            style={{ padding: "6px 9px" }}
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
           </Button>
           <Button
-            variant="secondary"
+            variant="tertiary"
+            size="sm"
             onClick={download}
-            style={{ fontSize: 12, padding: "6px 12px" }}
+            aria-label="Download as Markdown"
+            title="Download as Markdown"
+            style={{ padding: "6px 9px" }}
           >
-            <Download size={13} />
-            Download .md
+            <Download size={14} />
           </Button>
         </div>
       </div>

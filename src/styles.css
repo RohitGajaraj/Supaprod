@@ -2191,3 +2191,19 @@ html[data-motion="off"] .agent-live {
 [data-obsidian] .loom-details[open] > summary .loom-details-chevron {
   transform: rotate(90deg);
 }
+
+/* Native <select> theming (founder ruling 2026-07-06: dropdowns must not
+ * render white). The control itself + its option list inherit the dark
+ * surface where the browser allows it (Chrome/Firefox/Edge honor option
+ * bg/color; macOS Safari renders its own popup, unavoidable natively). Any
+ * NEW picker should prefer the themed Radix <Select> (src/components/ui/
+ * select.tsx), whose portal popup is fully themed. */
+[data-obsidian] select {
+  color-scheme: dark;
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+}
+[data-obsidian] select option {
+  background-color: var(--card);
+  color: var(--text-primary);
+}
