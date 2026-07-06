@@ -8,6 +8,7 @@ import { listSignals } from "@/lib/discovery.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
+import { StrategySection } from "./StrategySection";
 
 /** Loom v4 §9: every empty state whispers the moat — a faint, static
  * constellation of nodes and threads. Decorative only, so it is hidden from
@@ -105,7 +106,7 @@ export function DiscoverSurface() {
         The evidence desk. Raw <em style={{ color: "var(--ember-text)" }}>signal</em> on the left,
         the ranked themes it clusters into on the right.
       </h1>
-      {/* Loom v4 §6: the hero underline — the maker's mark, static, 24px. */}
+      {/* Loom v4 §6: the hero underline, the maker's mark, static, 24px wide. */}
       <div
         aria-hidden="true"
         style={{
@@ -113,9 +114,23 @@ export function DiscoverSurface() {
           height: "1px",
           background: "var(--thread-gradient)",
           opacity: 0.4,
-          margin: "10px 0 24px",
+          margin: "10px 0 14px",
         }}
       />
+      {/* The sensing framing lives inside Discover: this is where continuous
+          capture becomes ranked themes. */}
+      <p
+        style={{
+          fontSize: "13px",
+          lineHeight: 1.6,
+          color: "var(--text-muted)",
+          maxWidth: "640px",
+          margin: "0 0 24px",
+        }}
+      >
+        Cadence senses continuously. Every signal you or your tools capture flows in, gets clustered
+        automatically, and rises as a ranked theme.
+      </p>
 
       {signalsEmpty ? (
         <div
@@ -243,6 +258,30 @@ export function DiscoverSurface() {
             <div style={{ outline: "none" }}>
               <AutoClustered />
             </div>
+          </div>
+
+          {/* Market watch: the tracked competitors + platforms and the weekly
+              briefs Cadence writes when one of them moves. Lives below the
+              signal pipeline as its own labelled section so its purpose reads
+              plainly. */}
+          <div style={{ marginTop: 44 }}>
+            <h2
+              style={{
+                margin: 0,
+                fontFamily: "var(--font-ui)",
+                fontSize: 16,
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                lineHeight: 1.3,
+              }}
+            >
+              Market watch
+            </h2>
+            <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+              Competitors and platforms you track. Cadence writes you a brief the first Monday after
+              one of them actually moves.
+            </p>
+            <StrategySection />
           </div>
         </>
       )}

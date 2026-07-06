@@ -1,5 +1,4 @@
 import { OpportunityQueue } from "./OpportunityQueue";
-import { StrategySection } from "./StrategySection";
 
 /**
  * The decide stage of the loop (2026-07-07). The ranked opportunity queue used
@@ -60,29 +59,65 @@ export function DecideSurface() {
       </p>
 
       <div
-        className="grid grid-cols-1 items-start lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
+        className="grid grid-cols-1 items-start lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
         style={{ gap: "28px" }}
       >
         <div>
           <OpportunityQueue />
         </div>
-        <div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            boxShadow: "var(--top-light), var(--shadow-ambient)",
+            padding: "18px 20px",
+          }}
+        >
           <h2
             style={{
               margin: 0,
               fontFamily: "var(--font-ui)",
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: 600,
               color: "var(--text-primary)",
               lineHeight: 1.3,
             }}
           >
-            The strategy these bets serve
+            How deciding works
           </h2>
-          <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
-            Vision, ICP, the bets you are making, and the entities you track
-          </p>
-          <StrategySection />
+          <ol
+            style={{
+              listStyle: "none",
+              margin: "14px 0 0",
+              padding: 0,
+              display: "grid",
+              gap: "12px",
+            }}
+          >
+            {[
+              "Every promoted theme lands here as a ranked bet.",
+              "Challenge any bet and the Critic red-teams it with receipts, never vibes.",
+              "Promote what is worth building and it moves to Define.",
+            ].map((line, i) => (
+              <li key={i} style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "12px",
+                    fontVariantNumeric: "tabular-nums",
+                    color: "var(--glacier)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {i + 1}.
+                </span>
+                <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+                  {line}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </div>

@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Button, MonoLabel } from "@/components/obsidian";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
 import {
   createSignal,
   bulkImportSignals,
   clusterSignals,
-  getWorkspaceClusterSettings,
-  toggleAutoCluster,
 } from "@/lib/discovery.functions";
 
 const rowStyle = { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" } as const;
@@ -27,8 +24,6 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
   const fCreate = useServerFn(createSignal);
   const fBulk = useServerFn(bulkImportSignals);
   const fCluster = useServerFn(clusterSignals);
-  const fSettings = useServerFn(getWorkspaceClusterSettings);
-  const fToggleAuto = useServerFn(toggleAutoCluster);
 
   const [mode, setMode] = useState<"none" | "capture" | "bulk">("none");
   const [content, setContent] = useState("");
@@ -72,16 +67,6 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const settings = useQuery({ queryKey: ["cluster-settings"], queryFn: () => fSettings() });
-  const toggleAuto = useMutation({
-    mutationFn: (enabled: boolean) => fToggleAuto({ data: { enabled } }),
-    onSuccess: () => {
-      toast.success("Auto-cluster updated");
-      qc.invalidateQueries({ queryKey: ["cluster-settings"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   // Loom v4 §3 ember discipline: the surface's ONE solid-fill CTA is Capture
   // (the PM's own write action). While the capture form is open the solid
   // fill moves to its submit button, so exactly one ember fill is ever
@@ -120,21 +105,6 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
         >
           {unclusteredCount > 0 ? `Cluster ${unclusteredCount}` : "Clustered"}
         </Button>
-        {settings.data?.is_owner ? (
-          <span className="ml-auto flex items-center gap-2">
-            <MonoLabel style={{ fontSize: "10.5px" }} title="Cluster new signals automatically">
-              Auto-cluster
-            </MonoLabel>
-            {/* Glacier when on: autonomous machine behavior is the machine's
-             * voice, and ember stays reserved for the one Capture CTA (v4 §3). */}
-            <Switch
-              checked={settings.data.enabled}
-              disabled={toggleAuto.isPending}
-              onCheckedChange={(v) => toggleAuto.mutate(v)}
-              className="data-[state=checked]:bg-[var(--glacier)]"
-            />
-          </span>
-        ) : null}
       </div>
 
       {mode === "capture" ? (

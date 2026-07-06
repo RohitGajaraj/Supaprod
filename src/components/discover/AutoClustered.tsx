@@ -38,8 +38,8 @@ function HeaderRow({ count }: { count: number }) {
           Auto-clustered
         </h2>
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
-          The themes Cadence grouped from those signals, ranked by corroboration. Act on one and it
-          moves to the opportunity queue.
+          Cadence continuously reads your captured signals and clusters them into themes
+          automatically, ranked by corroboration. Promote one and it moves to Decide.
         </p>
       </div>
       <MonoLabel
