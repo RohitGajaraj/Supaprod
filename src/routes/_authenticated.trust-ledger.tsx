@@ -498,7 +498,8 @@ function TrustLedgerPage() {
               display: "inline-flex",
               gap: 2,
               padding: 2,
-              background: "var(--soft-stone)",
+              background: "var(--surface-raised)",
+              border: "1px solid var(--hairline)",
               borderRadius: 8,
             }}
           >
@@ -508,16 +509,18 @@ function TrustLedgerPage() {
                 type="button"
                 onClick={() => setOutcome(o)}
                 aria-pressed={outcome === o}
-                className="tabular-nums"
+                className="tabular-nums loom-press"
                 style={{
                   fontSize: 11.5,
                   padding: "4px 11px",
                   borderRadius: 6,
                   textTransform: "capitalize",
-                  color: outcome === o ? "var(--ink)" : "var(--ink-subtle)",
-                  background: outcome === o ? "var(--surface, #fff)" : "transparent",
-                  fontWeight: outcome === o ? 500 : 400,
-                  boxShadow: outcome === o ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                  color: outcome === o ? "var(--text-primary)" : "var(--text-subtle)",
+                  background: outcome === o ? "var(--card)" : "transparent",
+                  fontWeight: outcome === o ? 600 : 400,
+                  boxShadow: outcome === o ? "var(--top-light)" : "none",
+                  border: "none",
+                  cursor: "pointer",
                 }}
               >
                 {o}

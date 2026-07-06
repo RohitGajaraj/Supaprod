@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Settings as SettingsIcon, Shield } from "lucide-react";
 import { useAsk } from "@/lib/ask-context";
 import { useMachineView } from "@/hooks/use-machine-view";
 import { MachineViewContainer } from "@/components/machine/MachineViewContainer";
@@ -64,12 +65,15 @@ function NavRow({
   active,
   badge,
   badgeAnchor,
+  icon: Icon,
 }: {
   item: NavItemDef;
   active: boolean;
   badge?: number;
   /** OBS-14: a stable hook the Today coach mark anchors to on first landing. */
   badgeAnchor?: string;
+  /** Footer rows carry a lucide icon in place of the loop/engine mono index. */
+  icon?: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
 }) {
   return (
     <Link
@@ -82,7 +86,14 @@ function NavRow({
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
       }`}
     >
-      {item.index ? (
+      {Icon ? (
+        <span
+          className={`shrink-0 inline-flex ${active ? "text-[var(--text-primary)]" : "text-[var(--text-subtle)]"}`}
+          style={{ width: 17, justifyContent: "center" }}
+        >
+          <Icon size={15} strokeWidth={1.75} />
+        </span>
+      ) : item.index ? (
         <span
           className={`shrink-0 ${active ? "text-[var(--ember-text)]" : "text-[var(--text-faint)]"}`}
           style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}
@@ -654,8 +665,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="shrink-0 flex flex-col"
             style={{
               borderTop: "1px solid var(--hairline-faint)",
-              padding: "10px 10px 12px",
-              gap: 6,
+              padding: "8px 10px 10px",
+              gap: 2,
             }}
           >
             {pauseState?.paused && (
@@ -721,6 +732,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.to}
                 item={n.to === "/admin" && !isAdmin ? { ...n, label: "Claim admin" } : n}
                 active={isItemActive(n)}
+                icon={n.to === "/admin" ? Shield : SettingsIcon}
               />
             ))}
 
@@ -734,7 +746,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   type="button"
                   aria-label="Account menu"
                   className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
-                  style={{ gap: 9, padding: "6px 8px" }}
+                  style={{ gap: 11, padding: "8px 10px" }}
                 >
                   <span
                     className="inline-flex shrink-0 items-center justify-center rounded-full"
