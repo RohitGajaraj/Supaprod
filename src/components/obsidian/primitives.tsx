@@ -64,56 +64,88 @@ export const MonoLabel = React.forwardRef<HTMLSpanElement, MonoLabelProps>(
 );
 MonoLabel.displayName = "MonoLabel";
 
-export type ButtonVariant = "primary" | "secondary" | "quiet";
+export type ButtonVariant = "primary" | "secondary" | "tertiary" | "link" | "quiet";
+export type ButtonSize = "sm" | "md";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
 }
 
 const BUTTON_BASE_STYLE: React.CSSProperties = {
   fontFamily: "var(--font-ui)",
   borderRadius: "var(--radius-control)",
-  transitionProperty: "background-color, color, transform, opacity",
+  lineHeight: 1.2,
+  whiteSpace: "nowrap",
+  transitionProperty: "background-color, border-color, color, box-shadow, transform, opacity",
   transitionDuration: "var(--dur-control)",
   transitionTimingFunction: "var(--ease)",
 };
 
+// Sizing: comfortable, finger-friendly hit areas. sm for dense rows, md default.
+const BUTTON_SIZE_STYLE: Record<ButtonSize, React.CSSProperties> = {
+  sm: { fontSize: "12.5px", padding: "6px 13px" },
+  md: { fontSize: "13.5px", padding: "9px 18px" },
+};
+
+// AFFORDANCE DOCTRINE (Loom v4.1): affordance is decoupled from emphasis.
+// Every button carries structural affordance (a shape: padding + radius, and
+// either a fill or a border) so it can never be mistaken for a label. Emphasis
+// (color/weight) rides on top. Sentence case in the UI voice, never uppercase
+// mono - mono-caps is metadata, not an action.
 const BUTTON_VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
+  // Primary: the ONE main action per view. Solid top-lit ember gradient.
   primary: {
-    backgroundColor: "var(--ember)",
+    background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
     color: "var(--cta-ink)",
-    fontSize: "13px",
     fontWeight: 600,
-    padding: "9px 18px",
-    border: "none",
+    border: "1px solid transparent",
+    boxShadow: "var(--top-light), 0 1px 2px rgba(0,0,0,0.3)",
   },
+  // Secondary: the workhorse. A raised surface with a visible border - quiet
+  // but unmistakably a button. Unlimited per screen.
   secondary: {
-    backgroundColor: "var(--hover)",
+    backgroundColor: "var(--surface-raised)",
     color: "var(--text-primary)",
-    fontSize: "13px",
     fontWeight: 500,
-    padding: "8px 18px",
+    border: "1px solid var(--hairline-strong)",
+    boxShadow: "var(--top-light)",
+  },
+  // Tertiary: lowest-emphasis action. Transparent resting fill but ALWAYS a
+  // border + padding + radius, so it reads as a control, never as text.
+  tertiary: {
+    backgroundColor: "transparent",
+    color: "var(--text-body)",
+    fontWeight: 500,
     border: "1px solid var(--hairline-strong)",
   },
-  quiet: {
+  // Link: genuine inline text navigation only (never a primary action).
+  // Glacier ink, underline affordance on hover.
+  link: {
     backgroundColor: "transparent",
     color: "var(--glacier)",
-    fontFamily: "var(--font-mono)",
-    fontSize: "var(--text-mono-label)",
-    letterSpacing: "0.11em",
+    fontFamily: "var(--font-ui)",
+    fontWeight: 500,
     padding: 0,
     border: "none",
   },
+  // Quiet: retained as an alias of tertiary for back-compat. Now a real
+  // bordered control, no longer borderless mono text.
+  quiet: {
+    backgroundColor: "transparent",
+    color: "var(--text-body)",
+    fontWeight: 500,
+    border: "1px solid var(--hairline-strong)",
+  },
 };
 
-// Hover fills are literal prototype values with no matching token (--hover
-// itself is the secondary button's *resting* fill, not its hover fill), so
-// they're expressed as arbitrary-value classes rather than invented tokens.
 const BUTTON_VARIANT_HOVER_CLASS: Record<ButtonVariant, string> = {
-  primary: "hover:[background-color:var(--ember-deep)]",
-  secondary: "hover:[background-color:#242429]",
-  quiet: "hover:[color:#EAF6FF]",
+  primary: "hover:brightness-[1.08]",
+  secondary: "hover:[background-color:var(--hover)] hover:[border-color:var(--text-faint)]",
+  tertiary: "hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]",
+  link: "hover:underline hover:[color:#EAF6FF]",
+  quiet: "hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]",
 };
 
 /**
@@ -122,10 +154,20 @@ const BUTTON_VARIANT_HOVER_CLASS: Record<ButtonVariant, string> = {
  */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { variant = "primary", loading = false, disabled, className, style, children, ...props },
+    {
+      variant = "primary",
+      size = "md",
+      loading = false,
+      disabled,
+      className,
+      style,
+      children,
+      ...props
+    },
     ref,
   ) => {
     const isDisabled = Boolean(disabled) || loading;
+    const isLink = variant === "link";
     return (
       <button
         ref={ref}
@@ -135,13 +177,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "relative inline-flex items-center justify-center gap-2 outline-none",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
-          variant === "quiet" && "uppercase",
-          !isDisabled && variant !== "quiet" && "active:scale-[0.985]",
+          !isDisabled && !isLink && "active:scale-[0.985]",
           !isDisabled && BUTTON_VARIANT_HOVER_CLASS[variant],
           isDisabled ? "cursor-default opacity-45" : "cursor-pointer",
           className,
         )}
-        style={{ ...BUTTON_BASE_STYLE, ...BUTTON_VARIANT_STYLE[variant], ...style }}
+        style={{
+          ...BUTTON_BASE_STYLE,
+          ...(isLink ? {} : BUTTON_SIZE_STYLE[size]),
+          ...BUTTON_VARIANT_STYLE[variant],
+          ...style,
+        }}
         {...props}
       >
         <span
@@ -159,7 +205,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             aria-hidden="true"
             className="absolute h-[6px] w-[6px] rounded-full"
             style={{
-              backgroundColor: "var(--glacier)",
+              backgroundColor: variant === "primary" ? "var(--cta-ink)" : "var(--glacier)",
               animation: "cadPulse 2s ease-in-out infinite",
             }}
           />

@@ -10,6 +10,9 @@ export type { VerdictTone, VerdictChipProps } from "./verdict";
 export { AuroraCard } from "./aurora";
 export type { AuroraHue, AuroraCardProps } from "./aurora";
 
+export { SpotlightCard } from "./spotlight";
+export type { SpotlightTone, SpotlightCardProps } from "./spotlight";
+
 export { Citation } from "./citation";
 export type { CitationProps } from "./citation";
 

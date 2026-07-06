@@ -39,11 +39,13 @@ export const Route = createFileRoute("/_authenticated/obsidian-specimen")({
   head: () => ({ meta: [{ title: "Obsidian specimen · Cadence" }] }),
 });
 
-const BUTTON_VARIANTS: ButtonVariant[] = ["primary", "secondary", "quiet"];
+const BUTTON_VARIANTS: ButtonVariant[] = ["primary", "secondary", "tertiary", "link"];
 const BUTTON_HOVER_FILL: Record<ButtonVariant, string> = {
-  primary: "--ember-deep",
-  secondary: "#242429",
-  quiet: "#EAF6FF",
+  primary: "brightness",
+  secondary: "var(--hover)",
+  tertiary: "var(--hover)",
+  link: "underline",
+  quiet: "var(--hover)",
 };
 const STATUS_STATES: StatusState[] = [
   "working",
