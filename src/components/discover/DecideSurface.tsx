@@ -1,4 +1,5 @@
 import { OpportunityQueue } from "./OpportunityQueue";
+import { StrategySection } from "./StrategySection";
 
 /**
  * The decide stage of the loop (2026-07-07). The ranked opportunity queue used
@@ -58,8 +59,31 @@ export function DecideSurface() {
         moves to Plan.
       </p>
 
-      <div style={{ maxWidth: "720px" }}>
-        <OpportunityQueue />
+      <div
+        className="grid grid-cols-1 items-start lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
+        style={{ gap: "28px" }}
+      >
+        <div>
+          <OpportunityQueue />
+        </div>
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-ui)",
+              fontSize: 16,
+              fontWeight: 600,
+              color: "var(--text-primary)",
+              lineHeight: 1.3,
+            }}
+          >
+            The strategy these bets serve
+          </h2>
+          <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+            Vision, ICP, the bets you are making, and the entities you track
+          </p>
+          <StrategySection />
+        </div>
       </div>
     </div>
   );

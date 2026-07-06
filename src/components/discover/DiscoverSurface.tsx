@@ -8,7 +8,6 @@ import { listSignals } from "@/lib/discovery.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
-import { StrategySection } from "./StrategySection";
 
 /** Loom v4 §9: every empty state whispers the moat — a faint, static
  * constellation of nodes and threads. Decorative only, so it is hidden from
@@ -103,8 +102,8 @@ export function DiscoverSurface() {
           margin: 0,
         }}
       >
-        The evidence desk. <em style={{ color: "var(--ember-text)" }}>Signal</em> on the left, the
-        themes it forms on the right.
+        The evidence desk. Raw <em style={{ color: "var(--ember-text)" }}>signal</em> on the left,
+        the ranked themes it clusters into on the right.
       </h1>
       {/* Loom v4 §6: the hero underline — the maker's mark, static, 24px. */}
       <div
@@ -247,29 +246,6 @@ export function DiscoverSurface() {
           </div>
         </>
       )}
-
-      {/* Strategy is a first-class section (founder ruling 2026-07-06): always
-          visible, never collapsed. It carries a clear heading + subtext so it
-          reads as the important anchor it is; the evidence desk above caps its
-          lists to the top few so Strategy is reachable without a long scroll. */}
-      <div style={{ marginTop: 44 }}>
-        <h2
-          style={{
-            margin: 0,
-            fontFamily: "var(--font-ui)",
-            fontSize: 16,
-            fontWeight: 600,
-            color: "var(--text-primary)",
-            lineHeight: 1.3,
-          }}
-        >
-          Strategy
-        </h2>
-        <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
-          Vision, ICP, the bets you are making, and the entities you track
-        </p>
-        <StrategySection />
-      </div>
     </div>
   );
 }
