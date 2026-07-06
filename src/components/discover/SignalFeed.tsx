@@ -128,6 +128,10 @@ export function SignalFeed() {
       return next;
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
+  // Anti-scroll (founder ruling 2026-07-06): the feed shows the top few and
+  // expands on demand, so the surface never becomes a long wall of signals.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_SIGNALS = 3;
 
   // withTimeout (audit D-12): a hung server fn rejects into the error state
   // with its retry instead of leaving a permanent skeleton.
@@ -283,7 +287,7 @@ export function SignalFeed() {
         </p>
       ) : (
         <div className="grid gap-3.5">
-          {rows.map((s, i) => {
+          {(showAll ? rows : rows.slice(0, VISIBLE_SIGNALS)).map((s, i, shown) => {
             const theme = s.theme_id ? themeById.get(s.theme_id) : undefined;
             return (
               <SignalCard
@@ -292,7 +296,7 @@ export function SignalFeed() {
                 when={relTimeCaps(s.created_at)}
                 quote={s.content}
                 theme={theme ? `→ ${theme.title.toUpperCase()} · ${theme.frequency} SIGNALS` : null}
-                isLast={i === rows.length - 1}
+                isLast={i === shown.length - 1}
                 actionsPending={busyIds.has(s.id)}
                 onPromote={() => promote.mutate(s.id)}
                 onDraftSpec={() => draftSpec.mutate(s.id)}
@@ -309,6 +313,25 @@ export function SignalFeed() {
               />
             );
           })}
+          {rows.length > VISIBLE_SIGNALS ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-control)",
+                padding: "8px 14px",
+              }}
+            >
+              {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_SIGNALS} more`}
+            </button>
+          ) : null}
         </div>
       )}
       <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "12px" }}>

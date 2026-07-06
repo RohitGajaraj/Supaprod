@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listOpportunities, listSignals } from "@/lib/discovery.functions";
 import { withTimeout } from "./format";
@@ -179,43 +179,28 @@ export function DiscoverSurface() {
         </div>
       )}
 
-      {/* Progressive disclosure (Loom §0.1 anti-scroll): Strategy is secondary
-          depth on this surface, collapsed by default so the evidence desk owns
-          the first viewport. One click reveals it; the disclosure is a real
-          control (chevron + hairline), never vague text. */}
-      <details className="loom-details" style={{ marginTop: 40 }}>
-        <summary
-          className="loom-press"
+      {/* Strategy is a first-class section (founder ruling 2026-07-06): always
+          visible, never collapsed. It carries a clear heading + subtext so it
+          reads as the important anchor it is; the evidence desk above caps its
+          lists to the top few so Strategy is reachable without a long scroll. */}
+      <div style={{ marginTop: 44 }}>
+        <h2
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            cursor: "pointer",
-            listStyle: "none",
-            padding: "11px 14px",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-control)",
-            background: "var(--surface-card)",
-            boxShadow: "var(--top-light)",
+            margin: 0,
+            fontFamily: "var(--font-ui)",
+            fontSize: 16,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            lineHeight: 1.3,
           }}
         >
-          <span
-            className="loom-details-chevron"
-            aria-hidden="true"
-            style={{ color: "var(--text-subtle)", fontSize: 11, transition: "transform 160ms var(--ease)" }}
-          >
-            ▸
-          </span>
-          <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>Strategy</MonoLabel>
-          <span style={{ flex: 1 }} />
-          <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
-            Vision, ICP, bets, and tracked entities
-          </span>
-        </summary>
-        <div style={{ marginTop: 16 }}>
-          <StrategySection />
-        </div>
-      </details>
+          Strategy
+        </h2>
+        <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+          Vision, ICP, the bets you are making, and the entities you track
+        </p>
+        <StrategySection />
+      </div>
     </div>
   );
 }

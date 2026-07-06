@@ -51,6 +51,10 @@ export function OpportunityQueue() {
       return next;
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
+  // Anti-scroll (founder ruling 2026-07-06): the queue shows the top bets and
+  // expands on demand, so it never becomes a long wall.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_OPPS = 3;
 
   // withTimeout (audit D-12): a hung server fn rejects into the error state
   // with its retry instead of leaving a permanent skeleton.
@@ -217,7 +221,7 @@ export function OpportunityQueue() {
           Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
         </p>
       ) : (
-        rows.map((o, i) => {
+        (showAll ? rows : rows.slice(0, VISIBLE_OPPS)).map((o, i) => {
           const learning = latestLearningByOpp.get(o.id);
           // rescoreNoteOf quote-guards the learning's free-text summary so an
           // arbitrary title can never break the sentence (the garbled
@@ -262,6 +266,26 @@ export function OpportunityQueue() {
           );
         })
       )}
+      {rows.length > VISIBLE_OPPS ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            margin: "0 4px",
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_OPPS} more bets`}
+        </button>
+      ) : null}
       <p style={{ fontSize: "12px", color: "var(--text-subtle)", padding: "0 4px" }}>
         Challenge any bet, even your own. The Critic answers with evidence, never with vibes.
       </p>

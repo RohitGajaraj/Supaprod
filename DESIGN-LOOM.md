@@ -211,6 +211,49 @@ The load-bearing rules distilled from them, enforced everywhere:
   surface; the tell is the uniform reflex (one identical treatment on
   everything), not any single choice.
 
+### The anti-slop catalog (the 46 tells to keep OUT, forever)
+
+The founder's standing law (2026-07-06): the interface must stay purely free of
+the AI-slop tells catalogued at **impeccable.style/slop** (46 patterns). This is
+BOTH a build rule (never introduce one) AND a retroactive one (fix any that
+already shipped). **Runnable check: `bun run design:slop`** (wraps the vendored
+`node .kiro/skills/impeccable/scripts/detect.mjs src/`) flags the deterministic
+ones in place; run it before shipping a surface and treat a new finding as a
+defect. The tells, by group, that matter most for our dark product cockpit:
+
+- **Visual:** NO side-tab / side-stripe accent border (`border-left`/`right`
+  thick colored stripe, the #1 tell); NO hairline-border + wide-soft-shadow on
+  the same element (commit to an edge OR an elevation); NO glassmorphism as
+  decoration; NO extreme radius (cards top out 12-16px; full-pill only for tags
+  and buttons); NO amateur hand-drawn SVG mascots.
+- **Typography:** clear size hierarchy (>=1.25 ratio between steps, never near-
+  equal sizes); NO icon-tile stacked above a heading (the universal AI
+  feature-card shape); NO repeated tiny uppercase tracked kicker/eyebrow labels
+  as section scaffolding; NO numbered `01/02/03` section markers unless it is a
+  real sequence; NO all-caps body text (labels/short headings only); pair a
+  display + a body voice, never one font for everything.
+- **Color:** NO purple/violet-gradient + cyan-on-dark "AI palette" (exactly why
+  glacier moved off cyan); NO dark-mode glowing box-shadow accents as the "cool"
+  default (lighting must be purposeful); NO gradient text except the one live-
+  machine shimmer; NO gray text on a colored fill; NO reflexive cream/beige
+  surface (not our problem on the jet-black canvas, but the principle holds).
+- **Layout:** NO hero-metric template, NO identical card grids, NO nested cards,
+  NO monotonous single-spacing-value rhythm; measure 65-75ch; nothing overflows
+  its container; positioned children (menus/tooltips) escape clipping parents.
+- **Motion:** NO bounce/elastic easing on UI (ease-out-quart/quint/expo);
+  animate transform/opacity, never width/height/padding/margin; NO image
+  scale/rotate-on-hover.
+- **Copy:** NO em-dash overuse (zero, per §8); NO marketing buzzwords
+  (streamline/empower/supercharge/world-class/enterprise-grade); NO aphoristic
+  manufactured-contrast cadence ("Not a feature. A platform."); NO "theater"
+  framing. Impact-first, plain PM words (§9).
+- **General quality:** comfortable padding (>=12-16px inside bordered/colored
+  containers), body text >= 14px, line-height 1.5-1.7, no justified body, no
+  wide tracking on body, WCAG-AA contrast, no skipped heading levels.
+
+Full living catalog + the browser overlay: impeccable.style/slop; the vendored
+rules + the `critique`/`audit` passes live in `.kiro/skills/impeccable/`.
+
 
 
 Role-color semantics (ember = needs-a-human ONLY; glacier = the machine voice;
