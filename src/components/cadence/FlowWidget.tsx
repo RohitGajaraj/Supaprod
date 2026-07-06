@@ -59,7 +59,7 @@ function Pill({
   );
 }
 
-export function FlowWidget() {
+export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
   const {
     isFlowMode,
     remainingLabel,
@@ -83,43 +83,69 @@ export function FlowWidget() {
     if (v !== "" && Number.isFinite(n)) setConfig({ timerMin: clampMinutes(n) });
   };
 
+  // Row variant (Loom v4.1 rail): the Flow control gets a real home as a
+  // full-width footer row matching the nav rows, not a vague floating icon.
+  const trigger = asRow ? (
+    <button
+      type="button"
+      aria-label="Focus mode"
+      title={isFlowMode ? "Focus mode on" : "Focus mode"}
+      className="loom-press flex w-full items-center rounded-[8px] px-[10px] py-[8px] text-[13px] text-[var(--text-muted)] outline-none transition-colors hover:bg-[var(--raised)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+      style={{ gap: 11 }}
+    >
+      <Waves
+        className={cn("shrink-0", isFlowMode && "flow-pulse")}
+        style={{ width: 15, height: 15, color: isFlowMode ? "var(--glacier)" : undefined }}
+        strokeWidth={1.75}
+      />
+      <span className="flex-1 truncate text-left">Focus</span>
+      {isFlowMode && remainingLabel ? (
+        <span
+          className="tabular-nums shrink-0"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--glacier)" }}
+        >
+          {remainingLabel}
+        </span>
+      ) : null}
+    </button>
+  ) : (
+    <button
+      type="button"
+      aria-label="Flow mode"
+      title={isFlowMode ? "Flow mode on" : "Flow mode"}
+      className={cn(
+        "flex items-center gap-1.5 rounded-md px-1 py-0.5 transition",
+        isFlowMode ? "text-foreground ring-1 ring-foreground/20" : "text-ink-subtle hover:text-foreground",
+      )}
+    >
+      <Waves className={cn("h-[13px] w-[13px]", isFlowMode && "flow-pulse")} strokeWidth={1.75} />
+      {isFlowMode && remainingLabel ? (
+        <span className="font-mono text-[11px] tabular-nums">{remainingLabel}</span>
+      ) : null}
+    </button>
+  );
+
   return (
     <Popover>
-      <div className="flex items-center gap-1">
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            aria-label="Flow mode"
-            title={isFlowMode ? "Flow mode on" : "Flow mode"}
-            className={cn(
-              "flex items-center gap-1.5 rounded-md px-1 py-0.5 transition",
-              isFlowMode
-                ? "text-foreground ring-1 ring-foreground/20"
-                : "text-ink-subtle hover:text-foreground",
-            )}
-          >
-            <Waves
-              className={cn("h-[13px] w-[13px]", isFlowMode && "flow-pulse")}
-              strokeWidth={1.75}
-            />
-            {isFlowMode && remainingLabel ? (
-              <span className="font-mono text-[11px] tabular-nums">{remainingLabel}</span>
-            ) : null}
-          </button>
-        </PopoverTrigger>
+      {asRow ? (
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      ) : (
+        <div className="flex items-center gap-1">
+          <PopoverTrigger asChild>{trigger}</PopoverTrigger>
 
-        {isFlowMode ? (
-          <button
-            type="button"
-            aria-label="End focus"
-            title="End focus"
-            onClick={() => exitFlow()}
-            className="flex p-0.5 text-ink-subtle hover:text-foreground transition"
-          >
-            <X className="h-[12px] w-[12px]" strokeWidth={1.75} />
-          </button>
-        ) : null}
-      </div>
+          {isFlowMode ? (
+            <button
+              type="button"
+              aria-label="End focus"
+              title="End focus"
+              onClick={() => exitFlow()}
+              className="flex p-0.5 text-ink-subtle hover:text-foreground transition"
+            >
+              <X className="h-[12px] w-[12px]" strokeWidth={1.75} />
+            </button>
+          ) : null}
+        </div>
+      )}
 
       <PopoverContent side="top" align="start" sideOffset={10} className="w-64 p-3">
         <div className="mb-2.5 flex items-center justify-between">

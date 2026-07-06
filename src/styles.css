@@ -480,46 +480,96 @@
   /* === Ember editorial utilities === */
 
   /* Buttons — base + sizes + variants, per cadence/tokens.css. Compose as
-   * `btn btn-primary`, `btn btn-ghost btn-sm`, `btn btn-approve btn-sm`. */
+   * `btn btn-primary`, `btn btn-secondary`, `btn btn-tertiary btn-sm`.
+   * AFFORDANCE DOCTRINE (Loom v4.1): every button carries a shape (padding +
+   * radius) and either a fill or a border, so it can never read as a label.
+   * Sentence case, UI voice; mono-caps is metadata, never an action. */
   .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12.5px;
+    border-radius: 9px;
+    padding: 8px 15px;
+    font-size: 13px;
     font-weight: 500;
+    line-height: 1.2;
     border: 1px solid transparent;
     white-space: nowrap;
+    cursor: pointer;
     transition:
       background var(--dur-fast),
       border-color var(--dur-fast),
       color var(--dur-fast),
-      opacity var(--dur-fast);
+      box-shadow var(--dur-fast),
+      transform var(--dur-fast);
   }
   .btn:active {
-    transform: translateY(1px);
+    transform: scale(0.985);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--glacier);
+    outline-offset: 2px;
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
   }
   .btn-sm {
-    padding: 4px 10px;
-    font-size: 12px;
-    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    border-radius: 8px;
   }
+  .btn-lg {
+    padding: 11px 22px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  /* Primary: the ONE main action. Solid top-lit ember gradient. */
   .btn-primary {
-    background: var(--ember);
+    background: linear-gradient(180deg, var(--ember), var(--ember-active, var(--ember)));
     color: var(--primary-foreground);
+    font-weight: 600;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.2);
   }
-  .btn-primary:hover {
-    background: var(--ember-active);
+  .btn-primary:hover:not(:disabled) {
+    filter: brightness(1.07);
   }
-  .btn-ghost {
-    color: var(--ink-muted);
-    border-color: var(--hairline);
-    background: var(--canvas);
-  }
-  .btn-ghost:hover {
-    color: var(--ink);
+  /* Secondary: the workhorse. A raised surface with a visible border. */
+  .btn-secondary {
+    background: var(--surface-raised, var(--surface-1, var(--canvas)));
+    color: var(--ink, var(--text-primary));
     border-color: var(--hairline-strong);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--text-faint, var(--hairline-strong));
+    background: var(--surface-hover, var(--hover, var(--surface-raised)));
+  }
+  /* Tertiary / ghost: lowest emphasis, but ALWAYS a border + shape so it
+   * reads as a control, never as text. (btn-ghost kept as an alias.) */
+  .btn-tertiary,
+  .btn-ghost {
+    color: var(--ink-muted, var(--text-body));
+    border-color: var(--hairline-strong);
+    background: transparent;
+  }
+  .btn-tertiary:hover:not(:disabled),
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--ink, var(--text-primary));
+    border-color: var(--text-faint, var(--hairline-strong));
+    background: var(--surface-hover, var(--hover, transparent));
+  }
+  /* Link: genuine inline text navigation only. Never a primary action. */
+  .btn-link {
+    color: var(--glacier, var(--action-blue));
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  .btn-link:hover:not(:disabled) {
+    text-decoration: underline;
   }
 
   /* Input — parchment field with ember focus ring. */

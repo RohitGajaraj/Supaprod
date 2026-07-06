@@ -470,15 +470,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 >
                   <img
                     src="/assets/butterfly-ember.svg"
-                    width={24}
-                    height={24}
+                    width={22}
+                    height={22}
                     alt=""
                     aria-hidden="true"
                     className="shrink-0"
                     style={{
-                      filter: "drop-shadow(0 0 6px rgba(255,107,44,0.4))",
-                      animation: "cadFlutter 3.4s ease-in-out infinite",
-                      transformOrigin: "12px 12px",
+                      opacity: 0.92,
                     }}
                   />
                   <span className="flex-1 min-w-0">
@@ -726,6 +724,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
             ))}
 
+            {/* Focus (Flow) mode — a proper labeled row, matching the nav
+                rows, instead of a vague floating icon (Loom v4.1 rail). */}
+            <FlowWidget asRow />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -782,11 +784,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Flow mode's only entry point — kept reachable, quiet by design. */}
-            <div className="flex justify-end" style={{ paddingRight: 4 }}>
-              <FlowWidget />
-            </div>
           </div>
         </aside>
 
