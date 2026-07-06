@@ -4,12 +4,13 @@
 // (weekly node growth from the already-fetched graph): no new heavy
 // machinery. W3 (Loom): v4 tokens, plain words ("beliefs revised", not
 // supersession jargon), tabular numerals.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { SketchBar } from "@/components/cadence/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
@@ -47,6 +48,90 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
         {label}
       </MonoLabel>
       <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 2 }}>{sub}</div>
+    </div>
+  );
+}
+
+/** The weekly-growth read, held to the Infographic Law (DESIGN-LOOM dim 16):
+ *  hand-drawn bars, a pencil scale hint, and a readable data point on hover. */
+function GrowthBars({ growth, max }: { growth: number[]; max: number }) {
+  const [hover, setHover] = useState<number | null>(null);
+  return (
+    <div style={{ minWidth: 150, flex: 1 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 4,
+          fontFamily: "var(--font-pencil)",
+          fontSize: 12.5,
+          color: "var(--text-subtle)",
+        }}
+      >
+        <span>new beliefs per week, last {WEEKS} weeks</span>
+        <span>peak {max}</span>
+      </div>
+      <div
+        style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 4, height: 34 }}
+      >
+        {growth.map((count, i) => {
+          const active = hover === i;
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
+              style={{
+                flex: 1,
+                position: "relative",
+                display: "flex",
+                alignItems: "flex-end",
+                cursor: "default",
+                opacity: hover == null || active ? 1 : 0.45,
+                transition: "opacity 160ms var(--ease)",
+              }}
+            >
+              {active ? (
+                <div
+                  role="tooltip"
+                  style={{
+                    position: "absolute",
+                    bottom: "100%",
+                    marginBottom: 6,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    whiteSpace: "nowrap",
+                    zIndex: 5,
+                    fontFamily: "var(--font-pencil)",
+                    fontSize: 13.5,
+                    color: "var(--text-primary)",
+                    background: "var(--surface-raised)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: 8,
+                    padding: "4px 9px",
+                    boxShadow: "var(--shadow-ambient)",
+                  }}
+                >
+                  {`${count} new, week ${i + 1}`}
+                </div>
+              ) : null}
+              {count > 0 ? (
+                <SketchBar
+                  pct={Math.max(6, (count / max) * 100)}
+                  seed={i + 1}
+                  color="var(--ember)"
+                  trackH={34}
+                />
+              ) : (
+                <div
+                  style={{ width: "100%", height: 2, background: "var(--hairline)", borderRadius: 1 }}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -123,27 +208,7 @@ export function GraphCompoundingStrip({
         <Stat label="lift" value={liftValue} sub={liftSub} />
         <Stat label="beliefs revised" value={String(beliefsRevised)} sub="in this view" />
         <Stat label="prediction hit rate" value={predValue} sub={predSub} />
-        <div style={{ minWidth: 140, flex: 1 }}>
-          <MonoLabel
-            style={{ fontSize: "var(--text-mono-floor)", marginBottom: 4, display: "block" }}
-          >
-            growth, last {WEEKS} weeks
-          </MonoLabel>
-          <div className="flex items-end" style={{ gap: 3, height: 24 }}>
-            {growth.map((count, i) => (
-              <div
-                key={i}
-                title={`${count} node${count === 1 ? "" : "s"}`}
-                style={{
-                  flex: 1,
-                  height: `${Math.max(2, (count / maxGrowth) * 24)}px`,
-                  background: count > 0 ? "var(--teal)" : "var(--hairline)",
-                  borderRadius: 1,
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        <GrowthBars growth={growth} max={maxGrowth} />
       </div>
     </div>
   );

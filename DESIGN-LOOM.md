@@ -233,6 +233,36 @@ look. The primitives already exist and are the standard: `PencilNote`,
 and the `--pencil-*` inks. Apply this wherever a chart or pattern renders. It
 is what keeps the product feeling made by a person, not generated.
 
+> **THE INFOGRAPHIC LAW (founder ruling 2026-07-06, STANDING, EVERY surface,
+> EVERY screen, EVERY layer, apply without being asked).** Any data
+> visualization anywhere in the product (bar chart, line/sparkline, trend,
+> timeline, distribution, gauge, the Brain "Graph" tab, Engine Room room charts,
+> Today, Discover, Plan, admin) MUST satisfy all four, by default, going
+> forward. Do not wait to be pointed at each chart; when you build or touch a
+> chart, bring it to this bar.
+>
+> 1. **Hand-drawn, not machine.** Human-facing charts render with the sketch
+>    primitives `SketchLine` / `SketchBar` (`src/components/cadence/Sketch.tsx`)
+>    or the pencil marks, never a sterile straight polyline / solid rectangle.
+>    (The ONLY exception: a pure machine instrument in a deep Engine Room / eval
+>    / drift view may stay exact, because there the precision IS the point.)
+> 2. **Readable, interactive data points.** A chart must never be an unlabelled
+>    spike. On hover (and focus), each data point reveals its value in a
+>    pencil-hand (`--font-pencil`) tooltip: the number and what it counts. The
+>    user must always be able to learn "what is this point, exactly."
+> 3. **A scale the user can read.** Every chart states what it measures and the
+>    scale it is measured against (a "peak N", a unit caption, or axis hints) in
+>    the pencil hand, so a shape is never ambiguous.
+> 4. **Brand hue, never the cold cyan/teal.** Human-facing data uses `--ember`
+>    (warm, the user's own record) as the default series color; the retuned
+>    azure is reserved for the machine-voice role, not for personal-record
+>    charts. Never the old glacier cyan / teal on a user-facing chart.
+>
+> The reference implementation is the Brain "How it accrued" timeline
+> (`InsightsPanel.tsx` `Timeline`) and the record trend
+> (`BrainStatTrio.tsx`): copy that pattern for every new chart.
+
+
 ### The anti-slop catalog (the 46 tells to keep OUT, forever)
 
 The founder's standing law (2026-07-06): the interface must stay purely free of
