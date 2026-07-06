@@ -1,13 +1,42 @@
 # Loom W5 · Live QA round 1 — defect catalog (2026-07-04, 12:10-13:05 IST)
 
+> _Created: 2026-07-04 · Last updated: 2026-07-06_
+
+> **STATUS: ALL 18 DEFECTS RESOLVED (2026-07-06, commits `03766768` + `f2125791`).** This catalog is now CLOSED. No future session should re-pick these items. The fixes are documented in [`plan.md`](../../../plan.md) §4 (2026-07-06 entry) with a standing rule for the `[auto]` prefix contract.
+
 > _The first W5 production-validation pass: a meticulous Playwright tour of every
 > surface on `cadence-flow-beta.lovable.app` (demo account, 1440x900 + 1280x800),
 > with the overflow probe, an em-dash sweep, and honesty checks per DESIGN-LOOM
-> §9/§9b on each. This file is the pickup list for QA round 2; each row was
-> re-verified against the post-publish bundle (the one containing d3b23c97 + W2),
-> so nothing here is stale-bundle noise._
+> §9/§9b on each._
 
-## Shipped from this round (commit `7174acbc`, pushed; live after next publish)
+## Shipped from round 2 (2026-07-06, commits `03766768` + `f2125791`)
+
+All 18 defects below are resolved. Summary of what was code-fixed vs already-fixed:
+
+**Code-fixed this session:**
+- **#10 (tool slugs):** `gateHeadline()` fallback humanized (dotted to space-separated)
+- **#11 (numeral scope):** loop health note now names what it measures
+- **#13 (Disconnect+Remove):** dead `ProviderCard.tsx` deleted (the active `ConnectionRow.tsx` was already correct)
+- **#14 (/sync copy):** clarified workspace-vs-account distinction
+- **#15 (Trust Ledger):** kicker "The Engine . Trust" -> "Trust Ledger"; ember accent reserved for pending receipts only
+- **#16 (Plan [auto] + empty-state):** `stripAutoPrefix()` utility applied to ALL render sites platform-wide; roadmap empty-state reduced to a subtle inline note
+- **#17 (Discover layout):** grid widened from `1fr` to `minmax(280px, 0.85fr)` for the signal feed
+- **#18 (identity split):** Today + AppShell now check `display_name`/`full_name`/`name` from auth metadata
+- **#6 (brain insights):** stat card labels clarified to "decisions stand" / "revised" (explicit scope)
+
+**Verified already-fixed in current code (no changes needed):**
+- **#1 (attention counts):** one source `countNeedsYouCalls` feeds all surfaces correctly
+- **#2 (expired calls):** already separated into collapsed group, out of hero/count
+- **#4 (record traces):** `listTraces` already resolves mission titles
+- **#5 (build header):** `MissionsCostGlance` + `ReliabilityGlance` already use proper language
+- **#7 (quality score):** `buildQualityGlance` already aligned to one source
+- **#8 (brain approvals):** `DecisionsPanel` already shows "Decide on Today" link only
+- **#9 (calendar):** already says "Nothing in the next 14 days" with scope text
+- **#12 (palette):** already shows ENGINE + SETTINGS + ACT (14+ items in default view)
+
+---
+
+## Shipped from round 1 (commit `7174acbc`, pushed; live after next publish)
 
 1. `src/styles.css` — `font-feature-settings:"tnum"` was applied to ALL of
    `main`; in Schibsted Grotesk that gives `.` `,` `:` full digit-width cells, so

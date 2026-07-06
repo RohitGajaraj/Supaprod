@@ -283,6 +283,40 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-06 (QA PRODUCTION POLISH: all 18 live-QA-round-1 defects resolved, [auto] prefix eradicated platform-wide)
+
+**Context:** The founder asked for a comprehensive "every nook and corner" production polish pass. All 18 defects from the Loom W5 live QA catalog (`docs/planning/loom/live-qa-round-1.md`) are now resolved — some were already fixed in Loom QA R2 (verified in code), the rest fixed in this session.
+
+**What shipped (2 commits: `03766768` + `f2125791`, pushed to main, Lovable auto-deploys):**
+
+- **`[auto]` prefix stripped universally (QA-16 + the founder's live directive).** A new `stripAutoPrefix()` utility in `src/components/plan/format.ts` is applied at every user-facing render site: BetCard, RoadmapColumns, CommitCeremony, DecisionsPanel (Brain), DelegateBoard (Build lanes), ShipHistoryPanel (Brain), BuildMissionRow (Build list), MissionSlideOver (Build slide-over), Build detail page (`/build/$missionId`), Trust Ledger receipts, and the StakeholderPackPanel picker. The `[auto]` prefix remains in the DB for dedup logic (the `isAutoMissionTitle` function) but NEVER reaches a user's eyes. **Any future surface rendering a decision or mission title MUST call `stripAutoPrefix(title)` or `decisionOptionLabel(title)` — this is documented below.**
+- **Trust Ledger polish (QA-15):** kicker changed from "The Engine . Trust" to "Trust Ledger"; ember left-border now reserved for pending/needs-human receipts only (standing receipts get neutral `--hairline-strong`).
+- **Tool slug humanization (QA-10):** the `gateHeadline()` fallback for uncatalogued tools now renders space-separated words ("mission plan") not dotted slugs ("mission.plan").
+- **Loop health scope sentence (QA-11):** the Today LOOP HEALTH numeral now says "Approval hit rate + autonomy ratio . trending up/holding/needs attention" instead of bare "ON TRACK".
+- **Discover layout (QA-17):** grid columns changed from `1fr 1.15fr` to `minmax(280px, 0.85fr) 1.15fr` so the signal feed doesn't consume half the screen when empty.
+- **Plan roadmap empty-state (QA-16):** reduced from a large centered card to a one-line mono note, so it doesn't visually dominate shipped specs below it.
+- **/sync copy (QA-14):** clarified the workspace-vs-account distinction without circular self-reference.
+- **Identity split (QA-18):** Today greeting + AppShell now check `display_name`, `full_name`, and `name` from auth metadata (covers more OAuth providers).
+- **Brain insights labels (QA-6):** stat card labels clarified to "decisions stand" / "revised" (explicitly about decision-status, not graph edges).
+- **Dead code removed (QA-13):** `ProviderCard.tsx` (the legacy component with Disconnect+Remove side-by-side) deleted; no imports.
+
+**Already fixed before this session (verified in code, not re-touched):**
+- QA-1 (attention counts): architecturally correct — one source `countNeedsYouCalls` feeds Today, rail, Build banner.
+- QA-2 (expired calls): already separated into collapsed "Expired . N" group, out of hero and live count.
+- QA-4 (Record room traces): `listTraces` already resolves mission titles; RecordRoom uses `t.title ?? t.root_surface`.
+- QA-5 (Build header): `MissionsCostGlance` already uses per-verb outcomes; `ReliabilityGlance` uses plain language.
+- QA-7 (Quality score): `buildQualityGlance` already reads the same source as ScoreView.
+- QA-8 (Brain approvals): DecisionsPanel already shows "Decide on Today" link, no action buttons.
+- QA-9 (Calendar): already says "Nothing in the next 14 days" with scope explanation.
+- QA-12 (Command palette): already shows 14+ items in default view (ENGINE + SETTINGS + ACT groups).
+
+**Gates:** tsc 0, build green, 2335 tests pass (3 pre-existing env failures unrelated).
+
+**Standing rule for future work (the `[auto]` prefix contract):**
+> The `AUTO_TITLE_PREFIX = "[auto]"` in `src/lib/sensing/trigger.ts` is an internal dedup marker. It lives in the DB but NEVER renders to users. Any component rendering a `decision.title`, `mission.title`, or roadmap `item.title` MUST call `stripAutoPrefix(title)` (from `src/components/plan/format.ts`) or `decisionOptionLabel(title)` before display. The existing hook (`check-humanized`) does not catch this; it is a render-time contract.
+
+---
+
 ### 2026-07-05 (SAMPLE-SEED: comprehensive two-product sample-workspace seed + Layer A wiring + demo script, authored by Kiro; apply via Lovable)
 
 Founder-directed: a deep, rich sample dataset so a person exploring the demo understands every Cadence surface, plus per-signup onboarding and a demo script. Delivered as one coherent unit (Kiro cannot write the Lovable-managed DB, so this is authored + verified + packaged ready-to-apply):
