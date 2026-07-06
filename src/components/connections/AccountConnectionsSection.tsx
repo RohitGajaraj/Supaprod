@@ -16,6 +16,8 @@ import {
   startGatewayConnect,
   startGithubAppConnect,
   verifyConnection,
+  disconnectConnection,
+  deleteConnection,
   type ConnectionRow as AccountConnection,
   type ProviderAvailability,
 } from "@/lib/connections.functions";
@@ -23,8 +25,10 @@ import {
   listMyCalendarConnections,
   saveCalendarConnection,
   startCalendarConnect,
+  disconnectCalendar,
 } from "@/lib/calendar-connections.functions";
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
+import { useConfirm } from "@/hooks/use-confirm";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { ProviderLogo } from "./ProviderLogo";
 import { RequestConnectorCard } from "./RequestConnectorCard";
@@ -737,7 +741,40 @@ export function ConnectorDetail({
   onBack: () => void;
 }) {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const { mGithub, mGateway, mCalConnect, mVerify, busy } = useConnectorActions(qc);
+
+  const fDisconnect = useServerFn(disconnectConnection);
+  const fDelete = useServerFn(deleteConnection);
+  const fCalDisconnect = useServerFn(disconnectCalendar);
+  const mDisconnect = useMutation({
+    mutationFn: (id: string) => fDisconnect({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Disconnected. Workspace bindings stay until you remove them.");
+      qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mDelete = useMutation({
+    mutationFn: (id: string) => fDelete({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Connection removed");
+      qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
+      onBack();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const mCalDisconnect = useMutation({
+    mutationFn: (id: string) => fCalDisconnect({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Disconnected");
+      qc.invalidateQueries({ queryKey: ["calendar-connections"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const manageBusy = mDisconnect.isPending || mDelete.isPending || mCalDisconnect.isPending;
 
   const spec = CONNECTOR_REGISTRY[provider];
   const calProvider = CALENDAR_PROVIDERS[provider];
@@ -904,23 +941,78 @@ export function ConnectorDetail({
         title={spec.label}
         right={
           isCalendar ? (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={busy}
-              onClick={() => mCalConnect.mutate(calProvider)}
-            >
-              Connect another account
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={busy}
+                onClick={() => mCalConnect.mutate(calProvider)}
+              >
+                Connect another account
+              </button>
+              {calAccounts.length > 0 ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  disabled={busy || manageBusy}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: "Disconnect this calendar?",
+                      body: "Stored events stay but no further sync will happen.",
+                      confirmLabel: "Disconnect",
+                      destructive: true,
+                    });
+                    if (ok) mCalDisconnect.mutate(calAccounts[0]!.id);
+                  }}
+                >
+                  Disconnect
+                </button>
+              ) : null}
+            </div>
           ) : (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={busy}
-              onClick={() => mVerify.mutate(primary.id)}
-            >
-              Verify · checks the credential
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={busy}
+                onClick={() => mVerify.mutate(primary.id)}
+              >
+                Verify
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={busy || manageBusy}
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Disconnect this account?",
+                    body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
+                    confirmLabel: "Disconnect",
+                    destructive: true,
+                  });
+                  if (ok) mDisconnect.mutate(primary.id);
+                }}
+              >
+                Disconnect
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={busy || manageBusy}
+                style={{ color: "var(--rose)" }}
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Remove this connection?",
+                    body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
+                    confirmLabel: "Remove",
+                    destructive: true,
+                  });
+                  if (ok) mDelete.mutate(primary.id);
+                }}
+              >
+                Remove
+              </button>
+            </div>
           )
         }
       />
