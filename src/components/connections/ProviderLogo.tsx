@@ -1,12 +1,11 @@
 // Logos: simple-icons (MIT)
 //
-// The brand mark for a connector, rendered in its OFFICIAL brand color on a
-// light "app-icon" chip so the colored glyph reads cleanly on the dark obsidian
-// canvas (the Lovable connector look). Brand hex values are the simple-icons
-// palette; providers without a bundled simple-icons mark fall back to a
-// brand-colored first-letter monogram on the same chip. Paths are inlined (no
-// npm dependency, no CDN hotlink); each is one 0 0 24 24 path taken verbatim
-// from simple-icons (MIT).
+// The brand mark for a connector, rendered MONOTONE (a single muted tone) on a
+// subtle dark tile, for a consistent, premium Linear/Vercel look on the obsidian
+// canvas. Full brand colors read busy and inconsistent on dark (and clash with
+// the monogram fallbacks), so we deliberately keep one tone across every
+// provider. Paths are inlined single 0 0 24 24 marks from simple-icons (MIT);
+// providers without a bundled mark use a same-tone first-letter monogram.
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 
 // Verbatim single-path marks from simple-icons (MIT). canny, productboard, and
@@ -42,30 +41,6 @@ const BRAND_PATHS: Partial<Record<ProviderId, string>> = {
     "M10.006 5.415a4.195 4.195 0 013.045-1.306c1.56 0 2.954.9 3.69 2.205.63-.3 1.35-.45 2.1-.45 2.85 0 5.159 2.34 5.159 5.22s-2.31 5.22-5.176 5.22c-.345 0-.69-.044-1.02-.104a3.75 3.75 0 01-3.3 1.95c-.6 0-1.155-.15-1.65-.375A4.314 4.314 0 018.88 20.4a4.302 4.302 0 01-4.05-2.82c-.27.062-.54.076-.825.076-2.204 0-4.005-1.8-4.005-4.05 0-1.5.811-2.805 2.01-3.51-.255-.57-.39-1.2-.39-1.846 0-2.58 2.1-4.65 4.65-4.65 1.53 0 2.85.705 3.72 1.8",
 };
 
-// Official brand hex (simple-icons palette). Near-black marks (github, notion)
-// stay dark: they read on the light chip. canny, productboard, and delighted
-// have no simple-icons mark, so they use these brand-ish tones on a monogram.
-const BRAND_COLORS: Partial<Record<ProviderId, string>> = {
-  github: "#181717",
-  linear: "#5E6AD2",
-  notion: "#191919",
-  google_docs: "#4285F4",
-  google_calendar: "#4285F4",
-  microsoft_outlook: "#0078D4",
-  figma: "#F24E1E",
-  jira: "#0052CC",
-  intercom: "#1F8DED",
-  zendesk: "#03363D",
-  slack: "#4A154B",
-  stripe: "#635BFF",
-  hubspot: "#FF7A59",
-  salesforce: "#00A1E0",
-  // monogram fallbacks (no simple-icons mark): recognizable brand tones
-  canny: "#6E56CF",
-  productboard: "#E6006D",
-  delighted: "#14B8A6",
-};
-
 export function ProviderLogo({
   provider,
   size = 34,
@@ -74,7 +49,6 @@ export function ProviderLogo({
   size?: number;
 }) {
   const path = BRAND_PATHS[provider];
-  const brand = BRAND_COLORS[provider] ?? "#3A3A3C";
   const label = CONNECTOR_REGISTRY[provider]?.label ?? provider;
   const glyph = Math.round(size * 0.56);
 
@@ -89,11 +63,11 @@ export function ProviderLogo({
         alignItems: "center",
         justifyContent: "center",
         borderRadius: Math.max(8, Math.round(size * 0.26)),
-        // Light "app-icon" chip: lets each mark carry its own brand color and
-        // read cleanly on the near-black obsidian canvas.
-        background: "linear-gradient(180deg, #FCFCFD 0%, #EDEDF0 100%)",
-        boxShadow: "inset 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.3)",
-        color: brand,
+        // Monotone: one muted tone on a subtle dark tile, consistent across
+        // every provider (premium Linear/Vercel restraint on the obsidian canvas).
+        background: "var(--surface-raised)",
+        boxShadow: "inset 0 0 0 1px var(--hairline)",
+        color: "var(--text-body)",
       }}
     >
       {path ? (
@@ -106,7 +80,7 @@ export function ProviderLogo({
             fontFamily: "var(--font-ui)",
             fontSize: Math.round(size * 0.44),
             fontWeight: 700,
-            color: brand,
+            color: "var(--text-body)",
             lineHeight: 1,
           }}
         >
