@@ -9,7 +9,7 @@
 
 -- Delete the "This is an Test Message - By RG" test entries from learnings
 DELETE FROM public.learnings
-WHERE content ILIKE '%This is an Test Message%';
+WHERE summary ILIKE '%This is an Test Message%';
 
 -- Delete test tasks (debug tasks created during QA)
 DELETE FROM public.tasks
@@ -53,10 +53,10 @@ UPDATE public.decisions
 SET title = REPLACE(REPLACE(title, E'\u2014', ' - '), E'\u2013', ' - ')
 WHERE title LIKE E'%\u2014%' OR title LIKE E'%\u2013%';
 
--- Learnings content
+-- Learnings summary
 UPDATE public.learnings
-SET content = REPLACE(REPLACE(content, E'\u2014', ' - '), E'\u2013', ' - ')
-WHERE content LIKE E'%\u2014%' OR content LIKE E'%\u2013%';
+SET summary = REPLACE(REPLACE(summary, E'\u2014', ' - '), E'\u2013', ' - ')
+WHERE summary LIKE E'%\u2014%' OR summary LIKE E'%\u2013%';
 
 -- Agent memory content
 UPDATE public.agent_memory
@@ -90,12 +90,12 @@ WHERE title ~* '^PRD [- ] ';
 
 -- ============================================================
 -- 4. PROMPT SURFACE LABELS: humanize the em-dashes
---    (these are in ai_prompts.label or similar)
+--    (these are in prompt_templates.name)
 -- ============================================================
 
-UPDATE public.ai_prompts
-SET label = REPLACE(REPLACE(label, E'\u2014', ' - '), E'\u2013', ' - ')
-WHERE label IS NOT NULL AND (label LIKE E'%\u2014%' OR label LIKE E'%\u2013%');
+UPDATE public.prompt_templates
+SET name = REPLACE(REPLACE(name, E'\u2014', ' - '), E'\u2013', ' - ')
+WHERE name LIKE E'%\u2014%' OR name LIKE E'%\u2013%';
 
 -- Guardrail names
 UPDATE public.guardrail_rules
