@@ -42,7 +42,8 @@ export function MemoryExpiryBanner({ workspaceId }: { workspaceId: string | null
       style={{
         padding: "12px var(--card-pad)",
         marginBottom: 24,
-        borderLeft: "2px solid var(--ember)",
+        border: "1px solid var(--ember-line)",
+        background: "var(--ember-tint)",
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "space-between",
