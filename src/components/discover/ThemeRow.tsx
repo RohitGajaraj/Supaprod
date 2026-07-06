@@ -9,8 +9,9 @@ import { relTimeCaps } from "./format";
 export interface ThemeRowProps {
   themeId: string;
   title: string;
-  /** Member-signal count. Drives both the metric block and the sub line, so
-   * the row always agrees with the detail drawer's grouped quotes. */
+  /** 1-based rank in the corroboration leaderboard (1 = strongest). */
+  rank: number;
+  /** Member-signal count (theme.frequency). The score the rank is based on. */
   signalCount: number;
   /** Distinct sources among the member signals. */
   sourceCount: number;
@@ -28,13 +29,16 @@ const plural = (n: number) => (n === 1 ? "" : "s");
 /**
  * One corroboration-ranked theme, the left-column sibling of `OpportunityRow`.
  * Same card shell (card fill, hairline, card radius, top-light + ambient
- * shadow), the same left metric block anatomy as the ICE numeral, and the same
- * trailing overflow menu. The whole row is a button that opens `ThemeDetail`;
- * the menu stops propagation so a menu press never also opens the drawer.
+ * shadow), the same left metric-block anatomy as the ICE numeral, and the same
+ * trailing overflow menu. The block leads with the explicit rank (the top one
+ * in ember) over the signal count it is scored on. The whole row is a button
+ * that opens `ThemeDetail`; the menu stops propagation so a menu press never
+ * also opens the drawer.
  */
 export function ThemeRow({
   themeId,
   title,
+  rank,
   signalCount,
   sourceCount,
   newestCreatedAt,
@@ -44,8 +48,9 @@ export function ThemeRow({
   actionsPending = false,
 }: ThemeRowProps) {
   const sub =
-    `${signalCount} signal${plural(signalCount)} from ${sourceCount} source${plural(sourceCount)}` +
+    `${sourceCount} source${plural(sourceCount)}` +
     (newestCreatedAt ? ` · newest ${relTimeCaps(newestCreatedAt)}` : "");
+  const topRanked = rank === 1;
   return (
     <div
       role="button"
@@ -72,29 +77,30 @@ export function ThemeRow({
         transitionTimingFunction: "var(--ease)",
       }}
     >
-      <div className="flex-none text-center" style={{ width: "56px" }}>
+      <div className="flex-none text-center" style={{ width: "60px" }}>
         <div
           style={{
             fontFamily: "var(--font-serif)",
             fontSize: "23px",
             fontWeight: 460,
-            color: "var(--text-primary)",
+            color: topRanked ? "var(--ember-text)" : "var(--text-primary)",
             lineHeight: 1,
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {signalCount}
+          {`#${rank}`}
         </div>
         <div
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
-            letterSpacing: "0.1em",
+            fontSize: "10px",
+            letterSpacing: "0.06em",
             color: "var(--text-subtle)",
             marginTop: "3px",
+            whiteSpace: "nowrap",
           }}
         >
-          signals
+          {signalCount} signal{plural(signalCount)}
         </div>
       </div>
 

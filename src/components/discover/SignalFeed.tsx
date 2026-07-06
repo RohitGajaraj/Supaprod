@@ -58,10 +58,10 @@ function HeaderRow({ count }: { count: number }) {
             lineHeight: 1.3,
           }}
         >
-          Live signal feed
+          Signals captured
         </h2>
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
-          Verbatim, with its source
+          Everything sensed, verbatim, from every source
         </p>
       </div>
       <MonoLabel
@@ -143,10 +143,11 @@ function ThemesForming({
               lineHeight: 1.3,
             }}
           >
-            Themes forming
+            Auto-clustered
           </h3>
           <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
-            What the signals are clustering into, ranked by corroboration
+            The themes Cadence grouped from those signals, ranked by corroboration. Act on one and it
+            moves to the opportunity queue.
           </p>
         </div>
         <MonoLabel
@@ -163,7 +164,7 @@ function ThemesForming({
         </MonoLabel>
       </div>
       <div className="grid gap-3">
-        {shown.map((t) => {
+        {shown.map((t, i) => {
           const members = membersByTheme.get(t.id) ?? [];
           const sourceCount = new Set(members.map((m) => m.source)).size;
           const newest = members.reduce<string | null>(
@@ -175,6 +176,7 @@ function ThemesForming({
               key={t.id}
               themeId={t.id}
               title={t.title}
+              rank={i + 1}
               signalCount={t.frequency}
               sourceCount={sourceCount}
               newestCreatedAt={newest}
@@ -432,14 +434,6 @@ export function SignalFeed() {
     <PanelShell>
       <HeaderRow count={thisWeekCount} />
       <SignalComposer unclusteredCount={unclusteredCount} />
-      <ThemesForming
-        themes={themeList}
-        membersByTheme={signalsByTheme}
-        busyIds={busyIds}
-        onOpenDetail={(id) => setOpenThemeId(id)}
-        onPromote={(id) => promoteTheme.mutate(id)}
-        onDraftSpec={(id) => draftThemeSpec.mutate(id)}
-      />
       {rows.length === 0 ? (
         <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}>
           Nothing sensed yet. Capture what you heard, or connect a source and let the feed fill
@@ -497,6 +491,18 @@ export function SignalFeed() {
       <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "12px" }}>
         Every quote is verbatim and keeps its source. Nothing here is a summary.
       </p>
+      <div
+        aria-hidden="true"
+        style={{ height: 1, background: "var(--hairline)", margin: "24px 0 20px" }}
+      />
+      <ThemesForming
+        themes={themeList}
+        membersByTheme={signalsByTheme}
+        busyIds={busyIds}
+        onOpenDetail={(id) => setOpenThemeId(id)}
+        onPromote={(id) => promoteTheme.mutate(id)}
+        onDraftSpec={(id) => draftThemeSpec.mutate(id)}
+      />
       <LineageDrawer
         open={!!lineageId}
         onOpenChange={(open) => !open && setLineageId(null)}
