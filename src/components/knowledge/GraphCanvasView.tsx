@@ -18,6 +18,7 @@ import {
 } from "@/lib/knowledge-graph-view";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { GraphForceCanvas } from "./GraphForceCanvas";
+import { GraphUniverseCanvas } from "./GraphUniverseCanvas";
 import { GraphNodeStory } from "./GraphNodeStory";
 import { GraphCompoundingStrip } from "./GraphCompoundingStrip";
 import { kindCssColor, kindLabel } from "./graph-visual";
@@ -36,6 +37,62 @@ function NoticeLine({ color, children }: { color?: string; children: React.React
     >
       {children}
     </MonoLabel>
+  );
+}
+
+/** The Universe (3D) / Flat (2D) view switch. Universe is the hero default. */
+function GraphViewToggle({
+  view,
+  onChange,
+}: {
+  view: "3D" | "2D";
+  onChange: (v: "3D" | "2D") => void;
+}) {
+  const opts: { id: "3D" | "2D"; label: string }[] = [
+    { id: "3D", label: "Universe" },
+    { id: "2D", label: "Flat" },
+  ];
+  return (
+    <div
+      role="tablist"
+      aria-label="Graph view"
+      className="inline-flex"
+      style={{
+        gap: 2,
+        padding: 2,
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-control)",
+        background: "var(--surface-raised)",
+      }}
+    >
+      {opts.map((o) => {
+        const active = view === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: active ? "var(--text-primary)" : "var(--text-subtle)",
+              background: active ? "var(--hover)" : "transparent",
+              border: "none",
+              borderRadius: "calc(var(--radius-control) - 2px)",
+              padding: "3px 10px",
+              cursor: "pointer",
+            }}
+            onClick={() => onChange(o.id)}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -129,6 +186,7 @@ export function GraphCanvasView({
   const [storyKey, setStoryKey] = useState<string | null>(null);
   const [asOf, setAsOf] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
+  const [view, setView] = useState<"3D" | "2D">("3D");
   const replayTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fullGraph = graphQ.data ?? null;
@@ -339,6 +397,7 @@ export function GraphCanvasView({
             </span>
           ))}
         </div>
+        <GraphViewToggle view={view} onChange={setView} />
         <span style={{ flex: 1 }} />
         {timeline.length > 1 && (
           <span className="flex items-center" style={{ gap: 8 }}>
@@ -432,15 +491,27 @@ export function GraphCanvasView({
             light catching its top edge). On the wrapper, not the canvas card
             itself: the card's overflow-hidden would clip the 1px line. */}
         <div className="loom-hairline-fade" style={{ flex: 1, minWidth: 320 }}>
-          <GraphForceCanvas
-            graph={graph}
-            selectedKey={selectedKey}
-            onSelect={setSelectedKey}
-            onOpenStory={(key) => setStoryKey(key)}
-            staleKeys={staleness?.staleKeys}
-            hotKeys={contradictionDrift?.driftedKeys}
-            reducedMotion={reducedMotion}
-          />
+          {view === "3D" ? (
+            <GraphUniverseCanvas
+              graph={graph}
+              selectedKey={selectedKey}
+              onSelect={setSelectedKey}
+              onOpenStory={(key) => setStoryKey(key)}
+              staleKeys={staleness?.staleKeys}
+              hotKeys={contradictionDrift?.driftedKeys}
+              reducedMotion={reducedMotion}
+            />
+          ) : (
+            <GraphForceCanvas
+              graph={graph}
+              selectedKey={selectedKey}
+              onSelect={setSelectedKey}
+              onOpenStory={(key) => setStoryKey(key)}
+              staleKeys={staleness?.staleKeys}
+              hotKeys={contradictionDrift?.driftedKeys}
+              reducedMotion={reducedMotion}
+            />
+          )}
           <p
             style={{
               fontFamily: "var(--font-mono)",
@@ -450,8 +521,9 @@ export function GraphCanvasView({
               margin: "8px 2px 0",
             }}
           >
-            drag to explore · scroll to zoom · click focuses · double-click opens the story · Esc
-            releases
+            {view === "3D"
+              ? "drag to orbit · scroll to zoom · click focuses · double-click opens the story · Esc releases"
+              : "drag to explore · scroll to zoom · click focuses · double-click opens the story · Esc releases"}
           </p>
         </div>
         {storyNode ? (
