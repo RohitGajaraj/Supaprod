@@ -12,6 +12,11 @@ import {
   updateNotificationPreferences,
   type UserNotificationPreferences,
 } from "@/lib/notifications.functions";
+import {
+  getFeedbackPrefs,
+  setFeedbackPrefs,
+  fireFeedback,
+} from "@/lib/interaction-feedback";
 
 const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; desc: string }[] = [
   { key: "Approvals", label: "Approvals Needed", desc: "Tool runs waiting on human decision." },
@@ -70,6 +75,11 @@ export function NotificationsTab() {
   const [digestFrequency, setDigestFrequency] = useState<"daily" | "weekly">("daily");
   const [stakeholderUpdate, setStakeholderUpdate] = useState(false);
   const [stakeholderAudience, setStakeholderAudience] = useState<"exec" | "eng" | "board">("exec");
+
+  // Interaction feedback is a client-local preference (localStorage), not a
+  // server-stored notification pref, so it applies instantly with no save.
+  const [feedbackSound, setFeedbackSound] = useState(() => getFeedbackPrefs().sound);
+  const [feedbackHaptics, setFeedbackHaptics] = useState(() => getFeedbackPrefs().haptics);
 
   useEffect(() => {
     const p = prefsQuery.data?.preferences;
@@ -248,6 +258,44 @@ export function NotificationsTab() {
             </select>
           </label>
         ) : null}
+      </div>
+
+      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+        <MonoLabel style={{ marginBottom: 4 }}>Interaction feedback</MonoLabel>
+        <p style={{ fontSize: 11, color: "var(--ink-muted)", margin: "0 0 14px" }}>
+          Sound and touch feedback on actions. Applies instantly on this device. Sound is
+          synthesized and subtle; haptics only fire on devices that support it.
+        </p>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <input
+            type="checkbox"
+            checked={feedbackSound}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setFeedbackSound(next);
+              setFeedbackPrefs({ sound: next });
+              if (next) fireFeedback("success");
+            }}
+            style={CHK}
+            aria-label="Sound effects on actions"
+          />
+          <span style={{ fontSize: 13 }}>Sound effects</span>
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={feedbackHaptics}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setFeedbackHaptics(next);
+              setFeedbackPrefs({ haptics: next });
+              if (next) fireFeedback("select");
+            }}
+            style={CHK}
+            aria-label="Haptic feedback on supported devices"
+          />
+          <span style={{ fontSize: 13 }}>Haptics (supported devices)</span>
+        </label>
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
