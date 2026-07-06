@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { fireFeedback } from "@/lib/interaction-feedback";
 
 /** Hex -> rgba string. Used to derive tinted fills/borders from the real
  * Obsidian hue tokens (never an invented hex) at the exact alpha the
@@ -162,12 +163,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       style,
       children,
+      onPointerDown,
       ...props
     },
     ref,
   ) => {
     const isDisabled = Boolean(disabled) || loading;
     const isLink = variant === "link";
+    // Interaction-Feel Law: a light, immediate feedback tick on press (Rauno:
+    // respond on intent, not on release). Primary actions are a touch more
+    // pronounced; the rest whisper. Sound is off unless the user opts in.
+    const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (!isDisabled) fireFeedback(variant === "primary" ? "select" : "tap");
+      onPointerDown?.(e);
+    };
     return (
       <button
         ref={ref}
@@ -188,6 +197,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           ...BUTTON_VARIANT_STYLE[variant],
           ...style,
         }}
+        onPointerDown={handlePointerDown}
         {...props}
       >
         <span
