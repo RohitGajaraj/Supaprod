@@ -153,7 +153,7 @@ export function BrainStatTrio() {
       {hasDecisionsTrend ? (
         <div>
           <MonoLabel style={{ fontSize: "var(--text-mono-micro)" }}>CALLS · LAST 8 WEEKS</MonoLabel>
-          <SketchLine data={stats.decisionsTrend} color="var(--teal)" w={140} h={32} />
+          <SketchLine data={stats.decisionsTrend} color="var(--ember)" w={140} h={32} />
         </div>
       ) : null}
       <span className="flex-1" />

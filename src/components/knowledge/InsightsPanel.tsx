@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { SpotlightCard } from "@/components/obsidian/spotlight";
+import { SketchBar } from "@/components/cadence/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBrainInsights,
@@ -76,8 +77,8 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
     <div
       style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 96, padding: "4px 2px" }}
     >
-      {buckets.map((b) => {
-        const h = Math.round(((b.decisions + b.learnings) / max) * 76);
+      {buckets.map((b, i) => {
+        const pct = ((b.decisions + b.learnings) / max) * 100;
         return (
           <div
             key={b.month}
@@ -92,28 +93,9 @@ function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
           >
             <div
               title={`${b.month}: ${b.decisions} decisions (${b.superseded} revised), ${b.learnings} outcomes`}
-              style={{
-                width: "100%",
-                maxWidth: 34,
-                height: Math.max(3, h),
-                borderRadius: 4,
-                background: "var(--teal)",
-                opacity: 0.85,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-              }}
+              style={{ width: "100%", maxWidth: 34, display: "flex", alignItems: "flex-end" }}
             >
-              {b.superseded > 0 ? (
-                <div
-                  style={{
-                    height: `${Math.round((b.superseded / Math.max(1, b.decisions + b.learnings)) * Math.max(3, h))}px`,
-                    background: "var(--slate)",
-                    borderRadius: "0 0 4px 4px",
-                    opacity: 0.7,
-                  }}
-                />
-              ) : null}
+              <SketchBar pct={Math.max(4, pct)} seed={i + 1} color="var(--ember)" trackH={76} />
             </div>
             <span
               className="mono-label tabular-nums"
