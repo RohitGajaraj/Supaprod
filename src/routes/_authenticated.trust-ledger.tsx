@@ -190,7 +190,9 @@ function ReceiptCard({ r }: { r: TrustReceipt }) {
       style={{
         padding: "16px 18px",
         opacity: r.outcome === "superseded" ? 0.72 : 1,
-        borderLeft: `2px solid ${r.outcome === "superseded" ? "var(--hairline)" : r.status === "pending" ? "var(--ember)" : "var(--hairline-strong)"}`,
+        border: `1px solid ${r.status === "pending" && r.outcome !== "superseded" ? "var(--ember-line)" : "var(--hairline)"}`,
+        background:
+          r.status === "pending" && r.outcome !== "superseded" ? "var(--ember-tint)" : undefined,
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>

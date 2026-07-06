@@ -148,6 +148,50 @@ with gentle motion (drift, parallax, the supersession shimmer along threads).
 Feed it enough data to feel alive. Role-color glows, thread edges, focus/story
 on demand. This is a dedicated build tracked as its own initiative.
 
+### The craft canon (the reference standards, installed as skills)
+
+The founder's north-star references are vendored as usable skills and are the
+craft bar for every surface: **`emil-design-eng` + `animation-vocabulary` +
+`review-animations`** (Emil Kowalski / animations.dev — the motion standards),
+**`design-taste-frontend` / `minimalist-ui` / `high-end-visual-design`** (the
+Taste-Skill anti-slop set), and **`impeccable`** (the .kiro-native build, the
+desloppification catalog). Invoke the fitting skill before building a surface.
+The load-bearing rules distilled from them, enforced everywhere:
+
+- **Motion (Emil's standards).** Only animate `transform` + `opacity` (GPU;
+  never `width`/`height`/`margin`/`top`). Strong custom curves (our tokens
+  already match): `--ease` = `cubic-bezier(0.23,1,0.32,1)` (ease-out, entering/
+  exiting), `--ease-in-out` = `cubic-bezier(0.77,0,0.175,1)` (on-screen move),
+  `--ease-drawer` for drawers. **Never `ease-in` on UI. Never `scale(0)`** (start
+  `0.95` + opacity). UI motion **under 300ms** (press 100-160, popover 125-200,
+  dropdown 150-250, drawer 200-500). CSS **transitions, not keyframes**, for
+  anything rapidly re-triggered (interruptible). **Never animate a
+  keyboard/command action** seen 100+/day. Press feedback: `scale(0.97)` on
+  `:active`. Popovers scale from their trigger; modals from center. Stagger
+  30-80ms. `prefers-reduced-motion` is mandatory (keep opacity/color, drop
+  movement).
+- **Contrast (impeccable).** Body text ≥ 4.5:1, large ≥ 3:1, placeholders 4.5:1.
+  Light-gray-body-on-tinted-near-white is the #1 AI-slop tell and the reason
+  text reads "hard": push meaningful text toward the ink end (`--text-body`+),
+  never `--text-faint` for anything that carries meaning.
+- **Cards are not the reflex answer** (impeccable). Use a card only when it is
+  genuinely the best affordance; **nested cards are always wrong.** Prefer the
+  prominence ladder (§2): spotlight the hero, keep the rest quiet.
+- **Absolute anti-slop bans** (impeccable, enforced on sight): NO colored
+  **side-stripe borders** (`border-left`/`right` > 1px as an accent on cards,
+  rows, callouts) — use a full hairline, a background tint, or a leading
+  indicator instead; the one allowed exception is a single thin ember
+  needs-a-human marker, used sparingly. NO decorative **gradient text**
+  (`background-clip:text` on a gradient) except the one live-machine shimmer.
+  NO em/en dashes anywhere (§8).
+- **Type & layout** (impeccable): hero display ≤ 96px, display letter-spacing
+  ≥ -0.04em, `text-wrap: balance` on h1-h3 + `pretty` on prose, body measure
+  65-75ch, a semantic z-index scale (dropdown → sticky → modal → toast →
+  tooltip), never arbitrary 9999.
+- **Three dials** (Taste-Skill): tune VARIANCE / MOTION / DENSITY to the
+  surface; the tell is the uniform reflex (one identical treatment on
+  everything), not any single choice.
+
 
 
 Role-color semantics (ember = needs-a-human ONLY; glacier = the machine voice;
