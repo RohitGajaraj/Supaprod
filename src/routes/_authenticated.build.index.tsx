@@ -103,12 +103,12 @@ export const Route = createFileRoute("/_authenticated/build/")({
 });
 
 const MODE_PILL: CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  fontSize: "var(--text-mono-floor)",
-  letterSpacing: "0.08em",
-  padding: "4px 10px",
+  fontFamily: "var(--font-ui)",
+  fontSize: "12.5px",
+  fontWeight: 500,
+  padding: "5px 12px",
   borderRadius: "var(--radius-control)",
-  border: "1px solid var(--hairline)",
+  border: "1px solid var(--hairline-strong)",
   cursor: "pointer",
 };
 
