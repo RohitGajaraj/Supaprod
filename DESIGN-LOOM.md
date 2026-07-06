@@ -33,7 +33,122 @@ A dark instrument, lit by meaning. Three additions over v3:
 3. Nothing hidden: the rail shows every home; depth stays on demand, but the
    doors are visible.
 
-## 1. What survives from v3 verbatim (the inherited law)
+## 0.1 The Consumer Production Doctrine (v4.1, founder mission 2026-07-06) — READ FIRST, applies to EVERY surface
+
+> This is the standing law behind the 2026-07-06 "make it consumer-shipping-ready"
+> mission. It supersedes any earlier rule it contradicts. The quality bar is
+> Linear / Stripe / Vercel: ultra-premium, calm, low-friction, never
+> overwhelming. Every one of these applies to EVERY surface, not one screen.
+> Run the whole product through each lens; when a surface fails a lens, fix it.
+
+**1. Affordance is decoupled from emphasis.** The restraint budget limits how
+LOUD a thing is (emphasis), never whether it looks interactive (affordance).
+Every interactive control carries structural affordance: a shape (padding +
+radius) and either a fill or a border, so it can never be mistaken for a
+label. The button hierarchy (primitive `Button` / CSS `.btn`):
+- **Primary** (solid ember gradient, one per view): the main action.
+- **Secondary** (`--surface-raised` + `--hairline-strong` border): the
+  workhorse, unlimited per screen.
+- **Tertiary** (transparent + border + hover fill): lowest-emphasis action,
+  still unmistakably a button.
+- **Link** (glacier text, underline on hover): genuine inline navigation only,
+  never a primary action.
+All buttons use the UI voice in **sentence case, never uppercase mono**.
+Mono-caps is metadata (timestamps, counts, costs, status), never an action.
+**Banned: the borderless, transparent, mono-uppercase "text button."**
+
+**2. Prominence & the spotlight.** Ask of every screen: "what deserves the
+spotlight, and is it getting it?" A key insight, summary, takeaway, or brief
+must NOT submerge into body text. It earns a `SpotlightCard` (lifted surface,
+role-tinted glow field, gradient top-hairline). Prominence is decoupled from
+restraint: a calm screen may still spotlight its one important message.
+Prominence ladder: **Spotlight** (hero insight, aurora/glow, max 1-2 per
+screen) → **Card** (structured content, raised surface + top-light) →
+**Inline** (metadata, quiet).
+
+**3. Aurora / gradient treatment (the flowing-light quality bar).** Score and
+health moments use the `AuroraCard`: two large soft drifting orbs (110-130% of
+the card, partly outside it, pill-radius, `closest-side` radial) + an outer
+glow. This is the v3-prototype Loop Health quality bar. Gradients are
+atmosphere and meaning, never decoration (the six legal homes in §2b).
+
+**4. Reduce the mono-caps overwhelm (clean/premium, borrowed from v2's
+cleanliness).** Obsidian's density of ALL-CAPS MONOSPACE reads as a control
+room. Mono-caps is reserved for genuine metadata + short kickers. Section
+headers, card titles, and content use the serif/UI voices. When in doubt,
+fewer caps, more breathing room. The goal is a premium, editorial calm.
+
+**5. Every feature has a home (discoverability).** No built feature sits
+behind an unreachable route. Every capability is reachable from the rail, a
+surface, the command palette (⌘K), or a clearly-labeled disclosure. Nothing
+is url-only. If a feature has no home, give it one before shipping.
+
+**6. Information architecture must make sense.** Group by user intent, not by
+where there was space. Continuously ask: does this belong here? can it merge?
+Settings holds what a user expects (account, workspace, connections, AI,
+billing). Chrome names the thing a user thinks in (product/workspace context),
+not internal nouns. Pricing lives on a marketing/plan surface, not buried.
+
+**7. Naming & labels.** Buttons, messages, icons, and components are named for
+the OUTCOME, not the mechanism (Engine-Room doctrine). Plain words a PM uses.
+Consistent verbs across the platform (Approve / Send back, Keep / Drop, etc.).
+
+**8. Zero AI-tells in everything displayed (hard, non-negotiable).** No em/en
+dashes, no invisible Unicode, no AI-cliché phrasing in ANY string a user sees
+OR anything the platform generates. This is already the humanized-output law
+(`docs/conventions/humanized-output.md`); v4.1 restates it as a solid standing
+instruction for every surface and every generated message.
+
+**9. Impact-first PM language.** Lead with the outcome, put the metric in
+support. Say "Ship this and checkout conversion should lift, (ICE 8.3)" not
+"ICE 8.3 · revise." Numbers get a scope sentence (what it measures, over what
+window). Never a bare raw score or a raw jargon code as the headline.
+
+**10. Interaction smoothness & feedback (no waiting, no guessing).** Every
+action answers instantly: press feedback (`loom-press` / active-scale), a
+loading state on any async action (never a dead button), optimistic UI where
+safe, a toast or inline confirmation on completion, and a designed skeleton
+(never a blank frame) while data loads. Route transitions use the pending
+skeleton. The user never wonders "did that work?" or "is it stuck?"
+
+**11. Motion communicates meaning.** Subtle, purposeful, fast. Motion in the
+thread/shimmer means the machine is genuinely alive; nothing animates for
+decoration. Respect `prefers-reduced-motion`.
+
+**12. The premium bar.** Consistent spacing on the 4px grid, aligned edges,
+comfortable density, no vague or orphaned chrome. If a section (a rail footer,
+a header, a control cluster) reads as hard, cramped, or floating, it fails the
+bar. Fix alignment, spacing, and grouping until it reads intentional.
+
+**Shared primitives that encode this doctrine** (use them, do not re-invent
+inline): `Button` (affordance hierarchy) · `SpotlightCard` (prominence) ·
+`AuroraCard` (score/health aurora) · `MonoLabel` (metadata only) · the `.btn`
+CSS family. Building a bespoke inline button or a plain-text action is a
+doctrine violation to be corrected on sight.
+
+**13. Strategic screen positioning (anti-scroll).** Important content is not
+buried under long vertical/horizontal scroll. What the user needs most sits
+high and visible; secondary depth collapses (cards, collapsibles, tabs,
+"N more" expanders, slide-overs). A surface should reveal its value in the
+first viewport, not reward scrolling. When a section is long, restructure it
+(group into cards, collapse the tail, promote the hero) rather than stacking.
+No horizontal scroll on primary content; use the desktop width (§4b).
+
+**14. Restore and use every designed element.** The v3 prototype carries
+elements the live app dropped (e.g. the rail's gradient "N agents running ·
+M queued" running-text; the machine-now presence line; aurora treatments).
+Audit against the prototype HTML and restore what delivers value. Every built
+feature is not just reachable (§5) but actively surfaced at the right place
+and time, so the platform's power shows without a hunt.
+
+**15. The knowledge graph is a living 3D universe.** The Brain / memory graph
+is the flagship. It is not a flat 2D vector plane; it is a dark, smooth,
+depth-lit constellation that reads as a universe of decisions and outcomes,
+with gentle motion (drift, parallax, the supersession shimmer along threads).
+Feed it enough data to feel alive. Role-color glows, thread edges, focus/story
+on demand. This is a dedicated build tracked as its own initiative.
+
+
 
 Role-color semantics (ember = needs-a-human ONLY; glacier = the machine voice;
 moss/madder = outcomes; blossom = information; violet = shimmer-only). One

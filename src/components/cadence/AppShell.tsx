@@ -724,7 +724,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
             ))}
 
-            {/* Focus (Flow) mode — a proper labeled row, matching the nav
+            {/* Focus (Flow) mode: a proper labeled row, matching the nav
                 rows, instead of a vague floating icon (Loom v4.1 rail). */}
             <FlowWidget asRow />
 
