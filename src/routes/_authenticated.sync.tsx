@@ -156,8 +156,8 @@ function SyncInboxPage() {
           }}
         />
         <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "12px 0 0", maxWidth: 560 }}>
-          Workspace bindings live here: what this workspace reads and writes, and any sync conflicts
-          that need a call. Your personal accounts connect once in Settings &middot; Connections.
+          Workspace bindings live here: what this workspace reads and writes. Connected accounts
+          (personal OAuth, API keys) are managed in Settings.
         </p>
       </header>
 

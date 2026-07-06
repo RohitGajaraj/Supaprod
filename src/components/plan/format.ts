@@ -1,5 +1,15 @@
 // Plan · OBS-07: pure formatting helpers, no server calls (OBS-07.md step 1).
 
+/**
+ * Strip the machine "[auto]" prefix from a title at render. Auto-triggered
+ * missions/decisions carry this prefix for dedup; it must never reach the
+ * user. Call this on ANY title that may have come from the trigger pipeline.
+ * Idempotent and cheap (regex test + replace).
+ */
+export function stripAutoPrefix(title: string): string {
+  return title.replace(/^\[auto\]\s*/i, "").trim();
+}
+
 export type SpecStateTone = "moss" | "marigold" | "glacier";
 
 export interface SpecStateChip {
@@ -35,7 +45,7 @@ export function measureCaps(measure: string | null): string | null {
  * an ellipsis. Callers keep the untouched title in a `title=` attribute.
  */
 export function decisionOptionLabel(title: string, max = 96): string {
-  const t = title.replace(/^\[auto\]\s*/i, "").trim();
+  const t = stripAutoPrefix(title);
   if (t.length <= max) return t;
   const cut = t.slice(0, max);
   const lastSpace = cut.lastIndexOf(" ");

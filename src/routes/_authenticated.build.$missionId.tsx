@@ -38,6 +38,7 @@ import { CostPanel } from "@/components/studio/CostPanel";
 import { StatusChip, LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { fmtCost } from "@/components/studio/studio-format";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 type Tab = "changes" | "pr" | "preview" | "cost";
 const TABS: Tab[] = ["changes", "pr", "preview", "cost"];
@@ -502,7 +503,7 @@ function BuildSessionPage() {
                   margin: 0,
                 }}
               >
-                {mission.title}
+                {stripAutoPrefix(mission.title)}
               </h1>
               <StatusChip status={mission.status} />
             </div>

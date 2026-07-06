@@ -168,7 +168,7 @@ export function DiscoverSurface() {
       ) : (
         <div
           className="grid items-start"
-          style={{ gridTemplateColumns: "1fr 1.15fr", gap: "24px" }}
+          style={{ gridTemplateColumns: "minmax(280px, 0.85fr) 1.15fr", gap: "24px" }}
         >
           <div ref={signalsRef} id="signals" tabIndex={-1} style={{ outline: "none" }}>
             <SignalFeed />

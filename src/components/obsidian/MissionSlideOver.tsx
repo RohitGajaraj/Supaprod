@@ -32,6 +32,7 @@ import { getStudioSession, type StudioApproval } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { promoteMission } from "@/lib/missions.functions";
 import { fmtCost } from "@/components/studio/studio-format";
+import { stripAutoPrefix } from "@/components/plan/format";
 import type { LoopStep } from "@/lib/ai/loop.server";
 
 export function MissionSlideOver({
@@ -112,7 +113,7 @@ export function MissionSlideOver({
     <SlideOver
       open={!!missionId}
       onClose={onClose}
-      title={mission?.title ?? "Mission"}
+      title={stripAutoPrefix(mission?.title ?? "Mission")}
       footer="Every hop cites the memory it drew on · Esc closes"
     >
       {!mission ? (

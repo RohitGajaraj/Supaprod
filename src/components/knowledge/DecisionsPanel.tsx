@@ -31,6 +31,7 @@ import {
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
@@ -305,7 +306,7 @@ export function DecisionsPanel() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {d.title}
+                    {stripAutoPrefix(d.title)}
                   </span>
                 </span>
                 {d.status === "pending" ? (

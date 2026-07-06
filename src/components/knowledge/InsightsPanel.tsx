@@ -260,10 +260,10 @@ export function InsightsPanel() {
           <div style={{ display: "flex", gap: 24 }}>
             <Stat
               value={String(d.beliefs.standing)}
-              label="still stand"
+              label="decisions stand"
               color="var(--moss-bright)"
             />
-            <Stat value={String(d.beliefs.superseded)} label="revised since" />
+            <Stat value={String(d.beliefs.superseded)} label="revised" />
           </div>
           <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 12, lineHeight: 1.5 }}>
             {totalDecisions === 0

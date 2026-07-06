@@ -28,6 +28,7 @@ import {
 } from "@/lib/trust-ledger.functions";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { shortHead } from "@/lib/trust-verify";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 export const Route = createFileRoute("/_authenticated/trust-ledger")({
   head: () => ({ meta: [{ title: "Trust Ledger · Cadence" }] }),
@@ -189,7 +190,7 @@ function ReceiptCard({ r }: { r: TrustReceipt }) {
       style={{
         padding: "16px 18px",
         opacity: r.outcome === "superseded" ? 0.72 : 1,
-        borderLeft: `2px solid ${r.outcome === "superseded" ? "var(--hairline)" : "var(--ember)"}`,
+        borderLeft: `2px solid ${r.outcome === "superseded" ? "var(--hairline)" : r.status === "pending" ? "var(--ember)" : "var(--hairline-strong)"}`,
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -211,7 +212,7 @@ function ReceiptCard({ r }: { r: TrustReceipt }) {
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)" }}>{r.title}</span>
+            <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)" }}>{stripAutoPrefix(r.title)}</span>
             <OutcomePill outcome={r.outcome} supersededBy={r.supersededBy} />
           </div>
           {r.rationale ? (
@@ -469,7 +470,7 @@ function TrustLedgerPage() {
         style={{ padding: "30px 44px 56px", maxWidth: 880, margin: "0 auto" }}
       >
         <SurfaceHeader
-          kicker="The Engine · Trust"
+          kicker="Trust Ledger"
           icon={ScrollText}
           title="Trust Ledger"
           sub="Every decision and autonomous action, as a receipt: what changed, why, the evidence, who approved it and when, and whether it still stands or was superseded."

@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getDelegateDesk } from "@/lib/delegate-desk.functions";
 import type { DeskLane, DeskMission } from "@/lib/delegate-desk";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 const LANE_ACCENT: Record<string, string> = {
   needsYou: "var(--coral, #e11d48)",
@@ -67,7 +68,7 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
       }}
     >
       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", lineHeight: 1.3 }}>
-        {m.title || "Untitled mission"}
+        {stripAutoPrefix(m.title) || "Untitled mission"}
       </div>
       {m.goal ? (
         <div

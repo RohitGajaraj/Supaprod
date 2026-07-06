@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MonoLabel, VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
-import { measureCaps } from "./format";
+import { measureCaps, decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
   id: string;
@@ -162,7 +162,7 @@ export function BetCard({
             whiteSpace: "nowrap",
           }}
         >
-          {title}
+          {decisionOptionLabel(title)}
         </span>
       </span>
       {capped && (

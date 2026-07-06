@@ -12,6 +12,7 @@ import {
   type RoadmapBucket,
 } from "@/lib/roadmap.functions";
 import { isCommitmentGoverned } from "@/lib/roadmap-governance";
+import { stripAutoPrefix } from "./format";
 import { BetCard } from "./BetCard";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
 
@@ -107,7 +108,7 @@ export function RoadmapColumns() {
     if (bucket === "now") {
       setCeremonyBet({
         id: item.id,
-        title: item.title,
+        title: stripAutoPrefix(item.title),
         outcome: item.outcome,
         measure: item.measure,
       });
@@ -191,19 +192,18 @@ export function RoadmapColumns() {
 
   if (items.length === 0) {
     return (
-      <div
+      <p
         style={{
-          padding: 32,
-          textAlign: "center",
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
+          fontSize: 12,
+          color: "var(--text-subtle)",
+          margin: 0,
+          padding: "8px 0",
+          fontFamily: "var(--font-mono)",
+          letterSpacing: "0.02em",
         }}
       >
-        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-          No bets on the roadmap yet. Commit a ranked opportunity from Discover and give it an
-          outcome · about a minute.
-        </p>
-      </div>
+        No bets on the roadmap yet. Commit a ranked opportunity from Discover.
+      </p>
     );
   }
 
