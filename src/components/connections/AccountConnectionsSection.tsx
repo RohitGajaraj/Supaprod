@@ -2,20 +2,9 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
-import {
-  Calendar,
-  CalendarRange,
-  FileText,
-  Figma,
-  Github,
-  Layers,
-  NotebookText,
-  Plug,
-  SquareKanban,
-  type LucideIcon,
-} from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import { buildConnectorCatalog } from "@/lib/connectors/catalog";
 import {
   deleteConnection,
   disconnectConnection,
@@ -37,16 +26,22 @@ import {
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { ConnectionRow } from "./ConnectionRow";
+import { ProviderLogo } from "./ProviderLogo";
 
-// F-CONN Phase 2 — Settings → "Connected accounts": one quiet list row per
-// CONNECTOR_REGISTRY provider in a single bento group (restyled quiet-Ember
-// for screen 5 wave B). OAuth-only: GitHub uses the App install redirect;
-// everything else goes through the Lovable connector gateway popup (tokens
-// stay in the gateway, we persist only the connection id). The two calendar
-// providers are real rows here too, wired to the existing calendar connection
-// layer (listMyCalendarConnections / startCalendarConnect /
-// saveCalendarConnection / disconnectCalendar — same popup driver as the old
-// CalendarAccountsSection). Workspace-level resource bindings live on /sync.
+// F-CONN Phase 2: Settings, "Connections", the single home for account-level
+// sources, reworked connected-first (2026-07-06). Section A "Connected" lists
+// ONLY providers with a live connection (or calendar account) as the operable
+// rows the user manages; Section B "Add a connection" is the visually-secondary
+// explore area, the remaining not-yet-connected sources grouped by category
+// (buildConnectorCatalog). Every row/card carries the real brand logo
+// (ProviderLogo, inline simple-icons marks). OAuth-only: GitHub uses the App
+// install redirect; everything else goes through the Lovable connector gateway
+// popup (tokens stay in the gateway, we persist only the connection id). The two
+// calendar providers are real rows here too, wired to the existing calendar
+// connection layer (listMyCalendarConnections / startCalendarConnect /
+// saveCalendarConnection / disconnectCalendar, same popup driver as the old
+// CalendarAccountsSection). Workspace-level resource bindings live on /sync
+// (retitled "Sync & bindings"), reachable from the bindings summary link.
 // Anchorable via /settings?section=connections.
 //
 // Screen 6 (loop-detail drill-downs) adds ConnectorDetail — the per-provider
@@ -63,17 +58,6 @@ const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 const CALENDAR_PROVIDERS: Partial<Record<ProviderId, "google" | "microsoft">> = {
   google_calendar: "google",
   microsoft_outlook: "microsoft",
-};
-
-const PROVIDER_ICONS: Partial<Record<ProviderId, LucideIcon>> = {
-  github: Github,
-  linear: Layers,
-  notion: NotebookText,
-  google_docs: FileText,
-  google_calendar: Calendar,
-  microsoft_outlook: CalendarRange,
-  figma: Figma,
-  jira: SquareKanban,
 };
 
 function setupHintFor(spec: ProviderSpec): string {
@@ -292,102 +276,250 @@ export function AccountConnectionsSection({
   );
 
   const availability = list.data?.providerAvailability;
-  const anySetupRequired = visibleProviders.some((spec) => !providerConfigured(spec, availability));
+
+  // Connected-first: a provider is "connected" when it has at least one
+  // account row (connections table) or one calendar account. This is the set
+  // the user operates; everything else is an explore-to-connect option below.
+  const isConnected = (spec: ProviderSpec): boolean => {
+    const cal = CALENDAR_PROVIDERS[spec.id];
+    if (cal) return calendarAccounts.some((c) => c.provider === cal);
+    return (byProvider.get(spec.id)?.length ?? 0) > 0;
+  };
+  const connectedProviders = visibleProviders.filter(isConnected);
+  const connectedIds = new Set<ProviderId>(connectedProviders.map((s) => s.id));
+
+  // One wired connection row (Section A): calendar and OAuth/App providers
+  // keep the exact actions they always had; only the framing changed.
+  const renderConnectionRow = (spec: ProviderSpec) => {
+    const calProvider = CALENDAR_PROVIDERS[spec.id];
+    const common = {
+      provider: spec.id,
+      label: spec.label,
+      description: spec.description,
+      configured: providerConfigured(spec, availability),
+      setupHint: setupHintFor(spec),
+      busy,
+      onDetails: () => onOpenDetail(spec.id),
+    };
+    if (calProvider) {
+      return (
+        <ConnectionRow
+          {...common}
+          onConnect={() => mCalConnect.mutate(calProvider)}
+          accounts={calendarAccounts
+            .filter((c) => c.provider === calProvider)
+            .map((c) => ({
+              id: c.id,
+              label: c.account_email ?? c.display_name ?? "Connected account",
+            }))}
+          onDisconnectAccount={async (id) => {
+            const ok = await confirm({
+              title: "Disconnect this calendar?",
+              body: "Stored events stay but no further sync will happen.",
+              confirmLabel: "Disconnect",
+              destructive: true,
+            });
+            if (ok) mCalDisconnect.mutate(id);
+          }}
+        />
+      );
+    }
+    return (
+      <ConnectionRow
+        {...common}
+        onConnect={() =>
+          spec.authMethods.some((m) => m.kind === "github_app")
+            ? mGithub.mutate()
+            : mGateway.mutate(spec)
+        }
+        connections={byProvider.get(spec.id) ?? []}
+        onVerify={(c) => mVerify.mutate(c.id)}
+        onDisconnect={async (c) => {
+          const ok = await confirm({
+            title: "Disconnect this account?",
+            body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
+            confirmLabel: "Disconnect",
+            destructive: true,
+          });
+          if (ok) mDisconnect.mutate(c.id);
+        }}
+        onRemove={async (c) => {
+          const ok = await confirm({
+            title: "Remove this connection?",
+            body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
+            confirmLabel: "Remove",
+            destructive: true,
+          });
+          if (ok) mDelete.mutate(c.id);
+        }}
+      />
+    );
+  };
+
+  // The connect flow for a not-yet-connected provider (Section B).
+  const connectProvider = (spec: ProviderSpec) => {
+    const cal = CALENDAR_PROVIDERS[spec.id];
+    if (cal) mCalConnect.mutate(cal);
+    else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
+    else mGateway.mutate(spec);
+  };
+
+  // Section B: the remaining, not-yet-connected sources, grouped by category
+  // from the one canonical catalog (dropped from the list once connected).
+  const catalogGroups = buildConnectorCatalog()
+    .map((group) => ({
+      ...group,
+      entries: group.entries.filter((e) => !connectedIds.has(e.id)),
+    }))
+    .filter((group) => group.entries.length > 0);
+  const anySetupRequired = catalogGroups.some((g) =>
+    g.entries.some((e) => !providerConfigured(CONNECTOR_REGISTRY[e.id], availability)),
+  );
 
   return (
-    <section id="connections" className="bento" style={{ padding: "var(--card-pad)" }}>
-      <MonoLabel style={{ marginBottom: 4 }}>Connected accounts</MonoLabel>
-      <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>
-        Connect tools once; pick what each workspace uses on Connections.
-      </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Section A, Connected: what is feeding Cadence right now. */}
+      <section id="connections" className="bento" style={{ padding: "var(--card-pad)" }}>
+        <MonoLabel style={{ marginBottom: 4 }}>Connected</MonoLabel>
+        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>
+          The sources feeding Cadence now. Verify, manage, or disconnect any of them here.
+        </p>
 
-      {list.isLoading ? (
-        <div className="mono-label" style={{ color: "var(--ink-faint)", padding: "16px 0" }}>
-          loading…
-        </div>
-      ) : (
-        <>
-          <div>
-            {visibleProviders.map((spec, i) => {
-              const rowBorder =
-                i < visibleProviders.length - 1 ? "1px solid var(--hairline)" : "none";
-              const calProvider = CALENDAR_PROVIDERS[spec.id];
-              const common = {
-                icon: PROVIDER_ICONS[spec.id] ?? Plug,
-                label: spec.label,
-                description: spec.description,
-                configured: providerConfigured(spec, availability),
-                setupHint: setupHintFor(spec),
-                busy,
-                onDetails: () => onOpenDetail(spec.id),
-              };
-              if (calProvider) {
-                return (
-                  <div key={spec.id} style={{ borderBottom: rowBorder }}>
-                    <ConnectionRow
-                      {...common}
-                      onConnect={() => mCalConnect.mutate(calProvider)}
-                      accounts={calendarAccounts
-                        .filter((c) => c.provider === calProvider)
-                        .map((c) => ({
-                          id: c.id,
-                          label: c.account_email ?? c.display_name ?? "Connected account",
-                        }))}
-                      onDisconnectAccount={async (id) => {
-                        const ok = await confirm({
-                          title: "Disconnect this calendar?",
-                          body: "Stored events stay but no further sync will happen.",
-                          confirmLabel: "Disconnect",
-                          destructive: true,
-                        });
-                        if (ok) mCalDisconnect.mutate(id);
-                      }}
-                    />
-                  </div>
-                );
-              }
-              return (
-                <div key={spec.id} style={{ borderBottom: rowBorder }}>
-                  <ConnectionRow
-                    {...common}
-                    onConnect={() =>
-                      spec.authMethods.some((m) => m.kind === "github_app")
-                        ? mGithub.mutate()
-                        : mGateway.mutate(spec)
-                    }
-                    connections={byProvider.get(spec.id) ?? []}
-                    onVerify={(c) => mVerify.mutate(c.id)}
-                    onDisconnect={async (c) => {
-                      const ok = await confirm({
-                        title: "Disconnect this account?",
-                        body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
-                        confirmLabel: "Disconnect",
-                        destructive: true,
-                      });
-                      if (ok) mDisconnect.mutate(c.id);
-                    }}
-                    onRemove={async (c) => {
-                      const ok = await confirm({
-                        title: "Remove this connection?",
-                        body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
-                        confirmLabel: "Remove",
-                        destructive: true,
-                      });
-                      if (ok) mDelete.mutate(c.id);
-                    }}
-                  />
-                </div>
-              );
-            })}
+        {list.isLoading ? (
+          <div className="mono-label" style={{ color: "var(--ink-faint)", padding: "16px 0" }}>
+            loading…
           </div>
-          {anySetupRequired && (
-            <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 8 }}>
-              Grayed providers are coming soon. An admin can register the OAuth app to turn one on.
-            </p>
-          )}
-        </>
-      )}
-    </section>
+        ) : connectedProviders.length === 0 ? (
+          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", padding: "6px 0 2px" }}>
+            Nothing connected yet. Add your first source below.
+          </p>
+        ) : (
+          <div>
+            {connectedProviders.map((spec, i) => (
+              <div
+                key={spec.id}
+                style={{
+                  borderBottom:
+                    i < connectedProviders.length - 1 ? "1px solid var(--hairline)" : "none",
+                }}
+              >
+                {renderConnectionRow(spec)}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Section B, Add a connection: explore and connect, visually secondary. */}
+      <section>
+        <MonoLabel style={{ marginBottom: 4 }}>Add a connection</MonoLabel>
+        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 14 }}>
+          Connect a tool once; then pick what each workspace uses under workspace sync and bindings.
+        </p>
+
+        {!list.isLoading && catalogGroups.length === 0 ? (
+          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+            Everything available is already connected.
+          </p>
+        ) : (
+          <div style={{ display: "grid", gap: 20 }}>
+            {catalogGroups.map((group) => (
+              <div key={group.id}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 8,
+                    marginBottom: 8,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <h3 className="mono-label" style={{ margin: 0, color: "var(--ink)" }}>
+                    {group.label}
+                  </h3>
+                  <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>{group.blurb}</span>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: 8,
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                  }}
+                >
+                  {group.entries.map((e) => {
+                    const spec = CONNECTOR_REGISTRY[e.id];
+                    const configured = providerConfigured(spec, availability);
+                    return (
+                      <div
+                        key={e.id}
+                        className="bento"
+                        style={{ padding: 12, opacity: configured ? 1 : 0.6 }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <ProviderLogo provider={e.id} size={30} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 8,
+                              }}
+                            >
+                              <span style={{ fontWeight: 500, color: "var(--ink)", fontSize: 13.5 }}>
+                                {e.label}
+                              </span>
+                              <span
+                                className="mono-label"
+                                style={{
+                                  border: "1px solid var(--hairline)",
+                                  borderRadius: 99,
+                                  padding: "2px 8px",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {e.flowLabel}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "4px 0 0" }}>
+                              {e.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 10,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm loom-press"
+                            disabled={busy || !configured}
+                            title={configured ? undefined : setupHintFor(spec)}
+                            onClick={() => connectProvider(spec)}
+                          >
+                            {configured ? "Connect" : "Coming soon"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {anySetupRequired && (
+          <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 12 }}>
+            Grayed providers are coming soon. An admin can register the OAuth app to turn one on.
+          </p>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -637,7 +769,8 @@ export function ConnectorDetail({
           <MonoLabel style={{ marginBottom: 10 }}>What it feeds · workspace bindings</MonoLabel>
           {provBindings.length === 0 ? (
             <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
-              No workspace bindings yet. Bind repos, projects, or pages on Connections.
+              No workspace bindings yet. Bind repos, projects, or pages under workspace sync and
+              bindings.
             </p>
           ) : (
             <ul

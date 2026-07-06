@@ -20,7 +20,7 @@ export type ActVerb = { label: string; run: PaletteRun };
 
 export const ACT_VERBS: readonly ActVerb[] = [
   { label: "Challenge a belief", run: { to: "/discover", search: { tab: "opportunities" } } },
-  { label: "Connect a source", run: { to: "/sync" } },
+  { label: "Connect a source", run: { to: "/settings", search: { section: "connections" } } },
   { label: "Answer the current Call", run: { to: "/today" } },
   { label: "Ask about this screen", run: { to: "/today", event: "cadence:open-ask" } },
 ];

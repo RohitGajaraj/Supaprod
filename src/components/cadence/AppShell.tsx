@@ -265,7 +265,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       "Discovery feed · opportunities ranked by ICE score, signals, analytics, competitor moves.",
     "/plan": "Plan · cited specs and the outcome-declared roadmap.",
     "/settings": "Settings · account, workspace, connections, AI keys, billing.",
-    "/sync": "Connections · available sources, connected repos, sync mappings.",
+    "/sync": "Sync and bindings · workspace bindings, sync conflicts, recently-synced items.",
     "/trust": "Trust and privacy statement.",
   };
 

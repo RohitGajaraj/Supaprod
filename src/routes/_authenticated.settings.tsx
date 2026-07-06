@@ -1553,8 +1553,8 @@ function WorkspaceBindingsSummary() {
           style={{ fontSize: 12.5, color: "var(--blossom)" }}
         >
           {bindings.length === 0
-            ? "Set up bindings on Connections →"
-            : "Manage bindings on Connections →"}
+            ? "Set up workspace sync and bindings →"
+            : "Manage workspace sync and bindings →"}
         </Link>
       </div>
     </div>

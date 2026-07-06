@@ -60,7 +60,7 @@ export const CATALOG: CatalogEntry[] = [
     id: "connect-source",
     pitch: "Connect a source",
     kind: "SOURCE",
-    run: { to: "/sync" },
+    run: { to: "/settings", search: { section: "connections" } },
   },
   {
     id: "check-spend",

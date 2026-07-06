@@ -1,10 +1,12 @@
-// Connections (the /sync route) — the bindings home. Loom W2 (2026-07-04):
-// v4 token pass over the last wholly-parchment surface, the §8 rename (the
-// user-facing label is Connections everywhere; the /sync path stays), a
-// back-link to Settings > Connections (one-home rule: account-level lives
-// there, workspace bindings live here), honest states (mappings error is an
-// error, never "no conflicts"; unsupported pull/push reads "read-only", not
-// two dead buttons), and humanized provider/version copy.
+// Sync & bindings (the /sync route). This surface owns ONE job: workspace and
+// product bindings (what this workspace reads and writes), sync conflicts,
+// recently-synced items, and the webhook "Send anything in" card. It is NO
+// longer a second "Connections": account-level connecting lives entirely in
+// Settings > Connections, and the old "Available sources" catalog was removed
+// here to kill the duplication (2026-07-06). Reached from the Settings >
+// Connections bindings summary link (it is off the primary nav rail). Honest
+// states (mappings error is an error, never "no conflicts"; unsupported
+// pull/push reads "read-only", not two dead buttons) and humanized copy.
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -27,13 +29,12 @@ import { ProductBindingsSection } from "@/components/connections/ProductBindings
 import { listSyncMappings, resolveSyncConflict } from "@/lib/integrations.functions";
 import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
-import { buildConnectorCatalog } from "@/lib/connectors/catalog";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { useWorkspace } from "@/hooks/use-workspace";
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncInboxPage,
-  head: () => ({ meta: [{ title: "Connections · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Sync & bindings · Cadence" }] }),
 });
 
 type Mapping = {
@@ -141,7 +142,7 @@ function SyncInboxPage() {
             margin: 0,
           }}
         >
-          Connections
+          Sync &amp; bindings
         </h1>
         <span
           aria-hidden="true"
@@ -156,12 +157,10 @@ function SyncInboxPage() {
           }}
         />
         <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "12px 0 0", maxWidth: 560 }}>
-          Workspace bindings live here: what this workspace reads and writes. Connected accounts
-          (personal OAuth, API keys) are managed in Settings.
+          What this workspace reads and writes: bindings, sync conflicts, and recently-synced
+          items. To connect a source, go to Settings &middot; Connections.
         </p>
       </header>
-
-      <ConnectorCatalogSection />
 
       <WorkspaceBindingsSection />
 
@@ -478,123 +477,6 @@ function SyncInboxPage() {
 
       <WebhookIngestCard />
     </div>
-  );
-}
-
-// CONNECTORS-V11 (#14): the one de-duped, categorized catalog of every source
-// Cadence can connect — the "available sources" home. Reads the pure catalog
-// model so the list is consistent everywhere; connecting routes to the
-// canonical account surface in Settings (OAuth wiring is founder-gated —
-// F-CONN / SEN-01).
-function ConnectorCatalogSection() {
-  const catalog = buildConnectorCatalog();
-  const total = catalog.reduce((n, g) => n + g.entries.length, 0);
-  return (
-    <section style={{ marginBottom: 40 }}>
-      <div style={{ marginBottom: 6 }}>
-        <SectionTitle>Available sources ({total})</SectionTitle>
-      </div>
-      <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "0 0 16px", maxWidth: 560 }}>
-        Every source Cadence can connect, in one place. Connect any of them from{" "}
-        <Link
-          to="/settings"
-          search={{ section: "connections" }}
-          style={{ color: "var(--blossom, #d8a6e0)", textDecoration: "underline" }}
-        >
-          Settings · Connections
-        </Link>
-        ; anything that can send a webhook works on day one via the card below.
-      </p>
-      <div style={{ display: "grid", gap: 24 }}>
-        {catalog.map((group) => (
-          <div key={group.id}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: 8,
-                marginBottom: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              <h3 className="mono-label" style={{ margin: 0, color: "var(--ink)" }}>
-                {group.label}
-              </h3>
-              <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>{group.blurb}</span>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gap: 8,
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-              }}
-            >
-              {group.entries.map((e) => (
-                <div key={e.id} className="bento" style={{ padding: 12 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 8,
-                    }}
-                  >
-                    <span style={{ fontWeight: 500, color: "var(--ink)", fontSize: 13.5 }}>
-                      {e.label}
-                    </span>
-                    <span
-                      className="mono-label"
-                      style={{
-                        border: "1px solid var(--hairline)",
-                        borderRadius: 99,
-                        padding: "2px 8px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {e.flowLabel}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "6px 0 0" }}>
-                    {e.description}
-                  </p>
-                  <div
-                    style={{
-                      marginTop: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      fontSize: 11.5,
-                      color: "var(--ink-subtle)",
-                    }}
-                  >
-                    {e.resourceLabel && (
-                      <span>
-                        Binds {/^[aeiou]/i.test(e.resourceLabel) ? "an" : "a"}{" "}
-                        {e.resourceLabel.toLowerCase()}
-                      </span>
-                    )}
-                    <Link
-                      to="/settings"
-                      search={{ section: "connections" }}
-                      style={{
-                        marginLeft: "auto",
-                        color: "var(--blossom, #d8a6e0)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 2,
-                      }}
-                    >
-                      Connect
-                      <ChevronRight size={12} />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }
 

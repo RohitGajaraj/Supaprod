@@ -11,7 +11,7 @@
  * retires the hover-menu door for a VISIBLE grouped rail (DESIGN-LOOM §8):
  *
  *   THE LOOP    01 Today · 02 Discover · 03 Plan · 04 Build · 05 Brain
- *   THE ENGINE  06 Engine Room · 07 Trust Ledger · 08 Connections
+ *   THE ENGINE  06 Engine Room · 07 Trust Ledger
  *   (footer)    Settings · Admin (role-gated) · the user chip menu
  *
  * Everything reachable by clicking; depth stays on demand behind the visible
@@ -41,16 +41,17 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
 ];
 
 /**
- * THE ENGINE — the machinery group, VISIBLE in the rail (LOOM retires the
+ * THE ENGINE: the machinery group, VISIBLE in the rail (LOOM retires the
  * hover-menu door; these are direct rows). The Engine Room row is the glance
  * (four rooms inside; /govern remains its drill layer); Trust Ledger is the
- * receipts surface; Connections is the workspace bindings home (/sync).
- * Approvals are Calls on Today, NEVER here (contract §8).
+ * receipts surface. Connections was removed from the rail (2026-07-06): the
+ * single connect home is Settings > Connections, and /sync (retitled "Sync &
+ * bindings") is reached from there, not the primary nav. Approvals are Calls
+ * on Today, NEVER here (contract §8).
  */
 export const ENGINE_GROUP: readonly NavItemDef[] = [
   { to: "/engine-room", label: "Engine Room", index: "06" },
   { to: "/trust-ledger", label: "Trust Ledger", index: "07" },
-  { to: "/sync", label: "Connections", index: "08" },
 ];
 
 /**

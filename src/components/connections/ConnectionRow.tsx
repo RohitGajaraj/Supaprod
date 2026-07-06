@@ -1,32 +1,8 @@
 import type { ReactNode } from "react";
 import { StatusDot } from "@/components/obsidian";
 import type { ConnectionRow as AccountConnection } from "@/lib/connections.functions";
-
-// OBS-13 - the provider monogram tile: a mono initial on `--raised`, no
-// lucide icon set (iconography law). Kept local since this is the one
-// consumer that needs a from-label glyph.
-function Monogram({ label }: { label: string }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        width: 32,
-        height: 32,
-        borderRadius: "var(--radius-control)",
-        background: "var(--raised)",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--text-subtle)",
-        fontFamily: "var(--font-ui)",
-        fontSize: 13,
-        fontWeight: 600,
-        flexShrink: 0,
-      }}
-    >
-      {label.charAt(0).toUpperCase()}
-    </span>
-  );
-}
+import type { ProviderId } from "@/lib/connectors/registry";
+import { ProviderLogo } from "./ProviderLogo";
 
 // OBS-13 §8 connection-card anatomy. Provider · scope · owner · glowing
 // status word · last sync (mono) · permissions · ONE action. Presentational
@@ -245,6 +221,7 @@ function ConnectedRow({
 }
 
 export function ConnectionRow({
+  provider,
   label,
   configured,
   setupHint,
@@ -258,7 +235,9 @@ export function ConnectionRow({
   onDisconnectAccount,
   onDetails,
 }: {
-  /** Accepted for caller compatibility; OBS-13 replaced the lucide tile with a monogram (see Monogram above), so this is no longer rendered. */
+  /** The connector this row represents; drives the brand logo tile. */
+  provider: ProviderId;
+  /** Accepted for caller compatibility; the brand logo comes from `provider` (ProviderLogo), so this is no longer rendered. */
   icon?: unknown;
   label: string;
   /** Accepted for caller compatibility; the §8 anatomy's mono metadata line replaces the free-text sentence this used to render. */
@@ -286,7 +265,7 @@ export function ConnectionRow({
   return (
     <div style={configured ? undefined : { opacity: 0.6 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0" }}>
-        <Monogram label={label} />
+        <ProviderLogo provider={provider} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4, color: "var(--text-primary)" }}

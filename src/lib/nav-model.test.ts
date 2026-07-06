@@ -10,12 +10,13 @@ import {
 import { CANONICAL_PATHS } from "./legacy-redirects";
 
 /**
- * IA-NAV-V11 → OBS-02 → OBS-10 → LOOM W1 — the rail is one calm grouped
+ * IA-NAV-V11 → OBS-02 → OBS-10 → LOOM W1: the rail is one calm grouped
  * list where EVERYTHING is reachable by clicking (the LOOM visibility law):
- * THE LOOP (5 destinations) + THE ENGINE (3 visible rows, replacing the
- * retired hover-menu door) + the footer (Settings, role-gated Admin). These
- * tests lock the invariants: unique live paths, no /chat, no /knowledge
- * (renamed /brain), the engine group orphans nothing the old door exposed.
+ * THE LOOP (5 destinations) + THE ENGINE (2 visible rows: Engine Room, Trust
+ * Ledger) + the footer (Settings, role-gated Admin). Connections was removed
+ * from the rail (2026-07-06): connecting lives in Settings > Connections and
+ * /sync (Sync & bindings) is reached from there. These tests lock the
+ * invariants: unique live paths, no /chat, no /knowledge (renamed /brain).
  */
 
 describe("nav-model - THE LOOP (primary destinations)", () => {
@@ -54,20 +55,16 @@ describe("nav-model - THE LOOP (primary destinations)", () => {
 });
 
 describe("nav-model - THE ENGINE (visible machinery group)", () => {
-  it("exposes exactly Engine Room, Trust Ledger, Connections with indices 06-08", () => {
-    expect(ENGINE_GROUP.map((n) => n.label)).toEqual([
-      "Engine Room",
-      "Trust Ledger",
-      "Connections",
-    ]);
-    expect(ENGINE_GROUP.map((n) => n.index)).toEqual(["06", "07", "08"]);
+  it("exposes exactly Engine Room and Trust Ledger with indices 06-07 (Connections moved to Settings)", () => {
+    expect(ENGINE_GROUP.map((n) => n.label)).toEqual(["Engine Room", "Trust Ledger"]);
+    expect(ENGINE_GROUP.map((n) => n.index)).toEqual(["06", "07"]);
   });
 
-  it("orphans nothing the retired door exposed (trust-ledger + sync stay reachable)", () => {
+  it("keeps engine-room + trust-ledger in the rail; /sync is off the rail (reached from Settings > Connections)", () => {
     const targets = ENGINE_GROUP.map((n) => n.to);
     expect(targets).toContain("/engine-room");
     expect(targets).toContain("/trust-ledger");
-    expect(targets).toContain("/sync");
+    expect(targets).not.toContain("/sync");
   });
 
   it("Approvals never appears here (approvals are Calls on Today, contract §8)", () => {
