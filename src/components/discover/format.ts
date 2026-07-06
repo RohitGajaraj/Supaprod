@@ -28,6 +28,14 @@ export function sourceCaps(source: string): string {
   return source.toUpperCase();
 }
 
+/** A short, stable, system-generated reference derived from the real id (the
+ * first 6 alphanumerics of the uuid, upper-cased). Gives any artifact a
+ * human-quotable trace handle without ever exposing the raw uuid. Reusable
+ * platform-wide. */
+export function traceRef(id: string): string {
+  return id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase();
+}
+
 /** Loom W2 (audit D-12): a hung server fn must reject instead of leaving the
  * surface on a permanent skeleton (the h3-swallowed-500 class never settles
  * react-query on its own). Race the call against a deadline so the error

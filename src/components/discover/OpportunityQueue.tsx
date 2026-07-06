@@ -19,6 +19,7 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
+import { OpportunityDetailSheet } from "./OpportunityDetailSheet";
 import { SkeletonBar } from "./SkeletonBar";
 
 const CHALLENGE_TOAST_ID = "obs-discover-challenge";
@@ -51,6 +52,7 @@ export function OpportunityQueue() {
       return next;
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   // Anti-scroll (founder ruling 2026-07-06): the queue shows the top bets and
   // expands on demand, so it never becomes a long wall.
   const [showAll, setShowAll] = useState(false);
@@ -204,6 +206,7 @@ export function OpportunityQueue() {
   }
 
   const rows = [...(opps.data?.opportunities ?? [])].sort((a, b) => b.ice_score - a.ice_score);
+  const activeOpp = openId ? (rows.find((o) => o.id === openId) ?? null) : null;
 
   return (
     <div className="grid gap-3">
@@ -247,6 +250,10 @@ export function OpportunityQueue() {
               sub={sub}
               verdict={verdict}
               hasPencil={i === 0}
+              onOpen={() => setOpenId(o.id)}
+              status={o.status}
+              id={o.id}
+              updatedAt={o.updated_at}
               onChallenge={() => challenge.mutate(o.id)}
               challengePending={rowBusy && challenge.isPending}
               actionsPending={rowBusy}
@@ -295,6 +302,33 @@ export function OpportunityQueue() {
         kind="opportunity"
         id={lineageId}
         title={rows.find((o) => o.id === lineageId)?.title}
+      />
+      <OpportunityDetailSheet
+        open={!!openId}
+        onOpenChange={(open) => !open && setOpenId(null)}
+        opportunity={activeOpp}
+        verdict={activeOpp ? verdictFor(activeOpp) : "PENDING"}
+        onChallenge={() => activeOpp && challenge.mutate(activeOpp.id)}
+        onDraftSpec={() => activeOpp && draftSpec.mutate(activeOpp.id)}
+        onViewLineage={() => {
+          if (!activeOpp) return;
+          setOpenId(null);
+          setLineageId(activeOpp.id);
+        }}
+        onSetStatus={(status) => activeOpp && setStatus.mutate({ id: activeOpp.id, status })}
+        onDelete={async () => {
+          if (!activeOpp) return;
+          const ok = await confirm({
+            title: "Delete this opportunity?",
+            body: `This removes "${activeOpp.title}" permanently. Its lineage and any linked signals stay, but the opportunity itself is gone.`,
+            destructive: true,
+            confirmLabel: "Delete opportunity",
+          });
+          if (ok) {
+            del.mutate(activeOpp.id);
+            setOpenId(null);
+          }
+        }}
       />
     </div>
   );

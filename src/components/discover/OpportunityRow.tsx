@@ -8,7 +8,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { VerdictWord } from "./format";
+import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 
 export const OPPORTUNITY_STATUSES = [
   "backlog",
@@ -19,6 +19,70 @@ export const OPPORTUNITY_STATUSES = [
   "dropped",
 ] as const;
 export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
+
+/** The six lane statuses, each mapped to a semantic token tone and a
+ * sentence-case label. Tokened tones only (ember stays reserved for the one
+ * Capture CTA): glacier for the active lanes, moss for shipped, madder for
+ * dropped, quiet text tones for the parked ends. Shared by the row and the
+ * detail sheet so a status reads the same wherever it appears. */
+export const STATUS_META: Record<OpportunityStatus, { color: string; label: string }> = {
+  backlog: { color: "var(--text-faint)", label: "Backlog" },
+  now: { color: "var(--glacier)", label: "Now" },
+  next: { color: "var(--glacier)", label: "Next" },
+  later: { color: "var(--text-muted)", label: "Later" },
+  shipped: { color: "var(--moss)", label: "Shipped" },
+  dropped: { color: "var(--madder)", label: "Dropped" },
+};
+
+/** A sentence-case label for a lane status, safe for an unknown value. */
+export function statusLabel(status: string): string {
+  return STATUS_META[status as OpportunityStatus]?.label ?? status;
+}
+
+/** A small tokened pill naming the current lane status, so the stage is
+ * visible without opening the Move-to menu. Rounded, hairline, mono 10px,
+ * sentence-case. */
+export function StatusPill({ status, className }: { status: string; className?: string }) {
+  const meta = STATUS_META[status as OpportunityStatus] ?? {
+    color: "var(--text-faint)",
+    label: status,
+  };
+  return (
+    <span
+      className={className}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "10px",
+        letterSpacing: "0.02em",
+        color: meta.color,
+        border: "1px solid var(--hairline)",
+        borderRadius: "999px",
+        padding: "2px 8px",
+        flexShrink: 0,
+        lineHeight: 1.4,
+      }}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
+/** A quiet mono trace chip, `OPP·XXXXXX`, so every bet carries a stable,
+ * human-quotable reference. Display-only on the card (the sheet adds copy). */
+function TraceChip({ id }: { id: string }) {
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "9.5px",
+        letterSpacing: "0.06em",
+        color: "var(--text-subtle)",
+      }}
+    >
+      OPP·{traceRef(id)}
+    </span>
+  );
+}
 
 export interface OpportunityRowProps {
   ice: number;
@@ -35,6 +99,16 @@ export interface OpportunityRowProps {
   onDelete?: () => void;
   onSetStatus?: (status: OpportunityStatus) => void;
   actionsPending?: boolean;
+  /** Click-to-open: a single click (or Enter/Space) on the card body opens the
+   * detail sheet. Every action control stops propagation so it never also
+   * fires this. */
+  onOpen?: () => void;
+  /** The current lane status, shown as a pill on the card. */
+  status?: string;
+  /** The real opportunity id, source of the trace ref chip. */
+  id?: string;
+  /** Last-change timestamp, shown as a quiet "updated ..." caption. */
+  updatedAt?: string;
 }
 
 /**
@@ -43,7 +117,8 @@ export interface OpportunityRowProps {
  * VerdictChip's own neutral rather than forking a second PENDING style) and
  * `PencilNote` (the app's one pencil-annotation anatomy) rather than
  * hand-rolling row-local variants, per the "one object, one anatomy" law.
- * The `⋯` overflow (draft spec / lineage / status / delete) matches
+ * The card body is a single-click affordance that opens the detail sheet; the
+ * `⋯` overflow (draft spec / lineage / status / delete) matches
  * `BuildMissionRow`'s and `SignalCard`'s established secondary-actions
  * pattern rather than crowding a third button onto the row.
  */
@@ -60,11 +135,21 @@ export function OpportunityRow({
   onDelete,
   onSetStatus,
   actionsPending = false,
+  onOpen,
+  status,
+  id,
+  updatedAt,
 }: OpportunityRowProps) {
   const hasActions = onDraftSpec || onLineage || onDelete || onSetStatus;
+  const clickable = Boolean(onOpen);
+  const hasMeta = Boolean(id || updatedAt);
   return (
     <div
-      className="relative flex items-center transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]"
+      className={`relative flex items-center transition-[background-color,box-shadow,transform] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
+        clickable
+          ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          : ""
+      }`}
       style={{
         backgroundColor: "var(--card)",
         border: "1px solid var(--hairline)",
@@ -74,6 +159,21 @@ export function OpportunityRow({
         transitionDuration: "var(--dur-control)",
         transitionTimingFunction: "var(--ease)",
       }}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `Open ${title}` : undefined}
+      onClick={clickable ? () => onOpen?.() : undefined}
+      onKeyDown={
+        clickable
+          ? (event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen?.();
+              }
+            }
+          : undefined
+      }
     >
       {hasPencil ? (
         <PencilNote
@@ -124,7 +224,26 @@ export function OpportunityRow({
         <div style={{ fontSize: "12.5px", lineHeight: 1.5, color: "var(--text-subtle)" }}>
           {sub}
         </div>
+        {hasMeta ? (
+          <div className="flex items-center" style={{ gap: "10px", marginTop: "6px" }}>
+            {id ? <TraceChip id={id} /> : null}
+            {updatedAt ? (
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "9.5px",
+                  letterSpacing: "0.04em",
+                  color: "var(--text-faint)",
+                }}
+              >
+                updated {relTimeCaps(updatedAt)}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
+
+      {status ? <StatusPill status={status} className="flex-none" /> : null}
 
       <VerdictChip tone={verdict} className="flex-none" />
 
@@ -169,25 +288,53 @@ export function OpportunityRow({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {onDraftSpec ? (
-              <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDraftSpec();
+                }}
+              >
+                Draft spec
+              </DropdownMenuItem>
             ) : null}
             {onLineage ? (
-              <DropdownMenuItem onClick={onLineage}>Where this came from</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onLineage();
+                }}
+              >
+                Where this came from
+              </DropdownMenuItem>
             ) : null}
             {onSetStatus ? (
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Move to…</DropdownMenuSubTrigger>
+                <DropdownMenuSubTrigger onClick={(event) => event.stopPropagation()}>
+                  Move to…
+                </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   {OPPORTUNITY_STATUSES.map((s) => (
-                    <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
-                      {s}
+                    <DropdownMenuItem
+                      key={s}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSetStatus(s);
+                      }}
+                    >
+                      {STATUS_META[s].label}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             ) : null}
             {onDelete ? (
-              <DropdownMenuItem onClick={onDelete} className="text-[var(--madder)]">
+              <DropdownMenuItem
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete();
+                }}
+                className="text-[var(--madder)]"
+              >
                 Delete
               </DropdownMenuItem>
             ) : null}
