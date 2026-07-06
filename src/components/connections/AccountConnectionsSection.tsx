@@ -505,11 +505,12 @@ export function AccountConnectionsSection({
                 {filteredEntries.map(({ entry: e }) => {
                   const spec = CONNECTOR_REGISTRY[e.id];
                   const configured = providerConfigured(spec, availability);
+                  const envActive = !!availability?.[e.id]?.envConfigured;
                   return (
                     <div
                       key={e.id}
                       className="bento"
-                      style={{ padding: 12, opacity: configured ? 1 : 0.6 }}
+                      style={{ padding: 12, opacity: configured || envActive ? 1 : 0.6 }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <ProviderLogo provider={e.id} size={30} />
@@ -550,15 +551,38 @@ export function AccountConnectionsSection({
                           justifyContent: "flex-end",
                         }}
                       >
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-sm loom-press"
-                          disabled={busy || !configured}
-                          title={configured ? undefined : setupHintFor(spec)}
-                          onClick={() => connectProvider(spec)}
-                        >
-                          {configured ? "Connect" : "Coming soon"}
-                        </button>
+                        {configured ? (
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm loom-press"
+                            disabled={busy}
+                            onClick={() => connectProvider(spec)}
+                          >
+                            Connect
+                          </button>
+                        ) : envActive ? (
+                          <span
+                            className="mono-label"
+                            title="Reading through a workspace token set by your admin. Register the OAuth app to let each member connect their own account."
+                            style={{
+                              color: "var(--moss-bright, #7bbf8a)",
+                              border: "1px solid var(--hairline)",
+                              borderRadius: 99,
+                              padding: "3px 10px",
+                            }}
+                          >
+                            Active
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm loom-press"
+                            disabled
+                            title={setupHintFor(spec)}
+                          >
+                            Coming soon
+                          </button>
+                        )}
                       </div>
                     </div>
                   );

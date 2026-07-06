@@ -93,6 +93,11 @@ export type ProviderAvailability = Record<
     missingEnv: string[];
     githubAppConfigured?: boolean;
     gatewayConfigured?: boolean;
+    /** True when the provider's server-side env token (envFallback.tokenEnv) is
+     *  set: Cadence can already read/ingest through the workspace token even
+     *  without a per-user OAuth grant, so the UI must show it as active, not
+     *  "coming soon" (founder ruling 2026-07-06). */
+    envConfigured?: boolean;
   }
 >;
 
@@ -164,6 +169,9 @@ function deriveProviderAvailability(): ProviderAvailability {
     // Providers with no user-facing auth method (userFacing: false infra like
     // firecrawl) report configured: false and are filtered out by the UI.
     entry.configured = spec.authMethods.length > 0 && missingEnv.length === 0;
+    // Server-side env token present: Cadence can ingest via the workspace token
+    // even before per-user OAuth is registered, so this is "active", not gated.
+    entry.envConfigured = !!(spec.envFallback?.tokenEnv && process.env[spec.envFallback.tokenEnv]);
     availability[spec.id] = entry;
   }
   return availability;
