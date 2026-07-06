@@ -360,6 +360,26 @@ are brought into line as they are touched.
   and semantic (score tier, status, verdict), never black-and-white monochrome;
   ember stays scarce, reserved for the single Capture CTA, so it is never a
   card accent. The Decide opportunity card is the built exemplar.
+- **Detail-view anatomy (the standard for every object detail / side-panel,
+  founder ruling 2026-07-07).** Every object detail view (the panel that opens
+  on click) shares one premium skeleton, built from the shared DetailKit
+  primitives so the structure and feel are identical across signals,
+  opportunities, specs, missions, outcomes, and learnings, and only the content
+  differs: a refined **DetailHeader** (the title, the colored state chips, the
+  quiet copyable trace ref and the present-tone time) → a **priority / summary**
+  band that leads with what the user needs first (for a bet: its rank, the
+  single best bet, the recommended next action, and the rationale) → a
+  **StatStrip** of token-tinted stat cells (each cell a subtle tint of its own
+  tone token, the value in the tone color, strong moss / mid glacier / low
+  muted) → a run of consistent **DetailSections** (each a hairline top divider
+  plus a mono-caps heading, e.g. where it came from, the content, the Critic,
+  the activity, the lineage) → an **actions** footer (one primary, then the
+  secondary and destructive actions). The ordering is what-the-user-sees-first:
+  the state and priority up top, the supporting detail below. The color stays
+  calm and semantic (tone-tinted cells, status and verdict chips), never loud;
+  ember stays reserved for the single Capture CTA and is never a detail accent.
+  The Decide opportunity detail and the Discover signal detail are the built
+  exemplars; every future object detail adopts this same skeleton.
 
 
 

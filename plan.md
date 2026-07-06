@@ -297,6 +297,19 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 **Verified:** `npx tsc --noEmit` clean; `bun run build` succeeds; `bun test` 2351 pass / 3 fail (only the pre-existing `resolveEmbedRoute` cases); no em/en dashes or invisible unicode in additions. Semantic tokens only; ember untouched.
 
+### 2026-07-07 (Detail-view anatomy: object detail side-panels rebuilt on one shared premium skeleton)
+
+**Context:** The opportunity detail sheet and the signal record read as two different layouts, and the opportunity detail buried the deterministic ranking in a small "Ranking" block low in the view. The founder's ask: one consistent, premium, ultra-clean detail anatomy shared across object types, so a user or agent "knows exactly how it is", designed for the user lens (what they see first, then supporting detail).
+
+**What shipped:**
+
+- **`src/components/discover/DetailKit.tsx`** (new, token-driven, reusable): `DetailHeader` (title, colored state chips, quiet copyable trace ref + present-tone time), `StatCell` + `StatStrip` (premium tinted stat cells, a subtle `color-mix` tint of the tone token with the value in the tone color; auto-columns via `Children.toArray`), `DetailSection` (hairline top divider + mono-caps heading), and `toneForScore` (strong moss / mid glacier / low muted). Ember is deliberately absent from the tone set.
+- **`OpportunityDetailSheet.tsx`** rebuilt on DetailKit in the what-the-user-sees-first order: DetailHeader → priority band (rank `#N`, single `--amber` "Best bet" tag on rank 1 with a tasteful amber-tinted band, the recommended next action emphasized, the rationale in quiet text) → ICE `StatStrip` (each cell tinted by its own tier) → `DetailSection`s (Where it came from with View lineage on the heading, The bet, Critic, Activity) → actions footer (Draft spec primary, Challenge, Delete). All handlers preserved; SheetHeader is now screen-reader only so the DetailHeader is the visible header.
+- **`SignalRecord.tsx`** (`SignalRecordBody`) rebuilt on the SAME primitives so it visually matches: DetailHeader (title/source, sentiment chip, captured time, trace ref) → `StatStrip` (Sentiment, Source, References) → `DetailSection`s (Where it came from with source glyph/link + tags, What was captured, Sources audited list, Lineage came-from/became). All behavior preserved (provider glyph, reference links, copy trace id, click-throughs, lineage query).
+- **Doctrine:** `DESIGN-LOOM.md` dim 17 gains a "Detail-view anatomy" clause codifying the shared skeleton (header → priority/summary → stat strip → consistent sections → actions), token-tinted cells, calm semantic color, and what-the-user-sees-first ordering across signals, opportunities, specs, missions, outcomes, learnings.
+
+**Verified:** `npx tsc --noEmit` clean; `bun run build` succeeds (built in 10.74s); `bun test` 2351 pass / 3 fail (only the pre-existing `resolveEmbedRoute` cases; SignalCard tests pass); dash-check additions = 0 per touched/new file; DESIGN-LOOM.md em/en dash total unchanged (23 em / 0 en). Semantic tokens only; ember reserved for the Capture CTA (best-bet accent uses `--amber`).
+
 ### 2026-07-06 (QA PRODUCTION POLISH: all 18 live-QA-round-1 defects resolved, [auto] prefix eradicated platform-wide)
 
 **Context:** The founder asked for a comprehensive "every nook and corner" production polish pass. All 18 defects from the Loom W5 live QA catalog (`docs/planning/loom/live-qa-round-1.md`) are now resolved — some were already fixed in Loom QA R2 (verified in code), the rest fixed in this session.

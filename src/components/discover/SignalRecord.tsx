@@ -14,6 +14,13 @@ import {
 } from "@/components/ui/sheet";
 import { getLineage } from "@/lib/lineage.functions";
 import { toast } from "@/lib/notify";
+import {
+  DetailHeader,
+  DetailSection,
+  StatCell,
+  StatStrip,
+  type StatTone,
+} from "./DetailKit";
 import { relTimeCaps, sourceCaps, traceRef } from "./format";
 
 /** The verbatim signal record, shared by the raw-signal detail sheet (Column
@@ -74,6 +81,28 @@ function sentimentTone(s: string): { label: string; color: string } {
   if (v.includes("neg")) return { label: s, color: "var(--madder)" };
   if (v.includes("mix")) return { label: s, color: "var(--blossom)" };
   return { label: s, color: "var(--glacier)" };
+}
+
+/** Sentiment mapped to a DetailKit stat tone, so the sentiment stat cell tints
+ * to match: positive moss, negative madder, mixed amber, else glacier. */
+function sentimentStatTone(s: string): StatTone {
+  const v = s.toLowerCase();
+  if (v.includes("pos")) return "moss";
+  if (v.includes("neg")) return "madder";
+  if (v.includes("mix")) return "amber";
+  return "glacier";
+}
+
+/** A source id in sentence case for a header title fallback and the source
+ * stat cell (a connector id like `intercom` reads as `Intercom`). */
+function titleCaseSource(source: string): string {
+  if (!source) return "Signal";
+  return source.charAt(0).toUpperCase() + source.slice(1);
+}
+
+/** First letter upper-cased, for a clean sentiment stat value. */
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 /** The host of a reference URL, so a long link renders as a clean chip. */
@@ -145,12 +174,14 @@ function LineageSection({
 }
 
 /**
- * One signal in full, plus how it connects across the lifecycle (getLineage,
- * the same source the lineage drawer reads). The verbatim quote leads; a
- * provenance panel carries the source, the reference link, sentiment, and
- * tags with real color; the lineage shows what it came from and what it became
- * (the cross-impact), so the reader understands in place and returns to act.
- * One home, two mounts (the raw card sheet and the theme drill).
+ * One signal in full, on the shared DetailKit anatomy so it reads as one
+ * language with the opportunity detail and every other object detail: a
+ * refined header (title or source, the sentiment chip, the captured time, and
+ * the copyable trace ref), a stat strip (sentiment, source, references), then
+ * the consistent sections (where it came from, what was captured, the audited
+ * Sources list, and the lineage in and out via getLineage). Every field is a
+ * real signal column; honest empty states throughout. One home, two mounts
+ * (the raw card sheet and the theme drill). All existing behavior is preserved.
  */
 export function SignalRecordBody({ record }: { record: SignalRecord }) {
   const fLineage = useServerFn(getLineage);
@@ -187,156 +218,16 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
     sources.push(ref);
   }
 
+  const headerTitle = record.title?.trim()
+    ? record.title
+    : `Signal from ${titleCaseSource(record.source)}`;
+
   return (
-    <div className="mt-3" style={{ display: "grid", gap: "16px" }}>
-      {/* Trace + capture time: the copyable system reference and exactly when
-       * it was captured (absolute plus a quiet relative), so the record is
-       * auditable and quotable back to the rest of the loop. */}
-      <div className="flex flex-wrap items-center" style={{ gap: "10px" }}>
-        <span
-          className="flex items-baseline"
-          style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9.5px",
-              letterSpacing: "0.08em",
-              color: "var(--text-subtle)",
-            }}
-          >
-            CAPTURED
-          </span>
-          <span>{new Date(record.created_at).toLocaleString()}</span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9.5px",
-              letterSpacing: "0.06em",
-              color: "var(--text-faint)",
-            }}
-          >
-            {relTimeCaps(record.created_at)}
-          </span>
-        </span>
-        <button
-          type="button"
-          onClick={() => {
-            void navigator.clipboard?.writeText(record.id);
-            toast("Trace id copied");
-          }}
-          aria-label="Copy trace id"
-          title="Copy the full trace id"
-          className="loom-press flex items-center hover:[color:var(--text-subtle)]"
-          style={{
-            marginLeft: "auto",
-            gap: "6px",
-            fontFamily: "var(--font-mono)",
-            fontSize: "10px",
-            letterSpacing: "0.06em",
-            color: "var(--text-faint)",
-            background: "transparent",
-            border: "none",
-            padding: "3px 2px",
-            cursor: "pointer",
-          }}
-        >
-          SIG·{traceRef(record.id)}
-          <Copy className="h-3 w-3" />
-        </button>
-      </div>
-
-      {/* The verbatim signal, leading. */}
-      <div style={{ display: "grid", gap: "8px" }}>
-        {record.title ? (
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: "var(--font-ui)",
-              fontSize: "15px",
-              fontWeight: 600,
-              color: "var(--text-primary)",
-              lineHeight: 1.35,
-            }}
-          >
-            {record.title}
-          </h3>
-        ) : null}
-        <p
-          style={{
-            fontSize: "var(--text-base)",
-            lineHeight: 1.6,
-            color: "var(--text-body)",
-            margin: 0,
-            paddingLeft: "12px",
-            borderLeft: "2px solid var(--hairline-strong)",
-          }}
-        >
-          {record.content}
-        </p>
-      </div>
-
-      {/* Provenance: where it is from, the reference, how it reads. */}
-      <div
-        style={{
-          display: "grid",
-          gap: "12px",
-          background: "var(--surface-raised)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          padding: "14px 15px",
-        }}
-      >
-        <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
-          {record.url ? (
-            <a
-              href={record.url}
-              target="_blank"
-              rel="noreferrer"
-              title="Open source"
-              className="loom-press flex items-center hover:[color:var(--text-primary)]"
-              style={{ gap: 7, color: "var(--text-body)" }}
-            >
-              {sourceGlyph}
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--blossom)",
-                  background: "var(--card)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "999px",
-                  padding: "3px 9px",
-                }}
-              >
-                {sourceCaps(record.source)}
-                {record.sourceKind ? ` · ${record.sourceKind}` : ""}
-              </span>
-            </a>
-          ) : (
-            <span className="flex items-center" style={{ gap: 7 }}>
-              {sourceGlyph}
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--blossom)",
-                  background: "var(--card)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "999px",
-                  padding: "3px 9px",
-                }}
-              >
-                {sourceCaps(record.source)}
-                {record.sourceKind ? ` · ${record.sourceKind}` : ""}
-              </span>
-            </span>
-          )}
-          {sentiment ? (
+    <div style={{ display: "grid", gap: "16px", marginTop: "2px" }}>
+      <DetailHeader
+        title={headerTitle}
+        chips={
+          sentiment ? (
             <span
               className="flex items-center"
               style={{
@@ -363,102 +254,220 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
               />
               {sentiment.label}
             </span>
-          ) : null}
+          ) : null
+        }
+        time={
           <span
             style={{
-              marginLeft: "auto",
               fontFamily: "var(--font-mono)",
-              fontSize: "10px",
+              fontSize: "9.5px",
               letterSpacing: "0.06em",
               color: "var(--text-subtle)",
             }}
           >
-            {relTimeCaps(record.created_at)}
+            CAPTURED {relTimeCaps(record.created_at)}
           </span>
-        </div>
+        }
+        traceRef={
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(record.id);
+              toast("Trace id copied");
+            }}
+            aria-label="Copy trace id"
+            title="Copy the full trace id"
+            className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+            style={{
+              gap: "6px",
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              letterSpacing: "0.06em",
+              color: "var(--text-faint)",
+              background: "transparent",
+              border: "none",
+              padding: "3px 2px",
+              cursor: "pointer",
+            }}
+          >
+            SIG·{traceRef(record.id)}
+            <Copy className="h-3 w-3" />
+          </button>
+        }
+      />
 
-        {sources.length > 0 ? (
-          <div style={{ display: "grid", gap: "7px" }}>
-            <MonoLabel
-              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-            >
-              Sources
-            </MonoLabel>
-            <ul style={{ display: "grid", gap: "6px", margin: 0, padding: 0, listStyle: "none" }}>
-              {sources.map((s) => (
-                <li key={s.url}>
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="loom-press flex items-start hover:[color:var(--text-primary)]"
-                    style={{
-                      gap: 7,
-                      fontSize: "12.5px",
-                      color: "var(--glacier)",
-                      lineHeight: 1.4,
-                      width: "fit-content",
-                    }}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" style={{ flexShrink: 0, marginTop: 2 }} />
-                    <span style={{ wordBreak: "break-all" }}>{s.title || hostOf(s.url)}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+      {/* The glanceable summary: how it reads, where it is from, how many
+          sources back it. */}
+      <StatStrip>
+        {sentiment ? (
+          <StatCell
+            label="Sentiment"
+            value={capitalize(sentiment.label)}
+            tone={sentimentStatTone(sentiment.label)}
+          />
+        ) : null}
+        <StatCell label="Source" value={titleCaseSource(record.source)} tone="neutral" />
+        <StatCell
+          label="References"
+          value={String(sources.length)}
+          tone={sources.length > 0 ? "glacier" : "muted"}
+        />
+      </StatStrip>
+
+      {/* Where it came from: the source identity and origin link, plus any
+          classification tags. */}
+      <DetailSection heading="Where it came from">
+        <div style={{ display: "grid", gap: "12px" }}>
+          <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+            {record.url ? (
+              <a
+                href={record.url}
+                target="_blank"
+                rel="noreferrer"
+                title="Open source"
+                className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                style={{ gap: 7, color: "var(--text-body)" }}
+              >
+                {sourceGlyph}
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: "var(--blossom)",
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: "999px",
+                    padding: "3px 9px",
+                  }}
+                >
+                  {sourceCaps(record.source)}
+                  {record.sourceKind ? ` · ${record.sourceKind}` : ""}
+                </span>
+              </a>
+            ) : (
+              <span className="flex items-center" style={{ gap: 7 }}>
+                {sourceGlyph}
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: "var(--blossom)",
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: "999px",
+                    padding: "3px 9px",
+                  }}
+                >
+                  {sourceCaps(record.source)}
+                  {record.sourceKind ? ` · ${record.sourceKind}` : ""}
+                </span>
+              </span>
+            )}
           </div>
+
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap" style={{ gap: 6 }}>
+              {tags.map((t) => (
+                <span
+                  key={t}
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.03em",
+                    color: "var(--glacier)",
+                    background: "color-mix(in oklab, var(--glacier) 12%, var(--card))",
+                    border: "1px solid color-mix(in oklab, var(--glacier) 24%, var(--hairline))",
+                    borderRadius: "999px",
+                    padding: "2px 9px",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </DetailSection>
+
+      {/* The verbatim signal itself. */}
+      <DetailSection heading="What was captured">
+        <p
+          style={{
+            fontSize: "var(--text-base)",
+            lineHeight: 1.6,
+            color: "var(--text-body)",
+            margin: 0,
+            paddingLeft: "12px",
+            borderLeft: "2px solid var(--hairline-strong)",
+          }}
+        >
+          {record.content}
+        </p>
+      </DetailSection>
+
+      {/* The audited Sources list: the origin plus every reference, deduped. */}
+      <DetailSection heading="Sources">
+        {sources.length > 0 ? (
+          <ul style={{ display: "grid", gap: "6px", margin: 0, padding: 0, listStyle: "none" }}>
+            {sources.map((s) => (
+              <li key={s.url}>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="loom-press flex items-start hover:[color:var(--text-primary)]"
+                  style={{
+                    gap: 7,
+                    fontSize: "12.5px",
+                    color: "var(--glacier)",
+                    lineHeight: 1.4,
+                    width: "fit-content",
+                  }}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" style={{ flexShrink: 0, marginTop: 2 }} />
+                  <span style={{ wordBreak: "break-all" }}>{s.title || hostOf(s.url)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         ) : (
           <span style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic" }}>
             Captured directly, no external link.
           </span>
         )}
-
-        {tags.length > 0 ? (
-          <div className="flex flex-wrap" style={{ gap: 6 }}>
-            {tags.map((t) => (
-              <span
-                key={t}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.03em",
-                  color: "var(--glacier)",
-                  background: "color-mix(in oklab, var(--glacier) 12%, var(--card))",
-                  border: "1px solid color-mix(in oklab, var(--glacier) 24%, var(--hairline))",
-                  borderRadius: "999px",
-                  padding: "2px 9px",
-                }}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      </DetailSection>
 
       {/* Lineage: the cross-impact, in and out. */}
-      <LineageSection
-        heading="Came from"
-        icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} />}
-        loading={q.isLoading}
-        emptyText="Captured directly, no upstream artifact."
-        peers={ancestors.map((e) => ({
-          kind: e.parent_kind,
-          title: e.peer_title ?? "(untitled)",
-          key: e.id,
-        }))}
-      />
-      <LineageSection
-        heading="Became"
-        icon={<ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />}
-        loading={q.isLoading}
-        emptyText="Nothing promoted from this yet."
-        peers={descendants.map((e) => ({
-          kind: e.child_kind,
-          title: e.peer_title ?? "(untitled)",
-          key: e.id,
-        }))}
-      />
+      <DetailSection heading="Lineage">
+        <div style={{ display: "grid", gap: "14px" }}>
+          <LineageSection
+            heading="Came from"
+            icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} />}
+            loading={q.isLoading}
+            emptyText="Captured directly, no upstream artifact."
+            peers={ancestors.map((e) => ({
+              kind: e.parent_kind,
+              title: e.peer_title ?? "(untitled)",
+              key: e.id,
+            }))}
+          />
+          <LineageSection
+            heading="Became"
+            icon={<ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />}
+            loading={q.isLoading}
+            emptyText="Nothing promoted from this yet."
+            peers={descendants.map((e) => ({
+              kind: e.child_kind,
+              title: e.peer_title ?? "(untitled)",
+              key: e.id,
+            }))}
+          />
+        </div>
+      </DetailSection>
     </div>
   );
 }
@@ -466,7 +475,9 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
 /**
  * A right-side Sheet wrapping the rich signal record. Uses the same Sheet
  * primitive and side/width as LineageDrawer, so the raw-signal detail reads as
- * one drawer language with the theme drill and the lineage view.
+ * one drawer language with the theme drill and the lineage view. The header
+ * name and description are screen-reader only; the visible header is the
+ * DetailHeader inside the body.
  */
 export function SignalDetailSheet({
   open,
@@ -480,11 +491,9 @@ export function SignalDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle style={{ fontFamily: "var(--font-ui)", color: "var(--text-primary)" }}>
-            Signal in detail
-          </SheetTitle>
-          <SheetDescription style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
+        <SheetHeader className="sr-only">
+          <SheetTitle>Signal in detail</SheetTitle>
+          <SheetDescription>
             The verbatim signal and how it connects across the lifecycle.
           </SheetDescription>
         </SheetHeader>

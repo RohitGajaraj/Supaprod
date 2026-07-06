@@ -1,5 +1,4 @@
 import { Copy, GitBranch } from "lucide-react";
-import type { ReactNode } from "react";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
 import {
   DropdownMenu,
@@ -16,6 +15,13 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import type { CriticReview } from "@/lib/discovery.functions";
+import {
+  DetailHeader,
+  DetailSection,
+  StatCell,
+  StatStrip,
+  toneForScore,
+} from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import {
   OPPORTUNITY_STATUSES,
@@ -44,8 +50,7 @@ export interface OpportunityDetailRecord {
   updated_at: string;
 }
 
-/** A label/value block, mirroring the SignalRecord field style: a quiet
- * mono-caps label over a readable body value. */
+/** A label/value block: a quiet mono caps label over a readable body value. */
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "grid", gap: "5px" }}>
@@ -63,56 +68,6 @@ function Field({ label, value }: { label: string; value: string }) {
         {value}
       </p>
     </div>
-  );
-}
-
-/** One ICE component as a small stat cell (number over label). */
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        background: "var(--surface-raised)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-control)",
-        padding: "10px 8px",
-        textAlign: "center",
-      }}
-    >
-      <div
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: "19px",
-          fontWeight: 460,
-          color: "var(--text-primary)",
-          lineHeight: 1,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "9px",
-          letterSpacing: "0.1em",
-          color: "var(--text-subtle)",
-          marginTop: "5px",
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function Section({ heading, children }: { heading: string; children: ReactNode }) {
-  return (
-    <section style={{ display: "grid", gap: "9px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
-        {heading}
-      </MonoLabel>
-      {children}
-    </section>
   );
 }
 
@@ -158,11 +113,14 @@ export interface OpportunityDetailSheetProps {
 }
 
 /**
- * One ranked bet in full, in the same right-side Sheet language as the signal
- * record and the lineage drawer. It answers "what is this bet, where did it
- * come from, when did it move, and what does the Critic think" from real
- * columns only, and carries the same actions as the row so the operator can
- * decide in place. Honest empty states: no fabricated lineage or Critic take.
+ * One ranked bet in full, on the shared DetailKit anatomy so it reads as one
+ * language with the signal record and every other object detail. It leads with
+ * what the operator needs first, the priority (rank, the single best bet, the
+ * recommended next action, and the rationale), then the ICE strip, then the
+ * supporting sections (where it came from, the bet itself, the Critic's take,
+ * and the activity), and closes with the same actions as the row so the
+ * operator can decide in place. Honest empty states: no fabricated lineage or
+ * Critic take. All existing wiring and handlers are preserved.
  */
 export function OpportunityDetailSheet({
   open,
@@ -184,122 +142,215 @@ export function OpportunityDetailSheet({
     toast("Trace id copied");
   };
 
+  const isBestBet = rank === 1;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle style={{ fontFamily: "var(--font-ui)", color: "var(--text-primary)" }}>
-            {opportunity?.title ?? "Opportunity"}
-          </SheetTitle>
-          <SheetDescription style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
+        {/* Accessible name and description for the dialog; the visible header
+            below is the rich DetailHeader, so this stays screen-reader only. */}
+        <SheetHeader className="sr-only">
+          <SheetTitle>{opportunity?.title ?? "Opportunity"}</SheetTitle>
+          <SheetDescription>
             One ranked bet in full: where it came from, its ICE, and the Critic's take.
           </SheetDescription>
         </SheetHeader>
 
         {opportunity ? (
-          <div className="mt-3" style={{ display: "grid", gap: "16px" }}>
-            {/* Header meta: status + quick move, and the copyable trace ref. */}
-            <div className="flex flex-wrap items-center" style={{ gap: "10px" }}>
-              <StatusPill status={opportunity.status} />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="loom-press"
-                    style={{
-                      fontFamily: "var(--font-ui)",
-                      fontSize: "11.5px",
-                      fontWeight: 500,
-                      color: "var(--text-muted)",
-                      background: "transparent",
-                      border: "1px solid var(--hairline-strong)",
-                      borderRadius: "var(--radius-control)",
-                      padding: "3px 10px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Move to
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {OPPORTUNITY_STATUSES.map((s) => (
-                    <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
-                      {STATUS_META[s].label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <button
-                type="button"
-                onClick={copyTraceId}
-                aria-label="Copy trace id"
-                title="Copy the full trace id"
-                className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+          <div style={{ display: "grid", gap: "16px", marginTop: "2px" }}>
+            <DetailHeader
+              title={opportunity.title}
+              chips={
+                <>
+                  <StatusPill status={opportunity.status} />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="loom-press"
+                        style={{
+                          fontFamily: "var(--font-ui)",
+                          fontSize: "11.5px",
+                          fontWeight: 500,
+                          color: "var(--text-muted)",
+                          background: "transparent",
+                          border: "1px solid var(--hairline-strong)",
+                          borderRadius: "var(--radius-control)",
+                          padding: "3px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Move to
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {OPPORTUNITY_STATUSES.map((s) => (
+                        <DropdownMenuItem key={s} onClick={() => onSetStatus(s)}>
+                          {STATUS_META[s].label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <VerdictChip tone={verdict} />
+                </>
+              }
+              time={
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "9.5px",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  UPDATED {relTimeCaps(opportunity.updated_at)}
+                </span>
+              }
+              traceRef={
+                <button
+                  type="button"
+                  onClick={copyTraceId}
+                  aria-label="Copy trace id"
+                  title="Copy the full trace id"
+                  className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+                  style={{
+                    gap: "6px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-faint)",
+                    background: "transparent",
+                    border: "none",
+                    padding: "3px 2px",
+                    cursor: "pointer",
+                  }}
+                >
+                  OPP·{traceRef(opportunity.id)}
+                  <Copy className="h-3 w-3" />
+                </button>
+              }
+            />
+
+            {/* Priority band: the agent-and-human priority cue, high in the
+                view. The queue position, the single best bet, the recommended
+                next action, and the rationale. A tasteful amber tint marks the
+                best bet; everything else is calm. Rendered only when threaded
+                in; absent members render nothing. */}
+            {rank != null || rationale || nextAction ? (
+              <div
                 style={{
-                  marginLeft: "auto",
-                  gap: "6px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.06em",
-                  color: "var(--text-faint)",
-                  background: "transparent",
-                  border: "none",
-                  padding: "3px 2px",
-                  cursor: "pointer",
+                  display: "grid",
+                  gap: "9px",
+                  background: isBestBet
+                    ? "color-mix(in srgb, var(--amber) 7%, var(--surface-raised))"
+                    : "var(--surface-raised)",
+                  border: isBestBet
+                    ? "1px solid color-mix(in srgb, var(--amber) 22%, var(--hairline))"
+                    : "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "13px 15px",
                 }}
               >
-                OPP·{traceRef(opportunity.id)}
-                <Copy className="h-3 w-3" />
-              </button>
-            </div>
-
-            {/* Deterministic ranking context, shown only when threaded in.
-                Restrained by design (stage 2 owns the full treatment): the
-                queue position, the rationale sentence, and the recommended
-                next action. Semantic tokens only. */}
-            {rank != null || rationale || nextAction ? (
-              <Section heading="Ranking">
-                <div style={{ display: "grid", gap: "6px" }}>
-                  {rank != null ? (
+                {rank != null ? (
+                  <div className="flex flex-wrap items-center" style={{ gap: "8px" }}>
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: "11px",
                         letterSpacing: "0.04em",
                         color: "var(--text-muted)",
+                        fontVariantNumeric: "tabular-nums",
                       }}
                     >
-                      #{rank} in the queue
+                      Priority #{rank}
                     </span>
-                  ) : null}
-                  {rationale ? (
-                    <p
+                    {isBestBet ? (
+                      <span
+                        title="The single top-ranked bet in the queue"
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "10px",
+                          letterSpacing: "0.02em",
+                          color: "var(--amber)",
+                          border: "1px solid color-mix(in srgb, var(--amber) 30%, var(--hairline))",
+                          borderRadius: "999px",
+                          padding: "2px 8px",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Best bet
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {nextAction ? (
+                  <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
+                    <MonoLabel
                       style={{
-                        fontSize: "12.5px",
-                        lineHeight: 1.6,
-                        color: "var(--text-body)",
-                        margin: 0,
+                        fontSize: "10px",
+                        letterSpacing: "0.1em",
+                        color: "var(--text-subtle)",
                       }}
                     >
-                      {rationale}
-                    </p>
-                  ) : null}
-                  {nextAction ? (
-                    <span style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
-                      Recommended next: {nextAction}
+                      Recommended next
+                    </MonoLabel>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-ui)",
+                        fontSize: "13px",
+                        fontWeight: 550,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {nextAction}
                     </span>
-                  ) : null}
-                </div>
-              </Section>
+                  </div>
+                ) : null}
+                {rationale ? (
+                  <p
+                    style={{
+                      fontSize: "12.5px",
+                      lineHeight: 1.6,
+                      color: "var(--text-subtle)",
+                      margin: 0,
+                    }}
+                  >
+                    {rationale}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
 
-            {/* Provenance: honest, from theme_id only. */}
-            <Section heading="Where it came from">
-              {opportunity.theme_id ? (
-                <div className="flex flex-wrap items-center" style={{ gap: "10px" }}>
-                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
-                    Promoted from a Discover theme.
-                  </span>
+            {/* The ICE strip: each cell tinted by its own tier. */}
+            <StatStrip columns={4}>
+              <StatCell
+                label="Impact"
+                value={String(opportunity.impact)}
+                tone={toneForScore(opportunity.impact)}
+              />
+              <StatCell
+                label="Confidence"
+                value={String(opportunity.confidence)}
+                tone={toneForScore(opportunity.confidence)}
+              />
+              <StatCell
+                label="Ease"
+                value={String(opportunity.ease)}
+                tone={toneForScore(opportunity.ease)}
+              />
+              <StatCell
+                label="ICE"
+                value={opportunity.ice_score != null ? opportunity.ice_score.toFixed(1) : "-"}
+                tone={toneForScore(opportunity.ice_score ?? 0)}
+              />
+            </StatStrip>
+
+            {/* Provenance: honest, from theme_id only. View lineage sits on the
+                heading when there is a theme to trace back to. */}
+            <DetailSection
+              heading="Where it came from"
+              action={
+                opportunity.theme_id ? (
                   <button
                     type="button"
                     onClick={onViewLineage}
@@ -317,52 +368,35 @@ export function OpportunityDetailSheet({
                     <GitBranch className="h-3.5 w-3.5" />
                     View lineage
                   </button>
-                </div>
-              ) : (
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
-                  Promoted directly.
-                </span>
-              )}
-            </Section>
-
-            {/* Activity: when it was promoted and last changed. */}
-            <Section heading="Activity">
-              <div style={{ display: "grid", gap: "10px" }}>
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Promoted</span>
-                  <TimeLine iso={opportunity.created_at} />
-                </div>
-                <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Last updated</span>
-                  <TimeLine iso={opportunity.updated_at} />
-                </div>
-              </div>
-            </Section>
+                ) : null
+              }
+            >
+              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                {opportunity.theme_id
+                  ? "Promoted from a Discover theme."
+                  : "Promoted directly."}
+              </span>
+            </DetailSection>
 
             {/* The bet itself: real fields, blanks skipped. */}
-            {opportunity.problem ? <Field label="Problem" value={opportunity.problem} /> : null}
-            {opportunity.hypothesis ? (
-              <Field label="Hypothesis" value={opportunity.hypothesis} />
+            {opportunity.problem || opportunity.hypothesis || opportunity.target_user ? (
+              <DetailSection heading="The bet">
+                <div style={{ display: "grid", gap: "14px" }}>
+                  {opportunity.problem ? (
+                    <Field label="Problem" value={opportunity.problem} />
+                  ) : null}
+                  {opportunity.hypothesis ? (
+                    <Field label="Hypothesis" value={opportunity.hypothesis} />
+                  ) : null}
+                  {opportunity.target_user ? (
+                    <Field label="Target user" value={opportunity.target_user} />
+                  ) : null}
+                </div>
+              </DetailSection>
             ) : null}
-            {opportunity.target_user ? (
-              <Field label="Target user" value={opportunity.target_user} />
-            ) : null}
-
-            {/* ICE breakdown. */}
-            <Section heading="ICE">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
-                <Stat label="IMPACT" value={String(opportunity.impact)} />
-                <Stat label="CONFIDENCE" value={String(opportunity.confidence)} />
-                <Stat label="EASE" value={String(opportunity.ease)} />
-                <Stat
-                  label="SCORE"
-                  value={opportunity.ice_score != null ? opportunity.ice_score.toFixed(1) : "-"}
-                />
-              </div>
-            </Section>
 
             {/* Critic: verdict + summary if present, honest empty otherwise. */}
-            <Section heading="Critic">
+            <DetailSection heading="Critic">
               <div style={{ display: "grid", gap: "9px" }}>
                 <VerdictChip tone={verdict} style={{ justifySelf: "start" }} />
                 {opportunity.critic_review?.summary ? (
@@ -390,14 +424,28 @@ export function OpportunityDetailSheet({
                   </p>
                 )}
               </div>
-            </Section>
+            </DetailSection>
+
+            {/* Activity: when it was promoted and last changed. */}
+            <DetailSection heading="Activity">
+              <div style={{ display: "grid", gap: "10px" }}>
+                <div style={{ display: "grid", gap: "3px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Promoted</span>
+                  <TimeLine iso={opportunity.created_at} />
+                </div>
+                <div style={{ display: "grid", gap: "3px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Last updated</span>
+                  <TimeLine iso={opportunity.updated_at} />
+                </div>
+              </div>
+            </DetailSection>
 
             {/* Actions, mirroring the row. */}
             <div
               className="flex flex-wrap items-center"
               style={{
                 gap: "10px",
-                paddingTop: "6px",
+                paddingTop: "15px",
                 borderTop: "1px solid var(--hairline)",
               }}
             >
