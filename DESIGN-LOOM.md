@@ -211,6 +211,17 @@ The load-bearing rules distilled from them, enforced everywhere:
   surface; the tell is the uniform reflex (one identical treatment on
   everything), not any single choice.
 
+**16. Charts wear a human hand (founder ruling 2026-07-06).** Data viz must
+not read as sterile machine output. Graphs, charts, sparklines, and their
+annotations carry a light hand-drawn / pencil-sketch touch: abstract, clean,
+minimal, with the human mark (a pencil circle around the point that matters, a
+Caveat-font note, a slightly organic stroke), never a stock charting-library
+look. The primitives already exist and are the standard: `PencilNote`,
+`PencilCircle`/`PencilArrow`/`PencilUnderline`/`PencilLabel`
+(`src/components/obsidian/pencil-mark.tsx`), the `--font-pencil` (Caveat) voice,
+and the `--pencil-*` inks. Apply this wherever a chart or pattern renders. It
+is what keeps the product feeling made by a person, not generated.
+
 ### The anti-slop catalog (the 46 tells to keep OUT, forever)
 
 The founder's standing law (2026-07-06): the interface must stay purely free of

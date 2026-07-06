@@ -16,6 +16,7 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
+import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
@@ -2405,8 +2406,8 @@ function ProfileTab() {
   }, [profile.data]);
 
   const save = useMutation({
-    mutationFn: () =>
-      mUpdate({
+    mutationFn: async () => {
+      await mUpdate({
         data: {
           full_name: fullName || undefined,
           display_name: displayName || undefined,
@@ -2416,7 +2417,19 @@ function ProfileTab() {
           working_hours_end: whEnd,
           onboarded: true,
         },
-      }),
+      });
+      // Also write to Supabase auth user_metadata so the rail + Today greeting
+      // (which read the auth session, not the profiles table) reflect the new
+      // name immediately on the next load. Best-effort; the profiles row is the
+      // system of record and its write above already succeeded.
+      try {
+        await supabase.auth.updateUser({
+          data: { display_name: displayName || undefined, full_name: fullName || undefined },
+        });
+      } catch {
+        /* auth metadata is a display convenience; the profile row is saved */
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["profile"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
