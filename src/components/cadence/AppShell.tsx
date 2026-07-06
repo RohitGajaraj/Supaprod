@@ -788,7 +788,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
                 </Link>
                 <Link to="/settings" search={{ section: "plan" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">Plan and billing</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">Pricing and billing</DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer">

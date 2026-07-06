@@ -114,7 +114,7 @@ describe("settings-sections - derivations", () => {
   });
 
   it("findGroup returns the definition, or undefined when unknown", () => {
-    expect(findGroup("plan")?.label).toBe("Plan");
+    expect(findGroup("plan")?.label).toBe("Pricing");
     // @ts-expect-error - unknown id
     expect(findGroup("nope")).toBeUndefined();
   });
@@ -122,7 +122,7 @@ describe("settings-sections - derivations", () => {
   it("sectionLabel maps ids to human labels and de-jargons Models/Staff", () => {
     expect(sectionLabel("ai")).toBe("AI & keys");
     expect(sectionLabel("workspace")).toBe("Brief & voice");
-    expect(sectionLabel("connections")).toBe("Yours");
+    expect(sectionLabel("connections")).toBe("Sources");
     // unknown id falls back to itself
     expect(sectionLabel("nope" as SectionId)).toBe("nope");
   });

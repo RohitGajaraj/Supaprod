@@ -65,18 +65,18 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     id: "connections",
     label: "Connections",
-    desc: "Connect your accounts and this workspace's sources, in one place.",
+    desc: "Connect your tools as sources, and let external agents use Cadence.",
     sections: [
-      { id: "connections", label: "Yours" },
-      { id: "interop", label: "This workspace's" },
+      { id: "connections", label: "Sources" },
+      { id: "interop", label: "MCP access" },
     ],
   },
   {
     id: "plan",
-    label: "Plan",
-    desc: "Your plan and credits.",
+    label: "Pricing",
+    desc: "Your pricing plan and credits.",
     sections: [
-      { id: "billing", label: "Plan" },
+      { id: "billing", label: "Pricing" },
       { id: "credits", label: "Credits" },
     ],
   },
