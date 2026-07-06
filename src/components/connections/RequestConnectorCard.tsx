@@ -10,7 +10,7 @@ import { toast } from "@/lib/notify";
 import { requestConnector } from "@/lib/connections.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 
-export function RequestConnectorCard() {
+export function RequestConnectorCard({ compact = false }: { compact?: boolean }) {
   const { activeWorkspaceId } = useWorkspace();
   const fRequest = useServerFn(requestConnector);
   const [value, setValue] = useState("");
@@ -30,6 +30,40 @@ export function RequestConnectorCard() {
     e.preventDefault();
     if (trimmed && !submit.isPending) submit.mutate(trimmed);
   };
+
+  // Compact rail variant: a slim vertical box that fits the ~210px left rail.
+  if (compact) {
+    return (
+      <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div>
+          <div style={{ fontWeight: 500, fontSize: 12.5, color: "var(--text-primary)" }}>
+            Missing a connector?
+          </div>
+          <div style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 2 }}>
+            Tell us what to build next.
+          </div>
+        </div>
+        <input
+          className="input"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="e.g. Amplitude"
+          maxLength={120}
+          aria-label="Connector you want"
+          style={{ width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 12.5 }}
+        />
+        <button
+          type="submit"
+          className="btn btn-secondary btn-sm loom-press"
+          disabled={!trimmed || submit.isPending}
+          style={{ width: "100%" }}
+        >
+          {submit.isPending ? <Loader2 size={13} className="animate-spin" /> : null}
+          Request
+        </button>
+      </form>
+    );
+  }
 
   return (
     <form

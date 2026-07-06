@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
-import { useConfirm } from "@/hooks/use-confirm";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
-import { buildConnectorCatalog, type CatalogEntry } from "@/lib/connectors/catalog";
 import {
-  deleteConnection,
-  disconnectConnection,
+  buildConnectorCatalog,
+  type CatalogEntry,
+  type ConnectorCategory,
+} from "@/lib/connectors/catalog";
+import {
   listConnections,
   listWorkspaceBindings,
   saveGatewayConnection,
@@ -18,36 +20,37 @@ import {
   type ProviderAvailability,
 } from "@/lib/connections.functions";
 import {
-  disconnectCalendar,
   listMyCalendarConnections,
   saveCalendarConnection,
   startCalendarConnect,
 } from "@/lib/calendar-connections.functions";
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
-import { ConnectionRow } from "./ConnectionRow";
 import { ProviderLogo } from "./ProviderLogo";
 import { RequestConnectorCard } from "./RequestConnectorCard";
 
 // F-CONN Phase 2: Settings, "Connections", the single home for account-level
-// sources, reworked connected-first (2026-07-06). Section A "Connected" lists
-// ONLY providers with a live connection (or calendar account) as the operable
-// rows the user manages; Section B "Add a connection" is the visually-secondary
-// explore area, the remaining not-yet-connected sources grouped by category
-// (buildConnectorCatalog). Every row/card carries the real brand logo
-// (ProviderLogo, inline simple-icons marks). OAuth-only: GitHub uses the App
+// sources, reworked into a Lovable-style TWO-PANE layout (2026-07-06). A left
+// rail carries live search, the Connected/All status counts, and the catalog
+// categories (each with its count); the right pane is ONE unified card grid of
+// every user-facing provider, filtered by that rail. Each card resolves to one
+// of four states via statusFor(): connected (green pill, clickable into the
+// ConnectorDetail drill), env-active (muted-green "Active" pill, also clickable),
+// OAuth-configured (a real Connect button), or coming soon (disabled, setup
+// hint on hover). Every card carries the real brand logo (ProviderLogo, inline
+// simple-icons marks in official brand color). OAuth-only: GitHub uses the App
 // install redirect; everything else goes through the Lovable connector gateway
 // popup (tokens stay in the gateway, we persist only the connection id). The two
-// calendar providers are real rows here too, wired to the existing calendar
-// connection layer (listMyCalendarConnections / startCalendarConnect /
-// saveCalendarConnection / disconnectCalendar, same popup driver as the old
-// CalendarAccountsSection). Workspace-level resource bindings live on /sync
-// (retitled "Sync & bindings"), reachable from the bindings summary link.
+// calendar providers connect through the existing calendar connection layer
+// (listMyCalendarConnections / startCalendarConnect / saveCalendarConnection),
+// same popup driver as the old CalendarAccountsSection. Per-connection
+// management (verify / disconnect / bindings) lives in the ConnectorDetail
+// drill; workspace-level resource bindings live on /sync, linked from the rail.
 // Anchorable via /settings?section=connections.
 //
-// Screen 6 (loop-detail drill-downs) adds ConnectorDetail — the per-provider
+// Screen 6 (loop-detail drill-downs) adds ConnectorDetail - the per-provider
 // drill ported from design-reference/cadence/loop-detail.jsx (ConnectorDetail,
-// lines 243–292) onto real data, exported from this file and rendered by the
+// lines 243-292) onto real data, exported from this file and rendered by the
 // settings route when ?connector= is set. The connect/verify mutations are
 // shared between the list and the detail via the local useConnectorActions
 // hook so both surfaces drive the exact same OAuth flows.
@@ -55,7 +58,7 @@ import { RequestConnectorCard } from "./RequestConnectorCard";
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 
 // Registry providers backed by the calendar connection layer (multi-account,
-// stored in user_calendar_connections — not the connections table).
+// stored in user_calendar_connections - not the connections table).
 const CALENDAR_PROVIDERS: Partial<Record<ProviderId, "google" | "microsoft">> = {
   google_calendar: "google",
   microsoft_outlook: "microsoft",
@@ -69,7 +72,7 @@ function setupHintFor(spec: ProviderSpec): string {
     : `Admin setup pending for ${spec.label}.`;
 }
 
-/** Env-configured per listConnections' providerAvailability — shared by the list rows and ConnectorDetail. */
+/** Env-configured per listConnections' providerAvailability - shared by the list rows and ConnectorDetail. */
 function providerConfigured(
   spec: ProviderSpec,
   availability: ProviderAvailability | undefined,
@@ -79,7 +82,7 @@ function providerConfigured(
   if (!m || !a) return false;
   if (m.kind === "github_app") return !!a.githubAppConfigured;
   if (m.kind === "oauth_gateway") return !!a.gatewayConfigured;
-  return false; // legacy api_key — OAuth migration pending, treat as setup-required
+  return false; // legacy api_key - OAuth migration pending, treat as setup-required
 }
 
 /**
@@ -110,10 +113,10 @@ function useConnectorActions(qc: QueryClient) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  // Gateway OAuth popup — same client mechanics as the calendar connect flow:
+  // Gateway OAuth popup - same client mechanics as the calendar connect flow:
   // open the popup first (so it isn't blocked), start the web_message OAuth
   // session server-side, then wait for the gateway's postMessage. On success
-  // we persist only the gateway connection id — never a token.
+  // we persist only the gateway connection id - never a token.
   const mGateway = useMutation({
     mutationFn: async (spec: ProviderSpec) => {
       const method = spec.authMethods.find((m) => m.kind === "oauth_gateway");
@@ -136,7 +139,7 @@ function useConnectorActions(qc: QueryClient) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  // Calendar connect — exact mechanics of the legacy CalendarAccountsSection:
+  // Calendar connect - exact mechanics of the legacy CalendarAccountsSection:
   // gateway popup via connectAppUser, then persist via saveCalendarConnection.
   const mCalConnect = useMutation({
     mutationFn: async (provider: "google" | "microsoft") => {
@@ -171,17 +174,171 @@ function useConnectorActions(qc: QueryClient) {
   return { mGithub, mGateway, mCalConnect, mVerify, busy };
 }
 
+// Per-provider status the grid renders and the rail counts.
+type CardStatus = "connected" | "active" | "connect" | "soon";
+
+/** A left-rail filter row: label + right-aligned count; active fills the raised
+ *  surface and reads its count in the ember index tone. */
+function RailRow({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 8,
+        width: "100%",
+        textAlign: "left",
+        padding: "6px 10px",
+        borderRadius: "var(--radius-control)",
+        background: active ? "var(--surface-raised)" : "transparent",
+        border: "none",
+        cursor: "pointer",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 13,
+          color: active ? "var(--text-primary)" : "var(--text-body)",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        className="tabular-nums"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          color: active ? "var(--ember)" : "var(--text-faint)",
+          flexShrink: 0,
+        }}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+/** The green outcome pill (Connected / Active). "moss" is the brighter chip
+ *  tone; "muted" is the quieter env-active read. */
+function StatusPill({
+  tone,
+  title,
+  children,
+}: {
+  tone: "moss" | "muted";
+  title?: string;
+  children: string;
+}) {
+  const color = tone === "moss" ? "var(--moss-bright)" : "var(--moss)";
+  const bg =
+    tone === "moss"
+      ? "color-mix(in oklab, var(--moss) 16%, transparent)"
+      : "color-mix(in oklab, var(--moss) 9%, transparent)";
+  return (
+    <span
+      title={title}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        color,
+        background: bg,
+        borderRadius: 99,
+        padding: "4px 10px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 99, background: color }} />
+      {children}
+    </span>
+  );
+}
+
+/** The right-edge status affordance for one card: a Connected/Active pill, a
+ *  Connect button (real OAuth flow), or a quiet disabled "coming soon". */
+function ConnectStatus({
+  status,
+  spec,
+  busy,
+  onConnect,
+}: {
+  status: CardStatus;
+  spec: ProviderSpec;
+  busy: boolean;
+  onConnect: () => void;
+}) {
+  if (status === "connected") return <StatusPill tone="moss">Connected</StatusPill>;
+  if (status === "active") {
+    return (
+      <StatusPill tone="muted" title="Reading through a workspace token">
+        Active
+      </StatusPill>
+    );
+  }
+  if (status === "connect") {
+    return (
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm loom-press"
+        disabled={busy}
+        onClick={(ev) => {
+          ev.stopPropagation();
+          onConnect();
+        }}
+      >
+        Connect
+      </button>
+    );
+  }
+  return (
+    <span
+      title={setupHintFor(spec)}
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        color: "var(--text-faint)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      Coming soon
+    </span>
+  );
+}
+
 export function AccountConnectionsSection({
   onOpenDetail,
 }: {
-  /** Opens the ConnectorDetail drill-down — the route navigates with ?connector=. */
+  /** Opens the ConnectorDetail drill-down; the route navigates with ?connector=. */
   onOpenDetail: (provider: ProviderId) => void;
 }) {
   const qc = useQueryClient();
-  const confirm = useConfirm();
 
   // One-time toast after the GitHub App full-redirect callback, then strip the
-  // params so a refresh doesn't re-toast. Read from window.location directly —
+  // params so a refresh doesn't re-toast. Read from window.location directly:
   // the callback redirect is a full page load and the route's validateSearch
   // only passes `section` through.
   useEffect(() => {
@@ -200,10 +357,7 @@ export function AccountConnectionsSection({
   }, []);
 
   const fList = useServerFn(listConnections);
-  const fDisconnect = useServerFn(disconnectConnection);
-  const fDelete = useServerFn(deleteConnection);
   const fCalList = useServerFn(listMyCalendarConnections);
-  const fCalDisconnect = useServerFn(disconnectCalendar);
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
   const calendars = useQuery({
@@ -229,38 +383,8 @@ export function AccountConnectionsSection({
     hadGithubRef.current = hasGithub;
   }, [list.data, list.isLoading]);
 
-  // Connect + verify flows shared with ConnectorDetail (one implementation).
-  const { mGithub, mGateway, mCalConnect, mVerify, busy: actionsBusy } = useConnectorActions(qc);
-
-  const mCalDisconnect = useMutation({
-    mutationFn: (id: string) => fCalDisconnect({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Disconnected");
-      qc.invalidateQueries({ queryKey: ["calendar-connections"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const mDisconnect = useMutation({
-    mutationFn: (id: string) => fDisconnect({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Disconnected. Workspace bindings stay until you remove them.");
-      qc.invalidateQueries({ queryKey: ["connections"] });
-      qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const mDelete = useMutation({
-    mutationFn: (id: string) => fDelete({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Connection removed");
-      qc.invalidateQueries({ queryKey: ["connections"] });
-      qc.invalidateQueries({ queryKey: ["workspace-bindings"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const busy =
-    actionsBusy || mCalDisconnect.isPending || mDisconnect.isPending || mDelete.isPending;
+  // Connect flows shared with ConnectorDetail (one implementation).
+  const { mGithub, mGateway, mCalConnect, busy } = useConnectorActions(qc);
 
   const byProvider = new Map<ProviderId, AccountConnection[]>();
   for (const c of list.data?.connections ?? []) {
@@ -270,7 +394,7 @@ export function AccountConnectionsSection({
   }
   const calendarAccounts = calendars.data?.connections ?? [];
 
-  // End-user rows only: internal/service connectors (firecrawl, anything
+  // End-user providers only: internal/service connectors (firecrawl, anything
   // flagged userFacing: false in the registry) never render here.
   const visibleProviders = Object.values(CONNECTOR_REGISTRY).filter(
     (spec) => spec.id !== "firecrawl" && spec.userFacing !== false,
@@ -278,86 +402,30 @@ export function AccountConnectionsSection({
 
   const availability = list.data?.providerAvailability;
 
-  // Connected-first: a provider is "connected" when it has at least one
-  // account row (connections table) or one calendar account. This is the set
-  // the user operates; everything else is an explore-to-connect option below.
+  // A provider is "connected" when it has at least one account row (connections
+  // table) or one calendar account.
   const isConnected = (spec: ProviderSpec): boolean => {
     const cal = CALENDAR_PROVIDERS[spec.id];
     if (cal) return calendarAccounts.some((c) => c.provider === cal);
     return (byProvider.get(spec.id)?.length ?? 0) > 0;
   };
-  const connectedProviders = visibleProviders.filter(isConnected);
-  const connectedIds = new Set<ProviderId>(connectedProviders.map((s) => s.id));
 
-  // One wired connection row (Section A): calendar and OAuth/App providers
-  // keep the exact actions they always had; only the framing changed.
-  const renderConnectionRow = (spec: ProviderSpec) => {
-    const calProvider = CALENDAR_PROVIDERS[spec.id];
-    const common = {
-      provider: spec.id,
-      label: spec.label,
-      description: spec.description,
-      configured: providerConfigured(spec, availability),
-      setupHint: setupHintFor(spec),
-      busy,
-      onDetails: () => onOpenDetail(spec.id),
-    };
-    if (calProvider) {
-      return (
-        <ConnectionRow
-          {...common}
-          onConnect={() => mCalConnect.mutate(calProvider)}
-          accounts={calendarAccounts
-            .filter((c) => c.provider === calProvider)
-            .map((c) => ({
-              id: c.id,
-              label: c.account_email ?? c.display_name ?? "Connected account",
-            }))}
-          onDisconnectAccount={async (id) => {
-            const ok = await confirm({
-              title: "Disconnect this calendar?",
-              body: "Stored events stay but no further sync will happen.",
-              confirmLabel: "Disconnect",
-              destructive: true,
-            });
-            if (ok) mCalDisconnect.mutate(id);
-          }}
-        />
-      );
-    }
-    return (
-      <ConnectionRow
-        {...common}
-        onConnect={() =>
-          spec.authMethods.some((m) => m.kind === "github_app")
-            ? mGithub.mutate()
-            : mGateway.mutate(spec)
-        }
-        connections={byProvider.get(spec.id) ?? []}
-        onVerify={(c) => mVerify.mutate(c.id)}
-        onDisconnect={async (c) => {
-          const ok = await confirm({
-            title: "Disconnect this account?",
-            body: "The stored credential is deleted. Workspace bindings stay visible but stop working until you reconnect.",
-            confirmLabel: "Disconnect",
-            destructive: true,
-          });
-          if (ok) mDisconnect.mutate(c.id);
-        }}
-        onRemove={async (c) => {
-          const ok = await confirm({
-            title: "Remove this connection?",
-            body: "Deletes the connection and every workspace binding that uses it. This cannot be undone.",
-            confirmLabel: "Remove",
-            destructive: true,
-          });
-          if (ok) mDelete.mutate(c.id);
-        }}
-      />
-    );
+  // Four states, resolved once per provider (same logic drives the card badge
+  // and the rail's Connected count): a live connection, an env-active workspace
+  // token, an OAuth app that is configured (real Connect), or coming soon.
+  const statusFor = (spec: ProviderSpec): CardStatus => {
+    if (isConnected(spec)) return "connected";
+    if (availability?.[spec.id]?.envConfigured) return "active";
+    if (providerConfigured(spec, availability)) return "connect";
+    return "soon";
+  };
+  const isConnectedish = (spec: ProviderSpec): boolean => {
+    const s = statusFor(spec);
+    return s === "connected" || s === "active";
   };
 
-  // The connect flow for a not-yet-connected provider (Section B).
+  // The connect flow for a not-yet-connected provider (GitHub App redirect,
+  // calendar popup, or the gateway OAuth popup) is unchanged.
   const connectProvider = (spec: ProviderSpec) => {
     const cal = CALENDAR_PROVIDERS[spec.id];
     if (cal) mCalConnect.mutate(cal);
@@ -365,249 +433,277 @@ export function AccountConnectionsSection({
     else mGateway.mutate(spec);
   };
 
-  // Section B: not-yet-connected sources as ONE clean, searchable, filterable
-  // grid (the Lovable pattern) instead of long stacked category sections that
-  // overwhelm. A search box + category chips narrow a uniform card grid.
-  const [connQuery, setConnQuery] = useState("");
-  const [connCategory, setConnCategory] = useState<string>("all");
-  const availableEntries = useMemo(() => {
-    const out: { entry: CatalogEntry; category: string; categoryLabel: string }[] = [];
+  // The one canonical catalog, flattened, each entry carrying its category so
+  // the unified grid can be filtered without per-category section headers.
+  const allEntries = useMemo(() => {
+    const out: { entry: CatalogEntry; category: ConnectorCategory; categoryLabel: string }[] = [];
     for (const g of buildConnectorCatalog()) {
-      for (const e of g.entries) {
-        if (connectedIds.has(e.id)) continue;
-        out.push({ entry: e, category: g.id, categoryLabel: g.label });
-      }
+      for (const e of g.entries) out.push({ entry: e, category: g.id, categoryLabel: g.label });
     }
     return out;
-  }, [connectedIds]);
-  const availableCategories = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const a of availableEntries) if (!seen.has(a.category)) seen.set(a.category, a.categoryLabel);
-    return [...seen.entries()].map(([id, label]) => ({ id, label }));
-  }, [availableEntries]);
-  const filteredEntries = useMemo(() => {
-    const q = connQuery.trim().toLowerCase();
-    return availableEntries.filter((a) => {
-      if (connCategory !== "all" && a.category !== connCategory) return false;
-      if (!q) return true;
-      return (
-        a.entry.label.toLowerCase().includes(q) ||
-        a.entry.description.toLowerCase().includes(q) ||
-        a.categoryLabel.toLowerCase().includes(q)
-      );
-    });
-  }, [availableEntries, connQuery, connCategory]);
-  const anySetupRequired = availableEntries.some(
-    (a) => !providerConfigured(CONNECTOR_REGISTRY[a.entry.id], availability),
+  }, []);
+  const categories = useMemo(
+    () =>
+      buildConnectorCatalog().map((g) => ({
+        id: g.id,
+        label: g.label,
+        count: g.entries.length,
+      })),
+    [],
   );
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Section A, Connected: what is feeding Cadence right now. */}
-      <section id="connections" className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 4 }}>Connected</MonoLabel>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 8 }}>
-          The sources feeding Cadence now. Verify, manage, or disconnect any of them here.
-        </p>
+  // Left-rail filters: live search + status (all | connected) + one category.
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "connected">("all");
+  const [categoryFilter, setCategoryFilter] = useState<ConnectorCategory | null>(null);
+  const resetAll = () => {
+    setStatusFilter("all");
+    setCategoryFilter(null);
+  };
 
-        {list.isLoading ? (
-          <div className="mono-label" style={{ color: "var(--ink-faint)", padding: "16px 0" }}>
-            loading…
-          </div>
-        ) : connectedProviders.length === 0 ? (
-          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", padding: "6px 0 2px" }}>
-            Nothing connected yet. Add your first source below.
-          </p>
-        ) : (
-          <div>
-            {connectedProviders.map((spec, i) => (
-              <div
-                key={spec.id}
-                style={{
-                  borderBottom:
-                    i < connectedProviders.length - 1 ? "1px solid var(--hairline)" : "none",
-                }}
-              >
-                {renderConnectionRow(spec)}
-              </div>
+  const connectedCount = visibleProviders.filter(isConnectedish).length;
+  const allCount = allEntries.length;
+
+  const q = query.trim().toLowerCase();
+  const filtered = allEntries.filter((a) => {
+    const spec = CONNECTOR_REGISTRY[a.entry.id];
+    if (statusFilter === "connected" && !isConnectedish(spec)) return false;
+    if (categoryFilter && a.category !== categoryFilter) return false;
+    if (!q) return true;
+    return (
+      a.entry.label.toLowerCase().includes(q) ||
+      a.entry.description.toLowerCase().includes(q) ||
+      a.categoryLabel.toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div id="connections" style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+      {/* LEFT RAIL: search, status counts, categories, request box + sync link. */}
+      <aside
+        style={{
+          width: 210,
+          flexShrink: 0,
+          position: "sticky",
+          top: 16,
+          alignSelf: "flex-start",
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}
+      >
+        <input
+          className="input"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search sources"
+          aria-label="Search sources"
+          style={{ width: "100%", padding: "8px 12px", borderRadius: 8, fontSize: 13 }}
+        />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <RailRow
+            label="Connected"
+            count={connectedCount}
+            active={statusFilter === "connected"}
+            onClick={() => setStatusFilter("connected")}
+          />
+          <RailRow
+            label="All"
+            count={allCount}
+            active={statusFilter === "all" && categoryFilter === null}
+            onClick={resetAll}
+          />
+        </div>
+
+        <div>
+          <MonoLabel style={{ marginBottom: 8, display: "block" }}>Categories</MonoLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {categories.map((c) => (
+              <RailRow
+                key={c.id}
+                label={c.label}
+                count={c.count}
+                active={categoryFilter === c.id}
+                onClick={() => setCategoryFilter((prev) => (prev === c.id ? null : c.id))}
+              />
             ))}
           </div>
-        )}
-      </section>
+        </div>
 
-      {/* Section B, Add a connection: explore and connect, visually secondary. */}
-      <section>
-        <MonoLabel style={{ marginBottom: 4 }}>Add a connection</MonoLabel>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 14 }}>
-          Connect a tool once; then pick what each workspace uses under workspace sync and bindings.
-        </p>
+        <div
+          style={{
+            borderTop: "1px solid var(--hairline)",
+            paddingTop: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+          }}
+        >
+          <RequestConnectorCard compact />
+          <Link
+            to="/sync"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{ fontSize: 12, color: "var(--text-subtle)" }}
+          >
+            Workspace sync and bindings →
+          </Link>
+        </div>
+      </aside>
 
-        {availableEntries.length === 0 ? (
-          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
-            Everything available is already connected.
+      {/* RIGHT PANE: compact hero + one unified, filtered card grid. */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <header style={{ marginBottom: 16 }}>
+          <h3
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 460,
+              fontSize: 20,
+              lineHeight: 1.2,
+              color: "var(--text-primary)",
+              margin: 0,
+            }}
+          >
+            Connect what you already use
+          </h3>
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "var(--text-subtle)",
+              margin: "6px 0 0",
+              maxWidth: 480,
+            }}
+          >
+            Bring your tools in as sources; Cadence reads them into the loop.
+          </p>
+        </header>
+
+        {list.isLoading ? (
+          <div className="mono-label" style={{ color: "var(--text-faint)", padding: "24px 0" }}>
+            loading…
+          </div>
+        ) : filtered.length === 0 ? (
+          <p style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "12px 0" }}>
+            No sources match your filter.{" "}
+            <button
+              type="button"
+              onClick={resetAll}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontSize: 12.5,
+                color: "var(--glacier)",
+                cursor: "pointer",
+              }}
+            >
+              Clear
+            </button>
           </p>
         ) : (
-          <>
-            <input
-              className="input"
-              value={connQuery}
-              onChange={(e) => setConnQuery(e.target.value)}
-              placeholder="Search connections"
-              aria-label="Search connections"
-              style={{
-                display: "block",
-                width: "100%",
-                maxWidth: 360,
-                padding: "8px 12px",
-                borderRadius: 8,
-                fontSize: 13,
-                marginBottom: 12,
-              }}
-            />
-            <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 16 }}>
-              {[{ id: "all", label: "All" }, ...availableCategories].map((c) => {
-                const active = connCategory === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setConnCategory(c.id)}
-                    className="loom-press"
-                    style={{
-                      fontFamily: "var(--font-ui)",
-                      fontSize: 12.5,
-                      fontWeight: active ? 600 : 500,
-                      padding: "5px 12px",
-                      borderRadius: 999,
-                      border: "1px solid var(--hairline-strong)",
-                      background: active ? "var(--surface-raised)" : "transparent",
-                      color: active ? "var(--ink)" : "var(--ink-subtle)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-            {filteredEntries.length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
-                No connections match your search.
-              </p>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gap: 8,
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                }}
-              >
-                {filteredEntries.map(({ entry: e }) => {
-                  const spec = CONNECTOR_REGISTRY[e.id];
-                  const configured = providerConfigured(spec, availability);
-                  const envActive = !!availability?.[e.id]?.envConfigured;
-                  return (
+          <div
+            style={{
+              display: "grid",
+              gap: 10,
+              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            }}
+          >
+            {filtered.map(({ entry: e }) => {
+              const spec = CONNECTOR_REGISTRY[e.id];
+              const status = statusFor(spec);
+              const clickable = status === "connected" || status === "active";
+              const open = () => onOpenDetail(e.id);
+              return (
+                <div
+                  key={e.id}
+                  role={clickable ? "button" : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  aria-label={clickable ? `Open ${e.label} details` : undefined}
+                  onClick={clickable ? open : undefined}
+                  onKeyDown={
+                    clickable
+                      ? (ev) => {
+                          if (ev.key === "Enter" || ev.key === " ") {
+                            ev.preventDefault();
+                            open();
+                          }
+                        }
+                      : undefined
+                  }
+                  className={clickable ? "loom-press" : undefined}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: 14,
+                    borderRadius: "var(--radius-card, 12px)",
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline)",
+                    cursor: clickable ? "pointer" : "default",
+                    opacity: status === "soon" ? 0.62 : 1,
+                    outline: "none",
+                  }}
+                >
+                  <ProviderLogo provider={e.id} size={34} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
-                      key={e.id}
-                      className="bento"
-                      style={{ padding: 12, opacity: configured || envActive ? 1 : 0.6 }}
+                      style={{
+                        fontWeight: 500,
+                        color: "var(--text-primary)",
+                        fontSize: 13.5,
+                        lineHeight: 1.3,
+                      }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <ProviderLogo provider={e.id} size={30} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: 8,
-                            }}
-                          >
-                            <span style={{ fontWeight: 500, color: "var(--ink)", fontSize: 13.5 }}>
-                              {e.label}
-                            </span>
-                            <span
-                              className="mono-label"
-                              style={{
-                                border: "1px solid var(--hairline)",
-                                borderRadius: 99,
-                                padding: "2px 8px",
-                                flexShrink: 0,
-                              }}
-                            >
-                              {e.flowLabel}
-                            </span>
-                          </div>
-                          <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "4px 0 0" }}>
-                            {e.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          marginTop: 10,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        {configured ? (
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm loom-press"
-                            disabled={busy}
-                            onClick={() => connectProvider(spec)}
-                          >
-                            Connect
-                          </button>
-                        ) : envActive ? (
-                          <span
-                            className="mono-label"
-                            title="Reading through a workspace token set by your admin. Register the OAuth app to let each member connect their own account."
-                            style={{
-                              color: "var(--moss-bright, #7bbf8a)",
-                              border: "1px solid var(--hairline)",
-                              borderRadius: 99,
-                              padding: "3px 10px",
-                            }}
-                          >
-                            Active
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm loom-press"
-                            disabled
-                            title={setupHintFor(spec)}
-                          >
-                            Coming soon
-                          </button>
-                        )}
-                      </div>
+                      {e.label}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text-subtle)",
+                        margin: "3px 0 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {e.description}
+                    </p>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        marginTop: 5,
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 9.5,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        color: "var(--text-faint)",
+                      }}
+                    >
+                      {e.flowLabel}
+                    </span>
+                  </div>
+                  <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                    <ConnectStatus
+                      status={status}
+                      spec={spec}
+                      busy={busy}
+                      onConnect={() => connectProvider(spec)}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-
-        {anySetupRequired && (
-          <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 12 }}>
-            Grayed providers are coming soon. An admin can register the OAuth app to turn one on.
-          </p>
-        )}
-
-        {/* Request a connector: an in-product form (no email) that persists the
-            request and acknowledges on submit. */}
-        <RequestConnectorCard />
-      </section>
+      </div>
     </div>
   );
 }
 
-/* ---- ConnectorDetail — the screen-6 drill-down, ported from
-   design-reference/cadence/loop-detail.jsx ConnectorDetail (lines 243–292)
+/* ---- ConnectorDetail - the screen-6 drill-down, ported from
+   design-reference/cadence/loop-detail.jsx ConnectorDetail (lines 243-292)
    onto real data. Rendered by the settings route when ?connector= is set; it
    replaces the whole Connections tab body. Three states: setup required
    (env missing), configured-but-not-connected (real Connect flow), and
@@ -616,7 +712,7 @@ export function AccountConnectionsSection({
    Reads the
    SAME query keys as the list (["connections"], ["workspace-bindings"],
    ["calendar-connections"]) so the cache is shared. Reference elements with
-   no production data source are omitted per the no-filler law — see the
+   no production data source are omitted per the no-filler law - see the
    screen-6 build-log entry. ---- */
 
 function shortDate(iso: string): string {
