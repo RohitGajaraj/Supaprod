@@ -11,7 +11,7 @@ const TONE_STYLE: Record<PillTone, { border: string; color: string; shadow: stri
     color: "var(--ember)",
     shadow: "0 0 14px rgba(255,107,44,0.15)",
   },
-  glacier: { border: rgba("#7FD1DC", 0.35), color: "var(--glacier)", shadow: "none" },
+  glacier: { border: rgba("#84b3ec", 0.35), color: "var(--glacier)", shadow: "none" },
   quiet: { border: "rgba(255,255,255,0.12)", color: "var(--text-muted)", shadow: "none" },
 };
 
@@ -59,7 +59,7 @@ function Pill({
             width: 5,
             height: 5,
             borderRadius: "var(--radius-pill)",
-            background: "#7FD1DC",
+            background: "#84b3ec",
             animation: "cadPulse 2s ease-in-out infinite",
           }}
         />

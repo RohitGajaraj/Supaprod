@@ -98,11 +98,7 @@ export function gateHeadline(
   // "orchestrator" reads Chief of Staff, "qa" reads Review.
   const who = agentSlug ? agentDisplayName(agentSlug) : "An agent";
   if (!toolName) return `${who} is waiting on your call`;
-  if (!isSideEffectingTool(toolName)) {
-    // Humanize the dotted slug: "mission.plan" -> "mission plan"
-    const readable = toolName.replace(/\./g, " ");
-    return `${who} wants to ${readable}`;
-  }
+  if (!isSideEffectingTool(toolName)) return `${who} wants to run ${toolName}`;
   const effect = toolConsequence(toolName).effect;
   const firstSentence = effect.split(". ")[0].replace(/\.\s*$/, "");
   const [verb, ...rest] = firstSentence.split(" ");

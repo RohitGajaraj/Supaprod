@@ -28,7 +28,7 @@ interface StatusStyle {
 export const STATUS_STYLES: Record<StatusState, StatusStyle> = {
   working: {
     color: "var(--glacier)",
-    glow: "0 0 8px 1px rgba(127,209,220,0.6)",
+    glow: "0 0 8px 1px rgba(132, 179, 236,0.6)",
     animation: "cadPulse 2s ease-in-out infinite",
   },
   gate: {

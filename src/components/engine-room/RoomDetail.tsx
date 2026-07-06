@@ -141,7 +141,7 @@ export function PanelPending() {
           width: 220,
           height: 3,
           background:
-            "linear-gradient(90deg, rgba(127,209,220,0), rgba(127,209,220,0.5), rgba(127,209,220,0))",
+            "linear-gradient(90deg, rgba(132, 179, 236,0), rgba(132, 179, 236,0.5), rgba(132, 179, 236,0))",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}

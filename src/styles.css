@@ -1714,8 +1714,12 @@ html[data-motion="off"] .agent-live {
   --ember: #ff6b2c;
   --ember-deep: #c2571f; /* pressed/active ember */
   --ember-soft: #ffa477; /* tints, highlights, sparing */
-  /* Glacier: THE machine voice. Live state, agent presence, mono-label accent. */
-  --glacier: #7fd1dc;
+  /* Glacier: THE machine voice. Live state, agent presence, mono-label accent.
+   * Loom v4.1 (founder color ruling 2026-07-06): retuned from cyan #7fd1dc to
+   * a soft luminous azure-periwinkle. A cleaner complement to warm ember, more
+   * premium/elegant/modern (the Linear/Arc register), and it smooths the thread
+   * gradient (cyan->blue jump gone). */
+  --glacier: #84b3ec;
   /* Royal violet: ONLY inside the shimmer gradient and the working butterfly. */
   --violet-shimmer: #c77dff;
   /* Blossom: information. Links, citation chips. */
@@ -1819,13 +1823,13 @@ html[data-motion="off"] .agent-live {
    * working; at most ONE per screen. */
   --shimmer-gradient: linear-gradient(
     90deg,
-    #7fd1dc,
+    #84b3ec,
     #5b7cfa,
     #8b5cf6,
     #c77dff,
     #eaf6ff,
     #3b5bdb,
-    #7fd1dc
+    #84b3ec
   );
 
   /* === Density (extensions §8) · comfortable is the spec as written.
@@ -2153,7 +2157,7 @@ html[data-motion="off"] .agent-live {
   height: 520px;
   top: -140px;
   left: -120px;
-  background: radial-gradient(ellipse closest-side, var(--glow-field-color, rgba(127, 209, 220, 0.04)), transparent 70%);
+  background: radial-gradient(ellipse closest-side, var(--glow-field-color, rgba(132, 179, 236, 0.04)), transparent 70%);
 }
 [data-obsidian] .loom-glow-field[data-tone="ember"] {
   --glow-field-color: rgba(255, 107, 44, 0.035);

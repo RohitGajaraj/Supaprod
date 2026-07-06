@@ -23,7 +23,7 @@ function RoutePending() {
           height: 3,
           borderRadius: 99,
           background:
-            "linear-gradient(90deg, rgba(127,209,220,0.0), rgba(127,209,220,0.5), rgba(127,209,220,0.0))",
+            "linear-gradient(90deg, rgba(132, 179, 236,0.0), rgba(132, 179, 236,0.5), rgba(132, 179, 236,0.0))",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}

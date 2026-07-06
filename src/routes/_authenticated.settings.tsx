@@ -786,7 +786,7 @@ function BundleGrid({
               // Selected uses glacier — the machine marking your pick — never
               // ember, which stays reserved for a genuinely-required action.
               border: selected ? "1px solid var(--glacier)" : "1px solid var(--hairline)",
-              background: selected ? "rgba(127, 209, 220, 0.12)" : "var(--raised)",
+              background: selected ? "rgba(132, 179, 236, 0.12)" : "var(--raised)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-1)",

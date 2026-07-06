@@ -26,7 +26,7 @@ import { MonoLabel } from "./primitives";
 export type SpotlightTone = "glacier" | "ember" | "moss" | "blossom" | "neutral";
 
 const SPOTLIGHT_GLOW: Record<SpotlightTone, string> = {
-  glacier: "rgba(127, 209, 220, 0.07)",
+  glacier: "rgba(132, 179, 236, 0.07)",
   ember: "rgba(255, 107, 44, 0.06)",
   moss: "rgba(127, 191, 142, 0.07)",
   blossom: "rgba(229, 189, 223, 0.06)",

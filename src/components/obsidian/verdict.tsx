@@ -32,7 +32,7 @@ const VERDICT_HUE: Record<Exclude<VerdictTone, "PENDING">, VerdictHue> = {
   REVISE: { hex: "#FF6B2C", text: "#FF8B52" },
   "CRITIC REVIEW": { hex: "#E8B44C", text: "#E8B44C" },
   WATCH: { hex: "#E8B44C", text: "#E8B44C" },
-  DRAFTING: { hex: "#7FD1DC", text: "#7FD1DC" },
+  DRAFTING: { hex: "#84b3ec", text: "#84b3ec" },
 };
 
 export interface VerdictChipProps extends React.HTMLAttributes<HTMLSpanElement> {

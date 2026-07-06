@@ -87,7 +87,7 @@ function RowAction({
     tone === "moss"
       ? { color: "var(--moss)", border: "rgba(127,191,142,0.35)" }
       : tone === "glacier"
-        ? { color: "var(--glacier)", border: "rgba(127,209,220,0.35)" }
+        ? { color: "var(--glacier)", border: "rgba(132, 179, 236,0.35)" }
         : { color: "var(--text-subtle)", border: "var(--hairline-strong)" };
   return (
     <button

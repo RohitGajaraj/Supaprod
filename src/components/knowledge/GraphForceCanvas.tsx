@@ -120,7 +120,7 @@ export function GraphForceCanvas({
   const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
   const colorsRef = useRef<Map<string, string>>(new Map());
   const chromeColors = useRef({
-    glacier: "#7fd1dc",
+    glacier: "#84b3ec",
     madder: "#e06557",
     marigold: "#e8b44c",
     label: "#9c978f",
@@ -396,7 +396,7 @@ export function GraphForceCanvas({
     const read = (token: string, fallback: string) =>
       styles.getPropertyValue(token).trim() || fallback;
     chromeColors.current = {
-      glacier: read("--glacier", "#7fd1dc"),
+      glacier: read("--glacier", "#84b3ec"),
       madder: read("--madder", "#e06557"),
       marigold: read("--marigold", "#e8b44c"),
       label: read("--text-muted", "#9c978f"),

@@ -369,7 +369,7 @@ function CardHeader({
           <MonoLabel
             tone="glacier"
             style={{
-              background: rgba("#7FD1DC", 0.12),
+              background: rgba("#84b3ec", 0.12),
               border: "1px solid var(--glacier)",
               borderRadius: "var(--radius-pill)",
               padding: "3px 9px",

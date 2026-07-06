@@ -419,7 +419,7 @@ export function AskPanel() {
                 letterSpacing: "0.05em",
                 color: "var(--glacier)",
                 background: "color-mix(in oklab, var(--glacier) 8%, transparent)",
-                border: "1px solid rgba(127,209,220,0.35)",
+                border: "1px solid rgba(132, 179, 236,0.35)",
                 borderRadius: "var(--radius-pill, 999px)",
                 padding: "3px 8px",
               }}

@@ -329,7 +329,7 @@ function StripStat({ label, value, live }: { label: string; value: string; live?
             height: 6,
             borderRadius: "50%",
             background: "var(--glacier)",
-            boxShadow: "0 0 10px rgba(127,209,220,0.6)",
+            boxShadow: "0 0 10px rgba(132, 179, 236,0.6)",
             animation: "cadPulse 2s ease-in-out infinite",
           }}
         />
