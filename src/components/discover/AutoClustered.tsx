@@ -11,7 +11,7 @@ import {
   promoteThemeToOpportunity,
   generatePrd,
 } from "@/lib/discovery.functions";
-import { withTimeout } from "./format";
+import { sourceCaps, withTimeout } from "./format";
 import { SkeletonBar } from "./SkeletonBar";
 import { ThemeRow } from "./ThemeRow";
 import { ThemeDetail, type ThemeMember } from "./ThemeDetail";
@@ -58,6 +58,59 @@ function HeaderRow({ count }: { count: number }) {
   );
 }
 
+/** Functional-lens filter: a quiet wrap of mono-caps chips that slice the
+ * ranked themes by the SOURCE of their member signals (support tools vs
+ * analytics tools etc.), the honest real-data read on "which functional
+ * area". The active chip lifts onto the raised surface; the rest stay quiet.
+ * Rendered only when there are two or more distinct sources to choose between. */
+function SourceFilterRow({
+  sources,
+  active,
+  onSelect,
+}: {
+  sources: { source: string; count: number }[];
+  active: string | null;
+  onSelect: (source: string | null) => void;
+}) {
+  const chipStyle = (isActive: boolean) => ({
+    fontFamily: "var(--font-mono)",
+    fontSize: "10.5px",
+    letterSpacing: "0.08em",
+    fontVariantNumeric: "tabular-nums" as const,
+    borderRadius: "var(--radius-pill)",
+    padding: "3px 10px",
+    cursor: "pointer",
+    background: isActive ? "var(--surface-raised)" : "transparent",
+    color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+    border: isActive ? "1px solid var(--hairline)" : "1px solid transparent",
+  });
+  return (
+    <div className="flex flex-wrap items-center gap-1.5" style={{ padding: "0 4px" }}>
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        aria-pressed={active === null}
+        className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        style={chipStyle(active === null)}
+      >
+        ALL
+      </button>
+      {sources.map((s) => (
+        <button
+          key={s.source}
+          type="button"
+          onClick={() => onSelect(active === s.source ? null : s.source)}
+          aria-pressed={active === s.source}
+          className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={chipStyle(active === s.source)}
+        >
+          {sourceCaps(s.source)} {s.count}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
  * Column B of the Discover pipeline: the auto-clusters as first-class ranked
  * rows (`ThemeRow`, the corroboration leaderboard) that drill into
@@ -92,6 +145,9 @@ export function AutoClustered() {
   // expands on demand, so it never becomes a long wall.
   const [showAll, setShowAll] = useState(false);
   const VISIBLE = 4;
+  // Functional-lens filter: null = All, else a raw source string. Slices the
+  // ranked themes by where their evidence comes from.
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
 
   const signals = useQuery({
     queryKey: ["signals", activeProductId],
@@ -133,6 +189,28 @@ export function AutoClustered() {
     }
     return map;
   }, [signals.data]);
+
+  // The distinct member sources across all rendered themes, each with the
+  // number of themes that contain at least one signal from that source. This
+  // is the honest functional lens (support tools vs analytics tools etc.),
+  // built from the same client-side grouping, no new query. Sorted by
+  // theme-count so the biggest functional area leads.
+  const sourceStats = useMemo(() => {
+    const validThemeIds = new Set((themes.data?.themes ?? []).map((t) => t.id));
+    const themeCountBySource = new Map<string, number>();
+    for (const [themeId, members] of signalsByTheme) {
+      if (!validThemeIds.has(themeId)) continue;
+      const seen = new Set<string>();
+      for (const m of members) {
+        if (seen.has(m.source)) continue;
+        seen.add(m.source);
+        themeCountBySource.set(m.source, (themeCountBySource.get(m.source) ?? 0) + 1);
+      }
+    }
+    return [...themeCountBySource.entries()]
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
+  }, [signalsByTheme, themes.data]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["signals"] });
@@ -177,9 +255,18 @@ export function AutoClustered() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
-  const themeList: ThemeMeta[] = [...(themes.data?.themes ?? [])]
+  const sortedThemes: ThemeMeta[] = [...(themes.data?.themes ?? [])]
     .map((t) => ({ id: t.id, title: t.title, frequency: t.frequency, summary: t.summary ?? null }))
     .sort((a, b) => b.frequency - a.frequency);
+
+  // When a source filter is active, keep only the themes that hold at least
+  // one signal from that source; the rank (i+1) below is the position within
+  // this filtered, still-sorted list.
+  const themeList: ThemeMeta[] = sourceFilter
+    ? sortedThemes.filter((t) =>
+        (signalsByTheme.get(t.id) ?? []).some((m) => m.source === sourceFilter),
+      )
+    : sortedThemes;
 
   if (signals.isLoading || themes.isLoading) {
     return (
@@ -242,6 +329,9 @@ export function AutoClustered() {
   return (
     <div className="grid gap-3">
       <HeaderRow count={themeList.length} />
+      {sourceStats.length > 1 ? (
+        <SourceFilterRow sources={sourceStats} active={sourceFilter} onSelect={setSourceFilter} />
+      ) : null}
       {themeList.length === 0 ? (
         <p
           style={{

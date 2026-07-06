@@ -326,6 +326,8 @@ export function SignalFeed() {
               <SignalCard
                 key={s.id}
                 src={sourceCaps(s.source)}
+                sourceId={s.source}
+                url={s.url ?? null}
                 when={relTimeCaps(s.created_at)}
                 quote={s.content}
                 theme={theme ? `→ ${theme.title.toUpperCase()} · ${theme.frequency} SIGNALS` : null}

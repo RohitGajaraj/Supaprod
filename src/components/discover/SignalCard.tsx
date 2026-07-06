@@ -1,3 +1,6 @@
+import { ExternalLink, Radio } from "lucide-react";
+import { ProviderLogo } from "@/components/connections/ProviderLogo";
+import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +13,12 @@ export interface SignalCardProps {
   when: string;
   quote: string;
   theme: string | null;
+  /** The raw source string (e.g. 'github', 'stripe', 'intercom'), used to pick
+   * the origin glyph. `src` above is the pre-capitalized display label. */
+  sourceId?: string;
+  /** The single source reference URL when the signal has one, wired straight
+   * from the signals row's `url` column. */
+  url?: string | null;
   /** Last card in the feed omits the divider (OBS-06.md §7). */
   isLast?: boolean;
   /** Click-to-open (platform principle): opens this signal's rich detail
@@ -36,6 +45,8 @@ export function SignalCard({
   when,
   quote,
   theme,
+  sourceId,
+  url,
   isLast = false,
   onOpen,
   onPromote,
@@ -46,6 +57,9 @@ export function SignalCard({
 }: SignalCardProps) {
   const hasActions = onPromote || onDraftSpec || onLineage || onDelete;
   const clickable = Boolean(onOpen);
+  // A known connector gets its brand mark; anything else (manual capture, web
+  // research, an unmapped source) still shows a neutral origin glyph.
+  const knownProvider = Boolean(sourceId && sourceId in CONNECTOR_REGISTRY);
   return (
     <div
       role={clickable ? "button" : undefined}
@@ -82,6 +96,11 @@ export function SignalCard({
       }}
     >
       <div className="flex items-center gap-2">
+        {knownProvider ? (
+          <ProviderLogo provider={sourceId as ProviderId} size={16} />
+        ) : (
+          <Radio className="h-3.5 w-3.5" aria-hidden style={{ color: "var(--text-subtle)" }} />
+        )}
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -95,6 +114,20 @@ export function SignalCard({
         >
           {src}
         </span>
+        {url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            title="Open source"
+            aria-label="Open source"
+            onClick={(event) => event.stopPropagation()}
+            className="loom-press inline-flex items-center outline-none transition-colors hover:[color:var(--glacier)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{ color: "var(--text-subtle)" }}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : null}
         <span
           style={{
             fontFamily: "var(--font-mono)",
