@@ -2,7 +2,7 @@
 version: 4.0 "Loom" (design-system lineage: v1 tokens · v2 Ember Editorial parchment,
   landing-only · v3 Obsidian dark cockpit · v4 Loom, the lit instrument)
 created: 2026-07-04
-updated: 2026-07-04
+updated: 2026-07-07
 name: cadence-loom
 status: THE design contract for the product app. ADDITIVE over v3 Obsidian
   (DESIGN-OBSIDIAN.md): where this file speaks, it wins; where it is silent,
@@ -300,6 +300,41 @@ is what keeps the product feeling made by a person, not generated.
 >   scrolls): a bird's-eye HUD to keep the user oriented.
 >
 > This is a build rule for every new interactive element and a retroactive one.
+
+**17. Every object is traceable, timestamped, and opens on click (founder
+ruling 2026-07-07, STANDING, every surface and object type).** Any object the
+platform shows (a card, row, list item, or graph node) is a first-class,
+auditable thing, never a dead tile. The Decide layer's opportunity cards are
+the built exemplar; every surface adopts this by default, and existing surfaces
+are brought into line as they are touched.
+- **Click-to-open everywhere.** A single click on the object opens its own
+  detail directly. The ⋯ / kebab menu is for SECONDARY actions only, never the
+  only way to see an object. A double-click requirement or a dead card is a
+  violation (this generalizes the frictionless rule; the opened view follows
+  §13's depth-on-demand ladder: list → slide-over → full view).
+- **Provenance (where it came from).** Every object shows its origin and links
+  back up the loop (signal → theme → opportunity → spec → mission → outcome), so
+  a user or agent can always answer "where did this come from" in one click.
+  Reuse the lineage view; never leave an object orphaned from its source.
+- **A system-generated trace ref.** Every object carries a visible, stable,
+  human-readable reference derived from its id (`OPP·XXXXXX`, `THM·XXXXXX`,
+  `SIG·XXXXXX`), shown on the object and copyable as the full id in the detail,
+  so anything can be cited, searched, and audited. Use the shared `traceRef()`
+  helper, never a bespoke inline formatter.
+- **Timestamps + activity.** Every object and activity shows created and
+  last-updated (relative AND absolute), and when it MOVED between stages; the
+  detail carries an activity/time section. Time and recency are first-class,
+  never hidden. (Honest floor today is `created_at` / `updated_at`; a full
+  per-transition history needs a lightweight events table plus a write on each
+  stage change, flagged as the deeper follow-up wherever per-move history is
+  required.)
+- **Status/stage visible on the object.** The object's current stage/status
+  shows as a pill ON the object (mono-caps metadata per §1), never buried in a
+  menu.
+- **Scope.** Applies to EVERY surface and object type: Today, Discover, Decide,
+  Plan/Define, Build, Brain, Trust Ledger, Engine Room, and any future surface.
+  New objects adopt it by default (Discover signals already carry click-to-open
+  + source/reference; Decide is the built exemplar).
 
 
 
