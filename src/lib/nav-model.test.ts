@@ -24,7 +24,7 @@ describe("nav-model - THE LOOP (primary destinations)", () => {
   it("is one flat list of exactly six outcome-named destinations", () => {
     expect(PRIMARY_NAV.length).toBe(6);
     const labels = PRIMARY_NAV.map((n) => n.label);
-    expect(labels).toEqual(["Today", "Discover", "Decide", "Plan", "Build", "Brain"]);
+    expect(labels).toEqual(["Today", "Discover", "Decide", "Define", "Build", "Brain"]);
   });
 
   it("every destination has a route, a label, and a mono index 01-06", () => {

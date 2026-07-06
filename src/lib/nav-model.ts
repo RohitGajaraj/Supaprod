@@ -39,7 +39,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
   { to: "/today", label: "Today", index: "01" },
   { to: "/discover", label: "Discover", index: "02" },
   { to: "/decide", label: "Decide", index: "03" },
-  { to: "/plan", label: "Plan", index: "04" },
+  { to: "/plan", label: "Define", index: "04" },
   { to: "/build", label: "Build", index: "05" },
   { to: "/brain", label: "Brain", index: "06" },
 ];
