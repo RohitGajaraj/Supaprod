@@ -188,7 +188,7 @@ Taste-Skill anti-slop set), and **`impeccable`** (the .kiro-native build, the
 desloppification catalog). The interaction-feel north-star is **Rauno
 Freiberg's craft gallery (rauno.me/craft** and its essays "Invisible Details of
 Interaction Design", "Designing Depth", "Novelty"): the bar for how every
-action should feel — responsive, physical, spatially consistent, elite. Invoke
+action should feel, responsive, physical, spatially consistent, elite. Invoke
 the fitting skill before building a surface.
 The load-bearing rules distilled from them, enforced everywhere:
 
@@ -265,6 +265,42 @@ is what keeps the product feeling made by a person, not generated.
 > The reference implementation is the Brain "How it accrued" timeline
 > (`InsightsPanel.tsx` `Timeline`) and the record trend
 > (`BrainStatTrio.tsx`): copy that pattern for every new chart.
+
+> **THE INTERACTION-FEEL LAW (founder ruling 2026-07-06, STANDING, every user
+> action).** North-star: Rauno Freiberg's craft gallery (rauno.me/craft). Every
+> meaningful user action should feel premium and elite through layered feedback,
+> motion + optional sound + haptics, so the product feels like a natural
+> extension of the person. BUT this is CALIBRATED, not blanket (Rauno's
+> Frequency & Novelty rule): heavy feedback on a high-frequency action becomes
+> cognitive burden and reads as slop. The calibration:
+>
+> - **High-frequency / low-novelty** (command menu, tab switch, keyboard nav,
+>   typing, list add/remove): near-instant, minimal or NO animation, at most a
+>   whisper of feedback. Snappy beats decorated. Never animate an action seen
+>   100+ times a day.
+> - **Medium** (press, toggle, select, open a panel): immediate response, a
+>   crisp `scale(0.97)` press, a light haptic tick on touch devices, motion
+>   under 200ms.
+> - **Novel / rare / consequential** (commit a decision, ship, complete a
+>   mission, first-run, a genuine win): earns an expressive flourish, sound +
+>   haptic + motion, the moment of delight.
+> - **Physicality (Rauno):** gestures are immediately responsive (apply the
+>   delta live, animate past a threshold); motion retains momentum and is
+>   interruptible; lightweight actions trigger during the gesture, destructive
+>   ones require explicit intent (trigger on release); motion establishes
+>   spatial relationships (where a thing came from). Fitts's law: big, close,
+>   corner-anchored targets.
+> - **Sound + haptics contract:** synthesized (no heavy audio files), subtle,
+>   respect `prefers-reduced-motion` AND a user preference (a Settings toggle;
+>   sound defaults OFF, haptics subtle-on where supported), and never fire on
+>   high-frequency actions. Route through ONE shared feedback module so it is
+>   consistent and mutable, never per-component ad hoc.
+> - The minimap (rauno.me/craft/minimap) is the reference for a heads-up
+>   navigation/orientation aid on long or spatial surfaces (the 3D graph, long
+>   scrolls): a bird's-eye HUD to keep the user oriented.
+>
+> This is a build rule for every new interactive element and a retroactive one.
+
 
 
 ### The anti-slop catalog (the 46 tells to keep OUT, forever)
