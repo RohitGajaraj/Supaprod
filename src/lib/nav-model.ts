@@ -31,13 +31,17 @@ export type NavItemDef = {
   search?: Record<string, string>;
 };
 
-/** THE LOOP — the five outcome-named destinations (the calm front). */
+/** THE LOOP — the six outcome-named destinations (the calm front). Decide
+ * (2026-07-07) is its own stage between Discover (sense) and Plan (define):
+ * the ranked opportunity queue moved out of Discover so each surface owns one
+ * step of the loop and no surface is a cramped multi-column overflow. */
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   { to: "/today", label: "Today", index: "01" },
   { to: "/discover", label: "Discover", index: "02" },
-  { to: "/plan", label: "Plan", index: "03" },
-  { to: "/build", label: "Build", index: "04" },
-  { to: "/brain", label: "Brain", index: "05" },
+  { to: "/decide", label: "Decide", index: "03" },
+  { to: "/plan", label: "Plan", index: "04" },
+  { to: "/build", label: "Build", index: "05" },
+  { to: "/brain", label: "Brain", index: "06" },
 ];
 
 /**
@@ -50,8 +54,8 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
  * on Today, NEVER here (contract §8).
  */
 export const ENGINE_GROUP: readonly NavItemDef[] = [
-  { to: "/engine-room", label: "Engine Room", index: "06" },
-  { to: "/trust-ledger", label: "Trust Ledger", index: "07" },
+  { to: "/engine-room", label: "Engine Room", index: "07" },
+  { to: "/trust-ledger", label: "Trust Ledger", index: "08" },
 ];
 
 /**

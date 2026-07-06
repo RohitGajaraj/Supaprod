@@ -4,11 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { listOpportunities, listSignals } from "@/lib/discovery.functions";
+import { listSignals } from "@/lib/discovery.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
-import { OpportunityQueue } from "./OpportunityQueue";
 import { StrategySection } from "./StrategySection";
 
 /** Loom v4 §9: every empty state whispers the moat — a faint, static
@@ -42,11 +41,12 @@ function ConstellationMotif() {
 }
 
 /**
- * The evidence desk: a three-column pipeline on the v4 work container that
- * reads left to right as the core loop, signals captured (A) then
- * auto-clustered + ranked (B) then the opportunity queue (C). Owns the
- * surface-level "no sources at all" empty state (OBS-06.md §7, §9). SignalFeed,
- * AutoClustered, and OpportunityQueue each own their own
+ * The evidence desk: a two-column pipeline on the standard work container that
+ * reads left to right as the front of the loop, signals captured (A) then
+ * auto-clustered + ranked (B). The ranked opportunity queue moved to its own
+ * Decide destination (2026-07-07), so this surface stays two clean columns and
+ * never overflows. Owns the surface-level "no sources at all" empty state
+ * (OBS-06.md §7, §9). SignalFeed and AutoClustered each own their own
  * loading/error/quiet-empty states independently.
  */
 export function DiscoverSurface() {
@@ -54,43 +54,35 @@ export function DiscoverSurface() {
   const { tab } = useSearch({ from: "/_authenticated/discover" });
   const { activeProductId } = useWorkspace();
   const fSignals = useServerFn(listSignals);
-  const fOpps = useServerFn(listOpportunities);
 
-  // Loom W2 (audit D-24): honor the deep-link ?tab= the legacy redirects and
-  // the palette pass. Both columns live on one canvas, so "selecting" the tab
-  // means scrolling its column into view and handing it keyboard focus.
+  // Loom W2 (audit D-24): honor the deep-link ?tab= from the legacy redirects
+  // and the palette pass. Only the signals column lives here now (the
+  // opportunities column moved to /decide), so a legacy ?tab=opportunities
+  // link degrades to the plain surface rather than crashing.
   const signalsRef = useRef<HTMLDivElement>(null);
-  const oppsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!tab) return;
-    const target = tab === "signals" ? signalsRef.current : oppsRef.current;
+    if (tab !== "signals") return;
+    const target = signalsRef.current;
     if (!target) return;
     target.scrollIntoView({ block: "start", behavior: "auto" });
     target.focus({ preventScroll: true });
   }, [tab]);
 
-  // Shared query keys with SignalFeed/OpportunityQueue: react-query dedupes
-  // this against their own subscriptions, so it is a cache read, not a
-  // second network call.
+  // Shared query key with SignalFeed: react-query dedupes this against its own
+  // subscription, so it is a cache read, not a second network call.
   const signals = useQuery({
     queryKey: ["signals", activeProductId],
     queryFn: () => withTimeout(fSignals({ data: { productId: activeProductId } })),
   });
-  const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => withTimeout(fOpps()) });
 
-  const bothLoaded = !signals.isLoading && !opps.isLoading;
-  const bothEmpty =
-    bothLoaded &&
-    !signals.error &&
-    !opps.error &&
-    (signals.data?.signals.length ?? 0) === 0 &&
-    (opps.data?.opportunities.length ?? 0) === 0;
+  const signalsEmpty =
+    !signals.isLoading && !signals.error && (signals.data?.signals.length ?? 0) === 0;
 
   return (
     <div
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
       style={{
-        maxWidth: "var(--container-work)",
+        maxWidth: "var(--container-standard)",
         width: "100%",
         padding: "36px 32px 64px",
         position: "relative",
@@ -111,8 +103,8 @@ export function DiscoverSurface() {
           margin: 0,
         }}
       >
-        The evidence desk. <em style={{ color: "var(--ember-text)" }}>Signal</em> on the left,
-        judgment on the right.
+        The evidence desk. <em style={{ color: "var(--ember-text)" }}>Signal</em> on the left, the
+        themes it forms on the right.
       </h1>
       {/* Loom v4 §6: the hero underline — the maker's mark, static, 24px. */}
       <div
@@ -126,7 +118,7 @@ export function DiscoverSurface() {
         }}
       />
 
-      {bothEmpty ? (
+      {signalsEmpty ? (
         <div
           style={{
             backgroundColor: "var(--card)",
@@ -170,10 +162,11 @@ export function DiscoverSurface() {
       ) : (
         <>
           {/* The pipeline reads left to right: raw evidence, then the themes
-              Cadence ranks, then the bets it promotes. A quiet mono stepper
-              names the journey; the columns below are its three stations.
-              Decorative (each column carries its own heading), so hidden from
-              assistive tech. Ember is the one scarce accent on step 1. */}
+              Cadence ranks. The two columns below are its two in-surface
+              stations; the ranked bets themselves now live on Decide, so the
+              stepper ends on a quiet hand-off hint. Decorative (each column
+              carries its own heading), so hidden from assistive tech. Ember is
+              the one scarce accent on step 1. */}
           <div
             aria-hidden="true"
             className="mb-5 flex flex-wrap items-center"
@@ -182,7 +175,6 @@ export function DiscoverSurface() {
             {[
               { n: "1", label: "Captured" },
               { n: "2", label: "Clustered + ranked" },
-              { n: "3", label: "Opportunities" },
             ].map((step, i) => (
               <div key={step.n} className="flex items-center" style={{ gap: "10px" }}>
                 {i > 0 ? (
@@ -219,20 +211,38 @@ export function DiscoverSurface() {
                 </span>
               </div>
             ))}
+            {/* Hand-off: promoting a theme sends its bet to Decide. Quietest
+                token, no number, so the two numbered steps stay the anchors. */}
+            <div className="flex items-center" style={{ gap: "10px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "11px",
+                  color: "var(--text-faint)",
+                }}
+              >
+                {"→"}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10.5px",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--text-faint)",
+                }}
+              >
+                promote to Decide
+              </span>
+            </div>
           </div>
 
-          <div
-            className="grid grid-cols-1 items-start xl:grid-cols-3"
-            style={{ gap: "20px" }}
-          >
+          <div className="grid grid-cols-1 items-start lg:grid-cols-2" style={{ gap: "24px" }}>
             <div ref={signalsRef} id="signals" tabIndex={-1} style={{ outline: "none" }}>
               <SignalFeed />
             </div>
             <div style={{ outline: "none" }}>
               <AutoClustered />
-            </div>
-            <div ref={oppsRef} id="opportunities" tabIndex={-1} style={{ outline: "none" }}>
-              <OpportunityQueue />
             </div>
           </div>
         </>

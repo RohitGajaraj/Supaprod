@@ -390,7 +390,7 @@ export function GotoShortcuts() {
       )
         return;
       const key = e.key;
-      if (key >= "1" && key <= "5") {
+      if (key >= "1" && key <= "6") {
         const item = PRIMARY_NAV[Number(key) - 1];
         if (item) {
           e.preventDefault();

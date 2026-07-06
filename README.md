@@ -107,7 +107,7 @@ Cadence delivers all six stations end to end. The engine runs a 12-stage loop in
 5. **LAUNCH:** Marketer drafts the full launch kit in brand voice; Pricer analyzes packaging; everything customer-visible is approval-gated.
 6. **LEARN:** Support triages tickets back into signals; Quant reads outcomes; Historian writes what we learned into Product Memory, which re-ranks everything upstream.
 
-The user-facing app is **five destinations + summonable AI + one door** (Today · Discover · Plan · Build · Brain, plus Ask (Cmd+J) and the Engine Room door + Settings); features never add nav items, and the engine never appears as navigation. IA contract: [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) § 8 Information architecture.
+The user-facing app is **six destinations + summonable AI + one door** (Today · Discover · Decide · Plan · Build · Brain, plus Ask (Cmd+J) and the Engine Room door + Settings); Decide is the decide stage between Discover (sense) and Plan (define), the ranked opportunity queue that Discover promotes bets into. Features never add nav items, and the engine never appears as navigation. IA contract: [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) § 8 Information architecture.
 
 ### GTM posture (decided 2026-06-11)
 

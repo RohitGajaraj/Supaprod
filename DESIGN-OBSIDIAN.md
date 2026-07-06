@@ -127,7 +127,7 @@ Arrival choreography (splash/loading): flies in, four quick wing beats,
 lands, settles to slow two-wing rest. Glow intensity IS the signal.
 
 Iconography (amended 2026-07-02, codifying what the prototype practices):
-there is NO icon set. The nav uses the mono numeral index (01-05), a
+there is NO icon set. The nav uses the mono numeral index (01-06), a
 deliberate signature (mono index, not icon soup). The Butterfly is the only
 pictorial element; never redraw it (use assets/). Affordances are unicode
 characters in mono: →, ⌘K, and the middot · as the separator everywhere.
@@ -135,12 +135,15 @@ Status is communicated by 6px glowing dots plus mono-caps words, never icons.
 
 ## 8. Information architecture
 
-Five destinations + summonable AI + one door. Features NEVER add nav items.
+Six destinations + summonable AI + one door. Features NEVER add nav items.
 
 - Today: the ritual. Call queue, what changed (with causes), machine status,
   the loop strip (SENSE > DECIDE > DEFINE > BUILD > LEARN with live counts).
-- Discover: signal feed + ICE-ranked opportunities, Critic verdict inline,
-  "Challenge this" teardown as first-class action.
+- Discover: signal feed + auto-clustered themes ranked by corroboration; the
+  evidence desk. Promoting a theme sends its bet to Decide.
+- Decide: the ICE-ranked opportunity queue, Critic verdict inline, "Challenge
+  this" teardown as first-class action. The decide stage between Discover
+  (sense) and Plan (define).
 - Plan: cited specs (serif body, margin citations), outcome-declared roadmap
   (Now/Next/Later, each bet with its measure; committing has ceremony).
 - Build: ONE cockpit for all missions. Numbered agent steps, live pulses,

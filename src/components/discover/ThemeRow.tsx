@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,6 +122,30 @@ export function ThemeRow({
         </div>
         <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
       </div>
+
+      <button
+        type="button"
+        title="Promote to opportunity"
+        aria-label="Promote to opportunity"
+        disabled={actionsPending}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (!actionsPending) onPromote();
+        }}
+        className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--ember-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        style={{
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          background: "none",
+          border: "none",
+          cursor: actionsPending ? "default" : "pointer",
+          opacity: actionsPending ? 0.5 : 1,
+          padding: "2px 4px",
+        }}
+      >
+        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

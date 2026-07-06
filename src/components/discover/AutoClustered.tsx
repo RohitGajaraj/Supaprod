@@ -146,7 +146,9 @@ export function AutoClustered() {
     mutationFn: (themeId: string) => fPromoteTheme({ data: { theme_id: themeId } }),
     onMutate: (id) => setBusy(id, true),
     onSuccess: () => {
-      toast.success("Promoted · now an opportunity");
+      toast.success("Promoted. Now a ranked bet in Decide.", {
+        action: { label: "View in Decide", onClick: () => navigate({ to: "/decide" }) },
+      });
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
