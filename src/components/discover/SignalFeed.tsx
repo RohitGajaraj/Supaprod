@@ -19,6 +19,8 @@ import { relTimeCaps, sourceCaps, withTimeout } from "./format";
 import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
 import { SkeletonBar } from "./SkeletonBar";
+import { ThemeRow } from "./ThemeRow";
+import { ThemeDetail, type ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -101,22 +103,25 @@ function LoadingBody() {
   );
 }
 
-type ThemeBucket = { id: string; title: string; frequency: number; summary: string | null };
+type ThemeMeta = { id: string; title: string; frequency: number; summary: string | null };
 
-/** The auto-clusters, shown as cards (founder follow-up 2026-07-06). Signals
- * already carry a theme_id; this surfaces the clusters themselves so the PM
- * sees what is forming before promoting, instead of inferring it from inline
- * labels on a flat feed. Capped and expandable, so it never becomes a wall. */
-function ThemeBuckets({
+/** The auto-clusters, now first-class ranked rows that mirror the
+ * opportunity-queue grammar (`ThemeRow`: metric block, title + sub line, an
+ * overflow menu) and drill into `ThemeDetail`. Capped at four with a show-more
+ * matching the queue, so it never becomes a wall. Replaces the truncated 2-up
+ * bucket cards that had no drill-in. */
+function ThemesForming({
   themes,
   membersByTheme,
   busyIds,
+  onOpenDetail,
   onPromote,
   onDraftSpec,
 }: {
-  themes: ThemeBucket[];
-  membersByTheme: Map<string, { content: string; source: string }[]>;
+  themes: ThemeMeta[];
+  membersByTheme: Map<string, ThemeMember[]>;
   busyIds: Set<string>;
+  onOpenDetail: (id: string) => void;
   onPromote: (id: string) => void;
   onDraftSpec: (id: string) => void;
 }) {
@@ -126,13 +131,13 @@ function ThemeBuckets({
   const shown = showAll ? themes : themes.slice(0, VISIBLE);
   return (
     <div style={{ marginBottom: 18 }}>
-      <div className="mb-2.5 flex items-baseline justify-between" style={{ gap: 12 }}>
+      <div className="mb-3 flex items-start justify-between" style={{ gap: 12 }}>
         <div style={{ minWidth: 0 }}>
           <h3
             style={{
               margin: 0,
               fontFamily: "var(--font-ui)",
-              fontSize: 13.5,
+              fontSize: 15,
               fontWeight: 600,
               color: "var(--text-primary)",
               lineHeight: 1.3,
@@ -140,14 +145,14 @@ function ThemeBuckets({
           >
             Themes forming
           </h3>
-          <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "var(--text-subtle)" }}>
-            What the signals are clustering into
+          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+            What the signals are clustering into, ranked by corroboration
           </p>
         </div>
         <MonoLabel
           tone="glacier"
           style={{
-            fontSize: "10px",
+            fontSize: "10.5px",
             letterSpacing: "0.08em",
             fontVariantNumeric: "tabular-nums",
             flexShrink: 0,
@@ -157,99 +162,27 @@ function ThemeBuckets({
           {themes.length} CLUSTERED
         </MonoLabel>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10 }}>
+      <div className="grid gap-3">
         {shown.map((t) => {
           const members = membersByTheme.get(t.id) ?? [];
-          const busy = busyIds.has(t.id);
+          const sourceCount = new Set(members.map((m) => m.source)).size;
+          const newest = members.reduce<string | null>(
+            (acc, m) => (!acc || new Date(m.created_at) > new Date(acc) ? m.created_at : acc),
+            null,
+          );
           return (
-            <div
+            <ThemeRow
               key={t.id}
-              style={{
-                background: "var(--surface-raised)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "var(--radius-control)",
-                padding: "12px 13px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              <div className="flex items-baseline justify-between" style={{ gap: 8 }}>
-                <span
-                  className="min-w-0 truncate"
-                  style={{
-                    fontFamily: "var(--font-ui)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {t.title}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10,
-                    letterSpacing: "0.06em",
-                    color: "var(--text-subtle)",
-                    flexShrink: 0,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {t.frequency} SIGNAL{t.frequency === 1 ? "" : "S"}
-                </span>
-              </div>
-              {t.summary ? (
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                    color: "var(--text-muted)",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {t.summary}
-                </p>
-              ) : members[0] ? (
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 12,
-                    lineHeight: 1.5,
-                    color: "var(--text-subtle)",
-                    fontStyle: "italic",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {`"${members[0].content}"`}
-                </p>
-              ) : null}
-              <div className="flex items-center" style={{ gap: 8, marginTop: 2 }}>
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  onClick={() => onPromote(t.id)}
-                  style={{ fontSize: 12, padding: "5px 12px" }}
-                >
-                  Promote
-                </Button>
-                <Button
-                  variant="quiet"
-                  disabled={busy}
-                  onClick={() => onDraftSpec(t.id)}
-                  style={{ fontSize: 12, padding: "5px 10px" }}
-                >
-                  Draft spec
-                </Button>
-              </div>
-            </div>
+              themeId={t.id}
+              title={t.title}
+              signalCount={members.length}
+              sourceCount={sourceCount}
+              newestCreatedAt={newest}
+              actionsPending={busyIds.has(t.id)}
+              onOpenDetail={onOpenDetail}
+              onPromote={() => onPromote(t.id)}
+              onDraftSpec={() => onDraftSpec(t.id)}
+            />
           );
         })}
       </div>
@@ -257,17 +190,16 @@ function ThemeBuckets({
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press mt-2.5 outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press mt-3 outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
           style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
             color: "var(--text-muted)",
             background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
           }}
         >
           {showAll ? "Show fewer" : `Show ${themes.length - VISIBLE} more`}
@@ -304,6 +236,7 @@ export function SignalFeed() {
       return next;
     });
   const [lineageId, setLineageId] = useState<string | null>(null);
+  const [openThemeId, setOpenThemeId] = useState<string | null>(null);
   // Anti-scroll (founder ruling 2026-07-06): the feed shows the top few and
   // expands on demand, so the surface never becomes a long wall of signals.
   const [showAll, setShowAll] = useState(false);
@@ -330,14 +263,16 @@ export function SignalFeed() {
 
   // OBS-10: a signal that belongs to a theme should promote/draft-spec through
   // the THEME (aggregate evidence, deterministic scoring), matching the
-  // retired /product Signals tab's briefFor — not just that one signal's own
-  // quote. Grouped client-side from data already fetched, no new query.
+  // retired /product Signals tab's briefFor - not just that one signal's own
+  // quote. Grouped client-side from data already fetched, no new query. Now
+  // carries id + created_at so ThemeRow/ThemeDetail can derive the source
+  // count, the newest-signal time, and render each member quote with its time.
   const signalsByTheme = useMemo(() => {
-    const map = new Map<string, { content: string; source: string }[]>();
+    const map = new Map<string, ThemeMember[]>();
     for (const s of signals.data?.signals ?? []) {
       if (!s.theme_id) continue;
       const arr = map.get(s.theme_id) ?? [];
-      arr.push({ content: s.content, source: s.source });
+      arr.push({ id: s.id, content: s.content, source: s.source, created_at: s.created_at });
       map.set(s.theme_id, arr);
     }
     return map;
@@ -489,7 +424,7 @@ export function SignalFeed() {
   const thisWeekCount = rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
   const themeIds = new Set(themeById.keys());
   const unclusteredCount = rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
-  const themeList: ThemeBucket[] = [...(themes.data?.themes ?? [])]
+  const themeList: ThemeMeta[] = [...(themes.data?.themes ?? [])]
     .map((t) => ({ id: t.id, title: t.title, frequency: t.frequency, summary: t.summary ?? null }))
     .sort((a, b) => b.frequency - a.frequency);
 
@@ -497,10 +432,11 @@ export function SignalFeed() {
     <PanelShell>
       <HeaderRow count={thisWeekCount} />
       <SignalComposer unclusteredCount={unclusteredCount} />
-      <ThemeBuckets
+      <ThemesForming
         themes={themeList}
         membersByTheme={signalsByTheme}
         busyIds={busyIds}
+        onOpenDetail={(id) => setOpenThemeId(id)}
         onPromote={(id) => promoteTheme.mutate(id)}
         onDraftSpec={(id) => draftThemeSpec.mutate(id)}
       />
@@ -567,6 +503,22 @@ export function SignalFeed() {
         kind="signal"
         id={lineageId}
         title={rows.find((s) => s.id === lineageId)?.content}
+      />
+      <ThemeDetail
+        open={!!openThemeId}
+        onOpenChange={(next) => {
+          if (!next) setOpenThemeId(null);
+        }}
+        title={openThemeId ? (themeById.get(openThemeId)?.title ?? null) : null}
+        summary={openThemeId ? (themeById.get(openThemeId)?.summary ?? null) : null}
+        members={openThemeId ? (signalsByTheme.get(openThemeId) ?? []) : []}
+        busy={openThemeId ? busyIds.has(openThemeId) : false}
+        onPromote={() => {
+          if (openThemeId) promoteTheme.mutate(openThemeId);
+        }}
+        onDraftSpec={() => {
+          if (openThemeId) draftThemeSpec.mutate(openThemeId);
+        }}
       />
     </PanelShell>
   );

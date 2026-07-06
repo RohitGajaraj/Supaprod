@@ -1,0 +1,149 @@
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { relTimeCaps } from "./format";
+
+export interface ThemeRowProps {
+  themeId: string;
+  title: string;
+  /** Member-signal count. Drives both the metric block and the sub line, so
+   * the row always agrees with the detail drawer's grouped quotes. */
+  signalCount: number;
+  /** Distinct sources among the member signals. */
+  sourceCount: number;
+  /** Newest member's created_at, or null when the theme has no members yet. */
+  newestCreatedAt: string | null;
+  onOpenDetail: (themeId: string) => void;
+  onPromote: () => void;
+  onDraftSpec: () => void;
+  /** Mirrors OpportunityRow: any in-flight mutation disables the row actions. */
+  actionsPending?: boolean;
+}
+
+const plural = (n: number) => (n === 1 ? "" : "s");
+
+/**
+ * One corroboration-ranked theme, the left-column sibling of `OpportunityRow`.
+ * Same card shell (card fill, hairline, card radius, top-light + ambient
+ * shadow), the same left metric block anatomy as the ICE numeral, and the same
+ * trailing overflow menu. The whole row is a button that opens `ThemeDetail`;
+ * the menu stops propagation so a menu press never also opens the drawer.
+ */
+export function ThemeRow({
+  themeId,
+  title,
+  signalCount,
+  sourceCount,
+  newestCreatedAt,
+  onOpenDetail,
+  onPromote,
+  onDraftSpec,
+  actionsPending = false,
+}: ThemeRowProps) {
+  const sub =
+    `${signalCount} signal${plural(signalCount)} from ${sourceCount} source${plural(sourceCount)}` +
+    (newestCreatedAt ? ` · newest ${relTimeCaps(newestCreatedAt)}` : "");
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open theme: ${title}`}
+      onClick={() => onOpenDetail(themeId)}
+      onKeyDown={(event) => {
+        if (
+          (event.key === "Enter" || event.key === " ") &&
+          event.target === event.currentTarget
+        ) {
+          event.preventDefault();
+          onOpenDetail(themeId);
+        }
+      }}
+      className="relative flex cursor-pointer items-center outline-none transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        backgroundColor: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "16px 18px",
+        gap: "16px",
+        transitionDuration: "var(--dur-control)",
+        transitionTimingFunction: "var(--ease)",
+      }}
+    >
+      <div className="flex-none text-center" style={{ width: "56px" }}>
+        <div
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "23px",
+            fontWeight: 460,
+            color: "var(--text-primary)",
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {signalCount}
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "10.5px",
+            letterSpacing: "0.1em",
+            color: "var(--text-subtle)",
+            marginTop: "3px",
+          }}
+        >
+          signals
+        </div>
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div
+          style={{
+            fontSize: "var(--text-base)",
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            marginBottom: "3px",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {title}
+        </div>
+        <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Theme actions"
+            disabled={actionsPending}
+            onClick={(event) => event.stopPropagation()}
+            className="loom-press"
+            style={{
+              flexShrink: 0,
+              fontFamily: "var(--font-mono)",
+              fontSize: "14px",
+              color: "var(--text-subtle)",
+              background: "none",
+              border: "none",
+              cursor: actionsPending ? "default" : "pointer",
+              opacity: actionsPending ? 0.5 : 1,
+              padding: "2px 6px",
+            }}
+          >
+            ⋯
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onPromote}>Promote to opportunity</DropdownMenuItem>
+          <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
