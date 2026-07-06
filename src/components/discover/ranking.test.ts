@@ -183,53 +183,61 @@ describe("rankOpportunities", () => {
 
 describe("deriveDesignation", () => {
   test("rank 1 is always 'best bet', even when a lower rule would also match", () => {
-    // A rank-1 bet that is also a pet feature (not endorsed, high impact) and a
-    // scope creep (low ease) and well corroborated still reads 'best bet': the
-    // rank-1 rule is evaluated first and wins.
+    // A rank-1 bet that is also needs-validation (not endorsed, high impact)
+    // and a heavy lift (low ease) and well corroborated still reads 'best bet':
+    // the rank-1 rule is evaluated first and wins.
     expect(
       deriveDesignation({ rank: 1, verdict: "PENDING", impact: 9, ease: 2, corroboration: 8 }),
     ).toBe("best bet");
   });
 
-  test("a high-impact, not-endorsed, non-#1 bet is 'pet feature?'", () => {
+  test("a high-impact, not-endorsed, non-#1 bet is 'needs validation'", () => {
     expect(
       deriveDesignation({ rank: 2, verdict: "PENDING", impact: 7, ease: 5, corroboration: 0 }),
-    ).toBe("pet feature?");
+    ).toBe("needs validation");
   });
 
-  test("an endorsed bet is never a 'pet feature?' (endorsed skips rule 2)", () => {
+  test("an endorsed bet is never 'needs validation' (endorsed skips rule 2)", () => {
     // SHIP is the endorsed top, so even a high-impact SHIP bet with low ease
-    // falls through rule 2 to 'scope creep'.
+    // falls through rule 2 (and rule 3 quick win, ease < 7) to 'heavy lift'.
     expect(
       deriveDesignation({ rank: 3, verdict: "SHIP", impact: 9, ease: 2, corroboration: 0 }),
-    ).toBe("scope creep");
+    ).toBe("heavy lift");
   });
 
-  test("'pet feature?' outranks 'scope creep' when a bet matches both", () => {
-    // Not endorsed + high impact AND low ease: rule 2 (pet feature?) is
-    // evaluated before rule 3 (scope creep), so pet feature? wins.
+  test("'needs validation' outranks 'heavy lift' when a bet matches both", () => {
+    // Not endorsed + high impact AND low ease: rule 2 (needs validation) is
+    // evaluated before rule 4 (heavy lift), so needs validation wins.
     expect(
       deriveDesignation({ rank: 2, verdict: "PENDING", impact: 8, ease: 2, corroboration: 0 }),
-    ).toBe("pet feature?");
+    ).toBe("needs validation");
   });
 
-  test("a low-ease, endorsed, non-#1 bet is 'scope creep'", () => {
+  test("an easy, high-impact, endorsed bet is a 'quick win'", () => {
+    // Endorsed (skips needs validation), ease >= 7 AND impact >= 5 -> quick win,
+    // which is evaluated before heavy lift and watch this week.
+    expect(
+      deriveDesignation({ rank: 3, verdict: "SHIP", impact: 6, ease: 8, corroboration: 0 }),
+    ).toBe("quick win");
+  });
+
+  test("a low-ease, endorsed, non-#1 bet is 'heavy lift'", () => {
     expect(
       deriveDesignation({ rank: 3, verdict: "SHIP", impact: 4, ease: 3, corroboration: 0 }),
-    ).toBe("scope creep");
+    ).toBe("heavy lift");
   });
 
   test("a well-corroborated otherwise-plain bet is 'watch this week'", () => {
-    // Endorsed (skips pet feature?), ample ease (skips scope creep), 3+ backing
-    // signals -> watch this week.
+    // Endorsed (skips needs validation), mid ease (skips quick win and heavy
+    // lift), 3+ backing signals -> watch this week.
     expect(
-      deriveDesignation({ rank: 4, verdict: "SHIP", impact: 5, ease: 8, corroboration: 3 }),
+      deriveDesignation({ rank: 4, verdict: "SHIP", impact: 5, ease: 5, corroboration: 3 }),
     ).toBe("watch this week");
   });
 
   test("a plain bet earns no designation (null)", () => {
     expect(
-      deriveDesignation({ rank: 5, verdict: "SHIP", impact: 5, ease: 8, corroboration: 2 }),
+      deriveDesignation({ rank: 5, verdict: "SHIP", impact: 5, ease: 5, corroboration: 2 }),
     ).toBe(null);
   });
 });
@@ -239,23 +247,24 @@ describe("rankOpportunities designation", () => {
     const opps = [
       // #1 by ICE: the best bet.
       mk({ id: "top", ice_score: 9, critic_review: critic("ship") }),
-      // Not endorsed + high impact: a pet feature.
-      mk({ id: "pet", ice_score: 6, critic_review: null, impact: 8, ease: 6 }),
-      // Endorsed + low ease: scope creep.
+      // Not endorsed + high impact: needs validation.
+      mk({ id: "unvalidated", ice_score: 6, critic_review: null, impact: 8, ease: 6 }),
+      // Endorsed + low ease: heavy lift.
       mk({ id: "big", ice_score: 5, critic_review: critic("ship"), impact: 4, ease: 2 }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
     const byId = new Map(ranked.map((r) => [r.opp.id, r]));
     expect(byId.get("top")!.designation).toBe("best bet");
-    expect(byId.get("pet")!.designation).toBe("pet feature?");
-    expect(byId.get("big")!.designation).toBe("scope creep");
+    expect(byId.get("unvalidated")!.designation).toBe("needs validation");
+    expect(byId.get("big")!.designation).toBe("heavy lift");
   });
 
   test("uses corroboration for 'watch this week' via corroborationOf", () => {
     const opps = [
       mk({ id: "top", ice_score: 9, critic_review: critic("ship") }),
-      // Endorsed, ample ease, plain on its own but well corroborated.
-      mk({ id: "watch", ice_score: 5, critic_review: critic("ship"), impact: 5, ease: 8 }),
+      // Endorsed, mid ease (not a quick win), plain on its own but well
+      // corroborated.
+      mk({ id: "watch", ice_score: 5, critic_review: critic("ship"), impact: 5, ease: 5 }),
     ];
     const corr = (o: RankableOpportunity) => (o.id === "watch" ? 5 : 0);
     const ranked = rankOpportunities(opps, corr);

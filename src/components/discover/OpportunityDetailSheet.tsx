@@ -246,19 +246,19 @@ export function OpportunityDetailSheet({
 
             {/* Priority band: the agent-and-human priority cue, high in the
                 view. The queue position, the single best bet, the recommended
-                next action, and the rationale. A tasteful amber tint marks the
-                best bet; everything else is calm. Rendered only when threaded
-                in; absent members render nothing. */}
+                next action, and the rationale. A calm glacier tint marks the
+                best bet (never amber or brown); everything else stays quiet.
+                Rendered only when threaded in; absent members render nothing. */}
             {rank != null || rationale || nextAction || designation ? (
               <div
                 style={{
                   display: "grid",
                   gap: "9px",
                   background: isBestBet
-                    ? "color-mix(in srgb, var(--amber) 7%, var(--surface-raised))"
+                    ? "color-mix(in srgb, var(--glacier) 8%, transparent)"
                     : "var(--surface-raised)",
                   border: isBestBet
-                    ? "1px solid color-mix(in srgb, var(--amber) 22%, var(--hairline))"
+                    ? "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)"
                     : "1px solid var(--hairline)",
                   borderRadius: "var(--radius-card)",
                   padding: "13px 15px",
@@ -286,8 +286,9 @@ export function OpportunityDetailSheet({
                           fontFamily: "var(--font-mono)",
                           fontSize: "10px",
                           letterSpacing: "0.02em",
-                          color: "var(--amber)",
-                          border: "1px solid color-mix(in srgb, var(--amber) 30%, var(--hairline))",
+                          color: "var(--pencil-lime)",
+                          border:
+                            "1px solid color-mix(in srgb, var(--pencil-lime) 30%, var(--hairline))",
                           borderRadius: "999px",
                           padding: "2px 8px",
                           lineHeight: 1.4,

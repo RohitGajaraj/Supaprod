@@ -25,10 +25,17 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
   theme_id?: string | null;
 }
 
-/** A system-derived bet designation drawn from the PM pencil-ink vocabulary,
+/** A system-derived bet designation drawn from a self-explanatory PM vocabulary,
  * so a user or an agent reads what each bet IS at a glance and which to pick.
- * `null` means the bet earns no designation (a plain ranked bet). */
-export type Designation = "best bet" | "pet feature?" | "scope creep" | "watch this week" | null;
+ * `null` means the bet earns no designation (a plain ranked bet). More PM terms
+ * (sure thing, long shot, table stakes) are available spares if the set grows. */
+export type Designation =
+  | "best bet"
+  | "needs validation"
+  | "quick win"
+  | "heavy lift"
+  | "watch this week"
+  | null;
 
 /** One ranked bet: the source opportunity, its 1-based position, the single
  * best-bet flag, its system-derived designation, and the human-and-agent
@@ -155,17 +162,18 @@ function nextActionFor(opp: RankableOpportunity): string {
 }
 
 /**
- * The pure, deterministic bet designation. Names each ranked bet in the PM's
- * pencil-ink vocabulary so a human or an agent knows what the bet IS and which
- * to pick, without a model call. Evaluated in strict order (the first match
- * wins), so rank 1 is always the single best bet even if a lower rule would
- * also match it:
+ * The pure, deterministic bet designation. Names each ranked bet in a
+ * self-explanatory PM vocabulary so a human or an agent knows what the bet IS
+ * and which to pick, without a model call. Evaluated in strict order (the first
+ * match wins), so rank 1 is always the single best bet even if a lower rule
+ * would also match it:
  *   1. rank === 1                                      -> "best bet"
  *   2. NOT endorsed (verdict rank below the endorsed
- *      top, SHIP) AND impact >= 6                      -> "pet feature?"
- *   3. ease <= 3                                       -> "scope creep"
- *   4. corroboration >= 3                              -> "watch this week"
- *   5. otherwise                                       -> null (a plain bet)
+ *      top, SHIP) AND impact >= 6                      -> "needs validation"
+ *   3. ease >= 7 AND impact >= 5                       -> "quick win"
+ *   4. ease <= 3                                       -> "heavy lift"
+ *   5. corroboration >= 3                              -> "watch this week"
+ *   6. otherwise                                       -> null (a plain bet)
  * "Not endorsed" is the Critic having not endorsed the bet (pending, watch,
  * revise, or kill, i.e. a verdict rank below SHIP's).
  */
@@ -179,8 +187,9 @@ export function deriveDesignation(input: {
   const { rank, verdict, impact, ease, corroboration } = input;
   if (rank === 1) return "best bet";
   const endorsed = verdictRankOf(verdict) >= verdictRankOf("SHIP");
-  if (!endorsed && impact >= 6) return "pet feature?";
-  if (ease <= 3) return "scope creep";
+  if (!endorsed && impact >= 6) return "needs validation";
+  if (ease >= 7 && impact >= 5) return "quick win";
+  if (ease <= 3) return "heavy lift";
   if (corroboration >= 3) return "watch this week";
   return null;
 }

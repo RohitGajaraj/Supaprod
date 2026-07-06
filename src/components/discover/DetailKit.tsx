@@ -90,9 +90,10 @@ export interface StatCellProps {
 }
 
 /**
- * A premium stat cell: a small rounded cell with a subtle tinted fill and a
- * hairline, the value in the tone color, the label in faint mono caps. The
- * tint is derived from the tone token so it stays calm on the dark surface.
+ * A premium, compact stat cell: a small rounded cell with a subtle tinted fill
+ * and a hairline, the value in the tone color, the label in faint mono caps.
+ * Kept tight so four cells sit in one row without forcing horizontal scroll.
+ * The tint is derived from the tone token so it stays calm on the dark surface.
  */
 export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
   const color = STAT_TONE_COLOR[tone];
@@ -102,16 +103,16 @@ export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
         background: `color-mix(in srgb, ${color} 8%, transparent)`,
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-control)",
-        padding: "11px 10px",
+        padding: "6px 8px",
         textAlign: "center",
         display: "grid",
-        gap: "5px",
+        gap: "3px",
       }}
     >
       <div
         style={{
           fontFamily: "var(--font-serif)",
-          fontSize: "20px",
+          fontSize: "15px",
           fontWeight: 460,
           color,
           lineHeight: 1.05,
@@ -123,7 +124,7 @@ export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "9px",
+          fontSize: "8.5px",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "var(--text-subtle)",
@@ -150,7 +151,7 @@ export function StatStrip({ children, columns }: StatStripProps) {
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${Math.max(count, 1)}, minmax(0, 1fr))`,
-        gap: "8px",
+        gap: "6px",
       }}
     >
       {children}
@@ -167,9 +168,11 @@ export interface DetailSectionProps {
 }
 
 /**
- * A consistent detail section: a hairline top divider, a mono caps heading,
- * then the content. Every section on every object type reads the same, so the
- * detail view has one predictable rhythm.
+ * A consistent detail section: a hairline top divider, a mono caps heading
+ * marked by a tiny quiet vertical bar so each section reads as its own marker
+ * without loud color, then the content. Every section on every object type
+ * reads the same, so the detail view has one predictable rhythm. The accent is
+ * on the heading only; section bodies stay monotone.
  */
 export function DetailSection({ heading, children, action, style }: DetailSectionProps) {
   return (
@@ -183,11 +186,23 @@ export function DetailSection({ heading, children, action, style }: DetailSectio
       }}
     >
       <div className="flex items-center justify-between" style={{ gap: "10px" }}>
-        <MonoLabel
-          style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-        >
-          {heading}
-        </MonoLabel>
+        <span className="flex items-center" style={{ gap: "8px" }}>
+          <span
+            aria-hidden="true"
+            style={{
+              width: "2px",
+              height: "11px",
+              borderRadius: "999px",
+              backgroundColor: "var(--text-faint)",
+              flexShrink: 0,
+            }}
+          />
+          <MonoLabel
+            style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+          >
+            {heading}
+          </MonoLabel>
+        </span>
         {action}
       </div>
       {children}

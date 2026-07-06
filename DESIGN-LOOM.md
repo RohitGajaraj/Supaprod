@@ -362,10 +362,15 @@ are brought into line as they are touched.
   card accent. The Decide opportunity card is the built exemplar. On the Decide
   queue, the single best bet carries one system-driven lime pencil wink (the
   only pencil on the screen, per the one-wink law); the other ranks carry quiet
-  system designations from the PM pencil vocabulary ("pet feature?", "scope
-  creep", "watch this week") as small tags in their own ink, so a user or an
-  agent reads what each bet IS and which to pick, and the card never shows two
-  best-bet markers.
+  system designations from a self-explanatory PM vocabulary ("needs validation",
+  "quick win", "heavy lift", "watch this week") as small tags in their own ink,
+  so a user or an agent reads what each bet IS and which to pick, and the card
+  never shows two best-bet markers. (More PM terms, "sure thing", "long shot",
+  "table stakes", are available spares if the set grows.) The rank itself is
+  spotlighted as a small plain-language badge next to the expert ICE anchor (a
+  filled glacier pill at #1, a lighter glacier tint at #2 to #3, a quiet outline
+  deeper down, never ember), so a layman reads priority while the expert score
+  stays secondary.
 - **Detail-view anatomy (the standard for every object detail / side-panel,
   founder ruling 2026-07-07).** Every object detail view (the panel that opens
   on click) shares one premium skeleton, built from the shared DetailKit
@@ -384,8 +389,14 @@ are brought into line as they are touched.
   the state and priority up top, the supporting detail below. The color stays
   calm and semantic (tone-tinted cells, status and verdict chips), never loud;
   ember stays reserved for the single Capture CTA and is never a detail accent.
-  The Decide opportunity detail and the Discover signal detail are the built
-  exemplars; every future object detail adopts this same skeleton.
+  Three refinements are standing (founder feedback 2026-07-07): the priority /
+  summary band uses a calm glacier tint, never an amber or brown one; the stat
+  strip is compact single-row tinted cells (a small value over a mono caps
+  label, four across in one tight row, no horizontal scroll); and every
+  DetailSection heading carries a tiny quiet vertical-bar accent so sections
+  read as their own markers while the bodies stay monotone (no rainbow of
+  section colors). The Decide opportunity detail and the Discover signal detail
+  are the built exemplars; every future object detail adopts this same skeleton.
 
 
 

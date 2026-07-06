@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react";
 import { Button, PencilNote, VerdictChip } from "@/components/obsidian";
 import {
   DropdownMenu,
@@ -70,12 +71,13 @@ export function StatusPill({ status, className }: { status: string; className?: 
 
 /** The pencil-ink color for each non-best designation. The best bet is the one
  * lime pencil wink (rendered as a PencilNote, not a tag), so it is not here;
- * the others read as quiet tags in their own ink: pet feature? in blossom,
- * scope creep in apricot, watch this week in a quiet muted tone. Semantic
- * tokens only; ember stays reserved for the single Capture CTA. */
+ * the others read as quiet tags in their own ink: needs validation in blossom,
+ * quick win in moss, heavy lift in apricot, watch this week in a quiet muted
+ * tone. Semantic tokens only; ember stays reserved for the single Capture CTA. */
 export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
-  "pet feature?": "var(--pencil-blossom)",
-  "scope creep": "var(--pencil-apricot)",
+  "needs validation": "var(--pencil-blossom)",
+  "quick win": "var(--moss)",
+  "heavy lift": "var(--pencil-apricot)",
   "watch this week": "var(--text-muted)",
 };
 
@@ -85,8 +87,9 @@ export const DESIGNATION_MEANING: Record<
   Exclude<NonNullable<Designation>, "best bet">,
   string
 > = {
-  "pet feature?": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
-  "scope creep": "Large effort for the expected return. Consider slicing it smaller.",
+  "needs validation": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
+  "quick win": "Low effort for real impact. A fast, safe ship.",
+  "heavy lift": "Large effort for the expected return. Consider slicing it smaller.",
   "watch this week": "Gaining signals, not yet the top bet. Keep it in view.",
 };
 
@@ -136,6 +139,56 @@ function TraceChip({ id }: { id: string }) {
       }}
     >
       OPP·{traceRef(id)}
+    </span>
+  );
+}
+
+/** The rank spotlight: a small solid badge that reads the queue position in
+ * plain language, so a layman gets the priority even though ICE is expert-only.
+ * Rank 1 is a filled glacier pill (dark canvas text for contrast, bold); ranks
+ * 2 to 3 are a lighter glacier tint pill; deeper ranks are a quiet outline pill.
+ * Semantic tokens only; ember stays reserved for the single Capture CTA, so it
+ * is never used here. */
+function RankBadge({ rank }: { rank: number }) {
+  const isTop = rank === 1;
+  const isHigh = rank >= 2 && rank <= 3;
+  const tone: CSSProperties = isTop
+    ? {
+        background: "var(--glacier)",
+        color: "var(--canvas)",
+        border: "1px solid transparent",
+        fontWeight: 700,
+      }
+    : isHigh
+      ? {
+          background: "color-mix(in srgb, var(--glacier) 16%, transparent)",
+          color: "var(--glacier)",
+          border: "1px solid color-mix(in srgb, var(--glacier) 26%, transparent)",
+          fontWeight: 600,
+        }
+      : {
+          background: "transparent",
+          color: "var(--text-muted)",
+          border: "1px solid var(--hairline)",
+          fontWeight: 500,
+        };
+  return (
+    <span
+      title={`Priority rank ${rank} of the queue`}
+      aria-label={`Priority rank ${rank} of the queue`}
+      style={{
+        marginTop: "6px",
+        fontFamily: "var(--font-mono)",
+        fontSize: "10px",
+        letterSpacing: "0.04em",
+        borderRadius: "999px",
+        padding: "1px 7px",
+        lineHeight: 1.4,
+        fontVariantNumeric: "tabular-nums",
+        ...tone,
+      }}
+    >
+      #{rank}
     </span>
   );
 }
@@ -292,21 +345,7 @@ export function OpportunityRow({
             marginTop: "4px",
           }}
         />
-        {rank != null ? (
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              letterSpacing: "0.04em",
-              color: "var(--text-muted)",
-              marginTop: "6px",
-              fontVariantNumeric: "tabular-nums",
-            }}
-            title="Rank in the deterministic queue order"
-          >
-            #{rank}
-          </div>
-        ) : null}
+        {rank != null ? <RankBadge rank={rank} /> : null}
       </div>
 
       <div className="min-w-0 flex-1">

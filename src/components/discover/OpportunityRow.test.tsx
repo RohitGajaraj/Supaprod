@@ -34,7 +34,7 @@ describe("OpportunityRow designation marker", () => {
   });
 
   test("a non-best designation renders a quiet tag, never a PencilNote", () => {
-    const el = OpportunityRow({ ...BASE_PROPS, designation: "pet feature?" });
+    const el = OpportunityRow({ ...BASE_PROPS, designation: "needs validation" });
     expect(containsType(el, DesignationTag)).toBe(true);
     expect(containsType(el, PencilNote)).toBe(false);
   });
@@ -52,8 +52,9 @@ describe("OpportunityRow designation marker", () => {
 
 describe("DesignationTag", () => {
   test("renders a tag element for each non-best designation", () => {
-    expect(DesignationTag({ designation: "pet feature?" })).not.toBe(null);
-    expect(DesignationTag({ designation: "scope creep" })).not.toBe(null);
+    expect(DesignationTag({ designation: "needs validation" })).not.toBe(null);
+    expect(DesignationTag({ designation: "quick win" })).not.toBe(null);
+    expect(DesignationTag({ designation: "heavy lift" })).not.toBe(null);
     expect(DesignationTag({ designation: "watch this week" })).not.toBe(null);
   });
 
