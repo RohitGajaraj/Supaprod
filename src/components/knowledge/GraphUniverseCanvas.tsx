@@ -56,9 +56,6 @@ const SPHERE_SEGMENTS = 18;
 const HALO_SCALE = 3.4;
 const RING_SCALE = 3.0;
 const NEUTRAL_THREAD = "#c6c0b8";
-const MINIMAP_SIZE = 132; // px - the corner overview box (Rauno-craft reference)
-const MINIMAP_PAD = 10; // inner padding so nodes never touch the border
-const MINIMAP_THROTTLE = 4; // redraw at most every 4th frame so it never costs graph FPS
 
 /** Deterministic z seed so a rebuild reads as growth, not a relayout (no Math.random). */
 function seedZ(key: string): number {
@@ -142,7 +139,6 @@ export function GraphUniverseCanvas({
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const labelRef = useRef<HTMLDivElement | null>(null);
-  const minimapRef = useRef<HTMLCanvasElement | null>(null);
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -516,102 +512,15 @@ export function GraphUniverseCanvas({
     };
     positionLabelRef.current = positionLabel;
 
-    // A compact 2D overview of the whole constellation, pinned bottom-right, so
-    // the user keeps their bearings while zoomed in (DESIGN-LOOM Rauno-craft).
-    // Read-only: it projects every node's simulation x/y into a small box and
-    // lights the active (hovered/selected) node in ember. Throttled from the
-    // loop so it never regresses graph FPS.
-    const minimapDot = read("--text-subtle", "#8a857d");
-    const minimapEdge = read("--hairline", "rgba(214,192,176,0.14)");
-    const minimapEmber = read("--ember", "#FF6B2C");
-    const drawMinimap = () => {
-      const mini = minimapRef.current;
-      if (!mini) return;
-      const mctx = mini.getContext("2d");
-      if (!mctx) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const backing = Math.round(MINIMAP_SIZE * dpr);
-      if (mini.width !== backing || mini.height !== backing) {
-        mini.width = backing;
-        mini.height = backing;
-      }
-      mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      mctx.clearRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
-      const nodes = nodesRef.current;
-      if (nodes.length === 0) return;
-
-      let minX = Infinity;
-      let maxX = -Infinity;
-      let minY = Infinity;
-      let maxY = -Infinity;
-      let minZ = Infinity;
-      let maxZ = -Infinity;
-      for (const n of nodes) {
-        if (n.x < minX) minX = n.x;
-        if (n.x > maxX) maxX = n.x;
-        if (n.y < minY) minY = n.y;
-        if (n.y > maxY) maxY = n.y;
-        if (n.z < minZ) minZ = n.z;
-        if (n.z > maxZ) maxZ = n.z;
-      }
-      const spanX = Math.max(1, maxX - minX);
-      const spanY = Math.max(1, maxY - minY);
-      const span = Math.max(spanX, spanY); // one scale keeps the layout undistorted
-      const inner = MINIMAP_SIZE - MINIMAP_PAD * 2;
-      const scale = inner / span;
-      const offX = MINIMAP_PAD + (inner - spanX * scale) / 2;
-      const offY = MINIMAP_PAD + (inner - spanY * scale) / 2;
-      const zSpan = Math.max(1, maxZ - minZ);
-      const projX = (x: number) => offX + (x - minX) * scale;
-      const projY = (y: number) => offY + (maxY - y) * scale; // flip: three.js y-up to canvas y-down
-
-      const edges = edgesRef.current;
-      if (edges.length > 0 && edges.length <= 240) {
-        mctx.globalAlpha = 0.22;
-        mctx.strokeStyle = minimapEdge;
-        mctx.lineWidth = 1;
-        mctx.beginPath();
-        for (const e of edges) {
-          mctx.moveTo(projX(e.source.x), projY(e.source.y));
-          mctx.lineTo(projX(e.target.x), projY(e.target.y));
-        }
-        mctx.stroke();
-      }
-
-      const active = selectedRef.current ?? hoverKeyRef.current;
-      mctx.fillStyle = minimapDot;
-      for (const n of nodes) {
-        if (n.key === active) continue; // the active node is painted last, on top
-        const depth = (n.z - minZ) / zSpan; // nearer nodes read a touch brighter
-        mctx.globalAlpha = 0.26 + depth * 0.34;
-        mctx.beginPath();
-        mctx.arc(projX(n.x), projY(n.y), 1.5, 0, Math.PI * 2);
-        mctx.fill();
-      }
-      if (active) {
-        const n = nodeByKey.current.get(active);
-        if (n) {
-          mctx.globalAlpha = 1;
-          mctx.fillStyle = minimapEmber;
-          mctx.beginPath();
-          mctx.arc(projX(n.x), projY(n.y), 3, 0, Math.PI * 2);
-          mctx.fill();
-        }
-      }
-      mctx.globalAlpha = 1;
-    };
-
     const renderOnce = () => {
       syncPositions();
       updateCamera();
       renderer.render(scene, camera);
       positionLabel();
-      drawMinimap();
     };
     renderOnceRef.current = renderOnce;
     applyEmphasisRef.current = applyEmphasis;
 
-    let minimapFrame = 0;
     const loop = () => {
       rafId.current = requestAnimationFrame(loop);
       const sim = simRef.current;
@@ -629,7 +538,6 @@ export function GraphUniverseCanvas({
       updateCamera();
       renderer.render(scene, camera);
       if (hoverKeyRef.current) positionLabel();
-      if (++minimapFrame % MINIMAP_THROTTLE === 0) drawMinimap();
     };
     const startLoop = () => {
       if (rafId.current !== null) return;
@@ -1107,27 +1015,6 @@ export function GraphUniverseCanvas({
           </div>
         </div>
       ) : null}
-      <canvas
-        ref={minimapRef}
-        aria-hidden="true"
-        width={MINIMAP_SIZE}
-        height={MINIMAP_SIZE}
-        style={{
-          position: "absolute",
-          right: 12,
-          bottom: 40,
-          width: MINIMAP_SIZE,
-          height: MINIMAP_SIZE,
-          borderRadius: 10,
-          border: "1px solid var(--hairline)",
-          background: "color-mix(in oklab, var(--surface-raised) 70%, transparent)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          boxShadow: "var(--shadow-overlay)",
-          pointerEvents: "auto",
-          zIndex: 4,
-        }}
-      />
       <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 10 }}>
         <button
           type="button"
