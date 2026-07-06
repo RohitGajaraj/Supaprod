@@ -682,10 +682,10 @@ function Dashboard() {
     loopScore == null
       ? "Not enough data yet · keep the loop running."
       : acceptance.data?.trend === "up" || autonomy.data?.trend === "up"
-        ? "ON TRACK · TRENDING UP"
+        ? "Approval hit rate + autonomy ratio · trending up"
         : acceptance.data?.trend === "down" || autonomy.data?.trend === "down"
-          ? "NEEDS ATTENTION"
-          : "ON TRACK · HOLDING";
+          ? "Approval hit rate + autonomy ratio · needs attention"
+          : "Approval hit rate + autonomy ratio · holding";
 
   // Never assert "All clear" before the true call count has actually
   // arrived — OBS-04.md §7 "Loading" state: skeleton, no spinner, and the
