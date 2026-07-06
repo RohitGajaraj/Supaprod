@@ -12,6 +12,7 @@
 
 import type { ReactNode } from "react";
 import { toast as sonnerToast, type ExternalToast } from "sonner";
+import { fireFeedback } from "@/lib/interaction-feedback";
 
 export type HeldKind = "success" | "info" | "message" | "default";
 
@@ -104,11 +105,26 @@ export interface NotifyToast extends ToastFn {
   custom: typeof sonnerToast.custom;
 }
 
+const successBase = heldable("success", sonnerToast.success);
+// Multisensory feedback (Interaction-Feel Law): a success is a genuine, low
+// frequency moment, so it earns the expressive "success" cue. Only fire when
+// the toast actually shows (not when held quietly during Flow mode).
+const successWithFeedback: ToastFn = (message, opts) => {
+  const id = successBase(message, opts);
+  if (!shouldHold(opts)) fireFeedback("success");
+  return id;
+};
+
+const errorWithFeedback = ((message: Parameters<typeof sonnerToast.error>[0], opts?: ExternalToast) => {
+  fireFeedback("error");
+  return sonnerToast.error(message, opts);
+}) as typeof sonnerToast.error;
+
 export const toast: NotifyToast = Object.assign(base, {
-  success: heldable("success", sonnerToast.success),
+  success: successWithFeedback,
   info: heldable("info", sonnerToast.info),
   message: heldable("message", sonnerToast.message),
-  error: sonnerToast.error.bind(sonnerToast),
+  error: errorWithFeedback,
   warning: sonnerToast.warning.bind(sonnerToast),
   loading: sonnerToast.loading.bind(sonnerToast),
   promise: sonnerToast.promise.bind(sonnerToast),
