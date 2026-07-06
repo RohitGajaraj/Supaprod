@@ -283,6 +283,20 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (DEC-RANK: deterministic opportunity ranking + single best bet)
+
+**Context:** The opportunity queue sorted by `ice_score` alone, which left two equal-score bets in an unstable, engine-dependent order. An agent (and a human) acting on the queue needs a deterministic total order and one unambiguous top priority, never a tie or a coin-flip.
+
+**What shipped:**
+
+- **`src/components/discover/ranking.ts`** (pure, no React): `verdictRankOf` (SHIP > WATCH > PENDING > REVISE > KILL), `compareOpportunities` (the fixed tie-break chain: ice_score desc, verdict rank desc, corroboration desc, confidence desc, impact desc, created_at asc, id asc as the absolute stable finalizer), and `rankOpportunities` returning `{ opp, rank, isBestBet, rationale, nextAction }` (contiguous 1..N, exactly one best bet, rationale built only from true/nonzero discriminators, next action derived from state).
+- **`ranking.test.ts`** (15 tests): tie-break fall-through per key, exactly one best bet, contiguous ranks, run-twice determinism, stability across input permutations, and the rationale/next-action mapping.
+- **Wiring:** `OpportunityQueue.tsx` replaces the sort with `rankOpportunities(rows, theme-frequency corroboration)` and threads `rank` + `isBestBet` into each `OpportunityRow` and `rank` + `rationale` + `nextAction` into the open `OpportunityDetailSheet` (rows typed with the existing `OpportunityDetailRecord` so the generic infers the real row type; the previous code silently relied on an `any`-typed query result).
+- **`OpportunityRow.tsx`** shows a quiet mono `#{rank}` by the ICE anchor and one refined `--amber` "Best bet" tag on the #1 card only. **`OpportunityDetailSheet.tsx`** gains optional `rank`/`rationale`/`nextAction` props rendered in a restrained "Ranking" block (absent members render nothing).
+- Feature doc: [`docs/features/opportunity-ranking.md`](./docs/features/opportunity-ranking.md) (`DEC-RANK`), indexed in `docs/features/README.md`.
+
+**Verified:** `npx tsc --noEmit` clean; `bun run build` succeeds; `bun test` 2351 pass / 3 fail (only the pre-existing `resolveEmbedRoute` cases); no em/en dashes or invisible unicode in additions. Semantic tokens only; ember untouched.
+
 ### 2026-07-06 (QA PRODUCTION POLISH: all 18 live-QA-round-1 defects resolved, [auto] prefix eradicated platform-wide)
 
 **Context:** The founder asked for a comprehensive "every nook and corner" production polish pass. All 18 defects from the Loom W5 live QA catalog (`docs/planning/loom/live-qa-round-1.md`) are now resolved — some were already fixed in Loom QA R2 (verified in code), the rest fixed in this session.

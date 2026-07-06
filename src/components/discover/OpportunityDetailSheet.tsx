@@ -149,6 +149,12 @@ export interface OpportunityDetailSheetProps {
   onViewLineage: () => void;
   onSetStatus: (status: OpportunityStatus) => void;
   onDelete: () => void;
+  /** Deterministic-ranking context for this bet (from ranking.ts), all
+   * optional: the 1-based queue position, the short rationale, and the
+   * recommended next action. Absent members render nothing. */
+  rank?: number;
+  rationale?: string;
+  nextAction?: string;
 }
 
 /**
@@ -168,6 +174,9 @@ export function OpportunityDetailSheet({
   onViewLineage,
   onSetStatus,
   onDelete,
+  rank,
+  rationale,
+  nextAction,
 }: OpportunityDetailSheetProps) {
   const copyTraceId = () => {
     if (!opportunity) return;
@@ -243,6 +252,46 @@ export function OpportunityDetailSheet({
                 <Copy className="h-3 w-3" />
               </button>
             </div>
+
+            {/* Deterministic ranking context, shown only when threaded in.
+                Restrained by design (stage 2 owns the full treatment): the
+                queue position, the rationale sentence, and the recommended
+                next action. Semantic tokens only. */}
+            {rank != null || rationale || nextAction ? (
+              <Section heading="Ranking">
+                <div style={{ display: "grid", gap: "6px" }}>
+                  {rank != null ? (
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "11px",
+                        letterSpacing: "0.04em",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      #{rank} in the queue
+                    </span>
+                  ) : null}
+                  {rationale ? (
+                    <p
+                      style={{
+                        fontSize: "12.5px",
+                        lineHeight: 1.6,
+                        color: "var(--text-body)",
+                        margin: 0,
+                      }}
+                    >
+                      {rationale}
+                    </p>
+                  ) : null}
+                  {nextAction ? (
+                    <span style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
+                      Recommended next: {nextAction}
+                    </span>
+                  ) : null}
+                </div>
+              </Section>
+            ) : null}
 
             {/* Provenance: honest, from theme_id only. */}
             <Section heading="Where it came from">

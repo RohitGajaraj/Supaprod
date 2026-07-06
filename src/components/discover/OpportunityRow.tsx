@@ -109,6 +109,12 @@ export interface OpportunityRowProps {
   id?: string;
   /** Last-change timestamp, shown as a quiet "updated ..." caption. */
   updatedAt?: string;
+  /** The 1-based deterministic queue position (from ranking.ts), shown as a
+   * quiet mono ordering index next to the ICE anchor, distinct from the
+   * colored ICE numeral. */
+  rank?: number;
+  /** True only for the single #1 bet: renders one refined "Best bet" tag. */
+  isBestBet?: boolean;
 }
 
 /**
@@ -142,6 +148,8 @@ export function OpportunityRow({
   status,
   id,
   updatedAt,
+  rank,
+  isBestBet = false,
 }: OpportunityRowProps) {
   const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
   const clickable = Boolean(onOpen);
@@ -228,6 +236,21 @@ export function OpportunityRow({
             marginTop: "4px",
           }}
         />
+        {rank != null ? (
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              letterSpacing: "0.04em",
+              color: "var(--text-muted)",
+              marginTop: "6px",
+              fontVariantNumeric: "tabular-nums",
+            }}
+            title="Rank in the deterministic queue order"
+          >
+            #{rank}
+          </div>
+        ) : null}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -292,6 +315,24 @@ export function OpportunityRow({
 
       <div className="flex flex-none flex-col items-end" style={{ gap: "8px" }}>
         <div className="flex items-center" style={{ gap: "6px" }}>
+          {isBestBet ? (
+            <span
+              title="The single top-ranked bet in the queue"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                letterSpacing: "0.02em",
+                color: "var(--amber)",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "999px",
+                padding: "2px 8px",
+                lineHeight: 1.4,
+                flexShrink: 0,
+              }}
+            >
+              Best bet
+            </span>
+          ) : null}
           {status ? <StatusPill status={status} /> : null}
           <VerdictChip tone={verdict} />
         </div>

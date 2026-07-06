@@ -18,8 +18,9 @@ import {
 import { listLearnings } from "@/lib/outcome.functions";
 import { rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
+import { rankOpportunities } from "./ranking";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
-import { OpportunityDetailSheet } from "./OpportunityDetailSheet";
+import { OpportunityDetailSheet, type OpportunityDetailRecord } from "./OpportunityDetailSheet";
 import { SkeletonBar } from "./SkeletonBar";
 
 const CHALLENGE_TOAST_ID = "obs-discover-challenge";
@@ -205,8 +206,16 @@ export function OpportunityQueue() {
     );
   }
 
-  const rows = [...(opps.data?.opportunities ?? [])].sort((a, b) => b.ice_score - a.ice_score);
+  const rows: OpportunityDetailRecord[] = opps.data?.opportunities ?? [];
+  // Deterministic total order: the fixed tie-break chain (ICE, Critic verdict,
+  // corroboration = the backing theme's signal frequency, confidence, impact,
+  // created_at, id) so two equal-ICE bets never coin-flip and #1 is the single
+  // best bet. See ranking.ts.
+  const ranked = rankOpportunities(rows, (o) =>
+    o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
+  );
   const activeOpp = openId ? (rows.find((o) => o.id === openId) ?? null) : null;
+  const activeRanked = openId ? (ranked.find((r) => r.opp.id === openId) ?? null) : null;
 
   return (
     <div className="grid gap-3">
@@ -224,7 +233,8 @@ export function OpportunityQueue() {
           Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
         </p>
       ) : (
-        (showAll ? rows : rows.slice(0, VISIBLE_OPPS)).map((o, i) => {
+        (showAll ? ranked : ranked.slice(0, VISIBLE_OPPS)).map((r, i) => {
+          const o = r.opp;
           const learning = latestLearningByOpp.get(o.id);
           // rescoreNoteOf quote-guards the learning's free-text summary so an
           // arbitrary title can never break the sentence (the garbled
@@ -245,7 +255,9 @@ export function OpportunityQueue() {
           return (
             <OpportunityRow
               key={o.id}
-              ice={o.ice_score}
+              ice={o.ice_score ?? 0}
+              rank={r.rank}
+              isBestBet={r.isBestBet}
               title={o.title}
               sub={sub}
               verdict={verdict}
@@ -308,6 +320,9 @@ export function OpportunityQueue() {
         onOpenChange={(open) => !open && setOpenId(null)}
         opportunity={activeOpp}
         verdict={activeOpp ? verdictFor(activeOpp) : "PENDING"}
+        rank={activeRanked?.rank}
+        rationale={activeRanked?.rationale}
+        nextAction={activeRanked?.nextAction}
         onChallenge={() => activeOpp && challenge.mutate(activeOpp.id)}
         onDraftSpec={() => activeOpp && draftSpec.mutate(activeOpp.id)}
         onViewLineage={() => {

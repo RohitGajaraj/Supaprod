@@ -112,6 +112,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 | AGT-02 | Consent scopes (plan-level approval: an approved contract pre-consents its reversible tool calls) | ✅ Shipped 2026-07-03 (Lane 1) | engine only, rides `executeLoop` | [`consent-scopes.md`](./consent-scopes.md) |
 | AGT-01 | Structured-output protocol upgrade (native provider tool-calling, dormant behind `AGENT_NATIVE_TOOLCALLING`) | ✅ Built + tested 2026-07-03 (Lane 1); activation is the founder's own flag flip | engine only, rides `executeLoop` | [`agent-native-toolcalling.md`](./agent-native-toolcalling.md) |
 | RF-07 | Eval-driven prompt optimization (weekly steward pass mines graded eval failures, drafts a revised prompt version, human publishes) | ✅ Shipped 2026-07-03 (Lane 1) | Settings → Prompts · `/api/public/hooks/prompt-optimize-tick` | [`prompt-optimization.md`](./prompt-optimization.md) |
+| DEC-RANK | Deterministic opportunity ranking + best bet (fixed tie-break chain; rank on the card; single #1 with rationale + next action) | ✅ Shipped 2026-07-07 | `/discover` (opportunity queue + detail sheet) | [`opportunity-ranking.md`](./opportunity-ranking.md) |
 
 ## Rules
 
