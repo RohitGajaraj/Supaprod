@@ -41,6 +41,25 @@ A dark instrument, lit by meaning. Three additions over v3:
 > overwhelming. Every one of these applies to EVERY surface, not one screen.
 > Run the whole product through each lens; when a surface fails a lens, fix it.
 
+> **Two governing principles above all (founder ruling 2026-07-06):**
+>
+> **A. Authority to correct.** If a prior decision is wrong, fix it, even when
+> it is enshrined in v3/v4, this contract, `AGENTS.md`, `CLAUDE.md`, or any
+> design doc. Colors, shapes, positions, components, animations, type, tokens,
+> naming, IA, all are changeable when a stronger solution exists. Do not
+> preserve something merely because it is documented; documentation follows the
+> better design, not the other way around. Update the docs in the same change.
+>
+> **B. Minimal never means fewer features.** Reducing overwhelm and clicks is
+> NOT suppressing functionality. Every feature, every trace, every piece of
+> information stays present and reachable. The craft is in the PRESENTATION:
+> lead with what the user needs now, keep the depth one obvious disclosure away
+> (collapse, tab, slide-over, "N more", Engine Room door), and let power reveal
+> progressively. A surface that hides a real capability to look clean has
+> failed; a surface that surfaces the essential and gracefully holds the rest
+> has succeeded.
+
+
 **1. Affordance is decoupled from emphasis.** The restraint budget limits how
 LOUD a thing is (emphasis), never whether it looks interactive (affordance).
 Every interactive control carries structural affordance: a shape (padding +
