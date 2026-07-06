@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import type { ReactNode } from "react";
+import { ArrowDownRight, ArrowUpRight, ExternalLink } from "lucide-react";
 import { MonoLabel } from "@/components/obsidian";
 import {
   Sheet,
@@ -34,24 +36,100 @@ function kindLabel(kind: string): string {
   return kind.charAt(0).toUpperCase() + kind.slice(1);
 }
 
-/** A labelled fact in the signal record (mono label over its value). */
-function Field({ label, value }: { label: string; value: string }) {
+/** A subtle tone per lifecycle kind, so the lineage reads with color, not a
+ * wall of gray chips. Token colors only. */
+function kindTone(kind: string): string {
+  if (kind === "opportunity") return "var(--ember-text)";
+  if (kind === "prd") return "var(--moss-bright)";
+  if (kind === "theme") return "var(--blossom)";
+  if (kind === "signal") return "var(--glacier)";
+  return "var(--text-muted)";
+}
+
+/** Sentiment mapped to a semantic tone (real column value, never invented). */
+function sentimentTone(s: string): { label: string; color: string } {
+  const v = s.toLowerCase();
+  if (v.includes("pos")) return { label: s, color: "var(--moss-bright)" };
+  if (v.includes("neg")) return { label: s, color: "var(--madder)" };
+  if (v.includes("mix")) return { label: s, color: "var(--blossom)" };
+  return { label: s, color: "var(--glacier)" };
+}
+
+/** The host of a reference URL, so a long link renders as a clean chip. */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function LineageSection({
+  heading,
+  icon,
+  loading,
+  emptyText,
+  peers,
+}: {
+  heading: string;
+  icon: ReactNode;
+  loading: boolean;
+  emptyText: string;
+  peers: { kind: string; title: string; key: string }[];
+}) {
   return (
-    <div style={{ display: "grid", gap: "3px" }}>
-      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
-        {label}
-      </MonoLabel>
-      <div style={{ fontSize: "12.5px", color: "var(--text-body)", lineHeight: 1.5 }}>{value}</div>
-    </div>
+    <section style={{ display: "grid", gap: "9px" }}>
+      <div className="flex items-center" style={{ gap: 6 }}>
+        {icon}
+        <MonoLabel
+          style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+        >
+          {heading}
+        </MonoLabel>
+      </div>
+      {loading ? (
+        <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>Loading</p>
+      ) : peers.length === 0 ? (
+        <p style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}>
+          {emptyText}
+        </p>
+      ) : (
+        <ul style={{ display: "grid", gap: "8px", margin: 0, padding: 0, listStyle: "none" }}>
+          {peers.map((p) => (
+            <li key={p.key} className="flex items-start" style={{ gap: 8, fontSize: "12.5px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "9.5px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: kindTone(p.kind),
+                  background: "var(--surface-raised)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "999px",
+                  padding: "2px 8px",
+                  flexShrink: 0,
+                  marginTop: 1,
+                }}
+              >
+                {kindLabel(p.kind)}
+              </span>
+              <span style={{ color: "var(--text-body)", lineHeight: 1.5 }}>{p.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
 /**
  * One signal in full, plus how it connects across the lifecycle (getLineage,
- * the same source the lineage drawer reads). Peers are shown as quiet tags,
- * not links, so the reader stays in place, understands, and returns to act.
- * This is the exact rich record that used to live inside ThemeDetail; it now
- * has one home and two mounts (the raw card sheet and the theme drill).
+ * the same source the lineage drawer reads). The verbatim quote leads; a
+ * provenance panel carries the source, the reference link, sentiment, and
+ * tags with real color; the lineage shows what it came from and what it became
+ * (the cross-impact), so the reader understands in place and returns to act.
+ * One home, two mounts (the raw card sheet and the theme drill).
  */
 export function SignalRecordBody({ record }: { record: SignalRecord }) {
   const fLineage = useServerFn(getLineage);
@@ -62,39 +140,18 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
   const ancestors = q.data?.ancestors ?? [];
   const descendants = q.data?.descendants ?? [];
   const tags = record.tags ?? [];
-
-  const peerRow = (tag: string, label: string, key: string) => (
-    <li key={key} className="flex items-start" style={{ gap: 8, fontSize: "12.5px" }}>
-      <span
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "9.5px",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--text-subtle)",
-          background: "var(--surface-raised)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "999px",
-          padding: "2px 7px",
-          flexShrink: 0,
-          marginTop: 1,
-        }}
-      >
-        {tag}
-      </span>
-      <span style={{ color: "var(--text-body)", lineHeight: 1.5 }}>{label}</span>
-    </li>
-  );
+  const sentiment = record.sentiment ? sentimentTone(record.sentiment) : null;
 
   return (
-    <div className="mt-2" style={{ display: "grid", gap: "18px" }}>
-      <div style={{ display: "grid", gap: "7px" }}>
+    <div className="mt-3" style={{ display: "grid", gap: "16px" }}>
+      {/* The verbatim signal, leading. */}
+      <div style={{ display: "grid", gap: "8px" }}>
         {record.title ? (
           <h3
             style={{
               margin: 0,
               fontFamily: "var(--font-ui)",
-              fontSize: "14.5px",
+              fontSize: "15px",
               fontWeight: 600,
               color: "var(--text-primary)",
               lineHeight: 1.35,
@@ -109,117 +166,152 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
             lineHeight: 1.6,
             color: "var(--text-body)",
             margin: 0,
+            paddingLeft: "12px",
+            borderLeft: "2px solid var(--hairline-strong)",
           }}
         >
           {record.content}
         </p>
       </div>
 
-      <section style={{ display: "grid", gap: "12px" }}>
-        <Field
-          label="Source"
-          value={`${sourceCaps(record.source)}${record.sourceKind ? ` · ${record.sourceKind}` : ""}`}
-        />
-        <div style={{ display: "grid", gap: "3px" }}>
-          <MonoLabel
-            style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+      {/* Provenance: where it is from, the reference, how it reads. */}
+      <div
+        style={{
+          display: "grid",
+          gap: "12px",
+          background: "var(--surface-raised)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          padding: "14px 15px",
+        }}
+      >
+        <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: "var(--blossom)",
+              background: "var(--card)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "999px",
+              padding: "3px 9px",
+            }}
           >
-            Reference
-          </MonoLabel>
-          {record.url ? (
-            <a
-              href={record.url}
-              target="_blank"
-              rel="noreferrer"
-              className="loom-press hover:underline"
+            {sourceCaps(record.source)}
+            {record.sourceKind ? ` · ${record.sourceKind}` : ""}
+          </span>
+          {sentiment ? (
+            <span
+              className="flex items-center"
               style={{
-                fontSize: "12.5px",
-                color: "var(--glacier)",
-                wordBreak: "break-all",
-                lineHeight: 1.5,
+                gap: 5,
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: sentiment.color,
+                background: "var(--card)",
+                border: "1px solid var(--hairline)",
+                borderRadius: "999px",
+                padding: "3px 9px",
               }}
             >
-              {record.url}
-            </a>
-          ) : (
-            <span style={{ fontSize: "12.5px", color: "var(--text-subtle)", fontStyle: "italic" }}>
-              Captured directly, no external link.
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "999px",
+                  background: sentiment.color,
+                }}
+              />
+              {sentiment.label}
             </span>
-          )}
+          ) : null}
+          <span
+            style={{
+              marginLeft: "auto",
+              fontFamily: "var(--font-mono)",
+              fontSize: "10px",
+              letterSpacing: "0.06em",
+              color: "var(--text-subtle)",
+            }}
+          >
+            {relTimeCaps(record.created_at)}
+          </span>
         </div>
-        {record.sentiment ? <Field label="Sentiment" value={record.sentiment} /> : null}
+
+        {record.url ? (
+          <a
+            href={record.url}
+            target="_blank"
+            rel="noreferrer"
+            className="loom-press flex items-center hover:[color:var(--text-primary)]"
+            style={{
+              gap: 7,
+              fontSize: "12.5px",
+              color: "var(--glacier)",
+              lineHeight: 1.4,
+              width: "fit-content",
+            }}
+          >
+            <ExternalLink className="h-3.5 w-3.5" style={{ flexShrink: 0 }} />
+            <span style={{ wordBreak: "break-all" }}>{hostOf(record.url)}</span>
+          </a>
+        ) : (
+          <span style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic" }}>
+            Captured directly, no external link.
+          </span>
+        )}
+
         {tags.length > 0 ? (
-          <div style={{ display: "grid", gap: "5px" }}>
-            <MonoLabel
-              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
-            >
-              Tags
-            </MonoLabel>
-            <div className="flex flex-wrap" style={{ gap: 6 }}>
-              {tags.map((t) => (
-                <span
-                  key={t}
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
-                    letterSpacing: "0.04em",
-                    color: "var(--text-body)",
-                    background: "var(--surface-raised)",
-                    border: "1px solid var(--hairline)",
-                    borderRadius: "999px",
-                    padding: "2px 8px",
-                  }}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
+          <div className="flex flex-wrap" style={{ gap: 6 }}>
+            {tags.map((t) => (
+              <span
+                key={t}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  letterSpacing: "0.03em",
+                  color: "var(--glacier)",
+                  background: "color-mix(in oklab, var(--glacier) 12%, var(--card))",
+                  border: "1px solid color-mix(in oklab, var(--glacier) 24%, var(--hairline))",
+                  borderRadius: "999px",
+                  padding: "2px 9px",
+                }}
+              >
+                {t}
+              </span>
+            ))}
           </div>
         ) : null}
-        <Field label="Landed" value={relTimeCaps(record.created_at)} />
-      </section>
+      </div>
 
-      <section style={{ display: "grid", gap: "8px" }}>
-        <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
-          Came from
-        </MonoLabel>
-        {q.isLoading ? (
-          <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>Loading</p>
-        ) : ancestors.length === 0 ? (
-          <p
-            style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
-          >
-            Captured directly, no upstream artifact.
-          </p>
-        ) : (
-          <ul style={{ display: "grid", gap: "8px", margin: 0, padding: 0, listStyle: "none" }}>
-            {ancestors.map((e) =>
-              peerRow(kindLabel(e.parent_kind), e.peer_title ?? "(untitled)", e.id),
-            )}
-          </ul>
-        )}
-      </section>
-
-      <section style={{ display: "grid", gap: "8px" }}>
-        <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
-          Became
-        </MonoLabel>
-        {q.isLoading ? (
-          <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>Loading</p>
-        ) : descendants.length === 0 ? (
-          <p
-            style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
-          >
-            Nothing promoted from this yet.
-          </p>
-        ) : (
-          <ul style={{ display: "grid", gap: "8px", margin: 0, padding: 0, listStyle: "none" }}>
-            {descendants.map((e) =>
-              peerRow(kindLabel(e.child_kind), e.peer_title ?? "(untitled)", e.id),
-            )}
-          </ul>
-        )}
-      </section>
+      {/* Lineage: the cross-impact, in and out. */}
+      <LineageSection
+        heading="Came from"
+        icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} />}
+        loading={q.isLoading}
+        emptyText="Captured directly, no upstream artifact."
+        peers={ancestors.map((e) => ({
+          kind: e.parent_kind,
+          title: e.peer_title ?? "(untitled)",
+          key: e.id,
+        }))}
+      />
+      <LineageSection
+        heading="Became"
+        icon={<ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />}
+        loading={q.isLoading}
+        emptyText="Nothing promoted from this yet."
+        peers={descendants.map((e) => ({
+          kind: e.child_kind,
+          title: e.peer_title ?? "(untitled)",
+          key: e.id,
+        }))}
+      />
     </div>
   );
 }
