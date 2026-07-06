@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { MonoLabel } from "@/components/obsidian";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { RoadmapColumns } from "./RoadmapColumns";
 import { SpecComposer } from "./SpecComposer";
 import { SpecList } from "./SpecList";
@@ -26,9 +25,9 @@ export type PlanView = (typeof PLAN_VIEWS)[number];
 export function PlanSurface({ view }: { view?: PlanView }) {
   const [specOpen, setSpecOpen] = useState<string | null>(null);
   const sectionRefs = {
-    roadmap: useRef<HTMLHeadingElement>(null),
-    specs: useRef<HTMLHeadingElement>(null),
-    stakeholders: useRef<HTMLHeadingElement>(null),
+    roadmap: useRef<HTMLElement>(null),
+    specs: useRef<HTMLElement>(null),
+    stakeholders: useRef<HTMLElement>(null),
   };
 
   // Honor the ?view= deep link (the /roadmap, /prds, and /stakeholder legacy
@@ -49,16 +48,28 @@ export function PlanSurface({ view }: { view?: PlanView }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
-  const sectionHeading = (v: PlanView, label: string) => (
-    <h2
-      ref={sectionRefs[v]}
+  const sectionHeading = (v: PlanView, label: string, sub?: string) => (
+    <div
+      ref={sectionRefs[v] as RefObject<HTMLDivElement>}
       tabIndex={-1}
-      style={{ margin: 0, lineHeight: 1, outline: "none", scrollMarginTop: 16 }}
+      style={{ outline: "none", scrollMarginTop: 16 }}
     >
-      <MonoLabel tone="muted" style={{ fontSize: "var(--text-mono-floor)" }}>
+      <h2
+        style={{
+          margin: 0,
+          fontFamily: "var(--font-ui)",
+          fontSize: 16,
+          fontWeight: 600,
+          color: "var(--text-primary)",
+          lineHeight: 1.3,
+        }}
+      >
         {label}
-      </MonoLabel>
-    </h2>
+      </h2>
+      {sub ? (
+        <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>{sub}</p>
+      ) : null}
+    </div>
   );
 
   return (
@@ -105,19 +116,61 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         </p>
       </div>
 
-      <div style={{ marginBottom: 12 }}>{sectionHeading("roadmap", "The roadmap.")}</div>
+      <div style={{ marginBottom: 14 }}>
+        {sectionHeading("roadmap", "Roadmap", "Now, Next, and Later, each with a declared outcome")}
+      </div>
       <RoadmapColumns />
 
-      <div style={{ marginTop: 40, marginBottom: 12 }}>
-        {sectionHeading("specs", "Specs, with their receipts.")}
+      <div style={{ marginTop: 40, marginBottom: 14 }}>
+        {sectionHeading("specs", "Specs", "Cited, with their receipts")}
       </div>
       <SpecComposer />
       <SpecList onOpen={setSpecOpen} />
 
-      <div style={{ marginTop: 40, marginBottom: 12 }}>
-        {sectionHeading("stakeholders", "Stakeholder pack.")}
-      </div>
-      <StakeholderPackPanel />
+      {/* Progressive disclosure (Loom §0.1 anti-scroll): the stakeholder pack
+          is occasional, audience-facing work, collapsed by default so Roadmap
+          and Specs own the surface. Every capability stays one click away. */}
+      <details className="loom-details" style={{ marginTop: 40 }}>
+        <summary
+          ref={sectionRefs.stakeholders as RefObject<HTMLElement>}
+          tabIndex={-1}
+          className="loom-press"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            cursor: "pointer",
+            listStyle: "none",
+            padding: "12px 15px",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            background: "var(--surface-card)",
+            boxShadow: "var(--top-light)",
+            outline: "none",
+            scrollMarginTop: 16,
+          }}
+        >
+          <span
+            className="loom-details-chevron"
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", fontSize: 11, transition: "transform 160ms var(--ease)" }}
+          >
+            ▸
+          </span>
+          <span
+            style={{ fontFamily: "var(--font-ui)", fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}
+          >
+            Stakeholder pack
+          </span>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
+            Audience-tuned updates from any decision
+          </span>
+        </summary>
+        <div style={{ marginTop: 16 }}>
+          <StakeholderPackPanel />
+        </div>
+      </details>
 
       <SpecDetail id={specOpen} onClose={() => setSpecOpen(null)} />
     </div>
