@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, ExternalLink, Radio } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Copy, ExternalLink, Radio } from "lucide-react";
 import { MonoLabel } from "@/components/obsidian";
 import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
@@ -13,7 +13,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { getLineage } from "@/lib/lineage.functions";
-import { relTimeCaps, sourceCaps } from "./format";
+import { toast } from "@/lib/notify";
+import { relTimeCaps, sourceCaps, traceRef } from "./format";
 
 /** The verbatim signal record, shared by the raw-signal detail sheet (Column
  * A) and the in-pane theme drill (Column B). Every field is a real signal
@@ -188,6 +189,63 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
 
   return (
     <div className="mt-3" style={{ display: "grid", gap: "16px" }}>
+      {/* Trace + capture time: the copyable system reference and exactly when
+       * it was captured (absolute plus a quiet relative), so the record is
+       * auditable and quotable back to the rest of the loop. */}
+      <div className="flex flex-wrap items-center" style={{ gap: "10px" }}>
+        <span
+          className="flex items-baseline"
+          style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "9.5px",
+              letterSpacing: "0.08em",
+              color: "var(--text-subtle)",
+            }}
+          >
+            CAPTURED
+          </span>
+          <span>{new Date(record.created_at).toLocaleString()}</span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "9.5px",
+              letterSpacing: "0.06em",
+              color: "var(--text-faint)",
+            }}
+          >
+            {relTimeCaps(record.created_at)}
+          </span>
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(record.id);
+            toast("Trace id copied");
+          }}
+          aria-label="Copy trace id"
+          title="Copy the full trace id"
+          className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+          style={{
+            marginLeft: "auto",
+            gap: "6px",
+            fontFamily: "var(--font-mono)",
+            fontSize: "10px",
+            letterSpacing: "0.06em",
+            color: "var(--text-faint)",
+            background: "transparent",
+            border: "none",
+            padding: "3px 2px",
+            cursor: "pointer",
+          }}
+        >
+          SIG·{traceRef(record.id)}
+          <Copy className="h-3 w-3" />
+        </button>
+      </div>
+
       {/* The verbatim signal, leading. */}
       <div style={{ display: "grid", gap: "8px" }}>
         {record.title ? (

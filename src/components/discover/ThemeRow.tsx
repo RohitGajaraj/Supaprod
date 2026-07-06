@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { relTimeCaps } from "./format";
+import { relTimeCaps, traceRef } from "./format";
 
 export interface ThemeRowProps {
   themeId: string;
@@ -18,6 +18,11 @@ export interface ThemeRowProps {
   sourceCount: number;
   /** Newest member's created_at, or null when the theme has no members yet. */
   newestCreatedAt: string | null;
+  /** The theme's own `created_at` (when Cadence clustered it), source of the
+   * quiet "clustered ..." caption on the trace tail. Themes carry no
+   * `updated_at`, so this is the honest freshness stamp; omit and it is
+   * skipped rather than fabricated. */
+  createdAt?: string | null;
   onOpenDetail: (themeId: string) => void;
   onPromote: () => void;
   onDraftSpec: () => void;
@@ -43,6 +48,7 @@ export function ThemeRow({
   signalCount,
   sourceCount,
   newestCreatedAt,
+  createdAt,
   onOpenDetail,
   onPromote,
   onDraftSpec,
@@ -121,6 +127,38 @@ export function ThemeRow({
           {title}
         </div>
         <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
+        <div className="flex flex-wrap items-center" style={{ marginTop: "5px" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "9.5px",
+              letterSpacing: "0.06em",
+              color: "var(--text-faint)",
+            }}
+          >
+            THM·{traceRef(themeId)}
+          </span>
+          {createdAt ? (
+            <>
+              <span
+                aria-hidden="true"
+                style={{ margin: "0 8px", fontSize: "9.5px", color: "var(--text-faint)" }}
+              >
+                ·
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "9.5px",
+                  letterSpacing: "0.04em",
+                  color: "var(--text-subtle)",
+                }}
+              >
+                clustered {relTimeCaps(createdAt)}
+              </span>
+            </>
+          ) : null}
+        </div>
       </div>
 
       <button

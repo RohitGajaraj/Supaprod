@@ -17,7 +17,13 @@ import { ThemeRow } from "./ThemeRow";
 import { ThemeDetail, type ThemeMember } from "./ThemeDetail";
 import { readSignalReferences } from "./SignalRecord";
 
-type ThemeMeta = { id: string; title: string; frequency: number; summary: string | null };
+type ThemeMeta = {
+  id: string;
+  title: string;
+  frequency: number;
+  summary: string | null;
+  createdAt: string;
+};
 
 /** Column B header: the outcome-first title, the how-it-works subtext, and a
  * quiet clustered count. Matches the OpportunityQueue header grammar so B and
@@ -160,9 +166,17 @@ export function AutoClustered() {
   });
 
   const themeById = useMemo(() => {
-    const map = new Map<string, { title: string; frequency: number; summary: string | null }>();
+    const map = new Map<
+      string,
+      { title: string; frequency: number; summary: string | null; createdAt: string }
+    >();
     for (const t of themes.data?.themes ?? []) {
-      map.set(t.id, { title: t.title, frequency: t.frequency, summary: t.summary ?? null });
+      map.set(t.id, {
+        title: t.title,
+        frequency: t.frequency,
+        summary: t.summary ?? null,
+        createdAt: t.created_at,
+      });
     }
     return map;
   }, [themes.data]);
@@ -258,7 +272,13 @@ export function AutoClustered() {
   });
 
   const sortedThemes: ThemeMeta[] = [...(themes.data?.themes ?? [])]
-    .map((t) => ({ id: t.id, title: t.title, frequency: t.frequency, summary: t.summary ?? null }))
+    .map((t) => ({
+      id: t.id,
+      title: t.title,
+      frequency: t.frequency,
+      summary: t.summary ?? null,
+      createdAt: t.created_at,
+    }))
     .sort((a, b) => b.frequency - a.frequency);
 
   // When a source filter is active, keep only the themes that hold at least
@@ -363,6 +383,7 @@ export function AutoClustered() {
               signalCount={t.frequency}
               sourceCount={sourceCount}
               newestCreatedAt={newest}
+              createdAt={t.createdAt}
               actionsPending={busyIds.has(t.id)}
               onOpenDetail={(id) => setOpenThemeId(id)}
               onPromote={() => promoteTheme.mutate(t.id)}
@@ -400,6 +421,7 @@ export function AutoClustered() {
         title={openThemeId ? (themeById.get(openThemeId)?.title ?? null) : null}
         summary={openThemeId ? (themeById.get(openThemeId)?.summary ?? null) : null}
         frequency={openThemeId ? (themeById.get(openThemeId)?.frequency ?? 0) : 0}
+        createdAt={openThemeId ? (themeById.get(openThemeId)?.createdAt ?? null) : null}
         members={openThemeId ? (signalsByTheme.get(openThemeId) ?? []) : []}
         busy={openThemeId ? busyIds.has(openThemeId) : false}
         onPromote={() => {

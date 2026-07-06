@@ -7,12 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { traceRef } from "./format";
 
 export interface SignalCardProps {
   src: string;
   when: string;
   quote: string;
   theme: string | null;
+  /** The real signal id, source of the faint `SIG·XXXXXX` trace tail so every
+   * captured signal carries a stable, human-quotable reference that ties it to
+   * the rest of the loop. Omit and the tail is skipped (never fabricated). */
+  id?: string;
   /** The raw source string (e.g. 'github', 'stripe', 'intercom'), used to pick
    * the origin glyph. `src` above is the pre-capitalized display label. */
   sourceId?: string;
@@ -45,6 +50,7 @@ export function SignalCard({
   when,
   quote,
   theme,
+  id,
   sourceId,
   url,
   isLast = false,
@@ -203,6 +209,18 @@ export function SignalCard({
           }}
         >
           {theme}
+        </span>
+      ) : null}
+      {id ? (
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "9.5px",
+            letterSpacing: "0.06em",
+            color: "var(--text-faint)",
+          }}
+        >
+          SIG·{traceRef(id)}
         </span>
       ) : null}
     </div>

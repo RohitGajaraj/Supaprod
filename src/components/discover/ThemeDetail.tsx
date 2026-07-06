@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Copy } from "lucide-react";
 import { Button, MonoLabel } from "@/components/obsidian";
 import {
   Sheet,
@@ -7,7 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { relTimeCaps, sourceCaps } from "./format";
+import { toast } from "@/lib/notify";
+import { relTimeCaps, sourceCaps, traceRef } from "./format";
 import { SignalRecordBody } from "./SignalRecord";
 
 export interface ThemeMember {
@@ -37,6 +39,11 @@ export interface ThemeDetailProps {
    * members.length, since the in-window signal read is capped. */
   frequency: number;
   members: ThemeMember[];
+  /** The theme's own `created_at` (when Cadence clustered it), shown as the
+   * quiet "clustered ..." caption beside the copyable trace ref. Themes carry
+   * no `updated_at`, so this is the honest freshness stamp; omit and it is
+   * skipped rather than fabricated. */
+  createdAt?: string | null;
   /** True while a promote/draft-spec mutation for this theme is in flight. */
   busy?: boolean;
   onPromote: () => void;
@@ -96,6 +103,7 @@ export function ThemeDetail({
   summary,
   frequency,
   members,
+  createdAt,
   busy = false,
   onPromote,
   onDraftSpec,
@@ -144,6 +152,64 @@ export function ThemeDetail({
           <SignalDetailView member={activeMember} onBack={() => setActiveSignalId(null)} />
         ) : (
           <div className="mt-4" style={{ display: "grid", gap: "18px" }}>
+            {themeId ? (
+              <div className="flex flex-wrap items-center" style={{ gap: "10px" }}>
+                {createdAt ? (
+                  <span
+                    className="flex items-baseline"
+                    style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "9.5px",
+                        letterSpacing: "0.08em",
+                        color: "var(--text-subtle)",
+                      }}
+                    >
+                      CLUSTERED
+                    </span>
+                    <span>{new Date(createdAt).toLocaleString()}</span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "9.5px",
+                        letterSpacing: "0.06em",
+                        color: "var(--text-faint)",
+                      }}
+                    >
+                      {relTimeCaps(createdAt)}
+                    </span>
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(themeId);
+                    toast("Trace id copied");
+                  }}
+                  aria-label="Copy trace id"
+                  title="Copy the full trace id"
+                  className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+                  style={{
+                    marginLeft: "auto",
+                    gap: "6px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-faint)",
+                    background: "transparent",
+                    border: "none",
+                    padding: "3px 2px",
+                    cursor: "pointer",
+                  }}
+                >
+                  THM·{traceRef(themeId)}
+                  <Copy className="h-3 w-3" />
+                </button>
+              </div>
+            ) : null}
+
             {summary ? (
               <p
                 style={{

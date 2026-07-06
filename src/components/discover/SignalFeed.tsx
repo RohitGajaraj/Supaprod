@@ -327,6 +327,7 @@ export function SignalFeed() {
             return (
               <SignalCard
                 key={s.id}
+                id={s.id}
                 src={sourceCaps(s.source)}
                 sourceId={s.source}
                 url={s.url ?? null}
