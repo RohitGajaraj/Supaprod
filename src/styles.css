@@ -2208,6 +2208,75 @@ html[data-motion="off"] .agent-live {
   color: var(--text-primary);
 }
 
+/* Premium range slider (founder ruling 2026-07-06, rauno.me/craft/graph-slider
+ * inspired but restrained): a thin rounded track, an ember-ringed pearl thumb
+ * that lifts on interaction, ember fill on the elapsed portion where the engine
+ * supports it. Themes every native range across the app consistently. */
+[data-obsidian] input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+[data-obsidian] input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--hairline-strong);
+}
+[data-obsidian] input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--hairline-strong);
+}
+[data-obsidian] input[type="range"]::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ember);
+}
+[data-obsidian] input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--pearl, #edeae4);
+  border: 2px solid var(--ember);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.4),
+    0 0 8px color-mix(in srgb, var(--ember) 40%, transparent);
+  transition:
+    transform 140ms var(--ease),
+    box-shadow 140ms var(--ease);
+}
+[data-obsidian] input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pearl, #edeae4);
+  border: 2px solid var(--ember);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.4),
+    0 0 8px color-mix(in srgb, var(--ember) 40%, transparent);
+}
+[data-obsidian] input[type="range"]:hover::-webkit-slider-thumb,
+[data-obsidian] input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.16);
+  box-shadow:
+    0 1px 6px rgba(0, 0, 0, 0.5),
+    0 0 14px color-mix(in srgb, var(--ember) 55%, transparent);
+}
+[data-obsidian] input[type="range"]:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--glacier);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-obsidian] input[type="range"]::-webkit-slider-thumb {
+    transition: none;
+  }
+}
+
 /* Anti-layout-shift (founder ruling 2026-07-06): reserve the scrollbar gutter
  * so switching tabs / loading content (which changes page height and toggles
  * the vertical scrollbar) never shifts the content width. Kills the "shrinks
