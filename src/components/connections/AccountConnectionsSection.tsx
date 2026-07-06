@@ -1,10 +1,10 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
-import { buildConnectorCatalog } from "@/lib/connectors/catalog";
+import { buildConnectorCatalog, type CatalogEntry } from "@/lib/connectors/catalog";
 import {
   deleteConnection,
   disconnectConnection,
@@ -365,16 +365,40 @@ export function AccountConnectionsSection({
     else mGateway.mutate(spec);
   };
 
-  // Section B: the remaining, not-yet-connected sources, grouped by category
-  // from the one canonical catalog (dropped from the list once connected).
-  const catalogGroups = buildConnectorCatalog()
-    .map((group) => ({
-      ...group,
-      entries: group.entries.filter((e) => !connectedIds.has(e.id)),
-    }))
-    .filter((group) => group.entries.length > 0);
-  const anySetupRequired = catalogGroups.some((g) =>
-    g.entries.some((e) => !providerConfigured(CONNECTOR_REGISTRY[e.id], availability)),
+  // Section B: not-yet-connected sources as ONE clean, searchable, filterable
+  // grid (the Lovable pattern) instead of long stacked category sections that
+  // overwhelm. A search box + category chips narrow a uniform card grid.
+  const [connQuery, setConnQuery] = useState("");
+  const [connCategory, setConnCategory] = useState<string>("all");
+  const availableEntries = useMemo(() => {
+    const out: { entry: CatalogEntry; category: string; categoryLabel: string }[] = [];
+    for (const g of buildConnectorCatalog()) {
+      for (const e of g.entries) {
+        if (connectedIds.has(e.id)) continue;
+        out.push({ entry: e, category: g.id, categoryLabel: g.label });
+      }
+    }
+    return out;
+  }, [connectedIds]);
+  const availableCategories = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const a of availableEntries) if (!seen.has(a.category)) seen.set(a.category, a.categoryLabel);
+    return [...seen.entries()].map(([id, label]) => ({ id, label }));
+  }, [availableEntries]);
+  const filteredEntries = useMemo(() => {
+    const q = connQuery.trim().toLowerCase();
+    return availableEntries.filter((a) => {
+      if (connCategory !== "all" && a.category !== connCategory) return false;
+      if (!q) return true;
+      return (
+        a.entry.label.toLowerCase().includes(q) ||
+        a.entry.description.toLowerCase().includes(q) ||
+        a.categoryLabel.toLowerCase().includes(q)
+      );
+    });
+  }, [availableEntries, connQuery, connCategory]);
+  const anySetupRequired = availableEntries.some(
+    (a) => !providerConfigured(CONNECTOR_REGISTRY[a.entry.id], availability),
   );
 
   return (
@@ -418,100 +442,130 @@ export function AccountConnectionsSection({
           Connect a tool once; then pick what each workspace uses under workspace sync and bindings.
         </p>
 
-        {!list.isLoading && catalogGroups.length === 0 ? (
+        {availableEntries.length === 0 ? (
           <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
             Everything available is already connected.
           </p>
         ) : (
-          <div style={{ display: "grid", gap: 20 }}>
-            {catalogGroups.map((group) => (
-              <div key={group.id}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: 8,
-                    marginBottom: 8,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <h3 className="mono-label" style={{ margin: 0, color: "var(--ink)" }}>
-                    {group.label}
-                  </h3>
-                  <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>{group.blurb}</span>
-                </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 8,
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                  }}
-                >
-                  {group.entries.map((e) => {
-                    const spec = CONNECTOR_REGISTRY[e.id];
-                    const configured = providerConfigured(spec, availability);
-                    return (
-                      <div
-                        key={e.id}
-                        className="bento"
-                        style={{ padding: 12, opacity: configured ? 1 : 0.6 }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <ProviderLogo provider={e.id} size={30} />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div
+          <>
+            <input
+              className="input"
+              value={connQuery}
+              onChange={(e) => setConnQuery(e.target.value)}
+              placeholder="Search connections"
+              aria-label="Search connections"
+              style={{
+                display: "block",
+                width: "100%",
+                maxWidth: 360,
+                padding: "8px 12px",
+                borderRadius: 8,
+                fontSize: 13,
+                marginBottom: 12,
+              }}
+            />
+            <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 16 }}>
+              {[{ id: "all", label: "All" }, ...availableCategories].map((c) => {
+                const active = connCategory === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setConnCategory(c.id)}
+                    className="loom-press"
+                    style={{
+                      fontFamily: "var(--font-ui)",
+                      fontSize: 12.5,
+                      fontWeight: active ? 600 : 500,
+                      padding: "5px 12px",
+                      borderRadius: 999,
+                      border: "1px solid var(--hairline-strong)",
+                      background: active ? "var(--surface-raised)" : "transparent",
+                      color: active ? "var(--ink)" : "var(--ink-subtle)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            {filteredEntries.length === 0 ? (
+              <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
+                No connections match your search.
+              </p>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gap: 8,
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                }}
+              >
+                {filteredEntries.map(({ entry: e }) => {
+                  const spec = CONNECTOR_REGISTRY[e.id];
+                  const configured = providerConfigured(spec, availability);
+                  return (
+                    <div
+                      key={e.id}
+                      className="bento"
+                      style={{ padding: 12, opacity: configured ? 1 : 0.6 }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <ProviderLogo provider={e.id} size={30} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 8,
+                            }}
+                          >
+                            <span style={{ fontWeight: 500, color: "var(--ink)", fontSize: 13.5 }}>
+                              {e.label}
+                            </span>
+                            <span
+                              className="mono-label"
                               style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                gap: 8,
+                                border: "1px solid var(--hairline)",
+                                borderRadius: 99,
+                                padding: "2px 8px",
+                                flexShrink: 0,
                               }}
                             >
-                              <span style={{ fontWeight: 500, color: "var(--ink)", fontSize: 13.5 }}>
-                                {e.label}
-                              </span>
-                              <span
-                                className="mono-label"
-                                style={{
-                                  border: "1px solid var(--hairline)",
-                                  borderRadius: 99,
-                                  padding: "2px 8px",
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {e.flowLabel}
-                              </span>
-                            </div>
-                            <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "4px 0 0" }}>
-                              {e.description}
-                            </p>
+                              {e.flowLabel}
+                            </span>
                           </div>
-                        </div>
-                        <div
-                          style={{
-                            marginTop: 10,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm loom-press"
-                            disabled={busy || !configured}
-                            title={configured ? undefined : setupHintFor(spec)}
-                            onClick={() => connectProvider(spec)}
-                          >
-                            {configured ? "Connect" : "Coming soon"}
-                          </button>
+                          <p style={{ fontSize: 12, color: "var(--ink-subtle)", margin: "4px 0 0" }}>
+                            {e.description}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-sm loom-press"
+                          disabled={busy || !configured}
+                          title={configured ? undefined : setupHintFor(spec)}
+                          onClick={() => connectProvider(spec)}
+                        >
+                          {configured ? "Connect" : "Coming soon"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
 
         {anySetupRequired && (
