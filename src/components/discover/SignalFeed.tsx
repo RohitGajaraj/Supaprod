@@ -18,7 +18,7 @@ import { relTimeCaps, sourceCaps, withTimeout } from "./format";
 import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
 import { SkeletonBar } from "./SkeletonBar";
-import { SignalDetailSheet, type SignalRecord } from "./SignalRecord";
+import { SignalDetailSheet, readSignalReferences, type SignalRecord } from "./SignalRecord";
 import type { ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -180,6 +180,7 @@ export function SignalFeed() {
         sentiment: s.sentiment ?? null,
         sourceKind: s.source_kind ?? null,
         tags: s.tags ?? [],
+        references: readSignalReferences(s),
       });
       map.set(s.theme_id, arr);
     }
@@ -306,6 +307,7 @@ export function SignalFeed() {
         sentiment: openSignal.sentiment ?? null,
         tags: openSignal.tags ?? [],
         created_at: openSignal.created_at,
+        references: readSignalReferences(openSignal),
       }
     : null;
 

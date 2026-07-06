@@ -21,6 +21,9 @@ export interface ThemeMember {
   sentiment?: string | null;
   sourceKind?: string | null;
   tags?: string[];
+  /** Audited references the member signal drew on, mirrored from the signal's
+   * `reference_urls` column so the drill-in shows every source, not just one. */
+  references?: { url: string; title?: string | null }[];
 }
 
 export interface ThemeDetailProps {

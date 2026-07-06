@@ -15,6 +15,7 @@ import { sourceCaps, withTimeout } from "./format";
 import { SkeletonBar } from "./SkeletonBar";
 import { ThemeRow } from "./ThemeRow";
 import { ThemeDetail, type ThemeMember } from "./ThemeDetail";
+import { readSignalReferences } from "./SignalRecord";
 
 type ThemeMeta = { id: string; title: string; frequency: number; summary: string | null };
 
@@ -184,6 +185,7 @@ export function AutoClustered() {
         sentiment: s.sentiment ?? null,
         sourceKind: s.source_kind ?? null,
         tags: s.tags ?? [],
+        references: readSignalReferences(s),
       });
       map.set(s.theme_id, arr);
     }

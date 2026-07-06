@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ExternalLink, Radio } from "lucide-react";
 import { MonoLabel } from "@/components/obsidian";
+import { ProviderLogo } from "@/components/connections/ProviderLogo";
+import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +28,24 @@ export interface SignalRecord {
   sentiment?: string | null;
   tags?: string[];
   created_at: string;
+  /** Audited references the signal drew on (esp. web-research signals), read
+   * from the `reference_urls` jsonb column. Surfaced beside the single `url`
+   * origin as one deduped, click-through Sources list. */
+  references?: { url: string; title?: string | null }[];
+}
+
+/** Defensive read of the `reference_urls` jsonb column. The generated supabase
+ * types do not carry it until the founder applies the migration and regens, so
+ * we read via a cast and guard against a non-array or malformed value: a bad
+ * row reads as no references, never a crash. Shared by every SignalRecord /
+ * ThemeMember builder. */
+export function readSignalReferences(row: unknown): { url: string; title?: string | null }[] {
+  const raw = (row as { reference_urls?: unknown }).reference_urls;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (r): r is { url: string; title?: string | null } =>
+      !!r && typeof r === "object" && typeof (r as { url?: unknown }).url === "string",
+  );
 }
 
 /** A lifecycle kind, prettified for the small peer tags in the lineage view. */
@@ -142,6 +162,30 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
   const tags = record.tags ?? [];
   const sentiment = record.sentiment ? sentimentTone(record.sentiment) : null;
 
+  // The source glyph: a provider brand mark when the source is a known
+  // connector, else a neutral radio glyph (a captured-directly signal).
+  const isKnownProvider = record.source in CONNECTOR_REGISTRY;
+  const sourceGlyph = isKnownProvider ? (
+    <ProviderLogo provider={record.source as ProviderId} size={18} />
+  ) : (
+    <Radio className="h-4 w-4" style={{ color: "var(--text-subtle)" }} />
+  );
+
+  // One deduped, audited Sources list: the single origin `url` leads, then
+  // every reference the signal drew on, unique by url. Every entry is
+  // visible and click-through.
+  const sources: { url: string; title?: string | null }[] = [];
+  const seenUrls = new Set<string>();
+  if (record.url) {
+    sources.push({ url: record.url });
+    seenUrls.add(record.url);
+  }
+  for (const ref of record.references ?? []) {
+    if (!ref?.url || seenUrls.has(ref.url)) continue;
+    seenUrls.add(ref.url);
+    sources.push(ref);
+  }
+
   return (
     <div className="mt-3" style={{ display: "grid", gap: "16px" }}>
       {/* The verbatim signal, leading. */}
@@ -186,22 +230,54 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
         }}
       >
         <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: "var(--blossom)",
-              background: "var(--card)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "999px",
-              padding: "3px 9px",
-            }}
-          >
-            {sourceCaps(record.source)}
-            {record.sourceKind ? ` · ${record.sourceKind}` : ""}
-          </span>
+          {record.url ? (
+            <a
+              href={record.url}
+              target="_blank"
+              rel="noreferrer"
+              title="Open source"
+              className="loom-press flex items-center hover:[color:var(--text-primary)]"
+              style={{ gap: 7, color: "var(--text-body)" }}
+            >
+              {sourceGlyph}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--blossom)",
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "999px",
+                  padding: "3px 9px",
+                }}
+              >
+                {sourceCaps(record.source)}
+                {record.sourceKind ? ` · ${record.sourceKind}` : ""}
+              </span>
+            </a>
+          ) : (
+            <span className="flex items-center" style={{ gap: 7 }}>
+              {sourceGlyph}
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--blossom)",
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "999px",
+                  padding: "3px 9px",
+                }}
+              >
+                {sourceCaps(record.source)}
+                {record.sourceKind ? ` · ${record.sourceKind}` : ""}
+              </span>
+            </span>
+          )}
           {sentiment ? (
             <span
               className="flex items-center"
@@ -243,23 +319,36 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
           </span>
         </div>
 
-        {record.url ? (
-          <a
-            href={record.url}
-            target="_blank"
-            rel="noreferrer"
-            className="loom-press flex items-center hover:[color:var(--text-primary)]"
-            style={{
-              gap: 7,
-              fontSize: "12.5px",
-              color: "var(--glacier)",
-              lineHeight: 1.4,
-              width: "fit-content",
-            }}
-          >
-            <ExternalLink className="h-3.5 w-3.5" style={{ flexShrink: 0 }} />
-            <span style={{ wordBreak: "break-all" }}>{hostOf(record.url)}</span>
-          </a>
+        {sources.length > 0 ? (
+          <div style={{ display: "grid", gap: "7px" }}>
+            <MonoLabel
+              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+            >
+              Sources
+            </MonoLabel>
+            <ul style={{ display: "grid", gap: "6px", margin: 0, padding: 0, listStyle: "none" }}>
+              {sources.map((s) => (
+                <li key={s.url}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="loom-press flex items-start hover:[color:var(--text-primary)]"
+                    style={{
+                      gap: 7,
+                      fontSize: "12.5px",
+                      color: "var(--glacier)",
+                      lineHeight: 1.4,
+                      width: "fit-content",
+                    }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ wordBreak: "break-all" }}>{s.title || hostOf(s.url)}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : (
           <span style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic" }}>
             Captured directly, no external link.
