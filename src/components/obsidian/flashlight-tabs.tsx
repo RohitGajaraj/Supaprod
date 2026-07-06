@@ -20,12 +20,18 @@ export function FlashlightTabs({
   onSelect,
   ariaLabel,
   size = "md",
+  spotlight = false,
 }: {
   tabs: FlashlightTab[];
   active: string;
   onSelect: (id: string) => void;
   ariaLabel?: string;
   size?: "sm" | "md";
+  /** Opt-in ember "flashlight" glow that tracks the pointer. Off by default:
+   *  the clean raised-pill + ember indicator is the premium everyday look;
+   *  the spotlight is a showcase treatment reserved for a hero surface so it
+   *  does not dilute the scarce ember accent (founder ruling 2026-07-06). */
+  spotlight?: boolean;
 }) {
   const barRef = useRef<HTMLDivElement | null>(null);
   const btnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -97,8 +103,9 @@ export function FlashlightTabs({
           zIndex: 0,
         }}
       />
-      {/* The flashlight: a bright ember spotlight that slides to the hovered
-          tab. Higher intensity per founder input, a real glow, not a whisper. */}
+      {/* Hover highlight that slides to the hovered tab. Default: a quiet
+          neutral pill (the premium, restraint-honoring look). Opt-in
+          `spotlight`: a bright ember flashlight glow, reserved for hero use. */}
       <div
         aria-hidden="true"
         style={{
@@ -108,12 +115,15 @@ export function FlashlightTabs({
           left: glow.left,
           width: glow.width,
           borderRadius: "var(--radius-control)",
-          background:
-            "radial-gradient(130% 150% at 50% 45%, color-mix(in srgb, var(--ember) 34%, transparent), color-mix(in srgb, var(--ember) 10%, transparent) 60%, transparent 78%)",
-          boxShadow: glow.on
-            ? "0 0 22px color-mix(in srgb, var(--ember) 45%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ember) 32%, transparent)"
+          background: spotlight
+            ? "radial-gradient(130% 150% at 50% 45%, color-mix(in srgb, var(--ember) 34%, transparent), color-mix(in srgb, var(--ember) 10%, transparent) 60%, transparent 78%)"
+            : "var(--hover)",
+          boxShadow: spotlight
+            ? glow.on
+              ? "0 0 22px color-mix(in srgb, var(--ember) 45%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--ember) 32%, transparent)"
+              : "none"
             : "none",
-          opacity: glow.on ? 1 : 0,
+          opacity: glow.on && glow.left !== activeRect.left ? 1 : 0,
           transform: "translateZ(0)",
           transitionProperty: "left, width, opacity",
           transitionDuration: "200ms",
