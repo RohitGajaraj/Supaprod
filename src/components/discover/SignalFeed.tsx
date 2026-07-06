@@ -44,15 +44,33 @@ function PanelShell({ children }: { children: ReactNode }) {
 
 function HeaderRow({ count }: { count: number }) {
   return (
-    <div className="mb-3.5 flex items-baseline">
-      <h2 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
-        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>
+    <div className="mb-3.5 flex items-start justify-between" style={{ gap: 12 }}>
+      <div style={{ minWidth: 0 }}>
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-ui)",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            lineHeight: 1.3,
+          }}
+        >
           Live signal feed
-        </MonoLabel>
-      </h2>
+        </h2>
+        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+          Verbatim, with its source
+        </p>
+      </div>
       <MonoLabel
         tone="glacier"
-        style={{ fontSize: "10.5px", letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}
+        style={{
+          fontSize: "10.5px",
+          letterSpacing: "0.08em",
+          fontVariantNumeric: "tabular-nums",
+          flexShrink: 0,
+          marginTop: 3,
+        }}
       >
         {count} THIS WEEK
       </MonoLabel>

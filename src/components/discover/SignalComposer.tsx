@@ -96,27 +96,35 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
       <div style={rowStyle}>
         <Button
           variant={mode === "capture" ? "secondary" : "primary"}
+          size="sm"
           style={mode === "capture" ? undefined : emberFill}
           onClick={() => setMode(mode === "capture" ? "none" : "capture")}
         >
           + Capture
         </Button>
-        <Button variant="secondary" onClick={() => setMode(mode === "bulk" ? "none" : "bulk")}>
-          Paste many · one per line
+        <Button
+          variant="tertiary"
+          size="sm"
+          title="Paste many signals, one per line"
+          onClick={() => setMode(mode === "bulk" ? "none" : "bulk")}
+        >
+          Paste
         </Button>
         <Button
-          variant="secondary"
+          variant="tertiary"
+          size="sm"
+          title="Groups loose signals into themes"
           onClick={() => cluster.mutate()}
           loading={cluster.isPending}
           disabled={unclusteredCount === 0}
         >
-          {unclusteredCount > 0
-            ? `Cluster ${unclusteredCount} · groups them into themes`
-            : "Nothing to cluster"}
+          {unclusteredCount > 0 ? `Cluster ${unclusteredCount}` : "Clustered"}
         </Button>
         {settings.data?.is_owner ? (
           <span className="ml-auto flex items-center gap-2">
-            <MonoLabel style={{ fontSize: "10.5px" }}>Auto-cluster</MonoLabel>
+            <MonoLabel style={{ fontSize: "10.5px" }} title="Cluster new signals automatically">
+              Auto-cluster
+            </MonoLabel>
             {/* Glacier when on: autonomous machine behavior is the machine's
              * voice, and ember stays reserved for the one Capture CTA (v4 §3). */}
             <Switch

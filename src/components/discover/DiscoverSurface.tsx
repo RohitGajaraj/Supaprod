@@ -179,10 +179,43 @@ export function DiscoverSurface() {
         </div>
       )}
 
-      <h2 style={{ margin: "40px 0 12px", lineHeight: 1 }}>
-        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>Strategy.</MonoLabel>
-      </h2>
-      <StrategySection />
+      {/* Progressive disclosure (Loom §0.1 anti-scroll): Strategy is secondary
+          depth on this surface, collapsed by default so the evidence desk owns
+          the first viewport. One click reveals it; the disclosure is a real
+          control (chevron + hairline), never vague text. */}
+      <details className="loom-details" style={{ marginTop: 40 }}>
+        <summary
+          className="loom-press"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            cursor: "pointer",
+            listStyle: "none",
+            padding: "11px 14px",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            background: "var(--surface-card)",
+            boxShadow: "var(--top-light)",
+          }}
+        >
+          <span
+            className="loom-details-chevron"
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", fontSize: 11, transition: "transform 160ms var(--ease)" }}
+          >
+            ▸
+          </span>
+          <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>Strategy</MonoLabel>
+          <span style={{ flex: 1 }} />
+          <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
+            Vision, ICP, bets, and tracked entities
+          </span>
+        </summary>
+        <div style={{ marginTop: 16 }}>
+          <StrategySection />
+        </div>
+      </details>
     </div>
   );
 }

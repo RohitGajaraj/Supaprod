@@ -2182,3 +2182,12 @@ html[data-motion="off"] .agent-live {
   pointer-events: none;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 60%, transparent);
 }
+
+/* Collapsible disclosure (Loom §0.1 anti-scroll): a real control, chevron
+ * rotates on open. Hides the default marker across browsers. */
+[data-obsidian] .loom-details > summary::-webkit-details-marker {
+  display: none;
+}
+[data-obsidian] .loom-details[open] > summary .loom-details-chevron {
+  transform: rotate(90deg);
+}

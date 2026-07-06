@@ -278,20 +278,35 @@ export function OpportunityQueue() {
 
 function HeaderRow({ rerankedAgo }: { rerankedAgo: string | null }) {
   return (
-    <div className="flex items-baseline" style={{ padding: "0 4px" }}>
-      <h2 className="flex-1" style={{ margin: 0, lineHeight: 1 }}>
-        <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.12em" }}>
-          The opportunity queue · strongest bets first
-        </MonoLabel>
-      </h2>
-      {rerankedAgo ? (
-        // LOOM QA R2: an old "RE-RANKED 22D AGO" stamp alone reads like a
-        // stuck machine; say honestly when the next re-rank happens.
-        <MonoLabel
-          title="Scores re-rank automatically when new signals land. Nothing to press."
-          style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}
+    <div className="flex items-start justify-between" style={{ padding: "0 4px", gap: 12 }}>
+      <div style={{ minWidth: 0 }}>
+        {/* Title in the UI voice (not mono-caps) so it reads as a heading, with
+            the descriptor as quiet subtext beneath it (Loom §0.1 hierarchy). */}
+        <h2
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-ui)",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            lineHeight: 1.3,
+          }}
         >
-          RE-RANKED {rerankedAgo} &middot; RE-RANKS WHEN NEW SIGNALS LAND
+          Opportunity queue
+        </h2>
+        <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
+          Strongest bets first
+        </p>
+      </div>
+      {rerankedAgo ? (
+        // Quiet metadata, clearly information (not an action): the honest
+        // re-rank cadence, one small mono line.
+        <MonoLabel
+          tone="faint"
+          title="Scores re-rank automatically when new signals land. Nothing to press."
+          style={{ fontSize: "9.5px", letterSpacing: "0.08em", flexShrink: 0, marginTop: 3 }}
+        >
+          RE-RANKED {rerankedAgo}
         </MonoLabel>
       ) : null}
     </div>
