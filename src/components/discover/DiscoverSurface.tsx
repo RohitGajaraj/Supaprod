@@ -7,6 +7,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { listOpportunities, listSignals } from "@/lib/discovery.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
+import { AutoClustered } from "./AutoClustered";
 import { OpportunityQueue } from "./OpportunityQueue";
 import { StrategySection } from "./StrategySection";
 
@@ -41,11 +42,12 @@ function ConstellationMotif() {
 }
 
 /**
- * The evidence desk: a two-column surface on the v4 standard container,
- * signal on the left, judgment on the right. Owns the surface-level "no
- * sources at all" empty state (OBS-06.md §7, §9). SignalFeed and
- * OpportunityQueue each own their own loading/error/quiet-empty states
- * independently.
+ * The evidence desk: a three-column pipeline on the v4 work container that
+ * reads left to right as the core loop, signals captured (A) then
+ * auto-clustered + ranked (B) then the opportunity queue (C). Owns the
+ * surface-level "no sources at all" empty state (OBS-06.md §7, §9). SignalFeed,
+ * AutoClustered, and OpportunityQueue each own their own
+ * loading/error/quiet-empty states independently.
  */
 export function DiscoverSurface() {
   const navigate = useNavigate();
@@ -88,7 +90,7 @@ export function DiscoverSurface() {
     <div
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
       style={{
-        maxWidth: "var(--container-standard)",
+        maxWidth: "var(--container-work)",
         width: "100%",
         padding: "36px 32px 64px",
         position: "relative",
@@ -166,17 +168,74 @@ export function DiscoverSurface() {
           </p>
         </div>
       ) : (
-        <div
-          className="grid items-start"
-          style={{ gridTemplateColumns: "minmax(280px, 0.85fr) 1.15fr", gap: "24px" }}
-        >
-          <div ref={signalsRef} id="signals" tabIndex={-1} style={{ outline: "none" }}>
-            <SignalFeed />
+        <>
+          {/* The pipeline reads left to right: raw evidence, then the themes
+              Cadence ranks, then the bets it promotes. A quiet mono stepper
+              names the journey; the columns below are its three stations.
+              Decorative (each column carries its own heading), so hidden from
+              assistive tech. Ember is the one scarce accent on step 1. */}
+          <div
+            aria-hidden="true"
+            className="mb-5 flex flex-wrap items-center"
+            style={{ gap: "10px" }}
+          >
+            {[
+              { n: "1", label: "Captured" },
+              { n: "2", label: "Clustered + ranked" },
+              { n: "3", label: "Opportunities" },
+            ].map((step, i) => (
+              <div key={step.n} className="flex items-center" style={{ gap: "10px" }}>
+                {i > 0 ? (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "11px",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    {"→"}
+                  </span>
+                ) : null}
+                <span
+                  className="flex items-center"
+                  style={{
+                    gap: "6px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10.5px",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: i === 0 ? "var(--ember-text)" : "var(--glacier)",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {step.n}
+                  </span>
+                  <span>{step.label}</span>
+                </span>
+              </div>
+            ))}
           </div>
-          <div ref={oppsRef} id="opportunities" tabIndex={-1} style={{ outline: "none" }}>
-            <OpportunityQueue />
+
+          <div
+            className="grid grid-cols-1 items-start xl:grid-cols-3"
+            style={{ gap: "20px" }}
+          >
+            <div ref={signalsRef} id="signals" tabIndex={-1} style={{ outline: "none" }}>
+              <SignalFeed />
+            </div>
+            <div style={{ outline: "none" }}>
+              <AutoClustered />
+            </div>
+            <div ref={oppsRef} id="opportunities" tabIndex={-1} style={{ outline: "none" }}>
+              <OpportunityQueue />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Strategy is a first-class section (founder ruling 2026-07-06): always

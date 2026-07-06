@@ -12,6 +12,10 @@ export interface SignalCardProps {
   theme: string | null;
   /** Last card in the feed omits the divider (OBS-06.md §7). */
   isLast?: boolean;
+  /** Click-to-open (platform principle): opens this signal's rich detail
+   * directly. When present the whole card becomes a button; the `⋯` menu
+   * stops propagation so a menu press never also opens the detail. */
+  onOpen?: () => void;
   /** OBS-10: the write actions ported from the retired /product Signals tab.
    * Omit any handler to hide that menu item entirely (e.g. no promote/draft-
    * spec once a signal already has an opportunity) rather than disabling it. */
@@ -23,15 +27,17 @@ export interface SignalCardProps {
 }
 
 /** One verbatim signal: source pill, timestamp, quote, theme line, and the
- * quiet `⋯` action menu (promote / draft spec / provenance / delete) ported
- * from the retired /product Signals tab — same overflow pattern
- * `BuildMissionRow` already established for a row's secondary actions. */
+ * quiet `⋯` action menu (promote / draft spec / provenance / delete). The
+ * whole card is click-to-open (opens the signal's rich detail); the menu is
+ * for secondary actions only and stops propagation so it never also opens the
+ * detail. */
 export function SignalCard({
   src,
   when,
   quote,
   theme,
   isLast = false,
+  onOpen,
   onPromote,
   onDraftSpec,
   onLineage,
@@ -39,13 +45,40 @@ export function SignalCard({
   actionsPending = false,
 }: SignalCardProps) {
   const hasActions = onPromote || onDraftSpec || onLineage || onDelete;
+  const clickable = Boolean(onOpen);
   return (
     <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? "Open signal detail" : undefined}
+      onClick={clickable ? onOpen : undefined}
+      onKeyDown={
+        clickable
+          ? (event) => {
+              if (
+                (event.key === "Enter" || event.key === " ") &&
+                event.target === event.currentTarget
+              ) {
+                event.preventDefault();
+                onOpen?.();
+              }
+            }
+          : undefined
+      }
+      className={
+        clickable
+          ? "loom-press outline-none transition-colors hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:[outline-offset:-2px] focus-visible:[outline-color:var(--glacier)]"
+          : undefined
+      }
       style={{
         display: "grid",
         gap: "5px",
+        padding: clickable ? "10px" : undefined,
+        margin: clickable ? "0 -10px" : undefined,
+        borderRadius: clickable ? "var(--radius-control)" : undefined,
         paddingBottom: "13px",
         borderBottom: isLast ? undefined : "1px solid var(--hairline-faint)",
+        cursor: clickable ? "pointer" : undefined,
       }}
     >
       <div className="flex items-center gap-2">
@@ -79,6 +112,7 @@ export function SignalCard({
                 type="button"
                 aria-label="Signal actions"
                 disabled={actionsPending}
+                onClick={(event) => event.stopPropagation()}
                 className="loom-press"
                 style={{
                   marginLeft: "auto",

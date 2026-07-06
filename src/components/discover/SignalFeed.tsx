@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel } from "@/components/obsidian";
-import { LineageDrawer } from "@/components/cadence/LineageDrawer";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
@@ -19,8 +18,8 @@ import { relTimeCaps, sourceCaps, withTimeout } from "./format";
 import { SignalCard } from "./SignalCard";
 import { SignalComposer } from "./SignalComposer";
 import { SkeletonBar } from "./SkeletonBar";
-import { ThemeRow } from "./ThemeRow";
-import { ThemeDetail, type ThemeMember } from "./ThemeDetail";
+import { SignalDetailSheet, type SignalRecord } from "./SignalRecord";
+import type { ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -103,114 +102,15 @@ function LoadingBody() {
   );
 }
 
-type ThemeMeta = { id: string; title: string; frequency: number; summary: string | null };
-
-/** The auto-clusters, now first-class ranked rows that mirror the
- * opportunity-queue grammar (`ThemeRow`: metric block, title + sub line, an
- * overflow menu) and drill into `ThemeDetail`. Capped at four with a show-more
- * matching the queue, so it never becomes a wall. Replaces the truncated 2-up
- * bucket cards that had no drill-in. */
-function ThemesForming({
-  themes,
-  membersByTheme,
-  busyIds,
-  onOpenDetail,
-  onPromote,
-  onDraftSpec,
-}: {
-  themes: ThemeMeta[];
-  membersByTheme: Map<string, ThemeMember[]>;
-  busyIds: Set<string>;
-  onOpenDetail: (id: string) => void;
-  onPromote: (id: string) => void;
-  onDraftSpec: (id: string) => void;
-}) {
-  const [showAll, setShowAll] = useState(false);
-  const VISIBLE = 4;
-  if (themes.length === 0) return null;
-  const shown = showAll ? themes : themes.slice(0, VISIBLE);
-  return (
-    <div style={{ marginBottom: 18 }}>
-      <div className="mb-3 flex items-start justify-between" style={{ gap: 12 }}>
-        <div style={{ minWidth: 0 }}>
-          <h3
-            style={{
-              margin: 0,
-              fontFamily: "var(--font-ui)",
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--text-primary)",
-              lineHeight: 1.3,
-            }}
-          >
-            Auto-clustered
-          </h3>
-          <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
-            The themes Cadence grouped from those signals, ranked by corroboration. Act on one and it
-            moves to the opportunity queue.
-          </p>
-        </div>
-        <MonoLabel
-          tone="glacier"
-          style={{
-            fontSize: "10.5px",
-            letterSpacing: "0.08em",
-            fontVariantNumeric: "tabular-nums",
-            flexShrink: 0,
-            marginTop: 3,
-          }}
-        >
-          {themes.length} CLUSTERED
-        </MonoLabel>
-      </div>
-      <div className="grid gap-3">
-        {shown.map((t, i) => {
-          const members = membersByTheme.get(t.id) ?? [];
-          const sourceCount = new Set(members.map((m) => m.source)).size;
-          const newest = members.reduce<string | null>(
-            (acc, m) => (!acc || new Date(m.created_at) > new Date(acc) ? m.created_at : acc),
-            null,
-          );
-          return (
-            <ThemeRow
-              key={t.id}
-              themeId={t.id}
-              title={t.title}
-              rank={i + 1}
-              signalCount={t.frequency}
-              sourceCount={sourceCount}
-              newestCreatedAt={newest}
-              actionsPending={busyIds.has(t.id)}
-              onOpenDetail={onOpenDetail}
-              onPromote={() => onPromote(t.id)}
-              onDraftSpec={() => onDraftSpec(t.id)}
-            />
-          );
-        })}
-      </div>
-      {themes.length > VISIBLE ? (
-        <button
-          type="button"
-          onClick={() => setShowAll((v) => !v)}
-          className="loom-press mt-3 outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-          style={{
-            fontFamily: "var(--font-ui)",
-            fontSize: 12.5,
-            fontWeight: 500,
-            color: "var(--text-muted)",
-            background: "transparent",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 14px",
-          }}
-        >
-          {showAll ? "Show fewer" : `Show ${themes.length - VISIBLE} more`}
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
+/**
+ * Column A of the Discover pipeline: raw evidence, verbatim, from every
+ * source. The capture / import / cluster controls, the ranked signal cards
+ * (each click-to-open into its rich detail), and the surface's own
+ * loading/error/quiet-empty states. The auto-clustered themes it used to
+ * stack below now live in their own sibling column (`AutoClustered`); this
+ * component keeps the themes query only to label a card with its theme and to
+ * route a themed signal's promote / draft-spec through the theme.
+ */
 export function SignalFeed() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -226,9 +126,7 @@ export function SignalFeed() {
   // OBS-10: a Set, not a single scalar - every mutation adds its row's id on
   // onMutate and removes it on onSettled, so ANY in-flight mutation on a row
   // (not just whichever fired most recently) keeps that row's action menu
-  // disabled. A shared scalar let a second row's mutation overwrite the
-  // first's pending id, re-enabling a row whose own mutation hadn't settled
-  // yet (adversarial review finding).
+  // disabled.
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
   const setBusy = (id: string, busy: boolean) =>
     setBusyIds((prev) => {
@@ -237,8 +135,9 @@ export function SignalFeed() {
       else next.delete(id);
       return next;
     });
-  const [lineageId, setLineageId] = useState<string | null>(null);
-  const [openThemeId, setOpenThemeId] = useState<string | null>(null);
+  // Click-to-open (platform principle): a card click opens this signal's rich
+  // detail directly, no menu hop. The menu is for secondary actions only.
+  const [openSignalId, setOpenSignalId] = useState<string | null>(null);
   // Anti-scroll (founder ruling 2026-07-06): the feed shows the top few and
   // expands on demand, so the surface never becomes a long wall of signals.
   const [showAll, setShowAll] = useState(false);
@@ -263,12 +162,9 @@ export function SignalFeed() {
     return map;
   }, [themes.data]);
 
-  // OBS-10: a signal that belongs to a theme should promote/draft-spec through
-  // the THEME (aggregate evidence, deterministic scoring), matching the
-  // retired /product Signals tab's briefFor - not just that one signal's own
-  // quote. Grouped client-side from data already fetched, no new query. Now
-  // carries id + created_at so ThemeRow/ThemeDetail can derive the source
-  // count, the newest-signal time, and render each member quote with its time.
+  // A themed signal promotes/draft-specs through its THEME (aggregate
+  // evidence, deterministic scoring), so the brief needs every member quote.
+  // Grouped client-side from data already fetched, no new query.
   const signalsByTheme = useMemo(() => {
     const map = new Map<string, ThemeMember[]>();
     for (const s of signals.data?.signals ?? []) {
@@ -295,16 +191,16 @@ export function SignalFeed() {
     qc.invalidateQueries({ queryKey: ["opportunities"] });
   };
 
-  // OBS-10: the row write actions ported from the retired /product Signals
-  // tab (promote / draft spec / lineage / delete). Every mutation shares the
-  // busyIds set (see above) so any in-flight one disables its row's menu.
+  // The row write actions ported from the retired /product Signals tab
+  // (promote / draft spec / delete). Every mutation shares the busyIds set so
+  // any in-flight one disables its row's menu.
   const promote = useMutation({
     mutationFn: (id: string) => {
       const theme = signals.data?.signals.find((s) => s.id === id)?.theme_id;
       // A themed signal promotes through the theme (deterministic scoring,
-      // theme_id on the resulting opportunity) - matches the legacy panel's
-      // own choice, since a promote of just one member signal would silently
-      // drop the theme's other corroborating evidence.
+      // theme_id on the resulting opportunity), since a promote of just one
+      // member signal would silently drop the theme's other corroborating
+      // evidence.
       return theme
         ? fPromoteTheme({ data: { theme_id: theme } })
         : fPromoteSignal({ data: { signal_id: id } });
@@ -323,9 +219,8 @@ export function SignalFeed() {
       const signal = signals.data?.signals.find((s) => s.id === id);
       const theme = signal?.theme_id ? themeById.get(signal.theme_id) : undefined;
       const members = signal?.theme_id ? (signalsByTheme.get(signal.theme_id) ?? []) : [];
-      // Theme-aware brief, matching the legacy panel's briefFor exactly:
-      // aggregate every member quote (not just this one signal's), plus the
-      // theme's own summary when it has one.
+      // Theme-aware brief: aggregate every member quote (not just this one
+      // signal's), plus the theme's own summary when it has one.
       const brief = theme
         ? `Theme: ${theme.title}\n${theme.summary ? `Summary: ${theme.summary}\n` : ""}Evidence:\n${members.map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
             0,
@@ -353,44 +248,6 @@ export function SignalFeed() {
     onSuccess: () => {
       toast.success("Signal deleted");
       invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: (_d, _e, id) => setBusy(id, false),
-  });
-
-  // Theme-level actions for the bucket cards. Promote routes straight through
-  // the theme (aggregate evidence); the spec brief matches draftSpec's
-  // theme-aware format exactly, so a bucket and a themed signal draft the
-  // same brief. busyIds is keyed by id; theme ids never collide with signal
-  // ids, so they share the one pending set.
-  const promoteTheme = useMutation({
-    mutationFn: (themeId: string) => fPromoteTheme({ data: { theme_id: themeId } }),
-    onMutate: (id) => setBusy(id, true),
-    onSuccess: () => {
-      toast.success("Promoted · now an opportunity");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-    onSettled: (_d, _e, id) => setBusy(id, false),
-  });
-
-  const draftThemeSpec = useMutation({
-    mutationFn: async (themeId: string) => {
-      const theme = themeById.get(themeId);
-      const members = signalsByTheme.get(themeId) ?? [];
-      const brief = `Theme: ${theme?.title ?? ""}\n${
-        theme?.summary ? `Summary: ${theme.summary}\n` : ""
-      }Evidence:\n${members.map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
-        0,
-        4000,
-      );
-      const r = await fDraftSpec({ data: { brief } });
-      return { id: r.prd.id };
-    },
-    onMutate: (id) => setBusy(id, true),
-    onSuccess: (r) => {
-      toast.success("Spec drafted");
-      navigate({ to: "/plan/spec/$id", params: { id: r.id } });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: (_d, _e, id) => setBusy(id, false),
@@ -436,9 +293,21 @@ export function SignalFeed() {
   const thisWeekCount = rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
   const themeIds = new Set(themeById.keys());
   const unclusteredCount = rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
-  const themeList: ThemeMeta[] = [...(themes.data?.themes ?? [])]
-    .map((t) => ({ id: t.id, title: t.title, frequency: t.frequency, summary: t.summary ?? null }))
-    .sort((a, b) => b.frequency - a.frequency);
+
+  const openSignal = openSignalId ? rows.find((s) => s.id === openSignalId) : undefined;
+  const openRecord: SignalRecord | null = openSignal
+    ? {
+        id: openSignal.id,
+        content: openSignal.content,
+        title: openSignal.title ?? null,
+        source: openSignal.source,
+        sourceKind: openSignal.source_kind ?? null,
+        url: openSignal.url ?? null,
+        sentiment: openSignal.sentiment ?? null,
+        tags: openSignal.tags ?? [],
+        created_at: openSignal.created_at,
+      }
+    : null;
 
   return (
     <PanelShell>
@@ -462,9 +331,9 @@ export function SignalFeed() {
                 theme={theme ? `→ ${theme.title.toUpperCase()} · ${theme.frequency} SIGNALS` : null}
                 isLast={i === shown.length - 1}
                 actionsPending={busyIds.has(s.id)}
+                onOpen={() => setOpenSignalId(s.id)}
                 onPromote={() => promote.mutate(s.id)}
                 onDraftSpec={() => draftSpec.mutate(s.id)}
-                onLineage={() => setLineageId(s.id)}
                 onDelete={async () => {
                   const ok = await confirm({
                     title: "Delete this signal?",
@@ -501,42 +370,12 @@ export function SignalFeed() {
       <p style={{ fontSize: "12px", color: "var(--text-subtle)", marginTop: "12px" }}>
         Every quote is verbatim and keeps its source. Nothing here is a summary.
       </p>
-      <div
-        aria-hidden="true"
-        style={{ height: 1, background: "var(--hairline)", margin: "24px 0 20px" }}
-      />
-      <ThemesForming
-        themes={themeList}
-        membersByTheme={signalsByTheme}
-        busyIds={busyIds}
-        onOpenDetail={(id) => setOpenThemeId(id)}
-        onPromote={(id) => promoteTheme.mutate(id)}
-        onDraftSpec={(id) => draftThemeSpec.mutate(id)}
-      />
-      <LineageDrawer
-        open={!!lineageId}
-        onOpenChange={(open) => !open && setLineageId(null)}
-        kind="signal"
-        id={lineageId}
-        title={rows.find((s) => s.id === lineageId)?.content}
-      />
-      <ThemeDetail
-        open={!!openThemeId}
+      <SignalDetailSheet
+        open={!!openSignalId}
         onOpenChange={(next) => {
-          if (!next) setOpenThemeId(null);
+          if (!next) setOpenSignalId(null);
         }}
-        themeId={openThemeId}
-        title={openThemeId ? (themeById.get(openThemeId)?.title ?? null) : null}
-        summary={openThemeId ? (themeById.get(openThemeId)?.summary ?? null) : null}
-        frequency={openThemeId ? (themeById.get(openThemeId)?.frequency ?? 0) : 0}
-        members={openThemeId ? (signalsByTheme.get(openThemeId) ?? []) : []}
-        busy={openThemeId ? busyIds.has(openThemeId) : false}
-        onPromote={() => {
-          if (openThemeId) promoteTheme.mutate(openThemeId);
-        }}
-        onDraftSpec={() => {
-          if (openThemeId) draftThemeSpec.mutate(openThemeId);
-        }}
+        record={openRecord}
       />
     </PanelShell>
   );
