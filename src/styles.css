@@ -2207,3 +2207,11 @@ html[data-motion="off"] .agent-live {
   background-color: var(--card);
   color: var(--text-primary);
 }
+
+/* Anti-layout-shift (founder ruling 2026-07-06): reserve the scrollbar gutter
+ * so switching tabs / loading content (which changes page height and toggles
+ * the vertical scrollbar) never shifts the content width. Kills the "shrinks
+ * a bit then expands" jank across every surface. */
+html[data-obsidian] {
+  scrollbar-gutter: stable;
+}
