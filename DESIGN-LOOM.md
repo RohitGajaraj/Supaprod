@@ -342,6 +342,24 @@ are brought into line as they are touched.
   Plan/Define, Build, Brain, Trust Ledger, Engine Room, and any future surface.
   New objects adopt it by default (Discover signals already carry click-to-open
   + source/reference; Decide is the built exemplar).
+- **Trace-ref prefix registry.** Every object type shares the same 6-char
+  `traceRef()` code but carries its own type prefix, so an object traces
+  cleanly across the whole loop: `SIG` signals, `THM` themes, `OPP`
+  opportunities, `PRD` specs and drafts, `MIS` missions and build outcomes,
+  `LRN` learnings. Render the prefix and code as one quiet mono ref
+  (`OPP·A1B2C3`), and register a new type's prefix here before it ships.
+- **Card anatomy (the standard for every object card).** Signal, theme,
+  opportunity, spec, mission, outcome, and learning cards share one anatomy: a
+  color-tiered strength or score anchor on the left (the numeral tinted by
+  tier, moss strong, glacier mid, a quiet muted tone weak, with a small same-
+  tone bar as the shape cue); the title as the primary read; organized, quiet
+  meta laid out as spaced middle-dot items, never a cramped run-on; colored
+  status and verdict chips for state; a faint trace-and-time tail (the ref
+  fainter than the time, per the weighting above); and one clear primary
+  action, with secondary actions kept in the ⋯ menu. The color is meaningful
+  and semantic (score tier, status, verdict), never black-and-white monochrome;
+  ember stays scarce, reserved for the single Capture CTA, so it is never a
+  card accent. The Decide opportunity card is the built exemplar.
 
 
 

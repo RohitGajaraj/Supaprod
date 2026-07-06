@@ -117,10 +117,13 @@ export interface OpportunityRowProps {
  * VerdictChip's own neutral rather than forking a second PENDING style) and
  * `PencilNote` (the app's one pencil-annotation anatomy) rather than
  * hand-rolling row-local variants, per the "one object, one anatomy" law.
- * The card body is a single-click affordance that opens the detail sheet; the
- * `⋯` overflow (draft spec / lineage / status / delete) matches
- * `BuildMissionRow`'s and `SignalCard`'s established secondary-actions
- * pattern rather than crowding a third button onto the row.
+ * The card body is a single-click affordance that opens the detail sheet.
+ * "Draft spec" is promoted to the one clear primary action; the `⋯` overflow
+ * (lineage / move-to / delete) holds the secondary actions, matching
+ * `BuildMissionRow`'s and `SignalCard`'s established pattern. The anatomy is
+ * the standard for every object card: a tier-colored strength anchor, the
+ * title as the primary read, quiet spaced meta, colored status and verdict
+ * chips for state, a faint trace-and-time tail, and one primary action.
  */
 export function OpportunityRow({
   ice,
@@ -140,9 +143,16 @@ export function OpportunityRow({
   id,
   updatedAt,
 }: OpportunityRowProps) {
-  const hasActions = onDraftSpec || onLineage || onDelete || onSetStatus;
+  const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
   const clickable = Boolean(onOpen);
   const hasMeta = Boolean(id || updatedAt);
+  // The score tier is the one meaningful color on the anchor: strong bets read
+  // moss, mid glacier, weak a quiet muted tone. It is the at-a-glance priority
+  // cue, so the numeral and its bar share the same tone.
+  const tier = ice >= 7 ? "var(--moss)" : ice >= 4 ? "var(--glacier)" : "var(--text-muted)";
+  // The caller joins provenance with a middle dot; split it back so each fact
+  // reads as its own spaced item rather than a cramped run-on.
+  const subParts = sub.split(" · ").filter(Boolean);
   return (
     <div
       className={`relative flex items-center transition-[background-color,box-shadow,transform] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
@@ -184,13 +194,13 @@ export function OpportunityRow({
         </PencilNote>
       ) : null}
 
-      <div className="flex-none text-center" style={{ width: "56px" }}>
+      <div className="flex flex-none flex-col items-center" style={{ width: "54px" }}>
         <div
           style={{
             fontFamily: "var(--font-serif)",
             fontSize: "23px",
             fontWeight: 460,
-            color: "var(--text-primary)",
+            color: tier,
             lineHeight: 1,
             fontVariantNumeric: "tabular-nums",
           }}
@@ -200,14 +210,24 @@ export function OpportunityRow({
         <div
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "10.5px",
+            fontSize: "10px",
             letterSpacing: "0.14em",
-            color: "var(--text-subtle)",
+            color: "var(--text-faint)",
             marginTop: "3px",
           }}
         >
           ICE
         </div>
+        <div
+          aria-hidden="true"
+          style={{
+            width: "22px",
+            height: "3px",
+            borderRadius: "999px",
+            backgroundColor: tier,
+            marginTop: "4px",
+          }}
+        />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -216,24 +236,51 @@ export function OpportunityRow({
             fontSize: "var(--text-base)",
             fontWeight: 600,
             color: "var(--text-primary)",
-            marginBottom: "3px",
+            lineHeight: 1.35,
           }}
         >
           {title}
         </div>
-        <div style={{ fontSize: "12.5px", lineHeight: 1.5, color: "var(--text-subtle)" }}>
-          {sub}
-        </div>
+        {subParts.length > 0 ? (
+          <div
+            className="flex flex-wrap items-center"
+            style={{
+              marginTop: "4px",
+              fontSize: "11.5px",
+              lineHeight: 1.5,
+              color: "var(--text-subtle)",
+            }}
+          >
+            {subParts.map((part, idx) => (
+              <span key={idx} className="inline-flex items-center">
+                {idx > 0 ? (
+                  <span aria-hidden="true" style={{ margin: "0 9px", color: "var(--text-faint)" }}>
+                    ·
+                  </span>
+                ) : null}
+                {part}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {hasMeta ? (
-          <div className="flex items-center" style={{ gap: "10px", marginTop: "6px" }}>
+          <div className="flex flex-wrap items-center" style={{ marginTop: "6px" }}>
             {id ? <TraceChip id={id} /> : null}
+            {id && updatedAt ? (
+              <span
+                aria-hidden="true"
+                style={{ margin: "0 8px", fontSize: "9.5px", color: "var(--text-faint)" }}
+              >
+                ·
+              </span>
+            ) : null}
             {updatedAt ? (
               <span
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "9.5px",
                   letterSpacing: "0.04em",
-                  color: "var(--text-faint)",
+                  color: "var(--text-subtle)",
                 }}
               >
                 updated {relTimeCaps(updatedAt)}
@@ -243,104 +290,110 @@ export function OpportunityRow({
         ) : null}
       </div>
 
-      {status ? <StatusPill status={status} className="flex-none" /> : null}
-
-      <VerdictChip tone={verdict} className="flex-none" />
-
-      <Button
-        variant="secondary"
-        className="flex-none"
-        style={{ fontSize: "12px", padding: "6px 13px", borderRadius: "7px" }}
-        onClick={(event) => {
-          event.stopPropagation();
-          onChallenge();
-        }}
-        loading={challengePending}
-        disabled={actionsPending}
-        title="The Critic red-teams this bet · receipts attached"
-      >
-        Challenge
-      </Button>
-
-      {hasActions ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Opportunity actions"
-              disabled={actionsPending}
-              onClick={(event) => event.stopPropagation()}
-              className="loom-press"
-              style={{
-                flexShrink: 0,
-                fontFamily: "var(--font-mono)",
-                fontSize: "14px",
-                color: "var(--text-subtle)",
-                background: "none",
-                border: "none",
-                cursor: actionsPending ? "default" : "pointer",
-                opacity: actionsPending ? 0.5 : 1,
-                padding: "2px 6px",
+      <div className="flex flex-none flex-col items-end" style={{ gap: "8px" }}>
+        <div className="flex items-center" style={{ gap: "6px" }}>
+          {status ? <StatusPill status={status} /> : null}
+          <VerdictChip tone={verdict} />
+        </div>
+        <div className="flex items-center" style={{ gap: "6px" }}>
+          {onDraftSpec ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDraftSpec();
               }}
+              disabled={actionsPending}
+              title="Draft the cited spec from this bet"
             >
-              ⋯
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {onDraftSpec ? (
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDraftSpec();
-                }}
-              >
-                Draft spec
-              </DropdownMenuItem>
-            ) : null}
-            {onLineage ? (
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onLineage();
-                }}
-              >
-                Where this came from
-              </DropdownMenuItem>
-            ) : null}
-            {onSetStatus ? (
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger onClick={(event) => event.stopPropagation()}>
-                  Move to…
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  {OPPORTUNITY_STATUSES.map((s) => (
-                    <DropdownMenuItem
-                      key={s}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onSetStatus(s);
-                      }}
-                    >
-                      {STATUS_META[s].label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            ) : null}
-            {onDelete ? (
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                className="text-[var(--madder)]"
-              >
-                Delete
-              </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : null}
+              Draft spec
+            </Button>
+          ) : null}
+          <Button
+            variant="tertiary"
+            size="sm"
+            onClick={(event) => {
+              event.stopPropagation();
+              onChallenge();
+            }}
+            loading={challengePending}
+            disabled={actionsPending}
+            title="The Critic red-teams this bet · receipts attached"
+          >
+            Challenge
+          </Button>
+          {hasMenuActions ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Opportunity actions"
+                  disabled={actionsPending}
+                  onClick={(event) => event.stopPropagation()}
+                  className="loom-press"
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "14px",
+                    color: "var(--text-subtle)",
+                    background: "none",
+                    border: "none",
+                    cursor: actionsPending ? "default" : "pointer",
+                    opacity: actionsPending ? 0.5 : 1,
+                    padding: "2px 6px",
+                  }}
+                >
+                  ⋯
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onLineage ? (
+                  <DropdownMenuItem
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onLineage();
+                    }}
+                  >
+                    Where this came from
+                  </DropdownMenuItem>
+                ) : null}
+                {onSetStatus ? (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger onClick={(event) => event.stopPropagation()}>
+                      Move to…
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {OPPORTUNITY_STATUSES.map((s) => (
+                        <DropdownMenuItem
+                          key={s}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSetStatus(s);
+                          }}
+                        >
+                          {STATUS_META[s].label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ) : null}
+                {onDelete ? (
+                  <DropdownMenuItem
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDelete();
+                    }}
+                    className="text-[var(--madder)]"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
