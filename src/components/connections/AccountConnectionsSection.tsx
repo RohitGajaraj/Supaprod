@@ -1,7 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { ChevronRight, Plus } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
@@ -28,6 +27,7 @@ import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { ConnectionRow } from "./ConnectionRow";
 import { ProviderLogo } from "./ProviderLogo";
+import { RequestConnectorCard } from "./RequestConnectorCard";
 
 // F-CONN Phase 2: Settings, "Connections", the single home for account-level
 // sources, reworked connected-first (2026-07-06). Section A "Connected" lists
@@ -520,48 +520,9 @@ export function AccountConnectionsSection({
           </p>
         )}
 
-        {/* Request a connector: an honest mailto (a real email is composed, no
-            fake "submitted" without a backend). Retarget the address as needed. */}
-        <a
-          href="mailto:hello@redcadence.app?subject=Cadence connector request&body=I'd like Cadence to support this connector:%0A%0A(the tool, and what you'd use it for)"
-          className="bento loom-press"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "12px 14px",
-            marginTop: 12,
-            textDecoration: "none",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 32,
-              height: 32,
-              flexShrink: 0,
-              borderRadius: 8,
-              border: "1px dashed var(--hairline-strong)",
-              color: "var(--ink-subtle)",
-            }}
-          >
-            <Plus size={16} strokeWidth={1.75} />
-          </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span
-              style={{ display: "block", fontWeight: 500, fontSize: 13.5, color: "var(--ink)" }}
-            >
-              Request a connector
-            </span>
-            <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
-              Don't see your tool? Tell us what to build next.
-            </span>
-          </span>
-          <ChevronRight size={15} style={{ color: "var(--ink-subtle)", flexShrink: 0 }} />
-        </a>
+        {/* Request a connector: an in-product form (no email) that persists the
+            request and acknowledges on submit. */}
+        <RequestConnectorCard />
       </section>
     </div>
   );

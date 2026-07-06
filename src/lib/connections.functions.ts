@@ -686,3 +686,30 @@ export const addProductBinding = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { binding: inserted as unknown as BindingRow };
   });
+
+
+// CONNECTIONS-V11: capture a "Request a connector" submission. Own-row RLS via
+// the RLS-scoped client; no email (cost + friction), the UI shows an in-product
+// acknowledgment. The founder reads demand from public.connector_requests.
+export const requestConnector = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        connector: z.string().trim().min(1).max(120),
+        note: z.string().trim().max(2000).optional(),
+        workspaceId: z.string().uuid().optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const { error } = await db.from("connector_requests").insert({
+      user_id: context.userId,
+      workspace_id: data.workspaceId ?? null,
+      connector: data.connector,
+      note: data.note ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const };
+  });
