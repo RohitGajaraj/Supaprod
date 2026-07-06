@@ -31,7 +31,7 @@ export type NavItemDef = {
   search?: Record<string, string>;
 };
 
-/** THE LOOP — the six outcome-named destinations (the calm front). Decide
+/** THE LOOP: the six outcome-named destinations (the calm front). Decide
  * (2026-07-07) is its own stage between Discover (sense) and Plan (define):
  * the ranked opportunity queue moved out of Discover so each surface owns one
  * step of the loop and no surface is a cramped multi-column overflow. */
