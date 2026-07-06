@@ -2,6 +2,7 @@
 // design-reference/cadence/icons.jsx (the design of record). Values are the
 // reference's; do not retune here — change the reference first.
 import type { CSSProperties, ReactNode } from "react";
+import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 
 /* CadenceMark — "the butterfly." Two pairs of translucent wings on a
    slender body: lightness, precision, metamorphosis (signal → shipped).
@@ -244,39 +245,15 @@ export function TabRow({
   const items: TabRowItem[] = tabs.map((t) => (typeof t === "string" ? { id: t, label: t } : t));
   return (
     <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          display: "flex",
-          gap: 2,
-          borderBottom: "1px solid var(--hairline)",
-          flexWrap: "wrap",
-        }}
-      >
-        {items.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onSet(t.id)}
-            style={{
-              padding: "7px 13px",
-              fontSize: 12.5,
-              marginBottom: -1,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              color: active === t.id ? "var(--ink)" : "var(--ink-subtle)",
-              borderBottom: `2px solid ${active === t.id ? "var(--ember)" : "transparent"}`,
-              fontWeight: active === t.id ? 500 : 400,
-            }}
-          >
-            {t.label}
-            {t.badge != null && t.badge > 0 ? (
-              <span className="mono-label tabular-nums" style={{ fontSize: 8.5 }}>
-                {t.badge}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
+      <FlashlightTabs
+        tabs={items.map((t) => ({
+          id: t.id,
+          label: t.label,
+          badge: t.badge ?? undefined,
+        }))}
+        active={active}
+        onSelect={onSet}
+      />
       {desc && desc[active] ? (
         <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 8 }}>{desc[active]}</p>
       ) : null}
