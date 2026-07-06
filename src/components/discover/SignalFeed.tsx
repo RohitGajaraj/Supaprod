@@ -101,6 +101,182 @@ function LoadingBody() {
   );
 }
 
+type ThemeBucket = { id: string; title: string; frequency: number; summary: string | null };
+
+/** The auto-clusters, shown as cards (founder follow-up 2026-07-06). Signals
+ * already carry a theme_id; this surfaces the clusters themselves so the PM
+ * sees what is forming before promoting, instead of inferring it from inline
+ * labels on a flat feed. Capped and expandable, so it never becomes a wall. */
+function ThemeBuckets({
+  themes,
+  membersByTheme,
+  busyIds,
+  onPromote,
+  onDraftSpec,
+}: {
+  themes: ThemeBucket[];
+  membersByTheme: Map<string, { content: string; source: string }[]>;
+  busyIds: Set<string>;
+  onPromote: (id: string) => void;
+  onDraftSpec: (id: string) => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE = 4;
+  if (themes.length === 0) return null;
+  const shown = showAll ? themes : themes.slice(0, VISIBLE);
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div className="mb-2.5 flex items-baseline justify-between" style={{ gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-ui)",
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: "var(--text-primary)",
+              lineHeight: 1.3,
+            }}
+          >
+            Themes forming
+          </h3>
+          <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "var(--text-subtle)" }}>
+            What the signals are clustering into
+          </p>
+        </div>
+        <MonoLabel
+          tone="glacier"
+          style={{
+            fontSize: "10px",
+            letterSpacing: "0.08em",
+            fontVariantNumeric: "tabular-nums",
+            flexShrink: 0,
+            marginTop: 3,
+          }}
+        >
+          {themes.length} CLUSTERED
+        </MonoLabel>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10 }}>
+        {shown.map((t) => {
+          const members = membersByTheme.get(t.id) ?? [];
+          const busy = busyIds.has(t.id);
+          return (
+            <div
+              key={t.id}
+              style={{
+                background: "var(--surface-raised)",
+                border: "1px solid var(--hairline)",
+                borderRadius: "var(--radius-control)",
+                padding: "12px 13px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div className="flex items-baseline justify-between" style={{ gap: 8 }}>
+                <span
+                  className="min-w-0 truncate"
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {t.title}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    letterSpacing: "0.06em",
+                    color: "var(--text-subtle)",
+                    flexShrink: 0,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {t.frequency} SIGNAL{t.frequency === 1 ? "" : "S"}
+                </span>
+              </div>
+              {t.summary ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    color: "var(--text-muted)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {t.summary}
+                </p>
+              ) : members[0] ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    color: "var(--text-subtle)",
+                    fontStyle: "italic",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {`"${members[0].content}"`}
+                </p>
+              ) : null}
+              <div className="flex items-center" style={{ gap: 8, marginTop: 2 }}>
+                <Button
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => onPromote(t.id)}
+                  style={{ fontSize: 12, padding: "5px 12px" }}
+                >
+                  Promote
+                </Button>
+                <Button
+                  variant="quiet"
+                  disabled={busy}
+                  onClick={() => onDraftSpec(t.id)}
+                  style={{ fontSize: 12, padding: "5px 10px" }}
+                >
+                  Draft spec
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {themes.length > VISIBLE ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press mt-2.5 outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 10.5,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${themes.length - VISIBLE} more`}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function SignalFeed() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -235,6 +411,44 @@ export function SignalFeed() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
+  // Theme-level actions for the bucket cards. Promote routes straight through
+  // the theme (aggregate evidence); the spec brief matches draftSpec's
+  // theme-aware format exactly, so a bucket and a themed signal draft the
+  // same brief. busyIds is keyed by id; theme ids never collide with signal
+  // ids, so they share the one pending set.
+  const promoteTheme = useMutation({
+    mutationFn: (themeId: string) => fPromoteTheme({ data: { theme_id: themeId } }),
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: () => {
+      toast.success("Promoted · now an opportunity");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  const draftThemeSpec = useMutation({
+    mutationFn: async (themeId: string) => {
+      const theme = themeById.get(themeId);
+      const members = signalsByTheme.get(themeId) ?? [];
+      const brief = `Theme: ${theme?.title ?? ""}\n${
+        theme?.summary ? `Summary: ${theme.summary}\n` : ""
+      }Evidence:\n${members.map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
+        0,
+        4000,
+      );
+      const r = await fDraftSpec({ data: { brief } });
+      return { id: r.prd.id };
+    },
+    onMutate: (id) => setBusy(id, true),
+    onSuccess: (r) => {
+      toast.success("Spec drafted");
+      navigate({ to: "/plan/spec/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
   if (signals.isLoading) {
     return (
       <PanelShell>
@@ -275,11 +489,21 @@ export function SignalFeed() {
   const thisWeekCount = rows.filter((s) => new Date(s.created_at).getTime() >= weekAgo).length;
   const themeIds = new Set(themeById.keys());
   const unclusteredCount = rows.filter((s) => !s.theme_id || !themeIds.has(s.theme_id)).length;
+  const themeList: ThemeBucket[] = [...(themes.data?.themes ?? [])]
+    .map((t) => ({ id: t.id, title: t.title, frequency: t.frequency, summary: t.summary ?? null }))
+    .sort((a, b) => b.frequency - a.frequency);
 
   return (
     <PanelShell>
       <HeaderRow count={thisWeekCount} />
       <SignalComposer unclusteredCount={unclusteredCount} />
+      <ThemeBuckets
+        themes={themeList}
+        membersByTheme={signalsByTheme}
+        busyIds={busyIds}
+        onPromote={(id) => promoteTheme.mutate(id)}
+        onDraftSpec={(id) => draftThemeSpec.mutate(id)}
+      />
       {rows.length === 0 ? (
         <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}>
           Nothing sensed yet. Capture what you heard, or connect a source and let the feed fill
