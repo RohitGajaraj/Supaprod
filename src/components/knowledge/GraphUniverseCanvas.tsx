@@ -231,6 +231,22 @@ export function GraphUniverseCanvas({
   const neighborsRef = useRef(neighborSets);
   neighborsRef.current = neighborSets;
 
+  // Directional degree per node: how many artifacts fed INTO it (incoming) and
+  // how many it went on to shape (outgoing). This is the compounding story the
+  // hover card tells ("from 3, shaped 2"), not just a flat link count.
+  const degreeByKey = useMemo(() => {
+    const m = new Map<string, { inbound: number; outbound: number }>();
+    for (const e of graph.edges) {
+      const s = m.get(e.source) ?? { inbound: 0, outbound: 0 };
+      s.outbound++;
+      m.set(e.source, s);
+      const t = m.get(e.target) ?? { inbound: 0, outbound: 0 };
+      t.inbound++;
+      m.set(e.target, t);
+    }
+    return m;
+  }, [graph.edges]);
+
   // One-time scene setup + all imperative handlers (they read refs only, so a
   // closure captured here stays correct for the component's whole life).
   useEffect(() => {
@@ -383,17 +399,18 @@ export function GraphUniverseCanvas({
 
     const applyEmphasis = () => {
       const selected = selectedRef.current;
+      const hovered = hoverKeyRef.current;
+      const active = selected ?? hovered;
       const focus = focusKeyRef.current;
       const stale = staleRef.current;
       const hot = hotRef.current;
-      const lit = selected ? neighborsRef.current.get(selected) : undefined;
-      const isLit = (key: string) =>
-        !selected || key === selected || (lit?.has(key) ?? false);
+      const lit = active ? neighborsRef.current.get(active) : undefined;
+      const isLit = (key: string) => !active || key === active || (lit?.has(key) ?? false);
       const chrome = chromeRef.current;
 
       for (const n of nodesRef.current) {
         const litNode = isLit(n.key);
-        const dim = litNode ? 1 : 0.2;
+        const dim = litNode ? 1 : 0.22;
         const mesh = meshMapRef.current.get(n.key);
         if (mesh) {
           const mat = mesh.material as THREE.MeshBasicMaterial;
@@ -404,7 +421,7 @@ export function GraphUniverseCanvas({
           const isSel = n.key === selected;
           const isFocus = n.key === focus;
           (halo.material as THREE.SpriteMaterial).opacity =
-            (isSel ? 0.95 : isFocus ? 0.75 : 0.55) * dim;
+            (isSel ? 0.95 : n.key === hovered ? 0.9 : isFocus ? 0.75 : 0.55) * dim;
         }
         const ring = ringMapRef.current.get(n.key);
         if (ring) {
@@ -445,16 +462,16 @@ export function GraphUniverseCanvas({
         let intensity: number;
         if (e.superseding && !e.retired) {
           base = chrome.madder;
-          intensity = litEdge ? 0.85 : 0.22;
+          intensity = litEdge ? 0.95 : 0.32;
         } else if (e.retired) {
           base = chrome.thread;
-          intensity = litEdge ? 0.16 : 0.06;
-        } else if (selected && litEdge) {
+          intensity = litEdge ? 0.3 : 0.12;
+        } else if (active && litEdge) {
           base = chrome.glacier;
-          intensity = 0.5;
+          intensity = 0.9;
         } else {
           base = chrome.thread;
-          intensity = litEdge ? 0.26 : 0.06;
+          intensity = litEdge ? 0.62 : 0.12;
         }
         tmpColor.copy(base).multiplyScalar(intensity);
         const o = i * 6;
@@ -843,6 +860,15 @@ export function GraphUniverseCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, staleKeys, hotKeys]);
 
+  // Hover lights the hovered node's connections immediately (Rauno: responsive,
+  // reveal the relationship on intent, not only on commit). Under reduced
+  // motion the drift loop is off, so paint one frame.
+  useEffect(() => {
+    applyEmphasisRef.current?.();
+    if (reducedRef.current) renderOnceRef.current?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hover]);
+
   // Start / stop the drift loop when the motion preference flips at runtime.
   useEffect(() => {
     if (reducedMotion) {
@@ -975,9 +1001,17 @@ export function GraphUniverseCanvas({
             style={{ fontSize: "var(--text-mono-floor)", display: "block" }}
           >
             {hoverNode.influence} {hoverNode.influence === 1 ? "link" : "links"}
+            {(() => {
+              const deg = degreeByKey.get(hoverNode.key);
+              if (!deg || (deg.inbound === 0 && deg.outbound === 0)) return null;
+              const parts: string[] = [];
+              if (deg.inbound > 0) parts.push(`from ${deg.inbound}`);
+              if (deg.outbound > 0) parts.push(`shaped ${deg.outbound}`);
+              return ` · ${parts.join(" · ")}`;
+            })()}
           </MonoLabel>
           <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 5 }}>
-            Click to focus, double-click for the story
+            Hover lights its connections, click to focus, double-click for the story
           </div>
         </div>
       ) : null}

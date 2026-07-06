@@ -185,7 +185,11 @@ craft bar for every surface: **`emil-design-eng` + `animation-vocabulary` +
 `review-animations`** (Emil Kowalski / animations.dev — the motion standards),
 **`design-taste-frontend` / `minimalist-ui` / `high-end-visual-design`** (the
 Taste-Skill anti-slop set), and **`impeccable`** (the .kiro-native build, the
-desloppification catalog). Invoke the fitting skill before building a surface.
+desloppification catalog). The interaction-feel north-star is **Rauno
+Freiberg's craft gallery (rauno.me/craft** and its essays "Invisible Details of
+Interaction Design", "Designing Depth", "Novelty"): the bar for how every
+action should feel — responsive, physical, spatially consistent, elite. Invoke
+the fitting skill before building a surface.
 The load-bearing rules distilled from them, enforced everywhere:
 
 - **Motion (Emil's standards).** Only animate `transform` + `opacity` (GPU;
