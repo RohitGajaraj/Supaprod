@@ -13,6 +13,9 @@ export type { AuroraHue, AuroraCardProps } from "./aurora";
 export { SpotlightCard } from "./spotlight";
 export type { SpotlightTone, SpotlightCardProps } from "./spotlight";
 
+export { FlashlightTabs } from "./flashlight-tabs";
+export type { FlashlightTab } from "./flashlight-tabs";
+
 export { Citation } from "./citation";
 export type { CitationProps } from "./citation";
 

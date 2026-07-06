@@ -18,6 +18,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
@@ -134,42 +135,12 @@ function BrainTabRow({
 }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <div
-        className="flex flex-wrap"
-        role="tablist"
-        aria-label="Brain sections"
-        style={{ gap: 2, borderBottom: "1px solid var(--hairline)" }}
-      >
-        {tabs.map((t) => {
-          const isActive = active === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onSet(t.id)}
-              className={
-                isActive
-                  ? "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                  : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
-              }
-              style={{
-                fontFamily: "var(--font-ui)",
-                fontSize: "12.5px",
-                fontWeight: isActive ? 600 : 500,
-                padding: "8px 14px",
-                borderRadius: "var(--radius-control) var(--radius-control) 0 0",
-                background: isActive ? "var(--raised)" : "transparent",
-                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                border: "none",
-              }}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <FlashlightTabs
+        tabs={tabs}
+        active={active}
+        onSelect={(id) => onSet(id as Tab)}
+        ariaLabel="Brain sections"
+      />
       {desc?.[active] ? (
         <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>{desc[active]}</p>
       ) : null}
