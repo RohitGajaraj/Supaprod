@@ -5,6 +5,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
+import { SpotlightCard } from "@/components/obsidian/spotlight";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBrainInsights,
@@ -213,24 +214,34 @@ export function InsightsPanel() {
       {/* LOOP-PROVE - is the decision/outcome/supersession loop closing on this workspace's data? */}
       <LoopClosureBadge />
 
-      {/* AI analyst ceiling — agent-volunteered intelligence (predictions, actions, risks, connections). */}
+      {/* The ONE spotlight: the analyst's current read, in a human voice, lifted
+          and glow-lit so it reads as "notice this" — not a competing wall of
+          insight blocks (Loom §0.1 prominence + rethink-don't-just-delete). */}
       {qa.data && !qa.data.sparse && qa.data.signals.length > 0 ? (
-        <div className="bento" style={{ padding: 16, borderLeft: "2px solid var(--glacier)" }}>
-          <MonoLabel style={{ marginBottom: 12 }}>What the data suggests</MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <SpotlightCard kicker="What Cadence is seeing" tone="glacier">
+          <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
             {qa.data.signals.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <ToneDot color={SIGNAL_COLOR[s.kind] ?? "var(--text-subtle)"} />
-                <span style={{ fontSize: 13, color: "var(--ink)", lineHeight: 1.5 }}>{s.text}</span>
+                <span style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.55 }}>
+                  {s.text}
+                </span>
               </div>
             ))}
           </div>
-        </div>
+        </SpotlightCard>
       ) : null}
 
-      {/* Headline observations — what the data supports, in plain language. */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {d.insights.map((ins, i) => {
+      {/* Supporting observations — calm, secondary to the spotlight above.
+          A quiet label makes the hierarchy explicit so the two do not read as
+          duplicate "insights". Side-stripes removed (impeccable ban); the
+          ToneDot carries the tone. */}
+      {d.insights.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <MonoLabel tone="muted" style={{ marginBottom: 2 }}>
+            What the record supports
+          </MonoLabel>
+          {d.insights.map((ins, i) => {
           const t = TONE[ins.tone];
           return (
             <div
@@ -241,7 +252,6 @@ export function InsightsPanel() {
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
-                borderLeft: `2px solid ${t.color}`,
               }}
             >
               <ToneDot color={t.color} />
@@ -251,7 +261,8 @@ export function InsightsPanel() {
             </div>
           );
         })}
-      </div>
+        </div>
+      ) : null}
 
       {/* Beliefs + Learned at a glance. */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

@@ -58,6 +58,17 @@ A dark instrument, lit by meaning. Three additions over v3:
 > progressively. A surface that hides a real capability to look clean has
 > failed; a surface that surfaces the essential and gracefully holds the rest
 > has succeeded.
+>
+> **C. Rethink, do not just delete (founder ruling 2026-07-06, every surface).**
+> Removing a slop tell (a side-stripe, a mono-caps wall) is necessary but NOT
+> sufficient. After removing it, ask: what is the RIGHT way to present this
+> information so it reads as a human analyst's insight, not machine output? Give
+> it a genuine home, a hierarchy, and a felt voice: one clear spotlight for the
+> hero read, calm supporting detail beneath it, real cards/components where they
+> add clarity, and a human touch (pencil marks on charts, plain confident copy).
+> The test is not "did the tell go away" but "does this now feel considered,
+> insightful, and calm." Applies to EVERY surface, not the one being fixed.
+
 
 
 **1. Affordance is decoupled from emphasis.** The restraint budget limits how
