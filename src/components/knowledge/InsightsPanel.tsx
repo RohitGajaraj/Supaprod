@@ -3,6 +3,7 @@
 // numbers were audit row D-15), loading is a layout-matching skeleton, and
 // the error state names the cause and offers a retry (DESIGN-LOOM section 9).
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { SpotlightCard } from "@/components/obsidian/spotlight";
@@ -73,39 +74,112 @@ function Stat({ value, label, color }: { value: string; label: string; color?: s
 
 function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
   const max = Math.max(1, ...buckets.map((b) => b.decisions + b.learnings));
+  const [hover, setHover] = useState<number | null>(null);
   return (
-    <div
-      style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 96, padding: "4px 2px" }}
-    >
-      {buckets.map((b, i) => {
-        const pct = ((b.decisions + b.learnings) / max) * 100;
-        return (
-          <div
-            key={b.month}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 5,
-              minWidth: 0,
-            }}
-          >
+    <div>
+      {/* Scale hint in the pencil hand: what the bars measure + the peak they
+          are scaled against, so a spike is never unlabelled (founder input). */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          marginBottom: 6,
+          fontFamily: "var(--font-pencil)",
+          fontSize: 13.5,
+          color: "var(--text-subtle)",
+        }}
+      >
+        <span>each bar, decisions and outcomes logged that month</span>
+        <span>peak {max}</span>
+      </div>
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 10,
+          height: 96,
+          padding: "4px 2px",
+        }}
+      >
+        {buckets.map((b, i) => {
+          const pct = ((b.decisions + b.learnings) / max) * 100;
+          const total = b.decisions + b.learnings;
+          const active = hover === i;
+          return (
             <div
-              title={`${b.month}: ${b.decisions} decisions (${b.superseded} revised), ${b.learnings} outcomes`}
-              style={{ width: "100%", maxWidth: 34, display: "flex", alignItems: "flex-end" }}
+              key={b.month}
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 5,
+                minWidth: 0,
+                position: "relative",
+                cursor: "default",
+              }}
             >
-              <SketchBar pct={Math.max(4, pct)} seed={i + 1} color="var(--ember)" trackH={76} />
+              {active ? (
+                <div
+                  role="tooltip"
+                  style={{
+                    position: "absolute",
+                    bottom: "100%",
+                    marginBottom: 8,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    whiteSpace: "nowrap",
+                    zIndex: 5,
+                    fontFamily: "var(--font-pencil)",
+                    fontSize: 14.5,
+                    lineHeight: 1.3,
+                    textAlign: "center",
+                    color: "var(--text-primary)",
+                    background: "var(--surface-raised)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: 9,
+                    padding: "6px 11px",
+                    boxShadow: "var(--shadow-ambient)",
+                  }}
+                >
+                  <div style={{ color: "var(--ember-text)", fontWeight: 600 }}>
+                    {total} that month
+                  </div>
+                  <div style={{ color: "var(--text-muted)" }}>
+                    {b.decisions} decisions, {b.superseded} revised, {b.learnings} outcomes
+                  </div>
+                </div>
+              ) : null}
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: 34,
+                  display: "flex",
+                  alignItems: "flex-end",
+                  opacity: hover == null || active ? 1 : 0.45,
+                  transition: "opacity 160ms var(--ease)",
+                }}
+              >
+                <SketchBar pct={Math.max(4, pct)} seed={i + 1} color="var(--ember)" trackH={76} />
+              </div>
+              <span
+                className="tabular-nums"
+                style={{
+                  fontFamily: "var(--font-pencil)",
+                  fontSize: 13.5,
+                  color: active ? "var(--text-body)" : "var(--ink-subtle)",
+                }}
+              >
+                {b.month.slice(2)}
+              </span>
             </div>
-            <span
-              className="mono-label tabular-nums"
-              style={{ fontSize: 10.5, color: "var(--ink-subtle)" }}
-            >
-              {b.month.slice(2)}
-            </span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
