@@ -11,7 +11,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
-import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
+import { buildArdDocument, parseArdDocument, type ArdDesignSection } from "@/lib/ard-schema";
+import {
+  designGateBlocksDispatch,
+  toArdDesignSection,
+  DESIGN_GATE_BLOCK_MESSAGE,
+} from "@/lib/build/design-gate";
+import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { nativeBuildDriver } from "@/lib/build/native.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
@@ -286,6 +293,8 @@ type DispatchPrd = { id: string; title: string; contract?: unknown };
  */
 export function ardDispatchBlock(
   prd: DispatchPrd | null,
+  // Mission 3.4: the design station's structured section rides the ARD.
+  design?: ArdDesignSection | null,
 ): { block: string; acceptanceCriteria: string[] | null } | null {
   if (!prd?.contract) return null;
   const parsed = parseArdDocument(prd.contract);
@@ -293,7 +302,7 @@ export function ardDispatchBlock(
   // Origin "" keeps schema_url an app-relative path (/api/public/ard/schema):
   // a server fn has no request origin at hand, and a fabricated host would
   // be dishonest data.
-  const ard = buildArdDocument("", prd.id, prd.title, parsed.contract);
+  const ard = buildArdDocument("", prd.id, prd.title, parsed.contract, undefined, design);
   const criteria = standingClauseTexts(parsed.contract.success_metrics);
   return {
     block: formatArdWorkOrderBlock(ard),
@@ -386,10 +395,17 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       prd = row as unknown as PrdCtx;
     }
 
+    // SW-4 / mission 3.4: the design station gates dispatch here exactly as
+    // it does on the Studio path; fail-open pre-migration.
+    const designGate = await loadDesignGateState(supabase as unknown as SupabaseClient, prd);
+    if (designGateBlocksDispatch(designGate)) throw new Error(DESIGN_GATE_BLOCK_MESSAGE);
+
     // Mission 3.3 dispatch parity: the payload dispatched to Build IS the
     // ARD. Fold the linked spec's compiled contract once; it rides every
-    // prose injection point below (issue body + work-order goal).
-    const ard = ardDispatchBlock(prd);
+    // prose injection point below (issue body + work-order goal). Mission
+    // 3.4 adds the design station's structured section to the same fold.
+    const designCtx = await loadDesignDispatchContext(supabase as unknown as SupabaseClient, prd);
+    const ard = ardDispatchBlock(prd, toArdDesignSection(designCtx));
 
     // Workspace: prefer the PRD's, else the user's default (also used for the mission).
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -496,6 +512,19 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         build_driver: nativeBuildDriver.id,
       });
       missionId = m.id;
+      // Mission 3.4: the spec's dispatch is a stage transition like any
+      // other; the ledger chain walks design -> build on real rows.
+      if (prd) {
+        await recordStageEvent(supabase, {
+          entityType: "spec",
+          entityId: prd.id,
+          from: null,
+          to: "build",
+          actor: "human",
+          workspaceId,
+          userId,
+        });
+      }
     }
 
     const result = await runAgentLoop(supabase, userId, {

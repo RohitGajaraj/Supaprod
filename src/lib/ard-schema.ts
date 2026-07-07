@@ -16,6 +16,17 @@ import { OutcomeContractSchema, type OutcomeContract } from "@/lib/discovery.fun
 export const ARD_SCHEMA_VERSION = "0.1";
 export const ARD_SCHEMA_PATH = "/api/public/ard/schema";
 
+/** SW-4 / mission 3.4: the design contract riding a Build dispatch. The
+ *  workspace's standing design memory (tokens, type, spacing, principles),
+ *  the spec's flow graph, and the gate-reviewed scaffold mockup travel as
+ *  structured fields, not just prose, so a dispatched engine receives the
+ *  same design contract the human design gate approved. */
+export interface ArdDesignSection {
+  memory: Array<{ category: string; title: string; content: string }>;
+  flow_steps: unknown | null;
+  scaffold_html: string | null;
+}
+
 /** The portable ARD document: an Outcome Contract plus export provenance. */
 export interface ArdDocument {
   ard_version: string;
@@ -24,6 +35,8 @@ export interface ArdDocument {
   spec_title: string;
   exported_at: string;
   contract: OutcomeContract;
+  /** Present when the design station has anything to hand the build. */
+  design?: ArdDesignSection;
 }
 
 const CONTRACT_CLAUSE_JSON_SCHEMA = {
@@ -116,6 +129,30 @@ export function buildArdJsonSchema(origin: string) {
         // correctly left out of `required` here.
         required: ["version", "intent", "budget", "ambiguity_policy", "drafted_by", "drafted_at"],
       },
+      design: {
+        type: "object",
+        description:
+          "Optional design contract riding a Build dispatch (mission 3.4): the workspace's standing design memory, the spec's flow graph, and the gate-reviewed scaffold mockup.",
+        properties: {
+          memory: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                title: { type: "string" },
+                content: { type: "string" },
+              },
+              required: ["category", "title", "content"],
+            },
+          },
+          flow_steps: {
+            description: "The spec's flow graph steps (DSN-03), shape-free by design.",
+          },
+          scaffold_html: { type: ["string", "null"] },
+        },
+        required: ["memory", "flow_steps", "scaffold_html"],
+      },
     },
     required: ["ard_version", "spec_id", "contract"],
   } as const;
@@ -132,6 +169,7 @@ export function buildArdDocument(
   specTitle: string,
   contract: OutcomeContract,
   exportedAt: string = new Date().toISOString(),
+  design?: ArdDesignSection | null,
 ): ArdDocument {
   return {
     ard_version: ARD_SCHEMA_VERSION,
@@ -140,6 +178,7 @@ export function buildArdDocument(
     spec_title: specTitle,
     exported_at: exportedAt,
     contract,
+    ...(design ? { design } : {}),
   };
 }
 

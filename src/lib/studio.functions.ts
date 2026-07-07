@@ -38,11 +38,16 @@ import { runRollbackRelease, ghHeaders } from "@/lib/studio-rollbacks";
 import { pickChangesetForPrd } from "@/lib/studio-ship";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { execGateFromChecks, type ExecGate } from "@/lib/exec/provider";
-import {
-  getActiveDesignMemoryForWorkspace,
-  formatDesignMemoryContext,
-} from "@/lib/design-memory.functions";
+import { formatDesignMemoryContext } from "@/lib/design-memory.functions";
 import { formatFlowContext, type PrdFlowRow } from "@/lib/design-parity.functions";
+import {
+  designGateBlocksDispatch,
+  toArdDesignSection,
+  DESIGN_GATE_BLOCK_MESSAGE,
+} from "@/lib/build/design-gate";
+import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
+import type { ArdDesignSection } from "@/lib/ard-schema";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 export type StudioChangesetSummary = {
   id: string;
@@ -203,6 +208,9 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       contract: unknown;
     };
     let prd: PrdCtx | null = null;
+    // Mission 3.4: filled from the design station's loaders when the spec has
+    // a workspace; rides the ARD document as its structured design section.
+    let ardDesign: ArdDesignSection | null = null;
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
@@ -223,20 +231,26 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
         sections.push(`Linked GitHub issue: #${m[1]} — include "Closes #${m[1]}" in the PR body.`);
       }
 
+      // SW-4 / mission 3.4: the design station gates dispatch. When the
+      // workspace's design stage is on, a spec reaches Build only after a
+      // human approved its design gate; the state loads fail-open so the
+      // pre-migration window behaves exactly as before.
+      const designGate = await loadDesignGateState(db, prd);
+      if (designGateBlocksDispatch(designGate)) throw new Error(DESIGN_GATE_BLOCK_MESSAGE);
+
       // DSN-04: the design contract rides into Build. The workspace's standing
-      // design language (DSN-01) and this PRD's flow graph (DSN-03) travel
-      // into the mission goal alongside the spec body, so the building agent
-      // sees the same design contract a human reviewer would.
-      if (prd.workspace_id) {
-        const [designMemory, flowRow] = await Promise.all([
-          getActiveDesignMemoryForWorkspace(supabase, prd.workspace_id),
-          supabase.from("prd_flows").select("steps,edges").eq("prd_id", prd.id).maybeSingle(),
-        ]);
-        const designContext = formatDesignMemoryContext(designMemory);
+      // design language (DSN-01), this PRD's flow graph (DSN-03), and the
+      // gate-reviewed scaffold travel into the mission goal alongside the
+      // spec body, so the building agent sees the same design contract a
+      // human reviewer would; mission 3.4 also carries them structurally in
+      // the ARD's design section below.
+      const designCtx = await loadDesignDispatchContext(db, prd);
+      if (designCtx) {
+        const designContext = formatDesignMemoryContext(designCtx.memory);
         if (designContext) sections.push(designContext);
-        const flow = (flowRow.data as PrdFlowRow | null) ?? null;
-        const flowContext = formatFlowContext(flow);
+        const flowContext = formatFlowContext((designCtx.flow as PrdFlowRow | null) ?? null);
         if (flowContext) sections.push(flowContext);
+        ardDesign = toArdDesignSection(designCtx);
       }
     }
 
@@ -297,7 +311,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
         // Origin "" keeps schema_url an app-relative path (/api/public/ard/schema):
         // a server fn has no request origin at hand, and a fabricated host would
         // be dishonest data.
-        const ard = buildArdDocument("", prd.id, prd.title, parsed.contract);
+        const ard = buildArdDocument("", prd.id, prd.title, parsed.contract, undefined, ardDesign);
         sections.push(formatArdWorkOrderBlock(ard));
         const criteria = standingClauseTexts(parsed.contract.success_metrics);
         if (criteria.length) acceptanceCriteria = criteria;
@@ -350,6 +364,17 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
         relation: "dispatched",
         rationale: "Sent to Studio",
         created_by_agent: "studio",
+      });
+      // Mission 3.4: the spec's dispatch is a stage transition like any
+      // other; the ledger chain walks design -> build on real rows.
+      await recordStageEvent(supabase, {
+        entityType: "spec",
+        entityId: prd.id,
+        from: null,
+        to: "build",
+        actor: "human",
+        workspaceId,
+        userId,
       });
     }
 
