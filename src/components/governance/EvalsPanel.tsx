@@ -81,7 +81,7 @@ export function EvalsPanel() {
         style={{
           padding: 24,
           backgroundColor: "var(--card)",
-          border: "1px solid rgba(224, 101, 87, 0.4)",
+          border: "1px solid color-mix(in srgb, var(--madder) 40%, transparent)",
           borderRadius: "var(--radius-card)",
           boxShadow: "var(--shadow-elevated)",
         }}
@@ -128,43 +128,43 @@ export function EvalsPanel() {
             className="mono-label tabular-nums"
             style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}
           >
-            <span style={{ color: "var(--ink-faint)" }}>Coverage</span>
-            <span style={{ color: "var(--ink)" }}>{coverageSummary}</span>
+            <span style={{ color: "var(--text-faint)" }}>Coverage</span>
+            <span style={{ color: "var(--text-primary)" }}>{coverageSummary}</span>
           </div>
           {coverageTargets.length > 0 ? (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
               {coverageTargets.map((t) => {
-                // covered = success (emerald, quiet); uncovered = alert (rose, solid); stale =
-                // unproven, rendered NEUTRAL + dashed (not amber) so it (a) keeps --saffron reserved
-                // for celebration per the color-role contract and (b) is distinguishable from
+                // covered = success (moss, quiet); uncovered = alert (madder, solid); stale =
+                // unproven, rendered NEUTRAL + dashed (not marigold) so it (a) keeps caution
+                // tones reserved per the color-role contract and (b) is distinguishable from
                 // uncovered without relying on hue (colorblind-safe). The word also rides aria-label
                 // so state is announced, not color-only.
                 const meta =
                   t.state === "covered"
                     ? {
                         word: "covered",
-                        dot: "var(--emerald)",
-                        border: "color-mix(in oklab, var(--emerald) 22%, transparent)",
+                        dot: "var(--moss)",
+                        border: "color-mix(in oklab, var(--moss) 22%, transparent)",
                         borderStyle: "solid",
                         bg: "transparent",
-                        text: "var(--ink-subtle)",
+                        text: "var(--text-subtle)",
                       }
                     : t.state === "stale"
                       ? {
                           word: "unproven",
-                          dot: "var(--ink-faint)",
-                          border: "color-mix(in oklab, var(--ink-faint) 55%, transparent)",
+                          dot: "var(--text-faint)",
+                          border: "color-mix(in oklab, var(--text-faint) 55%, transparent)",
                           borderStyle: "dashed",
-                          bg: "color-mix(in oklab, var(--ink) 4%, transparent)",
-                          text: "var(--ink)",
+                          bg: "color-mix(in oklab, var(--text-primary) 4%, transparent)",
+                          text: "var(--text-primary)",
                         }
                       : {
                           word: "no guard",
-                          dot: "var(--rose)",
-                          border: "color-mix(in oklab, var(--rose) 45%, transparent)",
+                          dot: "var(--madder)",
+                          border: "color-mix(in oklab, var(--madder) 45%, transparent)",
                           borderStyle: "solid",
-                          bg: "color-mix(in oklab, var(--rose) 8%, transparent)",
-                          text: "var(--ink)",
+                          bg: "color-mix(in oklab, var(--madder) 8%, transparent)",
+                          text: "var(--text-primary)",
                         };
                 // A gap chip (uncovered/stale) is a one-click affordance to start guarding that
                 // surface; a covered chip is static (nothing to fill).
@@ -238,10 +238,10 @@ export function EvalsPanel() {
         >
           {/* Short mono chrome label (uppercase reads fine), but the reason PROSE stays sentence
               case — mono-label would shout the authored sentences. */}
-          <span className="mono-label" style={{ color: "var(--rose)" }}>
+          <span className="mono-label" style={{ color: "var(--madder)" }}>
             Coverage floor not met
           </span>
-          <span style={{ fontSize: 12.5, color: "var(--ink)" }}>
+          <span style={{ fontSize: 12.5, color: "var(--text-primary)" }}>
             {coverageFloor.reasons.join(" · ")}
           </span>
         </div>
@@ -267,16 +267,18 @@ export function EvalsPanel() {
       ) : null}
 
       {suitesQ.isLoading ? (
-        <div
+        <p
+          className="uppercase"
           style={{
-            fontSize: 12.5,
-            color: "var(--ink-faint)",
-            padding: "32px 0",
-            textAlign: "center",
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor, 10.5px)",
+            letterSpacing: "0.11em",
+            color: "var(--text-subtle)",
+            padding: "24px 0",
           }}
         >
-          Loading eval suites…
-        </div>
+          Reading the suites
+        </p>
       ) : suites.length === 0 ? (
         <EmptyState
           icon={FlaskConical}
@@ -329,7 +331,7 @@ export function EvalsPanel() {
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
                   {score == null ? (
-                    <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+                    <span className="mono-label" style={{ color: "var(--text-faint)" }}>
                       not run yet
                     </span>
                   ) : (
@@ -364,7 +366,7 @@ export function EvalsPanel() {
                   <span style={{ flex: 1 }}></span>
                   <span
                     className="mono-label"
-                    style={{ fontSize: 10.5, color: "var(--action-blue)" }}
+                    style={{ fontSize: 10.5, color: "var(--glacier)" }}
                   >
                     runs · cases · config →
                   </span>
@@ -374,7 +376,7 @@ export function EvalsPanel() {
                     style={{
                       height: 4,
                       borderRadius: 99,
-                      background: "var(--surface-2)",
+                      background: "var(--raised)",
                       overflow: "hidden",
                       marginTop: 10,
                     }}

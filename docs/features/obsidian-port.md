@@ -318,6 +318,20 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 **Gates at ship:** `tsc --noEmit` 0 (only pre-existing, unrelated Stripe module-resolution errors present) · `bun test` 14/14 new tests pass (`engine-room-glance.test.ts` threshold + empty-input-fallback coverage, `room-card.test.tsx` real-button + grayscale-safe state words) on top of the existing suite, untouched · adversarial code-reviewer pass (0 blocking, 2 low fixed, 1 accepted note above) · humanized-output clean (zero em/en dashes across all new files, including doc comments; two UI fallback placeholders normalized from an initial em dash to the house "-" convention before commit).
 
+### Resumed 2026-07-07 (governance_panels_reskin): W4, the remaining Engine Room governance panels reskinned to Obsidian
+
+OBS-09 shipped the Engine Room glance and its room chassis, but the panels the rooms render were carried forward from the parchment `/govern` era and still wore the Ember-editorial palette. A first W4 pass reskinned `IncidentsPanel` (the exemplar) and lightly fixed `HouseRulesPanel`; this session closed the gap for the six that remained: `ApprovalsPanel` (record/approvals), `EvalsPanel` (quality/suites), `GauntletMetricsPanel` (quality/proof), `GuardrailsPanel` (safety/rules), `DriftPanel` (quality/drift), `PromptsPanel` (quality/prompts).
+
+**Scope: token/consistency only, functionality untouched.** No server function, mutation, query key, drill route, or behavior changed; the monetization/billing/credit block was not touched. What changed:
+
+- **Vocabulary migrated to Obsidian semantic tokens.** `--ink`/`--ink-muted`/`--ink-subtle`/`--ink-faint` to `--text-primary`/`--text-body`/`--text-subtle`/`--text-faint`; `--emerald` to `--moss`; `--surface-1`/`--surface-2` to `--surface-recessed`/`--raised`.
+- **Wrong bridges fixed.** Under `[data-obsidian]` the parchment `--rose` bridges to a data-pink (alerts now use `--madder`), `--coral` bridged to the reserved `--ember` (now `--madder`), `--deep-green` bridged to a near-white pearl on the guardrail toggle (now `--moss`), the guardrail rule-editor modal scrim was a near-white `--ink` 35% wash (now a dark canvas-based scrim), and `--action-blue` bridged to the cornflower data hue (now `--glacier` for links/live/machine states).
+- **Ember misuse removed.** The reserved Capture color was standing in as a generic caution/accent; it is now `--marigold` for caution (expiry clock, "declined before", drift delta, guardrail "warn"/"last fired"), `--glacier` for form controls and usage bars, and Drift's status chip moved from the cadence `VerdictChip tone="ember"` to the Obsidian `VerdictChip tone="WATCH"/"VALIDATED"`. ApprovalsPanel's parchment `RiskTag` was replaced with an inline semantic `RiskChip` (low=moss / medium=marigold / high=madder).
+- **Calm states.** Every panel now shows a mono-caps loading line (the IncidentsPanel "Reading the record" idiom), preserves or adds error+retry (GauntletMetricsPanel gained a real refetch-all RETRY it lacked), and ApprovalsPanel's empty state is a designed bordered slate. GuardrailsPanel timestamps standardized onto the shared `relTimeCaps` ("3H AGO") from `discover/format`.
+- **Kept as-is (shared Loom chrome that already bridges correctly and matches the fixed HouseRulesPanel):** the global `.bento`/`.btn`/`.input`/`.mono-label` classes and the cadence `MonoLabel`/`EmptyState`/`StepDot` primitives; EvalsPanel's `#141416` card-hover className is the canonical Obsidian hover literal the shared RoomDetail `Row` uses, so it stayed. Real data only, no invented metrics, no mocks.
+
+**Gates at ship:** `npx tsc --noEmit` 0 · `bun run build` succeeds · `bun test` 2403 pass, 3 fail (only the known `resolveEmbedRoute` cases). No em/en dashes introduced in additions; DESIGN-LOOM.md untouched. Files: `src/components/governance/{ApprovalsPanel,EvalsPanel,GuardrailsPanel,PromptsPanel}.tsx` + `src/components/observe/{DriftPanel,GauntletMetricsPanel}.tsx`.
+
 ---
 
 ## OBS-10 · IA consolidation (◐ shipped-partial, 2026-07-02 lane1, resumed 2026-07-03 lane2 + lane1)

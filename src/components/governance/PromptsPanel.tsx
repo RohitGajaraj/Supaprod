@@ -1,8 +1,8 @@
 // Prompts tab — ported 1:1 from design-reference/cadence/loop.jsx
 // (GovernScreen, tab "Prompts"): a bento table (Surface 1fr / Version 70px /
 // Note 1fr / Status 90px / actions 150px) with the surface at 500 weight, the
-// version mono ink, the note at 12px ink-subtle, the status mono 8.5
-// (testing → indigo, live → emerald), and Diff + Roll back ghost buttons.
+// version mono ink, the note at 12px text-subtle, the status mono 8.5
+// (testing → glacier, live → moss), and Diff + Roll back ghost buttons.
 // Both actions are REAL here: Diff opens production's existing Prompt Studio
 // drill-down (version compare, line diff, draft editing, publish, A/B
 // assignment, usage) restyled quiet-Ember; Roll back calls the
@@ -77,10 +77,10 @@ export function PromptsPanel() {
   if (templates.error) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+        <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load prompts
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(templates.error as Error).message}
         </p>
         <button
@@ -96,16 +96,18 @@ export function PromptsPanel() {
 
   if (templates.isLoading) {
     return (
-      <div
+      <p
+        className="uppercase"
         style={{
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor, 10.5px)",
+          letterSpacing: "0.11em",
+          color: "var(--text-subtle)",
+          padding: "24px 0",
         }}
       >
-        Loading prompts…
-      </div>
+        Reading the prompts
+      </p>
     );
   }
 
@@ -175,10 +177,10 @@ export function PromptsPanel() {
             >
               {p.name}
             </button>
-            <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
+            <span className="mono-label tabular-nums" style={{ color: "var(--text-primary)" }}>
               {p.active_version ? `v${p.active_version.version}` : "-"}
             </span>
-            <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
+            <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
               {p.description ?? `${p.surface} · ${p.key}`}
             </span>
             <span
@@ -187,10 +189,10 @@ export function PromptsPanel() {
                 fontSize: 8.5,
                 color:
                   status === "testing"
-                    ? "var(--action-blue)"
+                    ? "var(--glacier)"
                     : status === "live"
-                      ? "var(--emerald)"
-                      : "var(--ink-faint)",
+                      ? "var(--moss)"
+                      : "var(--text-faint)",
               }}
             >
               {status ?? "unset"}
@@ -321,22 +323,24 @@ function TemplateDetail({
 
   if (detail.isLoading) {
     return (
-      <div
+      <p
+        className="uppercase"
         style={{
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor, 10.5px)",
+          letterSpacing: "0.11em",
+          color: "var(--text-subtle)",
+          padding: "24px 0",
         }}
       >
-        Loading template…
-      </div>
+        Reading the template
+      </p>
     );
   }
   if (!template) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>Template not found.</p>
+        <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>Template not found.</p>
         <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={onBack}>
           ← Back to prompts
         </button>
@@ -351,7 +355,7 @@ function TemplateDetail({
       <div style={{ marginBottom: 16 }}>
         <button
           className="mono-label"
-          style={{ color: "var(--action-blue)", marginBottom: 10 }}
+          style={{ color: "var(--glacier)", marginBottom: 10 }}
           onClick={onBack}
         >
           ← All prompts
@@ -413,7 +417,7 @@ function TemplateDetail({
             whiteSpace: "pre-wrap",
             maxHeight: 420,
             overflow: "auto",
-            color: "var(--ink-muted)",
+            color: "var(--text-body)",
             lineHeight: 1.55,
             margin: 0,
           }}
@@ -444,7 +448,7 @@ function TemplateDetail({
               whiteSpace: "pre-wrap",
               maxHeight: 420,
               overflow: "auto",
-              color: "var(--ink)",
+              color: "var(--text-primary)",
               lineHeight: 1.55,
               margin: 0,
             }}
@@ -478,7 +482,7 @@ function TemplateDetail({
             </button>
           </>
         ) : right ? (
-          <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
+          <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
             Published versions are immutable; fork a new draft to edit.
           </span>
         ) : null}
@@ -553,8 +557,8 @@ function VersionColumn({
                 padding: "4px 10px",
                 borderRadius: 99,
                 fontSize: 9,
-                color: selected ? "var(--canvas)" : "var(--ink-subtle)",
-                background: selected ? "var(--primary-ink)" : "transparent",
+                color: selected ? "var(--canvas)" : "var(--text-subtle)",
+                background: selected ? "var(--glacier)" : "transparent",
                 border: `1px solid ${selected ? "transparent" : "var(--hairline)"}`,
                 transition: "background var(--dur-fast), color var(--dur-fast)",
               }}
@@ -566,10 +570,10 @@ function VersionColumn({
                   color: selected
                     ? "var(--canvas)"
                     : v.status === "draft"
-                      ? "var(--action-blue)"
+                      ? "var(--glacier)"
                       : v.status === "published"
-                        ? "var(--emerald)"
-                        : "var(--ink-faint)",
+                        ? "var(--moss)"
+                        : "var(--text-faint)",
                 }}
               >
                 {v.status}
@@ -601,7 +605,7 @@ function DiffPanel({ left, right }: { left: string; right: string }) {
         }}
       >
         {diff.length === 0 ? (
-          <div style={{ color: "var(--ink-subtle)" }}>No differences.</div>
+          <div style={{ color: "var(--text-subtle)" }}>No differences.</div>
         ) : (
           diff.map((d, i) => (
             <div
@@ -609,15 +613,15 @@ function DiffPanel({ left, right }: { left: string; right: string }) {
               style={
                 d.t === "add"
                   ? {
-                      background: "color-mix(in oklab, var(--emerald) 10%, transparent)",
-                      color: "var(--emerald)",
+                      background: "color-mix(in oklab, var(--moss) 10%, transparent)",
+                      color: "var(--moss)",
                     }
                   : d.t === "del"
                     ? {
-                        background: "color-mix(in oklab, var(--rose) 10%, transparent)",
-                        color: "var(--rose)",
+                        background: "color-mix(in oklab, var(--madder) 10%, transparent)",
+                        color: "var(--madder)",
                       }
-                    : { color: "var(--ink-faint)" }
+                    : { color: "var(--text-faint)" }
               }
             >
               <span style={{ opacity: 0.6, marginRight: 8 }}>
@@ -718,7 +722,7 @@ function AssignmentPanel({
           role="switch"
           aria-checked={enabled}
           className="mono-label"
-          style={{ fontSize: 8.5, color: enabled ? "var(--emerald)" : "var(--ink-faint)" }}
+          style={{ fontSize: 8.5, color: enabled ? "var(--moss)" : "var(--text-faint)" }}
           onClick={() => setEnabled((v) => !v)}
         >
           {enabled ? "on" : "off"}
@@ -761,7 +765,7 @@ function AssignmentPanel({
             max={100}
             value={split}
             onChange={(e) => setSplit(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "var(--ember)" }}
+            style={{ width: "100%", accentColor: "var(--glacier)" }}
           />
         </label>
       </div>
@@ -801,7 +805,7 @@ function PromptUsagePanel({
     <div className="bento" style={{ padding: "var(--card-pad)" }}>
       <MonoLabel style={{ marginBottom: 10 }}>Usage · last 30 days · {total} runs</MonoLabel>
       {total === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>No runs recorded yet.</p>
+        <p style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>No runs recorded yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {versions.map((v) => {
@@ -817,10 +821,10 @@ function PromptUsagePanel({
                     fontSize: 12,
                   }}
                 >
-                  <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
+                  <span className="mono-label tabular-nums" style={{ color: "var(--text-primary)" }}>
                     v{v.version} · {v.status}
                   </span>
-                  <span className="mono-label tabular-nums" style={{ color: "var(--ink-subtle)" }}>
+                  <span className="mono-label tabular-nums" style={{ color: "var(--text-subtle)" }}>
                     {n} · {pct}%
                   </span>
                 </div>
@@ -828,7 +832,7 @@ function PromptUsagePanel({
                   style={{
                     height: 4,
                     borderRadius: 99,
-                    background: "var(--surface-2)",
+                    background: "var(--raised)",
                     overflow: "hidden",
                     marginTop: 4,
                   }}
@@ -837,7 +841,7 @@ function PromptUsagePanel({
                     style={{
                       height: "100%",
                       width: `${pct}%`,
-                      background: "var(--ember)",
+                      background: "var(--glacier)",
                       opacity: 0.85,
                     }}
                   />

@@ -47,9 +47,9 @@ function TrendChip({
 }) {
   if (hidden) return null;
   const map = {
-    up: { Icon: ArrowUpRight, color: "var(--emerald, var(--ember))", label: "rising" },
-    down: { Icon: ArrowDownRight, color: "var(--rose)", label: "falling" },
-    flat: { Icon: Minus, color: "var(--ink-faint)", label: "flat" },
+    up: { Icon: ArrowUpRight, color: "var(--moss)", label: "rising" },
+    down: { Icon: ArrowDownRight, color: "var(--madder)", label: "falling" },
+    flat: { Icon: Minus, color: "var(--text-faint)", label: "flat" },
   } as const;
   const { Icon, color, label } = map[trend];
   return (
@@ -91,19 +91,19 @@ function MetricCard({
       </MonoLabel>
       <div
         className="font-display tabular-nums"
-        style={{ fontSize: 26, color: value === "-" ? "var(--ink-faint)" : "var(--ink)" }}
+        style={{ fontSize: 26, color: value === "-" ? "var(--text-faint)" : "var(--text-primary)" }}
       >
         {loading ? "…" : value}
       </div>
       <div style={{ minHeight: 14, marginTop: 2 }}>
         {!loading && trend && <TrendChip trend={trend} hidden={trendHidden} />}
       </div>
-      <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 8, lineHeight: 1.45 }}>
+      <p style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 8, lineHeight: 1.45 }}>
         {meaning}
       </p>
       <div
         className="mono-label"
-        style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 8 }}
+        style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 8 }}
       >
         {loading ? "loading…" : substat}
       </div>
@@ -131,7 +131,7 @@ function MemoryCompoundsCard({
         Memory compounds · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasData ? (
@@ -139,19 +139,19 @@ function MemoryCompoundsCard({
           <div style={{ minWidth: 110 }}>
             <div
               className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--ink)" }}
+              style={{ fontSize: 30, color: "var(--text-primary)" }}
             >
               {pct(data!.reuseRate)}
             </div>
             <div
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 2 }}
+              style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 2 }}
             >
               recalled back
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
               Of the memories the loop stored, the share it has recalled at least once. A store the
               loop reads back is a moat; one it never reopens is a log.
             </p>
@@ -164,7 +164,7 @@ function MemoryCompoundsCard({
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <span key={label} className="mono-label" style={{ fontSize: 9 }}>
-                  <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
+                  <strong className="tabular-nums" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
                     {value}
                   </strong>{" "}
                   {label}
@@ -174,13 +174,13 @@ function MemoryCompoundsCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {ready
             ? "Not enough data yet, no memories stored. The loop writes one each time it records an outcome or an agent reflects on a run, then recalls them on its next pass."
             : "Not enough data yet, memory tracking lights up on the next sync."}
         </p>
       )}
-      <div className="mono-label" style={{ fontSize: 8, color: "var(--ink-faint)", marginTop: 10 }}>
+      <div className="mono-label" style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10 }}>
         NDR and expansion land here once billing ships (pricing, M-C).
       </div>
     </div>
@@ -208,7 +208,7 @@ function OutcomeAccuracyCard({
         Outcome accuracy · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasData ? (
@@ -216,7 +216,7 @@ function OutcomeAccuracyCard({
           <div style={{ minWidth: 110 }}>
             <div
               className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--ink)" }}
+              style={{ fontSize: 30, color: "var(--text-primary)" }}
             >
               {pct(data!.rate)}
             </div>
@@ -224,14 +224,14 @@ function OutcomeAccuracyCard({
               {data!.priorRate != null && data!.rate != null ? (
                 <TrendChip trend={data!.trend} windowLabel="vs prior period" />
               ) : (
-                <div className="mono-label" style={{ fontSize: 8.5, color: "var(--ink-faint)" }}>
+                <div className="mono-label" style={{ fontSize: 8.5, color: "var(--text-faint)" }}>
                   validated share
                 </div>
               )}
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
               Of the bets you shipped and then reviewed, the share that validated. Climbing as the
               loop's memory compounds is the moat working, not just storing.
             </p>
@@ -244,7 +244,7 @@ function OutcomeAccuracyCard({
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <span key={label} className="mono-label" style={{ fontSize: 9 }}>
-                  <strong className="tabular-nums" style={{ color: "var(--ink)", fontWeight: 600 }}>
+                  <strong className="tabular-nums" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
                     {value}
                   </strong>{" "}
                   {label}
@@ -254,13 +254,13 @@ function OutcomeAccuracyCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
           {ready
             ? "Not enough data yet, no reviewed outcomes. Record an outcome on a shipped spec and its verdict lands here."
             : "Not enough data yet, outcome tracking lights up on the next sync."}
         </p>
       )}
-      <div className="mono-label" style={{ fontSize: 8, color: "var(--ink-faint)", marginTop: 10 }}>
+      <div className="mono-label" style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10 }}>
         Accuracy is the validated share; causal memory-lift needs an on/off control we don't claim.
       </div>
     </div>
@@ -325,7 +325,7 @@ function MemoryDepthSplitCard({
         Memory-depth split · the moat
       </MonoLabel>
       {loading ? (
-        <div className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint)" }}>
+        <div className="mono-label" style={{ fontSize: 9, color: "var(--text-faint)" }}>
           loading…
         </div>
       ) : hasNumber ? (
@@ -334,24 +334,24 @@ function MemoryDepthSplitCard({
             {/* Neutral ink for either sign — this is an association, not a win. */}
             <div
               className="font-display tabular-nums"
-              style={{ fontSize: 30, color: "var(--ink)" }}
+              style={{ fontSize: 30, color: "var(--text-primary)" }}
             >
               {headline}
             </div>
             <div
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--ink-faint)", marginTop: 2 }}
+              style={{ fontSize: 8.5, color: "var(--text-faint)", marginTop: 2 }}
             >
               later half vs earlier half
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>
+            <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>
               {meaning}
             </p>
             <div
               className="mono-label"
-              style={{ fontSize: 9, marginTop: 10, color: "var(--ink-subtle)" }}
+              style={{ fontSize: 9, marginTop: 10, color: "var(--text-subtle)" }}
             >
               Earlier half: {pct(data!.sparseRate)} validated (n={data!.sparseN}) / Later half:{" "}
               {pct(data!.richRate)} validated (n={data!.richN}). One outcome moves this about{" "}
@@ -360,11 +360,11 @@ function MemoryDepthSplitCard({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: 11.5, color: "var(--ink-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
+        <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
       )}
       <div
         className="mono-label"
-        style={{ fontSize: 8, color: "var(--ink-faint)", marginTop: 10, lineHeight: 1.5 }}
+        style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10, lineHeight: 1.5 }}
       >
         Correlational, within your account. We compare bets by how much memory had accumulated when
         each was decided, not a memory on/off test. Bets with deeper memory are usually also later
@@ -448,7 +448,7 @@ export function GauntletMetricsPanel() {
     <div>
       <div
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint)", marginBottom: 12, lineHeight: 1.5 }}
+        style={{ fontSize: 9, color: "var(--text-faint)", marginBottom: 12, lineHeight: 1.5 }}
       >
         The Gauntlet · the three proof metrics, read from real activity. The loop runs the
         reversible work; you make the calls. Sparse windows read "not enough data yet" — never an
@@ -509,10 +509,10 @@ export function GauntletMetricsPanel() {
         accuracyQ.error ||
         liftQ.error) && (
         <div className="bento" style={{ padding: 16, marginTop: 12 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
+          <div className="mono-label" style={{ color: "var(--madder)" }}>
             Couldn't load some metrics
           </div>
-          <p style={{ fontSize: 12, color: "var(--ink-muted)", marginTop: 6 }}>
+          <p style={{ fontSize: 12, color: "var(--text-body)", marginTop: 6 }}>
             {
               (
                 (acceptQ.error ||
@@ -524,6 +524,30 @@ export function GauntletMetricsPanel() {
               ).message
             }
           </p>
+          <button
+            type="button"
+            className="uppercase cursor-pointer"
+            onClick={() => {
+              void acceptQ.refetch();
+              void autonomyQ.refetch();
+              void ritualQ.refetch();
+              void memQ.refetch();
+              void accuracyQ.refetch();
+              void liftQ.refetch();
+            }}
+            style={{
+              marginTop: 10,
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor, 10.5px)",
+              letterSpacing: "0.11em",
+              color: "var(--glacier)",
+              background: "none",
+              border: "none",
+              padding: 0,
+            }}
+          >
+            RETRY
+          </button>
         </div>
       )}
     </div>

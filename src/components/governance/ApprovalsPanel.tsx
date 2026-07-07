@@ -2,11 +2,13 @@
 // (GovernScreen tab "Approvals" + ApprovalCard + RiskTag): "{n} waiting"
 // mono header with the real median response time, "Approve all low-risk"
 // ghost, and the detailed approval card — StepDot, "{agent} wants {tool}"
-// (agent mono ink, tool mono orchid), RiskTag, "in {mission}", expiry clock,
-// summary, consequence-labeled approve/reject, Mission ↗ link. Resolved
+// (agent mono ink, tool mono glacier), RiskChip, "in {mission}", expiry clock,
+// summary, consequence-labeled approve/reject, Mission link. Resolved
 // cards dim to 0.45 with the resolved mono line. Production functionality
 // kept: decideApproval (approve EXECUTES the tool), extendApprovalTtl,
-// the exact-args payload and execution errors — restyled quiet-Ember.
+// the exact-args payload and execution errors. W4 Obsidian reskin: semantic
+// tokens only (moss/madder/marigold/glacier, --text-*), calm mono-caps
+// loading + designed empty slate; no functional or server change.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -21,7 +23,7 @@ import {
   type AgentOutcomeRecord,
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
-import { MonoLabel, RiskTag, StepDot } from "@/components/cadence/Primitives";
+import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
@@ -49,13 +51,43 @@ function fmtMedian(ms: number): string {
 /* Resolved mono line per the reference; production's extra terminal states
    (failed / cancelled / expired) get honest equivalents. */
 const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · agent resumed", color: "var(--emerald)" },
-  executed: { text: "approved · agent resumed", color: "var(--emerald)" },
-  rejected: { text: "rejected · nothing ran", color: "var(--coral)" },
-  failed: { text: "failed · the tool errored", color: "var(--rose)" },
-  cancelled: { text: "cancelled · nothing ran", color: "var(--ink-faint)" },
-  expired: { text: "expired · nothing ran", color: "var(--ink-faint)" },
+  approved: { text: "approved · agent resumed", color: "var(--moss)" },
+  executed: { text: "approved · agent resumed", color: "var(--moss)" },
+  rejected: { text: "rejected · nothing ran", color: "var(--text-muted)" },
+  failed: { text: "failed · the tool errored", color: "var(--madder)" },
+  cancelled: { text: "cancelled · nothing ran", color: "var(--text-faint)" },
+  expired: { text: "expired · nothing ran", color: "var(--text-faint)" },
 };
+
+/** Risk grade as a semantic tone (design-anatomy): low is a safe outcome
+ * (moss), medium is caution (marigold, never the reserved ember), high is the
+ * alert role (madder). Inline so the panel owns its Obsidian tones rather than
+ * the parchment RiskTag. */
+const RISK_TONE: Record<string, string> = {
+  low: "var(--moss)",
+  medium: "var(--marigold)",
+  high: "var(--madder)",
+};
+
+function RiskChip({ risk }: { risk: string }) {
+  const tone = RISK_TONE[risk] ?? "var(--marigold)";
+  return (
+    <span
+      className="uppercase"
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 8.5,
+        letterSpacing: "0.1em",
+        color: tone,
+        border: `1px solid color-mix(in srgb, ${tone} 45%, transparent)`,
+        borderRadius: 99,
+        padding: "1px 7px",
+      }}
+    >
+      {risk} risk
+    </span>
+  );
+}
 
 export function ApprovalsPanel() {
   const fList = useServerFn(listGovernApprovals);
@@ -116,10 +148,10 @@ export function ApprovalsPanel() {
   if (q.error) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+        <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load approvals
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(q.error as Error)?.message}
         </p>
         <button
@@ -135,16 +167,18 @@ export function ApprovalsPanel() {
 
   if (q.isLoading) {
     return (
-      <div
+      <p
+        className="uppercase"
         style={{
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor, 10.5px)",
+          letterSpacing: "0.11em",
+          color: "var(--text-subtle)",
+          padding: "24px 0",
         }}
       >
-        Loading approvals…
-      </div>
+        Reading the queue
+      </p>
     );
   }
 
@@ -187,13 +221,37 @@ export function ApprovalsPanel() {
       {rows.length === 0 ? (
         <div
           style={{
-            fontSize: 12.5,
-            color: "var(--ink-faint)",
-            padding: "32px 0",
+            padding: "32px 24px",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            background: "var(--card)",
             textAlign: "center",
           }}
         >
-          Nothing waiting. Agents are running inside their lanes.
+          <span
+            className="uppercase"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor, 10.5px)",
+              letterSpacing: "0.11em",
+              color: "var(--moss-bright)",
+            }}
+          >
+            Nothing waiting
+          </span>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text-subtle)",
+              marginTop: 8,
+              maxWidth: 440,
+              marginInline: "auto",
+              lineHeight: 1.5,
+            }}
+          >
+            The agents are running inside their lanes. When one needs a decision to run a tool, it
+            lands here, soonest to expire on top.
+          </p>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -266,7 +324,7 @@ function ApprovalCard({
         borderRadius: 8,
         opacity: resolved ? 0.45 : 1,
         transition: "opacity var(--dur-slow)",
-        background: "var(--canvas)",
+        background: "var(--card)",
       }}
     >
       <span style={{ marginTop: 5 }}>
@@ -274,13 +332,13 @@ function ApprovalCard({
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-          <span className="mono-label" style={{ color: "var(--ink)" }}>
+          <span className="mono-label" style={{ color: "var(--text-primary)" }}>
             {a.agent_slug ?? "agent"}
           </span>
           {trackLabel && (
             <span
               className="mono-label"
-              style={{ color: "var(--ink-faint)", fontSize: 9.5 }}
+              style={{ color: "var(--text-faint)", fontSize: 9.5 }}
               title="This agent's decided-approval record across your past gates"
             >
               {trackLabel}
@@ -289,21 +347,21 @@ function ApprovalCard({
           {outcomeLabel && (
             <span
               className="mono-label"
-              style={{ color: "var(--ink-faint)", fontSize: 9.5 }}
+              style={{ color: "var(--text-faint)", fontSize: 9.5 }}
               title="This agent's recorded outcome record: did the decided-on work actually turn out well, not just whether the gate was approved"
             >
               {outcomeLabel}
             </span>
           )}
-          <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>wants</span>
-          <span className="mono-label" style={{ color: "var(--agent)" }}>
+          <span style={{ fontSize: 12, color: "var(--text-faint)" }}>wants</span>
+          <span className="mono-label" style={{ color: "var(--glacier)" }}>
             {a.tool_name}
           </span>
-          <RiskTag risk={a.risk} />
+          <RiskChip risk={a.risk} />
           {!resolved && declines > 0 && (
             <span
               className="mono-label"
-              style={{ color: "var(--ember)", fontSize: 9.5 }}
+              style={{ color: "var(--marigold)", fontSize: 9.5 }}
               title="You have declined this agent + tool before. Cadence has registered it."
             >
               declined {declines}&times; before
@@ -311,8 +369,8 @@ function ApprovalCard({
           )}
           {a.mission_title ? (
             <>
-              <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>in</span>
-              <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>{a.mission_title}</span>
+              <span style={{ fontSize: 12, color: "var(--text-faint)" }}>in</span>
+              <span style={{ fontSize: 12, color: "var(--text-body)" }}>{a.mission_title}</span>
             </>
           ) : null}
           <span style={{ flex: 1 }}></span>
@@ -323,7 +381,7 @@ function ApprovalCard({
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
-                color: expiry.expired ? "var(--ember)" : undefined,
+                color: expiry.expired ? "var(--marigold)" : undefined,
               }}
             >
               <Clock size={11} />
@@ -335,7 +393,7 @@ function ApprovalCard({
           <p
             style={{
               fontSize: 13,
-              color: "var(--ink-muted)",
+              color: "var(--text-body)",
               margin: "4px 0 10px",
               lineHeight: 1.5,
             }}
@@ -362,7 +420,7 @@ function ApprovalCard({
             {a.mission_id ? (
               <Link
                 className="btn btn-sm"
-                style={{ color: "var(--action-blue)" }}
+                style={{ color: "var(--glacier)" }}
                 to="/build/$missionId"
                 params={{ missionId: a.mission_id }}
               >
@@ -376,12 +434,12 @@ function ApprovalCard({
           </div>
         )}
         {a.error ? (
-          <div style={{ marginTop: 8, fontSize: 12, color: "var(--rose)" }}>{a.error}</div>
+          <div style={{ marginTop: 8, fontSize: 12, color: "var(--madder)" }}>{a.error}</div>
         ) : null}
         <details style={{ marginTop: 8 }}>
           <summary
             className="mono-label"
-            style={{ cursor: "pointer", color: "var(--ink-faint)", listStylePosition: "inside" }}
+            style={{ cursor: "pointer", color: "var(--text-faint)", listStylePosition: "inside" }}
           >
             args · the exact payload
           </summary>
@@ -393,7 +451,7 @@ function ApprovalCard({
               overflow: "auto",
               border: "1px solid var(--hairline)",
               borderRadius: 8,
-              background: "var(--surface-1)",
+              background: "var(--surface-recessed)",
               padding: 10,
               fontSize: 11,
               lineHeight: 1.5,

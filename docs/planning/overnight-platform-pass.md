@@ -20,6 +20,7 @@ Take Cadence to a fully consumer-ready, enterprise-ready application: not a UI r
 | Brain (`/brain`) | `39a28d82` | `LearningDetail` + `DecisionDetail` rebuilt on DetailKit; new DEC trace prefix; graph nodes single-click-to-open; LRN/DEC trace tails. |
 | Define + Build (`/plan`, `/build`) | `0f50aaf3` | `SpecDetail` on DetailKit; PRD/OPP/MIS trace + time tails; mission slide-over + `/build/$missionId` get MIS ref + started time + spec provenance; `specRecommendation()`. |
 | Trust Ledger + Engine Room | `29618527` | `ReceiptDetailSheet` (DetailKit); plain-language ledger summary + "Tamper check"; `IncidentsPanel` rebuilt; new ACT + INC engine trace codes; semantic status tones. |
+| Engine Room governance panels | `2026-07-07` (W4 reskin, see [`../features/obsidian-port.md`](../features/obsidian-port.md) OBS-09 + plan.md §4) | The six remaining panels (Approvals, Evals, Gauntlet, Guardrails, Drift, Prompts) reskinned to Obsidian: semantic tokens only, ember-misuse + wrong-bridge fixes (rose->madder, coral/ember->madder/marigold, deep-green->moss, action-blue->glacier, near-white modal scrim fixed), inline semantic RiskChip, calm mono-caps loading + designed empties + error/retry, `relTimeCaps`. Functionality and server calls unchanged; monetization untouched. |
 | Settings + Connections (`/settings`, `/sync`) | `9ff499bc` | Workspace bindings + connected accounts as first-class objects (status + last-synced); hex + ember-misuse fixes; `latestIso()`. Monetization block untouched. |
 | Auth + boundaries | `75e90675` | On-brand dark `AuthScaffold`; login/signup/forgot/reset with full states + double-submit guard; `authErrorMessage()` (12 tests); neutral, non-enumerating copy; branded 404/500 boundaries. Auth mechanism unchanged. |
 | Chrome / spacing | `9f2bf9bb` | Engine Room active-state gap fixed; new `--surface-active` token (removed a raw hex); Today padding rhythm; shell machine-map truthed for Decide. |
@@ -45,13 +46,12 @@ Each of these is a place where a genuinely valuable field or history does not ex
 
 ## 5. DEFERRED by the velocity ruling (functional today, design polish batched)
 
-1. **Engine Room governance panels** (Approvals, Evals, Gauntlet, Guardrails, Drift, Prompts): functional and wired to real data, but not yet fully reskinned to the Obsidian look. Per the Engine-Room doctrine this is the one place machinery is legitimately exposed, so functional-first is acceptable; a batched reskin pass is the remaining work.
+1. ~~**Engine Room governance panels** (Approvals, Evals, Gauntlet, Guardrails, Drift, Prompts): functional but not yet fully reskinned.~~ **SHIPPED 2026-07-07** (governance_panels_reskin): all six reskinned to the Obsidian look, functionality unchanged (see section 2 and [`../features/obsidian-port.md`](../features/obsidian-port.md) OBS-09 W4 note). No longer deferred.
 2. **No mobile / collapsed nav.** The shell is `hidden lg:flex`, desktop-first by design (DESIGN-LOOM §0.1). A mobile nav is a feature, not a spacing fix.
 
 ## 6. Suggested next picks (founder call)
 
 - Land the `stage_events` migration (unblocks the per-transition history flagged on every surface at once).
-- Reskin the Engine Room governance panels (the last design-consistency gap).
 - Register one OAuth provider end to end (GitHub App is the highest-value first connector).
 
 ## Related

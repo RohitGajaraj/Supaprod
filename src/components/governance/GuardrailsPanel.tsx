@@ -1,11 +1,13 @@
 // Guardrails tab — ported 1:1 from design-reference/cadence/loop.jsx
 // (GovernScreen tab "Guardrails"): the bento table — Guardrail 160px /
-// Rule 1fr / Last fired 210px — name at weight 550, rule ink-muted, fired
-// mono (ember when fired, ink-faint "never"). Production functionality
+// Rule 1fr / Last fired 210px, name at weight 550, rule text-body, fired
+// mono (marigold when fired, text-faint "never"). Production functionality
 // kept: rule CRUD (row click opens the editor), enable switches (extra
 // 40px column), seed built-ins, the dry-run test harness, and the recent
-// hits log — all restyled quiet-Ember. "Last fired" derives from the real
-// guardrail_hits log; rule prose derives from kind/action/applies_to.
+// hits log. "Last fired" derives from the real guardrail_hits log; rule prose
+// derives from kind/action/applies_to. W4 Obsidian reskin: semantic tokens
+// only (madder/marigold/moss/glacier, --text-*), a dark modal scrim, calm
+// mono-caps loading, and mono-caps relative time; no functional or server change.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -22,7 +24,7 @@ import {
   testGuardrailRule,
 } from "@/lib/guardrails.functions";
 import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
-import { relTime } from "@/components/product/format";
+import { relTimeCaps } from "@/components/discover/format";
 
 type Kind = "regex" | "keyword" | "pii" | "injection" | "secret";
 type Action = "block" | "warn" | "redact";
@@ -60,9 +62,9 @@ const APPLIES_PHRASE: Record<Applies, string> = {
 };
 
 const ACTION_COLOR: Record<string, string> = {
-  block: "var(--rose)",
-  warn: "var(--ember)",
-  redact: "var(--ink-muted)",
+  block: "var(--madder)",
+  warn: "var(--marigold)",
+  redact: "var(--text-body)",
 };
 
 function emptyRule(): RuleForm {
@@ -148,10 +150,10 @@ export function GuardrailsPanel() {
   if (overview.error) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+        <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load guardrails
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(overview.error as Error)?.message}
         </p>
         <button
@@ -167,16 +169,18 @@ export function GuardrailsPanel() {
 
   if (overview.isLoading) {
     return (
-      <div
+      <p
+        className="uppercase"
         style={{
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor, 10.5px)",
+          letterSpacing: "0.11em",
+          color: "var(--text-subtle)",
+          padding: "24px 0",
         }}
       >
-        Loading guardrails…
-      </div>
+        Reading the rules
+      </p>
     );
   }
 
@@ -277,20 +281,20 @@ export function GuardrailsPanel() {
                   {g.built_in ? (
                     <span
                       className="mono-label"
-                      style={{ display: "block", fontSize: 8.5, color: "var(--ink-faint)" }}
+                      style={{ display: "block", fontSize: 8.5, color: "var(--text-faint)" }}
                     >
                       built-in
                     </span>
                   ) : null}
                 </button>
-                <span style={{ color: "var(--ink-muted)", minWidth: 0 }}>
+                <span style={{ color: "var(--text-body)", minWidth: 0 }}>
                   {ruleText}
                   <span
                     style={{
                       display: "block",
                       fontFamily: "var(--font-mono)",
                       fontSize: 11,
-                      color: "var(--ink-faint)",
+                      color: "var(--text-faint)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -301,9 +305,9 @@ export function GuardrailsPanel() {
                 </span>
                 <span
                   className="mono-label"
-                  style={{ color: fired ? "var(--ember)" : "var(--ink-faint)" }}
+                  style={{ color: fired ? "var(--marigold)" : "var(--text-faint)" }}
                 >
-                  {fired ? relTime(fired) : "never"}
+                  {fired ? relTimeCaps(fired) : "never"}
                 </span>
                 <span style={{ alignSelf: "center" }}>
                   <button
@@ -316,7 +320,7 @@ export function GuardrailsPanel() {
                       width: 34,
                       height: 19,
                       borderRadius: 99,
-                      background: g.enabled ? "var(--deep-green)" : "var(--surface-2)",
+                      background: g.enabled ? "var(--moss)" : "var(--raised)",
                       border: "1px solid var(--hairline)",
                       position: "relative",
                       flexShrink: 0,
@@ -365,7 +369,7 @@ export function GuardrailsPanel() {
           <div
             style={{
               fontSize: 12.5,
-              color: "var(--ink-faint)",
+              color: "var(--text-faint)",
               padding: "20px 18px",
               textAlign: "center",
             }}
@@ -386,7 +390,7 @@ export function GuardrailsPanel() {
                 fontSize: 12.5,
               }}
             >
-              <span className="mono-label tabular-nums">{relTime(h.created_at)}</span>
+              <span className="mono-label tabular-nums">{relTimeCaps(h.created_at)}</span>
               <span
                 style={{
                   fontWeight: 500,
@@ -400,7 +404,7 @@ export function GuardrailsPanel() {
               <span className="mono-label">{h.side}</span>
               <span
                 className="mono-label"
-                style={{ color: ACTION_COLOR[h.action] ?? "var(--ink-muted)" }}
+                style={{ color: ACTION_COLOR[h.action] ?? "var(--text-body)" }}
               >
                 {h.action}
               </span>
@@ -408,7 +412,7 @@ export function GuardrailsPanel() {
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: 11,
-                  color: "var(--ink-muted)",
+                  color: "var(--text-body)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -432,13 +436,13 @@ export function GuardrailsPanel() {
             alignItems: "center",
             justifyContent: "center",
             padding: 16,
-            background: "color-mix(in oklab, var(--ink) 35%, transparent)",
+            background: "color-mix(in oklab, var(--canvas) 82%, transparent)",
           }}
           onClick={() => setEditing(null)}
         >
           <div
             className="bento fade-up"
-            style={{ width: "100%", maxWidth: 620, padding: 20, background: "var(--canvas)" }}
+            style={{ width: "100%", maxWidth: 620, padding: 20, background: "var(--card)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
@@ -454,7 +458,7 @@ export function GuardrailsPanel() {
               </h2>
               <button
                 className="mono-label"
-                style={{ color: "var(--ink-faint)" }}
+                style={{ color: "var(--text-faint)" }}
                 onClick={() => setEditing(null)}
               >
                 dismiss
@@ -584,7 +588,7 @@ export function GuardrailsPanel() {
                 {testResult ? (
                   <span
                     className="mono-label"
-                    style={{ color: testResult.blocked ? "var(--rose)" : "var(--ink-subtle)" }}
+                    style={{ color: testResult.blocked ? "var(--madder)" : "var(--text-subtle)" }}
                   >
                     {testResult.hits.length} hit{testResult.hits.length === 1 ? "" : "s"} ·{" "}
                     {testResult.blocked ? "blocked" : "allowed"}
@@ -598,7 +602,7 @@ export function GuardrailsPanel() {
                     marginTop: 8,
                     maxHeight: 120,
                     overflow: "auto",
-                    background: "var(--surface-1)",
+                    background: "var(--surface-recessed)",
                     border: "1px solid var(--hairline)",
                     borderRadius: 8,
                     padding: 8,
@@ -615,7 +619,7 @@ export function GuardrailsPanel() {
               {editing.id ? (
                 <button
                   className="btn btn-ghost btn-sm"
-                  style={{ color: "var(--rose)", marginRight: "auto" }}
+                  style={{ color: "var(--madder)", marginRight: "auto" }}
                   disabled={del.isPending}
                   onClick={async () => {
                     const ok = await confirm({

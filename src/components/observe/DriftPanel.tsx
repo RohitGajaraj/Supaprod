@@ -1,9 +1,9 @@
 // Drift tab — ported 1:1 from design-reference/cadence/loop.jsx (GovernScreen,
 // tab "Drift"): a bento table (AI surface 1fr / Δ baseline 80px / Status 90px /
 // Note 1fr / chevron 20px), surface at 500 weight, the delta mono tabular
-// (ember on watch), the status as a VerdictChip (watch → ember, stable → moss —
-// a drift status is a rendered judgment, never a StatusBadge), the note at
-// 12px ink-subtle. Screen 7: rows navigate to the ?surface= drill
+// (marigold on watch), the status as an Obsidian VerdictChip (watch → WATCH
+// marigold, stable → VALIDATED moss, since a drift status is a rendered judgment,
+// never a StatusBadge), the note at 12px text-subtle. Screen 7: rows navigate to the ?surface= drill
 // (DriftSurfaceDetail) — the former inline expansion, with the per-incident
 // resolve/reopen actions, lives there now; both share the ["drift_overview"]
 // cache. Production functionality kept, restyled quiet-Ember: getDriftOverview
@@ -19,7 +19,8 @@ import { useMemo, useState, useEffect } from "react";
 import { ChevronRight, Waves } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
-import { EmptyState, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { VerdictChip } from "@/components/obsidian";
 import { SketchLine } from "@/components/cadence/Sketch";
 
 const GRID = "1fr 80px 90px 1fr 20px";
@@ -188,10 +189,10 @@ export function DriftPanel() {
   if (error) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+        <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load drift
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--text-body)", marginTop: 8 }}>
           {(error as Error).message}
         </p>
         <button
@@ -207,16 +208,18 @@ export function DriftPanel() {
 
   if (isLoading) {
     return (
-      <div
+      <p
+        className="uppercase"
         style={{
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-          padding: "32px 0",
-          textAlign: "center",
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor, 10.5px)",
+          letterSpacing: "0.11em",
+          color: "var(--text-subtle)",
+          padding: "24px 0",
         }}
       >
-        Loading drift…
-      </div>
+        Reading the record
+      </p>
     );
   }
 
@@ -257,7 +260,7 @@ export function DriftPanel() {
               role="switch"
               aria-checked={cfg.enabled}
               className="mono-label"
-              style={{ fontSize: 8.5, color: cfg.enabled ? "var(--emerald)" : "var(--ink-faint)" }}
+              style={{ fontSize: 8.5, color: cfg.enabled ? "var(--moss)" : "var(--text-faint)" }}
               onClick={() => setCfg({ ...cfg, enabled: !cfg.enabled })}
             >
               detection {cfg.enabled ? "on" : "off"}
@@ -351,17 +354,17 @@ export function DriftPanel() {
               <span style={{ fontWeight: 500 }}>{d.surface}</span>
               <span
                 className="mono-label tabular-nums"
-                style={{ color: d.watch ? "var(--ember)" : "var(--ink)" }}
+                style={{ color: d.watch ? "var(--marigold)" : "var(--text-primary)" }}
               >
                 {d.delta}
               </span>
               <span>
-                <VerdictChip tone={d.watch ? "ember" : "moss"}>
+                <VerdictChip tone={d.watch ? "WATCH" : "VALIDATED"}>
                   {d.watch ? "watch" : "stable"}
                 </VerdictChip>
               </span>
-              <span style={{ fontSize: 12, color: "var(--ink-subtle)" }}>{d.note}</span>
-              <span style={{ color: "var(--ink-faint)", alignSelf: "center", display: "flex" }}>
+              <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>{d.note}</span>
+              <span style={{ color: "var(--text-faint)", alignSelf: "center", display: "flex" }}>
                 <ChevronRight size={11} />
               </span>
             </button>
@@ -392,7 +395,7 @@ export function DriftPanel() {
               label="Error rate"
               series={trendByDay.map((d) => d.errorRate)}
               last={`${trendByDay[trendByDay.length - 1].errorRate.toFixed(1)}%`}
-              color="var(--rose)"
+              color="var(--madder)"
             />
           </div>
         </div>
