@@ -73,6 +73,3 @@ export type {
 
 export { GraphSlider, graphPoints, graphX, graphY, smoothLinePath, nearestIndex } from "./graph-slider";
 export type { GraphSliderProps } from "./graph-slider";
-
-export { BarChart } from "./bar-chart";
-export type { BarChartProps, BarChartDatum } from "./bar-chart";

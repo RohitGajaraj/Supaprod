@@ -245,15 +245,16 @@ is what keeps the product feeling made by a person, not generated.
 > forward. Do not wait to be pointed at each chart; when you build or touch a
 > chart, bring it to this bar.
 >
-> 1. **Modern and exact, reused not bespoke (AMENDED 2026-07-07, reverses the
->    2026-06-12 hand-sketched ruling for app surfaces).** App data charts use
->    the two shared interactive primitives, never a hand-drawn or stock-library
->    look: `GraphSlider` (`src/components/obsidian/graph-slider.tsx`) for any
->    line/area/values-over-time trend, and `BarChart`
->    (`src/components/obsidian/bar-chart.tsx`) for any multi-bar chart. The
->    machine draws exact; pencil (`pencil-mark.tsx`) is now the PM's own
->    annotation layer and the marketing landing page only, never machine data
->    on an app surface.
+> 1. **Two shared interactive primitives, reused not bespoke (2026-07-07).**
+>    Every app data chart is one of two shared primitives, never a bespoke or
+>    stock-library look: a line, area, or values-over-time TREND uses the modern
+>    exact `GraphSlider` (`src/components/obsidian/graph-slider.tsx`); a
+>    multi-bar chart uses the hand-drawn pencil `SketchBarChart`
+>    (`src/components/cadence/Sketch.tsx`). Trends render as exact vectors; BARS
+>    are deliberately pencil (the warm, human look, never a machined rectangle,
+>    founder ruling). Pencil marks (`pencil-mark.tsx`) also remain the PM's own
+>    annotation layer; `SketchLine` is retired from app trends (use GraphSlider)
+>    and kept for the marketing landing page.
 > 2. **Readable, interactive data points.** A chart is never an unlabelled
 >    spike. On hover AND focus, the cursor reveals the value at that point (the
 >    number and what it counts); every chart is keyboard reachable.
@@ -267,7 +268,7 @@ is what keeps the product feeling made by a person, not generated.
 >    for state and voice, with at most one ember "needs a human" point per chart.
 >
 > The reference implementations are `GraphSlider` (Spend "Over time", Quality
-> "Right now") and `BarChart` (Analytics runs, Brain timeline); copy that
+> "Right now") and `SketchBarChart` (Analytics runs, Brain timeline); copy that
 > pattern and the long-form reference `docs/conventions/design-anatomy.md`
 > section 7 for every new chart.
 

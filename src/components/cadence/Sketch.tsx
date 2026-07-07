@@ -9,12 +9,13 @@
 // ("calm amplitude: clearly hand-drawn, never cartoon-loose") and documented
 // in DESIGN.md "Hand-sketched data marks". Do not retune without a founder
 // ruling; new mark types extend this file and reuse these metrics.
-// SCOPE (2026-07-07): SketchLine / SketchBar are the PENCIL family, now scoped
-// to the marketing landing page and the PM's own annotation layer. App data
-// charts are MODERN + interactive: use GraphSlider (trends) and BarChart (bars)
-// from "@/components/obsidian". See docs/conventions/design-anatomy.md section 7
+// SCOPE (2026-07-07): the PENCIL family. SketchBarChart (below) is the APP
+// bar-chart standard: hand-drawn bars, interactive, the value shown on hover
+// (the founder wants bars warm + human, not machined). SketchLine is the
+// landing page + PM annotation layer only; app line/area TRENDS use the modern
+// exact GraphSlider ("@/components/obsidian"). See design-anatomy.md section 7
 // and the DESIGN-LOOM Infographic Law.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 /* Tiny seeded PRNG (mulberry32) — stable jitter per data series. */
 function mulberry32(seed: number) {
@@ -218,3 +219,148 @@ export function SketchBar({
   );
 }
 
+
+
+export interface SketchBarDatum {
+  label: string;
+  value: number;
+}
+
+/* SketchBarChart: the pencil bar chart, interactive and interpretable
+   (founder ruling 2026-07-07, restored as the app bar-chart standard). Keeps
+   the hand-drawn SketchBar aesthetic (this is the warm, human look the founder
+   wants for bars, NOT a machined rectangle), and answers the questions a bare
+   bar row could not: the peak (top number), the floor (bottom number), what it
+   is measured against (an optional dashed baseline), and each bar's value
+   (hover or focus a bar to read its value + label, shown in the pencil hand).
+   Non-active bars dim so the read is unambiguous. Keyboard reachable; reduced
+   motion handled globally. Bars are the pencil exception to the modern chart
+   rule: line/area TRENDS use the exact GraphSlider, bars stay pencil here. */
+export function SketchBarChart({
+  data,
+  color = "var(--ember)",
+  formatValue = (v: number) => String(Math.round(v)),
+  baseline,
+  baselineLabel,
+  ariaLabel,
+  trackH = 88,
+}: {
+  data: SketchBarDatum[];
+  color?: string;
+  formatValue?: (v: number) => string;
+  /** A reference the bars are measured against (a gate, a target, a prior). */
+  baseline?: number;
+  baselineLabel?: string;
+  ariaLabel?: string;
+  trackH?: number;
+}) {
+  const [hover, setHover] = useState<number | null>(null);
+  if (data.length === 0) return null;
+  const max = Math.max(...data.map((d) => d.value), baseline ?? 0, 1);
+  const activeIdx = hover ?? data.length - 1;
+  const active = data[activeIdx]!;
+  const baselinePct =
+    baseline != null && baseline > 0 ? Math.min(100, (baseline / max) * 100) : null;
+
+  return (
+    <div role="group" aria-label={ariaLabel ?? "Bar chart"}>
+      {/* Top axis: the active bar's readout + the peak it is measured against,
+          in the pencil hand (Caveat). */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 8,
+          marginBottom: 6,
+          fontFamily: "var(--font-pencil)",
+          fontSize: 14,
+        }}
+      >
+        <span>
+          <span style={{ color }}>{formatValue(active.value)}</span>
+          <span style={{ color: "var(--text-subtle)" }}> · {active.label}</span>
+        </span>
+        <span style={{ color: "var(--text-faint)" }}>peak {formatValue(max)}</span>
+      </div>
+
+      {/* Bars: the pencil aesthetic, kept. Hover or focus a bar to read it. */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 3,
+          height: trackH,
+        }}
+      >
+        {baselinePct != null ? (
+          <div
+            aria-hidden="true"
+            title={baselineLabel ?? "baseline"}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: `${baselinePct}%`,
+              borderTop: "1px dashed var(--hairline-strong)",
+            }}
+          />
+        ) : null}
+        {data.map((d, i) => {
+          const on = i === activeIdx;
+          return (
+            <button
+              key={`${d.label}-${i}`}
+              type="button"
+              aria-label={`${d.label}: ${formatValue(d.value)}`}
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
+              onFocus={() => setHover(i)}
+              onBlur={() => setHover((h) => (h === i ? null : h))}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                height: "100%",
+                display: "flex",
+                alignItems: "flex-end",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                opacity: hover == null || on ? 1 : 0.45,
+                transition: "opacity 160ms var(--ease)",
+              }}
+            >
+              <SketchBar
+                pct={Math.max(3, (d.value / max) * 100)}
+                seed={i + 1}
+                color={color}
+                trackH={trackH}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bottom axis: the floor (0 or the named baseline) + the range ends. */}
+      <div
+        className="mono-label"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 8,
+          marginTop: 6,
+          fontSize: 8.5,
+          color: "var(--text-faint)",
+        }}
+      >
+        <span>{baselineLabel ?? "0"}</span>
+        <span>
+          {data.length > 1 ? `${data[0]!.label} · ${data[data.length - 1]!.label}` : data[0]!.label}
+        </span>
+      </div>
+    </div>
+  );
+}
