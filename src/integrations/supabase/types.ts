@@ -193,6 +193,7 @@ export type Database = {
           rationale: string | null
           result: Json | null
           run_id: string | null
+          snoozed_until: string | null
           status: string
           tool_name: string
           trace_id: string | null
@@ -219,6 +220,7 @@ export type Database = {
           rationale?: string | null
           result?: Json | null
           run_id?: string | null
+          snoozed_until?: string | null
           status?: string
           tool_name: string
           trace_id?: string | null
@@ -245,6 +247,7 @@ export type Database = {
           rationale?: string | null
           result?: Json | null
           run_id?: string | null
+          snoozed_until?: string | null
           status?: string
           tool_name?: string
           trace_id?: string | null
@@ -674,6 +677,7 @@ export type Database = {
           pct: number
           scope: string
           surface: string | null
+          trace_id: string | null
           usd_cap: number
           usd_used: number
           user_id: string
@@ -688,6 +692,7 @@ export type Database = {
           pct: number
           scope: string
           surface?: string | null
+          trace_id?: string | null
           usd_cap: number
           usd_used: number
           user_id: string
@@ -702,6 +707,7 @@ export type Database = {
           pct?: number
           scope?: string
           surface?: string | null
+          trace_id?: string | null
           usd_cap?: number
           usd_used?: number
           user_id?: string
@@ -2257,6 +2263,8 @@ export type Database = {
       }
       decisions: {
         Row: {
+          alternatives_considered: Json
+          cited_by_count: number
           created_at: string
           decided_by_agent_slug: string | null
           id: string
@@ -2275,6 +2283,8 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          alternatives_considered?: Json
+          cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
           id?: string
@@ -2293,6 +2303,8 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          alternatives_considered?: Json
+          cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
           id?: string
@@ -3200,6 +3212,7 @@ export type Database = {
           rule_id: string | null
           rule_name: string
           side: string
+          trace_id: string | null
           user_id: string
           workspace_id: string
         }
@@ -3213,6 +3226,7 @@ export type Database = {
           rule_id?: string | null
           rule_name: string
           side: string
+          trace_id?: string | null
           user_id: string
           workspace_id?: string
         }
@@ -3226,6 +3240,7 @@ export type Database = {
           rule_id?: string | null
           rule_name?: string
           side?: string
+          trace_id?: string | null
           user_id?: string
           workspace_id?: string
         }
@@ -3499,12 +3514,15 @@ export type Database = {
           created_at: string
           dedup_key: string | null
           detail: string
+          digest: boolean
           evidence: Json
           headline: string
           horizon_date: string | null
           id: string
           kind: string
           product_id: string | null
+          push_action: Json | null
+          pushed_at: string | null
           recommended_action: Json | null
           resolution: string | null
           resolved_at: string | null
@@ -3522,12 +3540,15 @@ export type Database = {
           created_at?: string
           dedup_key?: string | null
           detail?: string
+          digest?: boolean
           evidence?: Json
           headline: string
           horizon_date?: string | null
           id?: string
           kind: string
           product_id?: string | null
+          push_action?: Json | null
+          pushed_at?: string | null
           recommended_action?: Json | null
           resolution?: string | null
           resolved_at?: string | null
@@ -3545,12 +3566,15 @@ export type Database = {
           created_at?: string
           dedup_key?: string | null
           detail?: string
+          digest?: boolean
           evidence?: Json
           headline?: string
           horizon_date?: string | null
           id?: string
           kind?: string
           product_id?: string | null
+          push_action?: Json | null
+          pushed_at?: string | null
           recommended_action?: Json | null
           resolution?: string | null
           resolved_at?: string | null
@@ -3769,16 +3793,63 @@ export type Database = {
           },
         ]
       }
+      learning_citations: {
+        Row: {
+          cited_by: string
+          created_at: string
+          id: string
+          learning_id: string
+          trace_id: string | null
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          cited_by: string
+          created_at?: string
+          id?: string
+          learning_id: string
+          trace_id?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          cited_by?: string
+          created_at?: string
+          id?: string
+          learning_id?: string
+          trace_id?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_citations_learning_id_fkey"
+            columns: ["learning_id"]
+            isOneToOne: false
+            referencedRelation: "learnings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_citations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learnings: {
         Row: {
           created_at: string
           id: string
           metric_label: string | null
           metric_value: string | null
+          mission_id: string | null
           new_ice: number | null
           opportunity_id: string | null
           prd_id: string | null
           prior_ice: number | null
+          recorded_by_agent_slug: string | null
           summary: string
           updated_at: string
           user_id: string
@@ -3790,10 +3861,12 @@ export type Database = {
           id?: string
           metric_label?: string | null
           metric_value?: string | null
+          mission_id?: string | null
           new_ice?: number | null
           opportunity_id?: string | null
           prd_id?: string | null
           prior_ice?: number | null
+          recorded_by_agent_slug?: string | null
           summary: string
           updated_at?: string
           user_id: string
@@ -3805,10 +3878,12 @@ export type Database = {
           id?: string
           metric_label?: string | null
           metric_value?: string | null
+          mission_id?: string | null
           new_ice?: number | null
           opportunity_id?: string | null
           prd_id?: string | null
           prior_ice?: number | null
+          recorded_by_agent_slug?: string | null
           summary?: string
           updated_at?: string
           user_id?: string
@@ -3816,6 +3891,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "learnings_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "learnings_opportunity_id_fkey"
             columns: ["opportunity_id"]
@@ -3828,6 +3910,157 @@ export type Database = {
             columns: ["prd_id"]
             isOneToOne: false
             referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_seals: {
+        Row: {
+          algo: string
+          created_at: string
+          head: string
+          id: string
+          links: Json
+          record_count: number
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          algo: string
+          created_at?: string
+          head: string
+          id?: string
+          links?: Json
+          record_count: number
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          algo?: string
+          created_at?: string
+          head?: string
+          id?: string
+          links?: Json
+          record_count?: number
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_seals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loop_runs: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          loop_id: string
+          started_at: string
+          status: string
+          summary: string | null
+          tokens: number | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          loop_id: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          tokens?: number | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          loop_id?: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          tokens?: number | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loop_runs_loop_id_fkey"
+            columns: ["loop_id"]
+            isOneToOne: false
+            referencedRelation: "loops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loops: {
+        Row: {
+          cadence: string
+          created_at: string
+          id: string
+          kind: string
+          last_run_at: string | null
+          next_run_at: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          id?: string
+          kind: string
+          last_run_at?: string | null
+          next_run_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          last_run_at?: string | null
+          next_run_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loops_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -4172,6 +4405,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           auto_trigger_source: string | null
+          build_driver: string
           completed_at: string | null
           created_at: string
           current_agent_id: string | null
@@ -4188,6 +4422,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           auto_trigger_source?: string | null
+          build_driver?: string
           completed_at?: string | null
           created_at?: string
           current_agent_id?: string | null
@@ -4204,6 +4439,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           auto_trigger_source?: string | null
+          build_driver?: string
           completed_at?: string | null
           created_at?: string
           current_agent_id?: string | null
@@ -4371,6 +4607,56 @@ export type Database = {
           },
         ]
       }
+      playbook_proposals: {
+        Row: {
+          body: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          group_key: string
+          id: string
+          source_learning_ids: string[]
+          status: string
+          title: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_key: string
+          id?: string
+          source_learning_ids?: string[]
+          status?: string
+          title: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_key?: string
+          id?: string
+          source_learning_ids?: string[]
+          status?: string
+          title?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playbook_proposals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       playbook_runs: {
         Row: {
           created_at: string
@@ -4529,6 +4815,9 @@ export type Database = {
           contract_migrated_at: string | null
           created_at: string
           critic_review: Json | null
+          design_decided_at: string | null
+          design_decided_by: string | null
+          design_gate_status: string
           github_issue_url: string | null
           id: string
           model: string | null
@@ -4551,6 +4840,9 @@ export type Database = {
           contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
+          design_decided_at?: string | null
+          design_decided_by?: string | null
+          design_gate_status?: string
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -4573,6 +4865,9 @@ export type Database = {
           contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
+          design_decided_at?: string | null
+          design_decided_by?: string | null
+          design_gate_status?: string
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -5875,6 +6170,50 @@ export type Database = {
         }
         Relationships: []
       }
+      stage_events: {
+        Row: {
+          actor: string
+          at: string
+          entity_id: string
+          entity_type: string
+          from_stage: string | null
+          id: string
+          to_stage: string
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          actor?: string
+          at?: string
+          entity_id: string
+          entity_type: string
+          from_stage?: string | null
+          id?: string
+          to_stage: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          actor?: string
+          at?: string
+          entity_id?: string
+          entity_type?: string
+          from_stage?: string | null
+          id?: string
+          to_stage?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       studio_changes: {
         Row: {
           base_content: string | null
@@ -6012,6 +6351,7 @@ export type Database = {
           base_sha: string | null
           branch: string | null
           created_at: string
+          fix_attempts: number
           id: string
           mission_id: string | null
           pr_number: number | null
@@ -6032,6 +6372,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           created_at?: string
+          fix_attempts?: number
           id?: string
           mission_id?: string | null
           pr_number?: number | null
@@ -6052,6 +6393,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           created_at?: string
+          fix_attempts?: number
           id?: string
           mission_id?: string | null
           pr_number?: number | null
@@ -7053,6 +7395,7 @@ export type Database = {
           auto_trigger_enabled: boolean
           created_at: string
           deleted_at: string | null
+          design_stage_enabled: boolean
           id: string
           last_auto_cluster_at: string | null
           last_auto_derive_at: string | null
@@ -7080,6 +7423,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           deleted_at?: string | null
+          design_stage_enabled?: boolean
           id?: string
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
@@ -7107,6 +7451,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           deleted_at?: string | null
+          design_stage_enabled?: boolean
           id?: string
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
@@ -7684,6 +8029,10 @@ export type Database = {
         Returns: string
       }
       backfill_account_credits: { Args: never; Returns: Json }
+      bump_decision_cited_by: {
+        Args: { _decision_id: string }
+        Returns: undefined
+      }
       bump_memory_importance: {
         Args: { p_delta: number; p_memory_id: string }
         Returns: number
@@ -8053,6 +8402,7 @@ export type Database = {
         Returns: undefined
       }
       seed_sample_workspace: { Args: { _user_id: string }; Returns: string }
+      seed_seam2_ci_tools: { Args: { _user_id: string }; Returns: undefined }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
       tier_seat_limit: { Args: { _tier: string }; Returns: number }
