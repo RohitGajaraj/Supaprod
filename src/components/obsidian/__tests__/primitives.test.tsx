@@ -241,6 +241,66 @@ describe("CallCard wires its actions to real <button>s via the primitive Button"
   });
 });
 
+describe("CallCard opens its detail on click and its actions stop propagation (dim 17)", () => {
+  test("onOpen makes the card a button; Approve/Send back call the handler and stopPropagation", () => {
+    let opened = 0;
+    let okd = 0;
+    let nod = 0;
+    const el = (CallCard as unknown as { render: (props: any, ref: null) => any }).render(
+      {
+        kind: "SHIP IT?",
+        expiry: "",
+        title: "Ship the checkout fix?",
+        body: "x",
+        ev: [],
+        okLabel: "Approve",
+        noLabel: "Send back",
+        consequence: "c",
+        onOk: () => {
+          okd++;
+        },
+        onNo: () => {
+          nod++;
+        },
+        onOpen: () => {
+          opened++;
+        },
+      },
+      null,
+    );
+
+    // The whole card body opens the detail.
+    expect(el.props.role).toBe("button");
+    expect(el.props.tabIndex).toBe(0);
+    expect(typeof el.props.onClick).toBe("function");
+    el.props.onClick();
+    expect(opened).toBe(1);
+
+    const flatten = (node: any): any[] => {
+      if (!node || typeof node !== "object") return [];
+      const kids = node.props?.children;
+      const kidArray = Array.isArray(kids) ? kids : kids ? [kids] : [];
+      return [node, ...kidArray.flatMap(flatten)];
+    };
+    const all = flatten(el);
+    const approve = all.find((n) => n.props?.children === "Approve");
+    const sendBack = all.find((n) => n.props?.children === "Send back");
+    expect(approve).toBeTruthy();
+    expect(sendBack).toBeTruthy();
+
+    // Each action stops the bubble so it never also fires the card open.
+    let stopped = 0;
+    approve.props.onClick({ stopPropagation: () => stopped++ });
+    expect(okd).toBe(1);
+    expect(stopped).toBe(1);
+    sendBack.props.onClick({ stopPropagation: () => stopped++ });
+    expect(nod).toBe(1);
+    expect(stopped).toBe(2);
+    // The open handler did not fire again from the actions.
+    expect(opened).toBe(1);
+  });
+});
+
 describe("SlideOver wires onOpenChange(false) to onClose (Esc / scrim close)", () => {
   test("closing via Radix's onOpenChange calls the passed onClose", () => {
     let closed = false;

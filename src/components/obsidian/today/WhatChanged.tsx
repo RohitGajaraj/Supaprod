@@ -4,6 +4,11 @@ export interface WhatChangedItem {
   dot: string;
   text: string;
   cause: string;
+  /** Dim 17: the LRN trace ref (faint) + relative time (a touch more present),
+   * and a click that opens the learning in Brain. All optional. */
+  traceRef?: string;
+  time?: string;
+  onOpen?: () => void;
 }
 
 export interface WhatChangedProps {
@@ -40,37 +45,56 @@ export function WhatChanged({ items }: WhatChangedProps) {
         </p>
       ) : (
         <div className="flex flex-col" style={{ gap: 11 }}>
-          {visible.map((it, i) => (
-            <div key={i} className="flex items-baseline" style={{ gap: 10 }}>
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 5,
-                  height: 5,
-                  borderRadius: 99,
-                  background: it.dot,
-                  position: "relative",
-                  top: -2,
-                  flexShrink: 0,
-                }}
-              />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)" }}>
-                  {it.text}
-                </div>
-                <div
+          {visible.map((it, i) => {
+            const meta = [it.cause, it.traceRef, it.time].filter(Boolean).join(" · ");
+            const inner = (
+              <>
+                <span
+                  aria-hidden="true"
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 9,
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
+                    width: 5,
+                    height: 5,
+                    borderRadius: 99,
+                    background: it.dot,
+                    position: "relative",
+                    top: -2,
+                    flexShrink: 0,
                   }}
-                >
-                  {it.cause}
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, lineHeight: 1.55, color: "var(--text-body)" }}>
+                    {it.text}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9,
+                      letterSpacing: "0.06em",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    {meta}
+                  </div>
                 </div>
+              </>
+            );
+            return it.onOpen ? (
+              <button
+                key={i}
+                type="button"
+                onClick={it.onOpen}
+                title="Open this learning"
+                className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{ gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
+              >
+                {inner}
+              </button>
+            ) : (
+              <div key={i} className="flex items-baseline" style={{ gap: 10 }}>
+                {inner}
               </div>
-            </div>
-          ))}
+            );
+          })}
           {folded > 0 ? (
             <button
               type="button"

@@ -117,6 +117,7 @@ Every object carries a visible, stable, human-readable reference derived from it
 | `PRD` | specs and drafts |
 | `MIS` | missions and build outcomes |
 | `LRN` | learnings |
+| `ASM` | assumption challenges (the Today "worth re-examining?" calls) |
 
 **Register a new type's prefix here (and in the DESIGN-LOOM dim 17 registry) before it ships.** The full uuid is copyable in the detail; the card shows only the short ref.
 

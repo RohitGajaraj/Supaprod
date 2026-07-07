@@ -23,6 +23,16 @@ export interface CallCardProps {
    * ember CTA; every other card's approve is ember tint/line/text. */
   featured?: boolean;
   className?: string;
+  /** Dim 17 click-to-open: when set, a single click (or Enter/Space) on the
+   * card body opens the call's own detail. The Approve/Send-back buttons stop
+   * propagation so they never also fire this. Omitted keeps the card
+   * non-clickable (its other consumers, e.g. the mission slide-over). */
+  onOpen?: () => void;
+  /** Dim 17 trace-and-time tail: a quiet mono trace ref (faintest tone) and a
+   * timestamp (a touch more present), rendered in the header meta row. Already
+   * styled by the caller so the card stays presentational. */
+  traceRef?: React.ReactNode;
+  time?: React.ReactNode;
 }
 
 /**
@@ -46,12 +56,53 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
       compact = false,
       featured = false,
       className,
+      onOpen,
+      traceRef,
+      time,
     },
     ref,
-  ) => (
+  ) => {
+    const clickable = Boolean(onOpen);
+    // When the card is click-to-open, its action buttons must not also fire
+    // the open. When it is not (the mission slide-over, the specimen), the
+    // handlers stay referentially identical to the props so nothing downstream
+    // changes.
+    const handleOk = clickable
+      ? (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onOk();
+        }
+      : onOk;
+    const handleNo = clickable
+      ? (e: React.MouseEvent) => {
+          e.stopPropagation();
+          onNo();
+        }
+      : onNo;
+    return (
     <div
       ref={ref}
-      className={cn("flex flex-col", className)}
+      className={cn(
+        "flex flex-col",
+        clickable &&
+          "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+        className,
+      )}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `Open ${title}` : undefined}
+      onClick={clickable ? () => onOpen?.() : undefined}
+      onKeyDown={
+        clickable
+          ? (event) => {
+              if (event.target !== event.currentTarget) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen?.();
+              }
+            }
+          : undefined
+      }
       style={{
         backgroundColor: "var(--surface-card-deep)",
         border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
@@ -76,7 +127,13 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
             {compact ? "YOUR CALL" : kind}
           </MonoLabel>
         </span>
-        <MonoLabel tone="faint">{expiry}</MonoLabel>
+        {/* Dim 17 trace-and-time tail: time first (a touch more present), then
+            the expiry, then the faintest trace ref. */}
+        <span className="flex items-center" style={{ gap: "10px" }}>
+          {time}
+          {expiry ? <MonoLabel tone="faint">{expiry}</MonoLabel> : null}
+          {traceRef}
+        </span>
       </div>
 
       <h3
@@ -143,7 +200,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         <div className="flex items-center gap-3">
           <Button
             variant="primary"
-            onClick={onOk}
+            onClick={handleOk}
             className={featured ? "hover:brightness-110" : "hover:brightness-125"}
             style={
               featured
@@ -163,7 +220,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
           >
             {okLabel}
           </Button>
-          <Button variant="secondary" onClick={onNo}>
+          <Button variant="secondary" onClick={handleNo}>
             {noLabel}
           </Button>
         </div>
@@ -178,6 +235,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         </span>
       </div>
     </div>
-  ),
+    );
+  },
 );
 CallCard.displayName = "CallCard";

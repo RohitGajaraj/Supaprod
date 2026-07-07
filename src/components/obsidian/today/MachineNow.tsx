@@ -15,6 +15,10 @@ export interface MachineNowRow {
   step: string;
   cost: string;
   onOpen: () => void;
+  /** Dim 17: the MIS trace ref (faint) + relative start time (a touch more
+   * present), shown as a quiet second line. Optional. */
+  traceRef?: string;
+  time?: string;
 }
 
 export interface MachineNowProps {
@@ -79,15 +83,30 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
               style={{ gap: 9, background: "transparent", border: "none", padding: 0 }}
             >
               <StatusDot state={r.status} word={STATUS_WORD[r.status]} className="shrink-0" />
-              <span
-                className="min-w-0 flex-1 truncate"
-                style={{
-                  fontFamily: "var(--font-ui)",
-                  fontSize: 12.5,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {r.title}
+              <span className="min-w-0 flex-1">
+                <span
+                  className="block truncate"
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: 12.5,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {r.title}
+                </span>
+                {r.traceRef || r.time ? (
+                  <span
+                    className="block truncate"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 9,
+                      letterSpacing: "0.04em",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    {[r.traceRef, r.time].filter(Boolean).join(" · ")}
+                  </span>
+                ) : null}
               </span>
               <span
                 className="shrink-0 text-right uppercase"

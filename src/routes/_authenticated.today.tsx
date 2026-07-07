@@ -21,6 +21,8 @@ import {
 import { MyDayStrip } from "@/components/today/MyDayStrip";
 import { QuickCapture } from "@/components/today/QuickCapture";
 import { sortWithinGroup, expiryLabel, expiredAgo, gateHeadline } from "@/components/today/triage";
+import { CallDetailSheet, type CallDetail } from "@/components/today/CallDetailSheet";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -124,6 +126,7 @@ function TodaySpotlight({
   briefSummary,
   onRefreshBrief,
   refreshing,
+  onOpenCall,
 }: {
   callTitle: string | null;
   callKind: string | null;
@@ -131,6 +134,8 @@ function TodaySpotlight({
   briefSummary: string | null;
   onRefreshBrief: () => void;
   refreshing: boolean;
+  /** Dim 17: open the featured call's own detail from the spotlight line. */
+  onOpenCall?: () => void;
 }) {
   const [fullOpen, setFullOpen] = React.useState(false);
   const monoLabel: React.CSSProperties = {
@@ -167,12 +172,34 @@ function TodaySpotlight({
         {callTitle ? (
           <div style={row}>
             <span style={{ ...monoLabel, color: "var(--ember-text)" }}>The call that matters</span>
-            <span className="min-w-0 flex-1 truncate" style={{ color: "var(--text-primary)" }}>
-              {callTitle}
-              {callKind ? (
-                <span style={{ color: "var(--text-subtle)" }}> · {callKind.toLowerCase()}</span>
-              ) : null}
-            </span>
+            {onOpenCall ? (
+              <button
+                type="button"
+                onClick={onOpenCall}
+                title="Open this call"
+                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{
+                  color: "var(--text-primary)",
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  font: "inherit",
+                }}
+              >
+                {callTitle}
+                {callKind ? (
+                  <span style={{ color: "var(--text-subtle)" }}> · {callKind.toLowerCase()}</span>
+                ) : null}
+              </button>
+            ) : (
+              <span className="min-w-0 flex-1 truncate" style={{ color: "var(--text-primary)" }}>
+                {callTitle}
+                {callKind ? (
+                  <span style={{ color: "var(--text-subtle)" }}> · {callKind.toLowerCase()}</span>
+                ) : null}
+              </span>
+            )}
             <span style={{ ...monoLabel, color: "var(--text-faint)" }} aria-hidden="true">
               A approves · S sends back
             </span>
@@ -378,6 +405,9 @@ function Dashboard() {
   const [clearedSession, setClearedSession] = useState(0);
   const answered = () => setClearedSession((c) => c + 1);
 
+  // Dim 17 click-to-open: the id of the call whose detail sheet is open.
+  const [activeCallId, setActiveCallId] = useState<string | null>(null);
+
   // SHIP IT? — resolving an agent tool gate also executes the tool
   // server-side (resolveApproval semantics), so the copy says so.
   const decideApproval = useMutation({
@@ -462,6 +492,32 @@ function Dashboard() {
     decideChallenge.isPending;
 
   // ---- Triage grouping (DESIGN-LOOM §8b) --------------------------------
+  // Dim 17 trace-and-time tail: the faintest tone for the trace ref, a touch
+  // more presence for recency. Rendered on every call card.
+  const traceNode = (prefix: string, id: string) => (
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.06em",
+        color: "var(--text-faint)",
+      }}
+    >
+      {prefix}·{traceRef(id)}
+    </span>
+  );
+  const timeNode = (iso: string) => (
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: 9.5,
+        letterSpacing: "0.04em",
+        color: "var(--text-subtle)",
+      }}
+    >
+      {relTimeCaps(iso)}
+    </span>
+  );
   const shipCalls: QueueCall[] = sortWithinGroup(
     (ny?.approvals ?? []).map((a) => ({
       id: a.id,
@@ -484,6 +540,9 @@ function Dashboard() {
         okLabel: "Approve",
         noLabel: "Send back",
         consequence: gateConsequence(a.tool_name),
+        onOpen: () => setActiveCallId(a.id),
+        traceRef: traceNode("MIS", a.trace_id ?? a.id),
+        time: timeNode(a.created_at),
         onOk: () => decideApproval.mutate({ approvalId: a.id, decision: "approved" }),
         onNo: () => decideApproval.mutate({ approvalId: a.id, decision: "rejected" }),
       },
@@ -507,6 +566,9 @@ function Dashboard() {
           noLabel: "Send back",
           consequence:
             "Approve marks the spec approved and logs the decision · Send back returns it to draft",
+          onOpen: () => setActiveCallId(p.id),
+          traceRef: traceNode("PRD", p.id),
+          time: timeNode(p.updated_at),
           onOk: () => decidePrd.mutate({ id: p.id, ok: true }),
           onNo: () => decidePrd.mutate({ id: p.id, ok: false }),
         },
@@ -527,6 +589,9 @@ function Dashboard() {
           okLabel: "Keep it",
           noLabel: "Drop it",
           consequence: "Keep moves it to Now on the roadmap · Drop retires it from the backlog",
+          onOpen: () => setActiveCallId(o.id),
+          traceRef: traceNode("OPP", o.id),
+          time: timeNode(o.created_at),
           onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
           onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
         },
@@ -548,6 +613,9 @@ function Dashboard() {
         okLabel: "Re-examine",
         noLabel: "Still holds",
         consequence: "Reopens the decision for review · nothing changes without you",
+        onOpen: () => setActiveCallId(c.id),
+        traceRef: traceNode("ASM", c.id),
+        time: timeNode(c.created_at),
         onOk: () => decideChallenge.mutate({ id: c.id, action: "confirm" }),
         onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
       },
@@ -577,6 +645,77 @@ function Dashboard() {
     onRun: () => decideApproval.mutate({ approvalId: x.id, decision: "approved" }),
     onDismiss: () => decideApproval.mutate({ approvalId: x.id, decision: "rejected" }),
   }));
+
+  // Dim 17: the full backing object for each call, keyed by id, read by the
+  // CallDetailSheet on click. Real getNeedsYou columns only; the action
+  // handlers are the same mutations the cards wired, so deciding from the
+  // sheet behaves identically.
+  const callDetails: Record<string, CallDetail> = {};
+  for (const a of ny?.approvals ?? []) {
+    callDetails[a.id] = {
+      kind: "ship",
+      id: a.id,
+      title: gateHeadline(a.agent_slug, a.tool_name),
+      agentSlug: a.agent_slug,
+      toolName: a.tool_name,
+      rationale: a.rationale,
+      escalationState: a.escalation_state,
+      expiresAt: a.expires_at,
+      createdAt: a.created_at,
+      model: a.model,
+      estCostUsd: a.est_cost_usd,
+      okLabel: "Approve",
+      noLabel: "Send back",
+      onOk: () => decideApproval.mutate({ approvalId: a.id, decision: "approved" }),
+      onNo: () => decideApproval.mutate({ approvalId: a.id, decision: "rejected" }),
+    };
+  }
+  for (const p of ny?.prdCalls ?? []) {
+    callDetails[p.id] = {
+      kind: "spec",
+      id: p.id,
+      title: p.title,
+      status: p.status,
+      critic: p.critic_review,
+      updatedAt: p.updated_at,
+      okLabel: "Approve",
+      noLabel: "Send back",
+      onOk: () => decidePrd.mutate({ id: p.id, ok: true }),
+      onNo: () => decidePrd.mutate({ id: p.id, ok: false }),
+    };
+  }
+  for (const o of ny?.oppCalls ?? []) {
+    callDetails[o.id] = {
+      kind: "opportunity",
+      id: o.id,
+      title: o.title,
+      critic: o.critic_review,
+      createdAt: o.created_at,
+      okLabel: "Keep it",
+      noLabel: "Drop it",
+      onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
+      onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
+    };
+  }
+  for (const c of ny?.assumptionCalls ?? []) {
+    callDetails[c.id] = {
+      kind: "assumption",
+      id: c.id,
+      title: c.decisionTitle,
+      decisionTitle: c.decisionTitle,
+      assumptionStatement: c.assumptionStatement,
+      rationale: c.rationale,
+      evidenceText: c.evidenceText,
+      createdAt: c.created_at,
+      okLabel: "Re-examine",
+      noLabel: "Still holds",
+      onOk: () => decideChallenge.mutate({ id: c.id, action: "confirm" }),
+      onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
+    };
+  }
+  // Resolve the open detail; a call answered elsewhere (keyboard, card) simply
+  // resolves to null and the sheet closes rather than showing a stale object.
+  const activeDetail = activeCallId ? (callDetails[activeCallId] ?? null) : null;
 
   // OBS-04.md §5 step 11 + Loom: A/S answer the current featured Call (the
   // first card of the first non-empty group). The handler reads refs so the
@@ -635,6 +774,10 @@ function Dashboard() {
             : "var(--glacier)",
       text: `A ${r.verdict} outcome moved ${r.opportunity_title ?? "a priority"}: priority score ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
       cause: "LEARNING · RE-RANKED",
+      traceRef: `LRN·${traceRef(r.id)}`,
+      time: relTimeCaps(r.created_at),
+      onOpen: () =>
+        navigate({ to: "/brain", search: { tab: "learnings", learning: r.id } as never }),
     }));
 
   const machineNowRows: MachineNowRow[] = runRows
@@ -651,6 +794,7 @@ function Dashboard() {
         status: string;
         spend_used_usd: number;
         mission_id: string | null;
+        created_at: string;
       };
       const status = row.status === "running" ? "working" : ("queued" as const);
       return {
@@ -659,6 +803,8 @@ function Dashboard() {
         status,
         step: status === "working" ? "WORKING" : "QUEUED",
         cost: fmtUsd(row.spend_used_usd ?? 0),
+        traceRef: `MIS·${traceRef(row.id)}`,
+        time: row.created_at ? relTimeCaps(row.created_at) : undefined,
         onOpen: () =>
           row.mission_id
             ? navigate({ to: "/build/$missionId", params: { missionId: row.mission_id } })
@@ -749,6 +895,7 @@ function Dashboard() {
             briefSummary={dash.data?.brief?.summary ?? null}
             onRefreshBrief={() => regenBrief.mutate()}
             refreshing={regenBrief.isPending}
+            onOpenCall={featured ? () => setActiveCallId(featured.id) : undefined}
           />
         ) : null}
         <MyDayStrip />
@@ -886,6 +1033,14 @@ function Dashboard() {
           </div>
         </div>
       </div>
+      <CallDetailSheet
+        open={activeDetail !== null}
+        onOpenChange={(next) => {
+          if (!next) setActiveCallId(null);
+        }}
+        detail={activeDetail}
+        deciding={anyDeciding}
+      />
     </>
   );
 }

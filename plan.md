@@ -283,6 +283,21 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (Today surface: deep functional + design pass to consumer/enterprise grade, dim 17)
+
+**Context:** Today (the app home, `/today`) was the ritual's landing surface but its core objects were dead: the triage Call cards had no trace ref, no timestamp, no status, and no way to inspect the full backing object before deciding, so the operator approved specs, kept/dropped opportunities, and cleared agent gates half-blind. This brings Today to the depth given Discover and Decide (dim 17), not a reskin.
+
+**What shipped:**
+
+- **Click-to-open detail for every Call** (`src/components/today/CallDetailSheet.tsx`, NEW): a discriminated union over the four families (Ship it? tool gate / Worth building? spec / Worth building? opportunity / Worth re-examining? assumption), assembled from the SHARED `DetailKit` (DetailHeader → glacier recommendation band → StatStrip → DetailSections → actions footer) exactly like the Decide opportunity sheet. Real `getNeedsYou` columns only (no fabrication); an absent field renders nothing. Ship gates show the catalogued consequence, blast radius, reversibility, spend, model, and the agent + station provenance; specs/opportunities show the Critic's take; assumptions show the contradiction under the decision it stands under. The footer runs the same mutation as the card and closes the sheet.
+- **CallCard made click-to-open, backward-compatibly** (`src/components/obsidian/callcard.tsx`): new optional `onOpen` / `traceRef` / `time`. When `onOpen` is set the card body opens the detail (role=button, Enter/Space, focus ring) and the Approve/Send-back buttons stop propagation; when unset (the mission slide-over, the specimen) behaviour is byte-identical. Header now carries the faint trace-and-time tail.
+- **Trace refs + timestamps + status on every Today object**: calls carry `MIS`/`PRD`/`OPP`/`ASM` via the shared `traceRef()` helper (the new `ASM` prefix registered in design-anatomy §4 + DESIGN-LOOM dim 17); the what-changed feed carries `LRN` + a relative time and now click-opens the learning in Brain; "The machine right now" rows carry `MIS` + start time and open Build. The brief spotlight's "call that matters" line opens the featured call.
+- **States kept honest**: the existing designed loading skeleton / all-clear empty / error-with-retry states were preserved; the recommendation band is glacier (never amber); semantic tokens only; ember stays the one attention-queue CTA.
+
+**Verified:** `npx tsc --noEmit` = 0; `bun run build` succeeds; `bun test` = 2365 pass / 3 fail (only the pre-existing `resolveEmbedRoute` cases; added a CallCard click-to-open test). No em/en dashes or invisible unicode in the additions. Feature doc: [`docs/features/today.md`](./docs/features/today.md) (indexed).
+
+**Flagged for a follow-up migration (not fabricated):** `agent_approvals` has no snooze/defer column (no "Later" verb offered); approvals carry `trace_id` but no `mission_id` in the queue read, so ship-gate provenance links to `/build` generally, not the exact run; per-transition stage history is not tracked (detail shows created/updated only, the dim 17 honest floor).
+
 ### 2026-07-07 (Discover/Decide redesign chain: capstone + the consolidated design-anatomy reference)
 
 **Context:** Capstone on this session's Discover/Decide redesign chain (deterministic ranking, the shared detail anatomy, and the object-level polish), consolidating the whole system into one canonical, cold-buildable reference so every other surface (Today, Brain, Trust Ledger, Engine Room, Settings, Connections) adopts the same anatomy by default.
