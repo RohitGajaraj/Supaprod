@@ -404,9 +404,9 @@ export function DriftPanel() {
   );
 }
 
-/* Trend card — the line renders hand-sketched (SketchLine, founder directive
-   2026-06-12): pencil wobble over the exact data points, never a smooth
-   system-generated vector. Layout from govern-detail.jsx (Sparkline card). */
+/* Trend card: the line renders as the interactive GraphSlider (modern and
+   exact, data palette; the machine draws exact per the 2026-07-07 ruling).
+   Layout from govern-detail.jsx (trend card). */
 function TrendBento({
   label,
   series,

@@ -6,7 +6,7 @@
 // Reference → production map (scout-audited; every datum is a DB field or a
 // derivation of one):
 //   · stat bento 1   latest completed eval_runs.avg_score vs pass_threshold
-//   · stat bento 2   SketchLine trend of the last ≤8 completed runs with the
+//   · stat bento 2   GraphSlider trend of the last ≤8 completed runs with the
 //                    dashed gate baseline (labelled honestly when fewer)
 //   · stat bento 3   the reference's mock Dataset/owner bento is OMITTED (no
 //                    such columns) — real cases / enabled counts instead
