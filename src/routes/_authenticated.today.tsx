@@ -33,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
 import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
 import { getTodayLanes } from "@/lib/today-lanes.functions";
+import { markInsightActioned } from "@/lib/brain-insights.functions";
 import { resolveApproval } from "@/lib/governance.functions";
 import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
@@ -334,6 +335,7 @@ function Dashboard() {
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
   const fetchLanes = useServerFn(getTodayLanes);
+  const mMarkInsight = useServerFn(markInsightActioned);
   const mResolveApproval = useServerFn(resolveApproval);
   const mSnoozeApproval = useServerFn(snoozeApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
@@ -1044,6 +1046,24 @@ function Dashboard() {
                     <PushedInsights
                       lane={lanesData.lane1}
                       onOpen={() => navigate({ to: "/brain", search: { tab: "insights" } as never })}
+                      onAct={(ins) => {
+                        // SEAM-3 one-click: settle the push, then take the
+                        // user to the action's surface. Fail-soft: the
+                        // navigation happens regardless of the write.
+                        void mMarkInsight({ data: { id: ins.id, outcome: "acted" } })
+                          .catch(() => undefined)
+                          .finally(() => {
+                            void qc.invalidateQueries({ queryKey: ["today-lanes"] });
+                          });
+                        const kind = ins.action?.kind;
+                        if (kind === "rerank_bets") {
+                          navigate({ to: "/decide" });
+                        } else if (kind === "open_decision") {
+                          navigate({ to: "/brain", search: { tab: "decisions" } as never });
+                        } else {
+                          navigate({ to: "/brain", search: { tab: "insights" } as never });
+                        }
+                      }}
                     />
                   ) : null}
                 </>

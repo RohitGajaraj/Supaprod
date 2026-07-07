@@ -40,8 +40,19 @@ export type PushedInsight = {
   kind: string;
   headline: string;
   detail: string;
-  /** recommended_action jsonb: {agent_slug, goal} — powers the one-click action. */
-  action: { agent_slug?: string; goal?: string } | null;
+  /**
+   * The one-click action. Seam-3 push rows carry push_action
+   * {label, kind, targetId} (kinds: open_decision | rerank_bets |
+   * review_assumption); older scored insights carry recommended_action
+   * {agent_slug, goal}. Both shapes render.
+   */
+  action: {
+    agent_slug?: string;
+    goal?: string;
+    label?: string;
+    kind?: string;
+    targetId?: string;
+  } | null;
   score: number | null;
 };
 export type TodayLane1 = { insights: PushedInsight[]; count: number };
@@ -282,6 +293,52 @@ async function loadMissionCost(
  * next action). The gate half (approvals/specs/opps/challenges) renders from
  * getNeedsYou; this is the additive pushed-insight half. */
 async function queryLane1(db: SupabaseClient, workspaceId: string): Promise<TodayLane1> {
+  // SEAM-3 push channel first: rows the Brain actively pushed today
+  // (pushed_at stamped, not held for the digest). These carry a one-click
+  // push_action and are the mission's "pushed insight in the judgment lane".
+  // Pre-migration tolerant: if 20260708091000 is not applied yet the select
+  // errors on the missing column and we fall through to the scored kinds.
+  const pushed: PushedInsight[] = [];
+  try {
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const { data: pushedRows, error } = await db
+      .from("insights")
+      .select("id, kind, headline, detail, push_action, score")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "open")
+      .eq("digest", false)
+      .not("pushed_at", "is", null)
+      .gte("pushed_at", dayStart.toISOString())
+      .order("pushed_at", { ascending: false })
+      .limit(3);
+    if (!error) {
+      for (const r of (pushedRows ?? []) as Array<{
+        id: string;
+        kind: string | null;
+        headline: string | null;
+        detail: string | null;
+        push_action: unknown;
+        score: number | null;
+      }>) {
+        pushed.push({
+          id: r.id,
+          kind: r.kind ?? "insight",
+          headline: r.headline ?? "New insight",
+          detail: r.detail ?? "",
+          action:
+            (r.push_action as { label?: string; kind?: string; targetId?: string } | null) ?? null,
+          score: r.score,
+        });
+      }
+    }
+  } catch {
+    // fall through to the scored kinds below
+  }
+
+  const remaining = Math.max(0, 4 - pushed.length);
+  if (remaining === 0) return { insights: pushed, count: pushed.length };
+
   const { data } = await db
     .from("insights")
     .select("id, kind, headline, detail, recommended_action, score")
@@ -289,7 +346,7 @@ async function queryLane1(db: SupabaseClient, workspaceId: string): Promise<Toda
     .eq("status", "open")
     .in("kind", ["next_best_action", "hidden_connection"])
     .order("score", { ascending: false, nullsFirst: false })
-    .limit(4);
+    .limit(remaining);
   const rows = (data ?? []) as Array<{
     id: string;
     kind: string | null;
@@ -298,14 +355,17 @@ async function queryLane1(db: SupabaseClient, workspaceId: string): Promise<Toda
     recommended_action: unknown;
     score: number | null;
   }>;
-  const insights: PushedInsight[] = rows.map((r) => ({
-    id: r.id,
-    kind: r.kind ?? "insight",
-    headline: r.headline ?? "New insight",
-    detail: r.detail ?? "",
-    action: (r.recommended_action as { agent_slug?: string; goal?: string } | null) ?? null,
-    score: r.score,
-  }));
+  const insights: PushedInsight[] = [
+    ...pushed,
+    ...rows.map((r) => ({
+      id: r.id,
+      kind: r.kind ?? "insight",
+      headline: r.headline ?? "New insight",
+      detail: r.detail ?? "",
+      action: (r.recommended_action as { agent_slug?: string; goal?: string } | null) ?? null,
+      score: r.score,
+    })),
+  ];
   return { insights, count: insights.length };
 }
 

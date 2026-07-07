@@ -99,46 +99,61 @@ const INSIGHT_LABEL: Record<string, string> = {
 export function PushedInsights({
   lane,
   onOpen,
+  onAct,
 }: {
   lane: TodayLane1;
   onOpen: () => void;
+  /** SEAM-3 one-click action on a pushed insight (push_action rows). */
+  onAct?: (ins: TodayLane1["insights"][number]) => void;
 }) {
   if (lane.insights.length === 0) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      {lane.insights.map((ins) => (
-        <div key={ins.id} style={{ ...card, borderColor: "var(--ember-hairline, var(--hairline))" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-            <span style={{ ...monoLabel, color: "var(--ember-text)" }}>
-              {INSIGHT_LABEL[ins.kind] ?? "Insight"}
-            </span>
-            <span style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}>
-              {ins.headline}
-            </span>
-          </div>
-          {ins.detail ? (
-            <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 8px", lineHeight: 1.5 }}>
-              {ins.detail}
-            </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={onOpen}
-            className="loom-press"
-            style={{
-              ...monoLabel,
-              fontSize: 10.5,
-              color: "var(--glacier)",
-              background: "transparent",
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-            }}
+      {lane.insights.map((ins) => {
+        const pushAction = ins.action?.kind && onAct ? ins.action : null;
+        return (
+          <div
+            key={ins.id}
+            style={{ ...card, borderColor: "var(--ember-hairline, var(--hairline))" }}
           >
-            {ins.action?.goal ? `Act: ${ins.action.goal}` : "Open in Brain"}
-          </button>
-        </div>
-      ))}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+              <span style={{ ...monoLabel, color: "var(--ember-text)" }}>
+                {INSIGHT_LABEL[ins.kind] ?? "Insight"}
+              </span>
+              <span style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}>
+                {ins.headline}
+              </span>
+            </div>
+            {ins.detail ? (
+              <p
+                style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 8px", lineHeight: 1.5 }}
+              >
+                {ins.detail}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              onClick={pushAction ? () => onAct!(ins) : onOpen}
+              className="loom-press"
+              style={{
+                ...monoLabel,
+                fontSize: 10.5,
+                color: "var(--glacier)",
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+              }}
+            >
+              {pushAction?.label
+                ? pushAction.label
+                : ins.action?.goal
+                  ? `Act: ${ins.action.goal}`
+                  : "Open in Brain"}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }
