@@ -6,6 +6,10 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { withJobRun } from "@/lib/observability";
 import { generateOutcomeSuggestion } from "@/lib/outcome-suggestion.server";
 import { runOutcomeReviews, type OutcomeReviewResult } from "@/lib/ai/outcome-review.server";
+import {
+  runLearningCompoundPass,
+  type LearningCompoundResult,
+} from "@/lib/ai/learning-compound.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
 /**
@@ -197,8 +201,21 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               console.error("outcome-tick: outcome-review pass failed:", e);
             }
 
+            // Mission 3.8b fourth pass: the compounding sweep. When >= 3
+            // same-shaped learnings repeat (same verdict + same dominant
+            // signal), a standing playbook is proposed for a human to confirm.
+            // Deterministic, idempotent per group key, best-effort; never
+            // blocks the tick. Full behavior:
+            // src/lib/ai/learning-compound.server.ts.
+            let compound: LearningCompoundResult = { scanned: 0, groups: 0, proposed: 0 };
+            try {
+              compound = await runLearningCompoundPass(admin);
+            } catch (e) {
+              console.error("outcome-tick: learning-compound pass failed:", e);
+            }
+
             return new Response(
-              JSON.stringify({ ok: true, checked, shipped, suggested, reviews }),
+              JSON.stringify({ ok: true, checked, shipped, suggested, reviews, compound }),
               {
                 headers: { "Content-Type": "application/json" },
               },

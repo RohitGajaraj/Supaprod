@@ -138,5 +138,81 @@ export async function recordPlaybookRunInternal(
   }
 }
 
+/**
+ * Mission 3.8b (SEAM-3): playbook proposals, the compounding pass's output.
+ *
+ * When >= 3 same-shaped learnings repeat, the outcome-tick sweep
+ * (src/lib/ai/learning-compound.server.ts) writes a playbook_proposals row in
+ * status 'proposed' with the source learning ids as provenance. These two
+ * functions are the human half: list the workspace's proposals and confirm or
+ * dismiss one (never auto-confirmed; mirrors decideHouseRule in
+ * house-rules.functions.ts). playbook_proposals postdates the generated
+ * Database types; the plain SupabaseClient cast above already admits it.
+ */
+export type PlaybookProposalStatus = "proposed" | "confirmed" | "dismissed";
+
+export type PlaybookProposal = {
+  id: string;
+  workspace_id: string;
+  group_key: string;
+  title: string;
+  body: string;
+  status: PlaybookProposalStatus;
+  source_learning_ids: string[];
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+};
+
+const PROPOSAL_COLUMNS =
+  "id,workspace_id,group_key,title,body,status,source_learning_ids,decided_by,decided_at,created_at";
+
+export type ListPlaybookProposalsResult = { proposals: PlaybookProposal[] };
+
+export const listPlaybookProposals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({}).strip().parse(i ?? {}))
+  .handler(async ({ context }): Promise<ListPlaybookProposalsResult> => {
+    const supabase = context.supabase as SupabaseClient;
+    const { data: wsRpc } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (wsRpc as string | null) ?? null;
+    if (!workspaceId) return { proposals: [] };
+    const { data, error } = await supabase
+      .from("playbook_proposals")
+      .select(PROPOSAL_COLUMNS)
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return { proposals: (data ?? []) as unknown as PlaybookProposal[] };
+  });
+
+const DecideProposalSchema = z.object({
+  proposalId: z.string().uuid(),
+  decision: z.enum(["confirm", "dismiss"]),
+});
+
+export type DecidePlaybookProposalResult = { ok: boolean };
+
+export const decidePlaybookProposal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => DecideProposalSchema.parse(i))
+  .handler(async ({ context, data }): Promise<DecidePlaybookProposalResult> => {
+    const supabase = context.supabase as SupabaseClient;
+    const status: PlaybookProposalStatus =
+      data.decision === "confirm" ? "confirmed" : "dismissed";
+    const { data: updated, error } = await supabase
+      .from("playbook_proposals")
+      .update({ status, decided_by: context.userId, decided_at: new Date().toISOString() })
+      .eq("id", data.proposalId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    // A zero-row update means the proposal is gone or (via RLS) out of the
+    // caller's workspaces; fail loudly rather than render a no-op as success.
+    if (!updated) throw new Error("decidePlaybookProposal: proposal not found or not accessible");
+    return { ok: true };
+  });
+
 /** Re-export the registry for client surfaces that render method detail. */
 export { PLAYBOOK_REGISTRY };
