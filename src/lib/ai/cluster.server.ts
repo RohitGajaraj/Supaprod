@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "@/lib/ai/runtime.server";
-import { recordLineage } from "@/lib/lineage.functions";
+import { recordLineageSafe } from "@/lib/lineage.functions";
 import { computeNovelty } from "@/lib/brain/novelty.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
@@ -173,8 +173,10 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       .is("theme_id", null)
       .select("id");
     const claimedIds = (claimedRows ?? []).map((r) => (r as { id: string }).id);
+    // SW-5 chain audit: the stamp is fail-soft so one bad edge write can never
+    // abort the remaining themes after their signals were already claimed.
     for (const sid of claimedIds) {
-      await recordLineage(supabase, userId, {
+      await recordLineageSafe(supabase, userId, {
         parent_kind: "signal",
         parent_id: sid,
         child_kind: "theme",

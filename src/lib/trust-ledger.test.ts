@@ -7,10 +7,14 @@ import {
   assembleReceipts,
   provenDecisionIds,
   shouldPersistSeal,
+  receiptEdgeRows,
+  buildInfoByArtifact,
   type DecisionLite,
   type ApprovalLite,
   type LineageEdgeLite,
   type LearningLite,
+  type ChangesetLite,
+  type DeploymentLite,
 } from "./trust-ledger.functions";
 
 describe("isSupersessionRelation", () => {
@@ -146,6 +150,10 @@ describe("provenDecisionIds — LOOP-PROVE: a decisive learning linked to a deci
   test("current edges from decisive learnings prove the decision, in either direction", () => {
     expect(proven.has("d-1")).toBe(true);
     expect(proven.has("d-2")).toBe(true);
+  });
+  test("maps each proven decision to its PROVING learning id", () => {
+    expect(proven.get("d-1")).toBe("l-win");
+    expect(proven.get("d-2")).toBe("l-miss");
   });
   test("retired edges, supersession relations, non-decisive learnings, non-decisions: no proof", () => {
     expect(proven.has("d-retired")).toBe(false);
@@ -310,7 +318,11 @@ describe("assembleReceipts — merges decisions + actions, sorts newest first, t
       superseded,
       evidence,
       sourceLabels,
-      proven: new Set(["d-new", "d-old", "a-1"]),
+      proven: new Map([
+        ["d-new", "l-new"],
+        ["d-old", "l-old"],
+        ["a-1", "l-act"],
+      ]),
     });
     // d-new stands and is proven by a recorded outcome
     expect(withProven.find((r) => r.id === "d-new")!.outcome).toBe("proven");

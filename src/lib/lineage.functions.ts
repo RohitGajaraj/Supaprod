@@ -52,6 +52,25 @@ export async function recordLineage(
   );
 }
 
+/**
+ * Fail-soft recordLineage (SW-5 / mission 3.11 chain audit, data-gaps c2+c3).
+ * A provenance stamp always runs AFTER the main write has succeeded, so a
+ * lineage failure (a transient transport error, for example) must never fail
+ * the promotion or abort a clustering loop mid-pass. recordLineage already
+ * ignores row-level upsert errors; this also absorbs thrown transport errors.
+ */
+export async function recordLineageSafe(
+  supabase: SupabaseClient,
+  userId: string,
+  edge: Parameters<typeof recordLineage>[2],
+): Promise<void> {
+  try {
+    await recordLineage(supabase, userId, edge);
+  } catch {
+    // Best-effort provenance; the artifact the edge points at already exists.
+  }
+}
+
 type LineageEdge = {
   id: string;
   parent_kind: ArtifactKind;

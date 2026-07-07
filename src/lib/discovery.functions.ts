@@ -5,7 +5,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField } from "@/lib/ai/json-shape";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { runCritic } from "@/lib/ai/critic.server";
-import { recordLineage } from "@/lib/lineage.functions";
+import { recordLineage, recordLineageSafe } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
@@ -429,7 +429,9 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
         workspaceId: opp.workspace_id,
         userId,
       });
-      await recordLineage(supabase, userId, {
+      // SW-5 chain audit: fail-soft, the opportunity already exists and a
+      // lineage hiccup must not fail the promotion (a retry would duplicate it).
+      await recordLineageSafe(supabase, userId, {
         parent_kind: "theme",
         parent_id: theme.id,
         child_kind: "opportunity",
@@ -1670,7 +1672,8 @@ Return STRICT JSON only:
         workspaceId: opp.workspace_id,
         userId,
       });
-      await recordLineage(supabase, userId, {
+      // SW-5 chain audit: fail-soft, same reasoning as promoteThemeToOpportunity.
+      await recordLineageSafe(supabase, userId, {
         parent_kind: "signal",
         parent_id: signal.id,
         child_kind: "opportunity",

@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
+import { toast } from "@/lib/notify";
 import { SurfaceHeader, TabRow, EmptyState, MonoLabel } from "@/components/cadence/Primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -706,7 +707,16 @@ function TrustLedgerPage() {
         )}
       </div>
 
-      <ReceiptDetailSheet open={sheetOpen} onOpenChange={setSheetOpen} receipt={openReceipt} />
+      <ReceiptDetailSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        receipt={openReceipt}
+        onOpenReceipt={(id) => {
+          const next = receipts.find((x) => x.id === id);
+          if (next) setOpenReceipt(next);
+          else toast("That record is not in the current list");
+        }}
+      />
     </>
   );
 }
