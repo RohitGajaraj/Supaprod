@@ -22,10 +22,11 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
+import { StageTimeline } from "@/components/shared/StageTimeline";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
-import type { TrustReceipt } from "@/lib/trust-ledger.functions";
+import type { ReceiptEdge, TrustReceipt } from "@/lib/trust-ledger.functions";
 import { RECEIPT_PREFIX, receiptStatusTone, receiptStatusLabel, RECEIPT_TONE_VAR } from "./format";
 
 /**
@@ -135,7 +136,25 @@ export interface ReceiptDetailSheetProps {
   open: boolean;
   onOpenChange: (next: boolean) => void;
   receipt: TrustReceipt | null;
+  /** Opens another receipt already in the loaded ledger list (the supersession
+   * link and decision evidence rows walk the chain without leaving the ledger). */
+  onOpenReceipt?: (id: string) => void;
 }
+
+/** The quiet inline link button every walkable row in this sheet uses. */
+const LINK_BUTTON: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  marginLeft: "auto",
+  fontSize: "12px",
+  color: "var(--glacier)",
+  background: "transparent",
+  border: "none",
+  padding: 0,
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
 
 /**
  * One receipt in full, on the shared DetailKit anatomy so it reads as one
@@ -143,7 +162,12 @@ export interface ReceiptDetailSheetProps {
  * standing, or superseded), then the glanceable stat strip, then the supporting
  * sections (why, where it came from, when, and the supersession link).
  */
-export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetailSheetProps) {
+export function ReceiptDetailSheet({
+  open,
+  onOpenChange,
+  receipt,
+  onOpenReceipt,
+}: ReceiptDetailSheetProps) {
   const navigate = useNavigate();
   if (!receipt) {
     return (
@@ -158,20 +182,30 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
   const statusTone = RECEIPT_TONE_VAR[receiptStatusTone(r.status)];
   const decidedLabel = r.humanDecided ? "You" : r.actor ? r.actor : "Agent";
   const kindLabel = r.kind === "decision" ? "Decision" : "Action";
+  const sources = r.sources ?? [];
+  const edges = r.edges ?? [];
 
-  // Provenance link target: a spec opens the spec; a mission opens Build.
-  const provenance = (() => {
-    if (r.source.kind === "prd" && r.source.id) {
-      return {
-        label: "Open the spec",
-        go: () => navigate({ to: "/prds/$id", params: { id: r.source.id! } }),
-      };
-    }
-    if (r.source.kind === "mission" && r.source.id) {
-      return { label: "Open in Build", go: () => navigate({ to: "/build" }) };
-    }
+  // Provenance link per source ref: the kind derives from WHICH id column the
+  // ref came from (never the stored source_kind, which can disagree). A spec
+  // opens the spec editor; a mission opens ITS Build page, not the Build root.
+  const sourceGo = (s: { kind: string; id: string }): (() => void) | null => {
+    if (s.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: s.id } });
+    if (s.kind === "mission")
+      return () => navigate({ to: "/build/$missionId", params: { missionId: s.id } });
     return null;
-  })();
+  };
+
+  // Evidence rows link into the artifact on the other end where a route exists;
+  // a decision opens its own receipt in the ledger, a learning stays a plain row.
+  const edgeGo = (e: ReceiptEdge): (() => void) | null => {
+    if (!e.id) return null;
+    if (e.kind === "decision" && onOpenReceipt) return () => onOpenReceipt(e.id);
+    if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
+    if (e.kind === "mission")
+      return () => navigate({ to: "/build/$missionId", params: { missionId: e.id } });
+    if (e.kind === "opportunity") return () => navigate({ to: "/decide" });
+    return null;
+  };
 
   const copyId = () => {
     void navigator.clipboard?.writeText(r.id);
@@ -302,38 +336,241 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
             )}
           </DetailSection>
 
-          <DetailSection
-            heading="Where it came from"
-            action={
-              provenance ? (
-                <button
-                  type="button"
-                  onClick={provenance.go}
-                  className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                  style={{
-                    gap: "6px",
-                    fontSize: "12px",
-                    color: "var(--glacier)",
-                    background: "transparent",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                  }}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  {provenance.label}
-                </button>
-              ) : null
-            }
-          >
-            <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
-              {r.source.label
-                ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
-                : r.kind === "decision"
-                  ? "Recorded directly, with no upstream artifact linked."
-                  : "An autonomous action, decided at its approval gate."}
-            </span>
+          {edges.length ? (
+            <DetailSection heading="Evidence">
+              <div style={{ display: "grid", gap: "8px" }}>
+                {edges.map((e) => {
+                  const go = edgeGo(e);
+                  const body = (
+                    <>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "9.5px",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                          color: "var(--text-subtle)",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {e.relation ?? "linked"}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "12.5px",
+                          color: "var(--text-body)",
+                          textAlign: "left",
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        {e.kind ? `${e.kind}: ` : ""}
+                        {stripAutoPrefix(e.label)}
+                      </span>
+                    </>
+                  );
+                  return go ? (
+                    <button
+                      key={`${e.kind}-${e.id}-${e.relation}`}
+                      type="button"
+                      onClick={go}
+                      className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                      style={{
+                        gap: "8px",
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {body}
+                      <ExternalLink
+                        className="h-3 w-3"
+                        style={{ marginLeft: "auto", color: "var(--glacier)", flexShrink: 0 }}
+                      />
+                    </button>
+                  ) : (
+                    <div
+                      key={`${e.kind}-${e.id}-${e.relation}`}
+                      className="flex items-center"
+                      style={{ gap: "8px" }}
+                    >
+                      {body}
+                    </div>
+                  );
+                })}
+              </div>
+            </DetailSection>
+          ) : null}
+
+          {r.outcome === "proven" && r.provenBy ? (
+            <DetailSection heading="Proven by a recorded outcome">
+              <span style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-body)" }}>
+                {r.provenBy.summary ?? `Learning ${r.provenBy.id.slice(0, 8)}`}
+              </span>
+            </DetailSection>
+          ) : null}
+
+          <DetailSection heading="Where it came from">
+            {sources.length ? (
+              <div style={{ display: "grid", gap: "8px" }}>
+                {sources.map((s) => {
+                  const go = sourceGo(s);
+                  return (
+                    <div key={`${s.kind}-${s.id}`} className="flex items-center" style={{ gap: "8px" }}>
+                      <span
+                        style={{
+                          fontSize: "12.5px",
+                          color: "var(--text-body)",
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        {s.kind}: {s.label ?? s.id.slice(0, 8)}
+                      </span>
+                      {go ? (
+                        <button
+                          type="button"
+                          onClick={go}
+                          className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                          style={LINK_BUTTON}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {s.kind === "prd" ? "Open the spec" : "Open in Build"}
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                {r.source.label
+                  ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
+                  : r.kind === "decision"
+                    ? "Recorded directly, with no upstream artifact linked."
+                    : "An autonomous action, decided at its approval gate."}
+              </span>
+            )}
           </DetailSection>
+
+          {r.build ? (
+            <DetailSection heading="The build">
+              <div style={{ display: "grid", gap: "10px" }}>
+                {r.build.branch ? (
+                  <div style={{ display: "grid", gap: "3px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Branch</span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "11.5px",
+                        color: "var(--text-body)",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      {r.build.branch}
+                    </span>
+                  </div>
+                ) : null}
+                {r.build.prUrl || r.build.prNumber != null ? (
+                  <div style={{ display: "grid", gap: "3px" }}>
+                    <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>PR</span>
+                    {r.build.prUrl ? (
+                      <a
+                        href={r.build.prUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                        style={{ gap: "6px", fontSize: "12.5px", color: "var(--glacier)" }}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        {r.build.prNumber != null ? `#${r.build.prNumber}` : "Open the PR"}
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                        #{r.build.prNumber}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
+                <div style={{ display: "grid", gap: "3px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Status</span>
+                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                    {r.build.status}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gap: "3px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                    Fix attempts consumed
+                  </span>
+                  <span
+                    className="tabular-nums"
+                    style={{ fontSize: "12.5px", color: "var(--text-body)" }}
+                  >
+                    {r.build.fixAttempts}
+                  </span>
+                </div>
+              </div>
+            </DetailSection>
+          ) : null}
+
+          {r.deploys?.length ? (
+            <DetailSection heading="Deployed">
+              <div style={{ display: "grid", gap: "8px" }}>
+                {r.deploys.map((d, i) => (
+                  <div
+                    key={`${d.environment}-${d.commitSha}-${i}`}
+                    className="flex items-baseline"
+                    style={{ gap: "8px" }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "9.5px",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: "var(--text-subtle)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {d.environment}
+                    </span>
+                    {d.url ? (
+                      <a
+                        href={d.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:[color:var(--text-primary)]"
+                        style={{
+                          fontSize: "12.5px",
+                          color: "var(--glacier)",
+                          overflowWrap: "anywhere",
+                        }}
+                      >
+                        {d.url}
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: "12.5px", color: "var(--text-subtle)" }}>
+                        No URL recorded
+                      </span>
+                    )}
+                    {d.deployedAt ? (
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "9.5px",
+                          letterSpacing: "0.06em",
+                          color: "var(--text-faint)",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {relTimeCaps(d.deployedAt)}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </DetailSection>
+          ) : null}
 
           <DetailSection heading="Decided">
             <div style={{ display: "grid", gap: "10px" }}>
@@ -367,17 +604,66 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
             </div>
           </DetailSection>
 
+          {/* Stage history from the real stage_events rows: the receipt's own
+              (a decision is a staged entity), plus its source spec/mission.
+              StageTimeline is honest-empty, so absent history renders nothing. */}
+          {r.kind === "decision" ? (
+            <StageTimeline entityType="decision" entityId={r.id} variant="detailkit" />
+          ) : null}
+          {sources.map((s) =>
+            s.kind === "prd" ? (
+              <StageTimeline
+                key={`timeline-${s.id}`}
+                entityType="spec"
+                entityId={s.id}
+                variant="detailkit"
+              />
+            ) : s.kind === "mission" ? (
+              <StageTimeline
+                key={`timeline-${s.id}`}
+                entityType="mission"
+                entityId={s.id}
+                variant="detailkit"
+              />
+            ) : null,
+          )}
+
           {superseded && r.supersededBy ? (
             <DetailSection heading="Superseded by">
-              <span
-                className="flex items-center"
-                style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
-              >
-                <History size={13} strokeWidth={1.8} color="var(--text-muted)" />
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
-                  {r.supersededBy.slice(0, 8)}
+              {onOpenReceipt ? (
+                <button
+                  type="button"
+                  onClick={() => onOpenReceipt(r.supersededBy!)}
+                  className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                  style={{
+                    gap: "8px",
+                    fontSize: "12.5px",
+                    color: "var(--text-body)",
+                    background: "transparent",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                  }}
+                >
+                  <History size={13} strokeWidth={1.8} color="var(--text-muted)" />
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                    {r.supersededBy.slice(0, 8)}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--glacier)" }}>
+                    Open the superseding record
+                  </span>
+                </button>
+              ) : (
+                <span
+                  className="flex items-center"
+                  style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+                >
+                  <History size={13} strokeWidth={1.8} color="var(--text-muted)" />
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
+                    {r.supersededBy.slice(0, 8)}
+                  </span>
                 </span>
-              </span>
+              )}
             </DetailSection>
           ) : null}
 

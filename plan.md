@@ -283,6 +283,15 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-08 (SW-5 deliverable B — Trust Ledger's unbroken per-mission chain; lane 3 / goal session)
+
+**Context:** SW-5 (mission 3.11) — "the moat made visible." The Trust Ledger was a flat receipt list + tamper seal; it never walked a mission's pipeline. This adds the orthogonal per-mission chain read model.
+
+**What shipped (deliverable B):**
+- **Chain assembler** (`src/lib/trust-chain.functions.ts`, pure `assembleChain`, unit-tested): classifies the nine links (signal → decision → contract → design → build → test → merge → deploy → outcome) into **present / skipped / missing / pending** — a real gap (absent while a later link is present) shows as `missing` and breaks the chain; a not-yet-reached link is `pending` (not a defect); design is `skipped` (station founder-gated). `getMissionChain` resolves evidence pinned to the active workspace (`current_user_default_workspace`, matching the page's other panels) across decisions / prds / studio_changesets / deployments / learnings, with a best-effort signal hop (prd → opportunity → theme → signal) and a `learnings.mission_id`→`prd_id` outcome fallback. `listChainMissions` feeds the picker. A pre-commit 3-lens adversarial review (2026-07-08) folded 4 fixes: reads throw on error instead of rendering a fabricated broken chain (and the panel renders query errors instead of vanishing); both fns pinned to the active workspace (RLS alone mixed ALL the caller's workspaces into a single-workspace surface); test evidence only from `pr_open`/`merged` changesets (CI runs on the PR — `committed`/`abandoned` never ran it); deploy evidence only from `status='success'` rows (no moss-green "Deployed (failure)").
+- **Render** (`src/components/trust/MissionChain.tsx` + `MissionChainPanel` in `_authenticated.trust-ledger.tsx`): a vertical timeline above the receipt list — moss for present, madder for gaps, faint ink for skipped/pending — each present link with its timestamp, trace ref, and backing id. No ember (the machine's room).
+- **Tests:** `trust-chain.test.ts` — 5 tests (fully-shipped unbroken, in-progress pending tail, real gap → missing + broken, empty → all pending, canonical order). Gate: tsc 0; `bun run build` ok; assembler 5/5. Doc: [`docs/features/trust-ledger.md`](./docs/features/trust-ledger.md) § "SW-5: the per-mission chain walk". Follow-ups: populate `learnings.mission_id` on write; a first-class `test_attempts` substrate + design-station rows would upgrade the inferred test / skipped design links.
+
 ### 2026-07-07 (SW-5 deliverable C — GitHub connector to the credential boundary + the signal trail; lane 3 / goal session)
 
 **Context:** SW-5 (mission 3.1 SENSE) finishes one real connector end-to-end. The credential chain + connect/bind flow were already complete; the gaps were ingest coverage and the signal-level trail. The blocker: `fetchIssueSignals` pulled `state=closed`, so a NEW open issue — the literal DONE-WHEN trigger — never landed.

@@ -61,6 +61,74 @@ export type TrustReceipt = {
   outcome: TrustReceiptOutcome;
   /** the id of the record/artifact that superseded this one, when superseded. */
   supersededBy: string | null;
+  // ---- SEAL CONSTRAINT (trust-verify.ts): every field below is PRESENTATION
+  // ONLY. canonicalizeReceipt consumes an explicit tuple of the record fields
+  // above; none of these optional blocks may ever enter it, or every saved
+  // fingerprint flips and verify misreports tampering. ----
+  /** ALL upstream refs (mission / prd / meeting), not first-wins. Presentation only. */
+  sources?: ReceiptSourceRef[];
+  /** the lineage edges touching this record or its sources, hydrated. Presentation only. */
+  edges?: ReceiptEdge[];
+  /** the decisive learning that proved this decision, when outcome is proven. Presentation only. */
+  provenBy?: { id: string; summary: string | null } | null;
+  /** the latest build (studio changeset) behind this record's source. Presentation only. */
+  build?: ReceiptBuild | null;
+  /** where that build shipped (per environment). Presentation only. */
+  deploys?: ReceiptDeploy[];
+};
+
+/** One upstream artifact ref; `kind` derives from WHICH id column it came from,
+ * never from the stored `source_kind` (which can disagree with the picked id). */
+export type ReceiptSourceRef = {
+  kind: "mission" | "prd" | "meeting";
+  id: string;
+  label: string | null;
+};
+
+/** One provenance edge row: the artifact on the OTHER end, relative to the receipt. */
+export type ReceiptEdge = {
+  kind: string | null;
+  id: string;
+  relation: string | null;
+  /** hydrated title/summary when already loaded, else a kind + short id line. */
+  label: string;
+};
+
+export type ReceiptBuild = {
+  branch: string | null;
+  prNumber: number | null;
+  prUrl: string | null;
+  status: string;
+  fixAttempts: number;
+};
+
+export type ReceiptDeploy = {
+  environment: string;
+  url: string | null;
+  commitSha: string;
+  deployedAt: string | null;
+};
+
+export type ReceiptBuildInfo = { build: ReceiptBuild; deploys: ReceiptDeploy[] };
+
+export type ChangesetLite = {
+  id: string;
+  branch: string | null;
+  pr_number: number | null;
+  pr_url: string | null;
+  status: string;
+  fix_attempts: number | null;
+  mission_id: string | null;
+  prd_id: string | null;
+  created_at?: string | null;
+};
+
+export type DeploymentLite = {
+  environment: string | null;
+  deploy_url: string | null;
+  commit_sha: string | null;
+  deployed_at: string | null;
+  changeset_id: string | null;
 };
 
 export type DecisionLite = {
@@ -126,7 +194,7 @@ export function supersededChildIds(
   return out;
 }
 
-export type LearningLite = { id: string; verdict: string | null };
+export type LearningLite = { id: string; verdict: string | null; summary?: string | null };
 
 /**
  * PURE. The 'proven' derivation (LOOP-PROVE): a decision is proven when a learning
@@ -135,18 +203,20 @@ export type LearningLite = { id: string; verdict: string | null };
  * cites learning). This reuses loop-closure's exact vocabulary (DECISIVE_VERDICTS) and
  * currency rule; no new join is invented. Supersession edges are excluded here because
  * they encode replacement, not proof, and the superseded outcome wins anyway.
- * Returns the set of proven decision ids.
+ * Returns decisionId -> the PROVING learning id (the first current decisive link
+ * wins), so the surface can show WHICH recorded outcome proved the decision
+ * instead of dropping the learning on the floor.
  */
 export function provenDecisionIds(
   edges: LineageEdgeLite[] | null | undefined,
   learnings: readonly LearningLite[] | null | undefined,
-): Set<string> {
+): Map<string, string> {
   const decisive = new Set<string>();
   for (const l of Array.isArray(learnings) ? learnings : []) {
     const v = typeof l?.verdict === "string" ? l.verdict.trim().toLowerCase() : "";
     if (l?.id && v && DECISIVE_VERDICTS.has(v)) decisive.add(l.id);
   }
-  const out = new Set<string>();
+  const out = new Map<string, string>();
   if (!decisive.size) return out;
   for (const e of Array.isArray(edges) ? edges : []) {
     if (!e || isSupersessionRelation(e.relation)) continue;
@@ -159,7 +229,7 @@ export function provenDecisionIds(
       e.child_kind === "decision" &&
       e.child_id
     ) {
-      out.add(e.child_id);
+      if (!out.has(e.child_id)) out.set(e.child_id, e.parent_id);
     }
     if (
       e.child_kind === "learning" &&
@@ -168,7 +238,7 @@ export function provenDecisionIds(
       e.parent_kind === "decision" &&
       e.parent_id
     ) {
-      out.add(e.parent_id);
+      if (!out.has(e.parent_id)) out.set(e.parent_id, e.child_id);
     }
   }
   return out;
@@ -190,6 +260,97 @@ export function evidenceCounts(edges: LineageEdgeLite[] | null | undefined): Map
     if (!e) continue;
     bump(e.parent_id);
     bump(e.child_id);
+  }
+  return out;
+}
+
+/**
+ * PURE. The walkable form of the evidence number: one row per lineage edge that
+ * touches the receipt (its record id or any of its source ids), exposing the
+ * artifact on the OTHER end (kind + id + relation) so the surface can link into
+ * it. The record id (selfIds[0]) is preferred as the self side when both ends
+ * touch the receipt. Labels hydrate from already-loaded artifacts; otherwise the
+ * row falls back to kind + short id. Presentation only, never sealed.
+ */
+export function receiptEdgeRows(
+  edges: LineageEdgeLite[] | null | undefined,
+  selfIds: readonly (string | null)[],
+  labels?: Map<string, string>,
+): ReceiptEdge[] {
+  const self = new Set(selfIds.filter((i): i is string => typeof i === "string" && i !== ""));
+  if (!self.size) return [];
+  const recordId = selfIds[0] ?? "";
+  const out: ReceiptEdge[] = [];
+  const seen = new Set<string>();
+  for (const e of Array.isArray(edges) ? edges : []) {
+    if (!e) continue;
+    const pIn = !!e.parent_id && self.has(e.parent_id);
+    const cIn = !!e.child_id && self.has(e.child_id);
+    if (!pIn && !cIn) continue;
+    const otherIsChild = e.parent_id === recordId ? true : e.child_id === recordId ? false : pIn;
+    const kind = otherIsChild ? e.child_kind : e.parent_kind;
+    const id = otherIsChild ? e.child_id : e.parent_id;
+    if (!id) continue;
+    const key = `${kind ?? ""}|${id}|${e.relation ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      kind: kind ?? null,
+      id,
+      relation: e.relation ?? null,
+      label: labels?.get(id) ?? `${kind ?? "artifact"} ${id.slice(0, 8)}`,
+    });
+  }
+  return out;
+}
+
+/**
+ * PURE. Index the LATEST changeset (plus its captured deployments) per source
+ * artifact id (mission or prd), so a receipt can carry its build/ship tail.
+ * Rows are deduped by changeset id and ordered newest-first by created_at when
+ * present; the first changeset per artifact key wins. Presentation only, never
+ * sealed.
+ */
+export function buildInfoByArtifact(
+  changesets: ChangesetLite[] | null | undefined,
+  deployments: DeploymentLite[] | null | undefined,
+): Map<string, ReceiptBuildInfo> {
+  const byId = new Map<string, ChangesetLite>();
+  for (const c of Array.isArray(changesets) ? changesets : []) {
+    if (c?.id && !byId.has(c.id)) byId.set(c.id, c);
+  }
+  const rows = [...byId.values()].sort((a, b) => {
+    const ca = a.created_at ?? "";
+    const cb = b.created_at ?? "";
+    return ca < cb ? 1 : ca > cb ? -1 : 0;
+  });
+  const deploysByCs = new Map<string, ReceiptDeploy[]>();
+  for (const d of Array.isArray(deployments) ? deployments : []) {
+    if (!d?.changeset_id) continue;
+    const list = deploysByCs.get(d.changeset_id) ?? [];
+    list.push({
+      environment: d.environment ?? "production",
+      url: d.deploy_url ?? null,
+      commitSha: d.commit_sha ?? "",
+      deployedAt: d.deployed_at ?? null,
+    });
+    deploysByCs.set(d.changeset_id, list);
+  }
+  const out = new Map<string, ReceiptBuildInfo>();
+  for (const c of rows) {
+    const info: ReceiptBuildInfo = {
+      build: {
+        branch: c.branch ?? null,
+        prNumber: c.pr_number ?? null,
+        prUrl: c.pr_url ?? null,
+        status: c.status,
+        fixAttempts: c.fix_attempts ?? 0,
+      },
+      deploys: deploysByCs.get(c.id) ?? [],
+    };
+    for (const key of [c.mission_id, c.prd_id]) {
+      if (key && !out.has(key)) out.set(key, info);
+    }
   }
   return out;
 }
@@ -220,19 +381,51 @@ export function summarizeAction(
 }
 
 /** PURE. Merge decisions + decided actions into one time-sorted receipt list.
- * `proven` (optional) is the LOOP-PROVE set from provenDecisionIds: a decision in it
- * reads "proven" unless supersession applies (a replaced belief is not the current
- * proof, so superseded wins). Actions never read proven. */
+ * `proven` (optional) is the LOOP-PROVE map from provenDecisionIds (decisionId ->
+ * proving learningId): a decision in it reads "proven" unless supersession applies
+ * (a replaced belief is not the current proof, so superseded wins). Actions never
+ * read proven. The optional `edges` / `labels` / `buildInfo` inputs hydrate the
+ * presentation-only blocks (source refs, evidence rows, provenBy, build/deploys);
+ * none of them touch the sealed canonical fields. */
 export function assembleReceipts(input: {
   decisions: DecisionLite[];
   approvals: ApprovalLite[];
   superseded: Map<string, string>;
   evidence: Map<string, number>;
   sourceLabels: Map<string, string>;
-  proven?: Set<string>;
+  proven?: Map<string, string>;
+  /** lineage edges, for the per-receipt evidence rows. */
+  edges?: LineageEdgeLite[];
+  /** artifact id -> display label (decision titles, learning summaries, source titles). */
+  labels?: Map<string, string>;
+  /** mission/prd id -> the latest build + its deployments. */
+  buildInfo?: Map<string, ReceiptBuildInfo>;
 }): TrustReceipt[] {
   const { decisions, approvals, superseded, evidence, sourceLabels } = input;
-  const proven = input.proven ?? new Set<string>();
+  const proven = input.proven ?? new Map<string, string>();
+  const labels = input.labels ?? new Map<string, string>();
+  const buildInfo = input.buildInfo ?? new Map<string, ReceiptBuildInfo>();
+
+  // Index the edges by touching id once, so per-receipt row assembly stays O(k)
+  // instead of rescanning the whole workspace edge list per receipt.
+  const edgeIndex = new Map<string, LineageEdgeLite[]>();
+  for (const e of Array.isArray(input.edges) ? input.edges : []) {
+    if (!e) continue;
+    for (const id of [e.parent_id, e.child_id]) {
+      if (typeof id === "string" && id) {
+        const list = edgeIndex.get(id) ?? [];
+        list.push(e);
+        edgeIndex.set(id, list);
+      }
+    }
+  }
+  const edgesTouching = (...ids: (string | null)[]): LineageEdgeLite[] => {
+    const seen = new Set<LineageEdgeLite>();
+    for (const id of ids) if (id) for (const e of edgeIndex.get(id) ?? []) seen.add(e);
+    return [...seen];
+  };
+  const sourceRef = (kind: ReceiptSourceRef["kind"], id: string | null): ReceiptSourceRef[] =>
+    id ? [{ kind, id, label: sourceLabels.get(id) ?? null }] : [];
 
   const supersededFor = (
     ...ids: (string | null)[]
@@ -251,6 +444,11 @@ export function assembleReceipts(input: {
     const sourceId = d.mission_id ?? d.prd_id ?? d.meeting_id ?? null;
     const { o: sup, by } = supersededFor(d.id, sourceId);
     const o: TrustReceiptOutcome = sup === "standing" && proven.has(d.id) ? "proven" : sup;
+    const provenLearningId = o === "proven" ? (proven.get(d.id) ?? null) : null;
+    const bi =
+      (d.mission_id ? buildInfo.get(d.mission_id) : undefined) ??
+      (d.prd_id ? buildInfo.get(d.prd_id) : undefined) ??
+      null;
     receipts.push({
       id: d.id,
       kind: "decision",
@@ -260,6 +458,8 @@ export function assembleReceipts(input: {
       actor: d.decided_by_agent_slug,
       humanDecided: false,
       occurredAt: d.created_at,
+      // The canonical (sealed) source stays byte-identical: stored source_kind +
+      // the first-win id. The full, kind-correct refs live in `sources` below.
       source: {
         kind: d.source_kind,
         id: sourceId,
@@ -269,11 +469,27 @@ export function assembleReceipts(input: {
       evidenceCount: evidenceFor(d.id, sourceId),
       outcome: o,
       supersededBy: by,
+      sources: [
+        ...sourceRef("mission", d.mission_id),
+        ...sourceRef("prd", d.prd_id),
+        ...sourceRef("meeting", d.meeting_id),
+      ],
+      edges: receiptEdgeRows(
+        edgesTouching(d.id, d.mission_id, d.prd_id, d.meeting_id),
+        [d.id, d.mission_id, d.prd_id, d.meeting_id],
+        labels,
+      ),
+      provenBy: provenLearningId
+        ? { id: provenLearningId, summary: labels.get(provenLearningId) ?? null }
+        : null,
+      build: bi?.build ?? null,
+      deploys: bi?.deploys ?? [],
     });
   }
 
   for (const ap of Array.isArray(approvals) ? approvals : []) {
     const { o, by } = supersededFor(ap.id, ap.mission_id);
+    const bi = ap.mission_id ? (buildInfo.get(ap.mission_id) ?? null) : null;
     receipts.push({
       id: ap.id,
       kind: "action",
@@ -292,6 +508,11 @@ export function assembleReceipts(input: {
       evidenceCount: evidenceFor(ap.id, ap.mission_id),
       outcome: o,
       supersededBy: by,
+      sources: sourceRef("mission", ap.mission_id),
+      edges: receiptEdgeRows(edgesTouching(ap.id, ap.mission_id), [ap.id, ap.mission_id], labels),
+      provenBy: null,
+      build: bi?.build ?? null,
+      deploys: bi?.deploys ?? [],
     });
   }
 
@@ -370,7 +591,7 @@ async function loadReceipts(
     wantDecisions
       ? supabase
           .from("learnings")
-          .select("id,verdict")
+          .select("id,verdict,summary")
           .eq("workspace_id", workspaceId)
           .in("verdict", [...DECISIVE_VERDICTS])
           .order("id", { ascending: true })
@@ -440,6 +661,64 @@ async function loadReceipts(
     if (r?.id && r?.title) sourceLabels.set(r.id as string, r.title as string);
   }
 
+  // Edge-row + provenBy hydration from what is ALREADY loaded: source titles,
+  // decision titles, learning summaries. No extra queries.
+  const labels = new Map<string, string>(sourceLabels);
+  for (const d of decisions) if (d.id && d.title) labels.set(d.id, d.title);
+  for (const l of learnings) if (l.id && l.summary) labels.set(l.id, l.summary);
+
+  // The build/ship tail behind each receipt's source artifact (changesets by
+  // mission/prd, then their captured deployments). Presentation-only blocks
+  // (never sealed), so a read failure degrades to no build info instead of
+  // taking the ledger down. fix_attempts postdates the generated types, so
+  // rows go through the house structural cast.
+  let buildInfo = new Map<string, ReceiptBuildInfo>();
+  try {
+    const csSel = "id,branch,pr_number,pr_url,status,fix_attempts,mission_id,prd_id,created_at";
+    const [byMission, byPrd] = await Promise.all([
+      missionIds.size
+        ? supabase
+            .from("studio_changesets")
+            .select(csSel)
+            .eq("workspace_id", workspaceId)
+            .in("mission_id", [...missionIds])
+            .order("created_at", { ascending: false })
+            .limit(500)
+        : Promise.resolve({ data: [], error: null }),
+      prdIds.size
+        ? supabase
+            .from("studio_changesets")
+            .select(csSel)
+            .eq("workspace_id", workspaceId)
+            .in("prd_id", [...prdIds])
+            .order("created_at", { ascending: false })
+            .limit(500)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (byMission.error) throw new Error(byMission.error.message);
+    if (byPrd.error) throw new Error(byPrd.error.message);
+    const changesets = [
+      ...(byMission.data ?? []),
+      ...(byPrd.data ?? []),
+    ] as unknown as ChangesetLite[];
+    let deployRows: DeploymentLite[] = [];
+    const csIds = [...new Set(changesets.map((c) => c.id))];
+    if (csIds.length) {
+      const dep = await supabase
+        .from("deployments")
+        .select("environment,deploy_url,commit_sha,deployed_at,changeset_id")
+        .eq("workspace_id", workspaceId)
+        .in("changeset_id", csIds)
+        .order("deployed_at", { ascending: false })
+        .limit(500);
+      if (dep.error) throw new Error(dep.error.message);
+      deployRows = (dep.data ?? []) as unknown as DeploymentLite[];
+    }
+    buildInfo = buildInfoByArtifact(changesets, deployRows);
+  } catch (e) {
+    console.error("trust-ledger build/deploy read failed (build blocks degrade):", e);
+  }
+
   return assembleReceipts({
     decisions,
     approvals,
@@ -447,6 +726,9 @@ async function loadReceipts(
     evidence: evidenceCounts(edges),
     sourceLabels,
     proven: provenDecisionIds(edges, learnings),
+    edges,
+    labels,
+    buildInfo,
   });
 }
 
