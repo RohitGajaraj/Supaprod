@@ -1912,6 +1912,33 @@ export type Database = {
           },
         ]
       }
+      connector_requests: {
+        Row: {
+          connector: string
+          created_at: string
+          id: string
+          note: string | null
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          connector: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          connector?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -5749,6 +5776,7 @@ export type Database = {
           id: string
           product_id: string | null
           project_id: string | null
+          reference_urls: Json
           sentiment: string | null
           source: string
           source_kind: string | null
@@ -5767,6 +5795,7 @@ export type Database = {
           id?: string
           product_id?: string | null
           project_id?: string | null
+          reference_urls?: Json
           sentiment?: string | null
           source?: string
           source_kind?: string | null
@@ -5785,6 +5814,7 @@ export type Database = {
           id?: string
           product_id?: string | null
           project_id?: string | null
+          reference_urls?: Json
           sentiment?: string | null
           source?: string
           source_kind?: string | null
