@@ -79,16 +79,11 @@ Before writing code: **Think. State assumptions. Surface tradeoffs.**
 While coding: **Surgical changes only — every line traces to the task.**
 Goals: **Minimum code. Simplicity first. Nothing speculative.**
 Success: **Define success criteria upfront. Verify before declaring done.**
+Velocity: **BUILD-ONLY MODE is active (founder ruling 2026-07-04). Skip all documentation overhead. Just build, verify (tsc + build + tests), commit with a WHY, push.** Full detail: [`AGENTS.md`](./AGENTS.md) §3.
 
-Full detail: [`AGENTS.md`](./AGENTS.md), section 4. These apply equally to Claude Code, Antigravity, and Gemini.
+## The closed documentation loop (⏸️ SUSPENDED — BUILD-ONLY MODE active)
 
-## The closed documentation loop (always on)
-
-Every time you build a feature, make a decision, or learn something non-obvious, **update the relevant docs in the same unit of work** — and append to the active build log in [`plan.md`](./plan.md) (section 4). A change is not done until its documentation is true. Full mandate: [`AGENTS.md`](./AGENTS.md) §5.
-
-**Skill-generated documents rule (applies to Antigravity and Gemini CLI too):** When any skill generates new files or folders, do NOT leave them in arbitrary new locations. Check existing docs first — merge into the correct folder. Example: if `/gstack-office-hours` creates `docs/office-hours/`, merge content into `docs/strategy/vN-positioning-YYYY-MM-DD.md` and delete the generated folder. See [`AGENTS.md`](./AGENTS.md) §5.
-
-**Session decisions rule:** When a session produces a major strategic decision, add an entry to [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) in the same session. Continuous obligation — not one-time.
+> **BUILD-ONLY MODE is ACTIVE (founder ruling 2026-07-04).** The doc loop is PAUSED. During builds: no plan.md log, no SSOT updates, no feature docs, no brand-feed captures, no doc-closure ceremony. The ONE trace: flip the feature-dashboard row status + a one-line note when something is built. Em/en dashes in .md docs are fine (docs are not consumer-facing). Code-level humanization (source files, UI strings, generated output) still applies. Full details: [`AGENTS.md`](./AGENTS.md) §3 "BUILD-ONLY MODE". To re-enable: the founder says so.
 
 ## Multi-tool consistency rule
 

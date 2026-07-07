@@ -96,7 +96,7 @@ Before writing code: **Think. State assumptions. Surface tradeoffs.**
 While coding: **Surgical changes only — every line traces to the task.**
 Goals: **Minimum code. Simplicity first. Nothing speculative.**
 Success: **Define success criteria upfront. Verify before declaring done.**
-Velocity: **Ship features fast. Per cycle, gate on correctness only (tsc + build + tests + runtime-fatal review). Batch non-trivial deferrable quality passes (authored-content humanization scanning, lint/prettier style cleanup, AI-trace polish, deep prose-polish, design) to a founder-prompted pre-launch stage; do not burn time on them mid-build.** _(Founder velocity ruling 2026-06-19; canonical: [`AGENTS.md`](./AGENTS.md) §3.)_
+Velocity: **Ship features fast. Per cycle, gate on correctness only (tsc + build + tests + runtime-fatal review). BUILD-ONLY MODE is active: skip all documentation overhead, dashboard updates, feature docs, plan.md logs. Just build the code, verify it compiles and works, commit with a WHY, push.** _(Founder ruling 2026-07-04; canonical: [`AGENTS.md`](./AGENTS.md) §3.)_
 
 Full detail: [`AGENTS.md`](./AGENTS.md), section 4. These apply equally to Claude Code, Antigravity, Gemini, and Lovable.
 
@@ -104,13 +104,9 @@ Full detail: [`AGENTS.md`](./AGENTS.md), section 4. These apply equally to Claud
 
 If your work touches telemetry, error capture, uptime, on-call, or the public status page: the single front-door is **[`docs/planning/analytics-and-failure-detection-plan.md`](./docs/planning/analytics-and-failure-detection-plan.md)** (AFD initiative, group G12, founder-gated). Vendor selection is decided (PostHog EU + Sentry EU + Better Stack); the façade contract is in [`docs/features/observability-facade.md`](./docs/features/observability-facade.md). Do not import vendor SDKs outside `src/lib/observability/` once AFD lands.
 
-## The closed documentation loop (always on)
+## The closed documentation loop (⏸️ SUSPENDED — BUILD-ONLY MODE active)
 
-Every time you build a feature, make a decision, or learn something non-obvious, **update the relevant docs in the same unit of work** — and append to the active build log in [`plan.md`](./plan.md) (section 4). A change is not done until its documentation is true. Full mandate + the update matrix: [`AGENTS.md`](./AGENTS.md), section 5.
-
-**Skill-generated documents rule:** When any skill (gstack-office-hours, gstack-document-release, to-prd, etc.) generates new files or folders, do NOT leave them in arbitrary new locations. Check if an existing document serves the same purpose — merge if yes, place in the correct folder if no. Never leave a positioning or strategy document in a generated folder (e.g., `docs/office-hours/`) when `docs/strategy/` already exists for that purpose. See [`AGENTS.md`](./AGENTS.md) §5.
-
-**Session decisions rule:** When a session produces a major strategic decision or significant tradeoff, add an entry to [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) in the same session. This is a continuous obligation — not a one-time activity.
+> **BUILD-ONLY MODE is ACTIVE (founder ruling 2026-07-04).** The full doc loop is PAUSED. During builds: no plan.md log, no SSOT updates, no feature docs, no brand-feed captures, no doc-closure ceremony. The ONE trace: flip the feature-dashboard row status + a one-line note when something is built. Em/en dashes in .md docs are fine (docs are not consumer-facing). Code-level humanization (source files, UI strings, generated output) still applies. Full details: [`AGENTS.md`](./AGENTS.md) §3 "BUILD-ONLY MODE". To re-enable: the founder says so.
 
 ## Claude-Code-specific notes
 

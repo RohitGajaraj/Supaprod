@@ -211,6 +211,34 @@ Build the working product first. Any **non-trivial process that can be done corr
 
 In one line: per cycle, gate on correctness (tsc + build + tests + runtime-fatal review) and move fast; batch the quality polish to one disciplined, founder-prompted end-stage pass.
 
+### BUILD-ONLY MODE (founder ruling, 2026-07-04, ACTIVE — supersedes the doc loop for builds)
+
+**The project is now in BUILD-ONLY MODE.** Tokens and time are scarce. Every session focuses purely on building platform capabilities. The documentation loop (§5 below) is SUSPENDED for build work until the founder explicitly re-enables it.
+
+**What is SUSPENDED (do NOT spend tokens on these during a build):**
+- Active-claims table updates, at-a-glance recomputes, v11 header block syncs
+- Feature doc creation per build (`docs/features/`)
+- `plan.md` §4 build-log appends
+- SSOT §0/§6 cursor and progress-log updates
+- Live status board updates in `feature-backlog.md`
+- `session-decisions.md` / `strategic-inputs-log.md` captures (unless the founder explicitly asks for strategy work)
+- `brand-feed.md` capture cues
+- `docs:check` / doc-closure-checklist runs
+- Deep comprehensive doc prose (the "thought-process-oriented" writing for investor docs)
+- Any documentation that is not consumer-facing code
+
+**What STILL APPLIES (non-negotiable, every build):**
+- **One-line build log in the feature dashboard:** when you finish building something, flip its row status (e.g. `⬜` to `✅` or `◐`) and add a SHORT note (one line: what was built). This is the ONE place we track "what got done." No full ceremony, no recomputes, no header-block sync, just the row flip + a note.
+- **Code quality:** no em/en dashes, no AI slop, no invisible Unicode in CODE (source files, UI strings, commit messages). The runtime `humanizeText` sanitizer stays ON.
+- **Correctness gates:** `tsc --noEmit` + `bun run build` + relevant tests must pass before declaring done
+- **Commit discipline:** commit with a WHY, push to `origin/main`
+- **Architecture contracts:** follow the chokepoint, RLS, server-boundary rules (these are code rules, not doc rules)
+- **Design contracts:** follow DESIGN-LOOM.md / DESIGN-OBSIDIAN.md when touching UI (these govern code output)
+
+**Documentation in docs is NOT consumer-facing; em/en dashes or AI traces in .md files are acceptable.** The humanization rule applies strictly to: source code, UI copy, generated platform output, and commit messages. Markdown documentation files are internal-only and do not need scanning or fixing.
+
+**To exit BUILD-ONLY MODE:** the founder says "re-enable the doc loop" or "do the documentation pass." Until then, build.
+
 ### Build Sequence: pick strictly by the number (founder ruling, 2026-06-21)
 
 **The autonomous build order is a single PRIORITY-RANKED register, not a loose priority sort.** The canonical ranked list is the Master register in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) (mirrored in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0): every row is sorted by priority and carries a **Rank** (the `#` column; `#1` = the single highest priority). **Any tool, lane, or worktree picks the LOWEST-`#` row whose Priority is a Tier (Tier 1/2/3/4) and that is unclaimed, and builds that next. Never pick out of order; never deliberate, the Rank is the decision.** Skip rows marked `Gated` (founder must unblock), `Lovable` (Lovable builds them in parallel), `Done`, and `Deferred`.
@@ -353,6 +381,9 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 ## 5. Cross-document update protocol (the closed documentation loop)
+
+> [!IMPORTANT]
+> **⏸️ SUSPENDED during BUILD-ONLY MODE (founder ruling 2026-07-04).** The full doc loop below is the long-term rule but is currently PAUSED for build sessions. See §3 "BUILD-ONLY MODE" for what applies now. When the founder re-enables the doc loop, this section governs again in full.
 
 **This is a document-driven project. Documentation is a closed loop, not an afterthought.** Every time a feature is built, a decision is made, a convention changes, or a non-obvious learning emerges, the relevant docs **must** be updated in the same unit of work — before the task is considered done. Concretely, on every meaningful change:
 
