@@ -283,6 +283,10 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (CAPSTONE, overnight platform pass: every canonical surface to consumer/enterprise grade under dim-17 + DetailKit)
+
+The autonomous overnight pass brought all canonical surfaces (Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth, plus app chrome) to consumer/enterprise grade under the dim-17 doctrine + the shared DetailKit detail-view anatomy + the trace-ref registry, real-data only (migrations flagged, never faked). tsc 0 / `bun run build` ok / 2403 tests pass (only the 3 known `resolveEmbedRoute` env fails). The per-surface entries below are the individual commits; the morning handoff with the flagged-migration / parked / deferred lists is [`docs/planning/overnight-2026-07-07-platform-pass.md`](./docs/planning/overnight-2026-07-07-platform-pass.md).
+
 ### 2026-07-07 (Chrome + spacing consistency lens: harmonize the app-shell nav rail + shared surface rhythm to a premium bar)
 
 **Context:** a consistency + polish pass on the FRAME around the surfaces (nav rail, page-header rhythm, footer, user chip), not the surface content. The shell was already well-built (LOOM grouped rail, focus-visible glacier rings on every interactive element, hover/press feedback via `loom-press`, reachable Sign out on the user chip, mono-caps group labels, ambient shimmer as the one machine-status line, `overflow-y-auto` on the nav so a tall rail never breaks). The audit found a small set of genuine breaks, all fixed surgically; no shell rewrite and no new page-header primitive.
