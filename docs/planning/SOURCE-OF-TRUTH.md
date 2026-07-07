@@ -11,6 +11,13 @@
 > This section replaces the old root `active-task.md` (folded in 2026-06-19). It is the single "what is in flight + what to pick next" cursor. Update it in the same unit of work as any change. Past work is in section 6 (progress log); the full dated history is in [`../../plan.md`](../../plan.md) section 4.
 
 > [!IMPORTANT]
+> ## 🚀 2026-07-07 SHIP-WEEK MISSION IS THE ACTIVE GOAL: [`mission-demo-week.md`](./mission-demo-week.md)
+>
+> **The founder's ship-week mission supersedes the normal register pick-order.** Ship Cadence to real end consumers within the week. Build-only (docs deferred to one post-mission batch pass), token-lean, continuous seam-by-seam closure per that doc's section 4, swarm within the active seam. Terminal oracle: a fresh consumer account on production completes the doc's section-7 walkthrough unassisted. Founder-gated inputs live in its section 6.
+>
+> ---
+
+> [!IMPORTANT]
 > ## ✅ 2026-07-07 OVERNIGHT PLATFORM PASS: COMPLETE (tree green, pushed to `origin/main`)
 >
 > **Every canonical surface is now at consumer/enterprise grade under the dim-17 doctrine + the shared DetailKit anatomy + the trace-ref registry**: Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth, plus app chrome. Real-data only (anything needing a migration was flagged, never faked). **Verification green:** `tsc` 0, `bun run build` ok, `bun test` 2403 pass (only the 3 known `resolveEmbedRoute` env fails). **Morning handoff (the flagged-migration / parked-gated / deferred-design lists live here, not restated):** [`overnight-platform-pass.md`](./overnight-platform-pass.md). The 8 overnight commits are in section 6. **Next picks (founder call):** the `stage_events` migration (unblocks per-transition history everywhere), the Engine Room governance-panel reskin, and one OAuth provider end to end.
