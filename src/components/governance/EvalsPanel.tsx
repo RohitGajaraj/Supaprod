@@ -509,7 +509,7 @@ function CreateSuiteForm({
             value={form.target}
             onValueChange={(v) => setForm({ ...form, target: v })}
           >
-            <SelectTrigger aria-label="Target prompt">
+            <SelectTrigger aria-label="Target prompt" style={{ borderRadius: 8, height: 35 }}>
               <SelectValue placeholder="Pick a surface" />
             </SelectTrigger>
             <SelectContent>
@@ -532,7 +532,7 @@ function CreateSuiteForm({
           />
         </label>
         <label style={{ fontSize: 12 }}>
-          <div className="mono-label" style={{ fontSize: 10.5, marginBottom: 4 }}>
+          <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
             Pass gate (0 to 100)
           </div>
           <input
