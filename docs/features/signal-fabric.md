@@ -14,6 +14,15 @@ A three-agent reality audit (2026-06-29) found the signal **pipeline** is mature
 - Nothing ranks signals by novelty-vs-memory into a proactive "build this next."
 - Cadence only *exposes* MCP; it has no MCP **client** to consume external MCP servers as inbound data.
 
+## SW-5: GitHub connector to the credential boundary (2026-07-07, mission 3.1)
+
+SW-5 "platform truth" finishes ONE real connector end-to-end so a real GitHub event lands as an auto-tagged, auto-clustered signal with a visible trail — everything up to the founder-pasted credential.
+
+- **Ingest coverage** (`src/lib/connectors/providers/github-ingest.server.ts`): issues now pull `state=all` (a NEW open issue lands — the DONE-WHEN trigger; it was `state=closed`, so a new issue never appeared), plus **releases**, **star milestones** (one signal per crossed rung via the pure `starMilestone` ladder in `github-signals.ts`, deduped by milestone in `external_id`), and **repo traffic** (views/clones; fails soft on the 403 a read-only install returns). Issue labels + state ride through as tags. All use the already-resolved installation token from `resolveGitHub` (`github.server.ts`), so the founder pastes `GITHUB_APP_ID/PRIVATE_KEY/…` and the feed lives.
+- **The signal trail** (`src/lib/sources/sink.server.ts`): every sensed signal now writes a `stage_events` row (`entity_type='signal'`, `to_stage='sensed'`) — migration `20260708120000_stage_events_signal_entity.sql` widened the CHECK to allow `'signal'`, and `StageEntityType` gained it. Because the sink is the single write path, EVERY source (GitHub, Scout, MCP, webhook, manual) inherits the trail. This satisfies the DONE-WHEN "visible trail = SIG trace ref + stage_events row" and is the first link of the Trust Ledger chain (SW-5 deliverable B). `recordStageEvent` is fail-safe, so a trail miss never breaks the signal write.
+- **Auto-tag + auto-cluster** are unchanged and already zero-human: `prepare.ts` derives/uses tags at insert; `cluster-tick` groups theme-null signals into `themes` and records a THEME `stage_event` (both cron-gated).
+- **Follow-up (founder-secret-gated):** a real-time `x-hub-signature-256` webhook endpoint (vs the ~5-min poll) is the next-fidelity step; it needs the founder's `GITHUB_WEBHOOK_SECRET`. The pull path already satisfies the DONE-WHEN, so the webhook is an enhancement, not a blocker.
+
 ## Architecture: one fabric, three lanes, one intelligence head
 
 Every source kind funnels through a single `writeSignals` sink into the existing pipeline, topped by an intelligence head that ranks themes and surfaces one "Focus on this next" card on Today.

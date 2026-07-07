@@ -283,6 +283,15 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (SW-5 deliverable C — GitHub connector to the credential boundary + the signal trail; lane 3 / goal session)
+
+**Context:** SW-5 (mission 3.1 SENSE) finishes one real connector end-to-end. The credential chain + connect/bind flow were already complete; the gaps were ingest coverage and the signal-level trail. The blocker: `fetchIssueSignals` pulled `state=closed`, so a NEW open issue — the literal DONE-WHEN trigger — never landed.
+
+**What shipped (deliverable C):**
+- **Ingest** (`github-ingest.server.ts`): issues `state=all` (open + closed; labels + state → tags), plus **releases**, **star milestones** (pure `starMilestone` ladder in `github-signals.ts`, one signal per crossed rung, deduped by milestone in `external_id`), and **traffic** (views/clones, fails soft on the read-only-install 403). All on the resolved installation token.
+- **Signal trail** (`sink.server.ts` + `stage-events.server.ts` + migration `20260708120000_stage_events_signal_entity.sql`): every sensed signal writes a `stage_events` row (`entity_type='signal'`, `to='sensed'`). The CHECK was widened to allow `'signal'` (safe, additive). Single write path ⇒ every source inherits the trail; it is also the first link of the deliverable-B chain.
+- **Tests:** `github-signals.test.ts` — `starMilestone` (below-first-rung → null, highest-crossed-rung, cap, dedup stability). Gate: tsc 0; `bun run build` ok (Node 20.20.2); github tests 20/20; mig-lint 0 apply-fatal. Doc: [`docs/features/signal-fabric.md`](./docs/features/signal-fabric.md) § "SW-5: GitHub connector to the credential boundary". Real-time `x-hub-signature-256` webhook is a documented founder-secret-gated follow-up (the pull path already meets DONE-WHEN).
+
 ### 2026-07-07 (SW-5 deliverable A — Today's four-lane content model, functional; lane 3 / goal session)
 
 **Context:** SW-5 "platform truth" (mission 3.11) re-cuts Today into four segregated lanes to answer the founder's "data dump ... not properly segregated" verdict. A prior MVP (`13b43493`) left `today-lanes.functions.ts` as dead code: it threw for every caller (workspace resolved via a nonexistent `profiles.default_workspace_id`), lanes 1 & 3 were empty stubs, lane 4 selected a nonexistent `learnings.subject` column with a wrong verdict enum and `$0` fake cost, and nothing rendered it.

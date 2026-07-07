@@ -10,6 +10,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { prepareSignalRows } from "./prepare";
 import type { SignalCandidate, SinkResult } from "./kinds";
 
@@ -53,8 +54,26 @@ export async function writeSignals(
 
   if (rows.length === 0) return { inserted: 0, skipped, quarantined };
 
-  const { error } = await db.from("signals").insert(rows);
+  // .select("id") so each sensed signal can write its stage_events trail row.
+  const { data: inserted, error } = await db.from("signals").insert(rows).select("id");
   if (error) throw new Error(`writeSignals insert failed: ${error.message}`);
+
+  // SW-5 deliverable C: every sensed signal gets a visible trail row
+  // (entity_type='signal', to_stage='sensed') — the DONE-WHEN "SIG trace ref +
+  // stage_events row" and the first link of the Trust Ledger chain. Because the
+  // sink is the single write path, EVERY source (GitHub, Scout, MCP, webhook,
+  // manual) inherits the trail. recordStageEvent is fail-safe (swallows errors),
+  // so a trail miss never breaks the signal write.
+  for (const row of (inserted ?? []) as Array<{ id: string }>) {
+    await recordStageEvent(db, {
+      entityType: "signal",
+      entityId: row.id,
+      to: "sensed",
+      actor: "system",
+      workspaceId,
+      userId,
+    });
+  }
 
   return { inserted: rows.length, skipped, quarantined };
 }

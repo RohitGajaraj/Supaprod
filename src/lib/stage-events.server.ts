@@ -15,7 +15,10 @@ export type StageEntityType =
   | "theme"
   | "decision"
   | "goal"
-  | "loop";
+  | "loop"
+  // SW-5 deliverable C: a sensed signal writes a trail row (migration
+  // 20260708120000 widened the DB CHECK to allow 'signal').
+  | "signal";
 
 export interface StageEventInput {
   entityType: StageEntityType;
