@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MonoLabel, VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { measureCaps, decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
@@ -12,6 +13,7 @@ export interface BetCardProps {
   column: RoadmapBucket;
   iceScore: number | null;
   hasOutcome: boolean;
+  updatedAt: string | null;
   selected: boolean;
   onToggleSelect: (selected: boolean) => void;
   onMoveTo: (bucket: RoadmapBucket) => void;
@@ -86,6 +88,7 @@ export function BetCard({
   column,
   iceScore: _iceScore,
   hasOutcome,
+  updatedAt,
   selected,
   onToggleSelect,
   onMoveTo,
@@ -275,6 +278,36 @@ export function BetCard({
           <RoadmapHistory opportunityId={id} />
         </span>
       )}
+
+      {/* Dim 17 trace-and-time tail: the bet is a first-class, auditable
+          object (it is an opportunity, prefix OPP). The time reads a touch more
+          present (--text-subtle) than the faint trace ref. */}
+      <span
+        style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2, flexWrap: "wrap" }}
+      >
+        {updatedAt ? (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.06em",
+              color: "var(--text-subtle)",
+            }}
+          >
+            {relTimeCaps(updatedAt)}
+          </span>
+        ) : null}
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            letterSpacing: "0.06em",
+            color: "var(--text-faint)",
+          }}
+        >
+          OPP·{traceRef(id)}
+        </span>
+      </span>
     </div>
   );
 }

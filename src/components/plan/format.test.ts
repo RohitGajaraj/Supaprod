@@ -5,6 +5,7 @@ import {
   measureCaps,
   splitCitationMarkers,
   decisionOptionLabel,
+  specRecommendation,
 } from "./format";
 
 describe("stateChip", () => {
@@ -23,6 +24,35 @@ describe("stateChip", () => {
   test("unrecognized status fails safe to DRAFTING glacier", () => {
     expect(stateChip("")).toEqual({ label: "DRAFTING", tone: "glacier" });
     expect(stateChip("unknown")).toEqual({ label: "DRAFTING", tone: "glacier" });
+  });
+});
+
+describe("specRecommendation", () => {
+  test("shipped -> watch the outcome", () => {
+    expect(specRecommendation("shipped")).toBe(
+      "Shipped. Watch the outcome and let Learn close the loop.",
+    );
+  });
+  test("approved -> hand to Build", () => {
+    expect(specRecommendation("approved")).toBe(
+      "Hand it to Build to start a mission from this spec.",
+    );
+  });
+  test("review -> approve or send back", () => {
+    expect(specRecommendation("review")).toBe(
+      "Approve to log the decision and unblock Build, or send it back to draft.",
+    );
+  });
+  test("draft -> refine then Critic", () => {
+    expect(specRecommendation("draft")).toBe(
+      "Refine the spec, then send it to the Critic for review.",
+    );
+  });
+  test("unrecognized status falls back to the draft guidance", () => {
+    expect(specRecommendation("")).toBe("Refine the spec, then send it to the Critic for review.");
+    expect(specRecommendation("weird")).toBe(
+      "Refine the spec, then send it to the Critic for review.",
+    );
   });
 });
 

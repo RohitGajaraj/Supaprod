@@ -32,6 +32,19 @@ export function citesLabel(citations: unknown): string | null {
   return citations.length === 1 ? "1 SOURCE" : `${citations.length} SOURCES`;
 }
 
+/**
+ * Dim 17 recommendation band: the system's plain-language read on what to do
+ * next with a spec, keyed by its lifecycle (prds.status). Outcome-first voice,
+ * never the mechanism. Any unrecognized status falls back to the draft guidance.
+ */
+export function specRecommendation(status: string): string {
+  if (status === "shipped") return "Shipped. Watch the outcome and let Learn close the loop.";
+  if (status === "approved") return "Hand it to Build to start a mission from this spec.";
+  if (status === "review")
+    return "Approve to log the decision and unblock Build, or send it back to draft.";
+  return "Refine the spec, then send it to the Critic for review.";
+}
+
 /** Upcase a user-authored measure for the mono line; never rewrite the words, just the case. */
 export function measureCaps(measure: string | null): string | null {
   if (!measure || measure.trim().length === 0) return null;

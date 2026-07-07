@@ -14,7 +14,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Send } from "lucide-react";
+import { ChevronDown, ChevronRight, Send, Copy } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
@@ -37,6 +37,7 @@ import type { Inspection } from "@/lib/ai/studio-inspection";
 import { CostPanel } from "@/components/studio/CostPanel";
 import { StatusChip, LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { fmtCost } from "@/components/studio/studio-format";
+import { traceRef } from "@/components/discover/format";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 import { stripAutoPrefix } from "@/components/plan/format";
 
@@ -445,6 +446,7 @@ function BuildSessionPage() {
   const inspection = (data?.inspection ?? null) as Inspection | null;
   const steers = (data?.steers ?? []) as Steer[];
   const totalCost = data?.total_cost_usd ?? 0;
+  const spec = (data?.spec ?? null) as { id: string; title: string } | null;
 
   const isLive =
     mission?.status === "running" ||
@@ -532,6 +534,51 @@ function BuildSessionPage() {
               <span>started {fmtStarted(mission.created_at)}</span>
               <span style={{ color: "var(--text-faint)" }}>·</span>
               <span className="tabular-nums">{fmtCost(totalCost)}</span>
+              <span style={{ color: "var(--text-faint)" }}>·</span>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(mission.id);
+                  toast.success("Trace id copied");
+                }}
+                aria-label="Copy trace id"
+                title="Copy the full trace id"
+                className="loom-press"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-floor)",
+                  letterSpacing: "0.06em",
+                  color: "var(--text-faint)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                MIS·{traceRef(mission.id)}
+                <Copy size={10} />
+              </button>
+              {spec ? (
+                <>
+                  <span style={{ color: "var(--text-faint)" }}>·</span>
+                  <Link
+                    to="/plan/spec/$id"
+                    params={{ id: spec.id }}
+                    className="loom-press hover:[color:var(--text-primary)]"
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--text-mono-floor)",
+                      letterSpacing: "0.06em",
+                      color: "var(--glacier)",
+                    }}
+                    title={`Built from spec: ${spec.title}`}
+                  >
+                    from spec ↗
+                  </Link>
+                </>
+              ) : null}
               {isLive && (
                 <span
                   style={{

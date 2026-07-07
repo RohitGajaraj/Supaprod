@@ -222,6 +222,38 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ---
 
+## OBS-DIM17 · Plan (Define) + Build detail views deepened to dim 17 (✅ 2026-07-07, plan_build_surface)
+
+**What shipped:** the DEFINE (Plan) and BUILD detail views and objects brought up to the dim-17 + DetailKit standard (the binding contract in [`/DESIGN-LOOM.md`](../../DESIGN-LOOM.md) §0.1 dim 17; long-form reference [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md)), so a spec, a mission, and a bet read identically to a Discover signal, a Decide opportunity, and a Today call. No new trace prefixes were needed (`PRD` specs, `MIS` missions, `OPP` opportunities are already registered). All fields map to real columns; nothing fabricated.
+
+**Plan (Define):**
+
+- **`SpecDetail.tsx` rebuilt on the shared DetailKit anatomy.** The read-only spec slide-over now reads, in the DetailKit order: the meta row (the `stateChip` status pill + the Critic `VerdictChip` via the shared `verdictFor`, the present-tone `UPDATED` time, and the faint copyable `PRD·XXXXXX` trace ref) -> a calm **glacier** recommendation band (never amber) leading with what to do next, keyed by the spec lifecycle (`specRecommendation`) -> a compact `StatStrip` (Stage, Critic, Sources) -> `DetailSection`s: where it came from (provenance from `opportunity_id`), the Critic's take (honest empty when unreviewed), the spec body (Newsreader serif with inline `[n]` citation chips, unchanged), and the activity (drafted + last-updated, absolute + relative). The `getPrd` `select("*")` already returns every column read.
+- **`SpecList.tsx`** rows gained the dim-17 trace-and-time tail: a present-tone (`--text-subtle`) `relTimeCaps` timestamp and a faint (`--text-faint`) `PRD·XXXXXX` ref, replacing the single muted `relTime`. Rows already open the detail on a single click (role=button + Enter/Space + focus ring) and kept it.
+- **`BetCard.tsx`** gained the faint `OPP·XXXXXX` trace ref + present-tone `relTimeCaps` tail (a bet is an opportunity in a bucket), so every bet is a first-class auditable object; the existing move / edit-outcome / multi-select / `RoadmapHistory` ("where it came from") controls are unchanged. To feed the timestamp, `RoadmapItem` + the `getRoadmap` map were widened with the real `updated_at` column (surgical, no migration).
+- **`specRecommendation()`** added to `plan/format.ts` as a pure, tested helper (5 new cases in `format.test.ts`).
+
+**Build:**
+
+- **`MissionSlideOver.tsx`** header brought to dim 17 for both the build-kind and orchestrator-mission branches: a `MissionMeta` row (present-tone `STARTED <relTimeCaps>` + the faint copyable `MIS·XXXXXX` ref) and a `SpecProvenanceLink` that links the mission back up the loop to the spec it was built from. The steps list, the inline gate `CallCard`, `TestStationPanel`, and the raw-trace toggle are unchanged.
+- **`_authenticated.build.$missionId.tsx`** header meta row gained the copyable `MIS·XXXXXX` trace ref and a `from spec ↗` provenance link; its working two-column timeline/tabs body was deliberately left intact (aligned, not rewritten, per "align rather than duplicate").
+- **`BuildMissionRow.tsx` / `missionrow.tsx`**: the `MissionRow` primitive gained optional `time` + `traceLabel` props (backward compatible; the specimen + tests are unaffected), and `BuildMissionRow` passes `relTimeCaps(updated_at)` + `MIS·<traceRef(mission_id)>`, so each row carries its trace-and-time tail. Rows already open on click (the row is a real `<button>`).
+- **Provenance wiring (real, not fabricated):** `getStudioSession` now resolves the parent spec through the same `artifact_lineage` edge (`parent_kind 'prd' -> child_kind 'mission'`) that `listStudioSessions` already reads, returning `spec: { id, title } | null`. A directly-dispatched mission with no spec parent returns null (no fabricated lineage).
+
+**No migration needed / flagged fields:** every value is a real column. `RoadmapItem.updated_at` reads the existing `opportunities.updated_at`; the mission->spec link reuses the existing `artifact_lineage` table. **Considered follow-up (not fabricated here):** a per-stage transition history for specs and missions would need a lightweight events table plus a write on each stage change (the same deeper follow-up design-anatomy §4 flags platform-wide); today the honest floor is `created_at` / `updated_at`.
+
+**How to verify (repeatable):**
+
+1. `bun run dev`, open `/plan`. Click a spec row: the slide-over opens on the DetailKit skeleton (meta row with the `PRD·` ref + `UPDATED` time, the glacier recommendation band, the Stage/Critic/Sources strip, the provenance/Critic/spec/activity sections). The copy button copies the full id.
+2. On the roadmap, each bet shows the faint `OPP·` ref + relative time tail; move/edit/select and the history popover still work.
+3. Open `/build`. Each mission row shows the `MIS·` ref + relative time in its own column, verdict chip (only when done), step label, and cost. Click a row: the slide-over header shows `STARTED <time>`, the copyable `MIS·` ref, and (when the mission came from a spec) a `Built from spec · <title>` link that opens `/plan/spec/$id`.
+4. Open a mission full view (`/build/$missionId`): the header meta row carries the copyable `MIS·` ref and, when present, a `from spec ↗` link.
+5. Confirm ember appears only on the single Capture/gate CTA; grayscale still reads every chip, ref, and time by its text.
+
+**Gates at ship:** `tsc --noEmit` 0 · `bun run build` succeeds · `bun test` 2374 pass / 3 fail (only the known pre-existing `resolveEmbedRoute` gateway-key trio; 5 new `specRecommendation` cases added) · added-line em/en-dash + invisible-unicode scan clean (0) · DESIGN-LOOM.md untouched (dash count unchanged).
+
+---
+
 ## OBS-08 · Brain ported (✅ 2026-07-02, lane1, adversarial-reviewed)
 
 **What shipped:** the Brain (formerly Knowledge) surface fully ported to Obsidian (`src/routes/_authenticated.knowledge.tsx` + components), built on the OBS-03 primitives and spec OBS-08.md:

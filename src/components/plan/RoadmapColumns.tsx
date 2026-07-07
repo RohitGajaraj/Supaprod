@@ -291,6 +291,7 @@ export function RoadmapColumns() {
                     column={col.key}
                     iceScore={item.ice_score}
                     hasOutcome={isCommitmentGoverned(item)}
+                    updatedAt={item.updated_at}
                     selected={selectedIds.has(item.id)}
                     onToggleSelect={(on) => toggleSelect(item.id, on)}
                     onMoveTo={(bucket) => handleMove(item, bucket)}

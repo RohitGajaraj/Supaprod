@@ -283,6 +283,26 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (Plan/Define + Build surfaces: deep functional + design pass to consumer/enterprise grade, dim 17)
+
+**Context:** the DEFINE (Plan) and BUILD stations of the loop were ported to Obsidian/Loom (OBS-05/07) but their DETAIL VIEWS still lagged the dim-17 + DetailKit standard set by Discover, Decide, Today, and Brain: the spec slide-over was a bare markdown body (no trace ref, no timestamps, no stat strip, no recommendation band), missions carried no trace ref or timestamp on the row or in the slide-over, and neither a spec nor a mission linked back up the loop. This brings both to the same auditable depth, not a reskin.
+
+**What shipped:**
+
+- **`SpecDetail.tsx` rebuilt on the shared `DetailKit`** (`src/components/discover/DetailKit.tsx`): meta row (status pill + Critic `VerdictChip` via `verdictFor`, present-tone `UPDATED` time, faint copyable `PRD·XXXXXX` ref) → calm **glacier** recommendation band keyed by lifecycle (`specRecommendation`, never amber) → compact `StatStrip` (Stage, Critic, Sources) → `DetailSection`s (provenance from `opportunity_id`, the Critic's honest take, the Newsreader spec body with inline `[n]` citation chips, activity drafted+updated). Every field maps to a real `prds` column (`getPrd` `select("*")`).
+- **`SpecList.tsx`** rows gained the dim-17 trace-and-time tail (`relTimeCaps` at `--text-subtle` + faint `PRD·XXXXXX`); already click-to-open, kept.
+- **`BetCard.tsx`** gained the faint `OPP·XXXXXX` + relative-time tail (a bet is an opportunity in a bucket) so it is a first-class auditable object; move/edit-outcome/multi-select/`RoadmapHistory` unchanged. `RoadmapItem` + the `getRoadmap` map widened with the real `opportunities.updated_at` (no migration).
+- **`MissionSlideOver.tsx`** (build + orchestrator branches): a `MissionMeta` row (`STARTED <relTimeCaps>` present-tone + copyable faint `MIS·XXXXXX`) and a `SpecProvenanceLink` back up the loop to the source spec; steps, gate `CallCard`, `TestStationPanel`, raw-trace toggle unchanged.
+- **`_authenticated.build.$missionId.tsx`** header gained the copyable `MIS·` ref + a `from spec ↗` provenance link; the working two-column timeline/tabs body left intact (aligned, not rewritten).
+- **`missionrow.tsx`** gained optional `time` + `traceLabel` props (backward compatible); **`BuildMissionRow.tsx`** feeds them (`relTimeCaps(updated_at)` + `MIS·<traceRef(mission_id)>`).
+- **Provenance wiring (real):** `getStudioSession` resolves the parent spec via the same `artifact_lineage` edge `listStudioSessions` reads, returning `spec: { id, title } | null` (null when a mission had no spec parent; no fabricated lineage).
+- **`specRecommendation()`** added to `plan/format.ts` as a pure, tested helper (5 new `format.test.ts` cases).
+
+**Verified:** `npx tsc --noEmit` = 0; `bun run build` succeeds; `bun test` = 2374 pass / 3 fail (only the pre-existing `resolveEmbedRoute` gateway-key trio). Added-line em/en-dash + invisible-unicode scan clean (0); DESIGN-LOOM.md untouched. Feature doc: [`docs/features/obsidian-port.md`](./docs/features/obsidian-port.md) (OBS-DIM17 section).
+
+**Flagged for a follow-up migration (not fabricated):** a per-stage transition history for specs and missions (drafted→review→approved→shipped; queued→running→shipped) would need a lightweight events table plus a write on each stage change; today the honest floor is `created_at` / `updated_at`. No field was fabricated to fill this.
+
+
 ### 2026-07-07 (Brain surface: deep functional + design pass to consumer/enterprise grade, dim 17)
 
 **Context:** Brain (`/brain`, the moat made visible: decisions, learnings, the compounding decision graph) had its two object details still on the retired parchment layout (`DrillHeader` + `.bento` + `--ink-*`), no trace refs on any Brain object, and a graph whose nodes only highlighted on click and hid their detail behind an undiscoverable double-click. This brings Brain to the depth given Discover, Decide, and Today (dim 17), not a reskin.

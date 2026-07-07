@@ -14,6 +14,7 @@ import {
 import { MissionRow } from "./missionrow";
 import { studioToMissionRowStatus, studioVerdict, MISSION_ROW_STEP_LABEL } from "./build-status";
 import { fmtCost } from "@/components/studio/studio-format";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { stripAutoPrefix } from "@/components/plan/format";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
 
@@ -41,6 +42,8 @@ export function BuildMissionRow({
         verdict={verdict}
         stepLabel={MISSION_ROW_STEP_LABEL[status]}
         cost={fmtCost(session.cost_usd)}
+        time={relTimeCaps(session.updated_at)}
+        traceLabel={`MIS·${traceRef(session.mission_id)}`}
         onOpen={onOpen}
       />
       <DropdownMenu>

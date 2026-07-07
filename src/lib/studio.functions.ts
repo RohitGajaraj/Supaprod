@@ -864,9 +864,35 @@ export const getStudioSession = createServerFn({ method: "GET" })
       ciCheckCount: ci?.checks.length ?? 0,
     });
 
+    // Provenance (dim 17): the spec this mission was built from, resolved
+    // through the same artifact_lineage edge listStudioSessions reads
+    // (parent_kind 'prd' -> child_kind 'mission'). Real link only; a mission
+    // dispatched without a spec parent returns null (no fabricated lineage).
+    let spec: { id: string; title: string } | null = null;
+    {
+      const { data: edge } = await db
+        .from("artifact_lineage")
+        .select("parent_id")
+        .eq("parent_kind", "prd")
+        .eq("child_kind", "mission")
+        .eq("child_id", data.missionId)
+        .limit(1)
+        .maybeSingle();
+      const prdId = (edge as { parent_id?: string } | null)?.parent_id ?? null;
+      if (prdId) {
+        const { data: prdRow } = await db
+          .from("prds")
+          .select("id,title")
+          .eq("id", prdId)
+          .maybeSingle();
+        if (prdRow) spec = prdRow as { id: string; title: string };
+      }
+    }
+
     return {
       mission,
       kind,
+      spec,
       runs: runsDetailed,
       changeset: csRow
         ? { ...(csRow as Record<string, unknown>), file_count: changes.length }

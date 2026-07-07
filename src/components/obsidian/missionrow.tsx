@@ -11,6 +11,11 @@ export interface MissionRowProps {
   verdict?: VerdictTone;
   stepLabel: string;
   cost: string;
+  /** Dim 17 trace-and-time tail (both optional so existing callers are
+   * unaffected): the mono relative time (present, --text-subtle) over the
+   * faint mono trace ref (--text-faint). */
+  time?: string;
+  traceLabel?: string;
   onOpen: () => void;
   className?: string;
 }
@@ -18,7 +23,7 @@ export interface MissionRowProps {
 /** Full-width real `<button>` row (README §5.12: every acting row is a
  * `<button>`). Hover is tonal (background fill), never spatial. */
 export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
-  ({ status, title, verdict, stepLabel, cost, onOpen, className }, ref) => (
+  ({ status, title, verdict, stepLabel, cost, time, traceLabel, onOpen, className }, ref) => (
     <button
       ref={ref}
       type="button"
@@ -62,6 +67,37 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       >
         {stepLabel}
       </span>
+      {time || traceLabel ? (
+        <span
+          className="shrink-0 text-right"
+          style={{ width: "104px", display: "flex", flexDirection: "column", gap: "2px" }}
+        >
+          {time ? (
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "9px",
+                letterSpacing: "0.06em",
+                color: "var(--text-subtle)",
+              }}
+            >
+              {time}
+            </span>
+          ) : null}
+          {traceLabel ? (
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "8.5px",
+                letterSpacing: "0.06em",
+                color: "var(--text-faint)",
+              }}
+            >
+              {traceLabel}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
       <span
         className="shrink-0 text-right"
         style={{

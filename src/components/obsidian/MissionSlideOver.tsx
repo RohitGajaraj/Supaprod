@@ -11,6 +11,7 @@
  * prototype shows rather than inventing values the data contract doesn't have.
  */
 import { useEffect, useState } from "react";
+import { Copy } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -32,8 +33,83 @@ import { getStudioSession, type StudioApproval } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { promoteMission } from "@/lib/missions.functions";
 import { fmtCost } from "@/components/studio/studio-format";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { stripAutoPrefix } from "@/components/plan/format";
 import type { LoopStep } from "@/lib/ai/loop.server";
+
+/** The dim 17 meta row: the mission's start time a touch more present
+ * (--text-subtle), the copyable MIS trace ref the faintest tone. */
+function MissionMeta({
+  missionId,
+  startedIso,
+  onCopy,
+}: {
+  missionId: string;
+  startedIso?: string;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
+      {startedIso ? (
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9.5,
+            letterSpacing: "0.06em",
+            color: "var(--text-subtle)",
+          }}
+        >
+          STARTED {relTimeCaps(startedIso)}
+        </span>
+      ) : null}
+      <button
+        type="button"
+        onClick={onCopy}
+        aria-label="Copy trace id"
+        title="Copy the full trace id"
+        className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+        style={{
+          gap: 6,
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.06em",
+          color: "var(--text-faint)",
+          background: "transparent",
+          border: "none",
+          padding: "3px 2px",
+          cursor: "pointer",
+        }}
+      >
+        MIS·{traceRef(missionId)}
+        <Copy className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
+/** Provenance: link a mission back up the loop to the spec it was built from
+ * (dim 17). Real link only, from getStudioSession's artifact_lineage lookup. */
+function SpecProvenanceLink({ spec }: { spec: { id: string; title: string } }) {
+  return (
+    <Link
+      to="/plan/spec/$id"
+      params={{ id: spec.id }}
+      className="hover:[color:var(--text-primary)]"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontFamily: "var(--font-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.06em",
+        color: "var(--glacier)",
+        textDecoration: "none",
+      }}
+    >
+      Built from spec · {stripAutoPrefix(spec.title).slice(0, 48)} →
+    </Link>
+  );
+}
 
 export function MissionSlideOver({
   missionId,
@@ -88,8 +164,17 @@ export function MissionSlideOver({
     },
   });
 
+  const copyId = () => {
+    if (!missionId) return;
+    void navigator.clipboard?.writeText(missionId);
+    showToast("Trace id copied");
+  };
+
   const data = session.data;
-  const mission = data?.mission as { title: string; status: string; goal?: string } | undefined;
+  const mission = data?.mission as
+    | { title: string; status: string; goal?: string; created_at?: string; updated_at?: string }
+    | undefined;
+  const spec = (data?.spec ?? null) as { id: string; title: string } | null;
   const isOrchestratorMission = data?.kind === "mission";
   const approvals = (data?.approvals ?? []) as StudioApproval[];
   const pendingApproval = findPendingApproval(approvals) ?? null;
@@ -124,9 +209,15 @@ export function MissionSlideOver({
         // moat view) lives one layer deeper, at the full page; this stays a
         // condensed summary per the slide-over's own depth-2 contract.
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <MonoLabel tone="muted">MISSION</MonoLabel>
-            <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <MonoLabel tone="muted">MISSION</MonoLabel>
+              <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
+            </div>
+            {missionId ? (
+              <MissionMeta missionId={missionId} startedIso={mission.created_at} onCopy={copyId} />
+            ) : null}
+            {spec ? <SpecProvenanceLink spec={spec} /> : null}
           </div>
           {mission.goal ? (
             <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5 }}>
@@ -167,15 +258,21 @@ export function MissionSlideOver({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <MonoLabel tone="muted">MISSION</MonoLabel>
-            <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
-            <span
-              className="ml-auto"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-faint)" }}
-            >
-              {fmtCost(totalCost)}
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <MonoLabel tone="muted">MISSION</MonoLabel>
+              <StatusDot state={headerState} word={STATUS_WORD[headerState]} />
+              <span
+                className="ml-auto"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-faint)" }}
+              >
+                {fmtCost(totalCost)}
+              </span>
+            </div>
+            {missionId ? (
+              <MissionMeta missionId={missionId} startedIso={mission.created_at} onCopy={copyId} />
+            ) : null}
+            {spec ? <SpecProvenanceLink spec={spec} /> : null}
           </div>
 
           {missionId ? (

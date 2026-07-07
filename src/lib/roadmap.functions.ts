@@ -66,6 +66,8 @@ export type RoadmapItem = {
   bucket: RoadmapBucket | null;
   outcome: string | null;
   measure: string | null;
+  /** Dim 17: the bet's last-changed time, for the card's trace-and-time tail. */
+  updated_at: string | null;
 };
 
 export const getRoadmap = createServerFn({ method: "GET" })
@@ -90,6 +92,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
         roadmap_bucket?: string | null;
         roadmap_outcome?: string | null;
         roadmap_measure?: string | null;
+        updated_at?: string | null;
       };
       const bucket =
         r.roadmap_bucket === "now" || r.roadmap_bucket === "next" || r.roadmap_bucket === "later"
@@ -102,6 +105,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
         bucket,
         outcome: r.roadmap_outcome ?? null,
         measure: r.roadmap_measure ?? null,
+        updated_at: r.updated_at ?? null,
       };
     });
     // H2-WRITES: surface how many commitments sit in a bucket without a declared

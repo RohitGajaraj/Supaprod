@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { relTime } from "@/components/product/format";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { stateChip, citesLabel } from "./format";
 
 export interface SpecListProps {
@@ -287,9 +287,30 @@ export function SpecList({ onOpen }: SpecListProps) {
                     {cites}
                   </MonoLabel>
                 )}
-                <MonoLabel tone="muted" style={{ fontSize: "var(--text-mono-floor)" }}>
-                  {relTime(spec.updated_at)}
-                </MonoLabel>
+                {/* Dim 17 trace-and-time tail: the time a touch more present
+                    (--text-subtle), the PRD trace ref the faintest tone. */}
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-floor)",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-subtle)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {relTimeCaps(spec.updated_at)}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-floor)",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-faint)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  PRD·{traceRef(spec.id)}
+                </span>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
