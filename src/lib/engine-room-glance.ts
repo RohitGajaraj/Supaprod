@@ -30,6 +30,12 @@ export interface RoomGlance {
   question: string;
   verdict: string;
   state: RoomState;
+  /**
+   * The single next step when a room is on watch, phrased in plain language
+   * and pointing at a plain tab label. Derived from the same real state as
+   * `state` (never fabricated); absent on a healthy room.
+   */
+  action?: string;
 }
 
 export const ROOM_QUESTIONS: Record<RoomKey, string> = {
@@ -45,6 +51,146 @@ export const ROOM_NAMES: Record<RoomKey, string> = {
   safety: "Safety",
   record: "Record",
 };
+
+/**
+ * The naming model (founder ruling 2026-07-07): every Engine Room sub-view
+ * wears a PLAIN outcome label on the surface, with the TECHNICAL term kept
+ * underneath, subtly, so a PM reads the outcome and an engineer still finds
+ * the system word. `id` is the ?view= routing contract (unchanged); `label`
+ * is what shows on the tab; `technical` is the quiet trace rendered at the
+ * foot of the view ("the engine calls this ..."); `descriptor` is the one
+ * plain line that says what the view answers.
+ */
+export interface RoomTabMeta {
+  id: string;
+  label: string;
+  technical: string;
+  descriptor: string;
+}
+
+export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
+  spend: [
+    {
+      id: "trend",
+      label: "Over time",
+      technical: "Cost trend",
+      descriptor: "What you are spending, week over week.",
+    },
+    {
+      id: "by-agent",
+      label: "By agent",
+      technical: "Agent spend breakdown",
+      descriptor: "Which agents are costing you the most.",
+    },
+    {
+      id: "caps",
+      label: "Limits",
+      technical: "Budget caps",
+      descriptor: "The ceilings that stop spend from running away.",
+    },
+    {
+      id: "usage",
+      label: "Full usage",
+      technical: "Analytics rollup",
+      descriptor: "Every call, model, and token, itemized.",
+    },
+  ],
+  quality: [
+    {
+      id: "score",
+      label: "Right now",
+      technical: "Eval pass rate",
+      descriptor: "How well the machine is scoring today.",
+    },
+    {
+      id: "suites",
+      label: "What we test",
+      technical: "Eval suites",
+      descriptor: "The checks we run the machine against.",
+    },
+    {
+      id: "drift",
+      label: "Is it slipping?",
+      technical: "Drift",
+      descriptor: "Whether quality is quietly degrading over time.",
+    },
+    {
+      id: "prompts",
+      label: "Its instructions",
+      technical: "Prompts",
+      descriptor: "The instructions the agents actually run on.",
+    },
+    {
+      id: "proof",
+      label: "Stress tests",
+      technical: "Gauntlet",
+      descriptor: "How it holds up against hard, adversarial cases.",
+    },
+  ],
+  safety: [
+    {
+      id: "rules",
+      label: "What is allowed",
+      technical: "Guardrails",
+      descriptor: "The limits on what agents can say or do.",
+    },
+    {
+      id: "controls",
+      label: "Emergency controls",
+      technical: "Pause and kill switch",
+      descriptor: "Stop the machine now, if you have to.",
+    },
+    {
+      id: "team",
+      label: "Who can act",
+      technical: "Agent roster and trust",
+      descriptor: "Each agent and how much rope it has.",
+    },
+    {
+      id: "house-rules",
+      label: "Your policies",
+      technical: "House rules",
+      descriptor: "The standing rules you set for this workspace.",
+    },
+    {
+      id: "incidents",
+      label: "What went wrong",
+      technical: "Incidents",
+      descriptor: "Times a guardrail tripped or a limit was hit.",
+    },
+  ],
+  record: [
+    {
+      id: "traces",
+      label: "Every run",
+      technical: "Traces",
+      descriptor: "A replayable record of every agent run.",
+    },
+    {
+      id: "approvals",
+      label: "Your decisions",
+      technical: "Approval log",
+      descriptor: "What you approved or declined, and when.",
+    },
+    {
+      id: "ledger",
+      label: "Tamper check",
+      technical: "Ledger seal",
+      descriptor: "Proof the record has not been altered.",
+    },
+    {
+      id: "support",
+      label: "From your users",
+      technical: "Support signals",
+      descriptor: "Tickets and feedback flowing back into the loop.",
+    },
+  ],
+};
+
+/** The plain label for a room's view id (falls back to the id if unknown). */
+export function tabLabel(room: RoomKey, viewId: string): string {
+  return ROOM_TAB_META[room].find((t) => t.id === viewId)?.label ?? viewId;
+}
 
 function fmtUsd(n: number): string {
   if (n >= 1000) return `$${Math.round(n).toLocaleString("en-US")}`;
@@ -98,12 +244,17 @@ export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
     const monthly = monthlyCap > 0;
     const cap = monthly ? monthlyCap : dailyCap;
     const used = Number((monthly ? global?.monthly_usd_used : global?.daily_usd_used) ?? 0);
+    const state: RoomState = used / cap >= 0.8 ? "watch" : "healthy";
     return {
       key: "spend",
       name: ROOM_NAMES.spend,
       question: ROOM_QUESTIONS.spend,
       verdict: `${fmtUsd(used)} of ${fmtUsd(cap)} ${monthly ? "monthly" : "daily"} cap`,
-      state: used / cap >= 0.8 ? "watch" : "healthy",
+      state,
+      action:
+        state === "watch"
+          ? "Near the ceiling. Raise it in Limits, or find the top spender in By agent."
+          : undefined,
     };
   }
   return {
@@ -151,6 +302,12 @@ export function buildQualityGlance(input: QualityGlanceInput): RoomGlance {
     question: ROOM_QUESTIONS.quality,
     verdict: `Pass rate ${Math.round(passRate * 100)}% across ${totalRuns} run${totalRuns === 1 ? "" : "s"} · ${driftWord}`,
     state,
+    action:
+      state === "watch"
+        ? driftOpen
+          ? "Quality may be slipping. Open Is it slipping? to see what moved."
+          : "Open What we test to see which checks are failing."
+        : undefined,
   };
 }
 
@@ -170,6 +327,10 @@ export function buildSafetyGlance(input: SafetyGlanceInput): RoomGlance {
     question: ROOM_QUESTIONS.safety,
     verdict: `${onCount} guardrail${onCount === 1 ? "" : "s"} on · ${input.incidentCount} incident${input.incidentCount === 1 ? "" : "s"}`,
     state,
+    action:
+      state === "watch"
+        ? "Open What went wrong to see which guardrail tripped and why."
+        : undefined,
   };
 }
 

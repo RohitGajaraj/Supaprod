@@ -1,17 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button, VerdictChip } from "@/components/obsidian";
-import { ROOM_QUESTIONS, type RoomKey } from "@/lib/engine-room-glance";
+import { ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey, type RoomTabMeta } from "@/lib/engine-room-glance";
 import { useEngineRoomGlance } from "./EngineRoomSurface";
 import { SpendRoom } from "./rooms/SpendRoom";
 import { QualityRoom } from "./rooms/QualityRoom";
 import { SafetyRoom } from "./rooms/SafetyRoom";
 import { RecordRoom } from "./rooms/RecordRoom";
-
-export interface RoomTab {
-  id: string;
-  label: string;
-}
 
 export interface RowProps {
   subject: string;
@@ -166,37 +161,13 @@ export function VerdictSentence({ children }: { children: React.ReactNode }) {
   );
 }
 
-// LOOM W2: /govern's live tabs folded into the four rooms (the audit's #1 IA
-// insight: ONE Engine Room). Question-shaped rooms; ids are the ?view=
-// routing contract. Labels are plain words in the room-detail mono voice.
-export const ROOM_TABS: Record<RoomKey, RoomTab[]> = {
-  spend: [
-    { id: "trend", label: "TREND" },
-    { id: "by-agent", label: "BY AGENT" },
-    { id: "caps", label: "CAPS" },
-    { id: "usage", label: "USAGE" },
-  ],
-  quality: [
-    { id: "score", label: "SCORE" },
-    { id: "suites", label: "SUITES" },
-    { id: "drift", label: "DRIFT" },
-    { id: "prompts", label: "PROMPTS" },
-    { id: "proof", label: "PROOF" },
-  ],
-  safety: [
-    { id: "rules", label: "RULES" },
-    { id: "controls", label: "CONTROLS" },
-    { id: "team", label: "TEAM" },
-    { id: "house-rules", label: "HOUSE RULES" },
-    { id: "incidents", label: "INCIDENTS" },
-  ],
-  record: [
-    { id: "traces", label: "TRACES" },
-    { id: "approvals", label: "APPROVALS" },
-    { id: "ledger", label: "LEDGER" },
-    { id: "support", label: "SUPPORT" },
-  ],
-};
+// LOOM W2 / naming model (founder ruling 2026-07-07): the four rooms fold
+// every /govern tab. The tab metadata (plain outcome label + technical trace
+// + one-line descriptor) is the single source in engine-room-glance.ts;
+// ROOM_TABS re-exports it so the route's default-view lookup
+// (ROOM_TABS[room][0].id) and every consumer stay pointed at one list.
+export type RoomTab = RoomTabMeta;
+export const ROOM_TABS = ROOM_TAB_META;
 
 /** Drill params carried on the URL so deep links land exactly (LOOM §9b):
  * ?suite= (Quality suites), ?agent= (Spend usage/by-agent), ?surface=
@@ -232,8 +203,9 @@ export interface RoomDetailProps {
 export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailProps) {
   const { rooms } = useEngineRoomGlance();
   const status = rooms.find((r) => r.key === room);
-  const tabs = ROOM_TABS[room];
+  const tabs = ROOM_TAB_META[room];
   const activeView = tabs.some((t) => t.id === view) ? view : tabs[0]!.id;
+  const activeMeta = tabs.find((t) => t.id === activeView) ?? tabs[0]!;
   const Body = ROOM_BODY[room];
 
   React.useEffect(() => {
@@ -277,6 +249,36 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           >
             {status?.error ? "This room's summary did not load." : (status?.glance?.verdict ?? " ")}
           </p>
+          {/* The single next step, plain-spoken, only when the room is on
+              watch. Glacier is the machine voice; it reads as guidance, not a
+              control. Derived from the same real state as the verdict. */}
+          {status?.glance?.action ? (
+            <p
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-base)",
+                lineHeight: 1.5,
+                color: "var(--text-body)",
+                margin: "10px 0 0",
+                paddingLeft: "10px",
+                borderLeft: "2px solid var(--glacier)",
+              }}
+            >
+              <span
+                className="uppercase"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-micro)",
+                  letterSpacing: "0.12em",
+                  color: "var(--glacier)",
+                  marginRight: "8px",
+                }}
+              >
+                Next
+              </span>
+              {status.glance.action}
+            </p>
+          ) : null}
         </div>
         {status?.glance ? (
           <VerdictChip tone={status.glance.state === "watch" ? "WATCH" : "VALIDATED"}>
@@ -288,7 +290,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
       <div
         role="tablist"
         className="flex flex-wrap"
-        style={{ gap: "20px", marginBottom: "20px", borderBottom: "1px solid var(--hairline)" }}
+        style={{ gap: "20px", marginBottom: "14px", borderBottom: "1px solid var(--hairline)" }}
       >
         {tabs.map((tab) => {
           const active = tab.id === activeView;
@@ -300,14 +302,14 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
               aria-selected={active}
               onClick={() => onSetView(tab.id)}
               className={cn(
-                "uppercase outline-none",
+                "outline-none",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
                 !active && "hover:[color:var(--text-body)] cursor-pointer",
               )}
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-floor)",
-                letterSpacing: "0.1em",
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-base)",
+                fontWeight: active ? 600 : 500,
                 color: active ? "var(--text-primary)" : "var(--text-subtle)",
                 paddingBottom: "8px",
                 borderBottom: active ? "2px solid var(--glacier)" : "2px solid transparent",
@@ -319,7 +321,39 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         })}
       </div>
 
+      {/* Descriptor strip: the one plain line that says what this view answers,
+          so a click never lands on a bare table with no context. */}
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          lineHeight: 1.5,
+          color: "var(--text-muted)",
+          margin: "0 0 18px",
+        }}
+      >
+        {activeMeta.descriptor}
+      </p>
+
       <Body view={activeView} {...drill} />
+
+      {/* The technical trace, kept underneath and subtle (founder ruling
+          2026-07-07): a PM reads the plain label above; an engineer finds the
+          system term here. Plain on top, technical beneath, never at the front. */}
+      <p
+        className="uppercase"
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-micro)",
+          letterSpacing: "0.12em",
+          color: "var(--text-faint)",
+          margin: "32px 0 0",
+          paddingTop: "14px",
+          borderTop: "1px solid var(--hairline-faint)",
+        }}
+      >
+        {activeMeta.label} · the engine calls this {activeMeta.technical}
+      </p>
     </div>
   );
 }

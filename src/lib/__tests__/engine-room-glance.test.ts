@@ -5,6 +5,9 @@ import {
   buildSafetyGlance,
   buildRecordGlance,
   zeroFillDaily,
+  ROOM_TAB_META,
+  tabLabel,
+  type RoomKey,
 } from "../engine-room-glance";
 
 describe("engine-room-glance builders (LOOM honesty law: real numbers or none)", () => {
@@ -144,5 +147,98 @@ describe("zeroFillDaily (OBS-15)", () => {
     ];
     const filled = zeroFillDaily(daily, 7, ASOF);
     expect(filled.reduce((a, b) => a + b, 0)).toBe(5);
+  });
+});
+
+describe("Engine Room naming model (plain outcome on top, technical trace beneath)", () => {
+  const rooms: RoomKey[] = ["spend", "quality", "safety", "record"];
+
+  it("gives every tab a plain label, a technical term, and a one-line descriptor", () => {
+    for (const room of rooms) {
+      const tabs = ROOM_TAB_META[room];
+      expect(tabs.length).toBeGreaterThan(0);
+      for (const t of tabs) {
+        expect(t.id.length).toBeGreaterThan(0);
+        expect(t.label.length).toBeGreaterThan(0);
+        expect(t.technical.length).toBeGreaterThan(0);
+        expect(t.descriptor.length).toBeGreaterThan(0);
+        // The plain label is a real rename, never the raw id echoed back.
+        expect(t.label.toLowerCase()).not.toBe(t.id.toLowerCase());
+      }
+    }
+  });
+
+  it("keeps the exact ?view= ids the room bodies switch on", () => {
+    expect(ROOM_TAB_META.spend.map((t) => t.id)).toEqual(["trend", "by-agent", "caps", "usage"]);
+    expect(ROOM_TAB_META.quality.map((t) => t.id)).toEqual([
+      "score",
+      "suites",
+      "drift",
+      "prompts",
+      "proof",
+    ]);
+    expect(ROOM_TAB_META.safety.map((t) => t.id)).toEqual([
+      "rules",
+      "controls",
+      "team",
+      "house-rules",
+      "incidents",
+    ]);
+    expect(ROOM_TAB_META.record.map((t) => t.id)).toEqual([
+      "traces",
+      "approvals",
+      "ledger",
+      "support",
+    ]);
+  });
+
+  it("resolves the plain outcome label and falls back to the id when unknown", () => {
+    expect(tabLabel("quality", "score")).toBe("Right now");
+    expect(tabLabel("quality", "drift")).toBe("Is it slipping?");
+    expect(tabLabel("record", "ledger")).toBe("Tamper check");
+    expect(tabLabel("spend", "nonexistent")).toBe("nonexistent");
+  });
+});
+
+describe("Engine Room recommended action (derived from real state, watch only)", () => {
+  it("adds a plain next step when Spend is on watch, none when healthy", () => {
+    const watch = buildSpendGlance({
+      global: { daily_usd_cap: null, monthly_usd_cap: 100, monthly_usd_used: 90 },
+      costThisWeek: 20,
+    });
+    expect(watch.state).toBe("watch");
+    expect((watch.action ?? "").length).toBeGreaterThan(0);
+    const healthy = buildSpendGlance({
+      global: { daily_usd_cap: null, monthly_usd_cap: 100, monthly_usd_used: 10 },
+      costThisWeek: 5,
+    });
+    expect(healthy.action).toBeUndefined();
+  });
+
+  it("points Quality at the right plain tab depending on whether drift is open", () => {
+    const drift = buildQualityGlance({
+      passRate: 0.95,
+      totalRuns: 3,
+      verdict: "healthy",
+      driftOpenCount: 1,
+    });
+    expect(drift.action).toContain("Is it slipping?");
+    const failing = buildQualityGlance({
+      passRate: 0.4,
+      totalRuns: 10,
+      verdict: "at-risk",
+      driftOpenCount: 0,
+    });
+    expect(failing.action).toContain("What we test");
+  });
+
+  it("points Safety at What went wrong on an open incident", () => {
+    const safety = buildSafetyGlance({ rules: [{ enabled: true }], incidentCount: 2 });
+    expect(safety.action).toContain("What went wrong");
+  });
+
+  it("leaves a healthy Record with no next step", () => {
+    const record = buildRecordGlance({ traceCount: 10, ledgerVerifies: true });
+    expect(record.action).toBeUndefined();
   });
 });

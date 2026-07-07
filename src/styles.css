@@ -1929,6 +1929,21 @@ html[data-motion="off"] .agent-live {
   box-shadow: none;
 }
 
+/* Native <select> safety net: the closed control already reads dark via
+ * .input, but the OS-drawn <option> popup ignores component styling and can
+ * flash the light-theme white on macOS. Force the dark color-scheme and a
+ * dark list so any native select left in the tree renders on-brand. Designed
+ * surfaces (Engine Room, filters) prefer the themed shadcn Select; this is
+ * the floor for the rest. */
+[data-obsidian] select {
+  color-scheme: dark;
+}
+[data-obsidian] option,
+[data-obsidian] optgroup {
+  background-color: var(--raised);
+  color: var(--text-primary);
+}
+
 /* Compact density: one rhythm step off the rows; type untouched. Set on the
  * scope root or any subtree (Settings -> You, extensions §8). */
 [data-obsidian][data-density="compact"],
