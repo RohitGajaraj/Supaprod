@@ -14,6 +14,11 @@ const AURORA_HUE_BG: Record<AuroraHue, string> = {
   failing: "color-mix(in oklab, var(--madder) 12%, var(--surface-card-deep))",
 };
 
+/** The hue's card background; exported for tests and non-component callers. */
+export function auroraBackground(hue: AuroraHue): string {
+  return AURORA_HUE_BG[hue];
+}
+
 export interface AuroraCardProps extends React.HTMLAttributes<HTMLDivElement> {
   label: string;
   value: React.ReactNode;

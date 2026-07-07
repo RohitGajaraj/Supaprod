@@ -27,6 +27,7 @@ import { runCriticTool } from "@/lib/ai/critic.server";
 import { autoReflect } from "@/lib/ai/reflection.server";
 import { studioBranchName } from "@/lib/ai/studio-branch";
 import { mergeReadinessFromCi, overallFromChecks } from "@/lib/ai/studio-ci";
+import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { evalRegressionReadiness, type SuiteScorePair } from "@/lib/ai/eval-gate";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
@@ -62,13 +63,35 @@ function def<S extends z.ZodTypeAny>(d: ToolDef<S>) {
 
 /**
  * Resolve GitHub credentials via the connector chain
- * (workspace binding → user connection → env fallback). The ONE way GitHub
- * tools obtain {token, repo}; never read GITHUB_TOKEN/GITHUB_REPO directly.
+ * (product binding → workspace binding → user connection → env fallback).
+ * The ONE way GitHub tools obtain {token, repo}; never read
+ * GITHUB_TOKEN/GITHUB_REPO directly. The mission's product (via its newest
+ * changeset, which stamps product_id) scopes the repo when a product-level
+ * binding exists, so the /sync "Product repo override" finally applies
+ * during builds, not just deploy capture (seam-2 fix). Fail-soft: any
+ * lookup error degrades to the workspace chain, never blocks resolution.
  */
 async function requireGithub(ctx: ToolCtx) {
+  let productId: string | null = null;
+  if (ctx.missionId) {
+    try {
+      const { data } = await ctx.supabase
+        .from("studio_changesets")
+        .select("product_id")
+        .eq("mission_id", ctx.missionId)
+        .neq("status", "abandoned")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      productId = (data as { product_id?: string | null } | null)?.product_id ?? null;
+    } catch {
+      productId = null;
+    }
+  }
   return resolveGitHub({
     userId: ctx.userId,
     workspaceId: ctx.workspaceId,
+    productId,
     userClient: ctx.supabase,
   });
 }
@@ -1686,6 +1709,84 @@ const studioCommit = def({
   },
 });
 
+/** SEAM-2 (mission 3.6): bounded autonomous CI-fix budget per changeset. */
+const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
+
+const ciLogs = def({
+  name: "ci.logs",
+  description:
+    "Builder agent: fetch the FAILING check runs on a PR with their full output detail and job log tails. Read-only. Use to diagnose red CI before staging a fix — github.ci.read only carries 240-char summaries.",
+  category: "read",
+  argsSchema: z.object({
+    pr_number: z.number().int().min(1).max(10_000_000),
+  }),
+  preview: (a) => `Read failing CI detail on PR #${a.pr_number}`,
+  run: async (a, ctx) => {
+    const { token, repo } = await requireGithub(ctx);
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`Invalid GitHub repo format: ${repo}`);
+    const headers = ghHeaders(token);
+    const prRes = await fetch(`https://api.github.com/repos/${repo}/pulls/${a.pr_number}`, {
+      headers,
+    });
+    if (!prRes.ok)
+      throw new Error(`GitHub get-pr ${prRes.status}: ${(await prRes.text()).slice(0, 300)}`);
+    const prJson = (await prRes.json()) as { head: { sha: string } };
+    const detail = await fetchFailingCiDetail({ token, repo, headSha: prJson.head.sha });
+    return {
+      pr_number: a.pr_number,
+      head_sha: detail.headSha,
+      overall: detail.overall,
+      failing_count: detail.failing.length,
+      detail: detail.rendered || "No failing checks found at this head.",
+    };
+  },
+});
+
+const studioFixCommit = def({
+  name: "studio.fix.commit",
+  description:
+    "Studio: append staged CI-fix changes to this mission's EXISTING pr_open studio branch. Only valid AFTER a human opened the PR (studio.pr.open) — that prior human gate is why this runs without a fresh gate; the merge gate still holds. Bounded by the changeset's fix budget. For first commits use studio.commit.",
+  category: "write",
+  argsSchema: z.object({
+    message: z.string().min(4).max(280),
+  }),
+  preview: (a) => `Append CI fix: "${a.message.slice(0, 80)}"`,
+  run: async (a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.fix.commit requires a mission");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset — nothing to fix");
+    if (changeset.status !== "pr_open") {
+      throw new Error(
+        "studio.fix.commit only appends to a branch whose PR a human already opened. Use studio.commit (operator-gated) instead.",
+      );
+    }
+    const { data: budgetRow } = await supabase
+      .from("studio_changesets")
+      .select("fix_attempts")
+      .eq("id", changeset.id)
+      .maybeSingle();
+    const attempts = (budgetRow as { fix_attempts?: number } | null)?.fix_attempts ?? 0;
+    if (attempts >= CI_FIX_BUDGET) {
+      throw new Error(
+        `CI fix budget exhausted (${attempts}/${CI_FIX_BUDGET} autonomous attempts). Stop and report; a human decides the next move at the merge gate.`,
+      );
+    }
+    const result = (await studioCommit.run(a, ctx)) as { cached?: boolean };
+    // The budget is consumed PER COMMIT by the tool itself (not only by the
+    // tick's dispatch), so repeated calls inside one run genuinely trip the
+    // cap instead of re-reading a stale count. Cached idempotency replays do
+    // not consume budget.
+    if (!result?.cached) {
+      await supabase
+        .from("studio_changesets")
+        .update({ fix_attempts: attempts + 1, updated_at: new Date().toISOString() } as never)
+        .eq("id", changeset.id);
+    }
+    return result;
+  },
+});
+
 const studioPrOpen = def({
   name: "studio.pr.open",
   description:
@@ -2740,12 +2841,14 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     githubIssueCreate,
     githubPrOpen,
     githubCiRead,
+    ciLogs,
     githubCommitAppend,
     repoTree,
     repoRead,
     repoSearch,
     studioStage,
     studioCommit,
+    studioFixCommit,
     studioPrOpen,
     studioPrMerge,
     studioRevert,

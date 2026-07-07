@@ -21,21 +21,24 @@ describe("statusLabel", () => {
 });
 
 describe("changesetColor", () => {
-  test("merged -> emerald (outcome: shipped)", () => {
-    expect(changesetColor("merged")).toBe("var(--emerald)");
+  // Expectations match the REAL role tokens studio-format.ts returns (moss =
+  // outcome success, cornflower = live, text-subtle = neutral); the first
+  // draft of this suite asserted a token family the app does not use.
+  test("merged -> moss (outcome: shipped)", () => {
+    expect(changesetColor("merged")).toBe("var(--moss)");
   });
-  test("pr_open -> action-blue (live: under review)", () => {
-    expect(changesetColor("pr_open")).toBe("var(--action-blue)");
+  test("pr_open -> cornflower (live: under review)", () => {
+    expect(changesetColor("pr_open")).toBe("var(--cornflower)");
   });
-  test("abandoned -> ink-faint", () => {
-    expect(changesetColor("abandoned")).toBe("var(--ink-faint)");
+  test("abandoned -> text-subtle", () => {
+    expect(changesetColor("abandoned")).toBe("var(--text-subtle)");
   });
-  test("staged and committed fall back to the neutral ink-subtle ladder color", () => {
-    expect(changesetColor("staged")).toBe("var(--ink-subtle)");
-    expect(changesetColor("committed")).toBe("var(--ink-subtle)");
+  test("staged and committed fall back to the neutral text-subtle ladder color", () => {
+    expect(changesetColor("staged")).toBe("var(--text-subtle)");
+    expect(changesetColor("committed")).toBe("var(--text-subtle)");
   });
-  test("an unrecognized status also falls back to ink-subtle, not undefined", () => {
-    expect(changesetColor("some_future_state")).toBe("var(--ink-subtle)");
+  test("an unrecognized status also falls back to text-subtle, not undefined", () => {
+    expect(changesetColor("some_future_state")).toBe("var(--text-subtle)");
   });
 });
 

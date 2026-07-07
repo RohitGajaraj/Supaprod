@@ -106,6 +106,12 @@ describe("compareOpportunities tie-break chain", () => {
     expect(compareOpportunities(c, a, noCorr)).toBeGreaterThan(0);
     expect(order([c, b, a])).toEqual(["aaa", "bbb", "ccc"]);
   });
+
+  test("8. two rows sharing the same id compare equal (defensive finalizer, never a false ordering)", () => {
+    const a = mk({ id: "dup" });
+    const b = mk({ id: "dup" });
+    expect(compareOpportunities(a, b, noCorr)).toBe(0);
+  });
 });
 
 describe("rankOpportunities", () => {

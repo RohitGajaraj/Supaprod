@@ -20,7 +20,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { BindingRow, ConnectionRow, WorkspaceBindingRow } from "@/lib/connections.functions";
 import type { ProviderId } from "@/lib/connectors/registry";
 import { resolveProviderAuth } from "@/lib/connectors/resolve.server";
-import { repoProviderFor } from "@/lib/connectors/repo-provider";
+import { repoProviderFor, type RepoProvider } from "@/lib/connectors/repo-provider";
 
 const BINDING_COLUMNS =
   "id,connection_id,workspace_id,product_id,provider,resource_kind,resource_id,resource_label,config,created_by,created_at,updated_at";
@@ -262,6 +262,82 @@ export const listProducts = createServerFn({ method: "GET" })
 export type CreatedRepo = { owner: string; repo: string };
 
 /**
+ * W5a: the ONE repo-provisioning core, shared by createRepoForProduct (below)
+ * and provisionRepoForSpec (src/lib/new-build.functions.ts). Resolves GitHub
+ * auth through the standard chain (product binding → workspace binding → user
+ * connection → env), creates the repo in the user's own account, and (unless
+ * skipped) auto-binds it as a product-scoped binding. Throws the actionable
+ * errors for a missing connection and for oauth_gateway auth (which cannot
+ * create repos). Returns the provider so callers can keep working against the
+ * new repo (e.g. bootstrap the initial commit).
+ */
+export async function provisionGithubRepo(opts: {
+  db: SupabaseClient;
+  userId: string;
+  name: string;
+  isPrivate?: boolean;
+  org?: string;
+  description?: string;
+  productId?: string | null;
+  workspaceId?: string | null;
+  /** Skip the product-binding write (repo creation only). */
+  skipBinding?: boolean;
+}): Promise<{ repoRef: CreatedRepo; provider: RepoProvider }> {
+  // Resolve the user's GitHub auth — product → workspace → user connection.
+  const resolved = await resolveProviderAuth({
+    userClient: opts.db,
+    userId: opts.userId,
+    workspaceId: opts.workspaceId ?? null,
+    productId: opts.productId ?? null,
+    provider: "github",
+    resourceKind: "repo",
+  });
+
+  if (!resolved.auth || resolved.source === "none") {
+    throw new Error("No GitHub connection found. Connect your GitHub account in Settings first.");
+  }
+  if (resolved.auth.kind === "gateway") {
+    throw new Error(
+      "GitHub OAuth gateway does not support repo creation. Use a GitHub App or personal access token.",
+    );
+  }
+
+  const provider = repoProviderFor("github", resolved.auth.token);
+
+  const repoRef = await provider.createRepo(opts.name, {
+    private: opts.isPrivate ?? true,
+    org: opts.org,
+    description: opts.description,
+  });
+
+  // Auto-bind: create a product-scoped binding for the new repo.
+  if (!opts.skipBinding && opts.productId && opts.workspaceId && resolved.auth.kind !== "env") {
+    const connectionId = "connectionRowId" in resolved.auth ? resolved.auth.connectionRowId : null;
+    if (connectionId) {
+      const resourceId = `${repoRef.owner}/${repoRef.repo}`;
+      await opts.db
+        .from("connection_bindings")
+        .upsert(
+          {
+            connection_id: connectionId,
+            workspace_id: opts.workspaceId,
+            product_id: opts.productId,
+            provider: "github",
+            resource_kind: "repo",
+            resource_id: resourceId,
+            resource_label: repoRef.repo,
+            created_by: opts.userId,
+          },
+          { ignoreDuplicates: false },
+        )
+        .throwOnError();
+    }
+  }
+
+  return { repoRef, provider };
+}
+
+/**
  * Creates a GitHub repo in the user's own account (or an explicit org they own)
  * using the authenticated user's GitHub connection. Optionally auto-binds the
  * new repo as a product-scoped binding.
@@ -291,59 +367,16 @@ export const createRepoForProduct = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const db = context.supabase as unknown as SupabaseClient;
 
-    // Resolve the user's GitHub auth — product → workspace → user connection.
-    const resolved = await resolveProviderAuth({
-      userClient: db,
+    const { repoRef } = await provisionGithubRepo({
+      db,
       userId: context.userId,
-      workspaceId: data.workspaceId ?? null,
-      productId: data.productId ?? null,
-      provider: "github",
-      resourceKind: "repo",
-    });
-
-    if (!resolved.auth || resolved.source === "none") {
-      throw new Error("No GitHub connection found. Connect your GitHub account in Settings first.");
-    }
-    if (resolved.auth.kind === "gateway") {
-      throw new Error(
-        "GitHub OAuth gateway does not support repo creation. Use a GitHub App or personal access token.",
-      );
-    }
-
-    const token = resolved.auth.token;
-    const provider = repoProviderFor("github", token);
-
-    const repoRef = await provider.createRepo(data.name, {
-      private: data.isPrivate,
+      name: data.name,
+      isPrivate: data.isPrivate,
       org: data.org,
       description: data.description,
+      productId: data.productId ?? null,
+      workspaceId: data.workspaceId ?? null,
     });
-
-    // Auto-bind: create a product-scoped binding for the new repo.
-    if (data.productId && data.workspaceId && resolved.auth.kind !== "env") {
-      const connectionId =
-        "connectionRowId" in resolved.auth ? resolved.auth.connectionRowId : null;
-      if (connectionId) {
-        const resourceId = `${repoRef.owner}/${repoRef.repo}`;
-        // Ignore bind errors — the repo was created; the user can bind manually.
-        await db
-          .from("connection_bindings")
-          .upsert(
-            {
-              connection_id: connectionId,
-              workspace_id: data.workspaceId,
-              product_id: data.productId,
-              provider: "github",
-              resource_kind: "repo",
-              resource_id: resourceId,
-              resource_label: repoRef.repo,
-              created_by: context.userId,
-            },
-            { ignoreDuplicates: false },
-          )
-          .throwOnError();
-      }
-    }
 
     return { repo: repoRef satisfies CreatedRepo };
   });

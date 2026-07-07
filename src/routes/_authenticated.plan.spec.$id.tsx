@@ -47,6 +47,9 @@ import { DesignScaffoldPanel } from "@/components/product/DesignScaffoldPanel";
 import { listLinearTeams, createLinearIssuesFromTasks } from "@/lib/linear.functions";
 import { dispatchStudioSession } from "@/lib/studio.functions";
 import { createDecision } from "@/lib/decisions.functions";
+import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
+import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 
 const MODE_TABS = ["edit", "preview", "contract", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
@@ -229,6 +232,7 @@ function SpecEditorPage() {
   const mSave = useServerFn(savePrd);
   const mAssist = useServerFn(prdAssist);
   const mDispatchStudio = useServerFn(dispatchStudioSession);
+  const fCanDispatch = useServerFn(canDispatchToRepo);
   const mCreateIssue = useServerFn(createGithubIssueForPrd);
   const mCaptureDecision = useServerFn(createDecision);
   const prdQ = useQuery({ queryKey: ["prd", id], queryFn: () => fGet({ data: { id } }) });
@@ -279,14 +283,28 @@ function SpecEditorPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // W5b: the dispatch repo gate. Set when Send to Build cannot resolve a
+  // repo; the dialog offers /sync or provision-a-starter-repo + auto retry.
+  const [repoGate, setRepoGate] = useState<{ reason: string | null } | null>(null);
+
   const sendToStudio = useMutation({
     mutationFn: () => mDispatchStudio({ data: { prdId: id } }),
     onSuccess: (r) => {
       toast.success("Build session dispatched");
       navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      // The raw not-connected refusal becomes the gate with the real paths.
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });
+      else toast.error(e.message);
+    },
   });
+  const sendToBuild = () =>
+    gateDispatch({
+      check: () => fCanDispatch({ data: { prdId: id } }),
+      dispatch: () => sendToStudio.mutate(),
+      openGate: (reason) => setRepoGate({ reason }),
+    });
 
   const createIssue = useMutation({
     mutationFn: () => mCreateIssue({ data: { id } }),
@@ -646,7 +664,7 @@ function SpecEditorPage() {
 
           {prd.github_issue_url ? (
             <button
-              onClick={() => sendToStudio.mutate()}
+              onClick={() => void sendToBuild()}
               disabled={sendToStudio.isPending}
               className="loom-press"
               title="Dispatch a Build session to plan, stage, and PR the changes for this issue"
@@ -1005,6 +1023,15 @@ function SpecEditorPage() {
           <OutcomeCard prd={prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
         </div>
       </div>
+      <RepoGateDialog
+        open={repoGate !== null}
+        prdId={id}
+        reason={repoGate?.reason ?? null}
+        onOpenChange={(o) => {
+          if (!o) setRepoGate(null);
+        }}
+        onRetry={() => sendToStudio.mutate()}
+      />
     </>
   );
 }

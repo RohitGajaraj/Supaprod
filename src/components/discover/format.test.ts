@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { latestIso, relTimeCaps, sourceCaps, verdictFor } from "./format";
+import { latestIso, relTimeCaps, sourceCaps, verdictFor, traceRef, withTimeout } from "./format";
 
 describe("relTimeCaps", () => {
   const now = Date.now();
@@ -89,5 +89,36 @@ describe("verdictFor", () => {
 
   test("falls back to PENDING for backlog with no critic review", () => {
     expect(verdictFor({ status: "backlog", critic_review: null })).toBe("PENDING");
+  });
+});
+
+describe("traceRef", () => {
+  test("takes the first 6 alphanumerics of a uuid, uppercased", () => {
+    expect(traceRef("a1b2c3d4-0000-0000-0000-000000000000")).toBe("A1B2C3");
+  });
+
+  test("returns a shorter string unchanged in case, just uppercased, when the id has fewer than 6 alphanumerics", () => {
+    expect(traceRef("a-1")).toBe("A1");
+  });
+
+  test("returns an empty string when the id has no alphanumeric characters", () => {
+    expect(traceRef("---")).toBe("");
+  });
+});
+
+describe("withTimeout", () => {
+  test("resolves with the underlying promise's value when it settles before the deadline", async () => {
+    await expect(withTimeout(Promise.resolve("ok"), 50)).resolves.toBe("ok");
+  });
+
+  test("propagates the underlying promise's own rejection unchanged", async () => {
+    await expect(withTimeout(Promise.reject(new Error("boom")), 50)).rejects.toThrow("boom");
+  });
+
+  test("rejects with a clear retry message when the promise never settles before the deadline", async () => {
+    const neverSettles = new Promise<string>(() => {});
+    await expect(withTimeout(neverSettles, 10)).rejects.toThrow(
+      "The server took too long to answer. Retry in a moment.",
+    );
   });
 });

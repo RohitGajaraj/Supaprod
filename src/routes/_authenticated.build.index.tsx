@@ -39,6 +39,9 @@ import {
 } from "@/lib/studio.functions";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
+import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
+import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
@@ -182,6 +185,7 @@ function MissionListSkeleton() {
 function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement | null> }) {
   const navigate = useNavigate();
   const fDispatch = useServerFn(dispatchStudioSession);
+  const fCanDispatch = useServerFn(canDispatchToRepo);
   const fStartMission = useServerFn(startOrchestratedMission);
   const fPrds = useServerFn(listPrds);
 
@@ -201,6 +205,11 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
   ).filter((p) => p.status === "approved");
   const selectedPrd = approvedPrds.find((p) => p.id === prdId) ?? null;
 
+  // W5b: the dispatch repo gate. Set when a ship dispatch cannot resolve a
+  // repo; the dialog offers /sync or (with a spec picked) provision-a-starter
+  // -repo + auto retry.
+  const [repoGate, setRepoGate] = useState<{ reason: string | null } | null>(null);
+
   const dispatch = useMutation({
     mutationFn: () =>
       fDispatch({
@@ -214,8 +223,18 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       toast.success("Build started");
       navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      // The raw not-connected refusal becomes the gate with the real paths.
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });
+      else toast.error(e.message);
+    },
   });
+  const gatedDispatch = () =>
+    gateDispatch({
+      check: () => fCanDispatch({ data: { prdId: prdId ?? undefined } }),
+      dispatch: () => dispatch.mutate(),
+      openGate: (reason) => setRepoGate({ reason }),
+    });
 
   const startMission = useMutation({
     mutationFn: () =>
@@ -239,7 +258,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
     mode === "ship"
       ? (prompt.trim().length >= 4 || !!prdId) && !isPending
       : prompt.trim().length >= 4 && !isPending;
-  const runStart = () => (mode === "ship" ? dispatch.mutate() : startMission.mutate());
+  const runStart = () => (mode === "ship" ? void gatedDispatch() : startMission.mutate());
 
   return (
     <section
@@ -425,6 +444,15 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       >
         ⌘Enter to start · gates come back to you
       </div>
+      <RepoGateDialog
+        open={repoGate !== null}
+        prdId={prdId}
+        reason={repoGate?.reason ?? null}
+        onOpenChange={(o) => {
+          if (!o) setRepoGate(null);
+        }}
+        onRetry={() => dispatch.mutate()}
+      />
     </section>
   );
 }

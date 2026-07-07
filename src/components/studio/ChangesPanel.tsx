@@ -25,6 +25,7 @@ import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
+import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 
 // Monaco stays out of the main bundle — it only loads when a file is opened.
 const DiffEditor = lazy(() =>
@@ -181,6 +182,39 @@ export function ChangesPanel({
     },
     onError: (e: unknown) =>
       toast.error(e instanceof Error ? e.message : "Could not drop the file."),
+  });
+
+  // SEAM-2 SHIP: merge is not the end; a live URL is. A merged changeset on a
+  // Cadence-managed repo gets an automatic preview deploy (ci-poll-tick); the
+  // one human promote click moves production and is recorded as an approval.
+  const fDeployments = useServerFn(listDeployments);
+  const deploymentsQ = useQuery({
+    queryKey: ["changeset-deployments", changeset?.id],
+    queryFn: () => fDeployments({ data: { changesetId: changeset!.id } }),
+    enabled: !!changeset && changeset.status === "merged",
+    refetchInterval: 30_000,
+  });
+  const deploymentRows = (deploymentsQ.data?.deployments ?? []) as Array<{
+    id: string;
+    environment: string;
+    status: string;
+    deploy_url: string | null;
+  }>;
+  const previewDep = deploymentRows.find(
+    (d) => d.environment === "preview" && d.status === "success" && d.deploy_url,
+  );
+  const productionDep = deploymentRows.find(
+    (d) => d.environment === "production" && d.status === "success" && d.deploy_url,
+  );
+  const fPromote = useServerFn(promoteToProduction);
+  const promoteMut = useMutation({
+    mutationFn: () => fPromote({ data: { changesetId: changeset!.id } }),
+    onSuccess: (res) => {
+      toast.success(`Live in production: ${res.productionUrl}`);
+      qc.invalidateQueries({ queryKey: ["changeset-deployments", changeset?.id] });
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Promote failed."),
   });
 
   // F-BUILDER-MULTIFILE: scope policy (touch list + max-files cap). The editor
@@ -433,6 +467,80 @@ export function ChangesPanel({
           </button>
         )}
       </div>
+
+      {/* SEAM-2 SHIP: preview URL, the one promote gate, and the production URL. */}
+      {changeset.status === "merged" && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 18px",
+            ...LOOM_CARD,
+          }}
+        >
+          <span className="mono-label" style={{ whiteSpace: "nowrap" }}>
+            Ship
+          </span>
+          {previewDep ? (
+            <a
+              href={previewDep.deploy_url!}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11.5,
+                color: "var(--text-body)",
+                minWidth: 0,
+              }}
+            >
+              preview: {previewDep.deploy_url}
+            </a>
+          ) : (
+            <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
+              Preview deploys automatically after merge on Cadence-managed repos, within about
+              two minutes.
+            </span>
+          )}
+          {productionDep ? (
+            <a
+              href={productionDep.deploy_url!}
+              target="_blank"
+              rel="noreferrer"
+              className="truncate"
+              style={{
+                marginLeft: "auto",
+                fontFamily: "var(--font-mono)",
+                fontSize: 11.5,
+                color: "var(--text-body)",
+                minWidth: 0,
+              }}
+            >
+              production: {productionDep.deploy_url}
+            </a>
+          ) : previewDep ? (
+            <button
+              type="button"
+              onClick={() => promoteMut.mutate()}
+              disabled={promoteMut.isPending}
+              style={{
+                marginLeft: "auto",
+                padding: "4px 10px",
+                fontSize: 11.5,
+                borderRadius: 6,
+                border: "1px solid var(--hairline)",
+                background: "transparent",
+                color: "var(--text-body)",
+                cursor: promoteMut.isPending ? "default" : "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {promoteMut.isPending ? "Promoting..." : "Promote to production"}
+            </button>
+          ) : null}
+        </div>
+      )}
 
       {/* K1 release notes: the ship artifact for this changeset (factual, AI-drafted). */}
       {changeset.release_notes || changes.length > 0 || revisions.length > 0 ? (

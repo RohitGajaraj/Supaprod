@@ -105,7 +105,7 @@ async function queryLane2(
     .order("at", { ascending: false });
 
   // Group by entity_type for now (missions, decisions, opportunities)
-  const grouped = new Map<string, typeof events>();
+  const grouped = new Map<string, NonNullable<typeof events>>();
   (events || []).forEach((e) => {
     const key = e.entity_type || "unknown";
     if (!grouped.has(key)) grouped.set(key, []);

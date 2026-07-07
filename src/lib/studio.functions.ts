@@ -15,7 +15,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createMission } from "@/lib/ai/handoff.server";
+import { nativeBuildDriver } from "@/lib/build/native.server";
+import type { BuildSpec } from "@/lib/build/driver";
+import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
+import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { recordLineage } from "@/lib/lineage.functions";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import type { LoopStep } from "@/lib/ai/loop.server";
@@ -197,12 +200,13 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       body_md: string | null;
       github_issue_url: string | null;
       workspace_id: string | null;
+      contract: unknown;
     };
     let prd: PrdCtx | null = null;
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id")
+        .select("id,title,body_md,github_issue_url,workspace_id,contract")
         .eq("id", data.prdId)
         .single();
       if (error) throw new Error(`PRD lookup failed: ${error.message}`);
@@ -281,28 +285,46 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!agent) throw new Error("Studio agent not found in your roster.");
 
-    const goal = sections.join("\n\n");
-    const mission = await createMission(supabase, userId, workspaceId, {
-      title: `Studio · ${(sourceTitle ?? "session").slice(0, 180)}`,
-      goal,
-      starting_agent_id: (agent as { id: string }).id,
-    });
+    // BD-1 / ARD rides dispatch: when the spec carries a compiled Outcome
+    // Contract, its machine-readable ARD document travels INSIDE the work
+    // order as a delimited fenced block AFTER the prose, and the standing
+    // success metrics become the BuildSpec's acceptance criteria — the engine
+    // receives the identical contract Cadence checks the build against.
+    let acceptanceCriteria: string[] | undefined;
+    if (prd?.contract) {
+      const parsed = parseArdDocument(prd.contract);
+      if (parsed.ok && parsed.contract.intent.trim()) {
+        // Origin "" keeps schema_url an app-relative path (/api/public/ard/schema):
+        // a server fn has no request origin at hand, and a fabricated host would
+        // be dishonest data.
+        const ard = buildArdDocument("", prd.id, prd.title, parsed.contract);
+        sections.push(formatArdWorkOrderBlock(ard));
+        const criteria = standingClauseTexts(parsed.contract.success_metrics);
+        if (criteria.length) acceptanceCriteria = criteria;
+      }
+    }
 
-    // Enqueue (don't block the dispatch on a long session) — the resume-runs
-    // sweeper promotes queued runs on its next tick. Model rides on the run
-    // row so the queued start honors the switcher.
-    const { error: runErr } = await db.from("agent_runs").insert({
-      user_id: userId,
-      agent_id: (agent as { id: string }).id,
-      agent_slug: "builder",
-      agent_name: "Studio",
-      input: goal,
-      status: "queued",
-      workspace_id: workspaceId,
-      mission_id: mission.id,
-      model: data.model ?? null,
-    });
-    if (runErr) throw new Error(`Session enqueue failed: ${runErr.message}`);
+    const goal = sections.join("\n\n");
+
+    // BD-1: dispatch through the BuildDriver seam. The native adapter performs
+    // exactly the pre-seam behavior (createMission + queued agent_runs row the
+    // resume-runs sweeper promotes) and stamps missions.build_driver='native'.
+    const spec: BuildSpec = {
+      goal,
+      ...(acceptanceCriteria ? { acceptanceCriteria } : {}),
+    };
+    const session = await nativeBuildDriver.dispatch(
+      {
+        supabase: db,
+        userId,
+        workspaceId,
+        agent: { id: (agent as { id: string }).id, slug: "builder", name: "Studio" },
+        missionTitle: `Studio · ${(sourceTitle ?? "session").slice(0, 180)}`,
+        model: data.model ?? null,
+      },
+      spec,
+    );
+    const mission = { id: session.missionId };
 
     // F-BUILDER-MULTIFILE: persist the pre-declared touch list + cap (mission-
     // keyed, so it is in place before the agent lazily creates the changeset).

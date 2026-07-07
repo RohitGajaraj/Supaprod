@@ -81,6 +81,19 @@ export interface RepoProvider {
     name: string,
     opts: { private?: boolean; org?: string; description?: string },
   ): Promise<RepoRef>;
+
+  /**
+   * Optional: create the INITIAL commit on an empty repo (createRepo uses
+   * auto_init:false, so a fresh repo has no branch and no commit; commitFiles
+   * requires a parent SHA and cannot bootstrap). Creates the commit and the
+   * branch ref in one go. Adapters that cannot do this leave it undefined.
+   */
+  bootstrapRepo?(
+    ref: RepoRef,
+    files: Array<{ path: string; content: string }>,
+    message: string,
+    branch?: string,
+  ): Promise<CommitResult>;
 }
 
 // ---------------------------------------------------------------------------

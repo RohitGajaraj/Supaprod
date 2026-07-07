@@ -55,6 +55,16 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "partial",
     undo: "Stays in history. Revert with a follow-up commit.",
   },
+  "studio.fix.commit": {
+    effect: "Appends a CI-fix commit to the changeset's existing, human-opened PR branch.",
+    reversible: "partial",
+    undo: "Stays in branch history. The merge gate still holds; close the PR to discard the branch.",
+  },
+  "ci.logs": {
+    effect: "Reads the failing check runs and log tails on a PR. Changes nothing.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   "studio.stage": {
     effect: "Stages file changes on the working branch.",
     reversible: "reversible",
@@ -202,6 +212,7 @@ const EXTERNAL_TOOLS = new Set<string>([
   "github.issue.create",
   "github.commit.append",
   "studio.commit",
+  "studio.fix.commit",
   "calendar.create",
   "prd.link_issue",
   "delegate.openhands",

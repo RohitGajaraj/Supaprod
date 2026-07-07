@@ -1,0 +1,211 @@
+/**
+ * SEAM-2 (mission 3.7): merge is not the end; a live URL is.
+ *
+ * Deploys a merged studio changeset's repo content to Deno Deploy as a real
+ * running app. Scope is deliberately honest: only Cadence-managed repos
+ * (cadence.json at root, the deno-starter template family) qualify, because
+ * those are the apps we KNOW are `Deno.serve` programs with a main.ts
+ * entrypoint. Arbitrary customer repos keep the existing capture-only
+ * deployment records.
+ *
+ * API shapes live-verified 2026-07-07 against api.deno.com/v2 with a real
+ * token: app creation defaults to config.runtime {type:'dynamic',
+ * entrypoint:'main.ts'}; a production deploy serves at
+ * https://<slug>.<org>.deno.net and a non-production revision at
+ * https://<slug>-<revisionId>.<org>.deno.net (both probed live).
+ *
+ * No admin-role gate: the caller scopes by workspace membership (RLS on the
+ * deployments table) and app slugs derive from workspace + changeset ids.
+ */
+
+const DENO_API_BASE = "https://api.deno.com/v2";
+
+const TEXT_EXTENSIONS = new Set([
+  "ts", "tsx", "js", "jsx", "mjs", "json", "jsonc", "html", "css", "md", "txt",
+  "svg", "yml", "yaml", "toml", "csv", "xml", "webmanifest",
+]);
+const MAX_FILE_BYTES = 400_000;
+const MAX_FILES = 200;
+
+export function denoOrgSlug(): string {
+  return process.env.DENO_DEPLOY_ORG || "cadencehostingtest";
+}
+
+function denoToken(): string | undefined {
+  return process.env.DENO_DEPLOY_TOKEN ?? process.env.DENO_DEPLOY_ACCESS_TOKEN;
+}
+
+export function denoDeployConfigured(): boolean {
+  return !!denoToken();
+}
+
+/** PURE. Deno Deploy app slug for a changeset: stable, lowercase, collision-scoped.
+ * 12 hex of changeset id keeps the within-workspace collision space negligible
+ * (adversarial-review finding: 6 hex reached birthday territory at a few
+ * thousand changesets, silently clobbering another changeset's live app). */
+export function deriveAppSlug(workspaceId: string, changesetId: string): string {
+  const ws = workspaceId.replace(/[^a-z0-9]/gi, "").slice(0, 8).toLowerCase();
+  const cs = changesetId.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase();
+  return `cad-${ws}-${cs}`;
+}
+
+/** PURE. Should this repo file ride the deploy? Secrets-shaped names never
+ * ship: the deployed URL is public, so over-blocking a "secrets.json" is far
+ * cheaper than leaking one (adversarial-review finding). */
+export function deployableFile(path: string, size: number | undefined): boolean {
+  if (typeof size === "number" && size > MAX_FILE_BYTES) return false;
+  if (path.startsWith(".git/")) return false;
+  const base = (path.split("/").pop() ?? "").toLowerCase();
+  if (base.startsWith(".env") || base.includes("secret") || base.includes("credential")) {
+    return false;
+  }
+  const ext = path.includes(".") ? path.split(".").pop()!.toLowerCase() : "";
+  return TEXT_EXTENSIONS.has(ext);
+}
+
+export function productionUrl(slug: string): string {
+  return `https://${slug}.${denoOrgSlug()}.deno.net`;
+}
+
+export function previewUrl(slug: string, revisionId: string): string {
+  return `https://${slug}-${revisionId}.${denoOrgSlug()}.deno.net`;
+}
+
+function ghHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "cadence-ship",
+  };
+}
+
+/** cadence.json at the repo root marks a Cadence-managed (template) app. */
+export async function isCadenceManaged(args: {
+  token: string;
+  repo: string;
+  ref: string;
+}): Promise<boolean> {
+  const res = await fetch(
+    `https://api.github.com/repos/${args.repo}/contents/cadence.json?ref=${encodeURIComponent(args.ref)}`,
+    { headers: ghHeaders(args.token) },
+  );
+  return res.ok;
+}
+
+/**
+ * Pull the repo's deployable text files at a ref. Refuses oversized repos
+ * honestly instead of deploying a truncated app.
+ */
+export async function collectRepoFiles(args: {
+  token: string;
+  repo: string;
+  ref: string;
+}): Promise<Array<{ path: string; content: string }>> {
+  const headers = ghHeaders(args.token);
+  const treeRes = await fetch(
+    `https://api.github.com/repos/${args.repo}/git/trees/${encodeURIComponent(args.ref)}?recursive=1`,
+    { headers },
+  );
+  if (!treeRes.ok) {
+    throw new Error(`ship: repo tree read failed (${treeRes.status})`);
+  }
+  const tree = (await treeRes.json()) as {
+    tree?: Array<{ path: string; type: string; size?: number; sha: string }>;
+    truncated?: boolean;
+  };
+  const blobs = (tree.tree ?? []).filter((e) => e.type === "blob");
+  if (tree.truncated || blobs.length > MAX_FILES) {
+    throw new Error(
+      `ship: repo has ${blobs.length}${tree.truncated ? "+" : ""} files; the managed deploy path caps at ${MAX_FILES}. This repo should deploy through its own pipeline.`,
+    );
+  }
+  const wanted = blobs.filter((e) => deployableFile(e.path, e.size));
+  const out: Array<{ path: string; content: string }> = [];
+  for (const f of wanted) {
+    const blobRes = await fetch(`https://api.github.com/repos/${args.repo}/git/blobs/${f.sha}`, {
+      headers,
+    });
+    if (!blobRes.ok) {
+      throw new Error(`ship: blob read failed for ${f.path} (${blobRes.status})`);
+    }
+    const blob = (await blobRes.json()) as { content?: string; encoding?: string };
+    const content =
+      blob.encoding === "base64"
+        ? Buffer.from((blob.content ?? "").replace(/\n/g, ""), "base64").toString("utf-8")
+        : (blob.content ?? "");
+    out.push({ path: f.path, content });
+  }
+  if (!out.some((f) => f.path === "main.ts")) {
+    throw new Error("ship: no main.ts entrypoint at the repo root; not a deployable managed app");
+  }
+  return out;
+}
+
+export interface ChangesetDeployResult {
+  ok: boolean;
+  revisionId: string | null;
+  url: string | null;
+  reason?: string;
+}
+
+/**
+ * Deploy the given files as the changeset's app. `production: false` yields a
+ * preview revision URL; `true` moves the production alias.
+ */
+export async function deployChangesetApp(args: {
+  workspaceId: string;
+  changesetId: string;
+  files: Array<{ path: string; content: string }>;
+  production: boolean;
+}): Promise<ChangesetDeployResult> {
+  const token = denoToken();
+  if (!token) return { ok: false, revisionId: null, url: null, reason: "DENO_DEPLOY_TOKEN not set" };
+  const slug = deriveAppSlug(args.workspaceId, args.changesetId);
+  const auth = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+
+  // Ensure the app exists; an already-taken slug is fine (idempotent ensure).
+  const createRes = await fetch(`${DENO_API_BASE}/apps`, {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({ slug }),
+  });
+  if (!createRes.ok && createRes.status !== 409 && createRes.status !== 400) {
+    return {
+      ok: false,
+      revisionId: null,
+      url: null,
+      reason: `app create failed (${createRes.status})`,
+    };
+  }
+
+  const assets: Record<string, unknown> = {};
+  for (const f of args.files) {
+    assets[f.path] = { kind: "file", encoding: "utf-8", content: f.content };
+  }
+  const deployRes = await fetch(`${DENO_API_BASE}/apps/${slug}/deploy`, {
+    method: "POST",
+    headers: auth,
+    body: JSON.stringify({
+      assets,
+      config: { runtime: { type: "dynamic", entrypoint: "main.ts" } },
+      production: args.production,
+    }),
+  });
+  if (!deployRes.ok) {
+    return {
+      ok: false,
+      revisionId: null,
+      url: null,
+      reason: `deploy failed (${deployRes.status}): ${(await deployRes.text()).slice(0, 200)}`,
+    };
+  }
+  const body = (await deployRes.json()) as { id?: string };
+  const revisionId = body.id ?? null;
+  const url = args.production
+    ? productionUrl(slug)
+    : revisionId
+      ? previewUrl(slug, revisionId)
+      : null;
+  return { ok: true, revisionId, url };
+}

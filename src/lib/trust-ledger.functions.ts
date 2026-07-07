@@ -380,7 +380,9 @@ async function loadReceipts(
   if (decisionsRes.error) throw new Error(decisionsRes.error.message);
   if (approvalsRes.error) throw new Error(approvalsRes.error.message);
   if (learningsRes.error) {
-    console.error(`trust-ledger learnings read failed (proven degrades): ${learningsRes.error.message}`);
+    console.error(
+      `trust-ledger learnings read failed (proven degrades): ${learningsRes.error.message}`,
+    );
   }
 
   const decisions = (decisionsRes.data ?? []) as DecisionLite[];

@@ -11,6 +11,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
+import { nativeBuildDriver } from "@/lib/build/native.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 
 export type BuilderRun = {
@@ -421,6 +422,9 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         ).slice(0, 200),
         goal: fullGoal,
         starting_agent_id: (agent as { id: string }).id,
+        // BD-1: this dispatch runs the in-house loop below, so the mission is
+        // stamped with the engine that actually builds it.
+        build_driver: nativeBuildDriver.id,
       });
       missionId = m.id;
     }

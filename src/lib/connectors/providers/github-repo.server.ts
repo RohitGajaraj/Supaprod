@@ -211,6 +211,48 @@ export class GitHubRepoProvider implements RepoProvider {
     return { sha: commit.sha };
   }
 
+  /**
+   * Create the INITIAL commit on an EMPTY repo (the state createRepo leaves
+   * behind with auto_init:false -- no branch, no commit):
+   *   1. POST a root tree WITHOUT base_tree
+   *   2. POST a commit with parents: []
+   *   3. POST the branch ref refs/heads/<branch> pointing at it
+   */
+  async bootstrapRepo(
+    ref: RepoRef,
+    files: Array<{ path: string; content: string }>,
+    message: string,
+    branch = "main",
+  ): Promise<CommitResult> {
+    const rp = this.repoPath(ref);
+
+    // 1. Root tree from scratch (no base_tree -- the repo has none).
+    const treeItems = files.map((f) => ({
+      path: f.path,
+      mode: "100644",
+      type: "blob",
+      content: f.content,
+    }));
+    const tree = await this.ghJson<{ sha: string }>(`${GH_API}/repos/${rp}/git/trees`, {
+      method: "POST",
+      body: JSON.stringify({ tree: treeItems }),
+    });
+
+    // 2. Parentless commit.
+    const commit = await this.ghJson<{ sha: string }>(`${GH_API}/repos/${rp}/git/commits`, {
+      method: "POST",
+      body: JSON.stringify({ message, tree: tree.sha, parents: [] }),
+    });
+
+    // 3. Create the branch ref (POST, not PATCH -- the ref does not exist yet).
+    await this.ghJson(`${GH_API}/repos/${rp}/git/refs`, {
+      method: "POST",
+      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: commit.sha }),
+    });
+
+    return { sha: commit.sha };
+  }
+
   async openChangeRequest(
     ref: RepoRef,
     branch: string,

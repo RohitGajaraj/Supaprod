@@ -137,9 +137,36 @@ export function resolveToolMode(
       toolName === "studio.pr.merge" && AUTO_SHIP_ENABLED
         ? resolveApprovalMode("confirm", arc)
         : "review";
+  } else if (toolName === "studio.fix.commit") {
+    // SEAM-2 (mission 3.6): the bounded CI-fix appender runs at its seeded
+    // mode (auto). The generic high-risk floor would park the autonomous
+    // fix loop at a gate every iteration; here the safety lives in the tool
+    // itself, which refuses anything but (a) a changeset whose PR a HUMAN
+    // already opened at the operator-gated studio.pr.open, (b) attempts
+    // within the changeset's fix budget - and the review-pinned merge gate
+    // still decides whether any of it lands.
+    mode = dialedMode;
   } else if ((HIGH_RISK_MIN_CONFIRM.has(toolName) || isHighRiskTool(toolName)) && mode === "auto") {
-    mode = "confirm";
+    // SEAM-2 one-motion (founder grant 2026-07-07): an approved Outcome
+    // Contract pre-consents the machine's own branch/PR mechanics. The WHAT
+    // was human-approved at the contract gate; studio.commit and
+    // studio.pr.open only stage that approved work on an isolated studio/*
+    // branch and a draft PR, and the decisive studio.pr.merge gate stays
+    // review-pinned above. Without this, "one continuous motion" collapses
+    // into three ceremonial clicks per build.
+    if (!(contractApproved && (toolName === "studio.commit" || toolName === "studio.pr.open"))) {
+      mode = "confirm";
+    }
   } else if (mode === "confirm" && toolRisk(toolName) === "low") {
+    mode = "auto";
+  } else if (
+    mode === "confirm" &&
+    contractApproved &&
+    (toolName === "studio.commit" || toolName === "studio.pr.open")
+  ) {
+    // The same one-motion consent when the dial resolved to confirm rather
+    // than auto: contract approval lifts exactly these two mechanics tools,
+    // nothing else on the floors.
     mode = "auto";
   } else if (
     mode === "confirm" &&

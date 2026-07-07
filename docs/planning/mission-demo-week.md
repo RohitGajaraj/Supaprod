@@ -82,7 +82,7 @@ From Anthropic's "Making of Claude Code" oral history (analysis logged 2026-07-0
 
 Work the stages roughly in the order below (dependencies noted). Each stage lists: what exists, the gap, the build, and the oracle. Ship each stage's oracle as a real test or a demonstrated live run, never a claim.
 
-### 3.0 Foundations first (Day 0)
+### 3.0 Foundations first (Day 0) ✅ CLOSED 2026-07-07 (oracle met live: a real click wrote opportunity backlog->now to stage_events in production and the Stage history block rendered it; migration applied; commit c7eecba7 deployed)
 
 **Build:** the `stage_events` migration (one lightweight table: `entity_type`, `entity_id`, `from_stage`, `to_stage`, `actor` (human/agent slug), `at`, `workspace_id`, RLS-aware) plus a write on every stage transition across specs, missions, opportunities, decisions. Then the small flagged migrations: `agent_approvals` snooze/defer + `mission_id`; decision `alternatives_considered` + cited-by counter; learning attribution; LOOP-PROVE outcome-seal persistence; `trace_id`-less incidents.
 **Why first:** every later stage's "how did this move through the pipeline" proof reads from this table, and the Brain's compounding (3.8) needs transition history as a learning signal.
@@ -230,6 +230,14 @@ The swarm wires everything up TO these boundaries; the founder supplies:
 6. **Ratify the ARD promotion** (3.3) and the design-station gate default (3.4 on-by-default vs opt-in).
 7. **The launch monetization posture** (3.12): free at launch with metering off, or flip the credit engine live (needs your Stripe keys). The engine is built and dormant; this is a config decision, not build work.
 8. **The name call** (section 8) - only if wanted before launch.
+
+**Autonomy-grant ledger (rule 8 one-liners, reconciled post-mission):**
+- 2026-07-07 seam 2: one-motion consent - an approved Outcome Contract lifts studio.commit + studio.pr.open to auto (loop.server.ts resolveToolMode); the merge gate stays review-pinned; supersedes the HIGH_RISK_MIN_CONFIRM floor for exactly those two tools under contract approval.
+- 2026-07-07 seam 2: studio.fix.commit (new bounded CI-fix appender) follows the arc dial instead of the high-risk floor; safety lives in the tool (pr_open-only + fix budget); enables the autonomous red-CI self-correction loop.
+
+**Live founder-gated additions discovered during the build:**
+- 9. **Apply migration `20260707210000_seam2_build_spine.sql`** (fix budget, build_driver, ci tool seeds, ci-poll-tick cron) before the seam-2 push deploys.
+- 10. **DENO_DEPLOY_ACCESS_TOKEN in the Lovable/worker env** (it exists in the local .env; the preview/promote deploy path gates honestly on it in production).
 
 ---
 

@@ -42,7 +42,8 @@ describe("resolveToolMode - AGT-02 plan-level consent, safety floors preserved",
   it("does not clear a partial-reversibility (not fully reversible) tool even with an approved contract", () => {
     // studio.commit / github.commit.append are "partial", not "reversible" -     // AGT-02's condition is a strict equality on "reversible", so these must
     // stay at confirm.
-    expect(resolveToolMode("studio.commit", "confirm", "proving", true)).toBe("confirm");
+    // (studio.commit moved to the one-motion consent suite below: founder
+    // grant 2026-07-07, ship-week seam 2.)
     expect(resolveToolMode("github.commit.append", "confirm", "proving", true)).toBe("confirm");
   });
 
@@ -55,5 +56,39 @@ describe("resolveToolMode - AGT-02 plan-level consent, safety floors preserved",
     // would matter; confirm-only fields in AGT-02's own condition mean an
     // already-auto tool is simply left alone (mode !== "confirm" short-circuits).
     expect(resolveToolMode("github.pr.open", "auto", "ambient", true)).toBe("auto");
+  });
+});
+
+describe("resolveToolMode - seam-2 one-motion consent + the bounded CI-fix appender", () => {
+  it("an approved contract lifts exactly studio.commit and studio.pr.open to auto (the one-motion consent)", () => {
+    expect(resolveToolMode("studio.commit", "confirm", "proving", true)).toBe("auto");
+    expect(resolveToolMode("studio.pr.open", "confirm", "proving", true)).toBe("auto");
+  });
+
+  it("without contract approval the two mechanics tools keep their floors", () => {
+    expect(resolveToolMode("studio.commit", "confirm", "proving", false)).toBe("confirm");
+    expect(resolveToolMode("studio.pr.open", "confirm", "proving", false)).toBe("confirm");
+    // The floor also still knocks a dialed auto back to confirm unapproved.
+    expect(resolveToolMode("studio.commit", "confirm", "trusted", false)).toBe("confirm");
+  });
+
+  it("one-motion consent never reaches the decisive gates or the other floored tools", () => {
+    expect(resolveToolMode("studio.pr.merge", "confirm", "proving", true)).toBe("review");
+    expect(resolveToolMode("calendar.create", "confirm", "proving", true)).toBe("confirm");
+  });
+
+  it("studio.fix.commit follows the arc dial, not the high-risk floor (its safety lives in the tool's own pr_open + budget guards)", () => {
+    // proving tightens seeded auto to confirm (the trust curve still applies)...
+    expect(resolveToolMode("studio.fix.commit", "auto", "proving", false)).toBe("confirm");
+    // ...but at trusted/ambient it runs unattended instead of being floored.
+    expect(resolveToolMode("studio.fix.commit", "auto", "trusted", false)).toBe("auto");
+    expect(resolveToolMode("studio.fix.commit", "auto", "ambient", false)).toBe("auto");
+    // Without the dedicated branch the isHighRiskTool floor would force
+    // confirm here (partial + external classifies high), parking the
+    // autonomous fix loop at a gate every iteration.
+  });
+
+  it("ci.logs is a low-risk read and auto-clears like any other read tool", () => {
+    expect(resolveToolMode("ci.logs", "confirm", "proving", false)).toBe("auto");
   });
 });

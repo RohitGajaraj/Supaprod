@@ -9,6 +9,9 @@ import { LineageDrawer } from "@/components/cadence/LineageDrawer";
 import { listSpecs, deletePrd, createGithubIssueForPrd, savePrd } from "@/lib/discovery.functions";
 import { promotePrdToTasks } from "@/lib/lineage.functions";
 import { dispatchStudioSession } from "@/lib/studio.functions";
+import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
+import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,11 +51,15 @@ export function SpecList({ onOpen }: SpecListProps) {
   const fPromote = useServerFn(promotePrdToTasks);
   const fCreateIssue = useServerFn(createGithubIssueForPrd);
   const fDispatch = useServerFn(dispatchStudioSession);
+  const fCanDispatch = useServerFn(canDispatchToRepo);
 
   const specs = useQuery({ queryKey: ["prds"], queryFn: () => fSpecs() });
   const inv = () => qc.invalidateQueries({ queryKey: ["prds"] });
 
   const [lineage, setLineage] = useState<{ id: string; title: string } | null>(null);
+  // W5b: the dispatch repo gate. Set when a "Hand to Build" cannot resolve a
+  // repo; the dialog offers /sync or provision-a-starter-repo + auto retry.
+  const [repoGate, setRepoGate] = useState<{ prdId: string; reason: string | null } | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -98,8 +105,18 @@ export function SpecList({ onOpen }: SpecListProps) {
       toast.success("Handed to Build. Mission dispatched.");
       navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, prdId) => {
+      // The raw not-connected refusal becomes the gate with the real paths.
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ prdId, reason: e.message });
+      else toast.error(e.message);
+    },
   });
+  const handToBuild = (prdId: string) =>
+    gateDispatch({
+      check: () => fCanDispatch({ data: { prdId } }),
+      dispatch: () => dispatch.mutate(prdId),
+      openGate: (reason) => setRepoGate({ prdId, reason }),
+    });
 
   const startRename = (id: string, current: string) => {
     setRenameValue(current);
@@ -358,7 +375,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
-                    onSelect={() => dispatch.mutate(spec.id)}
+                    onSelect={() => void handToBuild(spec.id)}
                     disabled={isDispatching}
                   >
                     {isDispatching ? "Dispatching…" : "Hand to Build"}
@@ -395,6 +412,17 @@ export function SpecList({ onOpen }: SpecListProps) {
         kind="prd"
         id={lineage?.id ?? null}
         title={lineage?.title}
+      />
+      <RepoGateDialog
+        open={repoGate !== null}
+        prdId={repoGate?.prdId ?? null}
+        reason={repoGate?.reason ?? null}
+        onOpenChange={(o) => {
+          if (!o) setRepoGate(null);
+        }}
+        onRetry={() => {
+          if (repoGate) dispatch.mutate(repoGate.prdId);
+        }}
       />
     </>
   );

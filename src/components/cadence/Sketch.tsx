@@ -18,7 +18,7 @@
 import { useMemo, useState } from "react";
 
 /* Tiny seeded PRNG (mulberry32) — stable jitter per data series. */
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
     a |= 0;
@@ -29,7 +29,7 @@ function mulberry32(seed: number) {
   };
 }
 
-function seedOf(data: number[], salt: number) {
+export function seedOf(data: number[], salt: number) {
   let s = salt + data.length * 7919;
   for (let i = 0; i < data.length; i++) s = (s * 31 + Math.round(data[i] * 100) + i) | 0;
   return s;
@@ -37,7 +37,12 @@ function seedOf(data: number[], salt: number) {
 
 /* Walk a polyline, subdividing each segment into ~`step`px pieces and
    nudging every interior point — the pencil wobble. */
-function sketchPath(pts: [number, number][], rnd: () => number, amp: number, step = 7): string {
+export function sketchPath(
+  pts: [number, number][],
+  rnd: () => number,
+  amp: number,
+  step = 7,
+): string {
   let d = "";
   const jig = (a: number) => (rnd() - 0.5) * 2 * a;
   for (let s = 0; s < pts.length - 1; s++) {
@@ -219,14 +224,12 @@ export function SketchBar({
   );
 }
 
-
-
 export interface SketchBarDatum {
   label: string;
   value: number;
 }
 
-function capFirst(s: string): string {
+export function capFirst(s: string): string {
   return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
 }
 

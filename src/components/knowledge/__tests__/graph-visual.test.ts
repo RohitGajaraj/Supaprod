@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { kindTracePrefix } from "../graph-visual";
+import {
+  kindTracePrefix,
+  kindVisual,
+  kindCssColor,
+  kindLabel,
+  nodeRadius,
+  truncateTitle,
+} from "../graph-visual";
 
 // dim 17: every graph node carries a typed trace-ref prefix. The shared object
 // kinds use their registered prefix (DESIGN-LOOM dim 17 / design-anatomy §4);
@@ -29,5 +36,70 @@ describe("kindTracePrefix", () => {
   test("never returns empty: falls back to REF when no alpha chars exist", () => {
     expect(kindTracePrefix("___")).toBe("REF");
     expect(kindTracePrefix("")).toBe("REF");
+  });
+});
+
+describe("kindVisual", () => {
+  test("resolves a registered kind to its named token, fallback, and label", () => {
+    expect(kindVisual("signal")).toEqual({
+      token: "--blossom",
+      fallback: "#e5bddf",
+      label: "Signal",
+    });
+  });
+
+  test("falls back to the unknown-kind visual, labeled with the raw kind, for an unregistered kind", () => {
+    expect(kindVisual("widget")).toEqual({ token: "--ash", fallback: "#a8a29a", label: "widget" });
+  });
+});
+
+describe("kindCssColor", () => {
+  test("wraps the kind's token with its fallback in a var() expression", () => {
+    expect(kindCssColor("theme")).toBe("var(--violet-soft, #a67fc9)");
+  });
+
+  test("falls back to the unknown-kind token for an unregistered kind", () => {
+    expect(kindCssColor("widget")).toBe("var(--ash, #a8a29a)");
+  });
+});
+
+describe("kindLabel", () => {
+  test("returns the registered display label for a known kind", () => {
+    expect(kindLabel("decision")).toBe("Decision");
+  });
+
+  test("falls back to the raw kind string for an unregistered kind", () => {
+    expect(kindLabel("widget")).toBe("widget");
+  });
+});
+
+describe("nodeRadius", () => {
+  test("grows with influence, capped at 8", () => {
+    expect(nodeRadius({ influence: 0 }, false)).toBe(7);
+    expect(nodeRadius({ influence: 8 }, false)).toBeCloseTo(18.2);
+    // Influence above the cap (8) reads identically to exactly 8.
+    expect(nodeRadius({ influence: 50 }, false)).toBeCloseTo(18.2);
+  });
+
+  test("a focused node is drawn 3px larger than the same unfocused node", () => {
+    const base = nodeRadius({ influence: 4 }, false);
+    expect(nodeRadius({ influence: 4 }, true)).toBeCloseTo(base + 3);
+  });
+});
+
+describe("truncateTitle", () => {
+  test("returns an empty string unchanged", () => {
+    expect(truncateTitle("")).toBe("");
+  });
+
+  test("leaves a short title untouched", () => {
+    expect(truncateTitle("Short title")).toBe("Short title");
+  });
+
+  test("truncates a long title to max-1 chars plus an ellipsis", () => {
+    const long = "A".repeat(40);
+    const out = truncateTitle(long, 26);
+    expect(out).toBe(`${"A".repeat(25)}…`);
+    expect(out.length).toBe(26);
   });
 });

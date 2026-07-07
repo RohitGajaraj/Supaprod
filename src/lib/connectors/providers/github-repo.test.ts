@@ -147,6 +147,84 @@ describe("GitHubRepoProvider", () => {
     });
   });
 
+  describe("bootstrapRepo", () => {
+    it("creates a root tree, a parentless commit, and the branch ref", async () => {
+      const provider = new GitHubRepoProvider(TOKEN, REF);
+      // 1. POST git/trees (no base_tree)
+      fetchQueue.push(okResponse({ sha: "roottree" }));
+      // 2. POST git/commits (parents: [])
+      fetchQueue.push(okResponse({ sha: "initcommit" }));
+      // 3. POST git/refs (create refs/heads/main)
+      fetchQueue.push(okResponse({ ref: "refs/heads/main", object: { sha: "initcommit" } }));
+
+      // Wrap the queue-based mock to capture request URLs, methods and bodies.
+      const calls: Array<{ url: string; method: string; body: Record<string, unknown> }> = [];
+      const queued = globalThis.fetch;
+      globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+        calls.push({
+          url: String(url),
+          method: init?.method ?? "GET",
+          body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
+        });
+        return queued(url, init);
+      }) as typeof fetch;
+
+      const result = await provider.bootstrapRepo(
+        REF,
+        [{ path: "main.ts", content: "export {};" }],
+        "feat: Cadence starter",
+        "main",
+      );
+      expect(result.sha).toBe("initcommit");
+      expect(calls).toHaveLength(3);
+
+      // 1. Tree created from scratch: no base_tree on an empty repo.
+      expect(calls[0].url).toContain("/repos/acme/widget/git/trees");
+      expect(calls[0].method).toBe("POST");
+      expect("base_tree" in calls[0].body).toBe(false);
+      expect(calls[0].body.tree).toEqual([
+        { path: "main.ts", mode: "100644", type: "blob", content: "export {};" },
+      ]);
+
+      // 2. Initial commit has no parents.
+      expect(calls[1].url).toContain("/repos/acme/widget/git/commits");
+      expect(calls[1].body).toMatchObject({
+        message: "feat: Cadence starter",
+        tree: "roottree",
+        parents: [],
+      });
+
+      // 3. Branch ref is CREATED (POST git/refs), not patched.
+      expect(calls[2].url).toContain("/repos/acme/widget/git/refs");
+      expect(calls[2].method).toBe("POST");
+      expect(calls[2].body).toMatchObject({ ref: "refs/heads/main", sha: "initcommit" });
+    });
+
+    it("defaults the branch to main", async () => {
+      const provider = new GitHubRepoProvider(TOKEN, REF);
+      fetchQueue.push(okResponse({ sha: "t1" }));
+      fetchQueue.push(okResponse({ sha: "c1" }));
+      fetchQueue.push(okResponse({ ref: "refs/heads/main", object: { sha: "c1" } }));
+
+      let refBody: Record<string, unknown> = {};
+      const queued = globalThis.fetch;
+      globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+        if (String(url).includes("/git/refs")) {
+          refBody = JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>;
+        }
+        return queued(url, init);
+      }) as typeof fetch;
+
+      const result = await provider.bootstrapRepo(
+        REF,
+        [{ path: "README.md", content: "# hi" }],
+        "feat: init",
+      );
+      expect(result.sha).toBe("c1");
+      expect(refBody.ref).toBe("refs/heads/main");
+    });
+  });
+
   describe("openChangeRequest", () => {
     it("resolves default branch then opens a PR", async () => {
       const provider = new GitHubRepoProvider(TOKEN, REF);

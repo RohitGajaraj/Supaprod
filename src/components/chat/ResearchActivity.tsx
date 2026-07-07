@@ -19,7 +19,7 @@ export function parseResearchStatus(input: unknown): ResearchStatus | null {
   return { phase: o.phase as ResearchPhase, label: o.label };
 }
 
-function summarySegments(searched: number, read: number, workspace: boolean): string[] {
+export function summarySegments(searched: number, read: number, workspace: boolean): string[] {
   const segments: string[] = [];
   if (searched > 0) segments.push(`Searched ${searched} ${searched === 1 ? "query" : "queries"}`);
   if (read > 0) segments.push(`Read ${read} ${read === 1 ? "source" : "sources"}`);

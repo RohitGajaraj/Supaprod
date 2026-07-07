@@ -245,6 +245,8 @@ async function actorLabelFor(auth: ResolvedAuth): Promise<string> {
 export async function resolveGitHub(args: {
   userId?: string | null;
   workspaceId?: string | null;
+  /** Product-scoped repo binding override (BYO-P1b); most specific, wins over workspace. */
+  productId?: string | null;
   userClient?: SupabaseClient;
 }): Promise<{
   token: string;
@@ -256,6 +258,7 @@ export async function resolveGitHub(args: {
     userClient: args.userClient,
     userId: args.userId,
     workspaceId: args.workspaceId,
+    productId: args.productId,
     provider: "github",
     resourceKind: "repo",
   });

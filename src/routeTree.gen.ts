@@ -39,6 +39,7 @@ import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
 import { Route as AuthenticatedProductRouteImport } from './routes/_authenticated.product'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated.plan'
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
@@ -124,6 +125,7 @@ import { Route as ApiPublicHooksDelegatePollTickRouteImport } from './routes/api
 import { Route as ApiPublicHooksCreditTickRouteImport } from './routes/api/public/hooks/credit-tick'
 import { Route as ApiPublicHooksCompetitorTickRouteImport } from './routes/api/public/hooks/competitor-tick'
 import { Route as ApiPublicHooksClusterTickRouteImport } from './routes/api/public/hooks/cluster-tick'
+import { Route as ApiPublicHooksCiPollTickRouteImport } from './routes/api/public/hooks/ci-poll-tick'
 import { Route as ApiPublicHooksCalibrateTickRouteImport } from './routes/api/public/hooks/calibrate-tick'
 import { Route as ApiPublicHooksAssumptionWatchTickRouteImport } from './routes/api/public/hooks/assumption-watch-tick'
 import { Route as ApiPublicHooksApprovalsTickRouteImport } from './routes/api/public/hooks/approvals-tick'
@@ -286,6 +288,11 @@ const AuthenticatedProductRoute = AuthenticatedProductRouteImport.update({
 const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
   id: '/prds',
   path: '/prds',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedOutcomeRoute = AuthenticatedOutcomeRouteImport.update({
@@ -496,9 +503,9 @@ const AuthenticatedPrdsIndexRoute = AuthenticatedPrdsIndexRouteImport.update({
   getParentRoute: () => AuthenticatedPrdsRoute,
 } as any)
 const AuthenticatedPlanIndexRoute = AuthenticatedPlanIndexRouteImport.update({
-  id: '/plan/',
-  path: '/plan/',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPlanRoute,
 } as any)
 const AuthenticatedMissionsIndexRoute =
   AuthenticatedMissionsIndexRouteImport.update({
@@ -751,6 +758,12 @@ const ApiPublicHooksClusterTickRoute =
     path: '/api/public/hooks/cluster-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksCiPollTickRoute =
+  ApiPublicHooksCiPollTickRouteImport.update({
+    id: '/api/public/hooks/ci-poll-tick',
+    path: '/api/public/hooks/ci-poll-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksCalibrateTickRoute =
   ApiPublicHooksCalibrateTickRouteImport.update({
     id: '/api/public/hooks/calibrate-tick',
@@ -791,9 +804,9 @@ const ApiPublicA2aTasksRoute = ApiPublicA2aTasksRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPlanSpecIdRoute = AuthenticatedPlanSpecIdRouteImport.update({
-  id: '/plan/spec/$id',
-  path: '/plan/spec/$id',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/spec/$id',
+  path: '/spec/$id',
+  getParentRoute: () => AuthenticatedPlanRoute,
 } as any)
 const ApiPublicConnectGithubCallbackRoute =
   ApiPublicConnectGithubCallbackRouteImport.update({
@@ -868,6 +881,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
+  '/plan': typeof AuthenticatedPlanRouteWithChildren
   '/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
@@ -919,6 +933,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
+  '/api/public/hooks/ci-poll-tick': typeof ApiPublicHooksCiPollTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
@@ -1045,6 +1060,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
+  '/api/public/hooks/ci-poll-tick': typeof ApiPublicHooksCiPollTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
@@ -1124,6 +1140,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
+  '/_authenticated/plan': typeof AuthenticatedPlanRouteWithChildren
   '/_authenticated/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/_authenticated/product': typeof AuthenticatedProductRoute
   '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
@@ -1175,6 +1192,7 @@ export interface FileRoutesById {
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
+  '/api/public/hooks/ci-poll-tick': typeof ApiPublicHooksCiPollTickRoute
   '/api/public/hooks/cluster-tick': typeof ApiPublicHooksClusterTickRoute
   '/api/public/hooks/competitor-tick': typeof ApiPublicHooksCompetitorTickRoute
   '/api/public/hooks/credit-tick': typeof ApiPublicHooksCreditTickRoute
@@ -1254,6 +1272,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
+    | '/plan'
     | '/prds'
     | '/product'
     | '/prompts'
@@ -1305,6 +1324,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
+    | '/api/public/hooks/ci-poll-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
@@ -1431,6 +1451,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
+    | '/api/public/hooks/ci-poll-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
@@ -1509,6 +1530,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
+    | '/_authenticated/plan'
     | '/_authenticated/prds'
     | '/_authenticated/product'
     | '/_authenticated/prompts'
@@ -1560,6 +1582,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
+    | '/api/public/hooks/ci-poll-tick'
     | '/api/public/hooks/cluster-tick'
     | '/api/public/hooks/competitor-tick'
     | '/api/public/hooks/credit-tick'
@@ -1622,6 +1645,7 @@ export interface RootRouteChildren {
   ApiPublicHooksApprovalsTickRoute: typeof ApiPublicHooksApprovalsTickRoute
   ApiPublicHooksAssumptionWatchTickRoute: typeof ApiPublicHooksAssumptionWatchTickRoute
   ApiPublicHooksCalibrateTickRoute: typeof ApiPublicHooksCalibrateTickRoute
+  ApiPublicHooksCiPollTickRoute: typeof ApiPublicHooksCiPollTickRoute
   ApiPublicHooksClusterTickRoute: typeof ApiPublicHooksClusterTickRoute
   ApiPublicHooksCompetitorTickRoute: typeof ApiPublicHooksCompetitorTickRoute
   ApiPublicHooksCreditTickRoute: typeof ApiPublicHooksCreditTickRoute
@@ -1861,6 +1885,13 @@ declare module '@tanstack/react-router' {
       path: '/prds'
       fullPath: '/prds'
       preLoaderRoute: typeof AuthenticatedPrdsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/outcome': {
@@ -2145,10 +2176,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/plan/': {
       id: '/_authenticated/plan/'
-      path: '/plan'
+      path: '/'
       fullPath: '/plan/'
       preLoaderRoute: typeof AuthenticatedPlanIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedPlanRoute
     }
     '/_authenticated/missions/': {
       id: '/_authenticated/missions/'
@@ -2458,6 +2489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksClusterTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/ci-poll-tick': {
+      id: '/api/public/hooks/ci-poll-tick'
+      path: '/api/public/hooks/ci-poll-tick'
+      fullPath: '/api/public/hooks/ci-poll-tick'
+      preLoaderRoute: typeof ApiPublicHooksCiPollTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/calibrate-tick': {
       id: '/api/public/hooks/calibrate-tick'
       path: '/api/public/hooks/calibrate-tick'
@@ -2509,10 +2547,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/plan/spec/$id': {
       id: '/_authenticated/plan/spec/$id'
-      path: '/plan/spec/$id'
+      path: '/spec/$id'
       fullPath: '/plan/spec/$id'
       preLoaderRoute: typeof AuthenticatedPlanSpecIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedPlanRoute
     }
     '/api/public/connect/github/callback': {
       id: '/api/public/connect/github/callback'
@@ -2583,6 +2621,19 @@ const AuthenticatedMeetingsRouteWithChildren =
     AuthenticatedMeetingsRouteChildren,
   )
 
+interface AuthenticatedPlanRouteChildren {
+  AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
+  AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
+}
+
+const AuthenticatedPlanRouteChildren: AuthenticatedPlanRouteChildren = {
+  AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
+  AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
+}
+
+const AuthenticatedPlanRouteWithChildren =
+  AuthenticatedPlanRoute._addFileChildren(AuthenticatedPlanRouteChildren)
+
 interface AuthenticatedPrdsRouteChildren {
   AuthenticatedPrdsIdRoute: typeof AuthenticatedPrdsIdRoute
   AuthenticatedPrdsIndexRoute: typeof AuthenticatedPrdsIndexRoute
@@ -2644,6 +2695,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
+  AuthenticatedPlanRoute: typeof AuthenticatedPlanRouteWithChildren
   AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRouteWithChildren
   AuthenticatedProductRoute: typeof AuthenticatedProductRoute
   AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
@@ -2661,9 +2713,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
-  AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
-  AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2703,6 +2753,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
+  AuthenticatedPlanRoute: AuthenticatedPlanRouteWithChildren,
   AuthenticatedPrdsRoute: AuthenticatedPrdsRouteWithChildren,
   AuthenticatedProductRoute: AuthenticatedProductRoute,
   AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
@@ -2720,9 +2771,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
-  AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
-  AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -2764,6 +2813,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAssumptionWatchTickRoute:
     ApiPublicHooksAssumptionWatchTickRoute,
   ApiPublicHooksCalibrateTickRoute: ApiPublicHooksCalibrateTickRoute,
+  ApiPublicHooksCiPollTickRoute: ApiPublicHooksCiPollTickRoute,
   ApiPublicHooksClusterTickRoute: ApiPublicHooksClusterTickRoute,
   ApiPublicHooksCompetitorTickRoute: ApiPublicHooksCompetitorTickRoute,
   ApiPublicHooksCreditTickRoute: ApiPublicHooksCreditTickRoute,

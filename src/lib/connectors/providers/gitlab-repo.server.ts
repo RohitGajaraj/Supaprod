@@ -146,6 +146,32 @@ export class GitLabRepoProvider implements RepoProvider {
     return { sha: commit.id };
   }
 
+  /**
+   * Initial commit on an EMPTY repo. GitLab's commits API creates both the
+   * commit and the branch when the repository has no commits yet, so this is
+   * the same call shape as commitFiles with "create" actions and no parent.
+   */
+  async bootstrapRepo(
+    ref: RepoRef = this.defaultRef!,
+    files: Array<{ path: string; content: string }>,
+    message: string,
+    branch = "main",
+  ): Promise<CommitResult> {
+    const pid = encodeProject(ref);
+    const actions = files.map((f) => ({
+      action: "create",
+      file_path: f.path,
+      content: f.content,
+      encoding: "text",
+    }));
+    type GlCommit = { id: string };
+    const commit = await this.glJson<GlCommit>(`/projects/${pid}/repository/commits`, {
+      method: "POST",
+      body: JSON.stringify({ branch, commit_message: message, actions }),
+    });
+    return { sha: commit.id };
+  }
+
   async openChangeRequest(
     ref: RepoRef = this.defaultRef!,
     branch: string,

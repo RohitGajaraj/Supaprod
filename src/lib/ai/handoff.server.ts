@@ -169,7 +169,11 @@ export async function createMission(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string,
-  input: { title: string; goal: string; starting_agent_id: string },
+  // BD-1: `build_driver` stamps which engine runs this mission's build (the
+  // seam in src/lib/build/driver.ts) so engine choice is data, not prompt
+  // text. Optional + additive: callers that don't build (orchestrator goal
+  // missions) omit it and the column default ('native') applies.
+  input: { title: string; goal: string; starting_agent_id: string; build_driver?: string },
 ): Promise<MissionRow> {
   const { data, error } = await supabase
     .from("missions")
@@ -180,6 +184,9 @@ export async function createMission(
       goal: input.goal,
       current_agent_id: input.starting_agent_id,
       status: "running",
+      // missions.build_driver is NEW (migration 20260707210000); the insert
+      // goes through the untyped SupabaseClient, so no cast is needed here.
+      ...(input.build_driver ? { build_driver: input.build_driver } : {}),
     })
     .select("*")
     .single();
