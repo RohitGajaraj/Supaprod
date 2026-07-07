@@ -4,7 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
 import { Button, MonoLabel } from "@/components/obsidian";
 import { LOOP_KINDS, type LoopCadence, type LoopKind } from "@/lib/loops.shared";
-import { createLoop, listLoops, setLoopStatus, type LoopListItem, type LoopStatus } from "@/lib/loops.functions";
+import {
+  createLoop,
+  listLoops,
+  setLoopStatus,
+  type LoopListItem,
+  type LoopStatus,
+} from "@/lib/loops.functions";
 
 /**
  * SW-4 / mission 3.10 LOOP MODE: the recurring-missions panel on Plan.
@@ -118,7 +124,9 @@ export function LoopsPanel() {
         </div>
         <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
           {LOOP_KINDS[kind].description}
-          {activeKinds.has(kind) ? " Already running below; a second copy runs on its own cadence." : ""}
+          {activeKinds.has(kind)
+            ? " Already running below; a second copy runs on its own cadence."
+            : ""}
         </p>
       </div>
 
@@ -126,13 +134,17 @@ export function LoopsPanel() {
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>Loading loops…</p>
       ) : loops.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
-          No loops yet. Start one above: it runs on its cadence and every run shows up here with
-          its cost.
+          No loops yet. Start one above: it runs on its cadence and every run shows up here with its
+          cost.
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {loops.map((l) => (
-            <LoopCard key={l.id} loop={l} onSetStatus={(status) => setStatus.mutate({ loopId: l.id, status })} />
+            <LoopCard
+              key={l.id}
+              loop={l}
+              onSetStatus={(status) => setStatus.mutate({ loopId: l.id, status })}
+            />
           ))}
         </div>
       )}
@@ -156,7 +168,13 @@ function fmtCost(v: number | null | undefined): string {
   return n < 0.01 ? `$${n.toFixed(4)}` : `$${n.toFixed(2)}`;
 }
 
-function LoopCard({ loop, onSetStatus }: { loop: LoopListItem; onSetStatus: (s: LoopStatus) => void }) {
+function LoopCard({
+  loop,
+  onSetStatus,
+}: {
+  loop: LoopListItem;
+  onSetStatus: (s: LoopStatus) => void;
+}) {
   const last = fmtWhen(loop.last_run_at);
   const next = fmtWhen(loop.next_run_at);
   return (
@@ -169,7 +187,9 @@ function LoopCard({ loop, onSetStatus }: { loop: LoopListItem; onSetStatus: (s: 
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{loop.title}</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+          {loop.title}
+        </span>
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -181,7 +201,9 @@ function LoopCard({ loop, onSetStatus }: { loop: LoopListItem; onSetStatus: (s: 
         >
           {loop.status}
         </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)" }}>
+        <span
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)" }}
+        >
           {CADENCE_LABEL[loop.cadence] ?? loop.cadence}
         </span>
       </div>
@@ -193,9 +215,27 @@ function LoopCard({ loop, onSetStatus }: { loop: LoopListItem; onSetStatus: (s: 
         {loop.status === "active" && next ? ` Next ${next}.` : ""}
       </p>
       {loop.recent_runs.length > 0 ? (
-        <ul style={{ margin: "8px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
+        <ul
+          style={{
+            margin: "8px 0 0",
+            padding: 0,
+            listStyle: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
           {loop.recent_runs.slice(0, 3).map((r) => (
-            <li key={r.id} style={{ fontSize: 12.5, color: "var(--text-body)", display: "flex", gap: 8, alignItems: "baseline" }}>
+            <li
+              key={r.id}
+              style={{
+                fontSize: 12.5,
+                color: "var(--text-body)",
+                display: "flex",
+                gap: 8,
+                alignItems: "baseline",
+              }}
+            >
               <span
                 aria-hidden="true"
                 style={{
@@ -203,15 +243,29 @@ function LoopCard({ loop, onSetStatus }: { loop: LoopListItem; onSetStatus: (s: 
                   height: 6,
                   borderRadius: "50%",
                   flexShrink: 0,
-                  background: r.status === "ok" ? "var(--glacier)" : r.status === "error" ? "var(--ember-text)" : "var(--text-subtle)",
+                  background:
+                    r.status === "ok"
+                      ? "var(--glacier)"
+                      : r.status === "error"
+                        ? "var(--ember-text)"
+                        : "var(--text-subtle)",
                   position: "relative",
                   top: -1,
                 }}
               />
               <span style={{ flex: 1, minWidth: 0 }}>
-                {r.status === "error" ? (r.error_message ?? "Run failed.") : (r.summary ?? "Run finished.")}
+                {r.status === "error"
+                  ? (r.error_message ?? "Run failed.")
+                  : (r.summary ?? "Run finished.")}
               </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-subtle)", flexShrink: 0 }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10.5,
+                  color: "var(--text-subtle)",
+                  flexShrink: 0,
+                }}
+              >
                 {fmtWhen(r.started_at)} · {fmtCost(r.cost_usd)}
               </span>
             </li>

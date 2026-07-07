@@ -31,7 +31,9 @@ export const Route = createFileRoute("/api/public/hooks/loop-tick")({
           const nowIso = new Date().toISOString();
           const { data: loops, error } = await supabaseAdmin
             .from("loops" as never)
-            .select("id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at")
+            .select(
+              "id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at",
+            )
             .eq("status", "active")
             .lte("next_run_at", nowIso)
             .order("next_run_at", { ascending: true })
@@ -39,13 +41,23 @@ export const Route = createFileRoute("/api/public/hooks/loop-tick")({
 
           if (error) {
             const code = (error as { code?: string }).code;
-            if (code === "42P01" || code === "PGRST205" || code === "42703" || code === "PGRST204") {
+            if (
+              code === "42P01" ||
+              code === "PGRST205" ||
+              code === "42703" ||
+              code === "PGRST204"
+            ) {
               return json({ ok: true, processed: 0, note: "loops not migrated yet" });
             }
             return json({ ok: false, error: error.message }, 500);
           }
 
-          const results: Array<{ loop_id: string; ok?: boolean; summary?: string; error?: string }> = [];
+          const results: Array<{
+            loop_id: string;
+            ok?: boolean;
+            summary?: string;
+            error?: string;
+          }> = [];
           for (const l of (loops ?? []) as unknown as LoopRow[]) {
             try {
               const res = await runLoopPass(supabaseAdmin as never, l);

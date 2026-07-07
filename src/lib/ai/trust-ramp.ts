@@ -27,9 +27,17 @@ export const TRUST_RAMP_OUTCOME_WINDOW_MS = 30 * 24 * 3600_000;
  * its resolveToolMode floors, and the ramp uses them as graduation ceilings
  * so it never proposes a mode the floor would immediately override.
  */
-export const HIGH_RISK_MIN_CONFIRM = new Set(["calendar.create", "studio.commit", "studio.pr.open"]);
+export const HIGH_RISK_MIN_CONFIRM = new Set([
+  "calendar.create",
+  "studio.commit",
+  "studio.pr.open",
+]);
 /** Safety floor: always `review`. Never graduates. */
-export const HIGH_RISK_FORCE_REVIEW = new Set(["studio.pr.merge", "studio.revert", "delegate.openhands"]);
+export const HIGH_RISK_FORCE_REVIEW = new Set([
+  "studio.pr.merge",
+  "studio.revert",
+  "delegate.openhands",
+]);
 
 const LADDER: Record<RampMode, RampMode | null> = {
   review: "confirm",

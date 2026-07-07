@@ -174,8 +174,8 @@ export function IntegrationsTab() {
         </MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
           Let an external AI agent use Cadence as a tool. A token grants read access to this
-          workspace's signals, opportunities, and specs, plus the ability to append a decision (which
-          still waits for your approval). Every call is rate-limited and audited.
+          workspace's signals, opportunities, and specs, plus the ability to append a decision
+          (which still waits for your approval). Every call is rate-limited and audited.
         </p>
       </div>
 

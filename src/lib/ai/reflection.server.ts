@@ -332,13 +332,15 @@ export async function maybeProposeTrustGraduations(
   if (overridesRes.error || pendingRes.error) return;
 
   const seededMode = new Map(
-    ((seeded ?? []) as Array<{ tool_name: string; mode: string }>).map((t) => [t.tool_name, t.mode]),
-  );
-  const overrideMode = new Map(
-    ((overridesRes.data ?? []) as unknown as Array<{ tool_name: string; mode: string }>).map((t) => [
+    ((seeded ?? []) as Array<{ tool_name: string; mode: string }>).map((t) => [
       t.tool_name,
       t.mode,
     ]),
+  );
+  const overrideMode = new Map(
+    ((overridesRes.data ?? []) as unknown as Array<{ tool_name: string; mode: string }>).map(
+      (t) => [t.tool_name, t.mode],
+    ),
   );
   const pendingTools = new Set(
     ((pendingRes.data ?? []) as unknown as Array<{ tool_name: string }>).map((t) => t.tool_name),
@@ -367,7 +369,9 @@ export async function maybeProposeTrustGraduations(
     // Unique-violation on the pending index = a concurrent run already
     // proposed it; anything else is worth a log line.
     if (insErr && insErr.code !== "23505") {
-      console.error(`trust-ramp proposal insert failed (${agentSlug}/${toolName}): ${insErr.message}`);
+      console.error(
+        `trust-ramp proposal insert failed (${agentSlug}/${toolName}): ${insErr.message}`,
+      );
     }
   }
 }

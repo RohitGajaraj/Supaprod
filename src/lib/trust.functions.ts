@@ -84,7 +84,9 @@ export const listTrustGraduationProposals = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("trust_graduation_proposals" as never)
-      .select("id, agent_slug, tool_name, from_mode, to_mode, clean_streak, rationale, status, created_at, decided_at")
+      .select(
+        "id, agent_slug, tool_name, from_mode, to_mode, clean_streak, rationale, status, created_at, decided_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     // Pre-migration window: no table yet means no proposals, not a crash.

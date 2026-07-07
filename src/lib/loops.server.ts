@@ -98,7 +98,10 @@ export async function runLoopPass(client: SupabaseClient, loop: LoopRow): Promis
       .eq("workspace_id", loop.workspace_id)
       .gte("created_at", startedAt.toISOString())
       .lte("created_at", finishedAt.toISOString());
-    for (const ev of (events ?? []) as Array<{ est_cost_usd: number | null; total_tokens: number | null }>) {
+    for (const ev of (events ?? []) as Array<{
+      est_cost_usd: number | null;
+      total_tokens: number | null;
+    }>) {
       costUsd += Number(ev.est_cost_usd ?? 0);
       tokens += Number(ev.total_tokens ?? 0);
     }

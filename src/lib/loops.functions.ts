@@ -47,7 +47,9 @@ export const listLoops = createServerFn({ method: "GET" })
     const db = context.supabase as unknown as SupabaseClient;
     const { data: loops, error } = await db
       .from("loops")
-      .select("id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at, created_at")
+      .select(
+        "id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at, created_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) {
@@ -60,8 +62,13 @@ export const listLoops = createServerFn({ method: "GET" })
 
     const { data: runs } = await db
       .from("loop_runs")
-      .select("id, loop_id, started_at, finished_at, status, summary, error_message, tokens, cost_usd")
-      .in("loop_id", rows.map((l) => l.id))
+      .select(
+        "id, loop_id, started_at, finished_at, status, summary, error_message, tokens, cost_usd",
+      )
+      .in(
+        "loop_id",
+        rows.map((l) => l.id),
+      )
       .order("started_at", { ascending: false })
       .limit(200);
 
@@ -97,45 +104,50 @@ export const createLoop = createServerFn({ method: "POST" })
       })
       .parse(i),
   )
-  .handler(async ({ context, data }): Promise<{ loop: LoopRow; firstRun: LoopPassResult | null }> => {
-    if (!isLoopKind(data.kind)) throw new Error(`Unknown loop kind: ${data.kind}`);
-    const spec = LOOP_KINDS[data.kind];
-    const db = context.supabase as unknown as SupabaseClient;
-    const { data: loop, error } = await db
-      .from("loops")
-      .insert({
-        user_id: context.userId,
-        kind: data.kind,
-        title: spec.label,
-        cadence: data.cadence ?? spec.defaultCadence,
-      } as never)
-      .select("id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at")
-      .single();
-    if (error || !loop) throw new Error(error?.message ?? "Could not create the loop");
-    const row = loop as LoopRow;
+  .handler(
+    async ({ context, data }): Promise<{ loop: LoopRow; firstRun: LoopPassResult | null }> => {
+      if (!isLoopKind(data.kind)) throw new Error(`Unknown loop kind: ${data.kind}`);
+      const spec = LOOP_KINDS[data.kind];
+      const db = context.supabase as unknown as SupabaseClient;
+      const { data: loop, error } = await db
+        .from("loops")
+        .insert({
+          user_id: context.userId,
+          kind: data.kind,
+          title: spec.label,
+          cadence: data.cadence ?? spec.defaultCadence,
+        } as never)
+        .select("id, user_id, workspace_id, kind, title, cadence, status, last_run_at, next_run_at")
+        .single();
+      if (error || !loop) throw new Error(error?.message ?? "Could not create the loop");
+      const row = loop as LoopRow;
 
-    await recordStageEvent(db, {
-      entityType: "loop",
-      entityId: row.id,
-      from: null,
-      to: "active",
-      actor: "human",
-      workspaceId: row.workspace_id,
-      userId: context.userId,
-    });
+      await recordStageEvent(db, {
+        entityType: "loop",
+        entityId: row.id,
+        from: null,
+        to: "active",
+        actor: "human",
+        workspaceId: row.workspace_id,
+        userId: context.userId,
+      });
 
-    // The loop starts working immediately: one inline run, best-effort, so
-    // there is run history to look at without waiting for the tick. Failure
-    // is honest and non-fatal; the loop-tick picks it up on schedule.
-    let firstRun: LoopPassResult | null = null;
-    try {
-      firstRun = await runLoopPass(db, row);
-    } catch (e) {
-      console.error(`[loops] first run failed for ${row.id}:`, e instanceof Error ? e.message : e);
-    }
+      // The loop starts working immediately: one inline run, best-effort, so
+      // there is run history to look at without waiting for the tick. Failure
+      // is honest and non-fatal; the loop-tick picks it up on schedule.
+      let firstRun: LoopPassResult | null = null;
+      try {
+        firstRun = await runLoopPass(db, row);
+      } catch (e) {
+        console.error(
+          `[loops] first run failed for ${row.id}:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
 
-    return { loop: row, firstRun };
-  });
+      return { loop: row, firstRun };
+    },
+  );
 
 export const setLoopStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
