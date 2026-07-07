@@ -347,8 +347,11 @@ are brought into line as they are touched.
   cleanly across the whole loop: `SIG` signals, `THM` themes, `OPP`
   opportunities, `PRD` specs and drafts, `MIS` missions and build outcomes,
   `DEC` decisions, `LRN` learnings, `ASM` assumption challenges (the Today "worth re-examining?"
-  calls). Render the prefix and code as one quiet mono ref
-  (`OPP·A1B2C3`), and register a new type's prefix here before it ships.
+  calls). Engine-only object types carry a local code (the `kindTracePrefix`
+  pattern): `ACT` a decided autonomous action (a Trust Ledger action receipt),
+  `INC` an incident (the Engine Room "what went wrong" log). Render the prefix
+  and code as one quiet mono ref (`OPP·A1B2C3`), and register a new type's
+  prefix here before it ships.
 - **Card anatomy (the standard for every object card).** Signal, theme,
   opportunity, spec, mission, outcome, and learning cards share one anatomy: a
   color-tiered strength or score anchor on the left (the numeral tinted by

@@ -1,8 +1,8 @@
 # Trust Ledger — the receipts surface
 
-> _Created: 2026-06-24 · Last updated: 2026-06-24_
+> _Created: 2026-06-24 · Last updated: 2026-07-07_
 
-> **Status:** ✅ Built 2026-06-24 (lane 2, register item `TRUST-LEDGER`, v11 pillar 3) · **Route:** `/trust-ledger` · **Nav:** sidebar footer Trust row → **Trust Ledger**
+> **Status:** ✅ Built 2026-06-24 (lane 2, register item `TRUST-LEDGER`, v11 pillar 3) · Deep functional + design pass 2026-07-07 (dim 17: object detail/trace/time/status, plain-language summary, Obsidian-native tokens) · **Route:** `/trust-ledger` · **Nav:** sidebar footer Trust row → **Trust Ledger**
 
 ## What it does
 
@@ -25,7 +25,7 @@ v11 names the decision-and-outcome layer as the moat and "trust is the thing peo
 - **Server fn** `listTrustReceipts` (`src/lib/trust-ledger.functions.ts`) — workspace-scoped (`context.supabase`, RLS-gated) reads of `decisions` + `agent_approvals` (non-pending), merged with the bitemporal `artifact_lineage` graph for supersession + evidence, then source-label hydration (missions/prds/meetings).
 - **Pure, unit-tested composition** (`assembleReceipts`, `supersededChildIds`, `evidenceCounts`, `summarizeAction`, `isSupersessionRelation`): a node is **superseded** when it is the CHILD of an ACTIVE (`valid_to` null) `supersedes`/`contradicts` edge (mirrors `knowledge-graph-view`). Counts reflect the full kind+search scope before the outcome filter so the tab badges show true totals.
 - **Bitemporal fallback:** the lineage query selects `valid_to` and degrades to the base columns if that column isn't live (PostgREST 42703), so the surface never errors to empty pre-migration.
-- **View** (`src/routes/_authenticated.trust-ledger.tsx`) — Ember chrome (`AppShell`/`TopBar`/`SurfaceHeader`/`TabRow`/`EmptyState`), one receipt card per record, superseded cards de-emphasized with a History pill.
+- **View** (`src/routes/_authenticated.trust-ledger.tsx`), Obsidian-native tokens (the `[data-obsidian]` app scope), one receipt card per record, superseded cards de-emphasized with a History pill. **dim 17 (2026-07-07):** every receipt is a first-class object, so a single click opens the shared **`ReceiptDetailSheet`** (`src/components/trust/ReceiptDetailSheet.tsx`, assembled from `DetailKit` in the same order as the Decide + Today detail sheets); each card carries a registered quiet trace ref (`DEC·` decisions / `ACT·` actions, via the shared `traceRef` + `src/components/trust/format.ts`), `relTimeCaps` timestamps (`--text-subtle`), and a mono-caps **status pill** whose tone reads the semantic role (approved moss, rejected/failed **madder**, the fix for the old `--rose` which resolves to a soft data pink under the dark theme, not an alert). A **plain-language summary** line (`ledgerSummary`, real counts only) names, in a person's words, how many records stand vs were superseded. The pure presentation logic (trace prefixes, status tone, summary) is unit-tested in `src/components/trust/format.test.ts`.
 
 ## Security
 

@@ -119,6 +119,8 @@ Every object carries a visible, stable, human-readable reference derived from it
 | `DEC` | decisions |
 | `LRN` | learnings |
 | `ASM` | assumption challenges (the Today "worth re-examining?" calls) |
+| `ACT` | decided autonomous actions (Trust Ledger action receipts, engine-only local code) |
+| `INC` | incidents (the Engine Room "what went wrong" log, engine-only local code) |
 
 **Register a new type's prefix here (and in the DESIGN-LOOM dim 17 registry) before it ships.** The full uuid is copyable in the detail; the card shows only the short ref.
 

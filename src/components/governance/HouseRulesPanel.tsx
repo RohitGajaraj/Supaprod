@@ -50,7 +50,7 @@ export function HouseRulesPanel() {
   if (q.error) {
     return (
       <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
+        <div className="mono-label" style={{ color: "var(--madder)" }}>
           Couldn't load house rules
         </div>
         <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
@@ -119,8 +119,8 @@ export function HouseRulesPanel() {
 }
 
 const RESOLVED_LINE: Record<string, { text: string; color: string } | undefined> = {
-  approved: { text: "approved · applies to every AI call", color: "var(--emerald)" },
-  rejected: { text: "rejected · discarded", color: "var(--coral)" },
+  approved: { text: "approved · applies to every AI call", color: "var(--moss)" },
+  rejected: { text: "rejected · discarded", color: "var(--text-muted)" },
 };
 
 function HouseRuleCard({

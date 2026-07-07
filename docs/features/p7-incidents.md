@@ -1,8 +1,8 @@
 # P7 · Incidents log
 
-> _Created: 2026-06-18 · Last updated: 2026-06-20_
+> _Created: 2026-06-18 · Last updated: 2026-07-07_
 
-> Status · Core shipped 2026-06-18 (cycle 3) · Guardrail source added 2026-06-18 (cycle 16) · Cost incident sources + persistent table added 2026-06-20 (cycle 2) · Cost-incident detector corrected 2026-06-20 (cockpit cycle 3) · Route: `/govern?tab=incidents` · Owner: operator-facing, read-only
+> Status · Core shipped 2026-06-18 (cycle 3) · Guardrail source added 2026-06-18 (cycle 16) · Cost incident sources + persistent table added 2026-06-20 (cycle 2) · Cost-incident detector corrected 2026-06-20 (cockpit cycle 3) · dim 17 + Obsidian pass 2026-07-07 (first-class objects, trace/time/severity, single-click-to-trace) · Route: Engine Room → Safety → **Incidents** (`/engine-room?room=safety&view=incidents`; legacy `/govern?tab=incidents` redirects) · Owner: operator-facing, read-only
 
 ## What it does
 
@@ -14,7 +14,7 @@ When the loop runs unattended, failures should leave a visible, reviewable recor
 
 ## Where to find it
 
-Engine Room (`/govern`) > the **Incidents** tab (`?tab=incidents`).
+Engine Room (`/engine-room`) → the **Safety** room → **Incidents** (`?room=safety&view=incidents`; the legacy `/govern?tab=incidents` redirects here).
 
 ## Demo script (<= 90s)
 
@@ -30,7 +30,7 @@ Engine Room (`/govern`) > the **Incidents** tab (`?tab=incidents`).
 - Derives from other logs: `agent_approvals` (status = failed, scoped by `user_id`) for execution failures, `event_queue` (rows with a non-null `error`, scoped to the resolved workspace) for pipeline errors, and `guardrail_hits` (action = block, scoped by `user_id`) for guardrail blocks.
 - **Guardrail blocks (cycle 16):** only `action = "block"` hits are incidents (a rule that actually stopped an AI call); `warn` and `redact` are routine governance (the call still runs) and are intentionally excluded. The card surfaces the rule name and which side it fired on (a blocked prompt vs a withheld response), never the raw `matched` payload, so nothing sensitive lands in the list. Guardrail incidents carry no trace link (`guardrail_hits` keys to an `event_id`, not a trace).
 - Merges and sorts newest-first, caps at 40, and returns each incident with a `kind`, title, error detail, timestamp, and (for executions) a `trace_id`.
-- `IncidentsPanel.tsx` (in `src/components/governance/`) renders the log via TanStack Query, with a "No incidents" empty state, dynamic `CostIncidentBadge` visual tags for cost incidents, and a "View trace" link per execution incident.
+- `IncidentsPanel.tsx` (in `src/components/governance/`) renders the log via TanStack Query. **dim 17 + Obsidian pass (2026-07-07):** each incident is a first-class object with a severity pill (semantic role tone via `incident-format.ts`: failures **madder**, a guardrail block **glacier** the machine voice, a cost breach **marigold** caution, manual muted), a `relTimeCaps` timestamp (`--text-subtle`, absolute in the title), and a quiet `INC·` trace ref (the `kindTracePrefix` local-code pattern, reading the underlying record id via the shared `traceRef`). Where an incident has a trace, the whole card is a single-click affordance (`role="button"` + Enter/Space + focus ring) that opens `/traces/$traceId`, with an "Open trace" cue; incidents without a trace show their full detail inline. Calm **loading**, a designed **"All clear" empty** slate, and a real **error+retry** state (an error never wears the empty state's clothes) replace the old bare "Loading"/"No incidents". Tokens are Obsidian-native throughout; `CostIncidentBadge` moved from a raw red hex to the `--marigold` caution token. The pure presentation logic is unit-tested in `incident-format.test.ts`.
 
 ## Governance & guardrails
 
