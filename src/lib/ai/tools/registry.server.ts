@@ -2250,7 +2250,7 @@ const researchSynthesize = def({
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a PRD from an opportunity. Reads the opportunity, its theme, and supporting signals, then writes a draft PRD with problem, goals, non-goals, user stories, success metrics, and risks. Use after research.synthesize + an opportunity exists.",
+    "Draft a spec from an opportunity. Reads the opportunity, its theme, and supporting signals, then writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. Use after research.synthesize + an opportunity exists.",
   category: "write",
   argsSchema: z.object({
     opportunity_id: z.string().uuid(),
@@ -2258,7 +2258,7 @@ const prdDraft = def({
     audience: z.string().max(200).optional(),
   }),
   preview: (a) =>
-    `Draft PRD for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`,
+    `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`,
   run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
     const { data: opp, error: oErr } = await supabase
       .from("opportunities")
@@ -2310,7 +2310,7 @@ const prdDraft = def({
         {
           role: "system",
           content:
-            "You are a senior product manager. Write a concise, decision-ready PRD in Markdown with these sections: ## Problem, ## Target user, ## Goals, ## Non-goals, ## User stories, ## Solution sketch, ## Success metrics, ## Risks & open questions. Be specific and grounded in the provided context. Do not invent metrics.",
+            "You are a senior product manager. Write a concise, decision-ready spec in Markdown with these sections: ## Problem, ## Target user, ## Goals, ## Non-goals, ## User stories, ## Solution sketch, ## Success metrics, ## Risks & open questions. Be specific and grounded in the provided context. Do not invent metrics.",
         },
         {
           role: "user",
@@ -2338,7 +2338,7 @@ const prdDraft = def({
         workspace_id: opp.workspace_id,
         product_id: opp.product_id ?? null,
         opportunity_id: opp.id,
-        title: (a.title ?? `PRD — ${opp.title}`).slice(0, 280),
+        title: (a.title ?? `Spec: ${opp.title}`).slice(0, 280),
         body_md: body,
         status: "draft",
         model: DRAFT_MODEL,

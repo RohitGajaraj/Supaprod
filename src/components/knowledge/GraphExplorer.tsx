@@ -23,7 +23,7 @@ export const KIND_LABEL: Record<string, string> = {
   signal: "Signal",
   theme: "Theme",
   opportunity: "Opportunity",
-  prd: "PRD",
+  prd: "Spec",
   roadmap_item: "Roadmap",
   task: "Task",
   meeting: "Meeting",

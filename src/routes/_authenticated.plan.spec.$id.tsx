@@ -51,17 +51,17 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 
-const MODE_TABS = ["edit", "preview", "contract", "flow", "launch"] as const;
+const MODE_TABS = ["contract", "edit", "preview", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
 
 const MODE_DISPLAY: { id: ModeTab; label: string; hint?: string }[] = [
-  { id: "edit", label: "EDIT" },
-  { id: "preview", label: "PREVIEW" },
   {
     id: "contract",
     label: "CONTRACT",
     hint: "The typed Outcome Contract, the machine's view of this spec",
   },
+  { id: "edit", label: "EDIT" },
+  { id: "preview", label: "PREVIEW" },
   { id: "flow", label: "FLOW", hint: "The user flow this spec implies: steps, decisions, states" },
   {
     id: "launch",
@@ -334,7 +334,7 @@ function SpecEditorPage() {
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [mode, setMode] = useState<ModeTab>(initialTab ?? "edit");
+  const [mode, setMode] = useState<ModeTab>(initialTab ?? "contract");
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

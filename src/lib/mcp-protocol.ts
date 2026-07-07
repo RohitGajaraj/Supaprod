@@ -105,7 +105,7 @@ export const MCP_TOOLS: McpTool[] = [
   },
   {
     name: "get_prd",
-    description: "Fetch a specific PRD with cited signals and requirements",
+    description: "Fetch a specific spec with cited signals and requirements",
     inputSchema: {
       type: "object",
       properties: { prd_id: { type: "string" } },
@@ -397,7 +397,7 @@ export function buildInitializeResult(protocolVersion: string) {
     },
     serverInfo: { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
     instructions:
-      "Cadence exposes read access to product signals, opportunities, decisions, PRDs, and the roadmap, plus a versioned decision-lessons skill pack. Call tools/list to enumerate, then tools/call to invoke.",
+      "Cadence exposes read access to product signals, opportunities, decisions, specs, and the roadmap, plus a versioned decision-lessons skill pack. Call tools/list to enumerate, then tools/call to invoke.",
   };
 }
 

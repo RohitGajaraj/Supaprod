@@ -301,12 +301,12 @@ export function goalForEvent(evt: EventRow): string {
       );
     case "opportunity.scored":
       return (
-        `An opportunity just scored ICE ${num(p.ice_score)} (I${num(p.impact)}/C${num(p.confidence)}/E${num(p.ease)}). Draft a PRD: problem, target user, hypothesis, scope, success metrics. ${UNTRUSTED_WARNING}\n` +
+        `An opportunity just scored ICE ${num(p.ice_score)} (I${num(p.impact)}/C${num(p.confidence)}/E${num(p.ease)}). Draft a spec: problem, target user, hypothesis, scope, success metrics. ${UNTRUSTED_WARNING}\n` +
         untrustedSignalBlock({ title, problem: (p.problem as string) ?? "" })
       );
     case "prd.approved":
       return (
-        `A PRD was just approved. Plan a multi-agent execution: break it into specialist steps, dispatch the first wave, and return the plan. ${UNTRUSTED_WARNING}\n` +
+        `A spec was just approved. Plan a multi-agent execution: break it into specialist steps, dispatch the first wave, and return the plan. ${UNTRUSTED_WARNING}\n` +
         untrustedSignalBlock({ title, github_issue_url: (p.github_issue_url as string) ?? "" })
       );
     // Ambient-loop event types (EVENT-REACTOR-LIVE, migration 20260624130000).
@@ -330,7 +330,7 @@ export function goalForEvent(evt: EventRow): string {
     case "decision.made":
       return (
         `A new decision was recorded (status: ${String(p.status ?? "?")}, source: ${String(p.source_kind ?? "?")}).` +
-        ` Cross-reference it against existing decisions for contradictions or supersession, update any PRDs or opportunities it governs, and flag anything that should be re-evaluated. ${UNTRUSTED_WARNING}\n` +
+        ` Cross-reference it against existing decisions for contradictions or supersession, update any specs or opportunities it governs, and flag anything that should be re-evaluated. ${UNTRUSTED_WARNING}\n` +
         untrustedSignalBlock({ title, rationale: (p.rationale as string) ?? "" })
       );
     default:

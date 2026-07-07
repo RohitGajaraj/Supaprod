@@ -1,0 +1,119 @@
+import { describe, expect, test } from "bun:test";
+import { ardDispatchBlock, assembleBuilderGoal } from "../build.functions";
+import type { ArdDocument } from "@/lib/ard-schema";
+
+function clause(text: string, status: "standing" | "superseded" = "standing") {
+  return {
+    id: "00000000-0000-0000-0000-000000000000",
+    text,
+    status,
+    superseded_by: null,
+    oracle_kind: "ci" as const,
+    oracle_ref: null,
+    created_at: "2026-07-07T00:00:00.000Z",
+  };
+}
+
+function makeContract(overrides: Record<string, unknown> = {}) {
+  return {
+    version: 1,
+    intent: "Ship the thing",
+    evidence_links: [],
+    success_metrics: [clause("p95 under 200ms"), clause("drop me", "superseded")],
+    non_goals: [],
+    budget: null,
+    ambiguity_policy: null,
+    drafted_by: "agent",
+    drafted_at: "2026-07-07T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+const PRD = {
+  id: "11111111-1111-1111-1111-111111111111",
+  title: "Test spec",
+  contract: makeContract(),
+};
+
+function fencedJson(block: string): string {
+  const m = block.match(/```json\n([\s\S]*)\n```/);
+  if (!m) throw new Error("no fenced json block found");
+  return m[1];
+}
+
+describe("ardDispatchBlock (mission 3.3: the Build Console fold matches the Studio fold)", () => {
+  test("a spec with a compiled contract yields the delimited ARD block + standing criteria", () => {
+    const ard = ardDispatchBlock(PRD);
+    expect(ard).not.toBeNull();
+    expect(ard!.block).toContain("THE CONTRACT (ARD v0.1), every clause carries its oracle");
+    const doc = JSON.parse(fencedJson(ard!.block)) as ArdDocument;
+    expect(doc.spec_id).toBe(PRD.id);
+    expect(doc.spec_title).toBe(PRD.title);
+    expect(doc.schema_url).toBe("/api/public/ard/schema");
+    expect(doc.contract.intent).toBe("Ship the thing");
+    // Standing clauses only become the acceptance bar; superseded ones do not.
+    expect(ard!.acceptanceCriteria).toEqual(["p95 under 200ms"]);
+  });
+
+  test("all-superseded metrics: the block still rides, criteria stay null", () => {
+    const ard = ardDispatchBlock({
+      ...PRD,
+      contract: makeContract({ success_metrics: [clause("old bar", "superseded")] }),
+    });
+    expect(ard).not.toBeNull();
+    expect(ard!.acceptanceCriteria).toBeNull();
+  });
+
+  test("no usable contract yields null: missing, invalid, or blank intent", () => {
+    expect(ardDispatchBlock(null)).toBeNull();
+    expect(ardDispatchBlock({ ...PRD, contract: undefined })).toBeNull();
+    expect(ardDispatchBlock({ ...PRD, contract: { not: "a contract" } })).toBeNull();
+    expect(ardDispatchBlock({ ...PRD, contract: makeContract({ intent: "   " }) })).toBeNull();
+  });
+});
+
+describe("assembleBuilderGoal (the Build Console dispatch payload IS the ARD)", () => {
+  test("embeds the ARD block and acceptance criteria after the prose", () => {
+    const goal = assembleBuilderGoal({
+      issueNumber: 42,
+      intent: "Add a rate limiter",
+      prd: PRD,
+      ard: ardDispatchBlock(PRD),
+      referenceLinks: ["https://example.com/spec"],
+    });
+    expect(goal).toContain('idempotency_key="issue-42"');
+    expect(goal).toContain("User intent:\nAdd a rate limiter");
+    expect(goal).toContain(`Linked spec: "${PRD.title}" (id ${PRD.id})`);
+    // The machine-readable contract rides the work order, after the prose.
+    const doc = JSON.parse(fencedJson(goal)) as ArdDocument;
+    expect(doc.spec_id).toBe(PRD.id);
+    expect(goal.indexOf("THE CONTRACT (ARD")).toBeGreaterThan(goal.indexOf("Linked spec:"));
+    expect(goal).toContain("Acceptance criteria (every one must hold):\n- p95 under 200ms");
+    expect(goal).toContain("References:\n- https://example.com/spec");
+  });
+
+  test("a spec without a contract dispatches prose only (no phantom contract)", () => {
+    const prd = { id: PRD.id, title: PRD.title };
+    const goal = assembleBuilderGoal({
+      issueNumber: 7,
+      intent: "Fix the flaky test",
+      prd,
+      ard: ardDispatchBlock(prd),
+    });
+    expect(goal).toContain(`Linked spec: "${PRD.title}"`);
+    expect(goal).not.toContain("THE CONTRACT (ARD");
+    expect(goal).not.toContain("Acceptance criteria");
+  });
+
+  test("no linked spec: the plain issue work order is unchanged", () => {
+    const goal = assembleBuilderGoal({
+      issueNumber: 9,
+      intent: "Rename the button",
+      prd: null,
+      ard: null,
+    });
+    expect(goal).toContain("Pick up GitHub issue #9");
+    expect(goal).not.toContain("Linked spec");
+    expect(goal).not.toContain("THE CONTRACT (ARD");
+  });
+});

@@ -346,7 +346,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   figma: {
     id: "figma",
     label: "Figma",
-    description: "Reference design files from PRDs and briefs.",
+    description: "Reference design files from specs and briefs.",
     authMethods: [
       {
         kind: "oauth_gateway",

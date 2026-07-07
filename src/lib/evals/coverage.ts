@@ -35,7 +35,7 @@ export const EVAL_COVERAGE_TARGETS: CoverageTarget[] = [
   { surface: "copilot", key: "daily_brief", label: "Copilot, daily brief" },
   { surface: "discovery", key: "theme_cluster", label: "Discovery, theme cluster" },
   { surface: "meetings", key: "summarize", label: "Meetings, summarize" },
-  { surface: "roadmap", key: "prd_generate", label: "Roadmap, PRD" },
+  { surface: "roadmap", key: "prd_generate", label: "Roadmap, Spec" },
   { surface: "studio", key: "prototype", label: "Studio, prototype" },
   { surface: "agent", key: "planner_executor", label: "Agent, planner" },
 ];

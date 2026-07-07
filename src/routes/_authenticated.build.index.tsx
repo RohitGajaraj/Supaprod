@@ -329,7 +329,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         placeholder={
           mode === "ship"
             ? "Describe what to ship. Build plans against the connected repo."
-            : "Describe the goal, e.g. 'Investigate top 3 churn signals this week, draft a PRD for the highest-impact fix, and queue the engineering plan.'"
+            : "Describe the goal, e.g. 'Investigate top 3 churn signals this week, draft a spec for the highest-impact fix, and queue the engineering plan.'"
         }
         style={{
           resize: "none",

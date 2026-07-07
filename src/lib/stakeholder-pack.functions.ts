@@ -61,7 +61,7 @@ function labelSource(kind: string | null): string | null {
   const k = kind.trim();
   const map: Record<string, string> = {
     mission: "a mission",
-    prd: "a PRD",
+    prd: "a spec",
     meeting: "a meeting",
     opportunity: "an opportunity",
   };

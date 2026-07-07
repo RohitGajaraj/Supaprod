@@ -1394,7 +1394,7 @@ ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
             {
               role: "system",
               content:
-                "Return a single concise PRD title (max 70 chars, Title Case, no quotes, no trailing punctuation). Only the title, nothing else.",
+                "Return a single concise spec title (max 70 chars, Title Case, no quotes, no trailing punctuation). Only the title, nothing else.",
             },
             { role: "user", content: source.slice(0, 2000) },
           ],
@@ -1409,11 +1409,11 @@ ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
       }
       if (!title) {
         const firstLine = source.trim().split(/[\n.!?]/)[0] ?? "";
-        title = firstLine.slice(0, 80).trim() || "Untitled PRD";
+        title = firstLine.slice(0, 80).trim() || "Untitled spec";
       }
     }
 
-    const system = `You are a senior product manager writing a crisp, opinionated PRD in Markdown.
+    const system = `You are a senior product manager writing a crisp, opinionated spec in Markdown.
 Sections (use ## headings, in this exact order):
 ## Problem
 ## Target Users
@@ -1467,7 +1467,59 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       ],
     });
     const body_md = result.output;
-    if (!body_md.trim()) throw new Error("AI returned an empty PRD");
+    if (!body_md.trim()) throw new Error("AI returned an empty spec");
+
+    // Mission 3.3: the draft flow leads with the contract. Structure the
+    // freshly generated narrative into an agent-authored Outcome Contract
+    // (same extraction prompt as draftContractFromPrd, same build shape as
+    // draftContractFromIntent) so the spec is born contract-first, with
+    // body_md kept as the secondary prose projection.
+    const contractRes = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: "contract_from_generate",
+      model: "google/gemini-2.5-flash",
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: CONTRACT_DRAFT_SYSTEM },
+        { role: "user", content: `TITLE: ${title}\n\nBODY:\n${body_md.slice(0, 12000)}` },
+      ],
+    });
+    const cj = (contractRes.json ?? {}) as {
+      intent?: unknown;
+      success_metrics?: unknown;
+      non_goals?: unknown;
+      budget_estimate?: unknown;
+      blast_radius?: unknown;
+      ambiguity_policy?: unknown;
+    };
+    const nowIso = new Date().toISOString();
+    const contractIntent =
+      typeof cj.intent === "string" && cj.intent.trim()
+        ? cj.intent.trim().slice(0, 2000)
+        : source.trim().slice(0, 2000);
+    const budgetEstimate =
+      typeof cj.budget_estimate === "string" ? cj.budget_estimate.trim().slice(0, 200) : null;
+    const blastRadius =
+      typeof cj.blast_radius === "string" ? cj.blast_radius.trim().slice(0, 500) : null;
+    const contract: OutcomeContract = {
+      version: 1,
+      intent: contractIntent,
+      evidence_links: citations.map((c) => ({
+        source_kind: c.source_kind,
+        source_id: c.source_id ?? "",
+        title: c.title,
+      })),
+      success_metrics: draftedStrings(cj.success_metrics, 8).map((t) => draftedClause(t, nowIso)),
+      non_goals: draftedStrings(cj.non_goals, 6).map((t) => draftedClause(t, nowIso)),
+      budget:
+        budgetEstimate || blastRadius
+          ? { estimate: budgetEstimate, blast_radius: blastRadius }
+          : null,
+      ambiguity_policy:
+        typeof cj.ambiguity_policy === "string" ? cj.ambiguity_policy.trim().slice(0, 1000) : null,
+      drafted_by: "agent",
+      drafted_at: nowIso,
+    };
 
     const { data: prd, error: pErr } = await supabase
       .from("prds")
@@ -1478,6 +1530,8 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
         body_md,
         model: data.model,
         citations,
+        contract,
+        contract_migrated_at: nowIso,
       })
       .select()
       .single();
@@ -1500,7 +1554,7 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
         parent_id: oppId,
         child_kind: "prd",
         child_id: prd.id,
-        rationale: "Generated PRD from opportunity",
+        rationale: "Generated spec from opportunity",
         created_by_agent: "prd-writer",
       });
     }

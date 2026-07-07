@@ -34,7 +34,8 @@ const MCP_METHODS = [
   { name: "search_opportunities", desc: "Search opportunities by title/problem or ICE" },
   { name: "search_decisions", desc: "Search decisions, each tagged still-stands or superseded" },
   { name: "search_prds", desc: "Find specs by keyword or status" },
-  { name: "get_prd", desc: "Fetch a PRD with its requirements" },
+  { name: "get_prd", desc: "Fetch a spec's requirements" },
+  { name: "get_ard", desc: "Fetch a spec's compiled ARD (contract + oracles)" },
   { name: "get_roadmap", desc: "Fetch the roadmap: now / next / later by ICE" },
   {
     name: "export_skillpack",
@@ -173,7 +174,7 @@ export function IntegrationsTab() {
         </MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
           Let an external AI agent use Cadence as a tool. A token grants read access to this
-          workspace's signals, opportunities, and PRDs, plus the ability to append a decision (which
+          workspace's signals, opportunities, and specs, plus the ability to append a decision (which
           still waits for your approval). Every call is rate-limited and audited.
         </p>
       </div>

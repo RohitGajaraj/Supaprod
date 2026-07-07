@@ -214,7 +214,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       sourceTitle = prd.title;
       workspaceId = prd.workspace_id;
       sections.push(
-        `Linked PRD (source of truth for scope): "${prd.title}" (id ${prd.id})\n\n${(prd.body_md ?? "").slice(0, 24_000)}`,
+        `Linked spec (source of truth for scope): "${prd.title}" (id ${prd.id})\n\n${(prd.body_md ?? "").slice(0, 24_000)}`,
       );
       // 3-way issue resolution, same pattern as the legacy dispatch: a PRD
       // with a linked issue gives the PR its "Closes #N".
@@ -588,7 +588,7 @@ export const listStudioSessions = createServerFn({ method: "GET" })
           created_at: m.created_at,
           updated_at: m.updated_at,
           run_status: runStatusByMission.get(m.id) ?? null,
-          prd: prdId ? { id: prdId, title: prdTitle.get(prdId) ?? "PRD" } : null,
+          prd: prdId ? { id: prdId, title: prdTitle.get(prdId) ?? "Spec" } : null,
           changeset: changesetByMission.get(m.id) ?? null,
           pending_approvals: pendingByMission.get(m.id) ?? 0,
           cost_usd: Number((costByMission.get(m.id) ?? 0).toFixed(4)),

@@ -80,7 +80,7 @@ const CATEGORY_META: Record<ConnectorCategory, { label: string; blurb: string }>
   },
   chat: { label: "Team chat", blurb: "Pull messages from a feedback channel in as signals." },
   calendar: { label: "Calendar", blurb: "Two-way sync of meetings and events." },
-  design: { label: "Design", blurb: "Reference design files from PRDs and briefs." },
+  design: { label: "Design", blurb: "Reference design files from specs and briefs." },
 };
 
 const CATEGORY_ORDER: ConnectorCategory[] = [

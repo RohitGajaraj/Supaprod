@@ -11,6 +11,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
+import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
+import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { nativeBuildDriver } from "@/lib/build/native.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 
@@ -271,6 +273,70 @@ export const listBuilderRuns = createServerFn({ method: "GET" })
     };
   });
 
+/** The slice of a PRD row the pure dispatch assembly below needs. */
+type DispatchPrd = { id: string; title: string; contract?: unknown };
+
+/**
+ * PURE (tested in build/dispatch-parity.test.ts). Mission 3.3 dispatch
+ * parity: the ARD rider for a Build Console dispatch, the exact fold
+ * dispatchStudioSession applies. When the linked spec carries a compiled
+ * Outcome Contract, its machine-readable ARD document becomes a delimited
+ * fenced work-order block and the standing success-metric clauses become the
+ * acceptance criteria. Returns null when there is no usable contract.
+ */
+export function ardDispatchBlock(
+  prd: DispatchPrd | null,
+): { block: string; acceptanceCriteria: string[] | null } | null {
+  if (!prd?.contract) return null;
+  const parsed = parseArdDocument(prd.contract);
+  if (!parsed.ok || !parsed.contract.intent.trim()) return null;
+  // Origin "" keeps schema_url an app-relative path (/api/public/ard/schema):
+  // a server fn has no request origin at hand, and a fabricated host would
+  // be dishonest data.
+  const ard = buildArdDocument("", prd.id, prd.title, parsed.contract);
+  const criteria = standingClauseTexts(parsed.contract.success_metrics);
+  return {
+    block: formatArdWorkOrderBlock(ard),
+    acceptanceCriteria: criteria.length ? criteria : null,
+  };
+}
+
+/**
+ * PURE (tested in build/dispatch-parity.test.ts). Assemble the Builder work
+ * order the Build Console dispatches. This path hands the goal straight to
+ * the agent loop, so the work-order text IS the whole payload: the ARD block
+ * and its acceptance criteria travel inside it, after the prose, exactly
+ * like the Studio dispatch path.
+ */
+export function assembleBuilderGoal(input: {
+  issueNumber: number;
+  intent: string;
+  prd: DispatchPrd | null;
+  ard: ReturnType<typeof ardDispatchBlock>;
+  referenceLinks?: string[];
+}): string {
+  const sections: string[] = [
+    `Pick up GitHub issue #${input.issueNumber} on the connected repo. Read the issue body, then ship a single-file scoped PR via github.pr.open with idempotency_key="issue-${input.issueNumber}". Closes #${input.issueNumber}.`,
+    `\nUser intent:\n${input.intent}`,
+  ];
+  if (input.prd)
+    sections.push(
+      `\nLinked spec: "${input.prd.title}" (id ${input.prd.id}). Use it as the source of truth for scope.`,
+    );
+  if (input.ard) {
+    sections.push(`\n${input.ard.block}`);
+    if (input.ard.acceptanceCriteria) {
+      sections.push(
+        `\nAcceptance criteria (every one must hold):\n${input.ard.acceptanceCriteria.map((c) => `- ${c}`).join("\n")}`,
+      );
+    }
+  }
+  if (input.referenceLinks?.length) {
+    sections.push(`\nReferences:\n${input.referenceLinks.map((u) => `- ${u}`).join("\n")}`);
+  }
+  return sections.join("\n");
+}
+
 /**
  * Dispatch a Builder mission from the Build Console with free-form input.
  *
@@ -307,17 +373,23 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       body_md: string | null;
       github_issue_url: string | null;
       workspace_id: string | null;
+      contract: unknown;
     };
     let prd: PrdCtx | null = null;
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id")
+        .select("id,title,body_md,github_issue_url,workspace_id,contract")
         .eq("id", data.prdId)
         .single();
       if (error) throw new Error(`PRD lookup failed: ${error.message}`);
       prd = row as unknown as PrdCtx;
     }
+
+    // Mission 3.3 dispatch parity: the payload dispatched to Build IS the
+    // ARD. Fold the linked spec's compiled contract once; it rides every
+    // prose injection point below (issue body + work-order goal).
+    const ard = ardDispatchBlock(prd);
 
     // Workspace: prefer the PRD's, else the user's default (also used for the mission).
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -348,6 +420,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         bodyParts.push(
           `\n---\n**From PRD:** ${prd.title}\n\n${(prd.body_md ?? "").slice(0, 20_000)}`,
         );
+      if (ard) bodyParts.push(`\n---\n${ard.block}`);
       if (data.referenceLinks?.length) {
         bodyParts.push(
           `\n---\n**References:**\n${data.referenceLinks.map((u) => `- ${u}`).join("\n")}`,
@@ -392,19 +465,15 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       );
     }
 
-    // Build a context-rich goal for the Builder agent.
-    const goalSections: string[] = [
-      `Pick up GitHub issue #${issueNumber} on the connected repo. Read the issue body, then ship a single-file scoped PR via github.pr.open with idempotency_key="issue-${issueNumber}". Closes #${issueNumber}.`,
-      `\nUser intent:\n${data.goal}`,
-    ];
-    if (prd)
-      goalSections.push(
-        `\nLinked PRD: "${prd.title}" (id ${prd.id}). Use it as the source of truth for scope.`,
-      );
-    if (data.referenceLinks?.length) {
-      goalSections.push(`\nReferences:\n${data.referenceLinks.map((u) => `- ${u}`).join("\n")}`);
-    }
-    const fullGoal = goalSections.join("\n");
+    // Build a context-rich goal for the Builder agent (pure assembly above:
+    // the ARD block + acceptance criteria ride the work order).
+    const fullGoal = assembleBuilderGoal({
+      issueNumber,
+      intent: data.goal,
+      prd,
+      ard,
+      referenceLinks: data.referenceLinks,
+    });
 
     // Resolve builder agent, create mission, then run.
     const { data: agent } = await supabase

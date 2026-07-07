@@ -265,7 +265,7 @@ export function AutoClustered() {
     onMutate: (id) => setBusy(id, true),
     onSuccess: (r) => {
       toast.success("Spec drafted");
-      navigate({ to: "/plan/spec/$id", params: { id: r.id } });
+      navigate({ to: "/plan/spec/$id", params: { id: r.id }, search: { tab: "contract" } });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: (_d, _e, id) => setBusy(id, false),

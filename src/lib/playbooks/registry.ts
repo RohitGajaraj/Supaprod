@@ -82,7 +82,7 @@ export const PLAYBOOK_REGISTRY: readonly PlaybookDefinition[] = [
     id: "prd-spine",
     version: 1,
     station: "prd",
-    name: "The PRD spine",
+    name: "The spec spine",
     summary: "Problem, the user, the bet, the cut line, and how you will know.",
     steps: [
       "Problem + who has it + the evidence it is real.",
@@ -90,7 +90,7 @@ export const PLAYBOOK_REGISTRY: readonly PlaybookDefinition[] = [
       "Explicit non-goals and the cut line for v1.",
       "Success + guardrail metrics, decided before launch.",
     ],
-    rankingSignal: "PRDs with a pre-committed metric resolve decisively more often",
+    rankingSignal: "Specs with a pre-committed metric resolve decisively more often",
   },
   {
     id: "positioning-statement",

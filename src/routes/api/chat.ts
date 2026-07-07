@@ -303,7 +303,7 @@ Your job is to analyze the user's latest input and decide if it is a request to 
 A request is a mission if it asks Cadence to DO something active that involves planning, spec writing, coding, or scanning multiple resources, rather than just answering a question.
 
 Separately, classify how to research the answer with "mode":
-- "internal" — questions about the user's own product, workspace, roadmap, specs/PRDs, signals, opportunities, decisions, or missions (e.g. "what am I building next?", "how does the roadmap look?").
+- "internal" — questions about the user's own product, workspace, roadmap, specs, signals, opportunities, decisions, or missions (e.g. "what am I building next?", "how does the roadmap look?").
 - "web" — current EXTERNAL facts from the public web: weather, news, prices, stocks, sports, competitor or market info, recent releases — anything not in the user's workspace that may have changed recently.
 - "both" — comparative or strategic questions touching both worlds (e.g. "how does my roadmap compare to competitor X?").
 - "chat" — small talk, greetings, or simple general knowledge that needs no research.
