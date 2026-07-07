@@ -142,14 +142,54 @@ export async function _performSeed(
   workspaceId: string,
   userId: string,
 ): Promise<void> {
-  const prdResult = await db.from("prds").insert(samplePrds(workspaceId, userId));
+  // SEAM-1: ids are pre-assigned client-side so the stage_events creation rows
+  // below can reference the seeded entities without the insert needing to
+  // return rows (SeedClient stays a plain insert interface for the test stubs).
+  const prdRows = samplePrds(workspaceId, userId).map((row) => ({
+    id: crypto.randomUUID(),
+    ...row,
+  }));
+  const decisionRows = sampleDecisions(workspaceId, userId).map((row) => ({
+    id: crypto.randomUUID(),
+    ...row,
+  }));
+
+  const prdResult = await db.from("prds").insert(prdRows);
   if (prdResult.error) throw new Error(`seed prds: ${prdResult.error.message}`);
 
-  const decisionResult = await db.from("decisions").insert(sampleDecisions(workspaceId, userId));
+  const decisionResult = await db.from("decisions").insert(decisionRows);
   if (decisionResult.error) throw new Error(`seed decisions: ${decisionResult.error.message}`);
 
   const memoryResult = await db.from("agent_memory").insert(sampleMemories(workspaceId, userId));
   if (memoryResult.error) throw new Error(`seed agent_memory: ${memoryResult.error.message}`);
+
+  // SEAM-1: creation stage events for the seeded specs + decisions, one bulk
+  // insert for efficiency. Fail-safe by the stage-events contract: recording
+  // history must never break the main write, so errors are logged, not thrown.
+  const stageEventRows = [
+    ...prdRows.map((p) => ({
+      entity_type: "spec",
+      entity_id: p.id,
+      from_stage: null,
+      to_stage: "draft",
+      actor: "system",
+      workspace_id: workspaceId,
+      user_id: userId,
+    })),
+    ...decisionRows.map((d) => ({
+      entity_type: "decision",
+      entity_id: d.id,
+      from_stage: null,
+      to_stage: "approved",
+      actor: "system",
+      workspace_id: workspaceId,
+      user_id: userId,
+    })),
+  ];
+  const stageResult = await db.from("stage_events").insert(stageEventRows);
+  if (stageResult.error) {
+    console.error(`[WM-S1] seed stage_events failed: ${stageResult.error.message}`);
+  }
 }
 
 /**
@@ -194,10 +234,9 @@ interface RpcClient {
 export async function seedSampleWorkspace(userId: string): Promise<void> {
   if (process.env.SAMPLE_WORKSPACE_ENABLED !== "1") return;
   try {
-    const { error } = await (supabaseAdmin as unknown as RpcClient).rpc(
-      "seed_sample_workspace",
-      { _user_id: userId },
-    );
+    const { error } = await (supabaseAdmin as unknown as RpcClient).rpc("seed_sample_workspace", {
+      _user_id: userId,
+    });
     if (error) throw new Error(error.message);
   } catch (err) {
     console.error("[SAMPLE-SEED] seedSampleWorkspace failed:", err);

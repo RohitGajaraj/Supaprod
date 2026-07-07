@@ -11,6 +11,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 /** GitHub API headers matching the studio.commit tool (ghHeaders in registry.server.ts). */
 export function ghHeaders(token: string): Record<string, string> {
@@ -312,6 +313,16 @@ export async function runRollbackRelease(
     .single();
   if (missionErr) throw new Error(missionErr.message);
   const rollbackMissionId = (missionRow as { id: string }).id;
+
+  // SEAM-1: rollback mission created straight into 'running' by the Build agent.
+  await recordStageEvent(db, {
+    entityType: "mission",
+    entityId: rollbackMissionId,
+    to: "running",
+    actor: "builder",
+    workspaceId: cs.workspace_id,
+    userId,
+  });
 
   // Create revert changeset
   const revertTitle = `Revert: ${(cs.title || "Untitled").slice(0, 150)}`;

@@ -72,6 +72,47 @@ async function ensureDefaultWorkspace(
 }
 
 /**
+ * SEAM-1: stage history for seeded opportunities (creation into "backlog",
+ * actor "system"). One bulk insert, same row shape as recordStageEvent, and
+ * fail-safe by the same contract — a history write must never abort a seed.
+ * stage_events is newer than the generated types, hence the structural cast.
+ */
+async function recordSeedOpportunityStageEvents(
+  supabase: SupabaseClient<Database>,
+  opportunityIds: string[],
+  workspaceId: string,
+  userId: string,
+): Promise<void> {
+  if (opportunityIds.length === 0) return;
+  try {
+    const { error } = await (
+      supabase as unknown as {
+        from(table: string): {
+          insert(
+            values: Record<string, unknown>[],
+          ): PromiseLike<{ error: { message: string } | null }>;
+        };
+      }
+    )
+      .from("stage_events")
+      .insert(
+        opportunityIds.map((id) => ({
+          entity_type: "opportunity",
+          entity_id: id,
+          from_stage: null,
+          to_stage: "backlog",
+          actor: "system",
+          workspace_id: workspaceId,
+          user_id: userId,
+        })),
+      );
+    if (error) console.error(`stage_events seed write failed: ${error.message}`);
+  } catch (e) {
+    console.error(`stage_events seed write threw: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
+/**
  * Seed a workspace with per-track sample data
  *
  * Creates:
@@ -176,11 +217,19 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         status: "backlog",
       }));
 
-      const { error: opportunitiesError } = await supabase
+      const { data: insertedOpps, error: opportunitiesError } = await supabase
         .from("opportunities")
-        .insert(opportunityRows);
+        .insert(opportunityRows)
+        .select("id");
 
       if (opportunitiesError) throw opportunitiesError;
+
+      await recordSeedOpportunityStageEvents(
+        supabase,
+        (insertedOpps ?? []).map((o) => o.id),
+        workspaceId,
+        userId,
+      );
 
       // 6. Mark the profile as onboarded (final step; only if all above succeed)
       const { error: profileError, data: profileData } = await supabase
@@ -424,8 +473,18 @@ Key metric I care about: ${data.keyMetric}`;
       ease: Math.min(10, Math.max(1, o.ease)),
       status: "backlog",
     }));
-    const { error: oppErr } = await supabase.from("opportunities").insert(oppRows);
+    const { data: insertedOpps, error: oppErr } = await supabase
+      .from("opportunities")
+      .insert(oppRows)
+      .select("id");
     if (oppErr) throw oppErr;
+
+    await recordSeedOpportunityStageEvents(
+      supabase,
+      (insertedOpps ?? []).map((o) => o.id),
+      workspaceId,
+      userId,
+    );
 
     // Mark onboarded
     const { error: profErr, data: profData } = await supabase

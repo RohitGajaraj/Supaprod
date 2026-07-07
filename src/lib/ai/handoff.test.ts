@@ -346,7 +346,9 @@ function buildMissionCloseClient(opts: {
         updatePayload = payload;
         return chain({ data: opts.missionRow ?? null });
       },
-      insert: async () => ({ data: null, error: null }),
+      // Awaitable AND chainable (.select().maybeSingle()) — the decision insert
+      // now returns its id for the SEAM-1 stage event.
+      insert: () => chain({ data: null, error: null }),
     }),
   } as unknown as SupabaseClient;
 

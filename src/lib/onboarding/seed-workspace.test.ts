@@ -83,11 +83,16 @@ describe("seedWorkspace (env gate)", () => {
 // ---------------------------------------------------------------------------
 
 describe("_performSeed (table inserts)", () => {
-  it("inserts into prds, decisions, and agent_memory in order", async () => {
+  it("inserts into prds, decisions, agent_memory, and stage_events in order", async () => {
     const { db, inserts } = fakeDb();
     await _performSeed(db, WS_ID, USER_ID);
 
-    expect(inserts.map((c) => c.table)).toEqual(["prds", "decisions", "agent_memory"]);
+    expect(inserts.map((c) => c.table)).toEqual([
+      "prds",
+      "decisions",
+      "agent_memory",
+      "stage_events",
+    ]);
   });
 
   it("inserts at least 1 PRD with a non-empty title and body_md", async () => {
@@ -128,6 +133,34 @@ describe("_performSeed (table inserts)", () => {
       expect(typeof row.content).toBe("string");
       expect((row.content as string).length).toBeGreaterThan(0);
     }
+  });
+
+  it("bulk-inserts creation stage events for every seeded spec and decision", async () => {
+    const { db, inserts } = fakeDb();
+    await _performSeed(db, WS_ID, USER_ID);
+
+    const prdRows = inserts.find((c) => c.table === "prds")!.rows;
+    const decisionRows = inserts.find((c) => c.table === "decisions")!.rows;
+    const events = inserts.find((c) => c.table === "stage_events")!.rows;
+
+    expect(events.length).toBe(prdRows.length + decisionRows.length);
+    for (const ev of events) {
+      expect(ev.from_stage).toBeNull();
+      expect(ev.actor).toBe("system");
+    }
+
+    const specEvents = events.filter((e) => e.entity_type === "spec");
+    expect(specEvents.map((e) => e.entity_id)).toEqual(prdRows.map((r) => r.id));
+    for (const ev of specEvents) expect(ev.to_stage).toBe("draft");
+
+    const decisionEvents = events.filter((e) => e.entity_type === "decision");
+    expect(decisionEvents.map((e) => e.entity_id)).toEqual(decisionRows.map((r) => r.id));
+    for (const ev of decisionEvents) expect(ev.to_stage).toBe("approved");
+  });
+
+  it("does not throw when the stage_events insert fails (history is fail-safe)", async () => {
+    const { db } = fakeDb("stage_events");
+    await expect(_performSeed(db, WS_ID, USER_ID)).resolves.toBeUndefined();
   });
 });
 

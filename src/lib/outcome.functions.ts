@@ -8,6 +8,7 @@ import { rememberOutcome } from "@/lib/ai/memory.server";
 import { inferSupersession } from "@/lib/ai/supersession.server";
 import { inferDirectEdge } from "@/lib/ai/edge-extractor.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { pickChangesetForPrd, type ChangesetForPrd } from "@/lib/studio-ship";
 import {
   changelogRowFor,
@@ -156,6 +157,16 @@ export const checkPrdShipped = createServerFn({ method: "POST" })
         .update({ status: "shipped", shipped_at: shippedAt, updated_at: new Date().toISOString() })
         .eq("id", prd.id);
       if (upErr) throw new Error(upErr.message);
+      // SEAM-1: stage history for the ship transition.
+      await recordStageEvent(db, {
+        entityType: "spec",
+        entityId: prd.id as string,
+        from: (prd.status as string | null) ?? null,
+        to: "shipped",
+        actor: "human",
+        workspaceId: (prd.workspace_id as string | null) ?? null,
+        userId,
+      });
     }
     return { shipped: true, issueState: "closed" as const, shippedAt };
   });

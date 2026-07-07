@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "@/lib/ai/runtime.server";
 import { recordLineage } from "@/lib/lineage.functions";
 import { computeNovelty } from "@/lib/brain/novelty.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 export type ThemeCandidate = {
   title: string;
@@ -150,6 +151,16 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       .select()
       .single();
     if (tErr || !theme) continue;
+    // SEAM-1: theme creation event. workspace_id comes off the inserted row so
+    // the user-session path (DB default) is recorded honestly too.
+    await recordStageEvent(supabase, {
+      entityType: "theme",
+      entityId: theme.id as string,
+      to: "new",
+      actor: "system",
+      workspaceId: (theme.workspace_id as string | null) ?? workspaceId,
+      userId,
+    });
     const ids = members.map((n) => sigs[n].id);
     // KI-31: claim atomically — only stamp signals that are STILL unclustered, so a
     // manual cluster racing the cron (or two passes) can't move a signal from one

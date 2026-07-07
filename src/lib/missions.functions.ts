@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isSideEffectingTool } from "@/lib/tool-consequences";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
@@ -397,7 +398,7 @@ export const cancelMission = createServerFn({ method: "POST" })
       context,
       data,
     }): Promise<{ cancelled: boolean; alreadyTerminal?: boolean; approvalsCancelled?: number }> => {
-      const { supabase } = context;
+      const { supabase, userId } = context;
       const now = new Date().toISOString();
       // A stopped mission can't be cancelled — it already reached a terminal end.
       const TERMINAL = ["completed", "done", "failed", "halted", "cancelled"];
@@ -406,7 +407,7 @@ export const cancelMission = createServerFn({ method: "POST" })
 
       const { data: mission, error: mErr } = await supabase
         .from("missions")
-        .select("id,status")
+        .select("id,status,workspace_id")
         .eq("id", data.missionId)
         .maybeSingle();
       if (mErr) throw new Error(mErr.message);
@@ -429,6 +430,17 @@ export const cancelMission = createServerFn({ method: "POST" })
         .maybeSingle();
       if (uErr) throw new Error(uErr.message);
       if (!updated) return { cancelled: false, alreadyTerminal: true };
+
+      // SEAM-1: the operator cancelled this mission.
+      await recordStageEvent(supabase, {
+        entityType: "mission",
+        entityId: data.missionId,
+        from: mission.status,
+        to: "cancelled",
+        actor: "human",
+        workspaceId: mission.workspace_id,
+        userId,
+      });
 
       // 2. Stop the cron resuming this mission's individual child runs.
       await supabase
@@ -495,11 +507,11 @@ export const promoteMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { missionId: string }) => z.object({ missionId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<{ ok: boolean; missionId: string }> => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
 
     const { data: mission, error: fetchErr } = await supabase
       .from("missions")
-      .select("id,status")
+      .select("id,status,workspace_id")
       .eq("id", data.missionId)
       .maybeSingle();
     if (fetchErr) throw new Error(fetchErr.message);
@@ -514,6 +526,17 @@ export const promoteMission = createServerFn({ method: "POST" })
       .eq("id", data.missionId)
       .eq("status", "proposed"); // guard against a race
     if (updateErr) throw new Error(updateErr.message);
+
+    // SEAM-1: the operator promoted (launched) this proposed mission.
+    await recordStageEvent(supabase, {
+      entityType: "mission",
+      entityId: data.missionId,
+      from: "proposed",
+      to: "queued",
+      actor: "human",
+      workspaceId: mission.workspace_id,
+      userId,
+    });
 
     return { ok: true, missionId: data.missionId };
   });

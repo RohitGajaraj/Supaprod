@@ -18,6 +18,11 @@ export interface CallCardProps {
   consequence: string;
   onOk: () => void;
   onNo: () => void;
+  /** Optional third verb (the honest "Later"): a quiet tertiary action that
+   * defers the call without answering it. Rendered only when both label and
+   * handler are wired — never a dead button. */
+  laterLabel?: string;
+  onLater?: () => void;
   compact?: boolean;
   /** Loom v4 §3: the screen's ONE featured call carries the solid top-lit
    * ember CTA; every other card's approve is ember tint/line/text. */
@@ -53,6 +58,8 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
       consequence,
       onOk,
       onNo,
+      laterLabel,
+      onLater,
       compact = false,
       featured = false,
       className,
@@ -79,162 +86,174 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
           onNo();
         }
       : onNo;
+    const handleLater =
+      clickable && onLater
+        ? (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onLater();
+          }
+        : onLater;
     return (
-    <div
-      ref={ref}
-      className={cn(
-        "flex flex-col",
-        clickable &&
-          "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
-        className,
-      )}
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      aria-label={clickable ? `Open ${title}` : undefined}
-      onClick={clickable ? () => onOpen?.() : undefined}
-      onKeyDown={
-        clickable
-          ? (event) => {
-              if (event.target !== event.currentTarget) return;
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen?.();
+      <div
+        ref={ref}
+        className={cn(
+          "flex flex-col",
+          clickable &&
+            "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+          className,
+        )}
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        aria-label={clickable ? `Open ${title}` : undefined}
+        onClick={clickable ? () => onOpen?.() : undefined}
+        onKeyDown={
+          clickable
+            ? (event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onOpen?.();
+                }
               }
-            }
-          : undefined
-      }
-      style={{
-        backgroundColor: "var(--surface-card-deep)",
-        border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
-        borderRadius: "var(--radius-card)",
-        padding: compact ? "16px 18px" : "var(--density-card-pad) var(--density-card-pad-lg)",
-        gap: "12px",
-        // Loom v4 §2: raised decision cards catch the light; the featured
-        // call also casts the ambient shadow.
-        boxShadow: featured ? "var(--shadow-elevated)" : "var(--top-light)",
-      }}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span
-          className="inline-flex items-center"
+            : undefined
+        }
+        style={{
+          backgroundColor: "var(--surface-card-deep)",
+          border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
+          borderRadius: "var(--radius-card)",
+          padding: compact ? "16px 18px" : "var(--density-card-pad) var(--density-card-pad-lg)",
+          gap: "12px",
+          // Loom v4 §2: raised decision cards catch the light; the featured
+          // call also casts the ambient shadow.
+          boxShadow: featured ? "var(--shadow-elevated)" : "var(--top-light)",
+        }}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span
+            className="inline-flex items-center"
+            style={{
+              border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
+              borderRadius: "var(--radius-pill)",
+              padding: "3px 10px",
+            }}
+          >
+            <MonoLabel tone="ember" style={{ fontSize: "9px" }}>
+              {compact ? "YOUR CALL" : kind}
+            </MonoLabel>
+          </span>
+          {/* Dim 17 trace-and-time tail: time first (a touch more present), then
+            the expiry, then the faintest trace ref. */}
+          <span className="flex items-center" style={{ gap: "10px" }}>
+            {time}
+            {expiry ? <MonoLabel tone="faint">{expiry}</MonoLabel> : null}
+            {traceRef}
+          </span>
+        </div>
+
+        <h3
           style={{
-            border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
-            borderRadius: "var(--radius-pill)",
-            padding: "3px 10px",
+            fontFamily: "var(--font-serif)",
+            fontSize: compact ? "17px" : "var(--text-card-title)",
+            fontWeight: 460,
+            lineHeight: 1.3,
+            color: "var(--text-primary)",
+            margin: 0,
           }}
         >
-          <MonoLabel tone="ember" style={{ fontSize: "9px" }}>
-            {compact ? "YOUR CALL" : kind}
-          </MonoLabel>
-        </span>
-        {/* Dim 17 trace-and-time tail: time first (a touch more present), then
-            the expiry, then the faintest trace ref. */}
-        <span className="flex items-center" style={{ gap: "10px" }}>
-          {time}
-          {expiry ? <MonoLabel tone="faint">{expiry}</MonoLabel> : null}
-          {traceRef}
-        </span>
-      </div>
+          {title}
+        </h3>
 
-      <h3
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: compact ? "17px" : "var(--text-card-title)",
-          fontWeight: 460,
-          lineHeight: 1.3,
-          color: "var(--text-primary)",
-          margin: 0,
-        }}
-      >
-        {title}
-      </h3>
-
-      <p
-        style={{
-          fontFamily: "var(--font-ui)",
-          fontSize: "13px",
-          lineHeight: 1.65,
-          color: "var(--text-muted)",
-          margin: 0,
-        }}
-      >
-        {body}
-      </p>
-
-      {ev.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          {ev.map((row) => (
-            <div key={`${row.src}-${row.text}`} className="flex flex-col gap-1">
-              <span
-                className="inline-flex w-fit items-center uppercase"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "8.5px",
-                  color: "var(--blossom)",
-                  // No numeric alpha is given for a "blossom hairline" pill;
-                  // reuses the one literal hairline alpha this component
-                  // does have (the card's own ember border, 0.25) rather
-                  // than inventing a distinct number.
-                  border: `1px solid ${rgba("#E5BDDF", 0.25)}`,
-                  borderRadius: "var(--radius-pill)",
-                  padding: "2px 8px",
-                }}
-              >
-                {row.src}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-ui)",
-                  fontSize: "12.5px",
-                  color: "var(--text-body)",
-                }}
-              >
-                {row.text}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-2 pt-1">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="primary"
-            onClick={handleOk}
-            className={featured ? "hover:brightness-110" : "hover:brightness-125"}
-            style={
-              featured
-                ? {
-                    // §3: the one primary CTA is a top-lit gradient.
-                    background:
-                      "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
-                    color: "var(--cta-ink)",
-                  }
-                : {
-                    // §3: everything else speaks ember as tint + line + text.
-                    background: "var(--ember-tint)",
-                    color: "var(--ember-text)",
-                    border: "1px solid var(--ember-line)",
-                  }
-            }
-          >
-            {okLabel}
-          </Button>
-          <Button variant="secondary" onClick={handleNo}>
-            {noLabel}
-          </Button>
-        </div>
-        <span
+        <p
           style={{
             fontFamily: "var(--font-ui)",
-            fontSize: "var(--text-helper)",
-            color: "var(--text-subtle)",
+            fontSize: "13px",
+            lineHeight: 1.65,
+            color: "var(--text-muted)",
+            margin: 0,
           }}
         >
-          {consequence}
-        </span>
+          {body}
+        </p>
+
+        {ev.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {ev.map((row) => (
+              <div key={`${row.src}-${row.text}`} className="flex flex-col gap-1">
+                <span
+                  className="inline-flex w-fit items-center uppercase"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "8.5px",
+                    color: "var(--blossom)",
+                    // No numeric alpha is given for a "blossom hairline" pill;
+                    // reuses the one literal hairline alpha this component
+                    // does have (the card's own ember border, 0.25) rather
+                    // than inventing a distinct number.
+                    border: `1px solid ${rgba("#E5BDDF", 0.25)}`,
+                    borderRadius: "var(--radius-pill)",
+                    padding: "2px 8px",
+                  }}
+                >
+                  {row.src}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "12.5px",
+                    color: "var(--text-body)",
+                  }}
+                >
+                  {row.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex flex-col gap-2 pt-1">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="primary"
+              onClick={handleOk}
+              className={featured ? "hover:brightness-110" : "hover:brightness-125"}
+              style={
+                featured
+                  ? {
+                      // §3: the one primary CTA is a top-lit gradient.
+                      background:
+                        "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                      color: "var(--cta-ink)",
+                    }
+                  : {
+                      // §3: everything else speaks ember as tint + line + text.
+                      background: "var(--ember-tint)",
+                      color: "var(--ember-text)",
+                      border: "1px solid var(--ember-line)",
+                    }
+              }
+            >
+              {okLabel}
+            </Button>
+            <Button variant="secondary" onClick={handleNo}>
+              {noLabel}
+            </Button>
+            {laterLabel && handleLater ? (
+              <Button variant="tertiary" onClick={handleLater}>
+                {laterLabel}
+              </Button>
+            ) : null}
+          </div>
+          <span
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "var(--text-helper)",
+              color: "var(--text-subtle)",
+            }}
+          >
+            {consequence}
+          </span>
+        </div>
       </div>
-    </div>
     );
   },
 );

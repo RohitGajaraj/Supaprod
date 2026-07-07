@@ -26,7 +26,7 @@ import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
-import { getNeedsYou, getLoopPulse } from "@/lib/today.functions";
+import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
 import { resolveApproval } from "@/lib/governance.functions";
 import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
@@ -68,11 +68,10 @@ export const Route = createFileRoute("/_authenticated/today")({
 // nothing. A failed queue fetch shows an error card with a retry, never the
 // all-clear.
 //
-// The "Later" defer verb was checked against the live schema and SKIPPED:
-// agent_approvals has status ('pending','approved','rejected','executed',
-// 'failed','cancelled','expired') and escalation_state ('pending','expired',
-// 'escalated','resolved') — no snooze/defer column exists, and tonight ships
-// no migration. Documented for a follow-up migration.
+// The "Later" defer verb now ships for tool gates: migration 20260707190000
+// added agent_approvals.snoozed_until, snoozeApproval writes it (24h default),
+// and getNeedsYou hides snoozed rows until the window passes — the call
+// returns on its own, never silently dropped.
 
 // OBS-10: re-pointed at the real Discover/Plan destinations.
 const LOOP_SURFACE_TO: Record<LoopSurface, { to: string; search?: Record<string, string> }> = {
@@ -329,6 +328,7 @@ function Dashboard() {
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
   const mResolveApproval = useServerFn(resolveApproval);
+  const mSnoozeApproval = useServerFn(snoozeApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
   const mSavePrd = useServerFn(savePrd);
   const mUpdateOpp = useServerFn(updateOpportunity);
@@ -371,11 +371,7 @@ function Dashboard() {
         | { display_name?: string; full_name?: string; name?: string }
         | undefined;
       const name =
-        meta?.display_name ??
-        meta?.full_name ??
-        meta?.name ??
-        u?.email?.split("@")[0] ??
-        "there";
+        meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "there";
       setUserName(name);
     });
   }, []);
@@ -436,6 +432,35 @@ function Dashboard() {
     onError: (e: Error) => showToast(e.message),
   });
 
+  // LATER — the honest defer verb on a tool gate: snoozed_until hides the row
+  // server-side for 24h, then it returns on its own. Optimistic removal so the
+  // card leaves the queue immediately; the refetch confirms (or restores it).
+  const snoozeGate = useMutation({
+    mutationFn: (data: { approvalId: string }) => mSnoozeApproval({ data }),
+    onMutate: async ({ approvalId }) => {
+      await qc.cancelQueries({ queryKey: ["needs-you"] });
+      const prev = qc.getQueryData<NeedsYou>(["needs-you"]);
+      if (prev) {
+        qc.setQueryData<NeedsYou>(["needs-you"], {
+          ...prev,
+          approvals: prev.approvals.filter((a) => a.id !== approvalId),
+          counts: {
+            ...prev.counts,
+            approvals: Math.max(0, prev.counts.approvals - 1),
+            liveCalls: Math.max(0, prev.counts.liveCalls - 1),
+          },
+        });
+      }
+      return { prev };
+    },
+    onError: (e: Error, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["needs-you"], ctx.prev);
+      showToast(e.message);
+    },
+    onSuccess: () => showToast("Set aside. It returns in 24 hours."),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["needs-you"] }),
+  });
+
   // WORTH BUILDING? (spec) — savePrd is the Plan surface's own write path:
   // approve logs the decision, send-back returns the spec to draft.
   const decidePrd = useMutation({
@@ -487,6 +512,7 @@ function Dashboard() {
 
   const anyDeciding =
     decideApproval.isPending ||
+    snoozeGate.isPending ||
     decidePrd.isPending ||
     decideOpp.isPending ||
     decideChallenge.isPending;
@@ -545,6 +571,8 @@ function Dashboard() {
         time: timeNode(a.created_at),
         onOk: () => decideApproval.mutate({ approvalId: a.id, decision: "approved" }),
         onNo: () => decideApproval.mutate({ approvalId: a.id, decision: "rejected" }),
+        laterLabel: "Later",
+        onLater: () => snoozeGate.mutate({ approvalId: a.id }),
       },
     })),
   );
@@ -664,6 +692,7 @@ function Dashboard() {
       createdAt: a.created_at,
       model: a.model,
       estCostUsd: a.est_cost_usd,
+      missionId: a.missionId,
       okLabel: "Approve",
       noLabel: "Send back",
       onOk: () => decideApproval.mutate({ approvalId: a.id, decision: "approved" }),

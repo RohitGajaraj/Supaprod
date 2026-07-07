@@ -31,6 +31,7 @@ import { isHighRiskTool, toolRisk, toolConsequence } from "@/lib/tool-consequenc
 import { capToolsByRisk } from "@/lib/agent-tool-cap";
 import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
 
@@ -823,11 +824,35 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         }
       }
       if (ctx.missionId) {
+        // KI-07 ordering: nothing may run before the halt-mark inside this
+        // try — a throw from any preamble would skip the update and re-create
+        // the stuck-mission bug this block exists to prevent. The prior-status
+        // read for stage history is therefore isolated in its own try below.
+        let priorMissionStatus: string | null = null;
+        try {
+          const { data: priorMission } = await supabase
+            .from("missions")
+            .select("status")
+            .eq("id", ctx.missionId)
+            .maybeSingle();
+          priorMissionStatus = (priorMission?.status as string | null) ?? null;
+        } catch {
+          priorMissionStatus = null;
+        }
         try {
           await supabase
             .from("missions")
             .update({ status: "halted", updated_at: new Date().toISOString() })
             .eq("id", ctx.missionId);
+          await recordStageEvent(supabase, {
+            entityType: "mission",
+            entityId: ctx.missionId,
+            from: priorMissionStatus,
+            to: "halted",
+            actor: agent.slug,
+            workspaceId: ctx.workspaceId ?? null,
+            userId: ctx.userId,
+          });
         } catch (err) {
           console.error("mission halt-mark failed:", err);
         }

@@ -31,6 +31,7 @@ import { evalRegressionReadiness, type SuiteScorePair } from "@/lib/ai/eval-gate
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 
 export type ToolCtx = {
@@ -2044,7 +2045,7 @@ const researchSynthesize = def({
   }),
   preview: (a) =>
     `Synthesize themes from last ${a.lookback_days ?? 30}d of signals${a.tag ? ` · #${a.tag}` : ""}`,
-  run: async (a, { supabase, userId, traceId, runId }) => {
+  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
     const days = a.lookback_days ?? 30;
     const since = new Date(Date.now() - days * 86400_000).toISOString();
     let q = supabase
@@ -2119,6 +2120,15 @@ const researchSynthesize = def({
         .single();
       if (tErr || !themeRow) continue;
       created++;
+      // SEAM-1: theme creation event, attributed to the acting agent.
+      await recordStageEvent(supabase, {
+        entityType: "theme",
+        entityId: themeRow.id,
+        to: "new",
+        actor: agentSlug ?? "system",
+        workspaceId: ws,
+        userId,
+      });
       const sigIds = idxs.map((i) => signals[i].id);
       const { error: uErr, count } = await supabase
         .from("signals")
@@ -2148,7 +2158,7 @@ const prdDraft = def({
   }),
   preview: (a) =>
     `Draft PRD for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`,
-  run: async (a, { supabase, userId, traceId, runId }) => {
+  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
     const { data: opp, error: oErr } = await supabase
       .from("opportunities")
       .select(
@@ -2235,6 +2245,15 @@ const prdDraft = def({
       .select("id,title,status")
       .single();
     if (pErr) throw new Error(pErr.message);
+    // SEAM-1: spec (PRD) creation event, attributed to the acting agent.
+    await recordStageEvent(supabase, {
+      entityType: "spec",
+      entityId: prd.id,
+      to: "draft",
+      actor: agentSlug ?? "system",
+      workspaceId: opp.workspace_id,
+      userId,
+    });
     return { prd_id: prd.id, title: prd.title, status: prd.status, opportunity_id: opp.id };
   },
 });

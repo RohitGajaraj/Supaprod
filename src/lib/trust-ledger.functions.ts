@@ -22,11 +22,19 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { sealReceipts, verifyReceipts, SEAL_ALGO, type VerifyResult } from "@/lib/trust-verify";
+import {
+  sealReceipts,
+  verifyReceipts,
+  SEAL_ALGO,
+  type VerifyResult,
+  type SealLink,
+} from "@/lib/trust-verify";
+import { DECISIVE_VERDICTS } from "@/lib/moat/loop-closure";
 
 export type TrustReceiptKind = "decision" | "action";
-/** v1 outcome states. "proven" is reserved for when recorded-outcome links land (LOOP-PROVE). */
-export type TrustReceiptOutcome = "standing" | "superseded";
+/** Outcome states. "proven" = a recorded outcome (a decisive learning) links to this
+ * decision via a current lineage edge (LOOP-PROVE); supersession still wins over it. */
+export type TrustReceiptOutcome = "standing" | "superseded" | "proven";
 
 export type TrustReceipt = {
   id: string;
@@ -118,6 +126,60 @@ export function supersededChildIds(
   return out;
 }
 
+export type LearningLite = { id: string; verdict: string | null };
+
+/**
+ * PURE. The 'proven' derivation (LOOP-PROVE): a decision is proven when a learning
+ * carrying a DECISIVE verdict links to it through a CURRENT (`valid_to` null) lineage
+ * edge, in either direction (learning validates/derived-from decision, or decision
+ * cites learning). This reuses loop-closure's exact vocabulary (DECISIVE_VERDICTS) and
+ * currency rule; no new join is invented. Supersession edges are excluded here because
+ * they encode replacement, not proof, and the superseded outcome wins anyway.
+ * Returns the set of proven decision ids.
+ */
+export function provenDecisionIds(
+  edges: LineageEdgeLite[] | null | undefined,
+  learnings: readonly LearningLite[] | null | undefined,
+): Set<string> {
+  const decisive = new Set<string>();
+  for (const l of Array.isArray(learnings) ? learnings : []) {
+    const v = typeof l?.verdict === "string" ? l.verdict.trim().toLowerCase() : "";
+    if (l?.id && v && DECISIVE_VERDICTS.has(v)) decisive.add(l.id);
+  }
+  const out = new Set<string>();
+  if (!decisive.size) return out;
+  for (const e of Array.isArray(edges) ? edges : []) {
+    if (!e || isSupersessionRelation(e.relation)) continue;
+    const retired = typeof e.valid_to === "string" && e.valid_to.trim() !== "";
+    if (retired) continue;
+    if (
+      e.parent_kind === "learning" &&
+      e.parent_id &&
+      decisive.has(e.parent_id) &&
+      e.child_kind === "decision" &&
+      e.child_id
+    ) {
+      out.add(e.child_id);
+    }
+    if (
+      e.child_kind === "learning" &&
+      e.child_id &&
+      decisive.has(e.child_id) &&
+      e.parent_kind === "decision" &&
+      e.parent_id
+    ) {
+      out.add(e.parent_id);
+    }
+  }
+  return out;
+}
+
+/** PURE. Seal-persistence dedup: append a new ledger_seals row only when the head
+ * actually moved past the user's latest persisted seal (or none exists yet). */
+export function shouldPersistSeal(latestHead: string | null, head: string): boolean {
+  return !!head && latestHead !== head;
+}
+
 /** PURE. Count edges that reference an id on either end (provenance richness). */
 export function evidenceCounts(edges: LineageEdgeLite[] | null | undefined): Map<string, number> {
   const out = new Map<string, number>();
@@ -157,15 +219,20 @@ export function summarizeAction(
   return subject ? `${pretty}: ${subject}` : pretty;
 }
 
-/** PURE. Merge decisions + decided actions into one time-sorted receipt list. */
+/** PURE. Merge decisions + decided actions into one time-sorted receipt list.
+ * `proven` (optional) is the LOOP-PROVE set from provenDecisionIds: a decision in it
+ * reads "proven" unless supersession applies (a replaced belief is not the current
+ * proof, so superseded wins). Actions never read proven. */
 export function assembleReceipts(input: {
   decisions: DecisionLite[];
   approvals: ApprovalLite[];
   superseded: Map<string, string>;
   evidence: Map<string, number>;
   sourceLabels: Map<string, string>;
+  proven?: Set<string>;
 }): TrustReceipt[] {
   const { decisions, approvals, superseded, evidence, sourceLabels } = input;
+  const proven = input.proven ?? new Set<string>();
 
   const supersededFor = (
     ...ids: (string | null)[]
@@ -182,7 +249,8 @@ export function assembleReceipts(input: {
 
   for (const d of Array.isArray(decisions) ? decisions : []) {
     const sourceId = d.mission_id ?? d.prd_id ?? d.meeting_id ?? null;
-    const { o, by } = supersededFor(d.id, sourceId);
+    const { o: sup, by } = supersededFor(d.id, sourceId);
+    const o: TrustReceiptOutcome = sup === "standing" && proven.has(d.id) ? "proven" : sup;
     receipts.push({
       id: d.id,
       kind: "decision",
@@ -237,7 +305,7 @@ const ListSchema = z
   .object({
     workspaceId: z.string().uuid().optional(),
     kind: z.enum(["all", "decision", "action"]).default("all"),
-    outcome: z.enum(["all", "standing", "superseded"]).default("all"),
+    outcome: z.enum(["all", "standing", "superseded", "proven"]).default("all"),
     q: z.string().max(200).optional(),
     limit: z.number().int().min(1).max(200).default(100),
   })
@@ -272,7 +340,7 @@ async function loadReceipts(
   const wantDecisions = kind === "all" || kind === "decision";
   const wantActions = kind === "all" || kind === "action";
 
-  const [decisionsRes, approvalsRes] = await Promise.all([
+  const [decisionsRes, approvalsRes, learningsRes] = await Promise.all([
     wantDecisions
       ? supabase
           .from("decisions")
@@ -294,12 +362,30 @@ async function loadReceipts(
           .order("created_at", { ascending: false })
           .limit(limit)
       : Promise.resolve({ data: [] as ApprovalLite[], error: null }),
+    // Recorded outcomes for the 'proven' derivation. Deterministic: decisive
+    // verdicts filtered in SQL and ordered by id, so the derived set cannot
+    // flap between reads past the row cap. 'proven' is display-only (the seal
+    // normalizes it back to standing in canonicalizeReceipt), so a read
+    // failure degrades to no-proven instead of taking the ledger down.
+    wantDecisions
+      ? supabase
+          .from("learnings")
+          .select("id,verdict")
+          .eq("workspace_id", workspaceId)
+          .in("verdict", [...DECISIVE_VERDICTS])
+          .order("id", { ascending: true })
+          .limit(2000)
+      : Promise.resolve({ data: [] as LearningLite[], error: null }),
   ]);
   if (decisionsRes.error) throw new Error(decisionsRes.error.message);
   if (approvalsRes.error) throw new Error(approvalsRes.error.message);
+  if (learningsRes.error) {
+    console.error(`trust-ledger learnings read failed (proven degrades): ${learningsRes.error.message}`);
+  }
 
   const decisions = (decisionsRes.data ?? []) as DecisionLite[];
   const approvals = (approvalsRes.data ?? []) as ApprovalLite[];
+  const learnings = (learningsRes.data ?? []) as LearningLite[];
 
   // Bitemporal lineage for supersession + evidence. Select `valid_to` but fall
   // back to the base columns if the bitemporal migration isn't live yet, so the
@@ -358,6 +444,7 @@ async function loadReceipts(
     superseded: supersededChildIds(edges),
     evidence: evidenceCounts(edges),
     sourceLabels,
+    proven: provenDecisionIds(edges, learnings),
   });
 }
 
@@ -368,7 +455,10 @@ export const listTrustReceipts = createServerFn({ method: "GET" })
     const supabase = context.supabase as SupabaseClient;
     const workspaceId = await resolveWorkspaceId(supabase, data?.workspaceId);
     if (!workspaceId) {
-      return { receipts: [] as TrustReceipt[], counts: { all: 0, standing: 0, superseded: 0 } };
+      return {
+        receipts: [] as TrustReceipt[],
+        counts: { all: 0, standing: 0, superseded: 0, proven: 0 },
+      };
     }
 
     const limit = data?.limit ?? 100;
@@ -395,6 +485,7 @@ export const listTrustReceipts = createServerFn({ method: "GET" })
       all: receipts.length,
       standing: receipts.filter((r) => r.outcome === "standing").length,
       superseded: receipts.filter((r) => r.outcome === "superseded").length,
+      proven: receipts.filter((r) => r.outcome === "proven").length,
     };
 
     const outcome = data?.outcome ?? "all";
@@ -427,6 +518,11 @@ export type LedgerSeal = {
  * loadReceipts runs on the caller's RLS-scoped client, so the fingerprint only ever
  * covers records the caller may already read (a non-member of workspaceId gets the
  * empty/genesis fingerprint). An optional Ed25519 signature is a possible later add-on.
+ *
+ * LOOP-PROVE follow-up: the computed seal (head + per-record links) is persisted into
+ * `ledger_seals` (own-row RLS, append-only) so verifyLedgerSeal can later pinpoint
+ * WHICH record changed. Deduped: a row is written only when the head moved past the
+ * user's latest persisted seal for this workspace. Best-effort, never breaks the read.
  */
 export const getLedgerSeal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -438,6 +534,7 @@ export const getLedgerSeal = createServerFn({ method: "GET" })
   )
   .handler(async ({ context, data }): Promise<LedgerSeal> => {
     const supabase = context.supabase as SupabaseClient;
+    const userId = context.userId as string;
     const workspaceId = await resolveWorkspaceId(supabase, data?.workspaceId);
     const sealedAt = new Date().toISOString();
     if (!workspaceId) {
@@ -452,6 +549,34 @@ export const getLedgerSeal = createServerFn({ method: "GET" })
     }
     const receipts = await loadReceipts(supabase, workspaceId, { limit: SEAL_LIMIT, kind: "all" });
     const seal = await sealReceipts(receipts);
+
+    // Persist (append-only, deduped) on the caller's RLS client. ledger_seals is not
+    // in the generated types yet, so rows go through the house structural cast.
+    try {
+      const { data: latest } = await supabase
+        .from("ledger_seals")
+        .select("head")
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const latestHead = (latest as unknown as { head: string } | null)?.head ?? null;
+      if (shouldPersistSeal(latestHead, seal.head)) {
+        const { error: insErr } = await supabase.from("ledger_seals").insert({
+          user_id: userId,
+          workspace_id: workspaceId,
+          head: seal.head,
+          algo: seal.algo,
+          record_count: seal.count,
+          links: seal.links,
+        });
+        if (insErr) console.error("ledger_seals insert failed (non-fatal):", insErr.message);
+      }
+    } catch (e) {
+      console.error("ledger seal persistence failed (non-fatal):", e);
+    }
+
     return {
       available: true,
       algo: seal.algo,
@@ -466,10 +591,12 @@ export type LedgerVerification = VerifyResult & { available: boolean; sealedAt: 
 
 /**
  * Check the workspace's CURRENT record against a fingerprint the user saved earlier. A
- * match confirms the ledger is unchanged since then; a mismatch reports that it changed
- * (the count divergence is named when the saved count is given). Head-only by design —
- * pinpointing which record changed needs the full saved seal, which arrives with the
- * deferred write-time persistence. RLS-scoped exactly like getLedgerSeal.
+ * match confirms the ledger is unchanged since then (sealedAt then carries the persisted
+ * seal's created_at, the real anchor moment). On a mismatch, the persisted seal for that
+ * fingerprint (its saved per-record links) lets verifyReceipts pinpoint WHICH receipt
+ * ids changed (added / removed / mutated) instead of the head-only "something changed".
+ * A fingerprint with no persisted row (saved before persistence landed) falls back to
+ * the head-only compare. RLS-scoped exactly like getLedgerSeal.
  */
 export const verifyLedgerSeal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -486,6 +613,7 @@ export const verifyLedgerSeal = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }): Promise<LedgerVerification> => {
     const supabase = context.supabase as SupabaseClient;
+    const userId = context.userId as string;
     const sealedAt = new Date().toISOString();
     const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId);
     if (!workspaceId) {
@@ -498,10 +626,46 @@ export const verifyLedgerSeal = createServerFn({ method: "POST" })
         expectedCount: data.count ?? 0,
         brokenAt: null,
         reason: "no workspace",
+        changed: null,
         sealedAt,
       };
     }
     const receipts = await loadReceipts(supabase, workspaceId, { limit: SEAL_LIMIT, kind: "all" });
-    const v = await verifyReceipts(receipts, { head: data.head, count: data.count });
-    return { available: true, ...v, sealedAt };
+
+    // The newest persisted seal for THIS fingerprint (structural cast, see getLedgerSeal).
+    // Best-effort: a lookup failure degrades to the head-only compare, never errors out.
+    let saved: { record_count: number; links: SealLink[]; created_at: string } | null = null;
+    try {
+      const { data: rows } = await supabase
+        .from("ledger_seals")
+        .select("record_count,links,created_at")
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId)
+        .eq("head", data.head)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const row = (
+        rows as unknown as { record_count: number; links: unknown; created_at: string }[] | null
+      )?.[0];
+      if (row) {
+        const links = Array.isArray(row.links)
+          ? (row.links as unknown[]).filter(
+              (l): l is SealLink =>
+                !!l &&
+                typeof (l as SealLink).id === "string" &&
+                typeof (l as SealLink).hash === "string",
+            )
+          : [];
+        saved = { record_count: row.record_count, links, created_at: row.created_at };
+      }
+    } catch (e) {
+      console.error("ledger_seals lookup failed (non-fatal):", e);
+    }
+
+    const v = await verifyReceipts(receipts, {
+      head: data.head,
+      count: saved?.record_count ?? data.count,
+      links: saved ? saved.links : undefined,
+    });
+    return { available: true, ...v, sealedAt: v.ok && saved ? saved.created_at : sealedAt };
   });

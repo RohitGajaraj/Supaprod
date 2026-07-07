@@ -5,6 +5,7 @@ import {
   sha256Hex,
   sealReceipts,
   verifyReceipts,
+  diffSealLinks,
   shortHead,
 } from "@/lib/trust-verify";
 import type { TrustReceipt } from "@/lib/trust-ledger.functions";
@@ -144,6 +145,54 @@ describe("verifyReceipts — detect and pinpoint tampering", () => {
     const v = await verifyReceipts([A, B], { head: seal.head, count: seal.count });
     expect(v.ok).toBe(false);
     expect(v.reason).toMatch(/number of records/);
+    expect(v.changed).toBeNull(); // pinpointing needs the saved links
+  });
+});
+
+describe("changed ids — pinpointing via the SAVED links (seal persistence)", () => {
+  test("an unchanged ledger reports no diff", async () => {
+    const seal = await sealReceipts([A, B, C]);
+    const v = await verifyReceipts([A, B, C], seal);
+    expect(v.ok).toBe(true);
+    expect(v.changed).toBeNull();
+  });
+
+  test("an altered record lands in mutated, added/removed stay empty", async () => {
+    const seal = await sealReceipts([A, B, C]);
+    const tampered = [
+      A,
+      receipt({ id: "b2", title: "SILENTLY CHANGED", outcome: "superseded", supersededBy: "z9" }),
+      C,
+    ];
+    const v = await verifyReceipts(tampered, seal);
+    expect(v.changed).toEqual({ added: [], removed: [], mutated: ["b2"] });
+  });
+
+  test("an added record is named exactly, by id-set difference", async () => {
+    const seal = await sealReceipts([A, B]);
+    const v = await verifyReceipts([A, B, C], seal);
+    expect(v.changed).toEqual({ added: ["c3"], removed: [], mutated: [] });
+  });
+
+  test("a removed record is named exactly, even mid-chain", async () => {
+    const seal = await sealReceipts([A, B, C]);
+    const v = await verifyReceipts([A, C], seal);
+    expect(v.changed).toEqual({ added: [], removed: ["b2"], mutated: [] });
+  });
+
+  test("diffSealLinks: mutation is only attributed when the id sets are identical", async () => {
+    const saved = (await sealReceipts([A, B, C])).links;
+    // both an added record AND an altered one: the cumulative hashes of common
+    // records diverge from the insertion alone, so only the set diff is claimed
+    const current = (
+      await sealReceipts([
+        A,
+        receipt({ id: "b2", title: "ALSO CHANGED" }),
+        C,
+        receipt({ id: "d4" }),
+      ])
+    ).links;
+    expect(diffSealLinks(current, saved)).toEqual({ added: ["d4"], removed: [], mutated: [] });
   });
 });
 

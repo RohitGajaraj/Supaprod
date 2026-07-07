@@ -11,6 +11,7 @@ import {
   type SignalSenseState,
 } from "@/lib/sensing/trigger";
 import { withJobRun } from "@/lib/observability";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 /**
  * AMBIENT-TRIGGER (v11 #4) + SF-AUTOTRIGGER (Phase 3) trigger-tick.
@@ -223,18 +224,42 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
     if (mErr || !mission) continue;
 
     const missionId = (mission as { id: string }).id;
+    await recordStageEvent(supabaseAdmin, {
+      entityType: "mission",
+      entityId: missionId,
+      to: "proposed",
+      actor: p.agentSlug ?? "strategist",
+      workspaceId,
+      userId: ownerId,
+    });
 
     // 2. Record the trigger + rationale as a Trust-Ledger decision receipt.
-    await supabaseAdmin.from("decisions").insert({
-      user_id: ownerId,
-      workspace_id: workspaceId,
-      title: p.title,
-      rationale: p.rationale,
-      status: "pending",
-      source_kind: "mission",
-      mission_id: missionId,
-      decided_by_agent_slug: p.agentSlug ?? "strategist",
-    } as never);
+    //    (id selected back so its stage events can reference it.)
+    const { data: decisionRow } = await supabaseAdmin
+      .from("decisions")
+      .insert({
+        user_id: ownerId,
+        workspace_id: workspaceId,
+        title: p.title,
+        rationale: p.rationale,
+        status: "pending",
+        source_kind: "mission",
+        mission_id: missionId,
+        decided_by_agent_slug: p.agentSlug ?? "strategist",
+      } as never)
+      .select("id")
+      .single();
+    const decisionId = (decisionRow as { id: string } | null)?.id ?? null;
+    if (decisionId) {
+      await recordStageEvent(supabaseAdmin, {
+        entityType: "decision",
+        entityId: decisionId,
+        to: "pending",
+        actor: p.agentSlug ?? "strategist",
+        workspaceId,
+        userId: ownerId,
+      });
+    }
     written++;
 
     // 3. SF-AUTOTRIGGER: auto-promote proposed→queued when all four conditions hold.
@@ -270,10 +295,29 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         });
       } else {
         autoTodayCount++; // mission IS queued; count even if decision receipt update failed
+        await recordStageEvent(supabaseAdmin, {
+          entityType: "mission",
+          entityId: missionId,
+          from: "proposed",
+          to: "queued",
+          actor: p.agentSlug ?? "strategist",
+          workspaceId,
+          userId: ownerId,
+        });
         if (dRes.error) {
           console.error("[SF-AUTOTRIGGER] decision receipt update failed — audit gap", {
             missionId,
             err: dRes.error.message,
+          });
+        } else if (decisionId) {
+          await recordStageEvent(supabaseAdmin, {
+            entityType: "decision",
+            entityId: decisionId,
+            from: "pending",
+            to: "approved",
+            actor: p.agentSlug ?? "strategist",
+            workspaceId,
+            userId: ownerId,
           });
         }
       }

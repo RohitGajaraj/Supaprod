@@ -5,9 +5,12 @@ import {
   evidenceCounts,
   summarizeAction,
   assembleReceipts,
+  provenDecisionIds,
+  shouldPersistSeal,
   type DecisionLite,
   type ApprovalLite,
   type LineageEdgeLite,
+  type LearningLite,
 } from "./trust-ledger.functions";
 
 describe("isSupersessionRelation", () => {
@@ -72,6 +75,103 @@ describe("supersededChildIds — the CHILD of an active supersession edge is the
   test("malformed input is safe", () => {
     expect(supersededChildIds(null).size).toBe(0);
     expect(supersededChildIds(undefined as never).size).toBe(0);
+  });
+});
+
+describe("provenDecisionIds — LOOP-PROVE: a decisive learning linked to a decision proves it", () => {
+  const learnings: LearningLite[] = [
+    { id: "l-win", verdict: "validated" },
+    { id: "l-miss", verdict: " Missed " }, // decisive too, verdicts normalise
+    { id: "l-none", verdict: null },
+    { id: "l-odd", verdict: "someday-maybe" }, // not in the decisive vocabulary
+  ];
+  const edges: LineageEdgeLite[] = [
+    // learning validates decision: the canonical recorded-outcome link
+    {
+      parent_kind: "learning",
+      parent_id: "l-win",
+      child_kind: "decision",
+      child_id: "d-1",
+      relation: "validates",
+      valid_to: null,
+    },
+    // reverse direction: decision cites learning
+    {
+      parent_kind: "decision",
+      parent_id: "d-2",
+      child_kind: "learning",
+      child_id: "l-miss",
+      relation: "cites",
+      valid_to: null,
+    },
+    // retired edge: no longer counts
+    {
+      parent_kind: "learning",
+      parent_id: "l-win",
+      child_kind: "decision",
+      child_id: "d-retired",
+      relation: "validates",
+      valid_to: "2026-06-01T00:00:00Z",
+    },
+    // supersession relation: replacement, not proof
+    {
+      parent_kind: "learning",
+      parent_id: "l-win",
+      child_kind: "decision",
+      child_id: "d-contra",
+      relation: "contradicts",
+      valid_to: null,
+    },
+    // non-decisive learning: ignored
+    {
+      parent_kind: "learning",
+      parent_id: "l-odd",
+      child_kind: "decision",
+      child_id: "d-3",
+      relation: "validates",
+      valid_to: null,
+    },
+    // decisive learning linked to a non-decision: ignored
+    {
+      parent_kind: "learning",
+      parent_id: "l-win",
+      child_kind: "opportunity",
+      child_id: "o-1",
+      relation: "validates",
+      valid_to: null,
+    },
+  ];
+  const proven = provenDecisionIds(edges, learnings);
+
+  test("current edges from decisive learnings prove the decision, in either direction", () => {
+    expect(proven.has("d-1")).toBe(true);
+    expect(proven.has("d-2")).toBe(true);
+  });
+  test("retired edges, supersession relations, non-decisive learnings, non-decisions: no proof", () => {
+    expect(proven.has("d-retired")).toBe(false);
+    expect(proven.has("d-contra")).toBe(false);
+    expect(proven.has("d-3")).toBe(false);
+    expect(proven.has("o-1")).toBe(false);
+  });
+  test("malformed input is safe", () => {
+    expect(provenDecisionIds(null, null).size).toBe(0);
+    expect(provenDecisionIds(edges, []).size).toBe(0);
+    expect(provenDecisionIds([], learnings).size).toBe(0);
+  });
+});
+
+describe("shouldPersistSeal — append only when the head moved", () => {
+  test("first seal (no persisted row) persists", () => {
+    expect(shouldPersistSeal(null, "abc")).toBe(true);
+  });
+  test("same head as the latest persisted seal is deduped", () => {
+    expect(shouldPersistSeal("abc", "abc")).toBe(false);
+  });
+  test("a moved head persists", () => {
+    expect(shouldPersistSeal("abc", "def")).toBe(true);
+  });
+  test("an empty head never persists", () => {
+    expect(shouldPersistSeal(null, "")).toBe(false);
   });
 });
 
@@ -201,5 +301,24 @@ describe("assembleReceipts — merges decisions + actions, sorts newest first, t
         sourceLabels: new Map(),
       }),
     ).toEqual([]);
+  });
+
+  test("a decision in the proven set reads 'proven'; superseded still wins over it", () => {
+    const withProven = assembleReceipts({
+      decisions,
+      approvals,
+      superseded,
+      evidence,
+      sourceLabels,
+      proven: new Set(["d-new", "d-old", "a-1"]),
+    });
+    // d-new stands and is proven by a recorded outcome
+    expect(withProven.find((r) => r.id === "d-new")!.outcome).toBe("proven");
+    // d-old is in the proven set too, but its supersession wins
+    const old = withProven.find((r) => r.id === "d-old")!;
+    expect(old.outcome).toBe("superseded");
+    expect(old.supersededBy).toBe("d-new");
+    // actions never read proven
+    expect(withProven.find((r) => r.id === "a-1")!.outcome).toBe("standing");
   });
 });

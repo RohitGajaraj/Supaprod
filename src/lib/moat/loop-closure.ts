@@ -23,8 +23,9 @@ import { resolveGoverning } from "@/lib/ai/governing-decision";
 import { classifyRelation, type RawLineageEdge } from "@/lib/knowledge-graph-view";
 
 /** Decisive recorded outcomes — the verdicts that actually move a belief. Mirrors the
- * Brain's verdict vocabulary so the proof and the UI summary agree on "a recorded outcome". */
-const DECISIVE_VERDICTS = new Set([
+ * Brain's verdict vocabulary so the proof and the UI summary agree on "a recorded outcome".
+ * Exported so the Trust Ledger's 'proven' derivation reuses this exact vocabulary. */
+export const DECISIVE_VERDICTS = new Set([
   "validated",
   "confirmed",
   "win",

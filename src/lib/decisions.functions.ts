@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 export type DecisionSource = "meeting" | "mission" | "prd" | "manual";
 
@@ -102,6 +104,11 @@ export const createDecision = createServerFn({ method: "POST" })
         meeting_id: z.string().uuid().optional(),
         source_kind: z.enum(["meeting", "mission", "prd", "manual"]).optional(),
         decided_by_agent_slug: z.string().max(80).optional(),
+        // v12 ARD convention: the paths not taken, stored alongside the call.
+        alternatives_considered: z
+          .array(z.object({ title: z.string().max(280), reason_rejected: z.string().max(500) }))
+          .max(8)
+          .optional(),
       })
       .parse(input),
   )
@@ -109,13 +116,33 @@ export const createDecision = createServerFn({ method: "POST" })
     const source_kind =
       data.source_kind ??
       (data.mission_id ? "mission" : data.prd_id ? "prd" : data.meeting_id ? "meeting" : "manual");
+    // decisions.alternatives_considered (jsonb) is newer than the generated
+    // types, so the payload is structurally cast (the house idiom).
+    const insertPayload = {
+      ...data,
+      source_kind,
+      user_id: context.userId,
+    } as unknown as TablesInsert<"decisions">;
     const { data: row, error } = await context.supabase
       .from("decisions")
-      .insert({ ...data, source_kind, user_id: context.userId })
+      .insert(insertPayload)
       .select()
       .single();
     if (error) throw new Error(error.message);
     void track("decision_made", context.userId, { prd_id: data.prd_id ?? undefined });
+
+    // SEAM-1: stage history for the created decision.
+    if (row) {
+      await recordStageEvent(context.supabase, {
+        entityType: "decision",
+        entityId: row.id,
+        from: null,
+        to: row.status,
+        actor: data.decided_by_agent_slug ?? "human",
+        workspaceId: row.workspace_id,
+        userId: context.userId,
+      });
+    }
 
     // FS-02: extract the assumptions this decision stands on. Fail-safe —
     // the decision is already recorded above, so an extraction error never
@@ -158,11 +185,26 @@ export const updateDecision = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ context, data }) => {
+    // SEAM-1: capture the prior stage before the status update.
+    const { data: prior } = await context.supabase
+      .from("decisions")
+      .select("status,workspace_id")
+      .eq("id", data.id)
+      .maybeSingle();
     const { error } = await context.supabase
       .from("decisions")
       .update({ status: data.status })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
+    await recordStageEvent(context.supabase, {
+      entityType: "decision",
+      entityId: data.id,
+      from: prior?.status ?? null,
+      to: data.status,
+      actor: "human",
+      workspaceId: prior?.workspace_id ?? null,
+      userId: context.userId,
+    });
     return { ok: true };
   });
 
@@ -224,9 +266,39 @@ export const resolveAssumptionChallenge = createServerFn({ method: "POST" })
       decisionId || prdId ? null : ((assumption?.brief_item_id as string | undefined) ?? null);
     if (decisionId || prdId || briefItemId) {
       if (decisionId) {
+        // SEAM-1: capture the prior stage before reopening the decision.
+        const { data: priorDecision } = await supabase
+          .from("decisions")
+          .select("status,workspace_id")
+          .eq("id", decisionId)
+          .maybeSingle();
         await supabase.from("decisions").update({ status: "pending" }).eq("id", decisionId);
+        await recordStageEvent(supabase, {
+          entityType: "decision",
+          entityId: decisionId,
+          from: priorDecision?.status ?? null,
+          to: "pending",
+          actor: "human",
+          workspaceId: priorDecision?.workspace_id ?? null,
+          userId,
+        });
       } else if (prdId) {
+        // SEAM-1: capture the prior stage before reopening the spec.
+        const { data: priorPrd } = await supabase
+          .from("prds")
+          .select("status,workspace_id")
+          .eq("id", prdId)
+          .maybeSingle();
         await supabase.from("prds").update({ status: "review" }).eq("id", prdId);
+        await recordStageEvent(supabase, {
+          entityType: "spec",
+          entityId: prdId,
+          from: priorPrd?.status ?? null,
+          to: "review",
+          actor: "human",
+          workspaceId: priorPrd?.workspace_id ?? null,
+          userId,
+        });
       }
       const parent_kind = challenge.signal_id
         ? "signal"

@@ -24,6 +24,8 @@ export type Incident = {
   detail: string;
   at: string | null;
   traceId: string | null;
+  /** When there is no trace but the incident keys to a mission, the card opens /build/$missionId. */
+  missionId?: string | null;
   amountUsd?: number;
   windowKind?: "day" | "month";
 };
@@ -109,20 +111,28 @@ export async function getIncidentsInternal(
   if (workspaceId) {
     const { data: events } = await supabase
       .from("event_queue")
-      .select("id,event_type,error,created_at")
+      .select("id,event_type,error,created_at,mission_id")
       .eq("workspace_id", workspaceId)
       .not("error", "is", null)
       .order("created_at", { ascending: false })
       .limit(20);
     for (const e of events ?? []) {
-      const type = (e.event_type as string | null) ?? "an event";
+      const row = e as unknown as {
+        id: string;
+        event_type: string | null;
+        error: string | null;
+        created_at: string | null;
+        mission_id: string | null;
+      };
+      const type = row.event_type ?? "an event";
       out.push({
-        id: `pipe:${e.id}`,
+        id: `pipe:${row.id}`,
         kind: "pipeline",
         title: `Pipeline error on ${type}`,
-        detail: (e.error as string | null) ?? "The reactor reported an error.",
-        at: (e.created_at as string | null) ?? null,
+        detail: row.error ?? "The reactor reported an error.",
+        at: row.created_at ?? null,
         traceId: null,
+        missionId: row.mission_id ?? null,
       });
     }
 
@@ -155,14 +165,37 @@ export async function getIncidentsInternal(
   // never the raw matched payload, so nothing sensitive lands in the list.
   const { data: blocks } = await supabase
     .from("guardrail_hits")
-    .select("id,rule_name,side,created_at")
+    .select("id,rule_name,side,created_at,event_id,trace_id")
     .eq("user_id", userId)
     .eq("action", "block")
     .order("created_at", { ascending: false })
     .limit(20);
-  for (const h of blocks ?? []) {
-    const rule = (h.rule_name as string | null) ?? "a guardrail rule";
-    const side = (h.side as string | null) === "output" ? "output" : "input";
+  const blockRows = (blocks ?? []) as unknown as Array<{
+    id: string;
+    rule_name: string | null;
+    side: string | null;
+    created_at: string | null;
+    event_id: string | null;
+    trace_id: string | null;
+  }>;
+  // Read-time recovery for rows written before write-time stamping landed: one
+  // batched event_id -> ai_events.trace_id join (a single .in() query, never per-row).
+  const unstampedEventIds = [
+    ...new Set(blockRows.filter((h) => !h.trace_id && h.event_id).map((h) => h.event_id as string)),
+  ];
+  const traceByEventId = new Map<string, string | null>();
+  if (unstampedEventIds.length) {
+    const { data: evts } = await supabase
+      .from("ai_events")
+      .select("id,trace_id")
+      .in("id", unstampedEventIds);
+    for (const e of evts ?? []) {
+      traceByEventId.set(e.id as string, (e.trace_id as string | null) ?? null);
+    }
+  }
+  for (const h of blockRows) {
+    const rule = h.rule_name ?? "a guardrail rule";
+    const side = h.side === "output" ? "output" : "input";
     out.push({
       id: `guard:${h.id}`,
       kind: "guardrail",
@@ -171,8 +204,8 @@ export async function getIncidentsInternal(
         side === "output"
           ? "A guardrail rule blocked a model response from being returned."
           : "A guardrail rule blocked a prompt before the call ran.",
-      at: (h.created_at as string | null) ?? null,
-      traceId: null,
+      at: h.created_at ?? null,
+      traceId: h.trace_id ?? (h.event_id ? (traceByEventId.get(h.event_id) ?? null) : null),
     });
   }
 
@@ -187,7 +220,7 @@ export async function getIncidentsInternal(
   // when the cap itself was hit (pct >= 100, or a future block).
   const { data: budgetAlerts } = await supabase
     .from("ai_budget_alerts")
-    .select("id,kind,pct,surface,usd_cap,usd_used,window_kind,created_at")
+    .select("id,kind,pct,surface,usd_cap,usd_used,window_kind,created_at,trace_id")
     .eq("user_id", userId)
     .in("kind", ["warn", "block"])
     .order("created_at", { ascending: false })
@@ -210,7 +243,7 @@ export async function getIncidentsInternal(
         ? `Your ${window} AI spend reached the ${cap} cap (used: ${used}). Further AI calls are blocked until the cap is raised.`
         : `Your ${window} AI spend reached ${pctText} of the ${cap} cap (used: ${used}).`,
       at: (b.created_at as string | null) ?? null,
-      traceId: null,
+      traceId: ((b as unknown as { trace_id: string | null }).trace_id as string | null) ?? null,
       amountUsd: b.usd_cap != null ? Number(b.usd_cap) : undefined,
       windowKind: b.window_kind === "month" ? "month" : b.window_kind === "day" ? "day" : undefined,
     });
@@ -257,6 +290,7 @@ export async function getIncidentsInternal(
         detail: v.reasons.join(", "),
         at: byId.get(v.missionId)?.created_at ?? null,
         traceId: null,
+        missionId: v.missionId,
       });
     }
   }

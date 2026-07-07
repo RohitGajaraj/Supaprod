@@ -20,6 +20,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ToolDef, ToolCtx } from "./registry.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import {
   dispatchReadySteps,
   reflectStepStatusFromRuns,
@@ -440,6 +441,15 @@ export const missionFinalize = def({
     const anyFailed = steps.some((s) => s.status === "failed");
     const finalStatus = anyFailed ? "completed_with_failures" : "completed";
 
+    // SEAM-1: capture the prior stage (and workspace) before the update — the
+    // update below returns no rows, and RETURNING would only carry new values.
+    const { data: priorMission } = await supabase
+      .from("missions")
+      .select("status,workspace_id")
+      .eq("id", missionId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
     const { error } = await supabase
       .from("missions")
       .update({
@@ -453,6 +463,17 @@ export const missionFinalize = def({
       .eq("id", missionId)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
+
+    const priorRow = priorMission as { status: string; workspace_id: string | null } | null;
+    await recordStageEvent(supabase, {
+      entityType: "mission",
+      entityId: missionId,
+      from: priorRow?.status ?? null,
+      to: finalStatus,
+      actor: ctx.agentSlug ?? "orchestrator",
+      workspaceId: priorRow?.workspace_id ?? ctx.workspaceId ?? null,
+      userId,
+    });
 
     return {
       ok: true,

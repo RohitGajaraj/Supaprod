@@ -65,11 +65,19 @@ export function ledgerSummary(counts: {
   all: number;
   standing: number;
   superseded: number;
+  /** Decisions proven by a recorded outcome (LOOP-PROVE). A proven receipt still
+   * stands, so it folds into the standing tally and gets its own closing note. */
+  proven?: number;
 }): string {
-  const { all, standing, superseded } = counts;
+  const { all, superseded } = counts;
+  const proven = counts.proven ?? 0;
+  const standing = counts.standing + proven;
+  const provenNote = proven
+    ? ` ${proven} ${proven === 1 ? "is" : "are"} proven by a recorded outcome.`
+    : "";
   if (all === 0) return "Nothing on the record yet.";
   if (superseded === 0) {
-    return `${all} on the record, ${all === 1 ? "and it still stands" : "all still standing"}.`;
+    return `${all} on the record, ${all === 1 ? "and it still stands" : "all still standing"}.${provenNote}`;
   }
-  return `${all} on the record. ${standing} still stand${standing === 1 ? "s" : ""}, ${superseded} ${superseded === 1 ? "was" : "were"} superseded by a later call.`;
+  return `${all} on the record. ${standing} still stand${standing === 1 ? "s" : ""}, ${superseded} ${superseded === 1 ? "was" : "were"} superseded by a later call.${provenNote}`;
 }

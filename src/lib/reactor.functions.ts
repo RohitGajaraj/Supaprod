@@ -343,6 +343,11 @@ export async function dispatchEvent(
   evt: EventRow,
   actorUserId: string | null,
 ): Promise<{ mission_id: string | null; run_id: string | null; halted: string | null }> {
+  // Hoisted so the failure paths below can stamp whatever ids exist by the time
+  // the dispatch threw (mission created but loop failed, etc.), mirroring the
+  // success path's stamping.
+  let missionId: string | null = null;
+  let runId: string | null = null;
   try {
     const goal = goalForEvent(evt);
     // Find target agent in the row owner's namespace (subscriptions are
@@ -364,6 +369,7 @@ export async function dispatchEvent(
       goal,
       starting_agent_id: (agent as { id: string }).id,
     });
+    missionId = mission.id;
 
     const result = await runAgentLoop(supabase, evt.user_id, {
       agentSlug: evt.target_agent_slug,
@@ -371,6 +377,7 @@ export async function dispatchEvent(
       missionId: mission.id,
       workspaceId: evt.workspace_id,
     });
+    runId = result.run_id ?? null;
 
     await supabase
       .from("event_queue")
@@ -405,6 +412,8 @@ export async function dispatchEvent(
           attempt_count: decision.attemptCount,
           next_attempt_at: decision.nextAttemptAt,
           error: msg,
+          ...(missionId ? { mission_id: missionId } : {}),
+          ...(runId ? { run_id: runId } : {}),
         })
         .eq("id", evt.id);
     } else {
@@ -415,6 +424,8 @@ export async function dispatchEvent(
           attempt_count: decision.attemptCount,
           dispatched_at: new Date().toISOString(),
           error: msg,
+          ...(missionId ? { mission_id: missionId } : {}),
+          ...(runId ? { run_id: runId } : {}),
         })
         .eq("id", evt.id);
     }

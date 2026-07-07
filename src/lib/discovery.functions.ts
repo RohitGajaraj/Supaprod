@@ -6,6 +6,7 @@ import { extractArrayField } from "@/lib/ai/json-shape";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { runCritic } from "@/lib/ai/critic.server";
 import { recordLineage } from "@/lib/lineage.functions";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
@@ -86,6 +87,17 @@ export const runWedgeTeardown = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error || !opp) throw new Error(error?.message ?? "Could not record the idea");
+
+    // SEAM-1: stage history for the created opportunity.
+    await recordStageEvent(supabase, {
+      entityType: "opportunity",
+      entityId: opp.id,
+      from: null,
+      to: opp.status ?? "backlog",
+      actor: "human",
+      workspaceId: opp.workspace_id,
+      userId,
+    });
 
     const review = await runCritic(supabase, userId, { kind: "opportunity", id: opp.id });
     return { opportunity: opp, review };
@@ -407,6 +419,16 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
       .single();
     if (oErr) throw new Error(oErr.message);
     if (opp) {
+      // SEAM-1: stage history for the created opportunity.
+      await recordStageEvent(supabase, {
+        entityType: "opportunity",
+        entityId: opp.id,
+        from: null,
+        to: opp.status ?? "backlog",
+        actor: "human",
+        workspaceId: opp.workspace_id,
+        userId,
+      });
       await recordLineage(supabase, userId, {
         parent_kind: "theme",
         parent_id: theme.id,
@@ -439,6 +461,19 @@ export const updateOpportunity = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { id, ...rest } = data;
+
+    // SEAM-1: capture the prior stage before a status-bearing update.
+    let prior: { status: string | null; workspace_id: string | null; user_id: string } | null =
+      null;
+    if (rest.status) {
+      const { data: p } = await context.supabase
+        .from("opportunities")
+        .select("status,workspace_id,user_id")
+        .eq("id", id)
+        .maybeSingle();
+      prior = p ?? null;
+    }
+
     const patch = { ...rest, updated_at: new Date().toISOString() };
     const { data: row, error } = await context.supabase
       .from("opportunities")
@@ -447,6 +482,18 @@ export const updateOpportunity = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+
+    if (rest.status) {
+      await recordStageEvent(context.supabase, {
+        entityType: "opportunity",
+        entityId: id,
+        from: prior?.status ?? null,
+        to: rest.status,
+        actor: "human",
+        workspaceId: prior?.workspace_id ?? null,
+        userId: prior?.user_id ?? context.userId,
+      });
+    }
     return { opportunity: row };
   });
 
@@ -815,6 +862,17 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
       .single();
     if (error || !prd) throw new Error(error?.message ?? "Could not create the spec");
 
+    // SEAM-1: stage history for the created spec (DB default status is draft).
+    await recordStageEvent(supabase, {
+      entityType: "spec",
+      entityId: prd.id,
+      from: null,
+      to: prd.status ?? "draft",
+      actor: "human",
+      workspaceId: prd.workspace_id,
+      userId,
+    });
+
     await runCritic(supabase, userId, { kind: "prd", id: prd.id });
 
     // AGT-03: while the human reviews this freshly drafted contract, pre-stage
@@ -1173,6 +1231,19 @@ export const savePrd = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
+    // SEAM-1: stage history for a status-bearing spec save (helper skips no-ops).
+    if (rest.status) {
+      await recordStageEvent(supabase, {
+        entityType: "spec",
+        entityId: id,
+        from: prior?.status ?? null,
+        to: rest.status,
+        actor: "human",
+        workspaceId: prior?.workspace_id ?? null,
+        userId,
+      });
+    }
+
     // F-DECISIONS-CAPTURE: spec approval is a logged decision. Idempotent on prd_id.
     if (prior && rest.status === "approved" && prior.status !== "approved") {
       const { count } = await supabase
@@ -1182,15 +1253,31 @@ export const savePrd = createServerFn({ method: "POST" })
       if ((count ?? 0) === 0) {
         const title = (rest.title ?? prior.title ?? "Untitled spec").slice(0, 240);
         const rationale = (prior.body_md ?? "").slice(0, 500) || "Spec approved.";
-        await supabase.from("decisions").insert({
-          user_id: userId,
-          workspace_id: prior.workspace_id,
-          title: `Spec approved: ${title}`,
-          rationale,
-          status: "approved",
-          prd_id: id,
-          source_kind: "prd",
-        });
+        const { data: decision } = await supabase
+          .from("decisions")
+          .insert({
+            user_id: userId,
+            workspace_id: prior.workspace_id,
+            title: `Spec approved: ${title}`,
+            rationale,
+            status: "approved",
+            prd_id: id,
+            source_kind: "prd",
+          })
+          .select("id")
+          .single();
+        if (decision) {
+          // SEAM-1: stage history for the captured decision.
+          await recordStageEvent(supabase, {
+            entityType: "decision",
+            entityId: decision.id,
+            from: null,
+            to: "approved",
+            actor: "human",
+            workspaceId: prior.workspace_id,
+            userId,
+          });
+        }
       }
     }
 
@@ -1395,6 +1482,18 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       .select()
       .single();
     if (pErr) throw new Error(pErr.message);
+    if (prd) {
+      // SEAM-1: stage history for the created spec (DB default status is draft).
+      await recordStageEvent(supabase, {
+        entityType: "spec",
+        entityId: prd.id,
+        from: null,
+        to: prd.status ?? "draft",
+        actor: "human",
+        workspaceId: prd.workspace_id,
+        userId,
+      });
+    }
     if (prd && oppId) {
       await recordLineage(supabase, userId, {
         parent_kind: "opportunity",
@@ -1507,6 +1606,16 @@ Return STRICT JSON only:
       .single();
     if (oErr) throw new Error(oErr.message);
     if (opp) {
+      // SEAM-1: stage history for the created opportunity.
+      await recordStageEvent(supabase, {
+        entityType: "opportunity",
+        entityId: opp.id,
+        from: null,
+        to: opp.status ?? "backlog",
+        actor: "human",
+        workspaceId: opp.workspace_id,
+        userId,
+      });
       await recordLineage(supabase, userId, {
         parent_kind: "signal",
         parent_id: signal.id,

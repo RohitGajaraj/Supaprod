@@ -10,6 +10,7 @@ import type { Citation as CitationRecord } from "@/components/product/CitationsC
 import { toast } from "@/lib/notify";
 import { getPrd, type CriticReview } from "@/lib/discovery.functions";
 import { DetailSection, StatCell, StatStrip, type StatTone } from "@/components/discover/DetailKit";
+import { StageTimeline } from "@/components/shared/StageTimeline";
 import { relTimeCaps, traceRef, verdictFor, type VerdictWord } from "@/components/discover/format";
 import { stateChip, splitCitationMarkers, specRecommendation, type SpecStateTone } from "./format";
 
@@ -371,6 +372,10 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               </ReactMarkdown>
             </div>
           </DetailSection>
+
+          {/* Stage history: real per-transition rows; renders nothing until
+              the first transition lands. */}
+          <StageTimeline entityType="spec" entityId={prd.id} />
 
           {/* Activity: when it was drafted and last changed. */}
           <DetailSection heading="Activity">

@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/trust-ledger")({
 });
 
 type Kind = "all" | "decision" | "action";
-type Outcome = "all" | "standing" | "superseded";
+type Outcome = "all" | "standing" | "superseded" | "proven";
 
 function OutcomePill({
   outcome,
@@ -53,6 +53,7 @@ function OutcomePill({
   supersededBy: string | null;
 }) {
   const superseded = outcome === "superseded";
+  const label = superseded ? "Superseded" : outcome === "proven" ? "Proven" : "Standing";
   return (
     <span
       title={superseded && supersededBy ? `Superseded by ${supersededBy.slice(0, 8)}` : undefined}
@@ -74,7 +75,7 @@ function OutcomePill({
       }}
     >
       {superseded ? <History size={10} strokeWidth={2} /> : null}
-      {superseded ? "Superseded" : "Standing"}
+      {label}
     </span>
   );
 }
@@ -227,10 +228,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
             ) : null}
             {/* TRUST-SHARE: only decisions are publicly shareable (reuse /d/$slug). */}
             {r.kind === "decision" ? <ShareControl decisionId={r.id} /> : null}
-            <span
-              className="flex items-center"
-              style={{ marginLeft: "auto", gap: 10 }}
-            >
+            <span className="flex items-center" style={{ marginLeft: "auto", gap: 10 }}>
               <span
                 className="tabular-nums"
                 style={{
@@ -335,7 +333,9 @@ function SealPanel() {
         </span>
       </div>
 
-      <p style={{ fontSize: 11.5, color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}>
+      <p
+        style={{ fontSize: 11.5, color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}
+      >
         A fingerprint of the whole record. Save it now, and re-check it later to confirm nothing was
         quietly changed.
       </p>
@@ -397,10 +397,40 @@ function SealPanel() {
               Could not verify. Try again.
             </span>
           ) : null}
+          {v && !v.ok && v.changed ? (
+            <span
+              className="tabular-nums"
+              style={{
+                width: "100%",
+                fontFamily: "var(--font-mono)",
+                fontSize: 10.5,
+                color: "var(--text-subtle)",
+              }}
+            >
+              {sealDiffLine(v.changed)}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </section>
   );
+}
+
+/** Plain words for the pinpointed change (from the saved seal's per-record links);
+ * empty when the saved fingerprint predates seal persistence (head-only compare). */
+function sealDiffLine(changed: { added: string[]; removed: string[]; mutated: string[] }): string {
+  const show = (ids: string[]) =>
+    ids
+      .slice(0, 6)
+      .map((i) => i.slice(0, 8))
+      .join(", ") + (ids.length > 6 ? ` +${ids.length - 6} more` : "");
+  return [
+    changed.mutated.length ? `altered: ${show(changed.mutated)}` : null,
+    changed.added.length ? `added: ${show(changed.added)}` : null,
+    changed.removed.length ? `removed: ${show(changed.removed)}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 const chipStyle: React.CSSProperties = {
@@ -422,7 +452,7 @@ const chipStyle: React.CSSProperties = {
 function LedgerSummary({
   counts,
 }: {
-  counts: { all: number; standing: number; superseded: number };
+  counts: { all: number; standing: number; superseded: number; proven?: number };
 }) {
   if (counts.all === 0) return null;
   return (
@@ -455,7 +485,7 @@ function TrustLedgerPage() {
   });
 
   const receipts = query.data?.receipts ?? [];
-  const counts = query.data?.counts ?? { all: 0, standing: 0, superseded: 0 };
+  const counts = query.data?.counts ?? { all: 0, standing: 0, superseded: 0, proven: 0 };
 
   const kindTabs = useMemo(
     () => [
@@ -512,7 +542,7 @@ function TrustLedgerPage() {
               borderRadius: 8,
             }}
           >
-            {(["all", "standing", "superseded"] as Outcome[]).map((o) => (
+            {(["all", "standing", "proven", "superseded"] as Outcome[]).map((o) => (
               <button
                 key={o}
                 type="button"
@@ -534,6 +564,7 @@ function TrustLedgerPage() {
               >
                 {o}
                 {o === "standing" && counts.standing ? ` · ${counts.standing}` : ""}
+                {o === "proven" && counts.proven ? ` · ${counts.proven}` : ""}
                 {o === "superseded" && counts.superseded ? ` · ${counts.superseded}` : ""}
               </button>
             ))}

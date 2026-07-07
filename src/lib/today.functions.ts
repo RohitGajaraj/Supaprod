@@ -23,8 +23,9 @@ import {
 } from "@/lib/moat-vis";
 
 export type NeedsYou = {
-  /** LIVE tool gates only (pending and not past their window). Expired gates
-   *  leave the live queue and land in `expiredApprovals` (R2-ATTENTION #2). */
+  /** LIVE tool gates only (pending, not past their window, not snoozed).
+   *  Expired gates leave the live queue and land in `expiredApprovals`
+   *  (R2-ATTENTION #2); snoozed gates return when their window passes. */
   approvals: {
     id: string;
     agent_slug: string;
@@ -35,6 +36,11 @@ export type NeedsYou = {
     created_at: string;
     /** The agent run trace behind the gate (for cost/model + Open). */
     trace_id: string | null;
+    /** The mission the gate rose from, when the loop recorded one — the
+     *  specific provenance target (/build/$missionId) over the generic /build. */
+    missionId: string | null;
+    /** When the operator last hit Later; live rows are past (or never) snoozed. */
+    snoozed_until: string | null;
     /** Model the gated call ran on (Appendix D), or null if no spend recorded. */
     model: string | null;
     /** Spend on this call so far in USD (Appendix D), or null if none recorded. */
@@ -105,6 +111,10 @@ const liveGateOr = (nowIso: string) => `expires_at.is.null,expires_at.gt.${nowIs
  *  (the sweeper may not have flipped the row yet — honesty over lag). */
 const expiredGateOr = (nowIso: string) =>
   `escalation_state.eq.expired,and(escalation_state.eq.pending,expires_at.lte.${nowIso})`;
+/** Top-level OR predicate: the operator never hit Later, or the snooze window
+ *  has passed (stage-events foundations, 20260707190000). Chained after
+ *  liveGateOr — PostgREST ANDs separate .or() filters. */
+const notSnoozedOr = (nowIso: string) => `snoozed_until.is.null,snoozed_until.lt.${nowIso}`;
 
 /**
  * The ONE server-side derivation of the needs-you counts (R2-ATTENTION #1).
@@ -139,7 +149,8 @@ export async function countNeedsYouCalls(
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("escalation_state", "pending")
-      .or(liveGateOr(nowIso)),
+      .or(liveGateOr(nowIso))
+      .or(notSnoozedOr(nowIso)),
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
@@ -192,20 +203,26 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       .maybeSingle();
     const workspaceId = (member?.workspace_id as string | undefined) ?? null;
 
+    // mission_id + snoozed_until postdate the generated Supabase types —
+    // untyped client + explicit row casts (the listGovernApprovals precedent).
+    const db = supabase as unknown as SupabaseClient;
+
     // R2-ATTENTION #2: expired gates leave the live queue. The live fetch takes
     // pending-and-inside-window rows only; expired rows (state or window) come
-    // back separately for the quiet end-of-queue group.
+    // back separately for the quiet end-of-queue group. Snoozed rows (Later)
+    // stay out of both until their window passes.
     const [counts, approvals, expiredRows, prds, opps, events, decided, challenges] =
       await Promise.all([
-        countNeedsYouCalls(supabase as unknown as SupabaseClient, userId, workspaceId),
-        supabase
+        countNeedsYouCalls(db, userId, workspaceId),
+        db
           .from("agent_approvals")
           .select(
-            "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id",
+            "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
           )
           .eq("user_id", userId)
           .eq("escalation_state", "pending")
           .or(liveGateOr(nowIso))
+          .or(notSnoozedOr(nowIso))
           .order("expires_at", { ascending: true })
           .limit(10),
         supabase
@@ -271,7 +288,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
     // Per-call cost + model (Appendix D): join each gate's trace to its
     // ai_events. One batched query; honest nulls when a call has no recorded
     // spend yet. RLS scopes ai_events to the caller.
-    const approvalRows = (approvals.data ?? []) as Array<{
+    const approvalRows = (approvals.data ?? []) as unknown as Array<{
       id: string;
       agent_slug: string;
       tool_name: string;
@@ -280,6 +297,8 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       expires_at: string | null;
       created_at: string;
       trace_id: string | null;
+      mission_id: string | null;
+      snoozed_until: string | null;
     }>;
     const traceIds = [
       ...new Set(approvalRows.map((a) => a.trace_id).filter((t): t is string => !!t)),
@@ -305,8 +324,9 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         if (!modelByTrace.has(e.trace_id)) modelByTrace.set(e.trace_id, e.model);
       }
     }
-    const enrichedApprovals: NeedsYou["approvals"] = approvalRows.map((a) => ({
+    const enrichedApprovals: NeedsYou["approvals"] = approvalRows.map(({ mission_id, ...a }) => ({
       ...a,
+      missionId: mission_id,
       model: a.trace_id ? (modelByTrace.get(a.trace_id) ?? null) : null,
       est_cost_usd:
         a.trace_id && costByTrace.has(a.trace_id) ? (costByTrace.get(a.trace_id) ?? null) : null,
@@ -429,6 +449,35 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       gateMedianMinutes,
       counts,
     };
+  });
+
+const SnoozeApprovalSchema = z.object({
+  approvalId: z.string().uuid(),
+  hours: z.number().int().min(1).max(168).default(24),
+});
+
+/**
+ * The honest "Later" verb on a live gate (stage-events foundations,
+ * 20260707190000): set agent_approvals.snoozed_until so the call leaves the
+ * needs-you queue for N hours, then returns on its own. Pending gates only,
+ * scoped to the caller. The expiry window keeps running — a snooze never
+ * extends the gate.
+ */
+export const snoozeApproval = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof SnoozeApprovalSchema>) => SnoozeApprovalSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const snoozedUntil = new Date(Date.now() + data.hours * 60 * 60 * 1000).toISOString();
+    // snoozed_until postdates the generated Supabase types (structural cast).
+    const { error } = await (supabase as unknown as SupabaseClient)
+      .from("agent_approvals")
+      .update({ snoozed_until: snoozedUntil })
+      .eq("id", data.approvalId)
+      .eq("user_id", userId)
+      .eq("escalation_state", "pending");
+    if (error) throw new Error(error.message);
+    return { snoozed_until: snoozedUntil };
   });
 
 /**

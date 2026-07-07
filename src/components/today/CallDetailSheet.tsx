@@ -63,6 +63,8 @@ export type CallDetail =
       createdAt: string;
       model: string | null;
       estCostUsd: number | null;
+      /** The mission behind the gate; provenance opens it specifically. */
+      missionId: string | null;
     })
   | (CallDetailBase & {
       kind: "spec";
@@ -344,7 +346,16 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
                       : "var(--moss)"
                 }
               />
-              <StatusPill label={RISK_LABEL[risk]} tone={RISK_TONE[risk] === "madder" ? "var(--madder)" : RISK_TONE[risk] === "amber" ? "var(--amber)" : "var(--moss)"} />
+              <StatusPill
+                label={RISK_LABEL[risk]}
+                tone={
+                  RISK_TONE[risk] === "madder"
+                    ? "var(--madder)"
+                    : RISK_TONE[risk] === "amber"
+                      ? "var(--amber)"
+                      : "var(--moss)"
+                }
+              />
               {isExternalTool(detail.toolName) ? (
                 <StatusPill label="Leaves the workspace" tone="var(--amber)" />
               ) : null}
@@ -366,7 +377,11 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             agentBlurb(detail.agentSlug) ?? "Raised this gate mid-mission."
           } Ran ${detail.toolName}${detail.model ? ` on ${detail.model}` : ""}.`}
           linkLabel="Open in Build"
-          onOpen={() => navigate({ to: "/build" })}
+          onOpen={() =>
+            detail.missionId
+              ? navigate({ to: "/build/$missionId", params: { missionId: detail.missionId } })
+              : navigate({ to: "/build" })
+          }
         />
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "10px" }}>
@@ -564,7 +579,12 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             </div>
             {band.rationale ? (
               <p
-                style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+                style={{
+                  fontSize: "12.5px",
+                  lineHeight: 1.6,
+                  color: "var(--text-subtle)",
+                  margin: 0,
+                }}
               >
                 {band.rationale}
               </p>
@@ -587,7 +607,12 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             >
               {detail.okLabel}
             </Button>
-            <Button variant="secondary" size="sm" disabled={deciding} onClick={() => act(detail.onNo)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={deciding}
+              onClick={() => act(detail.onNo)}
+            >
               {detail.noLabel}
             </Button>
           </div>

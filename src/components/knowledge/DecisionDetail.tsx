@@ -23,13 +23,9 @@ import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-} from "@/components/discover/DetailKit";
+import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { StageTimeline } from "@/components/shared/StageTimeline";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
 import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
@@ -174,10 +170,7 @@ function ShareDecisionButton({ id }: { id: string }) {
   );
 }
 
-const STATUS_META: Record<
-  "approved" | "rejected" | "pending",
-  { word: string; lead: string }
-> = {
+const STATUS_META: Record<"approved" | "rejected" | "pending", { word: string; lead: string }> = {
   approved: {
     word: "Kept",
     lead: "Kept. Agents read this before any mission that touches the same surface.",
@@ -398,7 +391,12 @@ export function DecisionDetail({ id }: { id: string }) {
             </p>
           ) : (
             <p
-              style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
+              style={{
+                fontSize: "12px",
+                color: "var(--text-subtle)",
+                fontStyle: "italic",
+                margin: 0,
+              }}
             >
               No rationale captured. Decisions are working memory, not minutes.
             </p>
@@ -483,11 +481,17 @@ export function DecisionDetail({ id }: { id: string }) {
                 );
               })}
             </div>
-            <p style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
+            <p
+              style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}
+            >
               Agents read this before any mission that touches the same surface.
             </p>
           </div>
         </DetailSection>
+
+        {/* Stage history: real per-transition rows; renders nothing until the
+            first transition lands. */}
+        <StageTimeline entityType="decision" entityId={d.id} />
 
         {/* Activity. */}
         <DetailSection heading="Activity">

@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { withJobRun } from "@/lib/observability";
 import { generateOutcomeSuggestion } from "@/lib/outcome-suggestion.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 /**
  * Outcome tick (F-V5-LOOP-CLOSE Phase D) — hourly pg_cron sweep that finds
@@ -36,14 +37,19 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
             const admin = supabaseAdmin as unknown as SupabaseClient;
             const { data: prds } = await admin
               .from("prds")
-              .select("id,github_issue_url,workspace_id")
+              .select("id,github_issue_url,workspace_id,user_id")
               .eq("status", "approved")
               .not("github_issue_url", "is", null)
               .is("shipped_at", null)
               .limit(20);
 
             // Group due PRDs by workspace so each group resolves its own binding.
-            type DuePrd = { id: string; github_issue_url: string; workspace_id: string | null };
+            type DuePrd = {
+              id: string;
+              github_issue_url: string;
+              workspace_id: string | null;
+              user_id: string | null;
+            };
             const groups = new Map<string | null, DuePrd[]>();
             for (const prd of (prds ?? []) as DuePrd[]) {
               const key = prd.workspace_id ?? null;
@@ -89,7 +95,18 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
                   })
                   .eq("id", prd.id)
                   .is("shipped_at", null);
-                if (!upErr) shipped++;
+                if (!upErr) {
+                  shipped++;
+                  await recordStageEvent(admin, {
+                    entityType: "spec",
+                    entityId: prd.id,
+                    from: "approved",
+                    to: "shipped",
+                    actor: "system",
+                    workspaceId: prd.workspace_id,
+                    userId: prd.user_id,
+                  });
+                }
               }
             }
 

@@ -14,6 +14,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.server";
 import { isLinearConfigured } from "@/lib/linear.functions";
 import {
@@ -120,6 +121,16 @@ export const startOrchestratedMission = createServerFn({ method: "POST" })
           .from("missions")
           .update({ status: "halted", updated_at: new Date().toISOString() })
           .eq("id", mission.id);
+        // SEAM-1: the launch failure halted the mission (created 'running' above).
+        await recordStageEvent(supabase, {
+          entityType: "mission",
+          entityId: mission.id,
+          from: "running",
+          to: "halted",
+          actor: "system",
+          workspaceId,
+          userId,
+        });
       } catch (markErr) {
         console.error("mission halt-mark failed (launch):", markErr);
       }

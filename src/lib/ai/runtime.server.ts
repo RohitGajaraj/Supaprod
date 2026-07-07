@@ -774,6 +774,7 @@ async function logBudgetAlert(
     kind: "warn" | "block";
     used: number;
     cap: number;
+    traceId?: string | null;
   },
 ) {
   const pct = args.cap > 0 ? Math.min(100, (args.used / args.cap) * 100) : 0;
@@ -787,6 +788,7 @@ async function logBudgetAlert(
       usd_used: args.used,
       usd_cap: args.cap,
       pct,
+      trace_id: args.traceId ?? null,
     });
   } catch {
     /* best-effort */
@@ -1112,6 +1114,7 @@ async function incrementBudget(
   userId: string,
   tokens: number,
   usd: number,
+  traceId?: string | null,
 ) {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7) + "-01";
@@ -1164,6 +1167,7 @@ async function incrementBudget(
         kind: "warn",
         used: newDailyUsd,
         cap: dailyCap,
+        traceId,
       });
     }
   }
@@ -1179,6 +1183,7 @@ async function incrementBudget(
         kind: "warn",
         used: newMonthlyUsd,
         cap: monthlyCap,
+        traceId,
       });
     }
   }
@@ -1189,6 +1194,7 @@ async function incrementSurfaceBudget(
   userId: string,
   surface: string,
   usd: number,
+  traceId?: string | null,
 ) {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7) + "-01";
@@ -1228,6 +1234,7 @@ async function incrementSurfaceBudget(
         kind: "warn",
         used: newDaily,
         cap: dailyCap,
+        traceId,
       });
     }
   }
@@ -1242,6 +1249,7 @@ async function incrementSurfaceBudget(
         kind: "warn",
         used: newMonthly,
         cap: monthlyCap,
+        traceId,
       });
     }
   }
@@ -1590,13 +1598,14 @@ export async function callModel(
           action: h.action,
           side: h.side,
           matched: h.matched,
+          trace_id: opts.traceId ?? null,
         })),
       );
     }
 
     if (status === "ok" && totalTok > 0) {
-      await incrementBudget(supabase, userId, totalTok, est);
-      await incrementSurfaceBudget(supabase, userId, opts.surface, est);
+      await incrementBudget(supabase, userId, totalTok, est, opts.traceId ?? null);
+      await incrementSurfaceBudget(supabase, userId, opts.surface, est, opts.traceId ?? null);
       await recordMissionUsage(supabase, opts.runId ?? null, totalTok, est);
       // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
       await debitAccountCredits(supabase, userId, opts, est, eventId, modelUsed);
@@ -1745,8 +1754,8 @@ export async function logAiEvent(
       .select("id")
       .single();
     if (evt.status !== "error" && totalTok > 0) {
-      await incrementBudget(supabase, userId, totalTok, est);
-      await incrementSurfaceBudget(supabase, userId, evt.surface, est);
+      await incrementBudget(supabase, userId, totalTok, est, evt.trace_id ?? null);
+      await incrementSurfaceBudget(supabase, userId, evt.surface, est, evt.trace_id ?? null);
     }
     return (data as { id: string } | null)?.id ?? null;
   } catch (e) {
@@ -2197,13 +2206,20 @@ export async function callModelStream(
                 action: h.action,
                 side: h.side,
                 matched: h.matched,
+                trace_id: opts.traceId ?? null,
               })),
             );
           }
 
           if (!hits.some((h) => h.action === "block") && inTok + outTok > 0) {
-            await incrementBudget(supabase, userId, inTok + outTok, estCost);
-            await incrementSurfaceBudget(supabase, userId, opts.surface, estCost);
+            await incrementBudget(supabase, userId, inTok + outTok, estCost, opts.traceId ?? null);
+            await incrementSurfaceBudget(
+              supabase,
+              userId,
+              opts.surface,
+              estCost,
+              opts.traceId ?? null,
+            );
             await recordMissionUsage(supabase, opts.runId ?? null, inTok + outTok, estCost);
             // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
             await debitAccountCredits(supabase, userId, opts, estCost, eventId, modelUsed);

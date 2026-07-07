@@ -6,6 +6,7 @@ import { resumeAgentLoop, runAgentLoop } from "@/lib/ai/loop.server";
 import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.server";
 import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 // agent_approvals.run_id is new in the f_studio_engine migration — not in the
 // generated types until they regenerate post-apply (F-V5 untyped-cast pattern).
@@ -79,11 +80,15 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             const unblocked: string[] = [];
             const { data: blockedMissions } = await admin
               .from("missions")
-              .select("id")
+              .select("id,workspace_id,user_id")
               .eq("status", "blocked")
               .order("updated_at", { ascending: true })
               .limit(MISSION_BATCH);
-            for (const bm of (blockedMissions ?? []) as { id: string }[]) {
+            for (const bm of (blockedMissions ?? []) as {
+              id: string;
+              workspace_id: string | null;
+              user_id: string | null;
+            }[]) {
               const runStatuses = await runStatusesOf(bm.id);
               const pendingGateCount = await pendingGatesOf(bm.id);
               if (
@@ -96,7 +101,18 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                   .eq("id", bm.id)
                   .eq("status", "blocked")
                   .select("id");
-                if (upd && upd.length) unblocked.push(bm.id);
+                if (upd && upd.length) {
+                  unblocked.push(bm.id);
+                  await recordStageEvent(admin, {
+                    entityType: "mission",
+                    entityId: bm.id,
+                    from: "blocked",
+                    to: "running",
+                    actor: "system",
+                    workspaceId: bm.workspace_id,
+                    userId: bm.user_id,
+                  });
+                }
               }
             }
 
@@ -226,11 +242,16 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             const blocked: string[] = [];
             const { data: blockCandidates } = await admin
               .from("missions")
-              .select("id,status")
+              .select("id,status,workspace_id,user_id")
               .in("status", ["running", "in_progress"])
               .order("updated_at", { ascending: true })
               .limit(MISSION_BATCH);
-            for (const cm of (blockCandidates ?? []) as { id: string; status: string }[]) {
+            for (const cm of (blockCandidates ?? []) as {
+              id: string;
+              status: string;
+              workspace_id: string | null;
+              user_id: string | null;
+            }[]) {
               const runStatuses = await runStatusesOf(cm.id);
               if (!runStatuses.includes("waiting_approval")) continue; // cheap short-circuit
               const pendingGateCount = await pendingGatesOf(cm.id);
@@ -244,7 +265,18 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
                   .eq("id", cm.id)
                   .in("status", ["running", "in_progress"])
                   .select("id");
-                if (upd && upd.length) blocked.push(cm.id);
+                if (upd && upd.length) {
+                  blocked.push(cm.id);
+                  await recordStageEvent(admin, {
+                    entityType: "mission",
+                    entityId: cm.id,
+                    from: cm.status,
+                    to: "blocked",
+                    actor: "system",
+                    workspaceId: cm.workspace_id,
+                    userId: cm.user_id,
+                  });
+                }
               }
             }
 

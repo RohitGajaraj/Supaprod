@@ -26,18 +26,22 @@ function IncidentCard({ n }: { n: Incident }) {
   const navigate = useNavigate();
   const tone = INCIDENT_TONE_VAR[incidentTone(n.kind)];
   const hasTrace = Boolean(n.traceId);
+  // Trace wins when present; otherwise a mission-keyed incident opens its mission.
+  const hasMission = !hasTrace && Boolean(n.missionId);
+  const clickable = hasTrace || hasMission;
   const open = () => {
     if (n.traceId) navigate({ to: "/traces/$traceId", params: { traceId: n.traceId } });
+    else if (n.missionId) navigate({ to: "/build/$missionId", params: { missionId: n.missionId } });
   };
 
   return (
     <article
-      role={hasTrace ? "button" : undefined}
-      tabIndex={hasTrace ? 0 : undefined}
-      aria-label={hasTrace ? `Open trace for: ${n.title}` : undefined}
-      onClick={hasTrace ? open : undefined}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `Open ${hasTrace ? "trace" : "mission"} for: ${n.title}` : undefined}
+      onClick={clickable ? open : undefined}
       onKeyDown={
-        hasTrace
+        clickable
           ? (e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
@@ -46,23 +50,23 @@ function IncidentCard({ n }: { n: Incident }) {
             }
           : undefined
       }
-      className={hasTrace ? "loom-press" : undefined}
+      className={clickable ? "loom-press" : undefined}
       style={{
         padding: "14px 16px",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         background: "var(--card)",
-        cursor: hasTrace ? "pointer" : "default",
+        cursor: clickable ? "pointer" : "default",
         outline: "none",
         transitionProperty: "background-color",
         transitionDuration: "var(--dur-control)",
         transitionTimingFunction: "var(--ease)",
       }}
       onMouseEnter={(e) => {
-        if (hasTrace) e.currentTarget.style.background = "var(--raised)";
+        if (clickable) e.currentTarget.style.background = "var(--raised)";
       }}
       onMouseLeave={(e) => {
-        if (hasTrace) e.currentTarget.style.background = "var(--card)";
+        if (clickable) e.currentTarget.style.background = "var(--card)";
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -138,7 +142,7 @@ function IncidentCard({ n }: { n: Incident }) {
       >
         {n.detail}
       </p>
-      {hasTrace ? (
+      {clickable ? (
         <span
           className="uppercase"
           style={{
@@ -152,7 +156,7 @@ function IncidentCard({ n }: { n: Incident }) {
             color: "var(--glacier)",
           }}
         >
-          Open trace
+          {hasTrace ? "Open trace" : "Open mission"}
           <ArrowUpRight size={12} strokeWidth={2} />
         </span>
       ) : null}
@@ -252,8 +256,8 @@ export function IncidentsPanel() {
             lineHeight: 1.5,
           }}
         >
-          Nothing has gone wrong recently. Failed tool calls, pipeline errors, guardrail blocks, cost
-          breaches, and spinning missions land here, newest first, each linked to its trace.
+          Nothing has gone wrong recently. Failed tool calls, pipeline errors, guardrail blocks,
+          cost breaches, and spinning missions land here, newest first, each linked to its trace.
         </p>
       </div>
     );

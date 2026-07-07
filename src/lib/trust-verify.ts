@@ -13,10 +13,10 @@
 // so a user who SAVED an earlier fingerprint can confirm the ledger is unchanged. The
 // LIVE path is head-only: save the compact fingerprint, later check "does it still
 // match? yes / no". `verifyReceipts` can additionally pinpoint WHICH record changed
-// when handed the full saved seal (its per-record links) — that richer path is the
-// substrate for persisting the seal at write time (a possible later add-on, alongside
-// an optional Ed25519 signature for non-repudiation; neither is built, and nothing
-// here is gated to any tier).
+// when handed the full saved seal (its per-record links); getLedgerSeal now persists
+// those links into `ledger_seals` at compute time, so the verify path uses them (an
+// optional Ed25519 signature for non-repudiation remains a possible later add-on;
+// nothing here is gated to any tier).
 //
 // Pure + dependency-light on purpose: it imports only the TrustReceipt TYPE and uses
 // Web Crypto (crypto.subtle), present in both bun (tests) and the Cloudflare Worker
@@ -49,7 +49,12 @@ export function canonicalizeReceipt(r: TrustReceipt): string {
     r.source?.kind ?? null,
     r.source?.id ?? null,
     r.toolName ?? null,
-    r.outcome,
+    // 'proven' is a display state derived from recorded learnings, not a
+    // record mutation: sealing it would flip every saved fingerprint the
+    // moment an outcome validates a decision, and the verify UI would
+    // misreport that as tampering. The seal attests the stored record;
+    // proven normalizes back to standing.
+    r.outcome === "proven" ? "standing" : r.outcome,
     r.supersededBy ?? null,
   ]);
 }
@@ -99,6 +104,42 @@ export async function sealReceipts(receipts: TrustReceipt[]): Promise<TrustSeal>
   return { algo: SEAL_ALGO, head: prev, count: list.length, links };
 }
 
+/** The pinpointed record ids that changed between a saved seal and the current set. */
+export type SealDiff = {
+  /** record ids present now but absent from the saved seal. Exact (set membership). */
+  added: string[];
+  /** record ids in the saved seal but gone from the current set. Exact (set membership). */
+  removed: string[];
+  /** the FIRST provably-altered record id. Cumulative hashes cannot isolate later
+   * alterations (everything downstream of the first divergence inherits it), and a
+   * mutation is only attributable at all when the id sets are identical. */
+  mutated: string[];
+};
+
+/**
+ * PURE. Diff the current per-record links against a SAVED seal's links. Added and
+ * removed ids are exact set differences; `mutated` names the first altered record and
+ * only when no records were added or removed (see SealDiff). Both lists arrive in the
+ * canonical chain order (id ascending) because both come from `sealReceipts`.
+ */
+export function diffSealLinks(current: SealLink[], saved: SealLink[]): SealDiff {
+  const savedIds = new Set(saved.map((l) => l.id));
+  const curIds = new Set(current.map((l) => l.id));
+  const added = current.filter((l) => !savedIds.has(l.id)).map((l) => l.id);
+  const removed = saved.filter((l) => !curIds.has(l.id)).map((l) => l.id);
+  const mutated: string[] = [];
+  if (added.length === 0 && removed.length === 0) {
+    for (let i = 0; i < current.length; i++) {
+      const rec = saved[i];
+      if (rec && current[i].hash !== rec.hash) {
+        mutated.push(current[i].id);
+        break;
+      }
+    }
+  }
+  return { added, removed, mutated };
+}
+
 export type VerifyResult = {
   /** true when the current records reproduce the recorded seal head exactly. */
   ok: boolean;
@@ -110,6 +151,8 @@ export type VerifyResult = {
   brokenAt: string | null;
   /** a plain-language explanation of the divergence, or null when ok. */
   reason: string | null;
+  /** the pinpointed changed ids, only when the recorded seal carried its links. */
+  changed: SealDiff | null;
 };
 
 /**
@@ -125,6 +168,8 @@ export async function verifyReceipts(
   const ok = recomputed.head === seal.head;
   let brokenAt: string | null = null;
   let reason: string | null = null;
+  const changed =
+    !ok && Array.isArray(seal.links) ? diffSealLinks(recomputed.links, seal.links) : null;
 
   if (!ok) {
     if (Array.isArray(seal.links)) {
@@ -170,6 +215,7 @@ export async function verifyReceipts(
     expectedCount: typeof seal.count === "number" ? seal.count : recomputed.count,
     brokenAt,
     reason,
+    changed,
   };
 }
 

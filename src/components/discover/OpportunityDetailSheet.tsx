@@ -15,14 +15,9 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
 import type { CriticReview } from "@/lib/discovery.functions";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-  toneForScore,
-} from "./DetailKit";
+import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
+import { StageTimeline } from "@/components/shared/StageTimeline";
 import type { Designation } from "./ranking";
 import {
   DESIGNATION_MEANING,
@@ -402,9 +397,7 @@ export function OpportunityDetailSheet({
               }
             >
               <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
-                {opportunity.theme_id
-                  ? "Promoted from a Discover theme."
-                  : "Promoted directly."}
+                {opportunity.theme_id ? "Promoted from a Discover theme." : "Promoted directly."}
               </span>
             </DetailSection>
 
@@ -456,6 +449,10 @@ export function OpportunityDetailSheet({
               </div>
             </DetailSection>
 
+            {/* Stage history: real per-transition rows; renders nothing until
+                the first transition lands. */}
+            <StageTimeline entityType="opportunity" entityId={opportunity.id} />
+
             {/* Activity: when it was promoted and last changed. */}
             <DetailSection heading="Activity">
               <div style={{ display: "grid", gap: "10px" }}>
@@ -464,7 +461,9 @@ export function OpportunityDetailSheet({
                   <TimeLine iso={opportunity.created_at} />
                 </div>
                 <div style={{ display: "grid", gap: "3px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Last updated</span>
+                  <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>
+                    Last updated
+                  </span>
                   <TimeLine iso={opportunity.updated_at} />
                 </div>
               </div>

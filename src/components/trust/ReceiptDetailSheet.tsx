@@ -21,22 +21,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-} from "@/components/discover/DetailKit";
+import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
 import type { TrustReceipt } from "@/lib/trust-ledger.functions";
-import {
-  RECEIPT_PREFIX,
-  receiptStatusTone,
-  receiptStatusLabel,
-  RECEIPT_TONE_VAR,
-} from "./format";
+import { RECEIPT_PREFIX, receiptStatusTone, receiptStatusLabel, RECEIPT_TONE_VAR } from "./format";
 
 /**
  * TRUST-SHARE: publish a decision's receipt as a public provenance artifact.
@@ -172,7 +162,10 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
   // Provenance link target: a spec opens the spec; a mission opens Build.
   const provenance = (() => {
     if (r.source.kind === "prd" && r.source.id) {
-      return { label: "Open the spec", go: () => navigate({ to: "/prds/$id", params: { id: r.source.id! } }) };
+      return {
+        label: "Open the spec",
+        go: () => navigate({ to: "/prds/$id", params: { id: r.source.id! } }),
+      };
     }
     if (r.source.kind === "mission" && r.source.id) {
       return { label: "Open in Build", go: () => navigate({ to: "/build" }) };
@@ -203,7 +196,7 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
               <>
                 <StatusPill label={receiptStatusLabel(r.status)} tone={statusTone} />
                 <StatusPill
-                  label={superseded ? "Superseded" : "Standing"}
+                  label={superseded ? "Superseded" : r.outcome === "proven" ? "Proven" : "Standing"}
                   tone={superseded ? "var(--text-muted)" : "var(--moss)"}
                 />
               </>
@@ -346,7 +339,9 @@ export function ReceiptDetailSheet({ open, onOpenChange, receipt }: ReceiptDetai
             <div style={{ display: "grid", gap: "10px" }}>
               <div style={{ display: "grid", gap: "3px" }}>
                 <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>By</span>
-                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>{decidedLabel}</span>
+                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  {decidedLabel}
+                </span>
               </div>
               {r.occurredAt ? (
                 <div style={{ display: "grid", gap: "3px" }}>

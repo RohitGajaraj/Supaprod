@@ -49,6 +49,7 @@ import {
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
+import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useConfirm } from "@/hooks/use-confirm";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -258,7 +259,8 @@ function GatePanel({
                 className="btn loom-press"
                 disabled={decide.isPending}
                 style={{
-                  background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                  background:
+                    "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
                   color: "var(--cta-ink)",
                   fontWeight: 600,
                 }}
@@ -861,7 +863,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           }}
         >
           <div>
-            <MonoLabel style={{ color: "color-mix(in oklab, var(--text-primary) 60%, transparent)" }}>
+            <MonoLabel
+              style={{ color: "color-mix(in oklab, var(--text-primary) 60%, transparent)" }}
+            >
               Mission · {data.mission.id.slice(0, 8)}
             </MonoLabel>
             <h1
@@ -1271,6 +1275,10 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           <MissionGraph steps={graphSteps} />
         )}
       </section>
+
+      {/* Stage history: real per-transition rows; renders nothing until the
+          first transition lands. */}
+      <StageTimeline entityType="mission" entityId={missionId} variant="loom" />
 
       {/* Gate */}
       {liveHop?.trace_id ? (
