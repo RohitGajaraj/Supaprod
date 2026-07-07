@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Button, VerdictChip } from "@/components/obsidian";
+import { Button, VerdictChip, FlashlightTabs } from "@/components/obsidian";
 import { ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey, type RoomTabMeta } from "@/lib/engine-room-glance";
 import { useEngineRoomGlance } from "./EngineRoomSurface";
 import { SpendRoom } from "./rooms/SpendRoom";
@@ -287,38 +287,17 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         ) : null}
       </div>
 
-      <div
-        role="tablist"
-        className="flex flex-wrap"
-        style={{ gap: "20px", marginBottom: "14px", borderBottom: "1px solid var(--hairline)" }}
-      >
-        {tabs.map((tab) => {
-          const active = tab.id === activeView;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => onSetView(tab.id)}
-              className={cn(
-                "outline-none",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
-                !active && "hover:[color:var(--text-body)] cursor-pointer",
-              )}
-              style={{
-                fontFamily: "var(--font-ui)",
-                fontSize: "var(--text-base)",
-                fontWeight: active ? 600 : 500,
-                color: active ? "var(--text-primary)" : "var(--text-subtle)",
-                paddingBottom: "8px",
-                borderBottom: active ? "2px solid var(--glacier)" : "2px solid transparent",
-              }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Standard tab bar (FlashlightTabs), the same sliding-highlight pattern
+          as Brain and every other surface: consistency across the design
+          principle (founder ruling 2026-07-07), not a bespoke underline. */}
+      <div style={{ marginBottom: "14px" }}>
+        <FlashlightTabs
+          tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
+          active={activeView}
+          onSelect={onSetView}
+          ariaLabel={`${ROOM_QUESTIONS[room]} views`}
+          size="sm"
+        />
       </div>
 
       {/* Descriptor strip: the one plain line that says what this view answers,

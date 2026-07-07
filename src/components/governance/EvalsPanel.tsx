@@ -132,7 +132,14 @@ export function EvalsPanel() {
             <span style={{ color: "var(--text-primary)" }}>{coverageSummary}</span>
           </div>
           {coverageTargets.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))",
+                gap: 6,
+                marginTop: 8,
+              }}
+            >
               {coverageTargets.map((t) => {
                 // covered = success (moss, quiet); uncovered = alert (madder, solid); stale =
                 // unproven, rendered NEUTRAL + dashed (not marigold) so it (a) keeps caution
@@ -153,28 +160,30 @@ export function EvalsPanel() {
                       ? {
                           word: "unproven",
                           dot: "var(--text-faint)",
-                          border: "color-mix(in oklab, var(--text-faint) 55%, transparent)",
+                          border: "color-mix(in oklab, var(--text-faint) 40%, transparent)",
                           borderStyle: "dashed",
-                          bg: "color-mix(in oklab, var(--text-primary) 4%, transparent)",
-                          text: "var(--text-primary)",
+                          bg: "transparent",
+                          text: "var(--text-body)",
                         }
                       : {
                           word: "no guard",
                           dot: "var(--madder)",
-                          border: "color-mix(in oklab, var(--madder) 45%, transparent)",
+                          border: "color-mix(in oklab, var(--madder) 30%, transparent)",
                           borderStyle: "solid",
-                          bg: "color-mix(in oklab, var(--madder) 8%, transparent)",
+                          bg: "transparent",
                           text: "var(--text-primary)",
                         };
                 // A gap chip (uncovered/stale) is a one-click affordance to start guarding that
                 // surface; a covered chip is static (nothing to fill).
                 const interactive = t.state !== "covered";
                 const chipStyle = {
-                  display: "inline-flex" as const,
+                  display: "flex" as const,
                   alignItems: "center" as const,
-                  gap: 5,
-                  padding: "2px 8px",
-                  borderRadius: 999,
+                  gap: 6,
+                  width: "100%",
+                  justifyContent: "flex-start" as const,
+                  padding: "5px 10px",
+                  borderRadius: 8,
                   border: `1px ${meta.borderStyle} ${meta.border}`,
                   background: meta.bg,
                   color: meta.text,
