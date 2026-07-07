@@ -114,6 +114,7 @@ import { Route as ApiPublicHooksResearcherTickRouteImport } from './routes/api/p
 import { Route as ApiPublicHooksPromptOptimizeTickRouteImport } from './routes/api/public/hooks/prompt-optimize-tick'
 import { Route as ApiPublicHooksOutcomeTickRouteImport } from './routes/api/public/hooks/outcome-tick'
 import { Route as ApiPublicHooksMemoryTickRouteImport } from './routes/api/public/hooks/memory-tick'
+import { Route as ApiPublicHooksLoopTickRouteImport } from './routes/api/public/hooks/loop-tick'
 import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/public/hooks/indexer-tick'
 import { Route as ApiPublicHooksHouseRulesTickRouteImport } from './routes/api/public/hooks/house-rules-tick'
 import { Route as ApiPublicHooksGoalTickRouteImport } from './routes/api/public/hooks/goal-tick'
@@ -696,6 +697,11 @@ const ApiPublicHooksMemoryTickRoute =
     path: '/api/public/hooks/memory-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksLoopTickRoute = ApiPublicHooksLoopTickRouteImport.update({
+  id: '/api/public/hooks/loop-tick',
+  path: '/api/public/hooks/loop-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksIndexerTickRoute =
   ApiPublicHooksIndexerTickRouteImport.update({
     id: '/api/public/hooks/indexer-tick',
@@ -960,6 +966,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
   '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
@@ -1089,6 +1096,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
   '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
@@ -1223,6 +1231,7 @@ export interface FileRoutesById {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
   '/api/public/hooks/prompt-optimize-tick': typeof ApiPublicHooksPromptOptimizeTickRoute
@@ -1357,6 +1366,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
     | '/api/public/hooks/prompt-optimize-tick'
@@ -1486,6 +1496,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
     | '/api/public/hooks/prompt-optimize-tick'
@@ -1619,6 +1630,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
     | '/api/public/hooks/prompt-optimize-tick'
@@ -1684,6 +1696,7 @@ export interface RootRouteChildren {
   ApiPublicHooksGoalTickRoute: typeof ApiPublicHooksGoalTickRoute
   ApiPublicHooksHouseRulesTickRoute: typeof ApiPublicHooksHouseRulesTickRoute
   ApiPublicHooksIndexerTickRoute: typeof ApiPublicHooksIndexerTickRoute
+  ApiPublicHooksLoopTickRoute: typeof ApiPublicHooksLoopTickRoute
   ApiPublicHooksMemoryTickRoute: typeof ApiPublicHooksMemoryTickRoute
   ApiPublicHooksOutcomeTickRoute: typeof ApiPublicHooksOutcomeTickRoute
   ApiPublicHooksPromptOptimizeTickRoute: typeof ApiPublicHooksPromptOptimizeTickRoute
@@ -2439,6 +2452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksMemoryTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/loop-tick': {
+      id: '/api/public/hooks/loop-tick'
+      path: '/api/public/hooks/loop-tick'
+      fullPath: '/api/public/hooks/loop-tick'
+      preLoaderRoute: typeof ApiPublicHooksLoopTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/indexer-tick': {
       id: '/api/public/hooks/indexer-tick'
       path: '/api/public/hooks/indexer-tick'
@@ -2868,6 +2888,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksGoalTickRoute: ApiPublicHooksGoalTickRoute,
   ApiPublicHooksHouseRulesTickRoute: ApiPublicHooksHouseRulesTickRoute,
   ApiPublicHooksIndexerTickRoute: ApiPublicHooksIndexerTickRoute,
+  ApiPublicHooksLoopTickRoute: ApiPublicHooksLoopTickRoute,
   ApiPublicHooksMemoryTickRoute: ApiPublicHooksMemoryTickRoute,
   ApiPublicHooksOutcomeTickRoute: ApiPublicHooksOutcomeTickRoute,
   ApiPublicHooksPromptOptimizeTickRoute: ApiPublicHooksPromptOptimizeTickRoute,

@@ -62,14 +62,19 @@ export type OutcomeReviewResult = { reviewed: number; drafted: number; skeletons
 export async function runOutcomeReviews(
   db: SupabaseClient,
   now: Date = new Date(),
+  // SW-4 loop mode: a user-owned loop reviews only its own workspace; the
+  // outcome-tick cron passes nothing and sweeps every workspace as before.
+  workspaceId?: string | null,
 ): Promise<OutcomeReviewResult> {
   const result: OutcomeReviewResult = { reviewed: 0, drafted: 0, skeletons: 0 };
 
-  const { data: planRows } = await db
+  let planQuery = db
     .from("launch_plans")
     .select("prd_id,workspace_id,check_by,success_metric")
     .not("check_by", "is", null)
-    .lte("check_by", now.toISOString())
+    .lte("check_by", now.toISOString());
+  if (workspaceId) planQuery = planQuery.eq("workspace_id", workspaceId);
+  const { data: planRows } = await planQuery
     .order("check_by", { ascending: true })
     .limit(CANDIDATE_LIMIT);
   const plans = (planRows ?? []) as PlanRow[];

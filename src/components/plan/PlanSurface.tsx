@@ -5,11 +5,13 @@ import { SpecList } from "./SpecList";
 import { SpecDetail } from "./SpecDetail";
 import { StakeholderPackPanel } from "./StakeholderPackPanel";
 import { GoalsPanel } from "./GoalsPanel";
+import { LoopsPanel } from "./LoopsPanel";
 
 /** The deep-linkable Plan sections (?view=), honored by scrolling the
  * section into view and moving focus to its heading (DESIGN-LOOM §9b).
- * SW-4 added "goals": standing objectives the swarm keeps working. */
-export const PLAN_VIEWS = ["goals", "roadmap", "specs", "stakeholders"] as const;
+ * SW-4 added "goals" (standing objectives the swarm keeps working) and
+ * "loops" (hidden crons promoted to user-owned recurring missions). */
+export const PLAN_VIEWS = ["goals", "loops", "roadmap", "specs", "stakeholders"] as const;
 export type PlanView = (typeof PLAN_VIEWS)[number];
 
 /**
@@ -28,6 +30,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
   const [specOpen, setSpecOpen] = useState<string | null>(null);
   const sectionRefs = {
     goals: useRef<HTMLElement>(null),
+    loops: useRef<HTMLElement>(null),
     roadmap: useRef<HTMLElement>(null),
     specs: useRef<HTMLElement>(null),
     stakeholders: useRef<HTMLElement>(null),
@@ -123,6 +126,11 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         {sectionHeading("goals", "Goals", "Standing outcomes the swarm keeps working")}
       </div>
       <GoalsPanel />
+
+      <div style={{ marginTop: 40, marginBottom: 14 }}>
+        {sectionHeading("loops", "Loops", "Recurring missions with their run history and cost")}
+      </div>
+      <LoopsPanel />
 
       <div style={{ marginTop: 40, marginBottom: 14 }}>
         {sectionHeading("roadmap", "Roadmap", "Now, Next, and Later, each with a declared outcome")}
