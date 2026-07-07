@@ -121,7 +121,7 @@ async function recordSeedOpportunityStageEvents(
  * - Several opportunities (prioritized ideas)
  *
  * Runs during onboarding, after the user selects a track. The onboarded flag
- * is NOT set here — completeOnboarding sets it at the finish step, so an
+ * is NOT set here; completeOnboarding sets it at the finish step, so an
  * interrupted onboarding resumes instead of silently skipping its later steps
  * (SW-6). Re-entry is safe: the alreadySeeded guard fast-forwards.
  * All data is scoped to the authenticated user.

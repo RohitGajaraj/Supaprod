@@ -78,20 +78,18 @@ export async function recordErrorEvent(
       string,
       string | undefined
     >;
-    const { error } = await (client as ErrorEventsClient)
-      .from("error_events")
-      .insert({
-        surface: (ctx.surface ?? "unknown").slice(0, 200),
-        error_kind: (errObj.name || "Error").slice(0, 200),
-        error_message: (errObj.message ?? "").slice(0, MESSAGE_CAP),
-        stack: errObj.stack ? errObj.stack.slice(0, STACK_CAP) : null,
-        request_path: ctx.request_path ? ctx.request_path.slice(0, PATH_CAP) : null,
-        request_method: ctx.request_method ?? null,
-        user_id: ctx.user_id ?? null,
-        workspace_id: ctx.workspace_id ?? null,
-        deployment_id: env.CF_VERSION_METADATA_ID?.trim() || null,
-        extras: ctx.extras ?? null,
-      });
+    const { error } = await (client as ErrorEventsClient).from("error_events").insert({
+      surface: (ctx.surface ?? "unknown").slice(0, 200),
+      error_kind: (errObj.name || "Error").slice(0, 200),
+      error_message: (errObj.message ?? "").slice(0, MESSAGE_CAP),
+      stack: errObj.stack ? errObj.stack.slice(0, STACK_CAP) : null,
+      request_path: ctx.request_path ? ctx.request_path.slice(0, PATH_CAP) : null,
+      request_method: ctx.request_method ?? null,
+      user_id: ctx.user_id ?? null,
+      workspace_id: ctx.workspace_id ?? null,
+      deployment_id: env.CF_VERSION_METADATA_ID?.trim() || null,
+      extras: ctx.extras ?? null,
+    });
     return !error;
   } catch {
     return false;

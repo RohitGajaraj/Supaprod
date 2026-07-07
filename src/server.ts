@@ -81,12 +81,7 @@ function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boole
 // when available; the fire-and-forget fallback covers non-Workers runtimes.
 type WorkersCtx = { waitUntil?: (promise: Promise<unknown>) => void };
 
-function persistServerError(
-  error: unknown,
-  request: Request,
-  ctx: unknown,
-  surface: string,
-): void {
+function persistServerError(error: unknown, request: Request, ctx: unknown, surface: string): void {
   try {
     const url = new URL(request.url);
     const write = captureError(error, {

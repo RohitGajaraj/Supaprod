@@ -355,17 +355,25 @@ export function AutoClustered() {
         <SourceFilterRow sources={sourceStats} active={sourceFilter} onSelect={setSourceFilter} />
       ) : null}
       {themeList.length === 0 ? (
-        <p
-          style={{
-            fontSize: "12.5px",
-            lineHeight: 1.6,
-            color: "var(--text-subtle)",
-            margin: 0,
-            padding: "0 4px",
-          }}
-        >
-          No themes yet. Capture a few signals and Cadence clusters them into ranked themes here.
-        </p>
+        // SW-6: empty states DO something (mission 3.12); offer the door to
+        // the capture composer instead of only describing it.
+        <div style={{ padding: "0 4px" }}>
+          <p
+            style={{
+              fontSize: "12.5px",
+              lineHeight: 1.6,
+              color: "var(--text-subtle)",
+              margin: 0,
+            }}
+          >
+            No themes yet. Capture a few signals and Cadence clusters them into ranked themes here.
+          </p>
+          <div style={{ marginTop: 8 }}>
+            <Button variant="secondary" onClick={() => navigate({ to: "/discover" })}>
+              Capture a signal
+            </Button>
+          </div>
+        </div>
       ) : (
         shown.map((t, i) => {
           const members = signalsByTheme.get(t.id) ?? [];

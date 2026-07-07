@@ -221,17 +221,26 @@ export function OpportunityQueue() {
     <div className="grid gap-3">
       <HeaderRow rerankedAgo={lastRescoreAgo} />
       {rows.length === 0 ? (
-        <p
-          style={{
-            fontSize: "12.5px",
-            lineHeight: 1.6,
-            color: "var(--text-subtle)",
-            margin: 0,
-            padding: "0 4px",
-          }}
-        >
-          Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
-        </p>
+        // SW-6: empty states DO something (mission 3.12). The feed lives on a
+        // different route, so saying "promote a signal" without a door was a
+        // dead end for a fresh account.
+        <div style={{ padding: "0 4px" }}>
+          <p
+            style={{
+              fontSize: "12.5px",
+              lineHeight: 1.6,
+              color: "var(--text-subtle)",
+              margin: 0,
+            }}
+          >
+            Nothing ranked yet. Promote a signal from the feed and it lands here, scored.
+          </p>
+          <div style={{ marginTop: 8 }}>
+            <Button variant="secondary" onClick={() => navigate({ to: "/discover" })}>
+              Go to the signal feed
+            </Button>
+          </div>
+        </div>
       ) : (
         (showAll ? ranked : ranked.slice(0, VISIBLE_OPPS)).map((r) => {
           const o = r.opp;

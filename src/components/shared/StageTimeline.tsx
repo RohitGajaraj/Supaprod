@@ -8,6 +8,7 @@
 // the mission surface's LOOM_CARD <section> with its MonoLabel heading.
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { getStageEvents } from "@/lib/stage-events.functions";
 import { DetailSection } from "@/components/discover/DetailKit";
 import { relTimeCaps } from "@/components/discover/format";
@@ -122,6 +123,21 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
             </span>
           </div>
         ))}
+      </div>
+      {/* SW-6 (mission 3.13 SEE IT): one click from any artifact into the
+          receipts trail. The inline rows above show THIS entity's chain; the
+          ledger shows the machine's whole decision/action record. */}
+      <div style={{ marginTop: "10px" }}>
+        <Link
+          to="/trust-ledger"
+          style={{
+            fontSize: "12px",
+            color: "var(--text-subtle)",
+            textDecoration: "none",
+          }}
+        >
+          See the full chain in the Trust Ledger
+        </Link>
       </div>
     </DetailSection>
   );

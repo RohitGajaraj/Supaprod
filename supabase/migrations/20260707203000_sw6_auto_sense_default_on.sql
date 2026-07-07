@@ -18,3 +18,14 @@
 
 alter table public.workspaces
   alter column auto_sense_enabled set default true;
+
+-- SW-6 (mission 3.13, the unprompted surprise beat): Tier-1 trigger proposals
+-- default ON for new workspaces too. trigger-tick's Tier 1 is HITL-only and
+-- explicitly ZERO AI spend (self-originated missions land as status='proposed'
+-- and never execute until a human promotes them; trigger-tick.ts:18-25).
+-- Tier-2 auto-promotion stays behind the founder's BRAIN_AUTO_TRIGGER circuit
+-- breaker, untouched. Without this, no self-originating channel can fire in a
+-- fresh user's first session and the product never surprises them.
+
+alter table public.workspaces
+  alter column auto_trigger_enabled set default true;

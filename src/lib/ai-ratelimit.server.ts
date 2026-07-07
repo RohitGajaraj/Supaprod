@@ -25,10 +25,7 @@ export const AI_WINDOW_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 type RateLimitRow = { id: string; request_count: number; window_start: string };
 
 /** Pure policy, delegated to the tested decidePublicReadRateLimit with AI-surface bounds. */
-export function decideUserAiRateLimit(
-  row: RateLimitRow | null,
-  nowMs: number,
-): RateLimitDecision {
+export function decideUserAiRateLimit(row: RateLimitRow | null, nowMs: number): RateLimitDecision {
   return decidePublicReadRateLimit(row, nowMs, AI_LIMIT_PER_WINDOW, AI_WINDOW_DURATION_MS);
 }
 

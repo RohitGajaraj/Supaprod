@@ -231,27 +231,25 @@ export type ErrorEventRow = {
 export const listErrorEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { limit?: number; surface?: string } | undefined) => d ?? {})
-  .handler(
-    async ({ context, data }): Promise<{ events: ErrorEventRow[] } | { error: string }> => {
-      const { data: adminRole } = await context.supabase
-        .from("user_roles")
-        .select("role")
-        .eq("role", "admin")
-        .maybeSingle();
-      if (!adminRole) return { error: "Forbidden" };
+  .handler(async ({ context, data }): Promise<{ events: ErrorEventRow[] } | { error: string }> => {
+    const { data: adminRole } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!adminRole) return { error: "Forbidden" };
 
-      const limit = Math.min(Math.max(data.limit ?? 100, 1), 500);
-      let query = supabaseAdmin
-        .from("error_events" as never)
-        .select(
-          "id, occurred_at, surface, error_kind, error_message, stack, request_path, request_method, user_id, workspace_id, deployment_id",
-        )
-        .order("occurred_at", { ascending: false })
-        .limit(limit);
-      if (data.surface) query = query.eq("surface", data.surface);
+    const limit = Math.min(Math.max(data.limit ?? 100, 1), 500);
+    let query = supabaseAdmin
+      .from("error_events" as never)
+      .select(
+        "id, occurred_at, surface, error_kind, error_message, stack, request_path, request_method, user_id, workspace_id, deployment_id",
+      )
+      .order("occurred_at", { ascending: false })
+      .limit(limit);
+    if (data.surface) query = query.eq("surface", data.surface);
 
-      const { data: rows, error } = await query;
-      if (error) return { error: error.message };
-      return { events: (rows ?? []) as unknown as ErrorEventRow[] };
-    },
-  );
+    const { data: rows, error } = await query;
+    if (error) return { error: error.message };
+    return { events: (rows ?? []) as unknown as ErrorEventRow[] };
+  });

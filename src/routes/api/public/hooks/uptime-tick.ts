@@ -85,7 +85,12 @@ export const Route = createFileRoute("/api/public/hooks/uptime-tick")({
           }
 
           return new Response(
-            JSON.stringify({ ok: true, health: healthStatus === 200 ? "ok" : "degraded", healthStatus, purged }),
+            JSON.stringify({
+              ok: true,
+              health: healthStatus === 200 ? "ok" : "degraded",
+              healthStatus,
+              purged,
+            }),
             { headers: { "Content-Type": "application/json" } },
           );
         });

@@ -194,7 +194,7 @@ export const listConnections = createServerFn({ method: "GET" })
     };
   });
 
-/** Kick off the GitHub App install flow — returns the install URL for a full redirect.
+/** Kick off the GitHub App install flow; returns the install URL for a full redirect.
  *  SW-6: `returnTo: "onboarding"` rides inside the signed state so the callback can
  *  resume the onboarding connect step instead of stranding the user (allowlisted in
  *  makeConnectState, never a free-form URL). */
@@ -710,7 +710,6 @@ export const addProductBinding = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { binding: inserted as unknown as BindingRow };
   });
-
 
 // CONNECTIONS-V11: capture a "Request a connector" submission. Own-row RLS via
 // the RLS-scoped client; no email (cost + friction), the UI shows an in-product

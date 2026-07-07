@@ -1,9 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import {
-  assembleHealth,
-  evaluateCronPulse,
-  CRON_STALE_AFTER_MS,
-} from "./app-health";
+import { assembleHealth, evaluateCronPulse, CRON_STALE_AFTER_MS } from "./app-health";
 
 const NOW = "2026-06-20T00:00:00.000Z";
 

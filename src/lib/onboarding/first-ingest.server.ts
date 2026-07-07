@@ -37,10 +37,11 @@ export async function kickFirstIngest(
 ): Promise<FirstIngestResult> {
   const result: FirstIngestResult = { workspaceId: null, inserted: 0, timedOut: false };
   try {
-    // 1+2) Arm sensing and jump the queue for everything this user owns.
+    // 1+2) Arm sensing (and Tier-1 zero-spend trigger proposals) and jump the
+    // sense queue for everything this user owns.
     await supabaseAdmin
       .from("workspaces")
-      .update({ auto_sense_enabled: true, last_auto_sense_at: null })
+      .update({ auto_sense_enabled: true, auto_trigger_enabled: true, last_auto_sense_at: null })
       .eq("owner_id", userId);
 
     // Default workspace = oldest owned (ensureDefaultWorkspace creates the first).
