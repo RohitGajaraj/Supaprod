@@ -285,7 +285,7 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ### 2026-07-07 (CAPSTONE, overnight platform pass: every canonical surface to consumer/enterprise grade under dim-17 + DetailKit)
 
-The autonomous overnight pass brought all canonical surfaces (Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth, plus app chrome) to consumer/enterprise grade under the dim-17 doctrine + the shared DetailKit detail-view anatomy + the trace-ref registry, real-data only (migrations flagged, never faked). tsc 0 / `bun run build` ok / 2403 tests pass (only the 3 known `resolveEmbedRoute` env fails). The per-surface entries below are the individual commits; the morning handoff with the flagged-migration / parked / deferred lists is [`docs/planning/overnight-2026-07-07-platform-pass.md`](./docs/planning/overnight-2026-07-07-platform-pass.md).
+The autonomous overnight pass brought all canonical surfaces (Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth, plus app chrome) to consumer/enterprise grade under the dim-17 doctrine + the shared DetailKit detail-view anatomy + the trace-ref registry, real-data only (migrations flagged, never faked). tsc 0 / `bun run build` ok / 2403 tests pass (only the 3 known `resolveEmbedRoute` env fails). The per-surface entries below are the individual commits; the morning handoff with the flagged-migration / parked / deferred lists is [`docs/planning/overnight-platform-pass.md`](./docs/planning/overnight-platform-pass.md).
 
 ### 2026-07-07 (Chrome + spacing consistency lens: harmonize the app-shell nav rail + shared surface rhythm to a premium bar)
 
