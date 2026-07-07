@@ -1,8 +1,12 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 
-function toEmbedUrl(url: string): string {
+export function toEmbedUrl(url: string): string {
   try {
     const u = new URL(url);
+    // Validate protocol to prevent javascript:, data:, etc.
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      return url;
+    }
     if (u.hostname.includes("figma.com") && !u.pathname.startsWith("/embed")) {
       return `https://www.figma.com/embed?embed_host=cadence&url=${encodeURIComponent(url)}`;
     }
@@ -41,6 +45,7 @@ export const FigmaEmbed = Node.create({
         "iframe",
         {
           src,
+          sandbox: "allow-same-origin",
           allowfullscreen: "true",
           style: "width:100%;height:480px;border:0;display:block;",
         },
