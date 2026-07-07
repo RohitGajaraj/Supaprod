@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
+import { AuroraCard, MonoLabel, GraphSlider } from "@/components/obsidian";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
 
@@ -75,7 +75,18 @@ function ScoreView() {
       {trend.length >= 2 ? (
         <div>
           <MonoLabel tone="muted">SCORE · RECENT RUNS</MonoLabel>
-          <Sparkline data={trend} w={260} h={44} />
+          {/* Interactive trend (teal, the machine-measured family): scrub to
+              read each run's score, peak/low always shown. */}
+          <div style={{ marginTop: 10 }}>
+            <GraphSlider
+              data={trend}
+              w={340}
+              h={140}
+              color="var(--teal)"
+              formatValue={(v) => String(Math.round(v))}
+              ariaLabel="Eval score across recent runs"
+            />
+          </div>
         </div>
       ) : null}
     </div>

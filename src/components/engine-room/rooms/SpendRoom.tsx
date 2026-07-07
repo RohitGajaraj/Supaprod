@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard, MonoLabel, ChartFrame, Axes, SeriesLine } from "@/components/obsidian";
+import { AuroraCard, MonoLabel, GraphSlider } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
@@ -55,6 +55,10 @@ function TrendView() {
   // entirely, and Sparkline plots by index) so a quiet day renders as a
   // real zero, not as if it were adjacent to its neighbors.
   const filled = zeroFillDaily(cost7Q.data?.daily ?? [], 7);
+  const dayLabels = filled.map((_, i) => {
+    const daysAgo = filled.length - 1 - i;
+    return daysAgo === 0 ? "today" : `${daysAgo}d ago`;
+  });
   if (cost7Q.isError) {
     return (
       <ErrorRetry
@@ -70,19 +74,20 @@ function TrendView() {
       {filled.some((c) => c > 0) ? (
         <div>
           <MonoLabel tone="muted">SPEND · LAST 7 DAYS</MonoLabel>
-          {/* Exact machine chart in the spend data-palette (tangerine): axes
-              labelled with the real range, no pencil (the Engine Room is the
-              machine's room; the PM's graphite ink lives on Decide). */}
-          <div style={{ marginTop: 8 }}>
-            <ChartFrame w={300} h={132}>
-              <Axes
-                w={300}
-                h={132}
-                xTicks={["7 days ago", "today"]}
-                yTicks={[fmtUsd(Math.max(...filled)), "$0"]}
-              />
-              <SeriesLine data={filled} w={300} h={132} color="var(--tangerine)" />
-            </ChartFrame>
+          {/* Interactive trend (rauno graph-slider style), spend data-palette
+              tangerine: scrub to read each day, peak/low always shown. No
+              pencil (the machine's room; the PM's graphite ink lives on
+              Decide). */}
+          <div style={{ marginTop: 10 }}>
+            <GraphSlider
+              data={filled}
+              labels={dayLabels}
+              w={340}
+              h={140}
+              color="var(--tangerine)"
+              formatValue={fmtUsd}
+              ariaLabel="Daily spend over the last 7 days"
+            />
           </div>
         </div>
       ) : null}

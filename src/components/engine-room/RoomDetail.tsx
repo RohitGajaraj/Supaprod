@@ -339,7 +339,10 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
 
       {/* The technical trace, kept underneath and subtle (founder ruling
           2026-07-07): a PM reads the plain label above; an engineer finds the
-          system term here. Plain on top, technical beneath, never at the front. */}
+          system term here. Plain on top, technical beneath, never at the front.
+          Only the two terms are colored (plain = blossom, technical = glacier);
+          the connective words stay faint, so the mapping is what catches the
+          eye (Stress tests -> Gauntlet, Is it slipping? -> Drift). */}
       <p
         className="uppercase"
         style={{
@@ -352,7 +355,9 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           borderTop: "1px solid var(--hairline-faint)",
         }}
       >
-        {activeMeta.label} · the engine calls this {activeMeta.technical}
+        <span style={{ color: "var(--blossom)" }}>{activeMeta.label}</span>
+        {" · the engine calls this "}
+        <span style={{ color: "var(--glacier)" }}>{activeMeta.technical}</span>
       </p>
     </div>
   );
