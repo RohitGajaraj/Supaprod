@@ -116,6 +116,7 @@ Every object carries a visible, stable, human-readable reference derived from it
 | `OPP` | opportunities |
 | `PRD` | specs and drafts |
 | `MIS` | missions and build outcomes |
+| `DEC` | decisions |
 | `LRN` | learnings |
 | `ASM` | assumption challenges (the Today "worth re-examining?" calls) |
 

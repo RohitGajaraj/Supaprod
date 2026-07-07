@@ -26,6 +26,7 @@ import { Link } from "@tanstack/react-router";
 import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
+import { traceRef } from "@/components/discover/format";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 
@@ -184,15 +185,27 @@ export function CompoundingPanel() {
                     {delta.toFixed(1)} ICE
                   </span>
                 )}
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-faint)",
-                    marginLeft: "auto",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  {whenOf(l.created_at)}
+                <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
+                  {/* dim 17: the quiet trace ref, then the time a touch more present. */}
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "var(--text-mono-floor)",
+                      letterSpacing: "0.06em",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    LRN·{traceRef(l.id)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text-subtle)",
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
+                    {whenOf(l.created_at)}
+                  </span>
                 </span>
               </div>
               {l.summary && (

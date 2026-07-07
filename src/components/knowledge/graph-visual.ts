@@ -47,6 +47,35 @@ export function kindLabel(kind: string): string {
 }
 
 /**
+ * dim 17 trace-ref prefix for a graph node kind. The shared object types use
+ * their registered prefix (DESIGN-LOOM dim 17 registry / design-anatomy §4):
+ * signal SIG, theme THM, opportunity OPP, prd PRD, mission MIS, decision DEC.
+ * The graph-only kinds (meeting, roadmap item, task, design memory) carry a
+ * local 3-letter code so every node still traces cleanly; they are not part of
+ * the shared cross-loop registry. Paired with the shared traceRef(id) helper.
+ */
+const KIND_TRACE_PREFIX: Record<string, string> = {
+  signal: "SIG",
+  theme: "THM",
+  opportunity: "OPP",
+  prd: "PRD",
+  mission: "MIS",
+  decision: "DEC",
+  meeting: "MTG",
+  roadmap_item: "RDM",
+  task: "TSK",
+  design_memory: "DSG",
+};
+
+export function kindTracePrefix(kind: string): string {
+  return (
+    KIND_TRACE_PREFIX[kind] ||
+    kind.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() ||
+    "REF"
+  );
+}
+
+/**
  * Resolve every kind's CONCRETE color for the Canvas2D renderer, reading the
  * live token values off a mounted element so the canvas always matches the
  * DOM. Falls back to the literal when a token resolves empty.

@@ -522,8 +522,8 @@ export function GraphCanvasView({
             }}
           >
             {view === "3D"
-              ? "drag to orbit · scroll to zoom · click focuses · double-click opens the story · Esc releases"
-              : "drag to explore · scroll to zoom · click focuses · double-click opens the story · Esc releases"}
+              ? "click a node to open it · drag to orbit · scroll to zoom · Esc closes"
+              : "click a node to open it · drag to explore · scroll to zoom · Esc closes"}
           </p>
         </div>
         {storyNode ? (

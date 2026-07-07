@@ -618,8 +618,15 @@ export function GraphUniverseCanvas({
       if (!d.moved && dt < 500) {
         const { sx, sy } = localPoint(e);
         const key = pick(sx, sy);
-        if (key) onSelectRef.current(key === selectedRef.current ? null : key);
-        else onSelectRef.current(null);
+        // dim 17 (click-to-open): a single click on a node opens its detail
+        // (the story panel) and focuses it; clicking empty space clears the
+        // focus. No double-click requirement, no dead node.
+        if (key) {
+          onSelectRef.current(key);
+          onOpenStoryRef.current(key);
+        } else {
+          onSelectRef.current(null);
+        }
       }
     };
     const onPointerLeave = () => {

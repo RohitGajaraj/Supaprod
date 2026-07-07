@@ -1,24 +1,39 @@
-// DecisionDetail — Knowledge → Decisions drill-down (screen 6 of the Ember
-// Editorial migration), ported from design-reference/cadence/loop-detail.jsx
-// (DecisionDetail) onto the production DecisionRow contract. Replaces the old
-// DecisionsPanel side sheet (founder ruling: one detail surface — reference
-// layout wins, production mutations kept). Drill state rides ?decision= on
-// /knowledge; the detail replaces only the tab body. Shares the panel's
-// ["decisions", …] query cache. The shared vocabulary comes from
-// decisions-shared.ts and SourceLink from DecisionsPanel — single source.
-// Reference elements omitted for lack of real data: "cited by agents N×
-// since" (no citation data), the separate Context block + trace id (rationale
-// is the only prose field), and the Alternatives-considered list.
+// DecisionDetail - Brain -> Decisions drill-down, rebuilt on the shared
+// DetailKit anatomy (DESIGN-LOOM dim 17 / design-anatomy §3) so a decision
+// reads identically to every other object detail: DetailHeader -> a glacier
+// summary band (the call + rationale first) -> a compact StatStrip -> the
+// consistent DetailSections -> an actions footer. Drill state rides ?decision=
+// on /brain; the detail replaces only the tab body. Shares the ["decisions",
+// ...] query cache, and SourceLink + OBS_STATUS_TONE from DecisionsPanel (one
+// source, no drift).
+//
+// Trace ref: DEC (dim 17 registry, newly registered in DESIGN-LOOM dim 17 +
+// design-anatomy §4). Timestamps via relTimeCaps (present tone), the full id
+// copyable. Provenance links back up the loop: the source (mission / spec /
+// meeting) opens in place, and "Trace in the graph" recentres the knowledge
+// graph on this decision, where its supersession history (what it revised, and
+// whether a later outcome revised it) is read. The verdict picker keeps the
+// production updateDecision mutation. Real columns only: an absent rationale
+// reads honestly, never a fabricated field.
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, Share2, Link as LinkIcon } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
-import { DrillHeader, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
-import { SourceLink } from "@/components/knowledge/DecisionsPanel";
-import { ageOf, displayWho, hasSource, SOURCE_LABEL, STATUS_TONE } from "./decisions-shared";
+import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
+import {
+  DetailHeader,
+  DetailSection,
+  StatCell,
+  StatStrip,
+} from "@/components/discover/DetailKit";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { stripAutoPrefix } from "@/components/plan/format";
+import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
+import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
+import { PanelSkeleton } from "./PanelSkeleton";
 
 function copyDecisionLink(slug: string) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/d/${slug}`;
@@ -30,6 +45,65 @@ function copyDecisionLink(slug: string) {
   } else {
     toast.message(url);
   }
+}
+
+/** A quiet mono-caps pill, so a decision's stage/source reads without a menu. */
+function StatusPill({ label, tone = "var(--text-subtle)" }: { label: string; tone?: string }) {
+  return (
+    <span
+      style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "10px",
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: tone,
+        border: "1px solid var(--hairline)",
+        borderRadius: "999px",
+        padding: "2px 8px",
+        lineHeight: 1.4,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+/** An absolute timestamp plus a quiet relative caption (the exemplar TimeLine). */
+function TimeLine({ iso }: { iso: string }) {
+  return (
+    <span
+      className="flex items-baseline"
+      style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+    >
+      <span>{new Date(iso).toLocaleString()}</span>
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "9.5px",
+          letterSpacing: "0.06em",
+          color: "var(--text-faint)",
+        }}
+      >
+        {relTimeCaps(iso)}
+      </span>
+    </span>
+  );
+}
+
+function StateCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        boxShadow: "var(--top-light)",
+        padding: "16px 18px",
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 /** Share / Unshare a decision + copy its public /d/<slug> link. Pre-migration
@@ -56,47 +130,67 @@ function ShareDecisionButton({ id }: { id: string }) {
   if (!s) return null;
   if (!s.available) {
     return (
-      <span
-        className="mono-label"
-        style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
+      <MonoLabel
+        style={{ fontSize: "var(--text-mono-floor)", color: "var(--text-subtle)" }}
         title="Sharing lights up after the next sync applies the share columns."
       >
-        share · after sync
-      </span>
+        Share · after sync
+      </MonoLabel>
     );
   }
   if (!s.is_public) {
     return (
-      <button
-        className="btn btn-ghost btn-sm"
+      <Button
+        variant="secondary"
+        size="sm"
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(true)}
         title="Make this decision public and copy a shareable link"
       >
-        <Share2 size={11} /> Share
-      </button>
+        Share receipt
+      </Button>
     );
   }
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-      <button
-        className="btn btn-ghost btn-sm"
+    <span className="flex items-center" style={{ gap: "8px" }}>
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={() => s.share_slug && copyDecisionLink(s.share_slug)}
         title="Copy the public link"
       >
-        <LinkIcon size={11} /> Copy link
-      </button>
-      <button
-        className="btn btn-ghost btn-sm"
+        Copy link
+      </Button>
+      <Button
+        variant="tertiary"
+        size="sm"
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(false)}
         title="Make private again"
       >
         Unshare
-      </button>
+      </Button>
     </span>
   );
 }
+
+const STATUS_META: Record<
+  "approved" | "rejected" | "pending",
+  { word: string; lead: string }
+> = {
+  approved: {
+    word: "Kept",
+    lead: "Kept. Agents read this before any mission that touches the same surface.",
+  },
+  rejected: {
+    word: "Rejected",
+    lead: "Rejected. The path not taken, on the record.",
+  },
+  pending: {
+    word: "Pending",
+    lead: "Awaiting your call. Decide it on Today, or set the verdict below.",
+  },
+};
 
 export function DecisionDetail({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -122,82 +216,293 @@ export function DecisionDetail({ id }: { id: string }) {
 
   const onBack = () => navigate({ to: "/brain", search: { tab: "decisions" } });
 
-  if (decisions.isLoading) {
+  if (decisions.isLoading) return <PanelSkeleton />;
+
+  if (decisions.isError) {
     return (
-      <div
-        style={{
-          padding: "18px 2px",
-          textAlign: "center",
-          fontSize: 12.5,
-          color: "var(--ink-faint)",
-        }}
-      >
-        Loading decision…
-      </div>
+      <StateCard>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>
+          Decision · failed to load
+        </MonoLabel>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
+          {(decisions.error as Error)?.message ?? "Unknown error"}
+        </p>
+        <Button variant="secondary" size="sm" onClick={() => void decisions.refetch()}>
+          Retry
+        </Button>
+      </StateCard>
     );
   }
 
   const d = decisions.data?.decisions.find((x) => x.id === id);
   if (!d) {
     return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 10 }}>
-          decision not found · it may have been removed
+      <StateCard>
+        <MonoLabel style={{ marginBottom: 10, display: "block" }}>
+          Decision not found · it may have been removed
         </MonoLabel>
-        <button className="btn btn-ghost btn-sm" onClick={onBack}>
+        <Button variant="secondary" size="sm" onClick={onBack}>
           Back · all decisions
-        </button>
-      </div>
+        </Button>
+      </StateCard>
     );
   }
 
+  const sourceKind = (d.source_kind ?? "manual") as DecisionSource;
   const sourceNoun = d.mission_id ? "mission" : d.prd_id ? "spec" : d.meeting_id ? "meeting" : null;
+  const meta = STATUS_META[d.status];
+  const decidedBy = displayWho(d.decided_by_agent_slug);
+
+  const copyId = () => {
+    void navigator.clipboard?.writeText(d.id);
+    toast("Trace id copied");
+  };
 
   return (
-    <div className="fade-up">
-      <DrillHeader
-        onBack={onBack}
-        backLabel="All decisions"
-        kicker={`Decision · ${ageOf(d.created_at)} · ${displayWho(d.decided_by_agent_slug)}`}
-        title={d.title}
-        right={
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <ShareDecisionButton id={d.id} />
-            {hasSource(d) && sourceNoun ? (
-              <SourceLink d={d} className="btn btn-ghost btn-sm">
-                <ExternalLink size={11} /> Open {sourceNoun}
-              </SourceLink>
-            ) : null}
-          </div>
-        }
-      />
+    <div className="fade-up" style={{ maxWidth: 760 }}>
+      <div style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          onClick={onBack}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+          }}
+        >
+          {"<-"} All decisions
+        </button>
+      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 8 }}>Why</MonoLabel>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0, lineHeight: 1.6 }}>
-            {d.rationale ?? "No rationale captured."}
-          </p>
-          <p className="mono-label" style={{ fontSize: "var(--text-mono-floor)", marginTop: 12 }}>
-            source · {SOURCE_LABEL[(d.source_kind ?? "manual") as DecisionSource]}
-            {d.source_label ? ` · ${d.source_label}` : ""}
-          </p>
-        </div>
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <MonoLabel style={{ marginBottom: 10 }}>Verdict · the human's call</MonoLabel>
-          <div style={{ display: "flex", gap: 6 }}>
-            {(["approved", "rejected", "pending"] as const).map((s) => (
-              <button key={s} onClick={() => update.mutate({ id: d.id, status: s })}>
-                <VerdictChip tone={STATUS_TONE[s]} selected={d.status === s}>
-                  {s}
-                </VerdictChip>
-              </button>
-            ))}
+      <div
+        style={{
+          display: "grid",
+          gap: "16px",
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          boxShadow: "var(--top-light)",
+          padding: "18px 20px",
+        }}
+      >
+        <DetailHeader
+          title={stripAutoPrefix(d.title)}
+          chips={
+            <>
+              <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
+              <StatusPill label={`From ${SOURCE_LABEL[sourceKind]}`} />
+            </>
+          }
+          time={
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "9.5px",
+                letterSpacing: "0.06em",
+                color: "var(--text-subtle)",
+              }}
+            >
+              DECIDED {relTimeCaps(d.created_at)}
+            </span>
+          }
+          traceRef={
+            <button
+              type="button"
+              onClick={copyId}
+              aria-label="Copy trace id"
+              title="Copy the full trace id"
+              className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+              style={{
+                gap: "6px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                letterSpacing: "0.06em",
+                color: "var(--text-faint)",
+                background: "transparent",
+                border: "none",
+                padding: "3px 2px",
+                cursor: "pointer",
+              }}
+            >
+              DEC·{traceRef(d.id)}
+              <Copy className="h-3 w-3" />
+            </button>
+          }
+        />
+
+        {/* Summary band: the call + rationale, led first (calm glacier tint). */}
+        <div
+          style={{
+            display: "grid",
+            gap: "8px",
+            background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+            borderRadius: "var(--radius-card)",
+            padding: "13px 15px",
+          }}
+        >
+          <div className="flex flex-wrap items-baseline" style={{ gap: "8px" }}>
+            <MonoLabel
+              style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}
+            >
+              The call
+            </MonoLabel>
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "13px",
+                fontWeight: 550,
+                color: "var(--text-primary)",
+                lineHeight: 1.5,
+              }}
+            >
+              {meta.lead}
+            </span>
           </div>
-          <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 12 }}>
-            Agents read this before any mission that touches the same surface. Decisions are working
-            memory, not minutes.
-          </p>
+          {d.rationale ? (
+            <p
+              style={{
+                fontSize: "12.5px",
+                lineHeight: 1.6,
+                color: "var(--text-subtle)",
+                margin: 0,
+              }}
+            >
+              {d.rationale}
+            </p>
+          ) : null}
+        </div>
+
+        {/* Glanceable summary: how it was made. */}
+        <StatStrip columns={3}>
+          <StatCell label="Source" value={SOURCE_LABEL[sourceKind]} tone="glacier" />
+          <StatCell
+            label="Decided by"
+            value={decidedBy}
+            tone={d.decided_by_agent_slug ? "glacier" : "neutral"}
+          />
+          <StatCell label="Age" value={relTimeCaps(d.created_at)} tone="neutral" />
+        </StatStrip>
+
+        {/* Why. */}
+        <DetailSection heading="Why">
+          {d.rationale ? (
+            <p style={{ fontSize: "13px", lineHeight: 1.65, color: "var(--text-body)", margin: 0 }}>
+              {d.rationale}
+            </p>
+          ) : (
+            <p
+              style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
+            >
+              No rationale captured. Decisions are working memory, not minutes.
+            </p>
+          )}
+        </DetailSection>
+
+        {/* Where it came from: the source opens in place; the graph link walks
+            the provenance and the supersession history. */}
+        <DetailSection
+          heading="Where it came from"
+          action={
+            hasSource(d) && sourceNoun ? (
+              <SourceLink
+                d={d}
+                className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                style={{
+                  gap: "6px",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: "12px",
+                  color: "var(--glacier)",
+                }}
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Open {sourceNoun}
+              </SourceLink>
+            ) : null
+          }
+        >
+          <div style={{ display: "grid", gap: "10px" }}>
+            <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+              {SOURCE_LABEL[sourceKind]}
+              {d.source_label ? ` · ${d.source_label}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                navigate({
+                  to: "/brain",
+                  search: { tab: "graph", focusKind: "decision", focusId: d.id },
+                })
+              }
+              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontSize: "12.5px",
+                color: "var(--glacier)",
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                textAlign: "left",
+                cursor: "pointer",
+              }}
+            >
+              Trace it in the graph {"->"}
+            </button>
+          </div>
+        </DetailSection>
+
+        {/* The call: the human's verdict, wired to updateDecision. */}
+        <DetailSection heading="Verdict · the human's call">
+          <div style={{ display: "grid", gap: "10px" }}>
+            <div className="flex flex-wrap items-center" style={{ gap: "6px" }}>
+              {(["approved", "rejected", "pending"] as const).map((s) => {
+                const selected = d.status === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={update.isPending}
+                    onClick={() => update.mutate({ id: d.id, status: s })}
+                    aria-pressed={selected}
+                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      cursor: update.isPending ? "default" : "pointer",
+                      opacity: selected ? 1 : 0.5,
+                    }}
+                  >
+                    <VerdictChip tone={OBS_STATUS_TONE[s]} />
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.55, margin: 0 }}>
+              Agents read this before any mission that touches the same surface.
+            </p>
+          </div>
+        </DetailSection>
+
+        {/* Activity. */}
+        <DetailSection heading="Activity">
+          <div style={{ display: "grid", gap: "3px" }}>
+            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Decided</span>
+            <TimeLine iso={d.created_at} />
+          </div>
+        </DetailSection>
+
+        {/* Actions. */}
+        <div
+          className="flex flex-wrap items-center"
+          style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
+        >
+          <ShareDecisionButton id={d.id} />
         </div>
       </div>
     </div>

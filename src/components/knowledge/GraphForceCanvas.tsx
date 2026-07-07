@@ -712,8 +712,15 @@ export function GraphForceCanvas({
     if (!d.moved && dt < 500) {
       const { sx, sy } = localPoint(e);
       const node = pick(sx, sy);
-      if (node) onSelect(node.key === selectedRef.current ? null : node.key);
-      else onSelect(null);
+      // dim 17 (click-to-open): a single click on a node opens its detail (the
+      // story panel) and lights its neighborhood; clicking empty space clears
+      // the focus. No dead tiles, no double-click requirement.
+      if (node) {
+        onSelect(node.key);
+        onOpenStory(node.key);
+      } else {
+        onSelect(null);
+      }
     }
     wake();
   };

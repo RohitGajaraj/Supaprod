@@ -1,6 +1,6 @@
 # plan.md — Feature scope & build log
 
-> _Created: 2026-06-03 · Last updated: 2026-07-02_
+> _Created: 2026-06-03 · Last updated: 2026-07-07_
 
 > [!IMPORTANT]
 > **PRODUCT NAME: CADENCE.** The product is **Cadence**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `cadence`/`Cadence`.
@@ -282,6 +282,22 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 ---
 
 ## 4. Active build log (update as we ship)
+
+### 2026-07-07 (Brain surface: deep functional + design pass to consumer/enterprise grade, dim 17)
+
+**Context:** Brain (`/brain`, the moat made visible: decisions, learnings, the compounding decision graph) had its two object details still on the retired parchment layout (`DrillHeader` + `.bento` + `--ink-*`), no trace refs on any Brain object, and a graph whose nodes only highlighted on click and hid their detail behind an undiscoverable double-click. This brings Brain to the depth given Discover, Decide, and Today (dim 17), not a reskin.
+
+**What shipped:**
+
+- **`LearningDetail` + `DecisionDetail` rebuilt on the shared `DetailKit`** (`src/components/knowledge/{LearningDetail,DecisionDetail}.tsx`): DetailHeader → calm glacier summary band (the compounding value / the call led first, never amber) → compact tone-tiered StatStrip → consistent DetailSections → actions footer, so a learning and a decision now read identically to a Discover signal, a Decide opportunity, and a Today call. Parchment tokens gone; semantic tokens only, ember reserved for Capture.
+- **`DEC` trace prefix registered** for decisions in BOTH [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) §4 and `DESIGN-LOOM.md` dim 17 registry (ASCII only; DESIGN-LOOM em/en-dash count unchanged at 23/0). Trace refs now ride every Brain object via the shared `traceRef()`: `LRN`/`DEC` on the detail headers (full id copyable), on the `DecisionsPanel` + `CompoundingPanel` list rows (faint tail), and on the graph node story (new `kindTracePrefix()` in `graph-visual.ts`, unit-tested). The id renders `--text-faint`, the time `--text-subtle` (a touch more present).
+- **Graph node click-to-open (dim 17):** a single click on a node in both the 3D Universe (`GraphUniverseCanvas.tsx`) and 2D Force (`GraphForceCanvas.tsx`) canvas opens its detail (the story panel) and focuses it; drag-to-orbit/pan + scroll-zoom unchanged (the `moved` + `<500ms` gate still separates a click from a drag), double-click retained. Help text now reads "click a node to open it".
+- **Provenance links back up the loop, reusing the lineage/graph view:** a learning links to the priority it re-ranked (recentres the graph on that opportunity) and the spec it graded; a decision opens its source (mission/spec/meeting) and "Trace it in the graph" (recentres on the decision node, where its supersession history reads).
+- **Real data only, honest states:** every field maps to a real `learnings`/`decisions` column (an absent metric/ICE/rationale renders nothing); both details gained a proper `PanelSkeleton` loading, named-cause error + retry, and not-found state; the verdict picker keeps `updateDecision`, the share control keeps `getDecisionShareState`/`setDecisionShared` (restyled onto the Obsidian `Button`). No migration.
+
+**Verified:** `npx tsc --noEmit` = 0; `bun run build` succeeds; `bun test` = 2369 pass / 3 fail (only the pre-existing `resolveEmbedRoute` cases; added 4 `kindTracePrefix` tests). No em/en dashes or invisible unicode in the additions; DESIGN-LOOM em/en-dash count unchanged (23/0). Feature doc: [`docs/features/knowledge-graph-explorer.md`](./docs/features/knowledge-graph-explorer.md) (dim-17 section appended).
+
+**Flagged for a follow-up migration (not fabricated):** a decision detail has no alternatives-considered, no "cited by agents N times" recall counter, and no per-transition stage history (honest floor `created_at`); a learning detail has no "written by Historian after mission X" attribution (production learnings carry no mission id) and no cited-by table. Each needs a real column/events table before it renders truthfully.
 
 ### 2026-07-07 (Today surface: deep functional + design pass to consumer/enterprise grade, dim 17)
 

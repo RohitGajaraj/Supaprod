@@ -14,7 +14,8 @@ import {
   type LineageRowLike,
   type SupersessionStory,
 } from "@/lib/knowledge-graph-view";
-import { kindCssColor, kindLabel } from "./graph-visual";
+import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { kindCssColor, kindLabel, kindTracePrefix } from "./graph-visual";
 import { GraphNodeActions } from "./GraphNodeActions";
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
@@ -109,11 +110,38 @@ export function GraphNodeStory({
           fontSize: 14,
           fontWeight: 500,
           color: "var(--text-primary)",
-          marginBottom: 10,
+          marginBottom: 6,
           lineHeight: 1.35,
         }}
       >
         {node.title || "(untitled)"}
+      </div>
+      {/* dim 17: the timestamp (present) + the quiet trace ref, so a graph node
+          is a first-class, auditable, citable object like every other detail. */}
+      <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 10 }}>
+        {node.createdAt ? (
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.06em",
+              color: "var(--text-subtle)",
+            }}
+          >
+            {relTimeCaps(node.createdAt)}
+          </span>
+        ) : null}
+        <span
+          title={node.id}
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            letterSpacing: "0.06em",
+            color: "var(--text-faint)",
+          }}
+        >
+          {kindTracePrefix(node.kind)}·{traceRef(node.id)}
+        </span>
       </div>
       <GhostButton onClick={() => onFocus(node.kind, node.id)} style={{ marginBottom: 4 }}>
         Center the graph here

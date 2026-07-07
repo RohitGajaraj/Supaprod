@@ -346,7 +346,7 @@ are brought into line as they are touched.
   `traceRef()` code but carries its own type prefix, so an object traces
   cleanly across the whole loop: `SIG` signals, `THM` themes, `OPP`
   opportunities, `PRD` specs and drafts, `MIS` missions and build outcomes,
-  `LRN` learnings, `ASM` assumption challenges (the Today "worth re-examining?"
+  `DEC` decisions, `LRN` learnings, `ASM` assumption challenges (the Today "worth re-examining?"
   calls). Render the prefix and code as one quiet mono ref
   (`OPP·A1B2C3`), and register a new type's prefix here before it ships.
 - **Card anatomy (the standard for every object card).** Signal, theme,
