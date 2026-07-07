@@ -29,6 +29,30 @@ const MAX_TAG_UPDATES = 50;
 const SCAN_LIMIT = 100;
 const DEMO_TOPUP_THRESHOLD = 3; // top up the demo feed only for a near-empty workspace
 
+// Demo/sample accounts are the ONLY workspaces that may receive the synthetic
+// DEMO_FEED. A real signup's signals come from its bound connectors (kickFirstIngest
+// + the ingestors below); injecting fabricated competitor/customer signals into a
+// real workspace would present invented data as the user's own. Demo accounts are
+// identified exactly as everywhere else in the product (admin workspaces view, the
+// SQL demo-reset guard, handle_new_user): the owner's @redcadence.app email.
+const DEMO_ACCOUNT_DOMAIN = "@redcadence.app";
+
+/** True only when the workspace owner is an internal demo/sample account.
+ *  Reads auth.users.email (the authoritative demo signal; profiles carries no
+ *  email column). Fails CLOSED: any error resolves to false, so a real signup
+ *  can never receive the synthetic feed; at worst a demo account misses a
+ *  harmless top-up. */
+async function isDemoWorkspaceOwner(ownerId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(ownerId);
+    const email = data?.user?.email;
+    if (error || !email) return false;
+    return email.toLowerCase().endsWith(DEMO_ACCOUNT_DOMAIN);
+  } catch {
+    return false;
+  }
+}
+
 export const Route = createFileRoute("/api/public/hooks/sense-tick")({
   server: {
     handlers: {
@@ -178,6 +202,12 @@ async function topUpDemoFeed(ownerId: string, workspaceId: string): Promise<numb
     .eq("user_id", ownerId)
     .eq("workspace_id", workspaceId);
   if ((count ?? 0) >= DEMO_TOPUP_THRESHOLD) return 0;
+
+  // Real signups never see fabricated signals. The demo feed exists only to give
+  // internal demo/sample accounts something to sense before a source is bound;
+  // gate it on the owner being a demo account (checked after the cheap count so a
+  // populated workspace of any kind skips the auth lookup entirely).
+  if (!(await isDemoWorkspaceOwner(ownerId))) return 0;
 
   const { data: existing } = await supabaseAdmin
     .from("signals")

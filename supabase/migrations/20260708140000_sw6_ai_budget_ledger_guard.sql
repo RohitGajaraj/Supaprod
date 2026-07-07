@@ -1,0 +1,34 @@
+-- SW-6 (mission 3.12, tenant safety) — close the DELETE escape from the
+-- ai_budgets cap clamp that 20260707195000 did not cover.
+--
+-- The pre-merge adversarial review confirmed the cap clamp in 20260707195000
+-- guards the CAP columns but not the row itself: the "own ai_budgets all"
+-- policy is FOR ALL and the table grants DELETE to authenticated, so a
+-- non-admin owner could DELETE their budget row entirely. checkBudget() in the
+-- pinned runtime does `if (!b) return;` — no row means no cap — so a deleted
+-- row restores unbounded platform-key spend, and the BEFORE INSERT/UPDATE clamp
+-- never fires on a DELETE. No product flow deletes an ai_budgets row from the
+-- authenticated role: updateGlobalBudget (src/lib/budgets.functions.ts) only
+-- inserts/updates; deleteSurfaceBudget targets the separate ai_surface_budgets
+-- table; account teardown cascades from auth.users as the table owner. So the
+-- fix is a single, side-effect-free grant change.
+--
+-- Service-role and admin paths are untouched (service_role keeps GRANT ALL; the
+-- auth.users cascade runs as the table owner). Authenticated owners lose only
+-- the ability to delete their own budget row — which they never need.
+revoke delete on public.ai_budgets from authenticated;
+
+-- NOT DONE HERE (founder-gated, documented in docs/features/sw6-production-ship.md):
+-- A determined non-admin owner can still PATCH the spend LEDGER on their own row
+-- (daily_usd_used = 0, or roll day_window forward so checkBudget's
+-- `day_window = today` guard short-circuits) and keep spending past the cap. It
+-- CANNOT be closed with an RLS policy or an auth.uid()-keyed trigger, because
+-- the runtime meters usage through the SAME authenticated user client that a
+-- tampering PATCH would use (incrementBudget in the pinned runtime charges via
+-- the request's user-scoped Supabase client, not service_role) — so the two
+-- writes are indistinguishable at the database. The correct closure is to route
+-- incrementBudget / incrementSurfaceBudget through the service-role admin client
+-- so genuine charges become trigger/column-privilege exempt, then revoke
+-- authenticated UPDATE on the ledger columns. That edit lands in the AI-runtime
+-- chokepoint (src/lib/ai/runtime.server.ts), which is founder-gated, so it is
+-- deferred rather than shipped as a broken auth.uid() trigger.
