@@ -15,6 +15,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/lib/notify";
 import { FlaskConical } from "lucide-react";
 import {
@@ -135,9 +142,10 @@ export function EvalsPanel() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))",
                 gap: 6,
-                marginTop: 8,
+                marginTop: 10,
+                alignItems: "stretch",
               }}
             >
               {coverageTargets.map((t) => {
@@ -155,6 +163,7 @@ export function EvalsPanel() {
                         borderStyle: "solid",
                         bg: "transparent",
                         text: "var(--text-subtle)",
+                        glow: "none",
                       }
                     : t.state === "stale"
                       ? {
@@ -164,68 +173,89 @@ export function EvalsPanel() {
                           borderStyle: "dashed",
                           bg: "transparent",
                           text: "var(--text-body)",
+                          glow: "none",
                         }
                       : {
                           word: "no guard",
-                          dot: "var(--madder)",
-                          border: "color-mix(in oklab, var(--madder) 30%, transparent)",
+                          dot: "var(--tangerine)",
+                          border: "color-mix(in oklab, var(--tangerine) 42%, transparent)",
                           borderStyle: "solid",
-                          bg: "transparent",
+                          bg: "color-mix(in oklab, var(--tangerine) 10%, transparent)",
                           text: "var(--text-primary)",
+                          glow: "0 0 7px color-mix(in oklab, var(--tangerine) 45%, transparent)",
                         };
-                // A gap chip (uncovered/stale) is a one-click affordance to start guarding that
-                // surface; a covered chip is static (nothing to fill).
-                const interactive = t.state !== "covered";
+                // Every chip opens the create-guard form pre-targeted at its surface; the OPEN
+                // one is highlighted (glacier ring + fill) so it is never ambiguous which tile
+                // you are acting on. State (covered / gap / unproven) stays in the dot + tint.
+                const targetId = `${t.surface}/${t.key}`;
+                const selected = createOpen && prefill?.target === targetId;
                 const chipStyle = {
                   display: "flex" as const,
+                  flexDirection: "column" as const,
                   alignItems: "center" as const,
-                  gap: 6,
-                  width: "100%",
                   justifyContent: "flex-start" as const,
-                  padding: "5px 10px",
-                  borderRadius: 8,
-                  border: `1px ${meta.borderStyle} ${meta.border}`,
-                  background: meta.bg,
-                  color: meta.text,
+                  gap: 7,
+                  minWidth: 0,
+                  padding: "9px 6px",
+                  borderRadius: 10,
+                  border: `1px ${selected ? "solid" : meta.borderStyle} ${
+                    selected ? "var(--glacier)" : meta.border
+                  }`,
+                  background: selected
+                    ? "color-mix(in oklab, var(--glacier) 14%, transparent)"
+                    : meta.bg,
+                  boxShadow: selected
+                    ? "inset 0 0 0 1px var(--glacier), 0 0 12px color-mix(in oklab, var(--glacier) 32%, transparent)"
+                    : "none",
+                  color: selected ? "var(--text-primary)" : meta.text,
                   font: "inherit",
-                  cursor: interactive ? "pointer" : "default",
+                  textAlign: "center" as const,
+                  cursor: "pointer" as const,
+                  transition:
+                    "border-color 160ms var(--ease), background 160ms var(--ease), box-shadow 160ms var(--ease)",
+                };
+                const labelStyle = {
+                  fontSize: 10.5,
+                  lineHeight: 1.25,
+                  letterSpacing: "0.01em",
+                  whiteSpace: "normal" as const,
+                  wordBreak: "break-word" as const,
+                  color: selected ? "var(--text-primary)" : meta.text,
                 };
                 const dot = (
                   <span
                     aria-hidden="true"
                     style={{
-                      width: 6,
-                      height: 6,
+                      width: 7,
+                      height: 7,
                       borderRadius: 999,
                       background: meta.dot,
+                      boxShadow: meta.glow,
                       flex: "none",
                     }}
                   />
                 );
-                return interactive ? (
+                return (
                   <button
-                    key={`${t.surface}/${t.key}`}
+                    key={targetId}
                     type="button"
-                    className="mono-label"
-                    aria-label={`Create an eval guard for ${t.label} (${meta.word})`}
-                    title={`Create an eval guard for ${t.label}`}
+                    aria-pressed={selected}
+                    aria-label={
+                      t.state === "covered"
+                        ? `${t.label}: covered. Add another eval for this surface`
+                        : `Create an eval guard for ${t.label} (${meta.word})`
+                    }
+                    title={
+                      t.state === "covered"
+                        ? `${t.label}: covered`
+                        : `Create an eval guard for ${t.label}`
+                    }
                     onClick={() => openGuardFor(t)}
                     style={chipStyle}
                   >
                     {dot}
-                    {t.label}
+                    <span style={labelStyle}>{t.label}</span>
                   </button>
-                ) : (
-                  <span
-                    key={`${t.surface}/${t.key}`}
-                    className="mono-label"
-                    aria-label={`${t.label}: ${meta.word}`}
-                    title={`${t.label}: ${meta.word}`}
-                    style={chipStyle}
-                  >
-                    {dot}
-                    {t.label}
-                  </span>
                 );
               })}
             </div>
@@ -475,17 +505,21 @@ function CreateSuiteForm({
           <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
             Target prompt
           </div>
-          <select
-            className="input"
+          <Select
             value={form.target}
-            onChange={(e) => setForm({ ...form, target: e.target.value })}
+            onValueChange={(v) => setForm({ ...form, target: v })}
           >
-            {SURFACE_KEYS.map((s) => (
-              <option key={`${s.surface}/${s.key}`} value={`${s.surface}/${s.key}`}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger aria-label="Target prompt">
+              <SelectValue placeholder="Pick a surface" />
+            </SelectTrigger>
+            <SelectContent>
+              {SURFACE_KEYS.map((s) => (
+                <SelectItem key={`${s.surface}/${s.key}`} value={`${s.surface}/${s.key}`}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
         <label style={{ fontSize: 12 }}>
           <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
