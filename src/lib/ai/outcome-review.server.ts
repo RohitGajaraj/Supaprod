@@ -192,7 +192,7 @@ export async function runOutcomeReviews(
 
       const designation = designationForReview(opp);
       const betCall = scoreBetCall(designation, verdict);
-      const metricSource = ((prd.outcome ?? null) as MetricFields | null) ?? suggestion;
+      const metricSource = (((prd as { outcome?: unknown }).outcome ?? null) as MetricFields | null) ?? suggestion;
       const summary = composeReviewSummary({
         checkBy: plan.check_by,
         predicted,
