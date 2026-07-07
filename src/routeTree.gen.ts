@@ -115,6 +115,7 @@ import { Route as ApiPublicHooksOutcomeTickRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksMemoryTickRouteImport } from './routes/api/public/hooks/memory-tick'
 import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/public/hooks/indexer-tick'
 import { Route as ApiPublicHooksHouseRulesTickRouteImport } from './routes/api/public/hooks/house-rules-tick'
+import { Route as ApiPublicHooksGoalTickRouteImport } from './routes/api/public/hooks/goal-tick'
 import { Route as ApiPublicHooksEventReactorTickRouteImport } from './routes/api/public/hooks/event-reactor-tick'
 import { Route as ApiPublicHooksEvalTickRouteImport } from './routes/api/public/hooks/eval-tick'
 import { Route as ApiPublicHooksEvalSuiteTickRouteImport } from './routes/api/public/hooks/eval-suite-tick'
@@ -700,6 +701,11 @@ const ApiPublicHooksHouseRulesTickRoute =
     path: '/api/public/hooks/house-rules-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksGoalTickRoute = ApiPublicHooksGoalTickRouteImport.update({
+  id: '/api/public/hooks/goal-tick',
+  path: '/api/public/hooks/goal-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksEventReactorTickRoute =
   ApiPublicHooksEventReactorTickRouteImport.update({
     id: '/api/public/hooks/event-reactor-tick',
@@ -944,6 +950,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
@@ -1071,6 +1078,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
@@ -1203,6 +1211,7 @@ export interface FileRoutesById {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
@@ -1335,6 +1344,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
@@ -1462,6 +1472,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
@@ -1593,6 +1604,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
     | '/api/public/hooks/memory-tick'
@@ -1656,6 +1668,7 @@ export interface RootRouteChildren {
   ApiPublicHooksEvalSuiteTickRoute: typeof ApiPublicHooksEvalSuiteTickRoute
   ApiPublicHooksEvalTickRoute: typeof ApiPublicHooksEvalTickRoute
   ApiPublicHooksEventReactorTickRoute: typeof ApiPublicHooksEventReactorTickRoute
+  ApiPublicHooksGoalTickRoute: typeof ApiPublicHooksGoalTickRoute
   ApiPublicHooksHouseRulesTickRoute: typeof ApiPublicHooksHouseRulesTickRoute
   ApiPublicHooksIndexerTickRoute: typeof ApiPublicHooksIndexerTickRoute
   ApiPublicHooksMemoryTickRoute: typeof ApiPublicHooksMemoryTickRoute
@@ -2419,6 +2432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksHouseRulesTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/goal-tick': {
+      id: '/api/public/hooks/goal-tick'
+      path: '/api/public/hooks/goal-tick'
+      fullPath: '/api/public/hooks/goal-tick'
+      preLoaderRoute: typeof ApiPublicHooksGoalTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/event-reactor-tick': {
       id: '/api/public/hooks/event-reactor-tick'
       path: '/api/public/hooks/event-reactor-tick'
@@ -2824,6 +2844,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksEvalSuiteTickRoute: ApiPublicHooksEvalSuiteTickRoute,
   ApiPublicHooksEvalTickRoute: ApiPublicHooksEvalTickRoute,
   ApiPublicHooksEventReactorTickRoute: ApiPublicHooksEventReactorTickRoute,
+  ApiPublicHooksGoalTickRoute: ApiPublicHooksGoalTickRoute,
   ApiPublicHooksHouseRulesTickRoute: ApiPublicHooksHouseRulesTickRoute,
   ApiPublicHooksIndexerTickRoute: ApiPublicHooksIndexerTickRoute,
   ApiPublicHooksMemoryTickRoute: ApiPublicHooksMemoryTickRoute,
