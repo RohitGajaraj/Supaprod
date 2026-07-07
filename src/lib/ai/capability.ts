@@ -180,6 +180,7 @@ export function capabilityRoutedModel(opts: {
 
   const picked = selectModelForCapability({
     capability: cap,
+    requested: !isAuto ? opts.requestedModel : undefined, // MA-2: honor user's explicit model choice
     catalog: opts.catalog,
     isAvailable: opts.isAvailable,
   });
