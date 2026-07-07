@@ -213,11 +213,16 @@ export async function autoReflect(
  * Trigger the autonomy auto-advance RPC. Wrapped here so call sites don't
  * have to know the RPC name + error shape. Idempotent and safe to call on
  * every completion.
+ *
+ * SW-4 (mission 3.10): when the agent slug is provided, the same post-run
+ * moment also runs the trust-ramp proposal check, the per-(agent, tool)
+ * graduation that, unlike this arc RPC, NEVER flips anything silently.
  */
 export async function maybeAutoAdvanceArc(
   supabase: SupabaseClient,
   userId: string,
   agentId: string | null,
+  agentSlug?: string | null,
 ): Promise<void> {
   if (!agentId) return;
   try {
@@ -227,5 +232,142 @@ export async function maybeAutoAdvanceArc(
     });
   } catch (e) {
     console.error("auto_advance_agent_arc failed:", e);
+  }
+  if (agentSlug) {
+    try {
+      await maybeProposeTrustGraduations(supabase, userId, agentSlug);
+    } catch (e) {
+      console.error("trust-ramp proposal check failed:", e);
+    }
+  }
+}
+
+/**
+ * SW-4 / mission 3.10 TRUST RAMP generator. For each tool this agent has a
+ * clean-approval streak of TRUST_RAMP_CLEAN_N on, write ONE pending
+ * trust_graduation_proposals row (review -> confirm -> auto, honoring the
+ * high-risk ceilings). Guards, fail-closed:
+ *   - RF-06: any 'missed' outcome attributed to this agent inside the
+ *     window blocks every proposal.
+ *   - An existing pending proposal for the (agent, tool) pair blocks a
+ *     duplicate (also DB-enforced by the partial unique index).
+ * Tolerates the pre-migration window (missing tables = no-op).
+ */
+export async function maybeProposeTrustGraduations(
+  supabase: SupabaseClient,
+  userId: string,
+  agentSlug: string,
+): Promise<void> {
+  const {
+    TRUST_RAMP_CLEAN_N,
+    TRUST_RAMP_OUTCOME_WINDOW_MS,
+    computeCleanStreaks,
+    shouldProposeGraduation,
+  } = await import("./trust-ramp");
+
+  // 1. Decided approvals for this (user, agent), newest first, bounded.
+  const { data: approvals, error: apprErr } = await supabase
+    .from("agent_approvals")
+    .select("tool_name, status, decided_at")
+    .eq("user_id", userId)
+    .eq("agent_slug", agentSlug)
+    .not("decided_at", "is", null)
+    .order("decided_at", { ascending: false })
+    .limit(300);
+  if (apprErr || !approvals || approvals.length === 0) return;
+
+  const streaks = computeCleanStreaks(approvals as never);
+  const candidates = Array.from(streaks.entries()).filter(([, n]) => n >= TRUST_RAMP_CLEAN_N);
+  if (candidates.length === 0) return;
+
+  // 2. RF-06 guard: a recent 'missed' outcome for this agent blocks the ramp.
+  const windowStart = new Date(Date.now() - TRUST_RAMP_OUTCOME_WINDOW_MS).toISOString();
+  const { data: agentDecisions } = await supabase
+    .from("decisions")
+    .select("prd_id")
+    .eq("user_id", userId)
+    .eq("decided_by_agent_slug", agentSlug)
+    .not("prd_id", "is", null)
+    .limit(200);
+  const prdIds = Array.from(
+    new Set(
+      ((agentDecisions ?? []) as Array<{ prd_id: string | null }>)
+        .map((d) => d.prd_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+  if (prdIds.length > 0) {
+    const { count: missedCount } = await supabase
+      .from("learnings")
+      .select("id", { count: "exact", head: true })
+      .eq("verdict", "missed")
+      .in("prd_id", prdIds)
+      .gte("created_at", windowStart);
+    if ((missedCount ?? 0) > 0) return;
+  }
+
+  // 3. Current stored modes: the seeded (user, tool) mode + any prior
+  //    graduation override for this (agent, tool).
+  const toolNames = candidates.map(([t]) => t);
+  const [{ data: seeded }, overridesRes, pendingRes] = await Promise.all([
+    supabase
+      .from("agent_tools")
+      .select("tool_name, mode")
+      .eq("user_id", userId)
+      .in("tool_name", toolNames),
+    supabase
+      .from("agent_tool_modes" as never)
+      .select("tool_name, mode")
+      .eq("user_id", userId)
+      .eq("agent_slug", agentSlug)
+      .in("tool_name", toolNames),
+    supabase
+      .from("trust_graduation_proposals" as never)
+      .select("tool_name")
+      .eq("user_id", userId)
+      .eq("agent_slug", agentSlug)
+      .eq("status", "pending"),
+  ]);
+  // Pre-migration: the ramp tables are absent, stand down quietly.
+  if (overridesRes.error || pendingRes.error) return;
+
+  const seededMode = new Map(
+    ((seeded ?? []) as Array<{ tool_name: string; mode: string }>).map((t) => [t.tool_name, t.mode]),
+  );
+  const overrideMode = new Map(
+    ((overridesRes.data ?? []) as unknown as Array<{ tool_name: string; mode: string }>).map((t) => [
+      t.tool_name,
+      t.mode,
+    ]),
+  );
+  const pendingTools = new Set(
+    ((pendingRes.data ?? []) as unknown as Array<{ tool_name: string }>).map((t) => t.tool_name),
+  );
+
+  for (const [toolName, streak] of candidates) {
+    const current = overrideMode.get(toolName) ?? seededMode.get(toolName);
+    if (current !== "auto" && current !== "confirm" && current !== "review") continue;
+    const proposal = shouldProposeGraduation({
+      toolName,
+      streak,
+      currentMode: current,
+      hasPendingProposal: pendingTools.has(toolName),
+      outcomeBlocked: false, // checked above for the whole agent, fail-closed
+    });
+    if (!proposal) continue;
+    const { error: insErr } = await supabase.from("trust_graduation_proposals" as never).insert({
+      user_id: userId,
+      agent_slug: agentSlug,
+      tool_name: toolName,
+      from_mode: proposal.from,
+      to_mode: proposal.to,
+      clean_streak: streak,
+      rationale: `${streak} clean approvals in a row for ${toolName}, no rejected calls since, no missed outcomes in the last 30 days.`,
+    } as never);
+    // Unique-violation on the pending index = a concurrent run already
+    // proposed it; anything else is worth a log line.
+    if (insErr && insErr.code !== "23505") {
+      console.error(`trust-ramp proposal insert failed (${agentSlug}/${toolName}): ${insErr.message}`);
+    }
   }
 }

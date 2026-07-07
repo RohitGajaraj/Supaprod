@@ -25,6 +25,7 @@ import {
   renderHouseRulesBlock,
 } from "@/lib/house-rules.functions";
 import { loadAgentArc, resolveApprovalMode, type Arc, type ToolMode } from "./trust.server";
+import { HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW } from "./trust-ramp";
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";
 import { isHighRiskTool, toolRisk, toolConsequence } from "@/lib/tool-consequences";
@@ -48,10 +49,9 @@ const PAUSE_ON_APPROVAL_TOOLS = new Set([
   "studio.pr.merge",
   "delegate.openhands",
 ]);
-/** Safety floor (not overridable by the autonomy dial): at least `confirm`. */
-const HIGH_RISK_MIN_CONFIRM = new Set(["calendar.create", "studio.commit", "studio.pr.open"]);
-/** Safety floor: always `review`. */
-const HIGH_RISK_FORCE_REVIEW = new Set(["studio.pr.merge", "studio.revert", "delegate.openhands"]);
+// Safety-floor sets moved to trust-ramp.ts (SW-4): the trust ramp needs the
+// same membership as graduation ceilings, so ONE module owns them and both
+// this file's floors and the ramp's proposals can never drift apart.
 
 // BYO-P3 WI3 — master switch for the trust-graduated autonomous ship. When set,
 // the single decisive ship gate (studio.pr.merge) follows the agent's trust arc
@@ -410,6 +410,23 @@ export async function runAgentLoop(
   const modeOf = new Map<string, string>(
     tools.map((t) => [t.tool_name as string, t.mode as string]),
   );
+  // SW-4 trust ramp: per-(agent, tool) graduated modes (written only when a
+  // human ACCEPTS a graduation proposal) override the user-wide seeded mode.
+  // resolveToolMode's safety floors still compose afterward, so a graduated
+  // mode can never bypass HIGH_RISK_FORCE_REVIEW / HIGH_RISK_MIN_CONFIRM.
+  // Pre-migration (table absent) the read errors and the seeded modes stand.
+  {
+    const { data: rampRows, error: rampErr } = await supabase
+      .from("agent_tool_modes" as never)
+      .select("tool_name, mode")
+      .eq("user_id", userId)
+      .eq("agent_slug", agent.slug);
+    if (!rampErr) {
+      for (const r of (rampRows ?? []) as unknown as Array<{ tool_name: string; mode: string }>) {
+        if (modeOf.has(r.tool_name)) modeOf.set(r.tool_name, r.mode);
+      }
+    }
+  }
 
   const { lines: memories, refs: memoryRefs } = await recallMemory(
     supabase,
@@ -560,7 +577,7 @@ export async function runAgentLoop(
         goal: input.goal,
         finalMsg,
       });
-      await maybeAutoAdvanceArc(supabase, userId, agent.id);
+      await maybeAutoAdvanceArc(supabase, userId, agent.id, agent.slug);
     }
     // If the mission has no outstanding handoff messages, mark it completed
     // when this terminal hop finishes cleanly.
@@ -1234,6 +1251,23 @@ export async function resumeAgentLoop(
   const modeOf = new Map<string, string>(
     tools.map((t) => [t.tool_name as string, t.mode as string]),
   );
+  // SW-4 trust ramp: per-(agent, tool) graduated modes (written only when a
+  // human ACCEPTS a graduation proposal) override the user-wide seeded mode.
+  // resolveToolMode's safety floors still compose afterward, so a graduated
+  // mode can never bypass HIGH_RISK_FORCE_REVIEW / HIGH_RISK_MIN_CONFIRM.
+  // Pre-migration (table absent) the read errors and the seeded modes stand.
+  {
+    const { data: rampRows, error: rampErr } = await supabase
+      .from("agent_tool_modes" as never)
+      .select("tool_name, mode")
+      .eq("user_id", run.user_id)
+      .eq("agent_slug", agent.slug);
+    if (!rampErr) {
+      for (const r of (rampRows ?? []) as unknown as Array<{ tool_name: string; mode: string }>) {
+        if (modeOf.has(r.tool_name)) modeOf.set(r.tool_name, r.mode);
+      }
+    }
+  }
 
   // Fresh state (queued, no checkpoint) — build a system prompt from scratch.
   let conv: { role: string; content: string }[];
@@ -1417,7 +1451,7 @@ export async function resumeAgentLoop(
         goal: run.input,
         finalMsg,
       });
-      await maybeAutoAdvanceArc(supabase, run.user_id, agent.id);
+      await maybeAutoAdvanceArc(supabase, run.user_id, agent.id, agent.slug);
     }
     if (run.mission_id && !halted) {
       try {

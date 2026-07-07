@@ -24,6 +24,7 @@ import {
 } from "@/lib/agent-track-record";
 import { rejectionCountFor } from "@/lib/rejection-learning";
 import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
+import { TrustGraduationsBlock } from "./TrustGraduations";
 
 type GovernApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
@@ -194,6 +195,9 @@ export function ApprovalsPanel() {
 
   return (
     <div>
+      {/* SW-4 trust ramp: graduation proposals ride the same judgment surface
+          as tool approvals: the system asking, the human deciding. */}
+      <TrustGraduationsBlock />
       <div
         style={{
           display: "flex",
