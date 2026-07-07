@@ -1,0 +1,155 @@
+import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { CadenceMark } from "@/components/cadence/Primitives";
+
+// The auth family (login, signup, recover, join) renders OUTSIDE the
+// _authenticated tree, so it does not inherit the app's Obsidian dark scope.
+// This hook mounts `data-obsidian` on <html> while an auth surface is shown, so
+// the page AND its portals (toasts) read as the same calm dark Cadence surface
+// as the app, then restores the default (parchment landing) on unmount. It
+// mirrors the pattern in _authenticated.tsx. Presentation only: the auth
+// mechanism and session wiring are untouched.
+export function useObsidianAuthSurface(): void {
+  useEffect(() => {
+    const root = document.documentElement;
+    const alreadyOn = root.hasAttribute("data-obsidian");
+    root.setAttribute("data-obsidian", "");
+    return () => {
+      // Do not tear it off if the authenticated app had already set it.
+      if (!alreadyOn) root.removeAttribute("data-obsidian");
+    };
+  }, []);
+}
+
+// Shared field label + error styles so every auth form reads identically.
+// Errors use --madder (the Obsidian negative/alert role); --rose is a data
+// color under the Obsidian scope, not an alert.
+export const fieldLabelStyle: CSSProperties = {
+  display: "block",
+  textAlign: "left",
+  fontSize: 9,
+  marginBottom: 5,
+};
+
+export const fieldErrorStyle: CSSProperties = {
+  fontSize: 11.5,
+  color: "var(--madder)",
+  textAlign: "left",
+  lineHeight: 1.5,
+  margin: "0 0 10px",
+};
+
+const surface: CSSProperties = {
+  position: "relative",
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "var(--canvas)",
+  color: "var(--text-primary)",
+  overflow: "hidden",
+  padding: 24,
+};
+
+const watermark: CSSProperties = {
+  position: "absolute",
+  right: -120,
+  bottom: -130,
+  color: "var(--text-primary)",
+  opacity: 0.05,
+  transform: "rotate(-12deg)",
+  pointerEvents: "none",
+};
+
+const header: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  textAlign: "center",
+  marginBottom: 26,
+};
+
+const card: CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--hairline)",
+  borderRadius: "var(--radius-card, 12px)",
+  boxShadow: "var(--shadow-elevated)",
+  padding: 22,
+};
+
+const footerStyle: CSSProperties = {
+  fontSize: 11.5,
+  color: "var(--text-subtle)",
+  textAlign: "center",
+  marginTop: 16,
+  lineHeight: 1.5,
+};
+
+/**
+ * The one calm, dark, on-brand shell for every auth surface. Renders the brand
+ * mark, title, tagline, an optional value line, the form card, and optional
+ * sub-card prose. Reused by /login, /signup, /forgot-password, /reset-password.
+ */
+export function AuthScaffold({
+  screenLabel,
+  title,
+  tagline = "you make the calls · Cadence runs the rest",
+  intro,
+  subhead,
+  children,
+  footer,
+  cardWidth = 360,
+}: {
+  screenLabel: string;
+  title: string;
+  tagline?: string;
+  /** A small mono line shown above the mark (e.g. PLG continuity context). */
+  intro?: ReactNode;
+  /** Prose under the tagline: the value line and any pre-filled intent. */
+  subhead?: ReactNode;
+  /** The form card body. */
+  children: ReactNode;
+  /** Prose under the card (alternate-path links, help). */
+  footer?: ReactNode;
+  cardWidth?: number;
+}) {
+  useObsidianAuthSurface();
+
+  return (
+    <div data-screen-label={screenLabel} style={surface}>
+      <div aria-hidden="true" style={watermark}>
+        <CadenceMark size={520} tile={false} />
+      </div>
+
+      <div
+        className="fade-up"
+        style={{ width: cardWidth, maxWidth: "calc(100vw - 48px)", position: "relative", zIndex: 1 }}
+      >
+        <div style={header}>
+          {intro ? (
+            <div
+              className="mono-label"
+              style={{ fontSize: 9, color: "var(--text-subtle)", marginBottom: 12 }}
+            >
+              {intro}
+            </div>
+          ) : null}
+          <CadenceMark size={52} />
+          <h1
+            className="font-display"
+            style={{ fontSize: 30, fontWeight: 440, marginTop: 14, color: "var(--text-primary)" }}
+          >
+            {title}
+          </h1>
+          <div className="mono-label" style={{ marginTop: 6 }}>
+            {tagline}
+          </div>
+          {subhead}
+        </div>
+
+        <div style={card}>{children}</div>
+
+        {footer ? <p style={footerStyle}>{footer}</p> : null}
+      </div>
+    </div>
+  );
+}

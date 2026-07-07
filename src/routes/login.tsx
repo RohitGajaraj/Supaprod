@@ -4,14 +4,14 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
 
-// Screen 8 (F-DESIGN-EMBER) — login ported from design-reference/cadence/
-// onboard.jsx LoginScreen onto the REAL auth flow (Supabase password +
-// Lovable Google OAuth). Reference deviations, both honest-data calls:
-// SAML SSO button omitted (no SAML in production); "magic link" copy
-// replaced (production signs in with a password, so the consequence-first
-// label says what actually happens).
+// Sign-in on the shared dark auth scaffold (auth_surfaces pass). The REAL auth
+// flow is unchanged (Supabase password + Lovable Google OAuth); this pass is
+// presentation, form states, humanized error copy, and double-submit
+// hardening. Reference deviations kept: SAML SSO button omitted (no SAML in
+// production); consequence-first submit label.
 
 // Only allow an internal absolute path as a post-login destination, never an
 // external or protocol-relative URL (open-redirect guard). Used by the invite
@@ -41,23 +41,6 @@ export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in · Cadence" }] }),
 });
 
-// Small mono-caps field label above each input — the a11y fix for the
-// placeholder-only pattern (SC 1.3.1, 3.3.2), styled to the design language.
-const fieldLabelStyle: React.CSSProperties = {
-  display: "block",
-  textAlign: "left",
-  fontSize: 9,
-  marginBottom: 5,
-};
-
-const fieldErrorStyle: React.CSSProperties = {
-  fontSize: 11.5,
-  color: "var(--rose)",
-  textAlign: "left",
-  lineHeight: 1.5,
-  margin: "0 0 10px",
-};
-
 function LoginPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
@@ -68,16 +51,19 @@ function LoginPage() {
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const busy = loadingEmail || loadingGoogle;
 
   async function signInEmail(e: React.FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setFormError(null);
     setLoadingEmail(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoadingEmail(false);
     if (error) {
-      setFormError(error.message);
-      return toast.error(error.message);
+      const msg = authErrorMessage(error, "signin");
+      setFormError(msg);
+      return toast.error(msg);
     }
     toast.success("Welcome back");
     if (dest === "/") navigate({ to: "/" });
@@ -85,180 +71,44 @@ function LoginPage() {
   }
 
   async function signInGoogle() {
+    if (busy) return;
+    setFormError(null);
     setLoadingGoogle(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
       setLoadingGoogle(false);
-      return toast.error(result.error.message ?? "Google sign-in failed");
+      return toast.error(authErrorMessage(result.error, "oauth"));
     }
     if (result.redirected) return;
     navigate({ to: "/" });
   }
 
   return (
-    <div
-      data-screen-label="Login"
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--paper)",
-        color: "var(--ink)",
-        overflow: "hidden",
-      }}
-    >
-      {/* giant mono butterfly watermark */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: -120,
-          bottom: -130,
-          color: "var(--ink)",
-          opacity: 0.05,
-          transform: "rotate(-12deg)",
-        }}
-      >
-        <CadenceMark size={520} tile={false} />
-      </div>
-
-      <div
-        className="fade-up"
-        style={{ width: 360, maxWidth: "calc(100vw - 48px)", position: "relative", zIndex: 1 }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            marginBottom: 26,
-          }}
-        >
-          <CadenceMark size={52} />
-          <h1 className="font-display" style={{ fontSize: 30, fontWeight: 440, marginTop: 14 }}>
-            Cadence
-          </h1>
-          <div className="mono-label" style={{ marginTop: 6 }}>
-            you make the calls · Cadence runs the rest
-          </div>
-        </div>
-
-        <div className="bento" style={{ padding: 22 }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ width: "100%", justifyContent: "center" }}
-            onClick={signInGoogle}
-            disabled={loadingGoogle}
-          >
-            {loadingGoogle ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              "Continue with Google"
-            )}
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
-            <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
-            <span className="mono-label" style={{ fontSize: 8.5 }}>
-              or
-            </span>
-            <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
-          </div>
-          <form onSubmit={signInEmail}>
-            <label htmlFor="login-email" className="mono-label" style={fieldLabelStyle}>
-              Work email
-            </label>
-            <input
-              id="login-email"
-              className="input"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setFormError(null);
-              }}
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? "login-error" : undefined}
-              style={{ marginBottom: 10, width: "100%" }}
-            />
-            <label htmlFor="login-password" className="mono-label" style={fieldLabelStyle}>
-              Password
-            </label>
-            <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>
-              <input
-                id="login-password"
-                className="input"
-                type={showPassword ? "text" : "password"}
-                required
-                autoComplete="current-password"
-                placeholder="your password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setFormError(null);
-                }}
-                aria-invalid={formError ? true : undefined}
-                aria-describedby={formError ? "login-error" : undefined}
-                style={{ width: "100%", paddingRight: 34 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                style={{
-                  position: "absolute",
-                  right: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--ink-subtle)",
-                  display: "flex",
-                }}
-              >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </div>
-            {formError ? (
-              <p id="login-error" role="alert" style={fieldErrorStyle}>
-                {formError}
-              </p>
-            ) : null}
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={loadingEmail}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              {loadingEmail ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                "Sign in · opens your workspace"
-              )}
-            </button>
-          </form>
-        </div>
-
+    <AuthScaffold
+      screenLabel="Login"
+      title="Welcome back"
+      subhead={
         <p
           style={{
-            fontSize: 11.5,
-            color: "var(--ink-subtle)",
-            textAlign: "center",
-            marginTop: 16,
+            fontSize: 12,
+            color: "var(--text-subtle)",
+            marginTop: 10,
             lineHeight: 1.5,
+            maxWidth: 290,
           }}
         >
+          Sign in to your decision workspace. Your calls, the receipts, and the loop, in one place.
+        </p>
+      }
+      footer={
+        <>
           New here?{" "}
           <Link
             to="/signup"
             style={{
-              color: "var(--ink-subtle)",
+              color: "var(--text-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -269,7 +119,7 @@ function LoginPage() {
           <Link
             to="/forgot-password"
             style={{
-              color: "var(--ink-subtle)",
+              color: "var(--text-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
@@ -278,8 +128,99 @@ function LoginPage() {
           </Link>
           <br />
           Trouble signing in? Ask your workspace admin to check your invite.
-        </p>
+        </>
+      }
+    >
+      <button
+        type="button"
+        className="btn btn-ghost"
+        style={{ width: "100%", justifyContent: "center" }}
+        onClick={signInGoogle}
+        disabled={busy}
+      >
+        {loadingGoogle ? <Loader2 size={14} className="animate-spin" /> : "Continue with Google"}
+      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
+        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span className="mono-label" style={{ fontSize: 8.5 }}>
+          or
+        </span>
+        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
       </div>
-    </div>
+      <form onSubmit={signInEmail}>
+        <label htmlFor="login-email" className="mono-label" style={fieldLabelStyle}>
+          Work email
+        </label>
+        <input
+          id="login-email"
+          className="input"
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="you@company.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFormError(null);
+          }}
+          aria-invalid={formError ? true : undefined}
+          aria-describedby={formError ? "login-error" : undefined}
+          style={{ marginBottom: 10, width: "100%" }}
+        />
+        <label htmlFor="login-password" className="mono-label" style={fieldLabelStyle}>
+          Password
+        </label>
+        <div style={{ position: "relative", marginBottom: formError ? 8 : 10 }}>
+          <input
+            id="login-password"
+            className="input"
+            type={showPassword ? "text" : "password"}
+            required
+            autoComplete="current-password"
+            placeholder="your password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setFormError(null);
+            }}
+            aria-invalid={formError ? true : undefined}
+            aria-describedby={formError ? "login-error" : undefined}
+            style={{ width: "100%", paddingRight: 34 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((s) => !s)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-subtle)",
+              display: "flex",
+            }}
+          >
+            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
+        {formError ? (
+          <p id="login-error" role="alert" style={fieldErrorStyle}>
+            {formError}
+          </p>
+        ) : null}
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={busy}
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {loadingEmail ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            "Sign in · opens your workspace"
+          )}
+        </button>
+      </form>
+    </AuthScaffold>
   );
 }

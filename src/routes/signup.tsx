@@ -4,7 +4,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/cadence/AuthScaffold";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -12,11 +13,11 @@ import {
   type CreditTier,
 } from "@/lib/entitlements";
 
-// Screen 8 (F-DESIGN-EMBER) — signup on the login stage from
-// design-reference/cadence/onboard.jsx. Creates the account with
-// onboarded:false so the first-run flow (/onboarding) greets the new user —
-// the handle_new_user trigger has already seeded their workspace, staff,
-// and demo content by the time they land there.
+// Sign-up on the shared dark auth scaffold (auth_surfaces pass). Creates the
+// account with onboarded:false so the first-run flow (/onboarding) greets the
+// new user. The REAL flow is unchanged (Supabase signUp + profiles upsert +
+// Lovable Google OAuth + the /pricing plan-intent carry); this pass is
+// presentation, form states, humanized error copy, and double-submit hardening.
 
 // Only allow an internal absolute path as a post-signup destination, never an
 // external or protocol-relative URL (open-redirect guard). Mirrors login.tsx; used
@@ -77,23 +78,6 @@ export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Sign up · Cadence" }] }),
 });
 
-// Small mono-caps field label above each input — the a11y fix for the
-// placeholder-only pattern (SC 1.3.1, 3.3.2), styled to the design language.
-const fieldLabelStyle: React.CSSProperties = {
-  display: "block",
-  textAlign: "left",
-  fontSize: 9,
-  marginBottom: 5,
-};
-
-const fieldErrorStyle: React.CSSProperties = {
-  fontSize: 11.5,
-  color: "var(--rose)",
-  textAlign: "left",
-  lineHeight: 1.5,
-  margin: "0 0 10px",
-};
-
 function SignupPage() {
   const navigate = useNavigate();
   const { next, from, plan, credits, billing } = Route.useSearch();
@@ -103,6 +87,7 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const busy = loading || loadingGoogle;
 
   // PLG continuity: when the user arrives from a public funnel surface
   // (a shared teardown/decision or /pricing), carry that context into a
@@ -132,6 +117,7 @@ function SignupPage() {
 
   async function signup(e: React.FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setFormError(null);
     if (password.length < 6) {
       setFormError("Password must be at least 6 characters");
@@ -147,8 +133,9 @@ function SignupPage() {
     });
     if (error) {
       setLoading(false);
-      setFormError(error.message);
-      return toast.error(error.message);
+      const msg = authErrorMessage(error, "signup");
+      setFormError(msg);
+      return toast.error(msg);
     }
     // Auto-confirm is on; session should be present. Mark the account
     // un-onboarded so the _authenticated gate routes it through /onboarding,
@@ -176,80 +163,31 @@ function SignupPage() {
   }
 
   async function signupGoogle() {
+    if (busy) return;
+    setFormError(null);
     setLoadingGoogle(true);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
       setLoadingGoogle(false);
-      return toast.error(result.error.message ?? "Google sign-in failed");
+      return toast.error(authErrorMessage(result.error, "oauth"));
     }
     if (result.redirected) return;
     navigate({ to: "/" });
   }
 
   return (
-    <div
-      data-screen-label="Sign up"
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--paper)",
-        color: "var(--ink)",
-        overflow: "hidden",
-        padding: 24,
-      }}
-    >
-      {/* giant mono butterfly watermark */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          right: -120,
-          bottom: -130,
-          color: "var(--ink)",
-          opacity: 0.05,
-          transform: "rotate(-12deg)",
-        }}
-      >
-        <CadenceMark size={520} tile={false} />
-      </div>
-
-      <div
-        className="fade-up"
-        style={{ width: 360, maxWidth: "calc(100vw - 48px)", position: "relative", zIndex: 1 }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            marginBottom: 26,
-          }}
-        >
-          {contextLine ? (
-            <div
-              className="mono-label"
-              style={{ fontSize: 9, color: "var(--ink-subtle)", marginBottom: 12 }}
-            >
-              {contextLine}
-            </div>
-          ) : null}
-          <CadenceMark size={52} />
-          <h1 className="font-display" style={{ fontSize: 30, fontWeight: 440, marginTop: 14 }}>
-            Create your workspace
-          </h1>
-          <div className="mono-label" style={{ marginTop: 6 }}>
-            you make the calls · Cadence runs the rest
-          </div>
+    <AuthScaffold
+      screenLabel="Sign up"
+      title="Create your workspace"
+      intro={contextLine}
+      subhead={
+        <>
           <p
             style={{
               fontSize: 12,
-              color: "var(--ink-subtle)",
+              color: "var(--text-subtle)",
               marginTop: 10,
               lineHeight: 1.5,
               maxWidth: 290,
@@ -262,7 +200,7 @@ function SignupPage() {
             <p
               style={{
                 fontSize: 11.5,
-                color: "var(--ink-muted)",
+                color: "var(--text-muted)",
                 marginTop: 8,
                 lineHeight: 1.5,
                 maxWidth: 290,
@@ -272,111 +210,98 @@ function SignupPage() {
               charged until you do.
             </p>
           ) : null}
-        </div>
-
-        <div className="bento" style={{ padding: 22 }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ width: "100%", justifyContent: "center" }}
-            onClick={signupGoogle}
-            disabled={loadingGoogle}
-          >
-            {loadingGoogle ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              "Continue with Google"
-            )}
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
-            <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
-            <span className="mono-label" style={{ fontSize: 8.5 }}>
-              or
-            </span>
-            <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
-          </div>
-          <form onSubmit={signup}>
-            <label htmlFor="signup-email" className="mono-label" style={fieldLabelStyle}>
-              Work email
-            </label>
-            <input
-              id="signup-email"
-              className="input"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setFormError(null);
-              }}
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? "signup-error" : undefined}
-              style={{ marginBottom: 10, width: "100%" }}
-            />
-            <label htmlFor="signup-password" className="mono-label" style={fieldLabelStyle}>
-              Password
-            </label>
-            <input
-              id="signup-password"
-              className="input"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder="at least 6 characters"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setFormError(null);
-              }}
-              aria-invalid={formError ? true : undefined}
-              aria-describedby={formError ? "signup-error" : undefined}
-              style={{ marginBottom: formError ? 8 : 10, width: "100%" }}
-            />
-            {formError ? (
-              <p id="signup-error" role="alert" style={fieldErrorStyle}>
-                {formError}
-              </p>
-            ) : null}
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={loading}
-              style={{ width: "100%", justifyContent: "center" }}
-            >
-              {loading ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                "Create account · setup starts"
-              )}
-            </button>
-          </form>
-        </div>
-
-        <p
-          style={{
-            fontSize: 11.5,
-            color: "var(--ink-subtle)",
-            textAlign: "center",
-            marginTop: 16,
-            lineHeight: 1.5,
-          }}
-        >
+        </>
+      }
+      footer={
+        <>
           Already have an account?{" "}
           <Link
             to="/login"
             style={{
-              color: "var(--ink-subtle)",
+              color: "var(--text-body)",
               textDecoration: "underline",
               textUnderlineOffset: 3,
             }}
           >
             Sign in
           </Link>
-        </p>
+        </>
+      }
+    >
+      <button
+        type="button"
+        className="btn btn-ghost"
+        style={{ width: "100%", justifyContent: "center" }}
+        onClick={signupGoogle}
+        disabled={busy}
+      >
+        {loadingGoogle ? <Loader2 size={14} className="animate-spin" /> : "Continue with Google"}
+      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0" }}>
+        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
+        <span className="mono-label" style={{ fontSize: 8.5 }}>
+          or
+        </span>
+        <span style={{ flex: 1, height: 1, background: "var(--hairline)" }}></span>
       </div>
-    </div>
+      <form onSubmit={signup}>
+        <label htmlFor="signup-email" className="mono-label" style={fieldLabelStyle}>
+          Work email
+        </label>
+        <input
+          id="signup-email"
+          className="input"
+          type="email"
+          required
+          autoComplete="email"
+          placeholder="you@company.com"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setFormError(null);
+          }}
+          aria-invalid={formError ? true : undefined}
+          aria-describedby={formError ? "signup-error" : undefined}
+          style={{ marginBottom: 10, width: "100%" }}
+        />
+        <label htmlFor="signup-password" className="mono-label" style={fieldLabelStyle}>
+          Password
+        </label>
+        <input
+          id="signup-password"
+          className="input"
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          placeholder="at least 6 characters"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setFormError(null);
+          }}
+          aria-invalid={formError ? true : undefined}
+          aria-describedby={formError ? "signup-error" : undefined}
+          style={{ marginBottom: formError ? 8 : 10, width: "100%" }}
+        />
+        {formError ? (
+          <p id="signup-error" role="alert" style={fieldErrorStyle}>
+            {formError}
+          </p>
+        ) : null}
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={busy}
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {loading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            "Create account · setup starts"
+          )}
+        </button>
+      </form>
+    </AuthScaffold>
   );
 }
