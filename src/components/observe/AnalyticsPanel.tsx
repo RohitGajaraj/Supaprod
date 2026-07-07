@@ -27,7 +27,7 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { MonoLabel, SubTabs, VerdictChip } from "@/components/cadence/Primitives";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { BarChart } from "@/components/obsidian";
 import { relTime } from "@/components/product/format";
 
 function fmtUsd(n: number) {
@@ -401,9 +401,9 @@ export function AnalyticsPanel() {
           {daily.length > 0 ? (
             <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
               <MonoLabel style={{ marginBottom: 12 }}>Daily activity · runs</MonoLabel>
-              {/* Interactive pencil bar chart (SketchBarChart): scrub or focus a
-                  bar to read that day's runs; peak and floor are always shown. */}
-              <SketchBarChart
+              {/* Interactive bar chart: scrub or focus a bar to read that day's
+                  runs; peak and floor are always shown. */}
+              <BarChart
                 data={daily.map((d) => ({ label: d.day.slice(5), value: d.runs }))}
                 color="var(--teal)"
                 formatValue={(v) => String(Math.round(v))}

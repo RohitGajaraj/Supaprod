@@ -220,7 +220,23 @@ Alongside the naming, each room leads with an **interpretive layer**: the honest
 
 ---
 
-## 7. Applying this to a new (or retrofitted) surface
+## 7. Charts and data visualization
+
+**App data charts are modern, exact, and interactive; the pencil sketch is retired from machine data** (founder ruling 2026-07-07, amending the 2026-06-12 hand-sketched directive for app surfaces). The Obsidian chart grammar is the law: the machine draws exact vectors, and pencil (rough graphite) is reserved for the PM's own annotation layer (`src/components/obsidian/pencil-mark.tsx`: designations, the best-bet wink) and for the marketing landing page ([`DESIGN.md`](../../DESIGN.md)). No authenticated app surface draws machine data in the hand-sketched pencil style.
+
+Every chart is interactive and states its scale, so a data point is never mute:
+
+- **A line, area, or values-over-time trend (it goes up and down) uses `GraphSlider`** (`src/components/obsidian/graph-slider.tsx`). A grayscale base line with a colored layer revealed to a scrub cursor, a dot plus a tracking value readout, always-on peak and low markers, and an optional dashed `baseline` (what it is measured against). Pointer scrub plus keyboard (arrows, Home, End); `role="slider"` with `aria-valuetext`. Reference: rauno.me/craft/graph-slider.
+- **A multi-bar chart (bars comparing days or categories) uses `BarChart`** (`src/components/obsidian/bar-chart.tsx`). Clean exact bars in a data-palette color, a per-bar hover/focus readout, an always-visible peak (top number) and floor (bottom number), an optional dashed baseline; non-active bars dim.
+- **A single value (a progress meter, gauge, or one fill) is not a chart** and stays a plain bar or number; it does not get the chart treatment.
+
+**Chart colors come from the DATA palette, never the role colors.** Role colors (ember, glacier, moss, madder) are reserved for state and voice. Series map by meaning: spend or cost `var(--tangerine)`; machine score, quality, drift, or eval `var(--teal)`; decisions, counts, or benchmarks `var(--cornflower)`; user behavior or engagement `var(--flamingo)`. A chart may carry at most one ember "needs a human" marker, nothing else ember.
+
+Every chart takes a `formatValue` (so a number reads as `$4.20`, `72`, or `18%`, never a bare float), an `ariaLabel`, and a `baseline` (plus `baselineLabel`) when the data has a gate, target, or prior. Real data only: a sparse or absent series renders an honest empty state, never an invented curve.
+
+---
+
+## 8. Applying this to a new (or retrofitted) surface
 
 A checklist for any object card, row, node, or detail:
 

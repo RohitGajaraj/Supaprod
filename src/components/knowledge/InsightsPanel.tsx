@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { SpotlightCard } from "@/components/obsidian/spotlight";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { BarChart } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBrainInsights,
@@ -73,12 +73,12 @@ function Stat({ value, label, color }: { value: string; label: string; color?: s
 
 function Timeline({ buckets }: { buckets: TimelineBucket[] }) {
   return (
-    <SketchBarChart
+    <BarChart
       data={buckets.map((b) => ({ label: b.month.slice(2), value: b.decisions + b.learnings }))}
       color="var(--cornflower)"
       formatValue={(v) => String(Math.round(v))}
       ariaLabel="Decisions and outcomes logged per month"
-      trackH={76}
+      h={76}
     />
   );
 }

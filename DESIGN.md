@@ -213,7 +213,7 @@ drift findings, review/feedback annotations, brief callouts, rescore deltas.
 
 ## Hand-sketched data marks (founder ruling 2026-06-12)
 
-> **App surfaces: SUPERSEDED.** The human-annotation idea lives on in v3 as pencil annotations (Caveat, max two per screen, [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) §9). Below retained for the landing page + history.
+> **App surfaces: SUPERSEDED (updated 2026-07-07).** Authenticated app data charts are now MODERN and interactive, not hand-sketched: a line/area/trend uses `GraphSlider` and a multi-bar chart uses `BarChart` (both in `src/components/obsidian/`), drawn in the data palette with a scrub/hover value readout plus an always-visible peak, floor, and optional baseline. The full standard is [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) section 7 and the DESIGN-LOOM Infographic Law. The hand-drawn idea lives on ONLY as the PM's pencil annotation layer (Caveat, max two per screen, [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) §9) and on this landing page. Below retained for the landing page + history.
 
 **Every graph of data points — trend lines, sparklines, time-series bars,
 distributions — renders hand-sketched: a pencil-on-paper wobble, never a

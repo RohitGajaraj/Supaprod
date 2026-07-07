@@ -9,7 +9,12 @@
 // ("calm amplitude: clearly hand-drawn, never cartoon-loose") and documented
 // in DESIGN.md "Hand-sketched data marks". Do not retune without a founder
 // ruling; new mark types extend this file and reuse these metrics.
-import { useMemo, useState } from "react";
+// SCOPE (2026-07-07): SketchLine / SketchBar are the PENCIL family, now scoped
+// to the marketing landing page and the PM's own annotation layer. App data
+// charts are MODERN + interactive: use GraphSlider (trends) and BarChart (bars)
+// from "@/components/obsidian". See docs/conventions/design-anatomy.md section 7
+// and the DESIGN-LOOM Infographic Law.
+import { useMemo } from "react";
 
 /* Tiny seeded PRNG (mulberry32) — stable jitter per data series. */
 function mulberry32(seed: number) {
@@ -213,145 +218,3 @@ export function SketchBar({
   );
 }
 
-
-export interface SketchBarDatum {
-  label: string;
-  value: number;
-}
-
-/* SketchBarChart: the pencil bar row made interpretable + interactive
-   (founder ruling 2026-07-07). Keeps the hand-drawn SketchBar aesthetic, but
-   now every bar chart answers the questions a bare bar row could not: what is
-   the peak (top number), what is the floor (bottom number), what is it
-   measured against (an optional dashed baseline), and what is each bar worth
-   (hover or focus a bar to read its value + label). Non-active bars dim so the
-   read is unambiguous. Keyboard reachable; reduced motion handled globally. */
-export function SketchBarChart({
-  data,
-  color = "var(--ember)",
-  formatValue = (v: number) => String(Math.round(v)),
-  baseline,
-  baselineLabel,
-  ariaLabel,
-  trackH = 88,
-}: {
-  data: SketchBarDatum[];
-  color?: string;
-  formatValue?: (v: number) => string;
-  /** A reference the bars are measured against (a gate, a target, a prior). */
-  baseline?: number;
-  baselineLabel?: string;
-  ariaLabel?: string;
-  trackH?: number;
-}) {
-  const [hover, setHover] = useState<number | null>(null);
-  if (data.length === 0) return null;
-  const max = Math.max(...data.map((d) => d.value), baseline ?? 0, 1);
-  const activeIdx = hover ?? data.length - 1;
-  const active = data[activeIdx]!;
-  const baselinePct =
-    baseline != null && baseline > 0 ? Math.min(100, (baseline / max) * 100) : null;
-
-  return (
-    <div role="group" aria-label={ariaLabel ?? "Bar chart"}>
-      {/* Top axis: the active bar's readout + the peak it is measured against. */}
-      <div
-        className="mono-label tabular-nums"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 8,
-          marginBottom: 6,
-          fontSize: 9.5,
-        }}
-      >
-        <span>
-          <span style={{ color }}>{formatValue(active.value)}</span>
-          <span style={{ color: "var(--text-subtle)" }}> · {active.label}</span>
-        </span>
-        <span style={{ color: "var(--text-faint)" }}>peak {formatValue(max)}</span>
-      </div>
-
-      {/* Bars: the pencil aesthetic, kept. Hover or focus a bar to read it. */}
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 3,
-          height: trackH,
-        }}
-      >
-        {baselinePct != null ? (
-          <div
-            aria-hidden="true"
-            title={baselineLabel ?? "baseline"}
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: `${baselinePct}%`,
-              borderTop: "1px dashed var(--hairline-strong)",
-            }}
-          />
-        ) : null}
-        {data.map((d, i) => {
-          const on = i === activeIdx;
-          return (
-            <button
-              key={`${d.label}-${i}`}
-              type="button"
-              aria-label={`${d.label}: ${formatValue(d.value)}`}
-              onMouseEnter={() => setHover(i)}
-              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
-              onFocus={() => setHover(i)}
-              onBlur={() => setHover((h) => (h === i ? null : h))}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                height: "100%",
-                display: "flex",
-                alignItems: "flex-end",
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                opacity: hover == null || on ? 1 : 0.45,
-                transition: "opacity 160ms var(--ease)",
-              }}
-            >
-              <SketchBar
-                pct={Math.max(3, (d.value / max) * 100)}
-                seed={i + 1}
-                color={color}
-                trackH={trackH}
-              />
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Bottom axis: the floor (0 or the named baseline) + the range ends. */}
-      <div
-        className="mono-label"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 8,
-          marginTop: 6,
-          fontSize: 8.5,
-          color: "var(--text-faint)",
-        }}
-      >
-        <span>{baselineLabel ?? "0"}</span>
-        <span>
-          {data.length > 1
-            ? `${data[0]!.label} → ${data[data.length - 1]!.label}`
-            : data[0]!.label}
-        </span>
-      </div>
-    </div>
-  );
-}

@@ -245,26 +245,31 @@ is what keeps the product feeling made by a person, not generated.
 > forward. Do not wait to be pointed at each chart; when you build or touch a
 > chart, bring it to this bar.
 >
-> 1. **Hand-drawn, not machine.** Human-facing charts render with the sketch
->    primitives `SketchLine` / `SketchBar` (`src/components/cadence/Sketch.tsx`)
->    or the pencil marks, never a sterile straight polyline / solid rectangle.
->    (The ONLY exception: a pure machine instrument in a deep Engine Room / eval
->    / drift view may stay exact, because there the precision IS the point.)
-> 2. **Readable, interactive data points.** A chart must never be an unlabelled
->    spike. On hover (and focus), each data point reveals its value in a
->    pencil-hand (`--font-pencil`) tooltip: the number and what it counts. The
->    user must always be able to learn "what is this point, exactly."
-> 3. **A scale the user can read.** Every chart states what it measures and the
->    scale it is measured against (a "peak N", a unit caption, or axis hints) in
->    the pencil hand, so a shape is never ambiguous.
-> 4. **Brand hue, never the cold cyan/teal.** Human-facing data uses `--ember`
->    (warm, the user's own record) as the default series color; the retuned
->    azure is reserved for the machine-voice role, not for personal-record
->    charts. Never the old glacier cyan / teal on a user-facing chart.
+> 1. **Modern and exact, reused not bespoke (AMENDED 2026-07-07, reverses the
+>    2026-06-12 hand-sketched ruling for app surfaces).** App data charts use
+>    the two shared interactive primitives, never a hand-drawn or stock-library
+>    look: `GraphSlider` (`src/components/obsidian/graph-slider.tsx`) for any
+>    line/area/values-over-time trend, and `BarChart`
+>    (`src/components/obsidian/bar-chart.tsx`) for any multi-bar chart. The
+>    machine draws exact; pencil (`pencil-mark.tsx`) is now the PM's own
+>    annotation layer and the marketing landing page only, never machine data
+>    on an app surface.
+> 2. **Readable, interactive data points.** A chart is never an unlabelled
+>    spike. On hover AND focus, the cursor reveals the value at that point (the
+>    number and what it counts); every chart is keyboard reachable.
+> 3. **A scale the user can read.** Every chart shows the peak (top number), the
+>    floor (bottom number), and, when the data has one, the baseline it is
+>    measured against (a dashed reference line), so a shape is never ambiguous.
+> 4. **Data-palette color, never a role color (AMENDED 2026-07-07).** A series
+>    uses the data palette by meaning (spend `--tangerine`, machine
+>    score/quality `--teal`, decisions/counts `--cornflower`, user behavior
+>    `--flamingo`); the role colors (ember, glacier, moss, madder) are reserved
+>    for state and voice, with at most one ember "needs a human" point per chart.
 >
-> The reference implementation is the Brain "How it accrued" timeline
-> (`InsightsPanel.tsx` `Timeline`) and the record trend
-> (`BrainStatTrio.tsx`): copy that pattern for every new chart.
+> The reference implementations are `GraphSlider` (Spend "Over time", Quality
+> "Right now") and `BarChart` (Analytics runs, Brain timeline); copy that
+> pattern and the long-form reference `docs/conventions/design-anatomy.md`
+> section 7 for every new chart.
 
 > **THE INTERACTION-FEEL LAW (founder ruling 2026-07-06, STANDING, every user
 > action).** North-star: Rauno Freiberg's craft gallery (rauno.me/craft). Every

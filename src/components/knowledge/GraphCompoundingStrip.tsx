@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { MonoLabel } from "@/components/obsidian/primitives";
-import { SketchBarChart } from "@/components/cadence/Sketch";
+import { BarChart } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
@@ -54,17 +54,17 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
 
 /** The weekly-growth read, held to the Infographic Law (DESIGN-LOOM dim 16):
  *  hand-drawn bars, a pencil scale hint, and a readable data point on hover.
- *  SketchBarChart keeps the pencil bars and adds peak / floor + a per-bar
- *  readout (scrub or focus a bar to read that week's count). */
+ *  a modern interactive bar chart (BarChart): clean bars with peak / floor +
+ *  a per-bar readout (scrub or focus a bar to read that week's count). */
 function GrowthBars({ growth }: { growth: number[] }) {
   return (
     <div style={{ minWidth: 150, flex: 1 }}>
-      <SketchBarChart
+      <BarChart
         data={growth.map((count, i) => ({ label: `w${i + 1}`, value: count }))}
         color="var(--cornflower)"
         formatValue={(v) => String(Math.round(v))}
         ariaLabel={`New beliefs per week, last ${WEEKS} weeks`}
-        trackH={40}
+        h={40}
       />
     </div>
   );
