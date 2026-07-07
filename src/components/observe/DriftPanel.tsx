@@ -21,7 +21,7 @@ import { toast } from "@/lib/notify";
 import { getDriftOverview, runDriftNow, updateDriftBaseline } from "@/lib/drift.functions";
 import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
 import { VerdictChip } from "@/components/obsidian";
-import { SketchLine } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 
 const GRID = "1fr 80px 90px 1fr 20px";
 
@@ -433,7 +433,14 @@ function TrendBento({
           {last}
         </span>
       </div>
-      <SketchLine data={series} color={color} />
+      <GraphSlider
+        data={series}
+        w={300}
+        h={120}
+        color={color ?? "var(--teal)"}
+        formatValue={(v) => (Number.isInteger(v) ? String(v) : v.toFixed(2))}
+        ariaLabel={label}
+      />
     </div>
   );
 }

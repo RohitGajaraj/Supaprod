@@ -13,7 +13,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
-import { SketchLine } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 import { getAgentAnalyticsDetail } from "@/lib/analytics.functions";
 import { relTime, fmtUsd } from "@/components/product/format";
 
@@ -149,7 +149,18 @@ export function AgentSpendDetail({ id }: { id: string }) {
       >
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>Daily spend · last 8 days</MonoLabel>
-          <SketchLine data={d.dailySpend.map((x) => x.cost)} w={300} h={48} color="var(--ember)" />
+          <GraphSlider
+            data={d.dailySpend.map((x) => x.cost)}
+            labels={d.dailySpend.map((_, i, arr) => {
+              const ago = arr.length - 1 - i;
+              return ago === 0 ? "today" : `${ago}d ago`;
+            })}
+            w={320}
+            h={120}
+            color="var(--tangerine)"
+            formatValue={fmtUsd}
+            ariaLabel="Daily spend over the last 8 days"
+          />
         </div>
         {resolved ? (
           <div className="bento" style={{ padding: "var(--card-pad)" }}>

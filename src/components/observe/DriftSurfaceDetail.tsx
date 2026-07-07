@@ -28,7 +28,7 @@ import {
   reopenDriftIncident,
 } from "@/lib/drift.functions";
 import { DrillHeader, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
-import { SketchLine } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 import { relTime } from "@/components/product/format";
 import type { Incident, Snapshot } from "./DriftPanel";
 
@@ -358,12 +358,15 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         <div className="bento" style={{ gridColumn: "span 2", padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 8 }}>{chart.label}</MonoLabel>
           {chart.series.length >= 2 ? (
-            <SketchLine
+            <GraphSlider
               data={chart.series}
               baseline={chart.baseline}
+              baselineLabel="baseline"
               w={300}
-              h={42}
-              color={chart.color}
+              h={120}
+              color={chart.color ?? "var(--teal)"}
+              formatValue={(v) => (Number.isInteger(v) ? String(v) : v.toFixed(2))}
+              ariaLabel={chart.label}
             />
           ) : (
             <div style={{ fontSize: 12.5, color: "var(--ink-faint)" }}>

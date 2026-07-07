@@ -46,7 +46,7 @@ import {
   deleteEvalCase,
 } from "@/lib/evals.functions";
 import { DrillHeader, MonoLabel, SubTabs, VerdictChip } from "@/components/cadence/Primitives";
-import { SketchLine } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 import { relTime } from "@/components/product/format";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -266,12 +266,15 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             {trendData.length >= 2 ? `Trend · last ${trendData.length} runs` : "Trend"}
           </MonoLabel>
           {trendData.length >= 2 ? (
-            <SketchLine
+            <GraphSlider
               data={trendData}
               baseline={suite.pass_threshold}
-              w={210}
-              h={42}
-              color={below ? "var(--ember)" : "var(--action-blue)"}
+              baselineLabel="gate"
+              w={300}
+              h={120}
+              color="var(--teal)"
+              formatValue={(v) => String(Math.round(v))}
+              ariaLabel="Eval score across recent runs"
             />
           ) : (
             <span className="mono-label" style={{ color: "var(--ink-faint)" }}>

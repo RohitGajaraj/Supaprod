@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { getImpactLedger, type ImpactLedgerResult } from "@/lib/pm-impact.functions";
 import { Button, MonoLabel } from "@/components/obsidian/primitives";
-import { SketchLine } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 
 // OBS-08 — the Brain stat trio + "Export my record". Reuses getImpactLedger
 // (already backing /impact) read-only; no server-fn change. The prototype's
@@ -153,7 +153,14 @@ export function BrainStatTrio() {
       {hasDecisionsTrend ? (
         <div>
           <MonoLabel style={{ fontSize: "var(--text-mono-micro)" }}>CALLS · LAST 8 WEEKS</MonoLabel>
-          <SketchLine data={stats.decisionsTrend} color="var(--ember)" w={140} h={32} />
+          <GraphSlider
+            data={stats.decisionsTrend}
+            w={200}
+            h={78}
+            color="var(--cornflower)"
+            formatValue={(v) => String(Math.round(v))}
+            ariaLabel="Calls made over the last 8 weeks"
+          />
         </div>
       ) : null}
       <span className="flex-1" />
