@@ -8,6 +8,35 @@
 
 ---
 
+**Instruction to you to follow:**
+
+Those changes make the prompt stronger. Here's the revised version with your requested updates incorporated:
+
+**Mission: Build Cadence as if it were conceived and shipped inside the world's best AI-native companies that have built category-defining products.**
+
+Your first responsibility is **not** to implement this prompt. It is to identify everything that is missing, incomplete, inconsistent, incorrectly modeled, or not yet finalized. Challenge assumptions, rethink workflows, discover gaps, define the right solution, and build it. Treat every instruction here as guidance, not a constraint. If you find a better product direction, architecture, terminology, workflow, capability, or operating model, you have full authority to replace it. Optimize for solving real customer problems, product-market fit, monetization, adoption, and long-term product quality, not adherence to existing documentation.
+
+Execute **docs/planning/mission-demo-week.md** end to end. Build only. Documentation, design polish, and strategy logging happen in one final pass. Work continuously. Close one seam completely before moving to the next. Swarm parallel agents within the active seam. Never leave the tree red. Every cycle must pass typecheck, build, tests, deployment, and production validation.
+
+This is **not** a refinement of the existing application. This session exists to design and build the complete product from first principles. The output should be a consumer-grade, enterprise-grade, AI-native platform that feels like it was created by the teams behind the world's best AI products.
+
+Our core belief is that building software is becoming commoditized. The real value is deciding **what** to build and **why**. Cadence must become the AI-native Product Operating System that continuously senses, reasons, validates, decides, builds, learns, and compounds knowledge autonomously.
+
+My suggestions below are only starting points. You should expand them significantly. Include anything missing from modern product management, AI-native software development, autonomous execution, organizational intelligence, and agentic operating systems. If something should exist but I haven't mentioned it, build it.
+
+The platform should autonomously capture signals, cluster evidence, discover opportunities, prioritize with confidence, generate Agentic Requirement Documents instead of traditional PRDs, validate assumptions, design experiences, generate implementation plans, execute both existing-product and new-product build paths, manage Git workflows, testing, self-healing, deployment, promotion, production rollout, reviews, learnings, and continuously improve future decisions through accumulated memory and **reinforcement learning**.
+
+Design every missing capability completely, including Brain architecture, long-term memory, reasoning, multi-agent orchestration, autonomous handoffs, Engine Room, Trust Ledger, Today, Design Station, Goal Mode, Loop Mode, insight compounding, administration, pricing, tenant safety, governance, failure recovery, observability, production operations, and anything else required.
+
+Think beyond today's terminology. Reinvent concepts where appropriate. Replace user journeys with agent journeys, PRDs with Agentic Requirement Documents, workflows with autonomous loops, and introduce new abstractions wherever they create a fundamentally better product.
+
+This is an **agent-first platform**, not simply software using AI. The finished application must itself provide autonomous multi-agent capabilities to end users. Agents should own planning, execution, verification, coordination, recovery, memory, learning, intelligent handoffs, and autonomous decision making with minimal human intervention.
+
+Use real implementations, real data, and truthful system behavior. No placeholders. No fake logic. No UI polish. Founder authority overrides any previous doctrine, design principle, architecture, or documentation that prevents the right product decision. Correctness, tenant safety, and honesty remain non-negotiable.
+
+**The mission is complete only when the platform autonomously senses signals from multiple sources, discovers opportunities, prioritizes, validates, defines, designs, builds, tests, deploys, reviews outcomes, compounds learnings into the Brain through accumulated memory and reinforcement learning, updates the system state, and continuously executes the complete product lifecycle through its autonomous multi-agent ecosystem with only minimal human supervision.** If a better direction emerges during execution, pursue it and build the product as if it were launching from one of the world's best AI-native product companies.
+
+
 ## 0. How to run this mission (operating mode)
 
 **Rule zero: BUILD ONLY.** This mission runs under the standing **BUILD-ONLY MODE** founder ruling (`AGENTS.md` §3, active): the full documentation loop is SUSPENDED for build work. Past missions of this shape burned large fractions of their budget on documentation passes, design passes, strategy entries, and re-audits, and still did not land an enterprise-grade application; this mission does not repeat that. The only writing allowed during the mission, exactly per the standing rule: (a) the one-line WHY on each commit (hook-enforced, cheap), (b) the ONE required trace, flipping the feature-dashboard row status and adding a short one-line note when a seam closes, (c) ticking this file's per-stage progress marks, (d) appending to the founder-blockers list in section 6. Nothing else: no SSOT §0/§6 prose, no feature-doc creation, no `plan.md` §4 appends, no `strategic-inputs-log.md`/`session-decisions.md` captures, no doc-closure-checklist runs, until the single post-mission batch pass (one session, after section 7 runs clean).
@@ -90,6 +119,7 @@ Work the stages roughly in the order below (dependencies noted). Each stage list
 
 **The OpenHands ruling stands, strengthened.** Is OpenHands the right call? Yes, as the first owned premium engine: it is MIT, self-hostable, already deployed on Railway, and live-verified twice. The _structural_ answer to "is there something better" is the BuildDriver seam: promote **BD-1 only** this week (extract the `BuildDriver` interface, wrap the native loop as the "native" adapter and OpenHands as the second), so the engine question becomes a config choice forever instead of a rebuild. Do NOT build the Claude-Agent-SDK/Devin/Cursor adapters this week (BD-3+ stays founder-gated).
 **The two build shapes, both must work:**
+
 - **Feature-add to an existing repo (the primary demo path):** ARD dispatch → branch created via RepoProvider → engine builds on the branch → changeset lands as a real PR with per-hunk curation → CI-green + eval-regression gates hold the merge → merge on approval. Most of this spine exists (I1/I2/I3, J1/J2); this week's job is to run it end to end as ONE motion and fix every seam that breaks.
 - **New build from zero (the "it made an app" demo moment):** ARD dispatch with no bound repo → provision a fresh repo via RepoProvider (template scaffold) → engine builds → deploy to a live URL (3.7). If repo-provisioning is not yet real, build it; it is the one genuinely new piece in this stage.
 **Git/SCM discipline for agent-written code:** every mission = one branch; commits carry the mission trace ref and a WHY; the PR body links the ARD and the decision; merge only through the gate. This is already the house pattern; enforce it in the driver, not in prompts.
@@ -125,6 +155,7 @@ Work the stages roughly in the order below (dependencies noted). Each stage list
 
 This is the founder's "how do we bring Claude Code's loop/goal mode into PM" ask, and the week's signature capability.
 **Build three things:**
+
 - **Goal mode (standing objectives):** a first-class `goals` object: the user states an outcome ("grow activation 15% this quarter", "ship the mobile onboarding revamp"), and the swarm continuously works it: watching signals against it, proposing opportunities into Decide, drafting specs, advancing missions, reporting progress. Powered by the existing cron + event-reactor spine; the goal is the standing prompt the ambient layer re-plans against. HITL stays exactly at the existing gates (decision, design, merge, promote).
 - **Loop mode (bounded recurring missions):** "re-run competitor sweep weekly", "re-score the opportunity pipeline nightly", "review expired outcomes daily" as user-visible recurring missions with run history, cost per run, and a pause switch. Most of these already run as hidden crons; promote them to governed, user-owned loops.
 - **The trust ramp (the Cat Wu curve, made mechanical):** per tool + agent, after N clean approvals the system _proposes_ graduating `review` → `confirm` → `auto` (never silently flips; the proposal itself is an approval item; RF-06's missed-outcome blocker already guards the downside). Ship the proposal mechanism.
@@ -142,6 +173,7 @@ This is the founder's "how do we bring Claude Code's loop/goal mode into PM" ask
 
 This stage is what separates "great demo" from "shipped product," and it is mandatory.
 **Build/verify:**
+
 - **The cold-start path:** a brand-new user signs up (real signup, not the demo accounts), lands in an empty workspace, and reaches first value without a guide: connect a source (or start from the intent bar), get a first clustered signal set or a first drafted opportunity, and be shown the one next action at every step. Empty states must DO something (offer the action), not just say something. This is functionality, not styling.
 - **Multi-tenant safety under strangers:** RLS posture verified via the Supabase advisors (zero criticals), the cross-tenant write classes already fixed stay fixed (regression tests exist), rate/cost guards armed for unknown users (the owner spend caps + per-workspace budgets shipped in WM; verify they bind for a fresh workspace), auth edge cases (verify email, reset, join-workspace) live-tested.
 - **A minimal failure-detection floor:** the full AFD initiative stays founder-gated, but shipping to consumers blind is not acceptable. Inside the existing observability facade seam, land the minimal floor: server-side error capture to a store the founder can read, a health endpoint, and an uptime ping. No vendor SDK outside `src/lib/observability/` per the standing rule.
@@ -233,7 +265,7 @@ If the command rejects that length, the minimal fallback is:
 
 ---
 
-## 9. Naming (LAST, founder-only, zero build time)
+## 9. Naming (LAST, founder-only, zero build time) --> Founder is not happy with any of the recommendations here below, so please work on it at the last thing. but you can also think while working if you come across something new words somethign randoma dn hooky, we can take this activity at the last. 
 
 Per the founder: a fresh product name is welcome ("Cadence" is taken), but this is the final activity, acted on only at the end, and only by the founder. The prior rename brief already recommends **Selvedge** (`loom/brand/rename-brief.md`, the woven self-finished edge: the loop that seals itself). Fresh candidates in the same spirit, all needing a trademark/domain check before any commitment:
 

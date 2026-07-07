@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-07T13:03:19.200Z",
+  "projectRoot": "/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v5",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": true,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1783429399200
+}
