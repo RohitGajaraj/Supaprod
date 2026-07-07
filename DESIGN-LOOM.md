@@ -397,6 +397,11 @@ are brought into line as they are touched.
   read as their own markers while the bodies stay monotone (no rainbow of
   section colors). The Decide opportunity detail and the Discover signal detail
   are the built exemplars; every future object detail adopts this same skeleton.
+  The full long-form reference (the anatomy, the DetailKit primitives, the
+  trace-ref registry, the color palette, the ranking and designation logic, the
+  naming conventions, and the WHY behind each) lives in
+  [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md),
+  the reference doc behind this binding contract.
 
 
 

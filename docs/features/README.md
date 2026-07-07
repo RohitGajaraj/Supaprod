@@ -130,4 +130,5 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 - [`agent-experience.md`](./agent-experience.md), the agent roster model, faces, identity, and the relay (the "19 vs 6" resolution, built on the F-AGENT-1→4 substrate)
 - [`signal-fabric.md`](./signal-fabric.md), the Signal Fabric & Sense Engine, outside-in + inside-out signal ingestion → "Focus on this next" (Phase 0 keystone shipped)
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), agent orchestration contract
+- [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), the design anatomy + system reference behind the feature surfaces (card + detail-view anatomy, trace-ref registry, ranking/designation logic, color + naming), the long-form reference behind the DESIGN-LOOM dim 17 contract
 - [`../../plan.md`](../../plan.md) §4, active build log

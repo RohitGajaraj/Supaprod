@@ -283,6 +283,22 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (Discover/Decide redesign chain: capstone + the consolidated design-anatomy reference)
+
+**Context:** Capstone on this session's Discover/Decide redesign chain (deterministic ranking, the shared detail anatomy, and the object-level polish), consolidating the whole system into one canonical, cold-buildable reference so every other surface (Today, Brain, Trust Ledger, Engine Room, Settings, Connections) adopts the same anatomy by default.
+
+**What shipped (the chain, earliest to newest):**
+
+- **Deterministic opportunity ranking + single best bet** (`9105db54`, DEC-RANK): `rankOpportunities` with a fixed tie-break chain (ice_score, Critic verdict, corroboration, confidence, impact, created_at, id), the single #1 best bet, a per-bet rationale + recommended next action, and the rank shown on the card. Pure, unit-tested.
+- **Shared DetailKit detail-view anatomy** (`d75241e3`): `DetailHeader`, `StatStrip`/`StatCell`, `DetailSection`, and `toneForScore`, so every object detail (opportunity, signal, and future types) reads as one premium, auditable thing in the what-the-user-sees-first order.
+- **System-derived bet designations** (`1a2bce05`): a deterministic `deriveDesignation` naming each ranked bet from a self-explanatory PM vocabulary (best bet / needs validation / quick win / heavy lift / watch this week), one lime pencil wink per screen (the best bet only, the one-wink law), the others as quiet tags in their own ink.
+- **Priority-band + stat + rank + designation polish** (`57ca39da`): the detail priority band recolored to a calm glacier tint (was amber/brown), a compact single-row ICE StatStrip, restrained section-heading accents, and the card rank spotlighted as a plain-language `RankBadge` (glacier, never ember).
+- **Trace refs + timestamps + click-to-open** across Discover/Decide objects (OPP/SIG/THM) via the shared `traceRef()` helper and the trace-ref prefix registry; the id renders subtle, the time a touch more present.
+
+**Canonical reference landed:** the whole system (card anatomy, the DetailKit detail-view anatomy, the trace-ref registry, the ranking + designation logic, and the color + naming conventions, plus the WHY) is consolidated in the new [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md). `DESIGN-LOOM.md` §0.1 dim 17 stays the binding short contract; design-anatomy.md is the long-form reference behind it, now cross-linked from `AGENTS.md` (rule 7), `README.md` (doc map), `CLAUDE.md` / `GEMINI.md` (read-order 1.6), and the conventions + features indexes.
+
+**Verified (this docs pass):** DESIGN-LOOM.md em/en dash total unchanged (23 before and after); no em/en dashes or invisible unicode in the additions; `bun run docs:check` clean; every added link resolves. The code chain above was gate-verified in its own commits (`npx tsc --noEmit` + `bun run build` + `bun test`, only the 3 pre-existing `resolveEmbedRoute` cases failing). Semantic tokens only; ember reserved for the single Capture CTA.
+
 ### 2026-07-07 (DEC-RANK: deterministic opportunity ranking + single best bet)
 
 **Context:** The opportunity queue sorted by `ice_score` alone, which left two equal-score bets in an unstable, engine-dependent order. An agent (and a human) acting on the queue needs a deterministic total order and one unambiguous top priority, never a tie or a coin-flip.

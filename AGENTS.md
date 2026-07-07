@@ -175,7 +175,7 @@ Full skill-selection logic & anti-patterns: [`docs/operations/skills.md`](./docs
 
 ### Visual / tokens
 
-7. **Semantic tokens only.** Hex literals in components are banned. See [`DESIGN.md`](./DESIGN.md).
+7. **Semantic tokens only.** Hex literals in components are banned. See [`DESIGN.md`](./DESIGN.md). Card + detail-view anatomy, the trace-ref registry, and the color + naming conventions (the long-form reference behind the DESIGN-LOOM dim 17 contract): [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md).
 8. **Motion via the canonical motion library; respect `prefers-reduced-motion`.**
 9. **AI message UI contract** — every AI message exposes score, model+via, latency, tokens, cost, citations, feedback, View Trace, Replay-with. See [`DESIGN.md`](./DESIGN.md).
    9a. **Humanized output, zero AI fingerprints (two levels, both mandatory).** No em/en dashes, no invisible Unicode (zero-width, non-breaking space, BOM, soft hyphen), no AI-cliché phrasing in: (1) anything we author (code, docs, UI copy, comments, commit messages, seed data) AND (2) anything the platform generates for a user (PRDs, drafts, chat, research, rationales). The runtime sanitizer at the AI chokepoint (`src/lib/ai/runtime.server.ts`) is the hard gate; the system-prompt directive (`prompts.server.ts`) is the soft one. Applies to every co-dev tool (Claude Code, Lovable, Gemini, Antigravity). See [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md). `ui-voice.md` is its UI-string application.
