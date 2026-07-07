@@ -3955,6 +3955,116 @@ export type Database = {
           },
         ]
       }
+      loop_runs: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          loop_id: string
+          started_at: string
+          status: string
+          summary: string | null
+          tokens: number | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          loop_id: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          tokens?: number | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          loop_id?: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          tokens?: number | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loop_runs_loop_id_fkey"
+            columns: ["loop_id"]
+            isOneToOne: false
+            referencedRelation: "loops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loop_runs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loops: {
+        Row: {
+          cadence: string
+          created_at: string
+          id: string
+          kind: string
+          last_run_at: string | null
+          next_run_at: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          id?: string
+          kind: string
+          last_run_at?: string | null
+          next_run_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          last_run_at?: string | null
+          next_run_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loops_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mcp_connections: {
         Row: {
           calls_today: number
@@ -4705,6 +4815,9 @@ export type Database = {
           contract_migrated_at: string | null
           created_at: string
           critic_review: Json | null
+          design_decided_at: string | null
+          design_decided_by: string | null
+          design_gate_status: string
           github_issue_url: string | null
           id: string
           model: string | null
@@ -4727,6 +4840,9 @@ export type Database = {
           contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
+          design_decided_at?: string | null
+          design_decided_by?: string | null
+          design_gate_status?: string
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -4749,6 +4865,9 @@ export type Database = {
           contract_migrated_at?: string | null
           created_at?: string
           critic_review?: Json | null
+          design_decided_at?: string | null
+          design_decided_by?: string | null
+          design_gate_status?: string
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -7276,6 +7395,7 @@ export type Database = {
           auto_trigger_enabled: boolean
           created_at: string
           deleted_at: string | null
+          design_stage_enabled: boolean
           id: string
           last_auto_cluster_at: string | null
           last_auto_derive_at: string | null
@@ -7303,6 +7423,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           deleted_at?: string | null
+          design_stage_enabled?: boolean
           id?: string
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
@@ -7330,6 +7451,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           deleted_at?: string | null
+          design_stage_enabled?: boolean
           id?: string
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
