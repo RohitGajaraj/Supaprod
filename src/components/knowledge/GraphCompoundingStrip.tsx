@@ -4,13 +4,13 @@
 // (weekly node growth from the already-fetched graph): no new heavy
 // machinery. W3 (Loom): v4 tokens, plain words ("beliefs revised", not
 // supersession jargon), tabular numerals.
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getMemoryCompounding, getMemoryLift } from "@/lib/gauntlet.functions";
 import { getForecastCalibration } from "@/lib/brain-insights.functions";
 import { MonoLabel } from "@/components/obsidian/primitives";
-import { SketchBar } from "@/components/cadence/Sketch";
+import { SketchBarChart } from "@/components/cadence/Sketch";
 import { useWorkspace } from "@/hooks/use-workspace";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
@@ -53,85 +53,19 @@ function Stat({ label, value, sub }: { label: string; value: string; sub: string
 }
 
 /** The weekly-growth read, held to the Infographic Law (DESIGN-LOOM dim 16):
- *  hand-drawn bars, a pencil scale hint, and a readable data point on hover. */
-function GrowthBars({ growth, max }: { growth: number[]; max: number }) {
-  const [hover, setHover] = useState<number | null>(null);
+ *  hand-drawn bars, a pencil scale hint, and a readable data point on hover.
+ *  SketchBarChart keeps the pencil bars and adds peak / floor + a per-bar
+ *  readout (scrub or focus a bar to read that week's count). */
+function GrowthBars({ growth }: { growth: number[] }) {
   return (
     <div style={{ minWidth: 150, flex: 1 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 4,
-          fontFamily: "var(--font-pencil)",
-          fontSize: 12.5,
-          color: "var(--text-subtle)",
-        }}
-      >
-        <span>new beliefs per week, last {WEEKS} weeks</span>
-        <span>peak {max}</span>
-      </div>
-      <div
-        style={{ position: "relative", display: "flex", alignItems: "flex-end", gap: 4, height: 34 }}
-      >
-        {growth.map((count, i) => {
-          const active = hover === i;
-          return (
-            <div
-              key={i}
-              onMouseEnter={() => setHover(i)}
-              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
-              style={{
-                flex: 1,
-                position: "relative",
-                display: "flex",
-                alignItems: "flex-end",
-                cursor: "default",
-                opacity: hover == null || active ? 1 : 0.45,
-                transition: "opacity 160ms var(--ease)",
-              }}
-            >
-              {active ? (
-                <div
-                  role="tooltip"
-                  style={{
-                    position: "absolute",
-                    bottom: "100%",
-                    marginBottom: 6,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    whiteSpace: "nowrap",
-                    zIndex: 5,
-                    fontFamily: "var(--font-pencil)",
-                    fontSize: 13.5,
-                    color: "var(--text-primary)",
-                    background: "var(--surface-raised)",
-                    border: "1px solid var(--hairline-strong)",
-                    borderRadius: 8,
-                    padding: "4px 9px",
-                    boxShadow: "var(--shadow-ambient)",
-                  }}
-                >
-                  {`${count} new, week ${i + 1}`}
-                </div>
-              ) : null}
-              {count > 0 ? (
-                <SketchBar
-                  pct={Math.max(6, (count / max) * 100)}
-                  seed={i + 1}
-                  color="var(--ember)"
-                  trackH={34}
-                />
-              ) : (
-                <div
-                  style={{ width: "100%", height: 2, background: "var(--hairline)", borderRadius: 1 }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+      <SketchBarChart
+        data={growth.map((count, i) => ({ label: `w${i + 1}`, value: count }))}
+        color="var(--cornflower)"
+        formatValue={(v) => String(Math.round(v))}
+        ariaLabel={`New beliefs per week, last ${WEEKS} weeks`}
+        trackH={40}
+      />
     </div>
   );
 }
@@ -166,7 +100,6 @@ export function GraphCompoundingStrip({
   });
 
   const growth = useMemo(() => weeklyGrowth(nodes), [nodes]);
-  const maxGrowth = Math.max(1, ...growth);
 
   const mem = memQ.data;
   const lift = liftQ.data;
@@ -208,7 +141,7 @@ export function GraphCompoundingStrip({
         <Stat label="lift" value={liftValue} sub={liftSub} />
         <Stat label="beliefs revised" value={String(beliefsRevised)} sub="in this view" />
         <Stat label="prediction hit rate" value={predValue} sub={predSub} />
-        <GrowthBars growth={growth} max={maxGrowth} />
+        <GrowthBars growth={growth} />
       </div>
     </div>
   );

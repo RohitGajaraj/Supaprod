@@ -14,80 +14,13 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart2, Link2, RefreshCw, Loader2, CheckCircle, X } from "lucide-react";
-import { SketchBar } from "@/components/cadence/Sketch";
+import { GraphSlider } from "@/components/obsidian";
 import {
   getProductAnalytics,
   linkOpportunityEvent,
   autoAdjustIceForOpportunity,
   runAnalyticsIngest,
 } from "@/lib/product-analytics.functions";
-
-/** Simple inline sparkline — no recharts dependency for a small number of bars. */
-function Sparkline({ data }: { data: { cohort_date: string; distinct_users: number }[] }) {
-  const [hover, setHover] = useState<number | null>(null);
-  if (!data.length) return null;
-  const max = Math.max(...data.map((d) => d.distinct_users), 1);
-  return (
-    <div className="mt-2">
-      <div
-        className="flex justify-between items-baseline mb-1"
-        style={{ fontFamily: "var(--font-pencil)", fontSize: 12.5, color: "var(--text-subtle)" }}
-      >
-        <span>daily active users</span>
-        <span>peak {max}</span>
-      </div>
-      <div className="relative flex items-end gap-0.5" style={{ height: 48 }}>
-        {data.map((d, i) => {
-          const active = hover === i;
-          return (
-            <div
-              key={d.cohort_date}
-              onMouseEnter={() => setHover(i)}
-              onMouseLeave={() => setHover((h) => (h === i ? null : h))}
-              className="flex-1 relative flex items-end"
-              style={{
-                cursor: "default",
-                opacity: hover == null || active ? 1 : 0.45,
-                transition: "opacity 160ms var(--ease)",
-              }}
-            >
-              {active ? (
-                <div
-                  role="tooltip"
-                  style={{
-                    position: "absolute",
-                    bottom: "100%",
-                    marginBottom: 6,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    whiteSpace: "nowrap",
-                    zIndex: 5,
-                    fontFamily: "var(--font-pencil)",
-                    fontSize: 13.5,
-                    color: "var(--text-primary)",
-                    background: "var(--surface-raised)",
-                    border: "1px solid var(--hairline-strong)",
-                    borderRadius: 8,
-                    padding: "4px 9px",
-                    boxShadow: "var(--shadow-ambient)",
-                  }}
-                >
-                  {`${d.distinct_users} user${d.distinct_users === 1 ? "" : "s"}, ${when(d.cohort_date)}`}
-                </div>
-              ) : null}
-              <SketchBar
-                pct={Math.max(4, (d.distinct_users / max) * 100)}
-                seed={i + 1}
-                color="var(--ember)"
-                trackH={48}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function when(iso: string) {
   const d = new Date(iso);
@@ -252,7 +185,16 @@ export function ProductAnalyticsPanel({
               <span>30-day distinct users</span>
               <span className="font-semibold text-slate-700">{totalUsers} total</span>
             </div>
-            <Sparkline data={d.cohort} />
+            <div className="mt-2">
+              <GraphSlider
+                data={d.cohort.map((c) => c.distinct_users)}
+                labels={d.cohort.map((c) => when(c.cohort_date))}
+                h={120}
+                color="var(--flamingo)"
+                formatValue={(v) => String(Math.round(v))}
+                ariaLabel="Daily active users, last 30 days"
+              />
+            </div>
             {latestDay && (
               <div className="text-[10px] text-slate-400 mt-1 text-right">
                 Latest: {latestDay.distinct_users} users on {latestDay.cohort_date}

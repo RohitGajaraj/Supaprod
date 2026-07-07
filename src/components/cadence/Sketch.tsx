@@ -219,7 +219,7 @@ export interface SketchBarDatum {
   value: number;
 }
 
-/* SketchBarChart — the pencil bar row made interpretable + interactive
+/* SketchBarChart: the pencil bar row made interpretable + interactive
    (founder ruling 2026-07-07). Keeps the hand-drawn SketchBar aesthetic, but
    now every bar chart answers the questions a bare bar row could not: what is
    the peak (top number), what is the floor (bottom number), what is it

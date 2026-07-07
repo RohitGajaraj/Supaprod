@@ -27,7 +27,7 @@ import {
 } from "@/lib/analytics.functions";
 import { getBudgetSummary } from "@/lib/budgets.functions";
 import { MonoLabel, SubTabs, VerdictChip } from "@/components/cadence/Primitives";
-import { SketchBar } from "@/components/cadence/Sketch";
+import { SketchBarChart } from "@/components/cadence/Sketch";
 import { relTime } from "@/components/product/format";
 
 function fmtUsd(n: number) {
@@ -125,7 +125,6 @@ export function AnalyticsPanel() {
   const daily = overview.data?.daily ?? [];
   const ue = unitQ.data;
   const totalCost = s?.totalCost ?? 0;
-  const maxRuns = Math.max(...daily.map((d) => d.runs), 1);
   // "of $X cap" is only honest where a real cap covers the window: ai_budgets
   // daily_usd_cap for 24h, monthly_usd_cap for 30d — and only when set. No
   // weekly/quarterly cap concept exists, so 7d/90d keep the runs · errors line.
@@ -402,32 +401,14 @@ export function AnalyticsPanel() {
           {daily.length > 0 ? (
             <div className="bento" style={{ gridColumn: "span 3", padding: "var(--card-pad)" }}>
               <MonoLabel style={{ marginBottom: 12 }}>Daily activity · runs</MonoLabel>
-              {/* Bars render hand-sketched (SketchBar, founder directive
-                  2026-06-12) on a fixed 72px track; the date labels sit below
-                  the track so nothing escapes the card. */}
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
-                {daily.map((d, i) => (
-                  <div
-                    key={d.day}
-                    title={`${d.runs} runs · ${fmtUsd(d.cost)}`}
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 4,
-                    }}
-                  >
-                    <SketchBar pct={Math.max(4, (d.runs / maxRuns) * 100)} seed={i + 1} />
-                    <span
-                      className="mono-label tabular-nums"
-                      style={{ fontSize: 8, textAlign: "center" }}
-                    >
-                      {d.day.slice(5)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {/* Interactive pencil bar chart (SketchBarChart): scrub or focus a
+                  bar to read that day's runs; peak and floor are always shown. */}
+              <SketchBarChart
+                data={daily.map((d) => ({ label: d.day.slice(5), value: d.runs }))}
+                color="var(--teal)"
+                formatValue={(v) => String(Math.round(v))}
+                ariaLabel="Agent runs per day"
+              />
             </div>
           ) : null}
         </div>
