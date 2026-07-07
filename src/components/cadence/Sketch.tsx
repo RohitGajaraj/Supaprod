@@ -226,6 +226,36 @@ export interface SketchBarDatum {
   value: number;
 }
 
+function capFirst(s: string): string {
+  return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
+}
+
+/* barInsight: a short, honest, plain-language takeaway derived from a bar
+   series, for humans AND agents (it also rides the chart's aria-label so an
+   agent reading the accessible tree gets the read, not just the raw bars).
+   Real numbers only: the direction + magnitude of the change across the
+   window, and where the peak sits. No fabrication, no claim the data does not
+   support. */
+export function barInsight(data: SketchBarDatum[], fmt: (v: number) => string): string {
+  if (data.length === 0) return "";
+  if (data.length === 1) return `One reading: ${fmt(data[0]!.value)} (${data[0]!.label}).`;
+  const first = data[0]!;
+  const last = data[data.length - 1]!;
+  const peak = data.reduce((a, b) => (b.value > a.value ? b : a), first);
+  const delta = last.value - first.value;
+  const base = Math.abs(first.value);
+  const pct = base > 0 ? Math.round((delta / base) * 100) : null;
+  const flat = delta === 0 || (pct != null && Math.abs(pct) < 5);
+  if (flat) {
+    return `About flat across the window; peak ${fmt(peak.value)} on ${peak.label}.`;
+  }
+  const dir =
+    pct != null
+      ? `${pct > 0 ? "up" : "down"} ${Math.abs(pct)}%`
+      : `${delta > 0 ? "up" : "down"} to ${fmt(last.value)}`;
+  return `${capFirst(dir)} since ${first.label}; peak ${fmt(peak.value)} on ${peak.label}.`;
+}
+
 /* SketchBarChart: the pencil bar chart, interactive and interpretable
    (founder ruling 2026-07-07, restored as the app bar-chart standard). Keeps
    the hand-drawn SketchBar aesthetic (this is the warm, human look the founder
@@ -244,6 +274,8 @@ export function SketchBarChart({
   baselineLabel,
   ariaLabel,
   trackH = 88,
+  insight,
+  showInsight = true,
 }: {
   data: SketchBarDatum[];
   color?: string;
@@ -253,6 +285,10 @@ export function SketchBarChart({
   baselineLabel?: string;
   ariaLabel?: string;
   trackH?: number;
+  /** Override the auto-derived plain-language takeaway with a domain-specific one. */
+  insight?: string;
+  /** Off only for a decorative sparkline with no room for a takeaway line. */
+  showInsight?: boolean;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   if (data.length === 0) return null;
@@ -261,9 +297,30 @@ export function SketchBarChart({
   const active = data[activeIdx]!;
   const baselinePct =
     baseline != null && baseline > 0 ? Math.min(100, (baseline / max) * 100) : null;
+  // The insight (founder ruling 2026-07-07): not just the data points, a
+  // plain-language read of them, for humans AND agents. Auto-derived from the
+  // real series unless the caller passes a domain-specific one; it also rides
+  // the group aria-label below so an agent reads the takeaway, not just bars.
+  const insightText = showInsight ? (insight ?? barInsight(data, formatValue)) : "";
 
   return (
-    <div role="group" aria-label={ariaLabel ?? "Bar chart"}>
+    <div
+      role="group"
+      aria-label={`${ariaLabel ?? "Bar chart"}${insightText ? `. ${insightText}` : ""}`}
+    >
+      {insightText ? (
+        <div
+          style={{
+            fontFamily: "var(--font-pencil)",
+            fontSize: 15,
+            color: "var(--text-body)",
+            lineHeight: 1.3,
+            marginBottom: 8,
+          }}
+        >
+          {insightText}
+        </div>
+      ) : null}
       {/* Top axis: the active bar's readout + the peak it is measured against,
           in the pencil hand (Caveat). */}
       <div

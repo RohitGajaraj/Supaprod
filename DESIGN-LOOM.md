@@ -241,7 +241,7 @@ is what keeps the product feeling made by a person, not generated.
 > EVERY screen, EVERY layer, apply without being asked).** Any data
 > visualization anywhere in the product (bar chart, line/sparkline, trend,
 > timeline, distribution, gauge, the Brain "Graph" tab, Engine Room room charts,
-> Today, Discover, Plan, admin) MUST satisfy all four, by default, going
+> Today, Discover, Plan, admin) MUST satisfy all five, by default, going
 > forward. Do not wait to be pointed at each chart; when you build or touch a
 > chart, bring it to this bar.
 >
@@ -266,6 +266,13 @@ is what keeps the product feeling made by a person, not generated.
 >    score/quality `--teal`, decisions/counts `--cornflower`, user behavior
 >    `--flamingo`); the role colors (ember, glacier, moss, madder) are reserved
 >    for state and voice, with at most one ember "needs a human" point per chart.
+> 5. **Surface an insight, not just the data (2026-07-07).** A chart shows a
+>    plain-language takeaway, not only the points: the bar chart
+>    (`SketchBarChart`) renders an auto-derived read (direction, magnitude, and
+>    where the peak sits) in the pencil hand, and carries it in the chart's
+>    aria-label so an agent reading the accessible tree gets the read too. A
+>    caller may pass a domain-specific `insight` to override the auto one. Real
+>    numbers only, never a claim the data does not support.
 >
 > The reference implementations are `GraphSlider` (Spend "Over time", Quality
 > "Right now") and `SketchBarChart` (Analytics runs, Brain timeline); copy that

@@ -234,6 +234,8 @@ Alongside the naming, each room leads with an **interpretive layer**: the honest
 
 Every chart takes a `formatValue` (so a number reads as `$4.20`, `72`, or `18%`, never a bare float), an `ariaLabel`, and a `baseline` (plus `baselineLabel`) when the data has a gate, target, or prior. Real data only: a sparse or absent series renders an honest empty state, never an invented curve.
 
+**Every chart surfaces an insight, not just the data (founder ruling 2026-07-07).** A chart is a read, not a wall of bars. The bar chart (`SketchBarChart`) auto-derives a plain-language takeaway via `barInsight` (direction, magnitude, and where the peak sits) and renders it in the pencil hand above the bars, and it rides the chart's `aria-label` so an agent reading the accessible tree gets the same read, not just the raw bars. A caller may pass an `insight` prop to override with a domain-specific takeaway. Honest numbers only, never a claim the data does not support. Trends (`GraphSlider`) convey their read through the trend shape, the peak/low markers, and the scrub readout.
+
 ---
 
 ## 8. Applying this to a new (or retrofitted) surface
