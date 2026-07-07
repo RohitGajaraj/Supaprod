@@ -1,4 +1,4 @@
-# Mission: Ship-Week Full Closure (the Fable goal)
+# Mission: Ship-Week Full Closure (the Fable goal) -- Treat this as an reference document only., what you haev to do will from your goal prompt ultimately. 
 
 > _Created: 2026-07-07 · Owner: founder · Executor: the next Fable session (and its swarm)_
 >
