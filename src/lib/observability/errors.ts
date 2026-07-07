@@ -1,5 +1,9 @@
 /**
  * AFD-05: Error capture façade (Sentry EU when keyed, no-op otherwise).
+ * SW-6 (mission 3.12): plus the always-on in-house floor. `recordErrorEvent`
+ * writes every capture to the `error_events` table (service-role, vendor-free,
+ * works with zero keys and the gate off) so the founder can always see server
+ * failures; the Sentry envelope send stays key-gated on top.
  *
  * Uses Sentry's "envelope" HTTP API directly so we don't pull a heavyweight SDK
  * into the Cloudflare Worker bundle (TanStack Start ships to Workers). Vendor
@@ -12,12 +16,100 @@ export type ErrorContext = {
   workspace_id?: string;
   surface?: string;
   failure_kind?: string;
+  request_path?: string;
+  request_method?: string;
   extras?: Record<string, unknown>;
   tags?: Record<string, string>;
 };
 
-/** Capture an exception. Fire-and-forget. Never throws. */
+const MESSAGE_CAP = 2_000;
+const STACK_CAP = 8_000;
+const PATH_CAP = 500;
+
+// Per-isolate storm guard: an error loop (or a stranger hammering a broken
+// route) must not turn the floor into a write amplifier. Coarse on purpose;
+// each Worker isolate gets its own window.
+const STORM_WINDOW_MS = 60_000;
+const STORM_MAX_WRITES = 40;
+let stormWindowStart = 0;
+let stormWrites = 0;
+
+function underStormLimit(now: number): boolean {
+  if (now - stormWindowStart > STORM_WINDOW_MS) {
+    stormWindowStart = now;
+    stormWrites = 0;
+  }
+  stormWrites += 1;
+  return stormWrites <= STORM_MAX_WRITES;
+}
+
+/** Test-only reset for the per-isolate storm window. */
+export function resetErrorStormGuardForTests(): void {
+  stormWindowStart = 0;
+  stormWrites = 0;
+}
+
+// The generated Database types lag new tables until the next regeneration,
+// so the insert goes through a narrow structural cast (the stage_events /
+// SeedClient precedent) and call sites stay clean.
+interface ErrorEventsClient {
+  from(table: string): {
+    insert(values: Record<string, unknown>): PromiseLike<{ error: { message: string } | null }>;
+  };
+}
+
+/**
+ * SW-6 floor: persist an error to the in-house `error_events` store.
+ * Always on (no env key, no gate), never throws, storm-guarded per isolate.
+ * `opts.client` is test-injectable (the recordStageEvent precedent); the
+ * production path lazy-imports the admin client to stay client-bundle-safe.
+ */
+export async function recordErrorEvent(
+  err: unknown,
+  ctx: ErrorContext = {},
+  opts: { client?: unknown } = {},
+): Promise<boolean> {
+  if (!underStormLimit(Date.now())) return false;
+  try {
+    const client =
+      opts.client ?? (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+    const errObj = err instanceof Error ? err : new Error(String(err));
+    const env = (typeof process !== "undefined" ? process.env : {}) as Record<
+      string,
+      string | undefined
+    >;
+    const { error } = await (client as ErrorEventsClient)
+      .from("error_events")
+      .insert({
+        surface: (ctx.surface ?? "unknown").slice(0, 200),
+        error_kind: (errObj.name || "Error").slice(0, 200),
+        error_message: (errObj.message ?? "").slice(0, MESSAGE_CAP),
+        stack: errObj.stack ? errObj.stack.slice(0, STACK_CAP) : null,
+        request_path: ctx.request_path ? ctx.request_path.slice(0, PATH_CAP) : null,
+        request_method: ctx.request_method ?? null,
+        user_id: ctx.user_id ?? null,
+        workspace_id: ctx.workspace_id ?? null,
+        deployment_id: env.CF_VERSION_METADATA_ID?.trim() || null,
+        extras: ctx.extras ?? null,
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Capture an exception. Fire-and-forget. Never throws.
+ * Writes the in-house floor first (always), then the vendor envelope (gated).
+ */
 export async function captureError(err: unknown, ctx: ErrorContext = {}): Promise<boolean> {
+  const recorded = await recordErrorEvent(err, ctx);
+  const sent = await sendSentryEnvelope(err, ctx);
+  return recorded || sent;
+}
+
+/** Vendor half: Sentry envelope, key-gated and founder-gated (AFD-05 behavior). */
+async function sendSentryEnvelope(err: unknown, ctx: ErrorContext = {}): Promise<boolean> {
   const cfg = readObservabilityConfig();
   if (!cfg.sentry.enabled) return false;
   if (!(await observabilityGateOn())) return false;

@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { readObservabilityConfig } from "@/lib/observability/config";
+import { EXPECTED_JOBS } from "@/lib/observability/jobs";
 
 export type ObservabilityStatus = {
   gateEnabled: boolean;
@@ -27,6 +28,14 @@ export type ObservabilityStatus = {
     error_message: string | null;
   }>;
   failureBreakdown: Array<{ failure_kind: string; count: number }>;
+  /** SW-6 cron watchdog: expected-vs-actual per job, stale first. */
+  cronHealth: Array<{
+    job: string;
+    cadence: string;
+    lastRunAt: string | null;
+    ageMinutes: number | null;
+    stale: boolean;
+  }>;
 };
 
 // AFD-12: Moat metric types for the 3 materialized views ──────────────────────
@@ -96,6 +105,33 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
       counts.set(k, (counts.get(k) ?? 0) + 1);
     }
 
+    // SW-6 cron watchdog: expected-vs-actual. One indexed 1-row read per
+    // expected job (job_runs_job_started_idx), in parallel — a job with no
+    // run at all, or a run older than its staleness budget, is STALE. This is
+    // the "silent non-ticking must not recur" surface the mission demands.
+    const nowMs = Date.now();
+    const cronHealth = await Promise.all(
+      EXPECTED_JOBS.map(async (exp) => {
+        const { data: last } = await supabaseAdmin
+          .from("job_runs")
+          .select("started_at")
+          .eq("job_name", exp.job)
+          .order("started_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const lastRunAt = (last as { started_at?: string } | null)?.started_at ?? null;
+        const ageMs = lastRunAt ? nowMs - Date.parse(lastRunAt) : null;
+        return {
+          job: exp.job,
+          cadence: exp.cadence,
+          lastRunAt,
+          ageMinutes: ageMs === null ? null : Math.round(ageMs / 60_000),
+          stale: ageMs === null || ageMs > exp.staleAfterMs,
+        };
+      }),
+    );
+    cronHealth.sort((a, b) => Number(b.stale) - Number(a.stale));
+
     const cfg = readObservabilityConfig();
     return {
       gateEnabled: Boolean(gate),
@@ -108,6 +144,7 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
       failureBreakdown: Array.from(counts.entries())
         .map(([failure_kind, count]) => ({ failure_kind, count }))
         .sort((a, b) => b.count - a.count),
+      cronHealth,
     };
   });
 
@@ -167,3 +204,54 @@ export const getMoatMetrics = createServerFn({ method: "GET" })
       agentCost: (cost.data ?? []) as AgentCostRow[],
     };
   });
+
+// ─── SW-6: failure-detection floor — the founder's error read path ───────────
+
+export type ErrorEventRow = {
+  id: number;
+  occurred_at: string;
+  surface: string;
+  error_kind: string | null;
+  error_message: string | null;
+  stack: string | null;
+  request_path: string | null;
+  request_method: string | null;
+  user_id: string | null;
+  workspace_id: string | null;
+  deployment_id: string | null;
+};
+
+/**
+ * SW-6 (mission 3.12): list captured server errors from the in-house
+ * error_events store, newest first. This is the "store the founder can read"
+ * half of the failure floor; writes happen in src/lib/observability/errors.ts.
+ * Admin gate mirrors getObservabilityStatus (user_roles RLS check); the table
+ * itself is also RLS-guarded to has_role('admin') for direct reads.
+ */
+export const listErrorEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { limit?: number; surface?: string } | undefined) => d ?? {})
+  .handler(
+    async ({ context, data }): Promise<{ events: ErrorEventRow[] } | { error: string }> => {
+      const { data: adminRole } = await context.supabase
+        .from("user_roles")
+        .select("role")
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!adminRole) return { error: "Forbidden" };
+
+      const limit = Math.min(Math.max(data.limit ?? 100, 1), 500);
+      let query = supabaseAdmin
+        .from("error_events" as never)
+        .select(
+          "id, occurred_at, surface, error_kind, error_message, stack, request_path, request_method, user_id, workspace_id, deployment_id",
+        )
+        .order("occurred_at", { ascending: false })
+        .limit(limit);
+      if (data.surface) query = query.eq("surface", data.surface);
+
+      const { data: rows, error } = await query;
+      if (error) return { error: error.message };
+      return { events: (rows ?? []) as unknown as ErrorEventRow[] };
+    },
+  );

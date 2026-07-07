@@ -103,6 +103,7 @@ import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authent
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksUptimeTickRouteImport } from './routes/api/public/hooks/uptime-tick'
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
 import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/public/hooks/steward-tick'
 import { Route as ApiPublicHooksSenseTickRouteImport } from './routes/api/public/hooks/sense-tick'
@@ -631,6 +632,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksUptimeTickRoute =
+  ApiPublicHooksUptimeTickRouteImport.update({
+    id: '/api/public/hooks/uptime-tick',
+    path: '/api/public/hooks/uptime-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTriggerTickRoute =
   ApiPublicHooksTriggerTickRouteImport.update({
     id: '/api/public/hooks/trigger-tick',
@@ -963,6 +970,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
+  '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
@@ -1091,6 +1099,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
+  '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
@@ -1224,6 +1233,7 @@ export interface FileRoutesById {
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
+  '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
@@ -1357,6 +1367,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
+    | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
@@ -1485,6 +1496,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
+    | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
@@ -1617,6 +1629,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
+    | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
@@ -1681,6 +1694,7 @@ export interface RootRouteChildren {
   ApiPublicHooksSenseTickRoute: typeof ApiPublicHooksSenseTickRoute
   ApiPublicHooksStewardTickRoute: typeof ApiPublicHooksStewardTickRoute
   ApiPublicHooksTriggerTickRoute: typeof ApiPublicHooksTriggerTickRoute
+  ApiPublicHooksUptimeTickRoute: typeof ApiPublicHooksUptimeTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicA2aMessageSendRoute: typeof ApiPublicA2aMessageSendRoute
   ApiPublicA2aMessageStreamRoute: typeof ApiPublicA2aMessageStreamRoute
@@ -2348,6 +2362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/uptime-tick': {
+      id: '/api/public/hooks/uptime-tick'
+      path: '/api/public/hooks/uptime-tick'
+      fullPath: '/api/public/hooks/uptime-tick'
+      preLoaderRoute: typeof ApiPublicHooksUptimeTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/trigger-tick': {
       id: '/api/public/hooks/trigger-tick'
       path: '/api/public/hooks/trigger-tick'
@@ -2857,6 +2878,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksSenseTickRoute: ApiPublicHooksSenseTickRoute,
   ApiPublicHooksStewardTickRoute: ApiPublicHooksStewardTickRoute,
   ApiPublicHooksTriggerTickRoute: ApiPublicHooksTriggerTickRoute,
+  ApiPublicHooksUptimeTickRoute: ApiPublicHooksUptimeTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicA2aMessageSendRoute: ApiPublicA2aMessageSendRoute,
   ApiPublicA2aMessageStreamRoute: ApiPublicA2aMessageStreamRoute,

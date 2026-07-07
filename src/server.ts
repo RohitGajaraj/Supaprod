@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { captureError } from "./lib/observability/errors";
 import { renderErrorPage } from "./lib/error-page";
 import {
   buildAgentCard,
@@ -74,9 +75,42 @@ function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boole
   );
 }
 
+// SW-6 failure floor: persist a server error to the in-house error_events
+// store (plus Sentry when keyed). On Workers a promise left dangling after the
+// response returns can be cancelled, so the write is handed to ctx.waitUntil
+// when available; the fire-and-forget fallback covers non-Workers runtimes.
+type WorkersCtx = { waitUntil?: (promise: Promise<unknown>) => void };
+
+function persistServerError(
+  error: unknown,
+  request: Request,
+  ctx: unknown,
+  surface: string,
+): void {
+  try {
+    const url = new URL(request.url);
+    const write = captureError(error, {
+      surface,
+      failure_kind: "unhandled",
+      request_path: url.pathname,
+      request_method: request.method,
+    });
+    const waitUntil = (ctx as WorkersCtx | null | undefined)?.waitUntil;
+    if (typeof waitUntil === "function") {
+      waitUntil.call(ctx, write);
+    }
+  } catch {
+    // The floor must never break the error path it observes.
+  }
+}
+
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
+async function normalizeCatastrophicSsrResponse(
+  response: Response,
+  request: Request,
+  ctx: unknown,
+): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
@@ -86,7 +120,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
+  const error = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
+  console.error(error);
+  persistServerError(error, request, ctx, "ssr");
   return brandedErrorResponse();
 }
 
@@ -148,9 +184,10 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withAgentDiscoveryLink(await normalizeCatastrophicSsrResponse(response));
+      return withAgentDiscoveryLink(await normalizeCatastrophicSsrResponse(response, request, ctx));
     } catch (error) {
       console.error(error);
+      persistServerError(error, request, ctx, "worker");
       return brandedErrorResponse();
     }
   },

@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assembleHealth, type CheckState } from "@/lib/app-health";
+import {
+  assembleHealth,
+  evaluateCronPulse,
+  CRON_PULSE_JOB,
+  type CheckState,
+} from "@/lib/app-health";
 
 /**
  * APP-HEALTH - public app-level health/readiness endpoint (considerations.md SRE lens P0).
@@ -32,12 +37,46 @@ async function probeDatabase(): Promise<CheckState> {
   }
 }
 
+/**
+ * SW-6 failure floor: is the cron scheduler alive? Reads the latest run of the
+ * minutely pulse job from the job_runs ledger (indexed job_name+started_at
+ * read, 1 row) and applies the pure staleness policy. Timeout-bounded like the
+ * DB probe; leaks nothing beyond ok/error.
+ */
+async function probeCronPulse(): Promise<CheckState> {
+  try {
+    const probe = (supabaseAdmin as unknown as SupabaseClient)
+      .from("job_runs")
+      .select("started_at")
+      .eq("job_name", CRON_PULSE_JOB)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const timeout = new Promise<{ error: unknown }>((resolve) =>
+      setTimeout(() => resolve({ error: new Error("timeout") }), DB_PROBE_TIMEOUT_MS),
+    );
+    const result = (await Promise.race([probe, timeout])) as {
+      error: unknown;
+      data?: { started_at?: string | null } | null;
+    };
+    if (result.error) return "error";
+    return evaluateCronPulse(result.data?.started_at ?? null, Date.now());
+  } catch {
+    return "error";
+  }
+}
+
 export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async () => {
-        const database = await probeDatabase();
-        const { body, httpStatus } = assembleHealth({ database }, new Date().toISOString());
+        const [database, crons] = await Promise.all([probeDatabase(), probeCronPulse()]);
+        const release = process.env.CF_VERSION_METADATA_ID?.trim() || null;
+        const { body, httpStatus } = assembleHealth(
+          { database, crons },
+          new Date().toISOString(),
+          release,
+        );
         return new Response(JSON.stringify(body), {
           status: httpStatus,
           headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
