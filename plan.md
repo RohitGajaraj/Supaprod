@@ -283,6 +283,16 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (SW-5 deliverable A — Today's four-lane content model, functional; lane 3 / goal session)
+
+**Context:** SW-5 "platform truth" (mission 3.11) re-cuts Today into four segregated lanes to answer the founder's "data dump ... not properly segregated" verdict. A prior MVP (`13b43493`) left `today-lanes.functions.ts` as dead code: it threw for every caller (workspace resolved via a nonexistent `profiles.default_workspace_id`), lanes 1 & 3 were empty stubs, lane 4 selected a nonexistent `learnings.subject` column with a wrong verdict enum and `$0` fake cost, and nothing rendered it.
+
+**What shipped (deliverable A):**
+- **Functional four-lane data layer** (`src/lib/today-lanes.functions.ts`, rewritten): workspace via the `current_user_default_workspace` RPC (degrades to empty lanes, never throws). Lane 1 = pushed Brain insights (`insights` kind `next_best_action`/`hidden_connection`). Lane 2 = `stage_events` grouped by the mission that moved (real goal/title) with per-mission spend (`agent_runs.spend_used_usd`). Lane 3 = open foresight + calibration misses (`insights.resolution='miss'`) + open `assumption_challenges`. Lane 4 = `learnings` outcomes with the real verdict enum (`validated/missed/mixed`) and real per-mission cost + an average reconciled to week spend, never fabricated.
+- **Render** (`src/components/today/TodayLanes.tsx` + `_authenticated.today.tsx`): four labelled lane sections, Lane 1 the only ember; the free-standing `WhatChanged`/`MachineNow` folded into lanes 4/2 so Today is one four-lane model, not old surfaces plus lanes. Decision mutations invalidate `today-lanes` so the lanes refresh in place.
+- **Tests:** `today-lanes.test.ts` — 13 unit tests over the pure mappers (verdict map, insight→watch, mission grouping, Lane-4 assembly incl. no-fabricated-cost + no divide-by-zero).
+- **Gate:** tsc 0; `bun run build` ok (Node 20.20.2 — the config loader needs Node 20.19–21.x locally); `today-lanes` tests 13/13; full suite 2552 pass, 0 new failures (10 pre-existing fails + 5 errors are the MVP's test-coverage batch importing nonexistent exports — MessageMeta/ResearchActivity/aurora/use-workspace/use-density/changesetColor — plus the known Supabase-env fail; none touch SW-5). Feature doc: [`docs/features/today.md`](./docs/features/today.md) § "SW-5: the four-lane content model". Deliverables B (Trust Ledger unbroken chain) + C (GitHub connector boundary) follow under the same SW-5 claim.
+
 ### 2026-07-07 (Engine Room deep redesign, founder-directed: plain-outcome naming with a technical trace beneath + interpretive chassis + the white-dropdown fix)
 
 **Context:** founder review found the overnight Engine Room pass was a token-level reskin, not a rethink: stray white dropdowns, terse machine-jargon sub-tabs (SUITES / DRIFT / PROOF), and no interpretive "thought process" on click. Founder ruling: keep plain-outcome language on the surface but leave the technical term underneath, subtly, so a PM and an engineer are both served; apply the real design language (data-palette charts, messaging, descriptors), not a reskin.

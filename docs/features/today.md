@@ -10,6 +10,17 @@ Today is the landing surface: the operator's daily ritual of "what needs my judg
 
 Every Call and every learning is now a first-class, auditable object (dim 17): a single click opens its own detail (assembled from the shared DetailKit), and each carries its registered trace ref, its timestamps, a status pill, provenance that links back up the loop, and the same decide-in-place actions.
 
+## SW-5: the four-lane content model (mission 3.11, 2026-07-07)
+
+The founder's verdict on the old surface was "a data dump ... not properly segregated." SW-5 re-cuts Today's content into **exactly four segregated lanes**, each computed and grouped from real rows — an information-architecture change, not a restyle. Per the Obsidian contract, **Lane 1 is the only ember lane**; lanes 2-4 speak the calm glacier machine voice.
+
+1. **Needs your judgment** (the only ember lane) — the approval/spec/opportunity/assumption gates (the proven `getNeedsYou` triage, unchanged) **plus pushed Brain insights** (`insights` rows of kind `next_best_action`/`hidden_connection`, status `open`, top-scored). One-click actions on the gates; a pushed insight opens in Brain.
+2. **What the swarm did** — recent `stage_events` (last 24h) **grouped by the mission that moved** (goal + title), each group carrying its real spend (`agent_runs.spend_used_usd` summed by `mission_id`). Non-mission transitions fold under one "Other activity" group. Clicking a mission group opens it in Build.
+3. **At risk / watch** — open foresight (`insights` kind `prediction`/`risk`/`cost_of_inaction`, no resolution), calibration misses (`insights.resolution = 'miss'`), and live assumption challenges (`assumption_challenges` status `open`).
+4. **Shipped and what it cost** — closed outcomes (`learnings` with a verdict), verdict mapped from the real enum (`validated`→achieved, `missed`→missed, `mixed`→partial), each with its per-mission spend and an average cost-per-outcome (reconciled to the workspace week spend, never fabricated).
+
+Data layer: `src/lib/today-lanes.functions.ts` (`getTodayLanes`, workspace-scoped via the `current_user_default_workspace` RPC, degrades to empty lanes rather than throwing). Render: `src/components/today/TodayLanes.tsx` + the four lane sections in `src/routes/_authenticated.today.tsx`. Pure mappers (verdict, insight→watch, mission grouping, Lane-4 assembly) are unit-tested in `today-lanes.test.ts`. The old free-standing `WhatChanged` and `MachineNow` surfaces are folded into lanes 4 and 2 respectively so Today shows one four-lane model, not the old surfaces plus lanes.
+
 ## Why it exists
 
 Today is the felt product for the senior PM: it collapses "15 tools, human as glue" into one place where the loop brings you only the few calls that genuinely need you and shows its own work. It is the second half of the Today mandate (what needs me + what the loop did while I was away). Build log: [`../../plan.md`](../../plan.md) §4 (OBS-04 ritual; Loom W2-TODAY triage; the 2026-07-07 dim 17 pass).

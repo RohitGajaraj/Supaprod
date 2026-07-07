@@ -8,8 +8,13 @@ import { Button } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { Hero } from "@/components/obsidian/today/Hero";
 import { LoopStrip, type LoopSurface } from "@/components/obsidian/today/LoopStrip";
-import { WhatChanged, type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
-import { MachineNow, type MachineNowRow } from "@/components/obsidian/today/MachineNow";
+import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
+import {
+  SwarmActivityLane,
+  WatchLane,
+  ShippedLane,
+  PushedInsights,
+} from "@/components/today/TodayLanes";
 import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
 import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
 import {
@@ -27,6 +32,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
 import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
+import { getTodayLanes } from "@/lib/today-lanes.functions";
 import { resolveApproval } from "@/lib/governance.functions";
 import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
@@ -327,6 +333,7 @@ function Dashboard() {
   const fetchAcceptance = useServerFn(getAcceptanceRate);
   const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
+  const fetchLanes = useServerFn(getTodayLanes);
   const mResolveApproval = useServerFn(resolveApproval);
   const mSnoozeApproval = useServerFn(snoozeApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
@@ -341,6 +348,9 @@ function Dashboard() {
   const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fetchLearnings() });
   const runs = useQuery({ queryKey: ["runs"], queryFn: () => fetchRuns() });
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: () => fetchDashboard() });
+  // SW-5: the four-lane content model (Needs your judgment · What the swarm did ·
+  // At risk/watch · Shipped and what it cost), each computed from real rows.
+  const lanes = useQuery({ queryKey: ["today-lanes"], queryFn: () => fetchLanes() });
   const acceptance = useQuery({
     queryKey: ["acceptance", 14],
     queryFn: () => fetchAcceptance({ data: { days: 14 } }),
@@ -419,6 +429,7 @@ function Dashboard() {
         "learnings",
         "dashboard",
         "studio-sessions",
+        "today-lanes",
       ]) {
         qc.invalidateQueries({ queryKey: [key] });
       }
@@ -467,7 +478,7 @@ function Dashboard() {
     mutationFn: (v: { id: string; ok: boolean }) =>
       mSavePrd({ data: { id: v.id, status: v.ok ? "approved" : "draft" } }),
     onSuccess: (_res, vars) => {
-      for (const key of ["needs-you", "prds", "specs", "dashboard", "decisions"]) {
+      for (const key of ["needs-you", "prds", "specs", "dashboard", "decisions", "today-lanes"]) {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
@@ -482,7 +493,7 @@ function Dashboard() {
     mutationFn: (v: { id: string; ok: boolean }) =>
       mUpdateOpp({ data: { id: v.id, status: v.ok ? "now" : "dropped" } }),
     onSuccess: (_res, vars) => {
-      for (const key of ["needs-you", "opportunities"]) {
+      for (const key of ["needs-you", "opportunities", "today-lanes"]) {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
@@ -499,7 +510,8 @@ function Dashboard() {
     mutationFn: (data: { id: string; action: "confirm" | "dismiss" }) =>
       mResolveChallenge({ data }),
     onSuccess: (_res, vars) => {
-      for (const key of ["needs-you", "decisions"]) qc.invalidateQueries({ queryKey: [key] });
+      for (const key of ["needs-you", "decisions", "today-lanes"])
+        qc.invalidateQueries({ queryKey: [key] });
       answered();
       showToast(
         vars.action === "confirm"
@@ -809,37 +821,9 @@ function Dashboard() {
         navigate({ to: "/brain", search: { tab: "learnings", learning: r.id } as never }),
     }));
 
-  const machineNowRows: MachineNowRow[] = runRows
-    .filter((r) => {
-      const s = (r as { status?: string }).status;
-      return s === "running" || s === "queued";
-    })
-    .slice(0, 4)
-    .map((r) => {
-      const row = r as unknown as {
-        id: string;
-        agent_name: string;
-        input: string;
-        status: string;
-        spend_used_usd: number;
-        mission_id: string | null;
-        created_at: string;
-      };
-      const status = row.status === "running" ? "working" : ("queued" as const);
-      return {
-        id: row.id,
-        title: (row.input || row.agent_name || "Untitled").slice(0, 72),
-        status,
-        step: status === "working" ? "WORKING" : "QUEUED",
-        cost: fmtUsd(row.spend_used_usd ?? 0),
-        traceRef: `MIS·${traceRef(row.id)}`,
-        time: row.created_at ? relTimeCaps(row.created_at) : undefined,
-        onOpen: () =>
-          row.mission_id
-            ? navigate({ to: "/build/$missionId", params: { missionId: row.mission_id } })
-            : navigate({ to: "/build" }),
-      };
-    });
+  // SW-5: "what the swarm did" is now Lane 2 (SwarmActivityLane) from real
+  // stage_events grouped by mission — the running-agents strip it replaces.
+  const lanesData = lanes.data;
 
   const acceptPct = acceptance.data?.rate != null ? Math.round(acceptance.data.rate * 100) : null;
   const autonomyPct = autonomy.data?.ratio != null ? Math.round(autonomy.data.ratio * 100) : null;
@@ -935,129 +919,187 @@ function Dashboard() {
           workingCount={workingCount}
           onGo={goSurface}
         />
+        {/* SW-5 (mission 3.11): Today's four segregated lanes. Lane 1 (Needs
+            your judgment) is the ONLY ember lane; lanes 2-4 speak the calm
+            machine voice. Left column carries the judgment + activity + shipped
+            lanes; the right rail carries the watch lane + loop health + brief. */}
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-          <div className="flex flex-col" style={{ gap: 14 }}>
-            {needsYou.isError ? (
-              <div
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid var(--hairline-strong)",
-                  borderRadius: "var(--radius-card)",
-                  padding: "24px 26px",
-                  boxShadow: "var(--top-light)",
-                }}
-              >
+          <div className="flex flex-col" style={{ gap: 24 }}>
+            {/* Lane 1 — Needs your judgment */}
+            <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                 <h2
                   style={{
-                    fontFamily: "var(--font-serif)",
-                    fontSize: 19,
-                    fontWeight: 460,
-                    color: "var(--text-primary)",
-                    margin: "0 0 6px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "var(--ember-text)",
+                    margin: 0,
                   }}
                 >
-                  Your calls didn't load.
+                  Needs your judgment
                 </h2>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
-                  {needsYou.error instanceof Error
-                    ? needsYou.error.message
-                    : "The queue request failed."}
-                </p>
-                <Button variant="secondary" onClick={() => void needsYou.refetch()}>
-                  Try again
-                </Button>
+                {needsYouLoaded ? (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 10.5,
+                      letterSpacing: "0.12em",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    {callCount + (lanesData?.lane1.count ?? 0)}
+                  </span>
+                ) : null}
+                <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
               </div>
-            ) : !needsYouLoaded ? (
-              <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
+              {needsYou.isError ? (
                 <div
                   style={{
-                    height: 12,
-                    width: 130,
-                    borderRadius: 4,
-                    background: "var(--surface-card-deep)",
-                  }}
-                />
-                <div
-                  style={{
-                    height: 190,
+                    background: "var(--card)",
+                    border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-card)",
-                    background: "var(--surface-card-deep)",
+                    padding: "24px 26px",
                     boxShadow: "var(--top-light)",
                   }}
-                />
-              </div>
-            ) : callCount === 0 && expiredTotal === 0 ? (
-              <div
-                style={{
-                  background: "var(--card)",
-                  border: "1px solid rgba(127,191,142,0.3)",
-                  borderRadius: "var(--radius-card)",
-                  padding: "28px 26px",
-                  boxShadow: "var(--top-light)",
-                }}
-              >
-                <ConstellationMotif />
-                <h2
-                  style={{
-                    fontFamily: "var(--font-serif)",
-                    fontSize: 21,
-                    fontWeight: 450,
-                    color: "var(--text-primary)",
-                    margin: "0 0 6px",
-                  }}
                 >
-                  All clear.{" "}
-                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
-                    Enjoy the quiet roadmap.
-                  </em>
-                </h2>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                  The loop is running itself. New calls will find you here first.
-                </p>
-              </div>
-            ) : (
-              <TriageQueue groups={groups} expired={{ total: expiredTotal, calls: expiredCalls }} />
-            )}
-            {totalCalls > 0 && needsYouLoaded && (
-              <div>
-                <div
-                  style={{
-                    height: 3,
-                    background: "var(--hairline)",
-                    borderRadius: 99,
-                    overflow: "hidden",
-                  }}
-                >
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: 19,
+                      fontWeight: 460,
+                      color: "var(--text-primary)",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    Your calls didn't load.
+                  </h3>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
+                    {needsYou.error instanceof Error
+                      ? needsYou.error.message
+                      : "The queue request failed."}
+                  </p>
+                  <Button variant="secondary" onClick={() => void needsYou.refetch()}>
+                    Try again
+                  </Button>
+                </div>
+              ) : !needsYouLoaded ? (
+                <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
                   <div
                     style={{
-                      height: "100%",
-                      width: `${clearedPct}%`,
-                      background: "var(--ember)",
-                      transition: "width 280ms var(--ease)",
+                      height: 12,
+                      width: 130,
+                      borderRadius: 4,
+                      background: "var(--surface-card-deep)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 190,
+                      borderRadius: "var(--radius-card)",
+                      background: "var(--surface-card-deep)",
+                      boxShadow: "var(--top-light)",
                     }}
                   />
                 </div>
+              ) : callCount === 0 && expiredTotal === 0 && (lanesData?.lane1.count ?? 0) === 0 ? (
                 <div
                   style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    color: "var(--text-subtle)",
-                    marginTop: 6,
-                    textTransform: "uppercase",
+                    background: "var(--card)",
+                    border: "1px solid rgba(127,191,142,0.3)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "28px 26px",
+                    boxShadow: "var(--top-light)",
                   }}
                 >
-                  {/* LOOM W4 honesty: the old "N of M answered" denominator
-                      shifted as new calls arrived mid-session. State the two
-                      real numbers instead. */}
-                  {clearedSession} answered · {callCount} open
+                  <ConstellationMotif />
+                  <h3
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontSize: 21,
+                      fontWeight: 450,
+                      color: "var(--text-primary)",
+                      margin: "0 0 6px",
+                    }}
+                  >
+                    All clear.{" "}
+                    <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
+                      Enjoy the quiet roadmap.
+                    </em>
+                  </h3>
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                    The loop is running itself. New calls will find you here first.
+                  </p>
                 </div>
-              </div>
-            )}
-            <WhatChanged items={whatChangedItems} />
+              ) : (
+                <>
+                  {callCount > 0 || expiredTotal > 0 ? (
+                    <TriageQueue
+                      groups={groups}
+                      expired={{ total: expiredTotal, calls: expiredCalls }}
+                    />
+                  ) : null}
+                  {lanesData ? (
+                    <PushedInsights
+                      lane={lanesData.lane1}
+                      onOpen={() => navigate({ to: "/brain", search: { tab: "insights" } as never })}
+                    />
+                  ) : null}
+                </>
+              )}
+              {totalCalls > 0 && needsYouLoaded && (
+                <div>
+                  <div
+                    style={{
+                      height: 3,
+                      background: "var(--hairline)",
+                      borderRadius: 99,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${clearedPct}%`,
+                        background: "var(--ember)",
+                        transition: "width 280ms var(--ease)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 10.5,
+                      color: "var(--text-subtle)",
+                      marginTop: 6,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {/* LOOM W4 honesty: the old "N of M answered" denominator
+                        shifted as new calls arrived mid-session. State the two
+                        real numbers instead. */}
+                    {clearedSession} answered · {callCount} open
+                  </div>
+                </div>
+              )}
+            </section>
+            {/* Lane 2 — What the swarm did */}
+            {lanesData ? (
+              <SwarmActivityLane
+                lane={lanesData.lane2}
+                onOpenMission={(id) =>
+                  navigate({ to: "/build/$missionId", params: { missionId: id } })
+                }
+              />
+            ) : null}
+            {/* Lane 4 — Shipped and what it cost */}
+            {lanesData ? <ShippedLane lane={lanesData.lane4} /> : null}
           </div>
           <div className="flex flex-col" style={{ gap: 14 }}>
+            {/* Lane 3 — At risk / watch */}
+            {lanesData ? <WatchLane lane={lanesData.lane3} /> : null}
             <LoopHealthCard score={loopScore} note={loopNote} hue={loopHue} />
-            <MachineNow rows={machineNowRows} onOpenAll={() => navigate({ to: "/build" })} />
             <StrategicBriefCard />
           </div>
         </div>

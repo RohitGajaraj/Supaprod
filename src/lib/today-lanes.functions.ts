@@ -1,73 +1,101 @@
 /**
- * SW-5: Today's four-lane re-architecture (Platform Truth mission)
+ * SW-5 (mission 3.11) — Today's four-lane content model. This is an
+ * INFORMATION-ARCHITECTURE change, not a restyle: Today is re-cut into exactly
+ * four lanes, each computed and grouped from REAL rows, answering the founder's
+ * verdict that the old surface was "a data dump ... not properly segregated":
  *
- * Four distinct content lanes, each addressing a user need:
- * 1. Needs your judgment — decisions awaiting human input (approvals + insights)
- * 2. What the swarm did — recent activity grouped by goal/mission
- * 3. At risk / watch — foresight signals + calibration misses
- * 4. Shipped and what it cost — outcomes + cost-per-outcome
+ *   Lane 1  Needs your judgment      — pushed Brain insights that want a call.
+ *                                       (Approval gates render from getNeedsYou;
+ *                                        this lane adds the pushed-insight half.)
+ *   Lane 2  What the swarm did       — recent stage transitions grouped by the
+ *                                       mission (goal/title) that moved, with cost.
+ *   Lane 3  At risk / watch          — open foresight predictions + risks,
+ *                                       calibration misses, and live assumption
+ *                                       challenges.
+ *   Lane 4  Shipped and what it cost — closed outcomes (learnings) with the real
+ *                                       per-mission spend and an average.
+ *
+ * Every query is workspace-scoped through `current_user_default_workspace`
+ * (the resolver getInsightRail / getCostPerOutcome use) and degrades calm
+ * (empty lanes, never a throw) when there is no workspace yet. Columns added by
+ * migration 20260707190000 (stage_events, learnings.mission_id) postdate the
+ * generated Supabase types, so we read through an untyped client — the
+ * documented precedent in resolve.server.ts / today.functions.ts.
+ *
+ * The pure mappers (mapVerdict, insightToWatchItem, groupMissionEvents,
+ * assembleLane4) are exported and unit-tested in today-lanes.test.ts.
  */
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
-export type TodayLane1 = {
-  /** Decisions needing human judgment (approval gates, spec calls, insights) */
-  items: Array<{
-    id: string;
-    type: "approval" | "spec" | "opportunity" | "insight";
-    title: string;
-    urgency: "high" | "medium" | "low";
-    age_minutes: number;
-    action: string; // button label: "Approve", "Decide", etc.
-  }>;
-  count: number;
+// ---------------------------------------------------------------------------
+// Public lane shapes (render-ready)
+// ---------------------------------------------------------------------------
+
+/** Lane 1: a Brain insight pushed into the judgment lane. */
+export type PushedInsight = {
+  id: string;
+  kind: string;
+  headline: string;
+  detail: string;
+  /** recommended_action jsonb: {agent_slug, goal} — powers the one-click action. */
+  action: { agent_slug?: string; goal?: string } | null;
+  score: number | null;
 };
+export type TodayLane1 = { insights: PushedInsight[]; count: number };
 
+/** Lane 2: one group per mission that moved, with the transitions and its spend. */
+export type SwarmActivityItem = {
+  id: string;
+  entity_type: string;
+  label: string;
+  stage: string;
+  at: string;
+};
+export type SwarmActivityGroup = {
+  /** mission id, or "unassigned" for non-mission transitions. */
+  key: string;
+  goal: string | null;
+  title: string;
+  count: number;
+  cost_usd: number;
+  items: SwarmActivityItem[];
+};
 export type TodayLane2 = {
-  /** Recent swarm activity, grouped by active goal */
-  groups: Array<{
-    goal_id?: string;
-    goal_title?: string;
-    recent_count: number;
-    items: Array<{
-      id: string;
-      entity_type: "mission" | "decision" | "opportunity";
-      title: string;
-      stage: string;
-      timestamp: string;
-      cost_usd?: number;
-    }>;
-  }>;
+  groups: SwarmActivityGroup[];
+  since_iso: string;
+  total_cost_usd: number;
 };
 
-export type TodayLane3 = {
-  /** Signals at risk or requiring attention */
-  items: Array<{
-    id: string;
-    type: "prediction_risk" | "calibration_miss" | "assumption_challenge";
-    title: string;
-    description: string;
-    recommendation: string;
-    confidence?: number;
-  }>;
-  count: number;
+/** Lane 3: a thing to watch — a live prediction/risk, a calibration miss, or a
+ * challenged assumption. */
+export type WatchItem = {
+  id: string;
+  type: "prediction_risk" | "calibration_miss" | "assumption_challenge";
+  title: string;
+  description: string;
+  recommendation: string | null;
+  confidence: number | null;
 };
+export type TodayLane3 = { items: WatchItem[]; count: number };
 
+/** Lane 4: a shipped outcome with its real cost. */
+export type ShippedOutcome = {
+  id: string;
+  title: string;
+  verdict: "achieved" | "partial" | "missed";
+  spent_usd: number;
+  metric_label: string | null;
+  metric_value: number | null;
+  at: string;
+};
 export type TodayLane4 = {
-  /** Shipped outcomes + cost metrics */
-  items: Array<{
-    id: string;
-    title: string;
-    outcome_verdict: "achieved" | "partial" | "missed";
-    spent_usd: number;
-    cost_per_unit?: number;
-    time_to_deploy_days: number;
-  }>;
-  total_shipped_count: number;
-  avg_cost_per_outcome: number;
+  items: ShippedOutcome[];
+  shipped_count: number;
+  avg_cost_per_outcome_usd: number;
+  week_spend_usd: number;
 };
 
 export type TodayLanes = {
@@ -77,125 +105,357 @@ export type TodayLanes = {
   lane4: TodayLane4;
 };
 
-async function queryLane1(
-  supabase: SupabaseClient,
-  workspaceId: string
-): Promise<TodayLane1> {
-  // STUB: Needs integration with existing getNeedsYou + pushed insights
-  // For now, return empty lane; the actual data is in today.functions.ts
+export const EMPTY_TODAY_LANES: TodayLanes = {
+  lane1: { insights: [], count: 0 },
+  lane2: { groups: [], since_iso: new Date(0).toISOString(), total_cost_usd: 0 },
+  lane3: { items: [], count: 0 },
+  lane4: { items: [], shipped_count: 0, avg_cost_per_outcome_usd: 0, week_spend_usd: 0 },
+};
+
+// ---------------------------------------------------------------------------
+// Pure mappers (unit-tested, no DB) — the "functional, not fabricated" core
+// ---------------------------------------------------------------------------
+
+/** learnings.verdict is validated | missed | mixed (the real enum, NOT the MVP's
+ * achieved/partial/missed). Map it to the outcome the user reads. */
+export function mapVerdict(verdict: string | null | undefined): ShippedOutcome["verdict"] {
+  switch (verdict) {
+    case "validated":
+      return "achieved";
+    case "missed":
+      return "missed";
+    case "mixed":
+    default:
+      return "partial";
+  }
+}
+
+type InsightRow = {
+  id: string;
+  kind: string | null;
+  headline: string | null;
+  detail: string | null;
+  claim: string | null;
+  recommended_action: unknown;
+  score: number | null;
+  confidence: number | null;
+  resolution: string | null;
+};
+
+/** An open prediction/risk insight → a Lane-3 watch item. */
+export function insightToWatchItem(row: InsightRow): WatchItem {
+  const action = row.recommended_action as { goal?: string } | null;
   return {
-    items: [],
-    count: 0,
+    id: row.id,
+    type: row.resolution === "miss" ? "calibration_miss" : "prediction_risk",
+    title: row.headline ?? row.claim ?? "Untitled signal",
+    description: row.detail ?? row.claim ?? "",
+    recommendation: action?.goal ?? null,
+    confidence: row.confidence ?? row.score ?? null,
   };
 }
 
-async function queryLane2(
-  supabase: SupabaseClient,
-  workspaceId: string
-): Promise<TodayLane2> {
-  // Query recent stage_events (from SW-1 foundations) grouped by goal
-  // For MVP, group by entity_type. Full impl groups by goal_id once goals are wired.
-  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+type StageEventRow = {
+  entity_type: string;
+  entity_id: string;
+  to_stage: string;
+  at: string;
+};
 
-  const { data: events } = await supabase
+/** Group mission transitions under the mission that moved, folding every
+ * non-mission transition under a single "Other activity" group. Titles/goals
+ * are supplied by `missionMeta` (batch-loaded); cost by `missionCost`. PURE. */
+export function groupMissionEvents(
+  events: StageEventRow[],
+  missionMeta: Map<string, { goal: string | null; title: string | null }>,
+  missionCost: Map<string, number>,
+): SwarmActivityGroup[] {
+  const groups = new Map<string, SwarmActivityGroup>();
+  const ensure = (key: string, goal: string | null, title: string): SwarmActivityGroup => {
+    let g = groups.get(key);
+    if (!g) {
+      g = { key, goal, title, count: 0, cost_usd: missionCost.get(key) ?? 0, items: [] };
+      groups.set(key, g);
+    }
+    return g;
+  };
+
+  for (const e of events) {
+    const isMission = e.entity_type === "mission";
+    const meta = isMission ? missionMeta.get(e.entity_id) : undefined;
+    const key = isMission ? e.entity_id : "unassigned";
+    const title = isMission ? (meta?.title ?? "Untitled mission") : "Other activity";
+    const goal = isMission ? (meta?.goal ?? null) : null;
+    const g = ensure(key, goal, title);
+    g.count += 1;
+    // Cap the visible transitions per group; the count carries the full total.
+    if (g.items.length < 5) {
+      g.items.push({
+        id: `${e.entity_type}/${e.entity_id}/${e.at}`,
+        entity_type: e.entity_type,
+        label: isMission ? (meta?.title ?? "mission") : e.entity_type,
+        stage: e.to_stage,
+        at: e.at,
+      });
+    }
+  }
+  // Missions first (real work), "Other activity" last; each by recency.
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.key === "unassigned") return 1;
+    if (b.key === "unassigned") return -1;
+    const at = a.items[0]?.at ?? "";
+    const bt = b.items[0]?.at ?? "";
+    return bt.localeCompare(at);
+  });
+}
+
+type LearningRow = {
+  id: string;
+  summary: string | null;
+  verdict: string | null;
+  metric_label: string | null;
+  metric_value: number | null;
+  mission_id: string | null;
+  created_at: string;
+};
+
+/** Assemble Lane 4 from outcome learnings + a per-mission spend map. PURE.
+ * `weekSpendUsd` is the workspace aggregate (getCostPerOutcome). The average is
+ * computed from real per-mission spend where a mission is attributed; it never
+ * fabricates a number, and falls back to the week aggregate only when no
+ * per-mission cost is resolvable. */
+export function assembleLane4(
+  learnings: LearningRow[],
+  missionCost: Map<string, number>,
+  weekSpendUsd: number,
+): TodayLane4 {
+  const items: ShippedOutcome[] = learnings.map((l) => ({
+    id: l.id,
+    title: l.summary ?? "Unnamed outcome",
+    verdict: mapVerdict(l.verdict),
+    spent_usd: l.mission_id ? (missionCost.get(l.mission_id) ?? 0) : 0,
+    metric_label: l.metric_label,
+    metric_value: l.metric_value,
+    at: l.created_at,
+  }));
+  const costed = items.filter((i) => i.spent_usd > 0);
+  const avg =
+    costed.length > 0
+      ? costed.reduce((s, i) => s + i.spent_usd, 0) / costed.length
+      : items.length > 0 && weekSpendUsd > 0
+        ? weekSpendUsd / items.length
+        : 0;
+  return {
+    items,
+    shipped_count: items.length,
+    avg_cost_per_outcome_usd: Math.round(avg * 100) / 100,
+    week_spend_usd: Math.round(weekSpendUsd * 100) / 100,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Lane queries (real data)
+// ---------------------------------------------------------------------------
+
+/** Sum agent_runs.spend_used_usd per mission_id for a set of missions. One
+ * query, folded into a Map keyed by mission id. */
+async function loadMissionCost(
+  db: SupabaseClient,
+  workspaceId: string,
+  missionIds: string[],
+): Promise<Map<string, number>> {
+  const cost = new Map<string, number>();
+  if (missionIds.length === 0) return cost;
+  const { data } = await db
+    .from("agent_runs")
+    .select("mission_id, spend_used_usd")
+    .eq("workspace_id", workspaceId)
+    .in("mission_id", missionIds);
+  for (const r of (data ?? []) as { mission_id: string | null; spend_used_usd: number | null }[]) {
+    if (!r.mission_id) continue;
+    cost.set(r.mission_id, (cost.get(r.mission_id) ?? 0) + Number(r.spend_used_usd ?? 0));
+  }
+  return cost;
+}
+
+/** Lane 1 — pushed Brain insights (the judgment-worthy ones: a recommended
+ * next action). The gate half (approvals/specs/opps/challenges) renders from
+ * getNeedsYou; this is the additive pushed-insight half. */
+async function queryLane1(db: SupabaseClient, workspaceId: string): Promise<TodayLane1> {
+  const { data } = await db
+    .from("insights")
+    .select("id, kind, headline, detail, recommended_action, score")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "open")
+    .in("kind", ["next_best_action", "hidden_connection"])
+    .order("score", { ascending: false, nullsFirst: false })
+    .limit(4);
+  const rows = (data ?? []) as Array<{
+    id: string;
+    kind: string | null;
+    headline: string | null;
+    detail: string | null;
+    recommended_action: unknown;
+    score: number | null;
+  }>;
+  const insights: PushedInsight[] = rows.map((r) => ({
+    id: r.id,
+    kind: r.kind ?? "insight",
+    headline: r.headline ?? "New insight",
+    detail: r.detail ?? "",
+    action: (r.recommended_action as { agent_slug?: string; goal?: string } | null) ?? null,
+    score: r.score,
+  }));
+  return { insights, count: insights.length };
+}
+
+/** Lane 2 — recent transitions grouped by the mission that moved, with spend. */
+async function queryLane2(
+  db: SupabaseClient,
+  workspaceId: string,
+  sinceIso: string,
+): Promise<TodayLane2> {
+  const { data } = await db
     .from("stage_events")
     .select("entity_type, entity_id, to_stage, at")
     .eq("workspace_id", workspaceId)
-    .gte("at", dayAgo)
-    .order("at", { ascending: false });
+    .gte("at", sinceIso)
+    .order("at", { ascending: false })
+    .limit(120);
+  const events = (data ?? []) as StageEventRow[];
 
-  // Group by entity_type for now (missions, decisions, opportunities)
-  const grouped = new Map<string, NonNullable<typeof events>>();
-  (events || []).forEach((e) => {
-    const key = e.entity_type || "unknown";
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(e);
-  });
+  const missionIds = Array.from(
+    new Set(events.filter((e) => e.entity_type === "mission").map((e) => e.entity_id)),
+  );
+  const missionMeta = new Map<string, { goal: string | null; title: string | null }>();
+  if (missionIds.length > 0) {
+    const { data: missions } = await db
+      .from("missions")
+      .select("id, goal, title")
+      .in("id", missionIds);
+    for (const m of (missions ?? []) as { id: string; goal: string | null; title: string | null }[]) {
+      missionMeta.set(m.id, { goal: m.goal, title: m.title });
+    }
+  }
+  const missionCost = await loadMissionCost(db, workspaceId, missionIds);
+  const groups = groupMissionEvents(events, missionMeta, missionCost);
+  const total = Array.from(missionCost.values()).reduce((s, c) => s + c, 0);
+  return { groups, since_iso: sinceIso, total_cost_usd: Math.round(total * 100) / 100 };
+}
 
-  const groups = Array.from(grouped.entries()).map(([entityType, evts]) => ({
-    goal_title: `Recent ${entityType}s`,
-    recent_count: evts.length,
-    items: evts.slice(0, 5).map((e) => ({
-      id: `${e.entity_type}/${e.entity_id}`,
-      entity_type: (e.entity_type as "mission" | "decision" | "opportunity") || "mission",
-      title: `${e.to_stage}`,
-      stage: e.to_stage,
-      timestamp: e.at,
-    })),
+/** Lane 3 — foresight (open predictions/risks), calibration misses, and live
+ * assumption challenges. The insights table is the single foresight source
+ * (there is no separate foresight table); assumption_challenges add the
+ * "watched assumption is being contradicted" half. */
+async function queryLane3(db: SupabaseClient, workspaceId: string): Promise<TodayLane3> {
+  const [foresightRes, missesRes, challengeRes] = await Promise.all([
+    db
+      .from("insights")
+      .select("id, kind, headline, detail, claim, recommended_action, score, confidence, resolution")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "open")
+      .in("kind", ["prediction", "risk", "cost_of_inaction"])
+      .is("resolution", null)
+      .order("score", { ascending: false, nullsFirst: false })
+      .limit(6),
+    db
+      .from("insights")
+      .select("id, kind, headline, detail, claim, recommended_action, score, confidence, resolution")
+      .eq("workspace_id", workspaceId)
+      .eq("resolution", "miss")
+      .order("resolved_at", { ascending: false, nullsFirst: false })
+      .limit(3),
+    db
+      .from("assumption_challenges")
+      .select("id, rationale, status, created_at")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(4),
+  ]);
+
+  const foresight = ((foresightRes.data ?? []) as InsightRow[]).map(insightToWatchItem);
+  const misses = ((missesRes.data ?? []) as InsightRow[]).map(insightToWatchItem);
+  const challenges: WatchItem[] = (
+    (challengeRes.data ?? []) as Array<{ id: string; rationale: string | null }>
+  ).map((c) => ({
+    id: c.id,
+    type: "assumption_challenge" as const,
+    title: "An assumption is being challenged",
+    description: c.rationale ?? "New evidence contradicts a recorded assumption.",
+    recommendation: "Re-examine the decision this assumption supports.",
+    confidence: null,
   }));
 
-  return { groups };
+  const items = [...foresight, ...misses, ...challenges];
+  return { items, count: items.length };
 }
 
-async function queryLane3(
-  supabase: SupabaseClient,
-  workspaceId: string
-): Promise<TodayLane3> {
-  // Query foresight predictions + assumption challenges
-  // STUB: Needs integration with FS (foresight) tables + assumptions
-  return {
-    items: [],
-    count: 0,
-  };
-}
-
+/** Lane 4 — closed outcomes with real per-mission cost. */
 async function queryLane4(
-  supabase: SupabaseClient,
-  workspaceId: string
+  db: SupabaseClient,
+  workspaceId: string,
+  weekSpendUsd: number,
 ): Promise<TodayLane4> {
-  // Query recent learnings (outcomes) with spend metrics
-  // Learnings record actual outcomes; only show when verdict is set (closed window)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data: learnings } = await supabase
+  const { data } = await db
     .from("learnings")
-    .select("id, subject, verdict, created_at")
+    .select("id, summary, verdict, metric_label, metric_value, mission_id, created_at")
     .eq("workspace_id", workspaceId)
+    .not("verdict", "is", null)
     .gte("created_at", thirtyDaysAgo)
-    .not("verdict", "is", null) // Only completed outcomes
     .order("created_at", { ascending: false })
     .limit(20);
+  const learnings = (data ?? []) as LearningRow[];
+  const missionIds = Array.from(
+    new Set(learnings.map((l) => l.mission_id).filter((id): id is string => !!id)),
+  );
+  const missionCost = await loadMissionCost(db, workspaceId, missionIds);
+  return assembleLane4(learnings, missionCost, weekSpendUsd);
+}
 
-  const items = (learnings || []).map((l) => ({
-    id: l.id,
-    title: l.subject || "Unnamed outcome",
-    outcome_verdict: (l.verdict as "achieved" | "partial" | "missed") || "partial",
-    spent_usd: 0, // TODO: join with ai_events for cost
-    time_to_deploy_days: 0, // TODO: calculate from created_at + duration
-  }));
-
-  const achieved = items.filter((i) => i.outcome_verdict === "achieved").length;
-  const total = items.length || 1;
-
-  return {
-    items,
-    total_shipped_count: total,
-    avg_cost_per_outcome: 0, // TODO: compute from ai_events
-  };
+/** The workspace week spend (agent_runs), mirroring getCostPerOutcome so Lane 4
+ * and the Engine-Room cost card can never disagree. */
+async function loadWeekSpend(db: SupabaseClient, workspaceId: string): Promise<number> {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data } = await db
+    .from("agent_runs")
+    .select("spend_used_usd")
+    .eq("workspace_id", workspaceId)
+    .gte("created_at", weekAgo);
+  return (data ?? []).reduce(
+    (s, r) => s + Number((r as { spend_used_usd: number | null }).spend_used_usd ?? 0),
+    0,
+  );
 }
 
 export const getTodayLanes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TodayLanes> => {
-    const { supabase, userId } = context as any;
+    const { supabase } = context;
+    // The resolver getInsightRail / getForecastCalibration / getCostPerOutcome
+    // all use; returns the caller's default workspace id (or null).
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
+    if (!workspaceId) return EMPTY_TODAY_LANES;
 
-      // Get user's workspace
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("default_workspace_id")
-        .eq("id", userId)
-        .single();
+    // stage_events + learnings.mission_id postdate the generated types.
+    const db = supabase as unknown as SupabaseClient;
 
-      const workspaceId = profile?.default_workspace_id;
-      if (!workspaceId) throw new Error("No workspace");
+    // Lane 2 window: the honest last-24h view. (ritual_sessions.workspace_id is
+    // deliberately NULL — untrusted client id — so a true per-workspace
+    // "since you last looked" boundary has no reliable source yet; the surface
+    // labels this "in the last 24 hours" rather than claiming last-seen.)
+    const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [lane1, lane2, lane3, lane4] = await Promise.all([
-        queryLane1(supabase, workspaceId),
-        queryLane2(supabase, workspaceId),
-        queryLane3(supabase, workspaceId),
-        queryLane4(supabase, workspaceId),
-      ]);
+    const weekSpendUsd = await loadWeekSpend(db, workspaceId);
 
-      return { lane1, lane2, lane3, lane4 };
-    }
-  );
+    const [lane1, lane2, lane3, lane4] = await Promise.all([
+      queryLane1(db, workspaceId),
+      queryLane2(db, workspaceId, sinceIso),
+      queryLane3(db, workspaceId),
+      queryLane4(db, workspaceId, weekSpendUsd),
+    ]);
+
+    return { lane1, lane2, lane3, lane4 };
+  });
