@@ -11,6 +11,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export type TodayLane1 = {
   /** Decisions needing human judgment (approval gates, spec calls, insights) */
@@ -93,30 +94,37 @@ async function queryLane2(
   workspaceId: string
 ): Promise<TodayLane2> {
   // Query recent stage_events (from SW-1 foundations) grouped by goal
+  // For MVP, group by entity_type. Full impl groups by goal_id once goals are wired.
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
   const { data: events } = await supabase
     .from("stage_events")
     .select("entity_type, entity_id, to_stage, at")
     .eq("workspace_id", workspaceId)
-    .gte("at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+    .gte("at", dayAgo)
     .order("at", { ascending: false });
 
-  return {
-    groups: [
-      {
-        goal_title: "Ungrouped recent activity",
-        recent_count: events?.length || 0,
-        items: (events || [])
-          .slice(0, 10)
-          .map((e) => ({
-            id: `${e.entity_type}/${e.entity_id}`,
-            entity_type: (e.entity_type as "mission" | "decision" | "opportunity") || "mission",
-            title: `${e.to_stage}`,
-            stage: e.to_stage,
-            timestamp: e.at,
-          })),
-      },
-    ],
-  };
+  // Group by entity_type for now (missions, decisions, opportunities)
+  const grouped = new Map<string, typeof events>();
+  (events || []).forEach((e) => {
+    const key = e.entity_type || "unknown";
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(e);
+  });
+
+  const groups = Array.from(grouped.entries()).map(([entityType, evts]) => ({
+    goal_title: `Recent ${entityType}s`,
+    recent_count: evts.length,
+    items: evts.slice(0, 5).map((e) => ({
+      id: `${e.entity_type}/${e.entity_id}`,
+      entity_type: (e.entity_type as "mission" | "decision" | "opportunity") || "mission",
+      title: `${e.to_stage}`,
+      stage: e.to_stage,
+      timestamp: e.at,
+    })),
+  }));
+
+  return { groups };
 }
 
 async function queryLane3(
@@ -135,35 +143,41 @@ async function queryLane4(
   supabase: SupabaseClient,
   workspaceId: string
 ): Promise<TodayLane4> {
-  // Query recent learnings with outcomes + spend metrics
+  // Query recent learnings (outcomes) with spend metrics
+  // Learnings record actual outcomes; only show when verdict is set (closed window)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
   const { data: learnings } = await supabase
     .from("learnings")
-    .select("id, subject, verdict")
+    .select("id, subject, verdict, created_at")
     .eq("workspace_id", workspaceId)
-    .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    .gte("created_at", thirtyDaysAgo)
+    .not("verdict", "is", null) // Only completed outcomes
+    .order("created_at", { ascending: false })
     .limit(20);
 
-  const achieved = learnings?.filter((l) => l.verdict === "achieved").length || 0;
-  const total = learnings?.length || 0;
+  const items = (learnings || []).map((l) => ({
+    id: l.id,
+    title: l.subject || "Unnamed outcome",
+    outcome_verdict: (l.verdict as "achieved" | "partial" | "missed") || "partial",
+    spent_usd: 0, // TODO: join with ai_events for cost
+    time_to_deploy_days: 0, // TODO: calculate from created_at + duration
+  }));
+
+  const achieved = items.filter((i) => i.outcome_verdict === "achieved").length;
+  const total = items.length || 1;
 
   return {
-    items: (learnings || []).map((l) => ({
-      id: l.id,
-      title: l.subject || "Unnamed outcome",
-      outcome_verdict: (l.verdict as "achieved" | "partial" | "missed") || "partial",
-      spent_usd: 0, // TODO: join with ai_events cost
-      time_to_deploy_days: 0, // TODO: calculate from created_at to shipped_at
-    })),
+    items,
     total_shipped_count: total,
-    avg_cost_per_outcome: 0, // TODO: compute
+    avg_cost_per_outcome: 0, // TODO: compute from ai_events
   };
 }
 
 export const getTodayLanes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(
-    async ({ context }): Promise<TodayLanes> => {
-      const { supabase, userId } = context;
+  .handler(async ({ context }): Promise<TodayLanes> => {
+    const { supabase, userId } = context as any;
 
       // Get user's workspace
       const { data: profile } = await supabase

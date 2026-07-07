@@ -23,7 +23,9 @@ const res = await fetch("https://api.cohere.ai/compatibility/v1/embeddings", {
 
 if (!res.ok) {
   // Don't log response body to avoid exposing sensitive error details
-  console.error(`❌  Cohere API error ${res.status}. Check .env COHERE_API_KEY or Cohere API status.`);
+  console.error(
+    `❌  Cohere API error ${res.status}. Check .env COHERE_API_KEY or Cohere API status.`,
+  );
   process.exit(1);
 }
 
