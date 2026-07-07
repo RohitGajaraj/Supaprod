@@ -35,6 +35,7 @@ import {
   formatDesignMemoryContext,
 } from "@/lib/design-memory.functions";
 import { runDesignCriticLens } from "@/lib/ai/critic.server";
+import { recordStageEvent } from "@/lib/stage-events.server";
 import type { DesignCriticReview } from "@/lib/ai/design-critic";
 
 // Minimal CSS injected into every generated mockup. Avoids any external CDN
@@ -343,4 +344,122 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
       subject: `MOCKUP HTML (evaluate visually and structurally from the markup):\n${data.html.slice(0, 20000)}`,
     });
     return { review };
+  });
+
+// ---------------------------------------------------------------------------
+// SW-4 / mission 3.4 DESIGN STATION: the gate between Define and Build.
+// A spec dispatches only after a human approves its design gate (or the
+// workspace turns the stage off). The decision writes the stage_events row
+// and the caller (DesignScaffoldPanel) pairs it with the existing
+// recordDesignScaffoldFeedback so every gate verdict also writes a taste
+// learning into design memory. Enforcement lives at both dispatch paths via
+// src/lib/build/design-gate*.
+// ---------------------------------------------------------------------------
+
+export interface DesignGateInfo {
+  /** False pre-migration or when the workspace turned the stage off. */
+  stageEnabled: boolean;
+  status: "pending" | "approved" | "rejected" | null;
+  decidedAt: string | null;
+  isOwner: boolean;
+}
+
+export const getDesignGate = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<DesignGateInfo> => {
+    const { supabase, userId } = context;
+    const { data: prdRow, error: prdErr } = await supabase
+      .from("prds")
+      .select("design_gate_status, design_decided_at, workspace_id")
+      .eq("id", data.prdId)
+      .maybeSingle();
+    // Pre-migration window: the columns are absent, the stage reads as off.
+    if (prdErr || !prdRow) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
+    const prd = prdRow as unknown as {
+      design_gate_status: "pending" | "approved" | "rejected" | null;
+      design_decided_at: string | null;
+      workspace_id: string | null;
+    };
+    if (!prd.workspace_id) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
+    const { data: ws, error: wsErr } = await supabase
+      .from("workspaces")
+      .select("design_stage_enabled, owner_id")
+      .eq("id", prd.workspace_id)
+      .maybeSingle();
+    if (wsErr) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
+    const w = ws as unknown as { design_stage_enabled?: boolean | null; owner_id?: string | null } | null;
+    return {
+      stageEnabled: Boolean(w?.design_stage_enabled),
+      status: prd.design_gate_status ?? null,
+      decidedAt: prd.design_decided_at ?? null,
+      isOwner: w?.owner_id === userId,
+    };
+  });
+
+export const decideDesignGate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { prdId: string; decision: "approve" | "reject" }) =>
+    z.object({ prdId: z.string().uuid(), decision: z.enum(["approve", "reject"]) }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true; status: "approved" | "rejected" }> => {
+    const { supabase, userId } = context;
+    const status = data.decision === "approve" ? ("approved" as const) : ("rejected" as const);
+    const { data: prdRow, error: readErr } = await supabase
+      .from("prds")
+      .select("id, workspace_id, design_gate_status")
+      .eq("id", data.prdId)
+      .single();
+    if (readErr || !prdRow) throw new Error(readErr?.message ?? "Spec not found");
+    const prd = prdRow as unknown as { id: string; workspace_id: string | null; design_gate_status?: string | null };
+
+    const { error } = await supabase
+      .from("prds")
+      .update({
+        design_gate_status: status,
+        design_decided_by: userId,
+        design_decided_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as never)
+      .eq("id", data.prdId);
+    if (error) {
+      if (error.code === "42703" || error.code === "PGRST204") {
+        throw new Error("The design stage is not migrated yet; apply the sw4_design_station migration first.");
+      }
+      throw new Error(error.message);
+    }
+
+    // The gate verdict is a stage transition like any other.
+    await recordStageEvent(supabase, {
+      entityType: "spec",
+      entityId: prd.id,
+      from: prd.design_gate_status ?? "pending",
+      to: `design_${status}`,
+      actor: "human",
+      workspaceId: prd.workspace_id,
+      userId,
+    });
+
+    return { ok: true, status };
+  });
+
+export const toggleDesignStage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { enabled: boolean }) => z.object({ enabled: z.boolean() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ ok: true; enabled: boolean }> => {
+    const { supabase, userId } = context;
+    // The toggleAutoCluster idiom: only the workspace owner flips the stage.
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (!ws) throw new Error("Only the workspace owner can change the design stage.");
+    const { error } = await supabase
+      .from("workspaces")
+      .update({ design_stage_enabled: data.enabled } as never)
+      .eq("id", (ws as { id: string }).id);
+    if (error) throw new Error(error.message);
+    return { ok: true, enabled: data.enabled };
   });

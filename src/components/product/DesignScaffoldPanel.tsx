@@ -4,7 +4,7 @@
 // DSN-01: approve/reject writes back a design-memory learning candidate.
 // DSN-02: "Check design consistency" runs the Critic's design lens on the mockup.
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Sparkles,
@@ -19,6 +19,9 @@ import {
   generateDesignScaffold,
   getPersistedScaffold,
   runScaffoldDesignCritic,
+  getDesignGate,
+  decideDesignGate,
+  toggleDesignStage,
   type ScaffoldDesignCriticResult,
 } from "@/lib/design-scaffold.functions";
 import { recordDesignScaffoldFeedback } from "@/lib/design-memory.functions";
@@ -35,6 +38,46 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
   const fGetPersisted = useServerFn(getPersistedScaffold);
   const fFeedback = useServerFn(recordDesignScaffoldFeedback);
   const fDesignCritic = useServerFn(runScaffoldDesignCritic);
+  const fGate = useServerFn(getDesignGate);
+  const fDecideGate = useServerFn(decideDesignGate);
+  const fToggleStage = useServerFn(toggleDesignStage);
+  const qc = useQueryClient();
+
+  // SW-4 / mission 3.4: the design gate between Define and Build. When the
+  // workspace's stage is on, the verdict buttons below decide the gate AND
+  // write the taste learning; dispatch is blocked server-side until approved.
+  const gateQ = useQuery({
+    queryKey: ["design-gate", prdId],
+    queryFn: () => fGate({ data: { prdId } }),
+  });
+  const gate = gateQ.data ?? null;
+
+  const decideGate = useMutation({
+    mutationFn: async (approve: boolean) => {
+      const res = await fDecideGate({ data: { prdId, decision: approve ? "approve" : "reject" } });
+      // The gate verdict doubles as scaffold feedback: same judgment, one click.
+      await fFeedback({ data: { prdId, specExcerpt: specBody.slice(0, 4000), approved: approve } });
+      return res;
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["design-gate", prdId] });
+      toast.success(
+        res.status === "approved"
+          ? "Design approved. This spec can now dispatch to Build."
+          : "Changes requested. The gate stays closed until a design is approved.",
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleStage = useMutation({
+    mutationFn: (enabled: boolean) => fToggleStage({ data: { enabled } }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["design-gate", prdId] });
+      toast.success(res.enabled ? "Design stage on for this workspace." : "Design stage off for this workspace.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   // AGT-03: a scaffold may already be sitting here, pre-staged while the
   // operator was reviewing this spec's freshly drafted contract — load it
@@ -81,8 +124,82 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
     },
   });
 
-  // Silent when the spec is too short to scaffold (< 40 chars — same threshold as server)
-  if (!specBody || specBody.trim().length < 40) return null;
+  // The gate decision row and the owner's stage switch: rendered wherever the
+  // stage is on, independent of whether a mockup exists yet, so the controls
+  // that unblock dispatch can never be out of reach (mission 3.4 review).
+  const gateActions = gate?.stageEnabled ? (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => decideGate.mutate(true)}
+        disabled={decideGate.isPending}
+        className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+      >
+        <ThumbsUp className="h-3 w-3" style={gate.status === "approved" ? { color: "var(--moss)" } : undefined} />
+        Approve design
+      </button>
+      <button
+        type="button"
+        onClick={() => decideGate.mutate(false)}
+        disabled={decideGate.isPending}
+        className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+      >
+        <ThumbsDown className="h-3 w-3" style={gate.status === "rejected" ? { color: "var(--madder)" } : undefined} />
+        Request changes
+      </button>
+    </div>
+  ) : null;
+
+  const ownerToggle = gate?.isOwner ? (
+    <div className="flex justify-end border-t hairline px-4 py-2">
+      <button
+        type="button"
+        onClick={() => toggleStage.mutate(!gate.stageEnabled)}
+        disabled={toggleStage.isPending}
+        className="text-xs text-muted-foreground underline-offset-2 hover:underline disabled:opacity-50"
+      >
+        {gate.stageEnabled
+          ? "Turn the design stage off for this workspace"
+          : "Turn the design stage on for this workspace"}
+      </button>
+    </div>
+  ) : null;
+
+  const gateChip = gate?.stageEnabled ? (
+    <span
+      className="rounded-full border hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+      style={{
+        color:
+          gate.status === "approved"
+            ? "var(--moss)"
+            : gate.status === "rejected"
+              ? "var(--madder)"
+              : "var(--ember-text)",
+      }}
+    >
+      Gate · {gate.status ?? "pending"}
+    </span>
+  ) : null;
+
+  // Too short to scaffold (< 40 chars, same threshold as server). The gate
+  // still applies to a short spec, so its controls stay reachable here; only
+  // the mockup machinery goes quiet.
+  if (!specBody || specBody.trim().length < 40) {
+    if (!gate?.stageEnabled) return null;
+    return (
+      <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} strokeWidth={1.9} />
+            <span className="text-[13px] font-medium text-foreground">Design gate</span>
+            {gateChip}
+          </div>
+          {gateActions}
+        </div>
+        {ownerToggle}
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
@@ -90,6 +207,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         <div className="flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} strokeWidth={1.9} />
           <span className="text-[13px] font-medium text-foreground">Design mockup</span>
+          {gateChip}
           {prestaged && (
             <span
               className="rounded-full border hairline px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
@@ -153,27 +271,43 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => feedback.mutate(true)}
-                disabled={feedback.isPending || feedbackGiven !== null}
+                onClick={() => (gate?.stageEnabled ? decideGate.mutate(true) : feedback.mutate(true))}
+                disabled={
+                  gate?.stageEnabled
+                    ? decideGate.isPending
+                    : feedback.isPending || feedbackGiven !== null
+                }
                 className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               >
                 <ThumbsUp
                   className="h-3 w-3"
-                  style={feedbackGiven === "approved" ? { color: "var(--moss)" } : undefined}
+                  style={
+                    feedbackGiven === "approved" || gate?.status === "approved"
+                      ? { color: "var(--moss)" }
+                      : undefined
+                  }
                 />
-                Good fit
+                {gate?.stageEnabled ? "Approve design" : "Good fit"}
               </button>
               <button
                 type="button"
-                onClick={() => feedback.mutate(false)}
-                disabled={feedback.isPending || feedbackGiven !== null}
+                onClick={() => (gate?.stageEnabled ? decideGate.mutate(false) : feedback.mutate(false))}
+                disabled={
+                  gate?.stageEnabled
+                    ? decideGate.isPending
+                    : feedback.isPending || feedbackGiven !== null
+                }
                 className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
               >
                 <ThumbsDown
                   className="h-3 w-3"
-                  style={feedbackGiven === "rejected" ? { color: "var(--madder)" } : undefined}
+                  style={
+                    feedbackGiven === "rejected" || gate?.status === "rejected"
+                      ? { color: "var(--madder)" }
+                      : undefined
+                  }
                 />
-                Not a fit
+                {gate?.stageEnabled ? "Request changes" : "Not a fit"}
               </button>
               <button
                 type="button"
@@ -227,6 +361,17 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
           Generate an AI-drafted screen mockup from this spec.
         </div>
       )}
+
+      {!scaffold && gate?.stageEnabled && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t hairline px-4 py-2.5">
+          <span className="text-xs text-muted-foreground">
+            The gate can be decided without a mockup; generating one first gives the verdict teeth.
+          </span>
+          {gateActions}
+        </div>
+      )}
+
+      {ownerToggle}
     </div>
   );
 }
