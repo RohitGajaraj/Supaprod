@@ -405,7 +405,7 @@ export function AnalyticsPanel() {
                   day's runs; peak and floor are always shown. */}
               <SketchBarChart
                 data={daily.map((d) => ({ label: d.day.slice(5), value: d.runs }))}
-                color="var(--teal)"
+                color="var(--tangerine)"
                 formatValue={(v) => String(Math.round(v))}
                 ariaLabel="Agent runs per day"
               />

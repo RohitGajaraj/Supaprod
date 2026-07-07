@@ -255,9 +255,12 @@ is what keeps the product feeling made by a person, not generated.
 >    founder ruling). Pencil marks (`pencil-mark.tsx`) also remain the PM's own
 >    annotation layer; `SketchLine` is retired from app trends (use GraphSlider)
 >    and kept for the marketing landing page.
-> 2. **Readable, interactive data points.** A chart is never an unlabelled
->    spike. On hover AND focus, the cursor reveals the value at that point (the
->    number and what it counts); every chart is keyboard reachable.
+> 2. **Readable, interactive data points, read AT the point.** A chart is never
+>    an unlabelled spike. On hover AND focus, the value AND its x-axis label
+>    (the date or category) appear AT the point the user is on: floating
+>    directly above the active bar (or at the trend cursor), never parked at an
+>    edge, and the active point is spotlighted with a soft glow so the eye lands
+>    on the selection. Every chart is keyboard reachable.
 > 3. **A scale the user can read.** Every chart shows the peak (top number), the
 >    floor (bottom number), and, when the data has one, the baseline it is
 >    measured against (a dashed reference line), so a shape is never ambiguous.

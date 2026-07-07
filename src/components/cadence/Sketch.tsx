@@ -321,24 +321,19 @@ export function SketchBarChart({
           {insightText}
         </div>
       ) : null}
-      {/* Top axis: the active bar's readout + the peak it is measured against,
-          in the pencil hand (Caveat). */}
+      {/* Peak reference (the scale), right-aligned and quiet. The ACTIVE bar's
+          value floats directly above that bar below, not here at an edge. */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 8,
-          marginBottom: 6,
+          justifyContent: "flex-end",
           fontFamily: "var(--font-pencil)",
-          fontSize: 14,
+          fontSize: 13,
+          color: "var(--text-faint)",
+          marginBottom: 6,
         }}
       >
-        <span>
-          <span style={{ color }}>{formatValue(active.value)}</span>
-          <span style={{ color: "var(--text-subtle)" }}> · {active.label}</span>
-        </span>
-        <span style={{ color: "var(--text-faint)" }}>peak {formatValue(max)}</span>
+        peak {formatValue(max)}
       </div>
 
       {/* Bars: the pencil aesthetic, kept. Hover or focus a bar to read it. */}
@@ -386,8 +381,11 @@ export function SketchBarChart({
                 border: "none",
                 padding: 0,
                 cursor: "pointer",
-                opacity: hover == null || on ? 1 : 0.45,
-                transition: "opacity 160ms var(--ease)",
+                opacity: hover == null || on ? 1 : 0.42,
+                filter: on
+                  ? `drop-shadow(0 0 7px color-mix(in srgb, ${color} 60%, transparent))`
+                  : "none",
+                transition: "opacity 160ms var(--ease), filter 160ms var(--ease)",
               }}
             >
               <SketchBar
@@ -399,6 +397,38 @@ export function SketchBarChart({
             </button>
           );
         })}
+        {/* The active bar's value, floating directly ABOVE that bar (founder
+            ruling 2026-07-07): the readout appears where the eye is, not at an
+            edge. Follows hover/focus; the glow spotlights the selection. */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: `${((activeIdx + 0.5) / data.length) * 100}%`,
+            bottom: `${Math.min(90, Math.max(3, (active.value / max) * 100))}%`,
+            transform: "translate(-50%, -4px)",
+            pointerEvents: "none",
+            fontFamily: "var(--font-pencil)",
+            lineHeight: 1.15,
+            textAlign: "center",
+            color,
+            background: "var(--raised)",
+            border: "1px solid var(--hairline)",
+            borderRadius: 6,
+            padding: "3px 8px",
+            whiteSpace: "nowrap",
+            boxShadow: `0 0 10px color-mix(in srgb, ${color} 32%, transparent)`,
+            transitionProperty: "left, bottom",
+            transitionDuration: "160ms",
+            transitionTimingFunction: "var(--ease)",
+            zIndex: 2,
+          }}
+        >
+          <span style={{ display: "block", fontSize: 15 }}>{formatValue(active.value)}</span>
+          <span style={{ display: "block", fontSize: 11, color: "var(--text-subtle)" }}>
+            {active.label}
+          </span>
+        </div>
       </div>
 
       {/* Bottom axis: the floor (0 or the named baseline) + the range ends. */}
