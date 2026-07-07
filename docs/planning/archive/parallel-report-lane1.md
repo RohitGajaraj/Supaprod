@@ -349,3 +349,7 @@ A dedicated 3-lens adversarial review made the CallSurface-reuse decision itself
 Final state: 284/292 done, 287.00/292 weighted (98.3%). Gates: `tsc --noEmit` 0, `bun test` 2296/2296 pass (23 new tests), `bunx eslint` clean. Full doc-loop: new feature doc (`prompt-optimization.md`), dashboard row + tables recomputed fresh (not hand-incremented), `session-decisions.md` (the corrected-audit-finding precedent), `plan.md` §4, this report. Landed on `main` (verified HEAD byte-for-byte equal to `origin/main`, spot-checked `proposePromptOptimization`/the registered route/the dashboard row all present). Claim released.
 
 Resuming the standard lane loop (fetch, rebase, reap, `lane.sh next`) immediately after this entry.
+
+## 2026-07-07: SW-6 claimed (production ship seam) - SW-2 handed to the goal session
+
+Founder redirect at cycle start: SW-2 (build/test/ship spine) was already being driven by the main "goal" session; lane 1's earlier claim would have duplicated it. Released SW-2 in the ledger, re-attributed its dashboard row to `In Dev (goal, 2026-07-07)` on origin/main (kept In-Dev so no lane re-picks it), and claimed **SW-6: production ship (mission 3.12 cold start, tenant safety, failure floor, config truth + 3.13 felt journey)**. Claim pushed to main by lane.sh; ledger note names the handoff. Globs: observability lib, health endpoint, onboarding/signup/login routes, onboarding components. Building now.
