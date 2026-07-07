@@ -300,7 +300,7 @@ export function CommandPalette() {
                           alignItems: "center",
                           gap: 10,
                           padding: "9px 16px",
-                          background: active ? "#1A1A1E" : "transparent",
+                          background: active ? "var(--surface-active)" : "transparent",
                           outline: active ? "2px solid var(--glacier)" : "none",
                           outlineOffset: -2,
                         }}

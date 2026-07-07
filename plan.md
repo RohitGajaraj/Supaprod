@@ -283,6 +283,23 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (Chrome + spacing consistency lens: harmonize the app-shell nav rail + shared surface rhythm to a premium bar)
+
+**Context:** a consistency + polish pass on the FRAME around the surfaces (nav rail, page-header rhythm, footer, user chip), not the surface content. The shell was already well-built (LOOM grouped rail, focus-visible glacier rings on every interactive element, hover/press feedback via `loom-press`, reachable Sign out on the user chip, mono-caps group labels, ambient shimmer as the one machine-status line, `overflow-y-auto` on the nav so a tall rail never breaks). The audit found a small set of genuine breaks, all fixed surgically; no shell rewrite and no new page-header primitive.
+
+**What shipped:**
+
+- **Semantic token for the active/selected chrome row.** The nav rail's active row hardcoded the hex `#1A1A1E` (a §3.7 token violation), and the same value appeared raw in the command palette and as a hex fallback in the settings index (which explicitly mirrors the nav anatomy). Added `--surface-active: #1a1a1e` to the `[data-obsidian]` token block and pointed all three at it (`AppShell` NavRow, `CommandPalette`, settings index) so the active-row treatment is one token, no hex.
+- **Engine Room active-state gap closed.** The ENGINE group rows only used `navItemActive` (exact match), so on `/govern` and `/sync` (the Engine Room's own drill layers, per `ENGINE_ROOM_PATHS`) no rail row lit. Wired the exported `engineRoomActive` helper into the Engine Room row (excluding `/trust-ledger`, which owns its own row); Trust Ledger keeps the exact-path rule.
+- **Surface top-padding rhythm unified.** Every loop surface uses `36px 32px 64px` (Discover, Decide, Plan, Brain, the `Surface` primitive) except Today, which was the lone `32px` top outlier; aligned Today to `36px` so the vertical rhythm matches across surfaces (container widths left per-surface by design).
+- **Shell machine-map truthed to the current loop.** Added the missing `/decide` entry (Decide became a nav destination 2026-07-07) to both `PAGE_DESCRIPTIONS` and the machine surface table, and re-pointed `/discover` (opportunities moved to Decide) and `/plan` (now "Define") so the shell's self-description matches the visible IA.
+- **Stale nav map comment corrected.** The canonical `nav-model.ts` header still drew the pre-Decide 5-item loop; updated to the current 6-item loop (01 Today - 02 Discover - 03 Decide - 04 Define - 05 Build - 06 Brain) + engine 07/08.
+
+**Noted, not built (out of scope for a harmonization pass):** there is no mobile/collapsed nav below `lg` (the `<aside>` is `hidden lg:flex`); this is desktop-first by design (DESIGN-LOOM §0.1), and adding a mobile nav is a feature, not a spacing pass. No shared page-header primitive was extracted: the per-surface serif heroes are deliberately distinctive (copy + ember-word placement) and already share the container rhythm once Today was aligned, so extracting one would flatten voice for no consistency gain.
+
+**Verified:** `npx tsc --noEmit` = 0; `bun run build` succeeds; `bun test` shows only the 3 pre-existing `resolveEmbedRoute` fails; `nav-model.test.ts` passes. Added-line em/en-dash scan on changed files = 0.
+
+
 ### 2026-07-07 (Auth + account-edge surfaces: consumer/enterprise-grade pass on login/signup/recover/join + logout + error/not-found boundaries)
 
 **Context:** the auth family (`/login`, `/signup`, `/forgot-password`, `/reset-password`, `/join/$token`), the logout affordance, and the root error + not-found boundaries are the FIRST and LAST things a user sees, so they must read premium and trustworthy. The audit found the biggest gap was **theme**: every auth page rendered in the **light Ember parchment** system (`var(--paper)`/`var(--ink)`/`.bento`) while the app is **dark Obsidian** (`data-obsidian` on `<html>`, set by `_authenticated.tsx`), so a user's first screen was light and then the app flipped to dark. Two token bugs compounded it: under `[data-obsidian]` the `.bento` card background collapses to the page background (invisible card), and `--rose` (the parchment alert role) resolves to a soft DATA pink, not an alert. Every form also dumped the **raw Supabase error string** (`setFormError(error.message)`) instead of clear human copy, and the boundaries were light-parchment shadcn utility pages / a light server 500. Logout was already correct (real `supabase.auth.signOut()` in the AppShell user-chip menu). Forgot-password was already neutral (no user enumeration).

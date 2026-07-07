@@ -30,6 +30,7 @@ import {
   ENGINE_GROUP,
   FOOTER_NAV,
   navItemActive,
+  engineRoomActive,
   type NavItemDef,
 } from "@/lib/nav-model";
 
@@ -82,7 +83,7 @@ function NavRow({
       data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
       className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)] ${
         active
-          ? "loom-thread-active bg-[#1A1A1E] font-semibold text-[var(--text-primary)]"
+          ? "loom-thread-active bg-[var(--surface-active)] font-semibold text-[var(--text-primary)]"
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
       }`}
     >
@@ -262,8 +263,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       "Governance and cost controls · agent trust arcs, approval modes, spend caps, pause state.",
     "/engine-room": "Engine Room · spend, quality, safety, and the record, at a glance.",
     "/discover":
-      "Discovery feed · opportunities ranked by ICE score, signals, analytics, competitor moves.",
-    "/plan": "Plan · cited specs and the outcome-declared roadmap.",
+      "Discovery feed · raw signals clustered into ranked themes, analytics, competitor moves.",
+    "/decide":
+      "Decide · the ranked opportunity queue, red-teamed by the Critic before you commit a bet.",
+    "/plan": "Define · cited specs and the outcome-declared roadmap.",
     "/settings": "Settings · account, workspace, connections, AI keys, billing.",
     "/sync": "Sync and bindings · workspace bindings, sync conflicts, recently-synced items.",
     "/trust": "Trust and privacy statement.",
@@ -290,8 +293,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `| Route | What it contains |`,
       `|---|---|`,
       `| /today | Live dashboard: active missions, recent decisions, signal queue, pending approvals |`,
-      `| /discover | Discovery feed: opportunities ranked by ICE, signals, precedents |`,
-      `| /plan | Cited specs and the outcome-declared roadmap |`,
+      `| /discover | Discovery feed: raw signals clustered into ranked themes, precedents |`,
+      `| /decide | The ranked opportunity queue, red-teamed by the Critic before you commit |`,
+      `| /plan | Define: cited specs and the outcome-declared roadmap |`,
       `| /build | Live build surface: agent activity, PR/CI status, cost per session |`,
       `| /brain | Decision brain and memory layer: beliefs, supersession graph, learnings |`,
       `| /engine-room | Spend, quality, safety, and the record, at a glance |`,
@@ -654,7 +658,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               aria-label="The engine"
             >
               {ENGINE_GROUP.map((n) => (
-                <NavRow key={`${n.to}-${n.label}`} item={n} active={isItemActive(n)} />
+                <NavRow
+                  key={`${n.to}-${n.label}`}
+                  item={n}
+                  active={
+                    // Engine Room is the glance for the whole engine (its drill
+                    // layers /govern and /sync live inside it), so it lights via
+                    // engineRoomActive; Trust Ledger owns its own row and keeps
+                    // the exact-path rule.
+                    n.to === "/engine-room"
+                      ? engineRoomActive(path) && !path.startsWith("/trust-ledger")
+                      : isItemActive(n)
+                  }
+                />
               ))}
             </nav>
           </div>

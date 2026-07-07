@@ -10,8 +10,8 @@
  * Connections, Admin had no click path a new user could find), so LOOM
  * retires the hover-menu door for a VISIBLE grouped rail (DESIGN-LOOM §8):
  *
- *   THE LOOP    01 Today · 02 Discover · 03 Plan · 04 Build · 05 Brain
- *   THE ENGINE  06 Engine Room · 07 Trust Ledger
+ *   THE LOOP    01 Today · 02 Discover · 03 Decide · 04 Define · 05 Build · 06 Brain
+ *   THE ENGINE  07 Engine Room · 08 Trust Ledger
  *   (footer)    Settings · Admin (role-gated) · the user chip menu
  *
  * Everything reachable by clicking; depth stays on demand behind the visible

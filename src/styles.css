@@ -1689,6 +1689,7 @@ html[data-motion="off"] .agent-live {
   --card: #111113; /* default card */
   --raised: #17171a; /* raised surface, table header, secondary button */
   --hover: #1d1d21; /* hover fill, avatar chip */
+  --surface-active: #1a1a1e; /* selected/active row: nav rail, settings index, command palette */
   --surface-canvas: var(--canvas);
   --surface-rail: var(--rail);
   --surface-card: var(--card);

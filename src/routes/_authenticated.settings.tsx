@@ -149,7 +149,7 @@ function SettingsIndex({
               gap: 10,
               padding: "8px 12px",
               borderRadius: "var(--radius-control)",
-              background: isActive ? "var(--hover, #1A1A1E)" : "transparent",
+              background: isActive ? "var(--surface-active)" : "transparent",
               textAlign: "left",
               transitionProperty: "background-color",
               transitionDuration: "var(--dur-press, 140ms)",
