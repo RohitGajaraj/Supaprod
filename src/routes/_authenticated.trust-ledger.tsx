@@ -36,6 +36,8 @@ import {
   ledgerSummary,
 } from "@/components/trust/format";
 import { ReceiptDetailSheet, ShareControl } from "@/components/trust/ReceiptDetailSheet";
+import { getMissionChain, listChainMissions } from "@/lib/trust-chain.functions";
+import { MissionChain } from "@/components/trust/MissionChain";
 
 export const Route = createFileRoute("/_authenticated/trust-ledger")({
   head: () => ({ meta: [{ title: "Trust Ledger · Cadence" }] }),
@@ -469,6 +471,82 @@ function LedgerSummary({
   );
 }
 
+/**
+ * SW-5 deliverable B: the per-mission chain walk. Pick a mission and the ledger
+ * shows its signal -> decision -> contract -> design -> build -> test -> merge
+ * -> deploy -> outcome chain from real rows, marking any missing link. This is
+ * the moat made visible, distinct from the flat receipt list + tamper seal.
+ */
+function MissionChainPanel() {
+  const fMissions = useServerFn(listChainMissions);
+  const fChain = useServerFn(getMissionChain);
+  const missionsQ = useQuery({
+    queryKey: ["chain-missions"],
+    queryFn: () => fMissions(),
+  });
+  const [selected, setSelected] = useState<string | null>(null);
+  const missions = missionsQ.data ?? [];
+  const active = selected ?? missions[0]?.id ?? null;
+
+  const chainQ = useQuery({
+    queryKey: ["mission-chain", active],
+    queryFn: () => fChain({ data: { missionId: active as string } }),
+    enabled: Boolean(active),
+  });
+
+  // An empty workspace hides the panel; a failed load must NOT (silence would
+  // read as "no missions" on the trust surface - render the error instead).
+  if (!missionsQ.isPending && !missionsQ.isError && missions.length === 0) return null;
+
+  return (
+    <section aria-label="Mission chain" style={{ marginBottom: 22 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
+        <MonoLabel style={{ fontSize: 10.5 }}>Mission chain</MonoLabel>
+        <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>
+          the loop, walked end to end
+        </span>
+        <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
+        {missions.length > 0 ? (
+          <select
+            className="input"
+            aria-label="Choose a mission"
+            value={active ?? ""}
+            onChange={(e) => setSelected(e.target.value)}
+            style={{ fontSize: 12, maxWidth: 260, padding: "4px 8px" }}
+          >
+            {missions.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.title}
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </div>
+      {missionsQ.isError ? (
+        <div style={{ fontSize: 12.5, color: "var(--text-faint)", padding: "10px 0" }}>
+          Could not load missions for the chain. {(missionsQ.error as Error)?.message}
+        </div>
+      ) : chainQ.isError ? (
+        <div style={{ fontSize: 12.5, color: "var(--text-faint)", padding: "10px 0" }}>
+          Could not walk this mission's chain. {(chainQ.error as Error)?.message}
+        </div>
+      ) : chainQ.data ? (
+        <MissionChain chain={chainQ.data} />
+      ) : chainQ.isPending ? (
+        <div
+          aria-hidden="true"
+          style={{
+            height: 240,
+            borderRadius: "var(--radius-card)",
+            background: "var(--surface-card-deep)",
+            boxShadow: "var(--top-light)",
+          }}
+        />
+      ) : null}
+    </section>
+  );
+}
+
 function TrustLedgerPage() {
   const { activeWorkspace } = useWorkspace();
   const navigate = useNavigate();
@@ -518,6 +596,8 @@ function TrustLedgerPage() {
         {!query.isPending && !query.isError ? <LedgerSummary counts={counts} /> : null}
 
         <SealPanel />
+
+        <MissionChainPanel />
 
         <TabRow tabs={kindTabs} active={kind} onSet={(id) => setKind(id as Kind)} />
 
