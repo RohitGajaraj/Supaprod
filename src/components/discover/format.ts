@@ -28,6 +28,25 @@ export function sourceCaps(source: string): string {
   return source.toUpperCase();
 }
 
+/** The most-recent (max) of a set of ISO timestamps, skipping null / blank /
+ * malformed entries. Returns null when none are valid. Lets an object backed
+ * by several rows (a provider with many accounts, a binding chain) show ONE
+ * honest "last synced / verified" recency instead of picking a row at random. */
+export function latestIso(isos: (string | null | undefined)[]): string | null {
+  let best: string | null = null;
+  let bestMs = -Infinity;
+  for (const iso of isos) {
+    if (!iso) continue;
+    const ms = new Date(iso).getTime();
+    if (Number.isNaN(ms)) continue;
+    if (ms > bestMs) {
+      bestMs = ms;
+      best = iso;
+    }
+  }
+  return best;
+}
+
 /** A short, stable, system-generated reference derived from the real id (the
  * first 6 alphanumerics of the uuid, upper-cased). Gives any artifact a
  * human-quotable trace handle without ever exposing the raw uuid. Reusable

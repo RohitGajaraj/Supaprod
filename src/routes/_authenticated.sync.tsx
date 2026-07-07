@@ -31,6 +31,7 @@ import { pullMapping, pushMapping } from "@/lib/sync.functions";
 import { getIngestToken, rotateIngestToken, revokeIngestToken } from "@/lib/ingest.functions";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncInboxPage,
@@ -359,6 +360,11 @@ function SyncInboxPage() {
           <div style={{ display: "grid", gap: 4 }}>
             {synced.slice(0, 20).map((m) => {
               const readOnly = !supported(m.provider);
+              const lastSync = latestIso([m.last_pulled_at, m.last_pushed_at]);
+              const syncVerb =
+                m.last_pushed_at && (!m.last_pulled_at || m.last_pushed_at > m.last_pulled_at)
+                  ? "PUSHED"
+                  : "PULLED";
               return (
                 <div
                   key={m.id}
@@ -426,9 +432,7 @@ function SyncInboxPage() {
                     )}
                   </div>
                   <span className="mono-label tabular-nums" style={{ color: "var(--ink-subtle)" }}>
-                    {m.last_pulled_at
-                      ? `pulled ${new Date(m.last_pulled_at).toLocaleDateString()}`
-                      : "not pulled yet"}
+                    {lastSync ? `${syncVerb} ${relTimeCaps(lastSync)}` : "not synced yet"}
                   </span>
                   {readOnly ? (
                     // Honest state instead of two permanently-dead buttons

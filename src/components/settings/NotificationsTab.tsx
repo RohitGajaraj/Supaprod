@@ -160,7 +160,7 @@ export function NotificationsTab() {
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--soft-stone, #eaeaea)" }}>
+              <tr style={{ borderBottom: "1px solid var(--hairline)" }}>
                 <th style={{ ...TH, textAlign: "left" }}>Alert Category</th>
                 <th style={TH}>In-App Feed</th>
                 <th style={TH}>Instant Email</th>
@@ -173,7 +173,7 @@ export function NotificationsTab() {
                   key={r.key}
                   style={
                     i < ROWS.length - 1
-                      ? { borderBottom: "1px solid var(--soft-stone, #eaeaea)" }
+                      ? { borderBottom: "1px solid var(--hairline)" }
                       : undefined
                   }
                 >

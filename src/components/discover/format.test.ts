@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { relTimeCaps, sourceCaps, verdictFor } from "./format";
+import { latestIso, relTimeCaps, sourceCaps, verdictFor } from "./format";
 
 describe("relTimeCaps", () => {
   const now = Date.now();
@@ -32,6 +32,25 @@ describe("relTimeCaps", () => {
 describe("sourceCaps", () => {
   test("upcases a lowercase source", () => {
     expect(sourceCaps("intercom")).toBe("INTERCOM");
+  });
+});
+
+describe("latestIso", () => {
+  test("returns the most-recent timestamp", () => {
+    const older = new Date(Date.now() - 3 * 24 * 60 * 60_000).toISOString();
+    const newer = new Date(Date.now() - 1 * 60 * 60_000).toISOString();
+    expect(latestIso([older, newer])).toBe(newer);
+    expect(latestIso([newer, older])).toBe(newer);
+  });
+
+  test("skips null, undefined, blank, and malformed entries", () => {
+    const iso = new Date(Date.now() - 5 * 60_000).toISOString();
+    expect(latestIso([null, undefined, "", "not-a-date", iso])).toBe(iso);
+  });
+
+  test("returns null when nothing is valid", () => {
+    expect(latestIso([])).toBeNull();
+    expect(latestIso([null, undefined, "", "nope"])).toBeNull();
   });
 });
 

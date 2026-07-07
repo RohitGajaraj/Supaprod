@@ -69,3 +69,7 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-27 integration tiering, the Slack write-back gate).
 - `docs/features/README.md` index.
+
+## Settings/connections audit note (2026-07-07)
+
+Reviewed in the `settings_connections` consumer/enterprise-grade pass. The "Stakeholder update" toggle + audience picker in `NotificationsTab` (Settings > Notifications) is real and wired end to end (no change to behavior). The only touch: the notifications preferences table swapped two banned hex-fallback dividers (`var(--soft-stone, #eaeaea)`) for the semantic `var(--hairline)` token, so the pane is hex-clean under the Obsidian theme. The Slack digest-channel binding on `/sync` also benefits from the workspace-bindings first-class-object rework (see [`settings-ia.md`](./settings-ia.md)).

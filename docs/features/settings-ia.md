@@ -40,3 +40,14 @@ The live Settings tabs (`TABS` in the settings route) map cleanly onto the rubri
 ## Deliberately NOT done (optional, design-pass)
 
 The tabs are a single flat `TabRow` today (live-tested, working). VISUALLY grouping them under "Personal · Account · Workspace · System" headers is a presentation polish for the founder-prompted design pass — it does not change the rubric or any behavior, so it is intentionally left out of this scope per the velocity ruling (no speculative UI churn on a tested surface). The decision — where each setting lives — is made and recorded here, which is the WM-F7 deliverable.
+
+## Design + first-class-object pass (2026-07-07)
+
+A consumer/enterprise-grade functional + design audit of the Settings and `/sync` surfaces (the `settings_connections` pass) brought the connections and workspace-binding surfaces up to the design-anatomy bar without touching the (closed) monetization block:
+
+- **Connected accounts (`AccountConnectionsSection`):** a connected provider card now shows its real recency (`VERIFIED 3H AGO` from `connections.last_verified_at`, or `SYNCED …` from `user_calendar_connections.last_sync_at`), via the shared `latestIso` + `relTimeCaps` helpers, so a live connection reads as a first-class object with a status pill AND a last-synced time. Cards with no timestamp yet keep their flow label (no invented time).
+- **Workspace bindings (`WorkspaceBindingsSection`, rendered on `/sync` and summarized in Settings > Connections):** migrated off shadcn/Tailwind utility classes (`text-amber-400`, `text-emerald-500`, `bg-secondary/40`) and the ember-misusing `text-primary` onto Obsidian semantic tokens, matched to the rest of `/sync`. Each binding is now a first-class row: provider brand mark (`ProviderLogo`), a `Bound` / `Reconnect needed` status pill (moss / madder), the bound resource + account, a `bound <relTimeCaps>` recency, and a clear Unbind affordance, with proper skeleton / error-with-retry / not-connected states.
+- **Product bindings (`ProductBindingsSection`):** the same ember-misuse (`text-primary`) and raw-Tailwind-hue (`text-emerald-500`) fixes.
+- **OAuth-gated flows stay honestly parked.** No connect flow is faked. A provider whose founder-registered OAuth client env is absent (`GITHUB_APP_ID`/`GITHUB_APP_SLUG`, a gateway `clientIdEnv`, or `LOVABLE_API_KEY`) renders as a calm "coming soon"/"not configured" state (`AccountConnectionsSection.statusFor` + `ConnectorDetail`), never an implied Connect promise. See `docs/features/README.md` and `connections.functions.ts` `deriveProviderAvailability`.
+
+Build note: [`../../plan.md`](../../plan.md) §4 (2026-07-07 entry).

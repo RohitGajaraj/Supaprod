@@ -48,3 +48,7 @@ Maintains the canonical list of the third parties that process customer data on 
 ## Related
 
 - [`../../plan.md`](../../plan.md) §4 (cycle 49) · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · siblings [`u6-data-export.md`](./u6-data-export.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · catalog [`../../src/lib/ai/models.ts`](../../src/lib/ai/models.ts)
+
+## Settings/connections audit note (2026-07-07)
+
+Reviewed in the `settings_connections` consumer/enterprise-grade pass. `SubprocessorsCard` (Settings > Data, "Where your data goes") already meets the bar: catalog-derived real data, calm-front editorial list, and honest loading/error/empty states. No change was needed here; the design pass landed on the connections + workspace-binding surfaces on the same route (see [`settings-ia.md`](./settings-ia.md)).

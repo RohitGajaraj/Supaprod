@@ -112,7 +112,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
           <div className="px-4 py-2 flex justify-end">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1 text-[11px] text-primary hover:underline"
+              className="flex items-center gap-1 text-[11px] text-[color:var(--glacier)] hover:underline"
             >
               <Plus className="h-3 w-3" />
               Create new GitHub repo
@@ -139,7 +139,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
 
                 {binding ? (
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="h-3 w-3 text-[color:var(--moss)] shrink-0" />
                     <code className="text-[11px] text-foreground">{binding.resource_id}</code>
                     <button
                       onClick={() => mRemove.mutate(binding.id)}
@@ -190,7 +190,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                 ) : connected.length > 0 ? (
                   <button
                     onClick={() => setPicking(pickKey)}
-                    className="text-[11px] text-primary hover:underline"
+                    className="text-[11px] text-[color:var(--glacier)] hover:underline"
                   >
                     Set product override
                   </button>

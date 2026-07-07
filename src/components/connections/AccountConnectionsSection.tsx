@@ -32,6 +32,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { ProviderLogo } from "./ProviderLogo";
 import { RequestConnectorCard } from "./RequestConnectorCard";
+import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 // F-CONN Phase 2: Settings, "Connections", the single home for account-level
 // sources, reworked into a Lovable-style TWO-PANE layout (2026-07-06). A left
@@ -428,6 +429,23 @@ export function AccountConnectionsSection({
     return s === "connected" || s === "active";
   };
 
+  // The single, honest "last synced / verified" recency for a connected
+  // provider: the most-recent timestamp across its account rows (calendars
+  // carry last_sync_at; everything else carries last_verified_at). Null when
+  // there is no real timestamp yet, so the card falls back to its flow label
+  // rather than inventing a time.
+  const lastActivityFor = (spec: ProviderSpec): { iso: string; verb: string } | null => {
+    const cal = CALENDAR_PROVIDERS[spec.id];
+    if (cal) {
+      const iso = latestIso(
+        calendarAccounts.filter((c) => c.provider === cal).map((c) => c.last_sync_at),
+      );
+      return iso ? { iso, verb: "SYNCED" } : null;
+    }
+    const iso = latestIso((byProvider.get(spec.id) ?? []).map((c) => c.last_verified_at));
+    return iso ? { iso, verb: "VERIFIED" } : null;
+  };
+
   // The connect flow for a not-yet-connected provider (GitHub App redirect,
   // calendar popup, or the gateway OAuth popup) is unchanged.
   const connectProvider = (spec: ProviderSpec) => {
@@ -616,6 +634,7 @@ export function AccountConnectionsSection({
               const spec = CONNECTOR_REGISTRY[e.id];
               const status = statusFor(spec);
               const clickable = status === "connected" || status === "active";
+              const activity = clickable ? lastActivityFor(spec) : null;
               const open = () => onOpenDetail(e.id);
               return (
                 <div
@@ -682,10 +701,11 @@ export function AccountConnectionsSection({
                         fontSize: 9.5,
                         letterSpacing: "0.08em",
                         textTransform: "uppercase",
-                        color: "var(--text-faint)",
+                        color: activity ? "var(--text-subtle)" : "var(--text-faint)",
                       }}
+                      className={activity ? "tabular-nums" : undefined}
                     >
-                      {e.flowLabel}
+                      {activity ? `${activity.verb} ${relTimeCaps(activity.iso)}` : e.flowLabel}
                     </span>
                   </div>
                   <div style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>

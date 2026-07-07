@@ -54,3 +54,7 @@ Settings (`/settings`) > the **Data** tab > "Download workspace export".
 ## Related
 
 - [`plan.md`](../../plan.md) §4 build log · [`projects.functions.ts`](../../src/lib/projects.functions.ts) (B5 `exportProduct` sibling) · feature-dashboard U6 row · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycle 1).
+
+## Settings/connections audit note (2026-07-07)
+
+Reviewed in the `settings_connections` consumer/enterprise-grade pass. The `DataExportCard` (Settings > Data) already meets the bar: real data (RLS-scoped `exportWorkspace` + `export_log` history), calm-front outcome naming, and proper empty/loading states. No functional or design change was needed; the sibling bindings/connections surfaces on the same route are where that pass landed (see [`settings-ia.md`](./settings-ia.md) "Design + first-class-object pass").

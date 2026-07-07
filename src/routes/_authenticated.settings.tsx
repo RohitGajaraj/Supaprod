@@ -35,6 +35,7 @@ import {
 } from "@/components/connections/AccountConnectionsSection";
 import { listWorkspaceBindings } from "@/lib/connections.functions";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import { relTimeCaps } from "@/components/discover/format";
 import { getBillingState, type BillingState } from "@/lib/billing.functions";
 import {
   getMySubscription,
@@ -1529,7 +1530,7 @@ function WorkspaceBindingsSummary() {
                     width: 6,
                     height: 6,
                     borderRadius: 99,
-                    background: healthy ? "var(--moss, #7FBF8E)" : "var(--madder, #E06557)",
+                    background: healthy ? "var(--moss)" : "var(--madder)",
                     flexShrink: 0,
                   }}
                 />
@@ -1541,6 +1542,14 @@ function WorkspaceBindingsSummary() {
                     {healthy ? "" : " · reconnect needed"}
                   </span>
                 </span>
+                {b.updated_at ? (
+                  <span
+                    className="mono-label tabular-nums"
+                    style={{ fontSize: 9, color: "var(--ink-faint)", marginLeft: "auto" }}
+                  >
+                    {relTimeCaps(b.updated_at)}
+                  </span>
+                ) : null}
               </li>
             );
           })}

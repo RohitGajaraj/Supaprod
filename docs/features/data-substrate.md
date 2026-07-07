@@ -50,3 +50,7 @@ Settings > Data pane (`/settings?section=data`), the first card above "Export yo
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §5.1.
 - [`../decisions/memory-on-delete.md`](../decisions/memory-on-delete.md) (the archive/delete/forget model this card explains).
 - `docs/features/README.md` index (`U6` / `SUBPROC-DISCLOSURE` siblings on the same Settings > Data pane; `src/lib/trust-verify.ts` and `/trust-ledger` are the TRUST-VERIFY seal this card summarizes, which has no feature-doc entry of its own yet).
+
+## Settings/connections audit note (2026-07-07)
+
+Reviewed in the `settings_connections` consumer/enterprise-grade pass. `DataSubstrateCard` (Settings > Data, "Where your brain lives") already meets the bar: composes real, already-shipped facts (Postgres/pgvector substrate, the archive/delete/forget model, the live ledger seal) with a calm front and the integrity-seal guard on an empty ledger. No change needed; the design pass landed on the connections + workspace-binding surfaces on the same route (see [`settings-ia.md`](./settings-ia.md)).
