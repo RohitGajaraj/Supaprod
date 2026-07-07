@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getInstallationAccount, readConnectState } from "@/lib/connectors/providers/github.server";
+import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
 
 /**
  * F-CONN Phase 1 — GitHub App installation callback (public, unauthenticated).
@@ -27,8 +28,9 @@ export const Route = createFileRoute("/api/public/connect/github/callback")({
           const state = url.searchParams.get("state");
           if (!installationId || !state) return redirect("error=github_connect");
 
-          const userId = await readConnectState(state);
-          if (!userId) return redirect("error=github_connect");
+          const stateResult = await readConnectState(state);
+          if (!stateResult) return redirect("error=github_connect");
+          const { userId, returnTo } = stateResult;
 
           // Probe the installation for its account login; cosmetic, so a
           // failed probe still records the connection.
@@ -77,6 +79,22 @@ export const Route = createFileRoute("/api/public/connect/github/callback")({
               ...fields,
             });
             if (error) throw new Error(error.message);
+          }
+
+          // SW-6 cold start: arm sensing + first ingest so the fresh source
+          // produces signals in-session (bounded + never throws).
+          await kickFirstIngest(userId, "github");
+
+          // SW-6: the onboarding connect step does a FULL-PAGE redirect here
+          // (not a popup), so the close-tab page below would strand it
+          // (window.close() cannot close a non-script-opened tab). When the
+          // signed state says the user came from onboarding, send them back
+          // to resume it with a success marker.
+          if (returnTo === "onboarding") {
+            return new Response(null, {
+              status: 302,
+              headers: { Location: `${url.origin}/onboarding?connected=github` },
+            });
           }
 
           // Return a close-tab page: the parent tab detects the connection

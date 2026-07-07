@@ -5,7 +5,7 @@
 // (isDemoSeedEnabled - a minimal new read, and the belief input driving a
 // real seeded opportunity id rather than free text) live in
 // docs/features/obsidian-port.md's OBS-14 section.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,7 +33,7 @@ import {
 } from "@/lib/onboarding.functions";
 import { trackDescriptions } from "@/lib/onboarding/track-seeds";
 import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
-import { runCriticReview, listOpportunities } from "@/lib/discovery.functions";
+import { runCriticReview, runWedgeTeardown, listOpportunities } from "@/lib/discovery.functions";
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalButterfly } from "@/components/onboarding/ArrivalButterfly";
@@ -262,6 +262,11 @@ export function ObsidianOnboarding() {
     );
   }
 
+  // Tracks the exact prefilled title so mFinish can tell "user kept the
+  // suggestion" (evidence-linked critic) from "user typed their own belief"
+  // (verbatim wedge teardown).
+  const seededBeliefRef = useRef<string>(FALLBACK_BELIEF);
+
   async function afterConnected() {
     // Pull a real seeded/connected opportunity to point the Critic at; fall
     // back to the constant belief if the workspace has none yet.
@@ -269,6 +274,7 @@ export function ObsidianOnboarding() {
       const { opportunities } = await fListOpportunities();
       if (opportunities[0]) {
         setBelief(opportunities[0].title);
+        seededBeliefRef.current = opportunities[0].title;
         setBeliefTarget({ kind: "opportunity", id: opportunities[0].id });
       }
     } catch {
@@ -293,7 +299,10 @@ export function ObsidianOnboarding() {
         return fCalSave({ data: { provider: cal, connectionId: result.connectionId } });
       }
       if (spec.id === "github") {
-        const { installUrl } = await fStartGithub();
+        // SW-6: returnTo rides in the signed state so the install callback
+        // sends the user back here (?connected=github) instead of stranding
+        // them on a close-tab page after this full-page redirect.
+        const { installUrl } = await fStartGithub({ data: { returnTo: "onboarding" } });
         window.location.assign(installUrl);
         return null;
       }
@@ -330,10 +339,21 @@ export function ObsidianOnboarding() {
   });
 
   const fRunCritic = useServerFn(runCriticReview);
+  const fWedgeTeardown = useServerFn(runWedgeTeardown);
   const fComplete = useServerFn(completeOnboarding);
   const mFinish = useMutation({
     mutationFn: async () => {
-      if (beliefTarget) {
+      // SW-6 (felt journey, the surprise beat): honor what the user actually
+      // typed. If they edited the belief, record THEIR words verbatim and run
+      // the Critic on them (runWedgeTeardown was built for exactly this and
+      // was orphaned); the prefilled seeded-opportunity title keeps the
+      // evidence-linked runCriticReview path.
+      const typed = belief.trim();
+      const editedBelief =
+        typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
+      if (editedBelief) {
+        await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } }).catch(() => null);
+      } else if (beliefTarget) {
         await fRunCritic({ data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id } });
       }
       await fComplete({ data: {} });
@@ -355,12 +375,32 @@ export function ObsidianOnboarding() {
     mutationFn: (track: OnboardingTrack) => fSeedTrack({ data: { track } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["opportunities"] });
+      // SW-6: the seed just created the workspace on a fresh account; without
+      // this, activeWorkspace stays null and the demo-data button on the next
+      // step fails with "Workspace not ready yet".
+      qc.invalidateQueries({ queryKey: ["workspaces"] });
       setPhase("connect");
     },
     onError: (e: Error) => toast.error(e.message || "Could not set up the workspace"),
   });
   const fSeedTrack = useServerFn(seedWorkspaceForTrack);
   const [pendingTrack, setPendingTrack] = useState<OnboardingTrack | null>(null);
+
+  // SW-6: returning from the GitHub App install (full-page redirect), the
+  // callback lands on /onboarding?connected=github. Resume at the critic step
+  // with the freshly seeded opportunity instead of restarting at arrival.
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current) return;
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected") === "github") {
+      resumedRef.current = true;
+      qc.invalidateQueries({ queryKey: ["connections"] });
+      void afterConnected();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (profileQ.isLoading)
     return (
@@ -596,6 +636,16 @@ export function ObsidianOnboarding() {
                 {connectError} · try demo data
               </p>
             ) : null}
+
+            {/* SW-6: this step could hard dead-end (no configured providers +
+                demo seed off left every button disabled). The seeded track
+                data already gives the Critic something real to work with, so
+                skipping is always safe. */}
+            <div style={{ marginTop: 10 }}>
+              <Button variant="tertiary" onClick={() => void afterConnected()}>
+                Skip for now, connect later in Settings
+              </Button>
+            </div>
           </div>
         </Frame>
       </Screen>

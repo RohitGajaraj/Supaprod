@@ -145,23 +145,47 @@ async function stateHmac(payload: string): Promise<string> {
   return bytesToBase64Url(new Uint8Array(sig));
 }
 
-/** state = base64url(user_id|exp|hmac), 15-minute expiry. */
-export async function makeConnectState(userId: string): Promise<string> {
+/**
+ * SW-6: the state can carry an allowlisted return destination so the install
+ * callback can resume the flow the user came from (the onboarding connect
+ * step) instead of stranding them. An allowlist, not a free-form URL, so the
+ * signed state can never become an open-redirect vector. Base64url has no '|',
+ * UUIDs have no '|', and returnTo comes from the allowlist, so split('|')
+ * parsing stays unambiguous for both formats.
+ */
+const CONNECT_RETURN_TOS = new Set(["onboarding"]);
+export type ConnectStateResult = { userId: string; returnTo: string | null };
+
+/** state = base64url(user_id|exp[|return_to]|hmac), 15-minute expiry. */
+export async function makeConnectState(userId: string, returnTo?: string): Promise<string> {
   const exp = Date.now() + 15 * 60 * 1000;
-  const mac = await stateHmac(`${userId}|${exp}`);
-  return bytesToBase64Url(new TextEncoder().encode(`${userId}|${exp}|${mac}`));
+  const rt = returnTo && CONNECT_RETURN_TOS.has(returnTo) ? returnTo : "";
+  const payload = rt ? `${userId}|${exp}|${rt}` : `${userId}|${exp}`;
+  const mac = await stateHmac(payload);
+  return bytesToBase64Url(new TextEncoder().encode(`${payload}|${mac}`));
 }
 
-/** Returns the user_id when the state is authentic and unexpired, else null. Never throws. */
-export async function readConnectState(state: string): Promise<string | null> {
+/** Returns {userId, returnTo} when the state is authentic and unexpired, else null. Never
+ *  throws. Accepts the legacy 3-part (userId|exp|mac) and 4-part (userId|exp|returnTo|mac)
+ *  forms, so states minted before this deploy stay valid across it. */
+export async function readConnectState(state: string): Promise<ConnectStateResult | null> {
   try {
     const decoded = new TextDecoder().decode(base64UrlToBytes(state));
-    const [userId, expRaw, mac] = decoded.split("|");
+    const parts = decoded.split("|");
+    if (parts.length !== 3 && parts.length !== 4) return null;
+    const [userId, expRaw] = parts;
+    const returnTo = parts.length === 4 ? parts[2] : "";
+    const mac = parts[parts.length - 1];
     if (!userId || !expRaw || !mac) return null;
     const exp = Number(expRaw);
     if (!Number.isFinite(exp) || exp < Date.now()) return null;
-    const expected = await stateHmac(`${userId}|${exp}`);
-    return mac === expected ? userId : null;
+    const payload = returnTo ? `${userId}|${exp}|${returnTo}` : `${userId}|${exp}`;
+    const expected = await stateHmac(payload);
+    if (mac !== expected) return null;
+    return {
+      userId,
+      returnTo: returnTo && CONNECT_RETURN_TOS.has(returnTo) ? returnTo : null,
+    };
   } catch {
     return null;
   }

@@ -13,6 +13,8 @@ import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
 import { runResearch, type ResearchMode, type ResearchSource } from "@/lib/ai/research.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
@@ -151,6 +153,29 @@ export const Route = createFileRoute("/api/chat")({
         const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
         if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
         const userId = claimsData.claims.sub as string;
+
+        // SW-6 tenant safety: per-user burst limiter for the AI surface.
+        // Budgets stay the hard spend gate; this stops a script burning a
+        // day's cap in seconds and hammering shared provider quotas.
+        const rate = await checkUserAiRateLimit(
+          supabaseAdmin as unknown as Parameters<typeof checkUserAiRateLimit>[0],
+          userId,
+        );
+        if (!rate.allowed) {
+          return new Response(
+            JSON.stringify({
+              error: "You are sending requests too quickly. Give it a short breather.",
+              retryAfterSeconds: rate.retryAfterSeconds,
+            }),
+            {
+              status: 429,
+              headers: {
+                "Content-Type": "application/json",
+                "Retry-After": String(rate.retryAfterSeconds),
+              },
+            },
+          );
+        }
 
         let body: {
           conversationId: string;

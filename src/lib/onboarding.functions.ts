@@ -119,14 +119,12 @@ async function recordSeedOpportunityStageEvents(
  * - One starter project (if not already present)
  * - Several signals (market feedback, user feedback, etc.)
  * - Several opportunities (prioritized ideas)
- * - Updates the profile's onboarded flag
  *
- * Runs during onboarding, after the user selects a track.
+ * Runs during onboarding, after the user selects a track. The onboarded flag
+ * is NOT set here — completeOnboarding sets it at the finish step, so an
+ * interrupted onboarding resumes instead of silently skipping its later steps
+ * (SW-6). Re-entry is safe: the alreadySeeded guard fast-forwards.
  * All data is scoped to the authenticated user.
- *
- * Transaction semantics: if ANY step fails, the entire operation is aborted
- * (via the guard check below). This prevents partial seeding where the profile
- * is marked onboarded but data is incomplete.
  */
 export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -143,15 +141,31 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
     const seed = getTrackSeed(track);
 
     try {
-      // 1. Guard: check if already seeded (prevent duplicate inserts on re-click)
-      const { data: existingSignals, error: countError } = await supabase
-        .from("signals")
+      // 1. Guard: already seeded? Return success (not an error) so a user
+      //    resuming an interrupted onboarding flows straight to the next step.
+      //
+      //    SW-6 fixes two audit findings here: (a) the old guard read `data`
+      //    from a head:true count query, but head queries return the count in
+      //    `count` and `data` is always empty, so the guard could never fire;
+      //    (b) it counted SIGNALS, but with auto-sensing on by default the
+      //    sense-tick demo top-up can insert signals into a brand-new
+      //    workspace BEFORE the user picks a track, which would falsely trip
+      //    the guard. Opportunities are only created by seeding (or later by
+      //    the user), so they are the honest "did the track seed run" marker.
+      const { count: existingOpps, error: countError } = await supabase
+        .from("opportunities")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId);
 
       if (countError) throw countError;
-      if (existingSignals && existingSignals.length > 0) {
-        throw new Error("Workspace already seeded. Reset in Settings if you need to re-seed.");
+      if ((existingOpps ?? 0) > 0) {
+        return {
+          success: true,
+          alreadySeeded: true,
+          projectId: null,
+          signalsCount: 0,
+          opportunitiesCount: 0,
+        };
       }
 
       // 2. Resolve (or create) the caller's default workspace. Every insert below is
@@ -231,20 +245,17 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         userId,
       );
 
-      // 6. Mark the profile as onboarded (final step; only if all above succeed)
-      const { error: profileError, data: profileData } = await supabase
-        .from("profiles")
-        .update({ onboarded: true })
-        .eq("id", userId)
-        .select("id");
-
-      if (profileError) throw profileError;
-      if (!profileData || profileData.length === 0) {
-        throw new Error("Failed to mark workspace as onboarded (profile not found or RLS denied)");
-      }
+      // 6. Deliberately NOT marking the profile onboarded here (SW-6 audit
+      //    fix): this runs at STEP 1 of 4, and flipping the flag this early
+      //    meant any interruption (notably the GitHub full-page install
+      //    redirect) permanently skipped the connect/critic/coach steps. The
+      //    flag is now written only by completeOnboarding at the finish step;
+      //    an interrupted user is routed back here and the alreadySeeded
+      //    guard above fast-forwards them.
 
       return {
         success: true,
+        alreadySeeded: false,
         projectId,
         signalsCount: seed.signals.length,
         opportunitiesCount: seed.opportunities.length,

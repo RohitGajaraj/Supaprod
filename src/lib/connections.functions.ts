@@ -14,6 +14,7 @@ import { materializeAuth, type ResolvedAuth } from "@/lib/connectors/resolve.ser
 import { getProviderAdapter } from "@/lib/connectors/providers/index.server";
 import { makeConnectState } from "@/lib/connectors/providers/github.server";
 import { authorizeAppUserOAuth } from "@/integrations/lovable/appUserConnector";
+import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
 
 // F-CONN Phase 1 — account-level connections + workspace-level bindings.
 // connections: own-row RLS (the caller only ever sees their own rows).
@@ -193,17 +194,26 @@ export const listConnections = createServerFn({ method: "GET" })
     };
   });
 
-/** Kick off the GitHub App install flow — returns the install URL for a full redirect. */
+/** Kick off the GitHub App install flow — returns the install URL for a full redirect.
+ *  SW-6: `returnTo: "onboarding"` rides inside the signed state so the callback can
+ *  resume the onboarding connect step instead of stranding the user (allowlisted in
+ *  makeConnectState, never a free-form URL). */
 export const startGithubAppConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((i: unknown) =>
+    z
+      .object({ returnTo: z.enum(["onboarding"]).optional() })
+      .optional()
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const slug = (process.env.GITHUB_APP_SLUG ?? "").trim();
     if (!slug || !process.env.GITHUB_APP_ID) {
       throw new Error(
         "GitHub setup pending. An admin must register the GitHub App and set GITHUB_APP_ID and GITHUB_APP_SLUG before members can connect.",
       );
     }
-    const state = await makeConnectState(context.userId);
+    const state = await makeConnectState(context.userId, data?.returnTo);
     return {
       installUrl: `https://github.com/apps/${encodeURIComponent(slug)}/installations/new?state=${encodeURIComponent(state)}`,
     };
@@ -410,7 +420,10 @@ export const saveGatewayConnection = createServerFn({ method: "POST" })
         .select(CONNECTION_COLUMNS)
         .single();
       if (error) throw new Error(error.message);
-      return { connection: updated as unknown as ConnectionRow };
+      // SW-6 cold start: arm sensing + first ingest so the new source produces
+      // signals in-session (bounded + never throws; see first-ingest.server.ts).
+      const kick = await kickFirstIngest(context.userId, data.provider);
+      return { connection: updated as unknown as ConnectionRow, firstIngest: kick };
     }
 
     const { data: inserted, error } = await db
@@ -428,7 +441,10 @@ export const saveGatewayConnection = createServerFn({ method: "POST" })
       .select(CONNECTION_COLUMNS)
       .single();
     if (error) throw new Error(error.message);
-    return { connection: inserted as unknown as ConnectionRow };
+    // SW-6 cold start: arm sensing + first ingest so the new source produces
+    // signals in-session (bounded + never throws; see first-ingest.server.ts).
+    const kick = await kickFirstIngest(context.userId, data.provider);
+    return { connection: inserted as unknown as ConnectionRow, firstIngest: kick };
   });
 
 /**

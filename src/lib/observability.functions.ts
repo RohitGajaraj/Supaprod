@@ -106,7 +106,7 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
     }
 
     // SW-6 cron watchdog: expected-vs-actual. One indexed 1-row read per
-    // expected job (job_runs_job_started_idx), in parallel — a job with no
+    // expected job (job_runs_job_started_idx), in parallel: a job with no
     // run at all, or a run older than its staleness budget, is STALE. This is
     // the "silent non-ticking must not recur" surface the mission demands.
     const nowMs = Date.now();
@@ -205,7 +205,7 @@ export const getMoatMetrics = createServerFn({ method: "GET" })
     };
   });
 
-// ─── SW-6: failure-detection floor — the founder's error read path ───────────
+// ─── SW-6: failure-detection floor, the founder's error read path ────────────
 
 export type ErrorEventRow = {
   id: number;
