@@ -238,6 +238,8 @@ The swarm wires everything up TO these boundaries; the founder supplies:
 **Live founder-gated additions discovered during the build:**
 - 9. **Apply migration `20260707210000_seam2_build_spine.sql`** (fix budget, build_driver, ci tool seeds, ci-poll-tick cron) before the seam-2 push deploys.
 - 10. **DENO_DEPLOY_ACCESS_TOKEN in the Lovable/worker env** (it exists in the local .env; the preview/promote deploy path gates honestly on it in production).
+- 11. **Lovable auto-deploy looks STUCK (flagged 2026-07-08 ~00:30 IST):** the served bundle hash has not changed across the seam-2, seam-3, and lane SW-4/SW-5 pushes; production is still serving the pre-seam-2 build. Check the Lovable build/deploy log and re-trigger; every seam's live oracle is blocked on this.
+- 12. **Apply migrations `20260708091000_seam3_insight_push.sql` + `20260708093000_seam3_playbook_proposals.sql`** (both dormant-by-design until applied; the push channel and the compounding pass turn on when they land).
 
 ---
 
