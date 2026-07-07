@@ -53,6 +53,11 @@ Each of these is a place where a genuinely valuable field or history does not ex
 
 - Land the `stage_events` migration (unblocks the per-transition history flagged on every surface at once).
 - Register one OAuth provider end to end (GitHub App is the highest-value first connector).
+- Extend the Engine Room design-language depth (axed data-palette charts + richer default views) from Spend to the remaining rooms' drill panels.
+
+## 7. Engine Room deep redesign (founder-directed, 2026-07-07, commit `294e60d1`)
+
+A follow-up after founder review found the overnight Engine Room pass was a reskin, not a rethink. Shipped: the white-dropdown systemic fix (native `<select>` option popups forced dark under `[data-obsidian]`); a plain-outcome naming model with the technical term kept subtly beneath each view ("the engine calls this ..."), single-sourced in `ROOM_TAB_META`; an interpretive chassis (honest verdict + one-line descriptor + a plain recommended-action on watch, derived from real state); and the first design-language pass (Spend "Over time" as a proper axed chart in the tangerine spend data-palette). Full naming map + the pattern: [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md) §6. Remaining depth (per-panel charts across the other rooms) is the third next-pick above.
 
 ## Related
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { AuroraCard, MonoLabel, Sparkline } from "@/components/obsidian";
+import { AuroraCard, MonoLabel, ChartFrame, Axes, SeriesLine } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
@@ -70,7 +70,20 @@ function TrendView() {
       {filled.some((c) => c > 0) ? (
         <div>
           <MonoLabel tone="muted">SPEND · LAST 7 DAYS</MonoLabel>
-          <Sparkline data={filled} w={260} h={44} />
+          {/* Exact machine chart in the spend data-palette (tangerine): axes
+              labelled with the real range, no pencil (the Engine Room is the
+              machine's room; the PM's graphite ink lives on Decide). */}
+          <div style={{ marginTop: 8 }}>
+            <ChartFrame w={300} h={132}>
+              <Axes
+                w={300}
+                h={132}
+                xTicks={["7 days ago", "today"]}
+                yTicks={[fmtUsd(Math.max(...filled)), "$0"]}
+              />
+              <SeriesLine data={filled} w={300} h={132} color="var(--tangerine)" />
+            </ChartFrame>
+          </div>
         </div>
       ) : null}
     </div>

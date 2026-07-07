@@ -283,6 +283,17 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-07 (Engine Room deep redesign, founder-directed: plain-outcome naming with a technical trace beneath + interpretive chassis + the white-dropdown fix)
+
+**Context:** founder review found the overnight Engine Room pass was a token-level reskin, not a rethink: stray white dropdowns, terse machine-jargon sub-tabs (SUITES / DRIFT / PROOF), and no interpretive "thought process" on click. Founder ruling: keep plain-outcome language on the surface but leave the technical term underneath, subtly, so a PM and an engineer are both served; apply the real design language (data-palette charts, messaging, descriptors), not a reskin.
+
+**What shipped (commit `294e60d1` + the design-language follow):**
+- **White-dropdown root cause + systemic fix.** Not the token bridge (the `[data-obsidian]` SEMANTIC BRIDGE already maps `--popover`/`--accent`/etc dark). The culprit was native `<select>`/`<option>` (`.input`) in the Engine Room panels whose OS-drawn option popup ignores theming. Fixed for the whole app in `styles.css`: `[data-obsidian] select { color-scheme: dark }` + `option/optgroup { background: var(--raised); color: var(--text-primary) }`.
+- **Naming model with a technical trace beneath.** `ROOM_TAB_META` in `engine-room-glance.ts` is the single source (`id` routing contract, `label` plain outcome, `technical` trace, `descriptor` plain line). Every sub-tab is now plain (Right now, Is it slipping?, What is allowed, Tamper check...); a hairline-topped mono-micro footer names the technical term ("{label} · the engine calls this {technical}"). Full map in [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) §6.
+- **Interpretive chassis.** `RoomDetail` leads with the honest verdict + a one-line descriptor strip + a plain recommended-action line (glacier NEXT, only on watch, from a new `glance.action` derived from the same real state), then the supporting detail. So a click lands on meaning, not a bare table.
+- **Design language.** Spend's "Over time" upgraded from a bare sparkline to a proper axed chart in the tangerine spend data-palette (`ChartFrame` + `Axes` + `SeriesLine`); pencil kept off the Engine Room by design (it is the machine's room; the PM's graphite ink lives on Decide). ControlsPanel event options given plain labels with the technical id kept alongside.
+- **Tests:** `engine-room-glance.test.ts` grew to 23 (naming-map completeness, `?view=` id contract, `tabLabel`, action-on-watch). Gate green: tsc 0, `bun run build` ok, 2410 pass / 3 known `resolveEmbedRoute` fails.
+
 ### 2026-07-07 (CAPSTONE, overnight platform pass: every canonical surface to consumer/enterprise grade under dim-17 + DetailKit)
 
 The autonomous overnight pass brought all canonical surfaces (Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth, plus app chrome) to consumer/enterprise grade under the dim-17 doctrine + the shared DetailKit detail-view anatomy + the trace-ref registry, real-data only (migrations flagged, never faked). tsc 0 / `bun run build` ok / 2403 tests pass (only the 3 known `resolveEmbedRoute` env fails). The per-surface entries below are the individual commits; the morning handoff with the flagged-migration / parked / deferred lists is [`docs/planning/overnight-platform-pass.md`](./docs/planning/overnight-platform-pass.md).

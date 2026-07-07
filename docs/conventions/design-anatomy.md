@@ -182,6 +182,42 @@ Only the best bet renders the loud lime pencil wink; every other designation is 
 - **Outcome-first product language:** name the outcome, not the mechanism (per DESIGN-LOOM and the Engine-Room doctrine). A user-facing label says what happened, not how the machine did it.
 - **Zero AI-tells:** no em/en dashes and no invisible Unicode in anything authored (code, docs, UI copy) or generated. Use commas, colons, parentheses, the middle dot `·`, or a hyphen. Full rule: [`humanized-output.md`](./humanized-output.md).
 
+### The plain-outcome + technical-trace pattern (founder ruling 2026-07-07)
+
+**Name the outcome on the surface; keep the technical term underneath, subtly, so both a PM and an engineer are served.** Outcome-first naming (above) makes a label say what the user gets, not how the machine works. But a purely plain label strands the technical reader: an engineer who knows the system word ("drift", "evals", "prompts") loses the thread. The rule reconciles both: the plain outcome label is the exposed layer; the technical term is a quiet trace, never at the front.
+
+- **Exposed layer:** the plain outcome label (the tab, the section title, the button). Sentence-case, human. "Is it slipping?", not "Drift".
+- **Trace beneath:** the technical term rendered subtly at the foot of the view (a hairline-topped, mono-caps, `--text-faint` line: `{plain label} · the engine calls this {technical}`), or an equivalent quiet caption. Discoverable both ways: a PM reads the outcome and learns the system word; an engineer recognizes the system word and maps it to the outcome.
+- **Descriptor:** one plain sentence under the label that says what the view answers, so a click never lands on a bare table with no context.
+- **The single source is a metadata map**, not scattered strings: for the Engine Room it is `ROOM_TAB_META` in `src/lib/engine-room-glance.ts` (`{ id, label, technical, descriptor }`), where `id` is the routing contract, `label` is exposed, `technical` is the trace, `descriptor` is the plain line.
+
+The Engine Room naming map (the built exemplar):
+
+| Room (question) | id | Plain label (exposed) | Technical (trace beneath) |
+| --- | --- | --- | --- |
+| **Spend** (What is this costing me?) | trend | Over time | Cost trend |
+| | by-agent | By agent | Agent spend breakdown |
+| | caps | Limits | Budget caps |
+| | usage | Full usage | Analytics rollup |
+| **Quality** (Is the machine still good?) | score | Right now | Eval pass rate |
+| | suites | What we test | Eval suites |
+| | drift | Is it slipping? | Drift |
+| | prompts | Its instructions | Prompts |
+| | proof | Stress tests | Gauntlet |
+| **Safety** (What is it allowed to do?) | rules | What is allowed | Guardrails |
+| | controls | Emergency controls | Pause and kill switch |
+| | team | Who can act | Agent roster and trust |
+| | house-rules | Your policies | House rules |
+| | incidents | What went wrong | Incidents |
+| **Record** (What exactly happened?) | traces | Every run | Traces |
+| | approvals | Your decisions | Approval log |
+| | ledger | Tamper check | Ledger seal |
+| | support | From your users | Support signals |
+
+Alongside the naming, each room leads with an **interpretive layer**: the honest verdict line (from the glance) plus, only when the room is on watch, one plain **recommended action** (`glance.action`, derived from the same real state, pointing at a plain tab label), so a click answers "what does this mean and what do I do", not "here is a table".
+
+**Native `<select>` are dark-scoped, not white.** Native option popups are OS-drawn and ignore component theming; under `[data-obsidian]` they are forced dark (`select { color-scheme: dark }` + `option/optgroup { background: var(--raised); color: var(--text-primary) }` in `styles.css`). Designed surfaces still prefer the themed shadcn `Select`; this is the floor so no native dropdown flashes the light-theme white.
+
 ---
 
 ## 7. Applying this to a new (or retrofitted) surface

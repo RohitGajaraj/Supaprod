@@ -420,14 +420,14 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 value={newEvent}
                 onChange={(e) => setNewEvent(e.target.value as EventType)}
                 aria-label="Event"
-                style={{ width: 170, fontSize: 12 }}
+                style={{ width: 210, fontSize: 12 }}
               >
-                <option value="signal.created">signal.created</option>
-                <option value="opportunity.scored">opportunity.scored</option>
-                <option value="prd.approved">prd.approved</option>
-                <option value="signal.clustered">signal.clustered</option>
-                <option value="outcome.recorded">outcome.recorded</option>
-                <option value="decision.made">decision.made</option>
+                <option value="signal.created">New signal · signal.created</option>
+                <option value="opportunity.scored">Opportunity scored · opportunity.scored</option>
+                <option value="prd.approved">Spec approved · prd.approved</option>
+                <option value="signal.clustered">Signals clustered · signal.clustered</option>
+                <option value="outcome.recorded">Outcome recorded · outcome.recorded</option>
+                <option value="decision.made">Decision made · decision.made</option>
               </select>
               <input
                 className="input"
