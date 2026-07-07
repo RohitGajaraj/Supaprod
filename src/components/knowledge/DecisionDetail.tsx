@@ -22,6 +22,8 @@ import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
 import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.functions";
+import { getDecisionJudgment } from "@/lib/decision-judgment.functions";
+import { getLineage } from "@/lib/lineage.functions";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
 import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
@@ -191,10 +193,25 @@ export function DecisionDetail({ id }: { id: string }) {
 
   const fList = useServerFn(listDecisions);
   const fUpdate = useServerFn(updateDecision);
+  const fJudgment = useServerFn(getDecisionJudgment);
+  const fLineage = useServerFn(getLineage);
 
   const decisions = useQuery({
     queryKey: ["decisions", "all"],
     queryFn: () => fList({ data: {} }),
+  });
+
+  // SW-3 mission 3.2: the judgment loop behind the call. Real rows only:
+  // alternatives_considered, the linked spec's Critic verdict, the Ambient
+  // Precedent recall (which also writes the citation receipts server-side),
+  // and cited_by_count.
+  const judgment = useQuery({
+    queryKey: ["decision-judgment", id],
+    queryFn: () => fJudgment({ data: { id } }),
+  });
+  const lineage = useQuery({
+    queryKey: ["lineage", "decision", id],
+    queryFn: () => fLineage({ data: { kind: "decision", id } }),
   });
 
   const update = useMutation({
@@ -245,6 +262,14 @@ export function DecisionDetail({ id }: { id: string }) {
   const sourceNoun = d.mission_id ? "mission" : d.prd_id ? "spec" : d.meeting_id ? "meeting" : null;
   const meta = STATUS_META[d.status];
   const decidedBy = displayWho(d.decided_by_agent_slug);
+
+  // The judgment loop, from real rows; each block renders only when it has data.
+  const alternatives = judgment.data?.alternatives ?? [];
+  const critic = judgment.data?.critic ?? null;
+  const precedents = judgment.data?.precedents ?? [];
+  const citedByCount = judgment.data?.citedByCount ?? 0;
+  const evidenceIn = lineage.data?.ancestors ?? [];
+  const evidenceOut = lineage.data?.descendants ?? [];
 
   const copyId = () => {
     void navigator.clipboard?.writeText(d.id);
@@ -383,6 +408,14 @@ export function DecisionDetail({ id }: { id: string }) {
           <StatCell label="Age" value={relTimeCaps(d.created_at)} tone="neutral" />
         </StatStrip>
 
+        {/* Precedent-recall receipt: how often later agent recalls cited this call. */}
+        {citedByCount > 0 ? (
+          <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+            Cited as precedent {citedByCount} {citedByCount === 1 ? "time" : "times"} by later
+            decision contexts.
+          </p>
+        ) : null}
+
         {/* Why. */}
         <DetailSection heading="Why">
           {d.rationale ? (
@@ -402,6 +435,23 @@ export function DecisionDetail({ id }: { id: string }) {
             </p>
           )}
         </DetailSection>
+
+        {/* Alternatives considered: the paths not taken, rendered only when the
+            row actually recorded any (decisions.alternatives_considered). */}
+        {alternatives.length > 0 ? (
+          <DetailSection heading="Alternatives considered">
+            <div style={{ display: "grid", gap: "8px" }}>
+              {alternatives.map((a, i) => (
+                <div key={i} style={{ display: "grid", gap: "2px" }}>
+                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>{a.title}</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                    Rejected: {a.reason_rejected}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </DetailSection>
+        ) : null}
 
         {/* Where it came from: the source opens in place; the graph link walks
             the provenance and the supersession history. */}
@@ -453,6 +503,74 @@ export function DecisionDetail({ id }: { id: string }) {
             </button>
           </div>
         </DetailSection>
+
+        {/* Evidence: the real lineage edges in and out of this decision. */}
+        {evidenceIn.length > 0 || evidenceOut.length > 0 ? (
+          <DetailSection heading="Evidence">
+            <div style={{ display: "grid", gap: "6px" }}>
+              {evidenceIn.map((e) => (
+                <span key={e.id} style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  From {e.parent_kind.replace(/_/g, " ")}
+                  {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
+                </span>
+              ))}
+              {evidenceOut.map((e) => (
+                <span key={e.id} style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  Fed {e.child_kind.replace(/_/g, " ")}
+                  {e.peer_title ? ` "${e.peer_title}"` : ""} · {e.relation}
+                </span>
+              ))}
+            </div>
+          </DetailSection>
+        ) : null}
+
+        {/* Critic verdict: the red-team review persisted on the linked spec. */}
+        {critic ? (
+          <DetailSection heading="Critic verdict · on the linked spec">
+            <div style={{ display: "grid", gap: "4px" }}>
+              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                {critic.verdict.toUpperCase()} · confidence {Math.round(critic.confidence * 100)}%
+                {critic.reviewed_at ? ` · ${relTimeCaps(critic.reviewed_at)}` : ""}
+              </span>
+              {critic.summary ? (
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--text-subtle)",
+                    lineHeight: 1.55,
+                    margin: 0,
+                  }}
+                >
+                  {critic.summary}
+                </p>
+              ) : null}
+            </div>
+          </DetailSection>
+        ) : null}
+
+        {/* Precedent: last time we reasoned this way, here is what happened.
+            Outcome-weighted learnings via the Ambient Precedent recall; serving
+            one also writes its citation receipt server-side. */}
+        {precedents.length > 0 ? (
+          <DetailSection heading="Precedent">
+            <div style={{ display: "grid", gap: "8px" }}>
+              <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+                Last time we reasoned this way, here is what happened.
+              </p>
+              {precedents.map((p) => (
+                <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
+                  <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                    {p.verdict.toUpperCase()}
+                    {p.title ? ` · ${p.title}` : ""}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                    {p.summary}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </DetailSection>
+        ) : null}
 
         {/* The call: the human's verdict, wired to updateDecision. */}
         <DetailSection heading="Verdict · the human's call">

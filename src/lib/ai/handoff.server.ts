@@ -15,6 +15,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { track } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { extractRejectedAlternatives } from "@/lib/ai/decision-alternatives";
 
 export type HandoffPayload = {
   /** Short headline the receiver should solve next. */
@@ -587,6 +588,13 @@ export async function maybeCompleteMission(
         .eq("mission_id", updated.id);
       if ((existing ?? 0) === 0) {
         const rationale = (lastRun?.output ?? updated.goal ?? "").slice(0, 2000);
+        // SW-3 mission 3.2: carry the paths the run's own output explicitly
+        // rejected. Honest by construction: extractRejectedAlternatives only
+        // yields rows where the text literally names a rejected path, so a
+        // run that named none stores nothing.
+        const alternatives = extractRejectedAlternatives(
+          typeof lastRun?.output === "string" ? lastRun.output : null,
+        );
         const { data: decision } = await supabase
           .from("decisions")
           .insert({
@@ -598,6 +606,7 @@ export async function maybeCompleteMission(
             mission_id: updated.id,
             source_kind: "mission",
             decided_by_agent_slug: lastRun?.agent_slug ?? null,
+            ...(alternatives.length ? { alternatives_considered: alternatives } : {}),
           })
           .select("id")
           .maybeSingle();

@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { withJobRun } from "@/lib/observability";
 import { generateOutcomeSuggestion } from "@/lib/outcome-suggestion.server";
+import { runOutcomeReviews, type OutcomeReviewResult } from "@/lib/ai/outcome-review.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
 /**
@@ -184,9 +185,24 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               }
             }
 
-            return new Response(JSON.stringify({ ok: true, checked, shipped, suggested }), {
-              headers: { "Content-Type": "application/json" },
-            });
+            // Mission 3.8a third pass: launch plans whose outcome window
+            // (launch_plans.check_by) has closed with no review yet get one
+            // drafted now, so a window never expires silently. One review per
+            // launch plan; best-effort, never blocks the tick. Full behavior:
+            // src/lib/ai/outcome-review.server.ts.
+            let reviews: OutcomeReviewResult = { reviewed: 0, drafted: 0, skeletons: 0 };
+            try {
+              reviews = await runOutcomeReviews(admin);
+            } catch (e) {
+              console.error("outcome-tick: outcome-review pass failed:", e);
+            }
+
+            return new Response(
+              JSON.stringify({ ok: true, checked, shipped, suggested, reviews }),
+              {
+                headers: { "Content-Type": "application/json" },
+              },
+            );
           } catch (e) {
             return new Response(
               JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }),

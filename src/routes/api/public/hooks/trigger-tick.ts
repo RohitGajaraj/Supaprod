@@ -6,6 +6,7 @@ import {
   isAutoMissionTitle,
   shouldAutoPromote,
   AUTO_TRIGGER_DAILY_CAP,
+  MAX_PROPOSALS_PER_TICK,
   type ThemeState,
   type OutcomeState,
   type SignalSenseState,
@@ -154,15 +155,34 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
     customerSignalCount: customerSigCount ?? 0,
   };
 
-  const proposals = evaluateTriggers(
+  // SW-3 mission 3.2: pull the candidate list past the per-tick cap once, so
+  // each written decision receipt can record the losing candidates (the paths
+  // not taken this tick) honestly. The first MAX_PROPOSALS_PER_TICK rows are
+  // byte-identical to the default call (same sort, same slice).
+  const allCandidates = evaluateTriggers(
     {
       themes: (themes ?? []) as ThemeState[],
       outcomes: (learnings ?? []) as OutcomeState[],
       signals: senseState,
     },
     openTitles,
+    { max: MAX_PROPOSALS_PER_TICK + 8 },
   );
+  const proposals = allCandidates.slice(0, MAX_PROPOSALS_PER_TICK);
   if (proposals.length === 0) return 0;
+
+  // The candidates the cap cut this tick; empty when nothing was rejected
+  // (never fabricated). Shared by every receipt written in this tick.
+  const alternativesConsidered = allCandidates
+    .slice(MAX_PROPOSALS_PER_TICK, MAX_PROPOSALS_PER_TICK + 8)
+    .map((l) => ({
+      title: l.title.slice(0, 280),
+      reason_rejected:
+        `Considered this tick but not proposed: priority ${l.priority} fell below the ${MAX_PROPOSALS_PER_TICK}-proposal cap.`.slice(
+          0,
+          500,
+        ),
+    }));
 
   // SF-AUTOTRIGGER: pre-fetch ambient + daily-cap counts once per workspace tick
   // (only when the flag is on, to avoid two extra DB round-trips otherwise).
@@ -246,6 +266,10 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         source_kind: "mission",
         mission_id: missionId,
         decided_by_agent_slug: p.agentSlug ?? "strategist",
+        // SW-3: the losing candidates this proposal beat, when any were cut.
+        ...(alternativesConsidered.length
+          ? { alternatives_considered: alternativesConsidered }
+          : {}),
       } as never)
       .select("id")
       .single();

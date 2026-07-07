@@ -13,6 +13,7 @@ import {
   summarizeCalibration,
   type CalibrationSummary,
 } from "@/lib/brain/calibrate-insights.server";
+import { DAILY_PUSH_CAP } from "@/lib/brain/push-insights";
 
 export type BrainBeliefs = { standing: number; superseded: number };
 
@@ -559,4 +560,92 @@ export const getForecastCalibration = createServerFn({ method: "GET" })
       summarizeCalibration(supabase, workspaceId, "risk"),
     ]);
     return { prediction, risk };
+  });
+
+// ---------------------------------------------------------------------------
+// SEAM-3 (mission 3.9): the push channel read side. The detection pass
+// (src/lib/brain/push-insights.server.ts, riding the derive-tick cadence)
+// writes push rows into `insights` with pushed_at set and digest=false, capped
+// at DAILY_PUSH_CAP per workspace per day. This returns today's undigested,
+// still-open pushes in the exact shape Today's SW-5 lane consumes. Keep the
+// shape stable: {insights: [{id, kind, title, body, action, created_at}]}.
+
+export type PushedInsightAction = { label: string; kind: string; targetId: string };
+
+export type PushedInsight = {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  action: PushedInsightAction;
+  created_at: string;
+};
+
+export const getPushedInsights = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ insights: PushedInsight[] }> => {
+    const supabase = context.supabase as SupabaseClient;
+    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
+    if (!workspaceId) return { insights: [] };
+
+    const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`;
+    const { data, error } = await supabase
+      .from("insights")
+      .select("id,kind,headline,detail,push_action,created_at")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "open")
+      .eq("digest", false)
+      .gte("pushed_at", dayStart)
+      .order("pushed_at", { ascending: false })
+      .limit(DAILY_PUSH_CAP);
+    // Pre-migration tolerant: no push fields yet means nothing has been pushed.
+    if (error) return { insights: [] };
+
+    const insights: PushedInsight[] = [];
+    for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+      const a = (row.push_action ?? null) as {
+        label?: unknown;
+        kind?: unknown;
+        targetId?: unknown;
+      } | null;
+      if (
+        !a ||
+        typeof a.label !== "string" ||
+        typeof a.kind !== "string" ||
+        typeof a.targetId !== "string"
+      ) {
+        continue; // a push without a one-click action is not a push card
+      }
+      insights.push({
+        id: String(row.id),
+        kind: String(row.kind ?? ""),
+        title: String(row.headline ?? ""),
+        body: String(row.detail ?? ""),
+        action: { label: a.label, kind: a.kind, targetId: a.targetId },
+        created_at: String(row.created_at ?? ""),
+      });
+    }
+    return { insights };
+  });
+
+// The dismiss/acted write: one click on a pushed card settles it. `acted`
+// means the action ran; `dismissed` means the human waved it off. Either way
+// the push leaves the lane (getPushedInsights only returns status='open').
+const ActionedSchema = z.object({
+  id: z.string().uuid(),
+  outcome: z.enum(["acted", "dismissed"]).default("acted"),
+});
+
+export const markInsightActioned = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ActionedSchema.parse(i))
+  .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
+    const supabase = context.supabase as SupabaseClient;
+    const { error } = await supabase
+      .from("insights")
+      .update({ status: data.outcome })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

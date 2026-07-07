@@ -3,6 +3,7 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
 import { deriveAllInsights } from "@/lib/brain/derive-insights.server";
+import { runInsightPush } from "@/lib/brain/push-insights.server";
 
 export const Route = createFileRoute("/api/public/hooks/derive-tick")({
   server: {
@@ -28,9 +29,11 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
           }
 
           let totalDerived = 0;
+          let totalPushed = 0;
           const results: Array<{
             workspace_id: string;
             insights?: number;
+            pushed?: number;
             error?: string;
             note?: string;
           }> = [];
@@ -44,6 +47,18 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 results.push({ workspace_id: ws.id, error: "no owner" });
                 continue;
               }
+              // SEAM-3 (mission 3.9): deterministic push detection rides the
+              // derive cadence. Runs before the derive cap check because it has
+              // its own hard cap (3 pushes/workspace/day) and zero AI spend; a
+              // push failure never blocks the derive pass.
+              let pushed = 0;
+              try {
+                const p = await runInsightPush(supabaseAdmin, ws.owner_id, ws.id);
+                pushed = p.pushed;
+                totalPushed += p.pushed;
+              } catch {
+                // best-effort: the push channel is additive
+              }
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const { data: todayRows } = await (supabaseAdmin as any)
                 .from("insights")
@@ -53,7 +68,12 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 .gte("created_at", `${today}T00:00:00Z`);
               const todayCount: number = (todayRows as unknown[])?.length ?? 0;
               if (todayCount >= DAILY_DERIVE_CAP) {
-                results.push({ workspace_id: ws.id, insights: 0, note: "daily cap reached" });
+                results.push({
+                  workspace_id: ws.id,
+                  insights: 0,
+                  pushed,
+                  note: "daily cap reached",
+                });
                 continue;
               }
               const r = await deriveAllInsights(supabaseAdmin, ws.owner_id, ws.id);
@@ -63,7 +83,7 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 .eq("id", ws.id);
               const count = r?.length ?? 0;
               totalDerived += count;
-              results.push({ workspace_id: ws.id, insights: count });
+              results.push({ workspace_id: ws.id, insights: count, pushed });
             } catch (e) {
               results.push({
                 workspace_id: ws.id,
@@ -72,7 +92,12 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
             }
           }
 
-          return json({ ok: true, processed: workspaces?.length ?? 0, insights: totalDerived });
+          return json({
+            ok: true,
+            processed: workspaces?.length ?? 0,
+            insights: totalDerived,
+            pushed: totalPushed,
+          });
         });
       },
     },
