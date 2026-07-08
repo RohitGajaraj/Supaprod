@@ -222,8 +222,7 @@ export function ChangesPanel({
       toast.success(`Live in production: ${res.productionUrl}`);
       qc.invalidateQueries({ queryKey: ["changeset-deployments", changeset?.id] });
     },
-    onError: (e: unknown) =>
-      toast.error(e instanceof Error ? e.message : "Promote failed."),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Promote failed."),
   });
 
   // F-BUILDER-MULTIFILE: scope policy (touch list + max-files cap). The editor
@@ -508,8 +507,8 @@ export function ChangesPanel({
             </a>
           ) : (
             <span style={{ fontSize: 11.5, color: "var(--text-subtle)" }}>
-              Preview deploys automatically after merge on Cadence-managed repos, within about
-              two minutes.
+              Preview deploys automatically after merge on Cadence-managed repos, within about two
+              minutes.
             </span>
           )}
           {productionDep ? (
@@ -1187,7 +1186,9 @@ export function ChangesPanel({
               base vs staged
             </span>
             {isMarkdownFile(selectedPath) ? (
-              <div style={{ display: "flex", border: "1px solid var(--hairline)", borderRadius: 6 }}>
+              <div
+                style={{ display: "flex", border: "1px solid var(--hairline)", borderRadius: 6 }}
+              >
                 {(["diff", "preview"] as const).map((mode) => (
                   <button
                     key={mode}

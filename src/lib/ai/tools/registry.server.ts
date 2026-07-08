@@ -10,7 +10,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 import { embedOne } from "@/lib/rag/embed.server";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
 import { callModel } from "@/lib/ai/runtime.server";
-import { extractArrayField } from "@/lib/ai/json-shape";
+import { extractArrayField, wrapBareArrayField } from "@/lib/ai/json-shape";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "@/lib/ai/handoff.server";
 import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import { FANOUT_MAX_CHILDREN, fanoutDepthOf, canSpawnAtDepth } from "@/lib/ai/fanout";
@@ -1392,20 +1392,43 @@ const studioStage = def({
   description:
     "Studio: stage multi-file edits into the mission's changeset. REQUIRED on every change: 'path', 'op' ('create'|'update'|'delete'), and 'content' (the FULL new file text, not a diff; omit only when op is 'delete'). Edits land in the platform DB, nothing touches GitHub until studio.commit. Re-stage a path to replace its staged contents.",
   category: "write",
-  argsSchema: z.object({
-    changes: z
-      .array(
-        z.object({
-          path: z.string().min(1).max(400).regex(STUDIO_PATH_REGEX),
-          op: z.enum(["create", "update", "delete"]),
-          content: z.string().max(150_000).optional(),
-        }),
-      )
-      .min(1)
-      .max(20),
-    title: z.string().max(200).optional(),
-    summary: z.string().max(2000).optional(),
-  }),
+  // Shape-drift fix: the two most common ways a model forgets the documented
+  // array wrapper are {changes: {...single change...}} and the change object
+  // sent bare at the top level with no `changes` key at all. Both self-
+  // corrected on retry every time this session, costing a wasted step each
+  // time - normalize them here instead of relying on the retry.
+  argsSchema: z.preprocess(
+    (raw) => {
+      const wrapped = wrapBareArrayField(raw, "changes");
+      if (wrapped !== raw) return wrapped;
+      if (
+        raw !== null &&
+        typeof raw === "object" &&
+        !Array.isArray(raw) &&
+        !("changes" in raw) &&
+        typeof (raw as Record<string, unknown>).path === "string" &&
+        typeof (raw as Record<string, unknown>).op === "string"
+      ) {
+        const { title, summary, ...change } = raw as Record<string, unknown>;
+        return { changes: [change], title, summary };
+      }
+      return raw;
+    },
+    z.object({
+      changes: z
+        .array(
+          z.object({
+            path: z.string().min(1).max(400).regex(STUDIO_PATH_REGEX),
+            op: z.enum(["create", "update", "delete"]),
+            content: z.string().max(150_000).optional(),
+          }),
+        )
+        .min(1)
+        .max(20),
+      title: z.string().max(200).optional(),
+      summary: z.string().max(2000).optional(),
+    }),
+  ),
   preview: (a) =>
     `Stage ${a.changes.length} change(s): ${a.changes
       .slice(0, 3)
@@ -2051,6 +2074,79 @@ const studioPrMerge = def({
       },
     );
     return { ...outcome.result, cached: outcome.cached };
+  },
+});
+
+/**
+ * Studio: sync the changeset's PR branch with the default branch — the
+ * agent-callable equivalent of GitHub's "Update branch" button. Merges the
+ * default branch INTO the studio/* branch via the Merge-a-branch endpoint;
+ * it never touches files, so it needs no path allow-listing
+ * (assertStudioPathAllowed is irrelevant here — nothing is staged or
+ * written through the Git Data API). Use case: the base branch moved on
+ * (another PR landed) and the PR's CI run is now stale/out of date — this
+ * re-triggers a fresh CI run on the updated branch without a code change.
+ */
+const studioSyncBranch = def({
+  name: "studio.sync_branch",
+  description:
+    "Studio: sync this mission's changeset branch with the repo's default branch — the same effect as clicking GitHub's 'Update branch' button on a PR. Use this when a stale or out-of-date CI check needs re-triggering because the default branch moved on since the PR branch was created (e.g. another PR merged first). Merges the default branch INTO the changeset branch via the GitHub Merge API; touches no files and stages nothing, so it never conflicts with restricted paths like .github/workflows/*. If the branch is already up to date, reports that as success, not an error.",
+  category: "write",
+  argsSchema: z.object({}),
+  preview: () => "Sync PR branch with the default branch (re-trigger CI)",
+  run: async (_a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.sync_branch requires a mission");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset — call studio.stage first");
+    if (!changeset.branch) throw new Error("changeset has no branch — call studio.commit first");
+
+    const { token, repo } = await requireGithub(ctx);
+    const headers = ghHeaders(token);
+    const defaultBranch = await getDefaultBranch(repo, headers);
+
+    const res = await fetch(`https://api.github.com/repos/${repo}/merges`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        base: changeset.branch,
+        head: defaultBranch,
+        commit_message: `Sync ${changeset.branch} with ${defaultBranch} to re-trigger CI — Cadence Studio`,
+      }),
+    });
+
+    // 204 = base already contains head; GitHub's own "already up to date"
+    // signal, not a failure. Treat it as a clean success, matching the
+    // "Update branch" button's behavior when there is nothing to update.
+    if (res.status === 204) {
+      return {
+        changeset_id: changeset.id,
+        repo,
+        branch: changeset.branch,
+        base: defaultBranch,
+        synced: false,
+        message: `${changeset.branch} is already up to date with ${defaultBranch} — nothing to sync.`,
+      };
+    }
+    if (res.status === 409) {
+      throw new Error(
+        `MergeConflict: syncing ${changeset.branch} with ${defaultBranch} hit a conflict that needs manual resolution on GitHub.`,
+      );
+    }
+    if (!res.ok) {
+      throw new Error(`GitHub merge ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    }
+    const j = (await res.json()) as { sha?: string; html_url?: string };
+    return {
+      changeset_id: changeset.id,
+      repo,
+      branch: changeset.branch,
+      base: defaultBranch,
+      synced: true,
+      merge_sha: j.sha ?? null,
+      merge_url: j.html_url ?? null,
+      message: `Synced ${changeset.branch} with the latest ${defaultBranch} — CI will re-run on the new head commit.`,
+    };
   },
 });
 
@@ -2864,6 +2960,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     studioFixCommit,
     studioPrOpen,
     studioPrMerge,
+    studioSyncBranch,
     studioRevert,
     prdLinkIssue,
     researchSynthesize,

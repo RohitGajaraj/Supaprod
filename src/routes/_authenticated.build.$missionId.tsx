@@ -190,11 +190,7 @@ function JourneyStrip({
           : "planned";
 
   const shippedStatus =
-    changeset?.status === "merged"
-      ? productionDeployed
-        ? "completed"
-        : "running"
-      : "planned";
+    changeset?.status === "merged" ? (productionDeployed ? "completed" : "running") : "planned";
 
   const stages: { label: string; status: string; href?: string }[] = [
     { label: "build", status: buildStatus },

@@ -27,3 +27,22 @@ export function asPlainObject<T = unknown>(json: unknown): T | null {
   }
   return json !== null && typeof json === "object" ? (json as T) : null;
 }
+
+/**
+ * For TOOL ARGS documented as {[field]: [...]} where a model omits the array
+ * wrapper and sends a single item object directly at that key, e.g.
+ * {changes: {path, op, content}} instead of {changes: [{path, op, content}]}.
+ * Live-confirmed as studio.stage's most common validation failure this
+ * session (every "forgot the array wrapper" self-correction was this exact
+ * shape) - fix the schema to accept it instead of relying on the model to
+ * retry into the documented shape. Passes through unchanged when `field` is
+ * already an array, absent, or not a plain object, so a genuinely malformed
+ * call still fails validation loudly rather than being silently coerced.
+ */
+export function wrapBareArrayField(raw: unknown, field: string): unknown {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const obj = raw as Record<string, unknown>;
+  const value = obj[field];
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return raw;
+  return { ...obj, [field]: [value] };
+}
