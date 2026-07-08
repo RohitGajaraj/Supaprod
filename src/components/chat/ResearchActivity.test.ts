@@ -167,9 +167,10 @@ describe("ResearchActivity", () => {
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
       expect(result?.props).toBeDefined();
+      expect(result?.props.className).toBe("fade-up");
     });
 
-    it("should display the latest (last) status label", () => {
+    it("should display the latest (last) status label in a span", () => {
       const statuses = [
         { phase: "plan" as const, label: "Planning..." },
         { phase: "search" as const, label: "Searching web..." },
@@ -177,10 +178,13 @@ describe("ResearchActivity", () => {
       ];
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
-      // The component sets the latest status in a span
+      // The latest status is the last one in the array
+      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
+      const labelSpan = children.find((child: any) => child?.type === "span" && child?.props?.children === "Reading sources...");
+      expect(labelSpan).toBeDefined();
     });
 
-    it("should show completed phases as summary segments", () => {
+    it("should render completed phases as summary segments", () => {
       const statuses = [
         { phase: "plan" as const, label: "Planning..." },
         { phase: "search" as const, label: "Searching web..." },
@@ -188,14 +192,22 @@ describe("ResearchActivity", () => {
       ];
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
-      // plan and search are completed, read is in progress
+      // plan and search are completed (not read which is current)
+      // Should show summary of completed work
+      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
+      const summarySpan = children.find((child: any) => child?.type === "span" && child?.props?.className?.includes("mono-label"));
+      expect(summarySpan).toBeDefined();
+      expect(summarySpan?.props.children).toContain("Searched 1 query");
     });
 
-    it("should include spinner for active research", () => {
+    it("should include a spinner element for active research", () => {
       const statuses = [{ phase: "search" as const, label: "Searching..." }];
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
-      // Component includes a spinner element
+      // Check for spinner className in children
+      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
+      const spinner = children.find((child: any) => child?.props?.className === "spinner");
+      expect(spinner).toBeDefined();
     });
   });
 
@@ -287,6 +299,41 @@ describe("ResearchActivity", () => {
       const result = ResearchSummaryRow({ meta });
       // No sources, no queries, no workspace → no segments → return null
       expect(result).toBeNull();
+    });
+
+    it("should render chips with correct structure for research activity", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["query1", "query2"] },
+        sources: [{ kind: "web", title: "Source", url: "http://example.com" }],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      expect(result?.type).toBe("div");
+      expect(result?.props.className).toContain("flex");
+      // Should have children that are span chips
+      const children = Array.isArray(result?.props.children) ? result?.props.children : [result?.props.children];
+      expect(children.length).toBeGreaterThan(0);
+      const firstChip = children[0];
+      expect(firstChip?.type).toBe("span");
+      expect(firstChip?.props.className).toContain("inline-flex");
+      expect(firstChip?.props.className).toContain("rounded-full");
+    });
+
+    it("should render correct text content in chips", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: ["q1"] },
+        sources: [
+          { kind: "web", title: "Source 1", url: "http://example.com" },
+          { kind: "web", title: "Source 2", url: "http://example.com" },
+        ],
+        workspace_chunks: 3,
+      };
+      const result = ResearchSummaryRow({ meta });
+      const children = Array.isArray(result?.props.children) ? result?.props.children : [result?.props.children];
+      const chipTexts = children.map((chip: any) => chip?.props?.children);
+      expect(chipTexts).toContain("Searched 1 query");
+      expect(chipTexts).toContain("Read 2 sources");
+      expect(chipTexts).toContain("Workspace");
     });
   });
 });

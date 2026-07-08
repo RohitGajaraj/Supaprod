@@ -181,6 +181,79 @@ describe("rankOpportunities", () => {
     expect(ranked[1].nextAction).toBe("Challenge with the Critic first");
   });
 
+  test("rationale includes 'flagged to watch' for WATCH verdict", () => {
+    const opps = [
+      mk({ id: "watch", ice_score: 5, critic_review: { verdict: "watch" } as never, status: "next" }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    expect(ranked[0].rationale).toContain("flagged to watch");
+  });
+
+  test("rationale includes 'Critic says revise' for REVISE verdict", () => {
+    const opps = [
+      mk({ id: "revise", ice_score: 5, critic_review: { verdict: "revise" } as never, status: "backlog" }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    expect(ranked[0].rationale).toContain("Critic says revise");
+  });
+
+  test("rationale includes 'Critic says kill' for KILL verdict", () => {
+    const opps = [
+      mk({ id: "killed", ice_score: 5, critic_review: { verdict: "kill" } as never, status: "dropped" }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    expect(ranked[0].rationale).toContain("Critic says kill");
+  });
+
+  test("rationale includes ICE score for non-rank-1 bets", () => {
+    const opps = [
+      mk({ id: "high", ice_score: 9 }),
+      mk({ id: "mid", ice_score: 5.7 }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    const mid = ranked.find((r) => r.opp.id === "mid");
+    expect(mid?.rationale).toContain("ICE 5.7");
+  });
+
+  test("rationale for rank-1 never includes ICE score (uses 'top ICE score' instead)", () => {
+    const opps = [mk({ id: "rank1", ice_score: 9.2 })];
+    const ranked = rankOpportunities(opps, noCorr);
+    expect(ranked[0].rationale).toContain("top ICE score");
+    expect(ranked[0].rationale).not.toContain("9.2");
+  });
+
+  test("rationale handles zero corroboration (no 'backed by' clause)", () => {
+    const opps = [
+      mk({ id: "no-corr", ice_score: 5, critic_review: critic("ship") }),
+    ];
+    const ranked = rankOpportunities(opps, () => 0);
+    expect(ranked[0].rationale).toContain("Critic endorsed");
+    expect(ranked[0].rationale).not.toContain("backed by");
+  });
+
+  test("rationale handles null ice_score (no ice clause for non-rank-1)", () => {
+    const opps = [
+      mk({ id: "no-ice", ice_score: null, critic_review: critic("ship") }),
+      mk({ id: "with-ice", ice_score: 5 }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    const noIce = ranked.find((r) => r.opp.id === "no-ice");
+    // Should have "Critic endorsed" but no ice clause
+    expect(noIce?.rationale).toContain("Critic endorsed");
+    expect(noIce?.rationale).not.toMatch(/ICE \d/);
+  });
+
+  test("rationale falls back to plain 'Ranked #N' when no clauses apply", () => {
+    const opps = [
+      mk({ id: "plain", ice_score: null, critic_review: null }),
+      mk({ id: "other", ice_score: 5 }),
+    ];
+    const ranked = rankOpportunities(opps, () => 0);
+    const plain = ranked.find((r) => r.opp.id === "plain");
+    // A pending, null-ice bet with zero corroboration should just say "Ranked #N"
+    expect(plain?.rationale).toMatch(/^Ranked #\d+$/);
+  });
+
   test("next action: shipped bets are told to review the outcome", () => {
     const opps = [mk({ id: "s", status: "shipped", critic_review: critic("ship") })];
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Review the outcome");

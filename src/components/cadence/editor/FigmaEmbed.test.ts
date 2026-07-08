@@ -269,24 +269,42 @@ describe("FigmaEmbed.config.addCommands()", () => {
     const attrs = { src: "https://www.figma.com/file/abc123" };
     const handler = commands.setFigmaEmbed(attrs);
 
-    // Mock the TipTap command context
-    const insertContentSpy = (payload: unknown) => true;
-    const mockCommandContext = { commands: { insertContent: insertContentSpy } };
-
     // Track what insertContent was called with
     let capturedPayload: unknown;
+    let callCount = 0;
     const trackedInsertContent = (payload: unknown) => {
+      callCount++;
       capturedPayload = payload;
       return true;
     };
 
     const result = handler({ commands: { insertContent: trackedInsertContent } });
 
-    // Verify the handler calls insertContent and returns true
+    // Verify the handler calls insertContent exactly once
+    expect(callCount).toBe(1);
     expect(result).toBe(true);
     expect(capturedPayload).toBeDefined();
-    expect((capturedPayload as { type?: string; attrs?: unknown }).type).toBe("figmaEmbed");
-    expect((capturedPayload as { type?: string; attrs?: unknown }).attrs).toEqual(attrs);
+    const payload = capturedPayload as { type?: string; attrs?: unknown };
+    expect(payload.type).toBe("figmaEmbed");
+    expect(payload.attrs).toEqual(attrs);
+  });
+
+  test("setFigmaEmbed handler correctly inserts figmaEmbed node with original URL", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    const testUrl = "https://www.figma.com/file/test123/Design?node-id=1:2";
+    const handler = commands.setFigmaEmbed({ src: testUrl });
+
+    let capturedPayload: unknown;
+    const trackedInsertContent = (payload: unknown) => {
+      capturedPayload = payload;
+      return true;
+    };
+
+    handler({ commands: { insertContent: trackedInsertContent } });
+
+    const payload = capturedPayload as { type?: string; attrs?: Record<string, unknown> };
+    expect(payload.type).toBe("figmaEmbed");
+    expect(payload.attrs?.src).toBe(testUrl);
   });
 
   test("setFigmaEmbed command constructs correct node type and attributes", () => {

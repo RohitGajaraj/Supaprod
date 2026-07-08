@@ -3,6 +3,9 @@ import { latestIso, relTimeCaps, sourceCaps, verdictFor, traceRef, withTimeout }
 
 describe("relTimeCaps", () => {
   const now = Date.now();
+  const MINUTE_MS = 60_000;
+  const HOUR_MS = 60 * MINUTE_MS;
+  const DAY_MS = 24 * HOUR_MS;
 
   test("buckets under an hour as minutes", () => {
     const iso = new Date(now - 12 * 60_000).toISOString();
@@ -26,6 +29,31 @@ describe("relTimeCaps", () => {
 
   test("returns empty string for a malformed timestamp", () => {
     expect(relTimeCaps("not-a-date")).toBe("");
+  });
+
+  test("boundary: just before 1 hour transitions from minutes to hours", () => {
+    const iso = new Date(now - (HOUR_MS - 1_000)).toISOString();
+    expect(relTimeCaps(iso)).toBe("59M AGO");
+  });
+
+  test("boundary: exactly 1 hour transitions to hours", () => {
+    const iso = new Date(now - HOUR_MS).toISOString();
+    expect(relTimeCaps(iso)).toBe("1H AGO");
+  });
+
+  test("boundary: just before 1 day stays in hours", () => {
+    const iso = new Date(now - (DAY_MS - 1_000)).toISOString();
+    expect(relTimeCaps(iso)).toBe("23H AGO");
+  });
+
+  test("boundary: exactly 1 day transitions to days", () => {
+    const iso = new Date(now - DAY_MS).toISOString();
+    expect(relTimeCaps(iso)).toBe("1D AGO");
+  });
+
+  test("handles future timestamps by flooring to 1M AGO (never negative)", () => {
+    const futureIso = new Date(now + 60_000).toISOString();
+    expect(relTimeCaps(futureIso)).toBe("1M AGO");
   });
 });
 
