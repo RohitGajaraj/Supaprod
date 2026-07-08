@@ -1585,10 +1585,7 @@ export async function executeApproval(
     const missionId = (appr as { mission_id?: string | null }).mission_id ?? null;
     if (runId) {
       try {
-        await supabase
-          .from("agent_runs")
-          .update({ status: "failed", output: msg })
-          .eq("id", runId);
+        await supabase.from("agent_runs").update({ status: "failed", output: msg }).eq("id", runId);
       } catch (err) {
         console.error("agent_runs fail-mark failed (executeApproval):", err);
       }

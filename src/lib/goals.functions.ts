@@ -36,7 +36,9 @@ export const listGoals = createServerFn({ method: "GET" })
     const db = context.supabase as unknown as SupabaseClient;
     const { data: goals, error } = await db
       .from("goals")
-      .select("id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at, created_at, updated_at")
+      .select(
+        "id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at, created_at, updated_at",
+      )
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) {
@@ -50,12 +52,20 @@ export const listGoals = createServerFn({ method: "GET" })
     const { data: opps } = await db
       .from("opportunities")
       .select("id, title, status, goal_id, created_at")
-      .in("goal_id", rows.map((g) => g.id))
+      .in(
+        "goal_id",
+        rows.map((g) => g.id),
+      )
       .order("created_at", { ascending: false })
       .limit(200);
 
     const byGoal = new Map<string, Array<{ id: string; title: string; status: string | null }>>();
-    for (const o of (opps ?? []) as Array<{ id: string; title: string; status: string | null; goal_id: string }>) {
+    for (const o of (opps ?? []) as Array<{
+      id: string;
+      title: string;
+      status: string | null;
+      goal_id: string;
+    }>) {
       const list = byGoal.get(o.goal_id) ?? [];
       list.push({ id: o.id, title: o.title, status: o.status });
       byGoal.set(o.goal_id, list);
@@ -75,65 +85,77 @@ export const createGoal = createServerFn({ method: "POST" })
         title: z.string().trim().min(3).max(200),
         description: z.string().trim().max(2000).optional(),
         target_metric: z.string().trim().max(200).optional(),
-        target_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        target_date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
       })
       .parse(i),
   )
-  .handler(async ({ context, data }): Promise<{ goal: GoalRow; firstPass: GoalPassResult | null }> => {
-    const db = context.supabase as unknown as SupabaseClient;
-    // Finding 22 (SW-7 terminal walkthrough): a double submission (e.g. a
-    // double-click or a retried request) created two identical ACTIVE goals.
-    // Dedupe on the normalized title among this user's active goals before
-    // inserting a new one. A paused/achieved/archived goal with the same
-    // title is a deliberate restart, not a duplicate, so it doesn't block.
-    const normalizedTitle = data.title.trim().toLowerCase();
-    const { data: existingActive } = await db
-      .from("goals")
-      .select("id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at")
-      .eq("user_id", context.userId)
-      .eq("status", "active")
-      .ilike("title", normalizedTitle)
-      .limit(1)
-      .maybeSingle();
-    if (existingActive) {
-      return { goal: existingActive as GoalRow, firstPass: null };
-    }
-    const { data: goal, error } = await db
-      .from("goals")
-      .insert({
-        user_id: context.userId,
-        title: data.title,
-        description: data.description ?? null,
-        target_metric: data.target_metric ?? null,
-        target_date: data.target_date ?? null,
-      })
-      .select("id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at")
-      .single();
-    if (error || !goal) throw new Error(error?.message ?? "Could not create the goal");
-    const row = goal as GoalRow;
+  .handler(
+    async ({ context, data }): Promise<{ goal: GoalRow; firstPass: GoalPassResult | null }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      // Finding 22 (SW-7 terminal walkthrough): a double submission (e.g. a
+      // double-click or a retried request) created two identical ACTIVE goals.
+      // Dedupe on the normalized title among this user's active goals before
+      // inserting a new one. A paused/achieved/archived goal with the same
+      // title is a deliberate restart, not a duplicate, so it doesn't block.
+      const normalizedTitle = data.title.trim().toLowerCase();
+      const { data: existingActive } = await db
+        .from("goals")
+        .select(
+          "id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at",
+        )
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .ilike("title", normalizedTitle)
+        .limit(1)
+        .maybeSingle();
+      if (existingActive) {
+        return { goal: existingActive as GoalRow, firstPass: null };
+      }
+      const { data: goal, error } = await db
+        .from("goals")
+        .insert({
+          user_id: context.userId,
+          title: data.title,
+          description: data.description ?? null,
+          target_metric: data.target_metric ?? null,
+          target_date: data.target_date ?? null,
+        })
+        .select(
+          "id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at",
+        )
+        .single();
+      if (error || !goal) throw new Error(error?.message ?? "Could not create the goal");
+      const row = goal as GoalRow;
 
-    await recordStageEvent(db, {
-      entityType: "goal",
-      entityId: row.id,
-      from: null,
-      to: "active",
-      actor: "human",
-      workspaceId: row.workspace_id,
-      userId: context.userId,
-    });
+      await recordStageEvent(db, {
+        entityType: "goal",
+        entityId: row.id,
+        from: null,
+        to: "active",
+        actor: "human",
+        workspaceId: row.workspace_id,
+        userId: context.userId,
+      });
 
-    // The swarm starts working immediately: one inline pass, best-effort.
-    // Failure here is honest and non-fatal (no AI key in local dev, model
-    // hiccup); the goal-tick cron picks the goal up on its next sweep.
-    let firstPass: GoalPassResult | null = null;
-    try {
-      firstPass = await runGoalWorkPass(db, row);
-    } catch (e) {
-      console.error(`[goals] first work pass failed for ${row.id}:`, e instanceof Error ? e.message : e);
-    }
+      // The swarm starts working immediately: one inline pass, best-effort.
+      // Failure here is honest and non-fatal (no AI key in local dev, model
+      // hiccup); the goal-tick cron picks the goal up on its next sweep.
+      let firstPass: GoalPassResult | null = null;
+      try {
+        firstPass = await runGoalWorkPass(db, row);
+      } catch (e) {
+        console.error(
+          `[goals] first work pass failed for ${row.id}:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
 
-    return { goal: row, firstPass };
-  });
+      return { goal: row, firstPass };
+    },
+  );
 
 export const setGoalStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

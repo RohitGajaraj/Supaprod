@@ -1721,7 +1721,9 @@ const ciLogs = def({
     pr_number: z.number().int().min(1).max(10_000_000).optional(),
   }),
   preview: (a) =>
-    a.pr_number ? `Read failing CI detail on PR #${a.pr_number}` : "Read failing CI detail on this mission's PR",
+    a.pr_number
+      ? `Read failing CI detail on PR #${a.pr_number}`
+      : "Read failing CI detail on this mission's PR",
   run: async (a, ctx) => {
     const { token, repo } = await requireGithub(ctx);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`Invalid GitHub repo format: ${repo}`);

@@ -253,8 +253,7 @@ export const generateDesignScaffold = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<DesignScaffold> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const scaffold = await buildDesignScaffoldHtml(supabase, userId, data);
     await persistScaffold(supabase, userId, {
       prdId: data.prdId,
@@ -327,8 +326,7 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<ScaffoldDesignCriticResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
 
     let workspaceId: string | null = null;
     try {

@@ -129,7 +129,7 @@ export const submitAudioForTranscription = createServerFn({ method: "POST" })
     const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
     if (!workspaceId) throw new Error("No workspace found");
 
-    const userId = context.auth.user.id;
+    const userId = context.userId;
 
     // Ownership guard: storagePath must be under the user's own folder.
     // The service role bypasses RLS when signing URLs, so we enforce this
@@ -191,7 +191,7 @@ export const pollTranscriptionStatus = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ transcriptId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<AudioTranscript> => {
     const apiKey = assertApiKey();
-    const userId = context.auth.user.id;
+    const userId = context.userId;
 
     // Fetch our record
     const { data: row, error } = await audioDb
@@ -301,7 +301,7 @@ export const extractActionsFromTranscript = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ transcriptId: z.string().uuid() }).parse(d))
   .handler(
     async ({ context, data }): Promise<{ actionItems: ActionItem[]; signalsInserted: number }> => {
-      const userId = context.auth.user.id;
+      const userId = context.userId;
 
       const { data: row, error } = await audioDb
         .from("audio_transcripts")
