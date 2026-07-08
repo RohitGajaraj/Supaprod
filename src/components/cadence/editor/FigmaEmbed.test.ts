@@ -40,6 +40,70 @@ describe("toEmbedUrl", () => {
   test("falls back to the raw input for an empty string", () => {
     expect(toEmbedUrl("")).toBe("");
   });
+
+  describe("security: host validation (not substring matching)", () => {
+    test("rejects evilfigma.com (substring contains 'figma.com')", () => {
+      // This is the CRITICAL security bug: hostname.includes() would match
+      const url = "https://evilfigma.com/file/abc";
+      const result = toEmbedUrl(url);
+      // Should NOT wrap because the hostname is not figma.com or *.figma.com
+      expect(result).toBe(url);
+      expect(result).not.toContain("figma.com/embed");
+    });
+
+    test("rejects figma.com.attacker.io (domain suffix attack)", () => {
+      // Another substring match attack: hostname contains "figma.com"
+      const url = "https://figma.com.attacker.io/file/abc";
+      const result = toEmbedUrl(url);
+      expect(result).toBe(url);
+      expect(result).not.toContain("figma.com/embed");
+    });
+
+    test("rejects figma.com.attacker.com (another suffix variant)", () => {
+      const url = "https://figma.com.attacker.com/file/abc";
+      const result = toEmbedUrl(url);
+      expect(result).toBe(url);
+      expect(result).not.toContain("figma.com/embed");
+    });
+
+    test("rejects notfigmacom (similar but not identical)", () => {
+      const url = "https://notfigmacom/file/abc";
+      const result = toEmbedUrl(url);
+      expect(result).toBe(url);
+      expect(result).not.toContain("figma.com/embed");
+    });
+
+    test("accepts legitimate subdomain app.figma.com", () => {
+      const url = "https://app.figma.com/file/abc123";
+      const result = toEmbedUrl(url);
+      expect(result).toContain("figma.com/embed");
+    });
+
+    test("accepts legitimate subdomain www.figma.com", () => {
+      const url = "https://www.figma.com/file/abc123";
+      const result = toEmbedUrl(url);
+      expect(result).toContain("figma.com/embed");
+    });
+
+    test("accepts bare figma.com domain", () => {
+      const url = "https://figma.com/file/abc123";
+      const result = toEmbedUrl(url);
+      expect(result).toContain("figma.com/embed");
+    });
+
+    test("rejects multi-level subdomains that are not figma.com", () => {
+      const url = "https://subfigma.com.attacker.net/file/abc";
+      const result = toEmbedUrl(url);
+      expect(result).toBe(url);
+      expect(result).not.toContain("figma.com/embed");
+    });
+
+    test("accepts legitimate nested subdomains like api.app.figma.com", () => {
+      const url = "https://api.app.figma.com/file/abc123";
+      const result = toEmbedUrl(url);
+      expect(result).toContain("figma.com/embed");
+    });
+  });
 });
 
 describe("FigmaEmbed.config.parseHTML()", () => {
