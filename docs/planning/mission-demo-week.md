@@ -144,7 +144,7 @@ Work the stages roughly in the order below (dependencies noted). Each stage list
 **Build:** (a) predicted-vs-actual outcome reviews as a real scheduled motion (the LRN-02 shape): when an outcome window closes, the system drafts the review, scores the original bet designation against reality, and writes the learning with attribution (the new column from 3.0); (b) a **compounding pass**: a scheduled job that distills accumulated learnings into standing decisions/playbooks when a pattern repeats (3 same-shaped learnings → a proposed standing rule, human-confirmed), so memory gets _smarter_, not just bigger.
 **DONE-WHEN:** an expired outcome window demonstrably produces a drafted review + a scored prediction; a repeated pattern demonstrably produces a proposed playbook; the Gauntlet's memory-lift metric (MOAT-METRIC) reflects the new rows.
 
-### 3.9 BRAIN: the memory OS pushes, not just stores
+### 3.9 BRAIN: the memory OS pushes, not just stores ✅ ORACLE MET LIVE 2026-07-08 (seeded a missed outcome against the rank-1 best bet on production; the Brain's derive-tick autonomously pushed a `bet_contradiction` insight into Today's "Needs your judgment" lane with a working "Re-rank the queue" one-click that navigated to Decide and settled the insight to `acted`)
 
 **Exists:** the typed bi-temporal graph, supersession engine, outcome-weighted recall, the graph surface, object cards.
 **Gap (founder):** "how does the agent know what insights to pass on to the user": the Brain answers questions but does not _volunteer_.
@@ -161,7 +161,7 @@ This is the founder's "how do we bring Claude Code's loop/goal mode into PM" ask
 - **The trust ramp (the Cat Wu curve, made mechanical):** per tool + agent, after N clean approvals the system _proposes_ graduating `review` → `confirm` → `auto` (never silently flips; the proposal itself is an approval item; RF-06's missed-outcome blocker already guards the downside). Ship the proposal mechanism.
 **DONE-WHEN:** a goal created in the demo demonstrably spawns its first proposed opportunity without a human start; a loop shows its run history and cost; a trust-graduation proposal demonstrably appears after the Nth clean approval and takes effect only on acceptance.
 
-### 3.11 PLATFORM TRUTH: Today, Engine Room, Trust Ledger, Settings/Admin, pricing
+### 3.11 PLATFORM TRUTH: Today, Engine Room, Trust Ledger, Settings/Admin, pricing ◐ TODAY FOUR-LANE ORACLE MET LIVE 2026-07-08 (production Today renders exactly four segregated lanes from real rows: Needs-your-judgment [the pushed insight], What-the-swarm-did [5 stage-event moves], At-risk/watch [honest-empty], Shipped-and-what-it-cost [9 outcomes, avg $0.08/outcome, real verdicts]; the founder's "data dump / not segregated" verdict is resolved). Ledger unbroken-chain renders in code; demo data thin (rich-seed item).
 
 - **Today (founder: "not properly segregated"):** re-cut Today's content model into exactly four lanes: **Needs your judgment** (gates + pushed insights, the only ember), **What the swarm did** (since you last looked, grouped by goal/mission), **At risk / watch** (foresight + calibration), **Shipped and what it cost** (outcomes + cost-per-outcome). This is an information-architecture change (what is computed and grouped), not a restyle.
 - **Engine Room:** the governance panels are wired to real data (done); ensure every number a user will see traces (spend, loop health, drift, evals). Reskin stays deferred per the velocity ruling.
