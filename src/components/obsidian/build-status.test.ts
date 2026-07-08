@@ -141,9 +141,7 @@ describe("stepDotState", () => {
       approval_id: "ap1",
       status: "pending" as const,
     };
-    const approvals = [
-      { id: "ap1", status: "pending" as const, created_at: "2026-01-01" },
-    ];
+    const approvals = [{ id: "ap1", status: "pending" as const, created_at: "2026-01-01" }];
     expect(stepDotState(step, approvals)).toBe("gate");
   });
 

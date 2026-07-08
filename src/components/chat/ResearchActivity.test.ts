@@ -192,9 +192,7 @@ describe("ResearchActivity", () => {
     });
 
     it("should include spinner for active research", () => {
-      const statuses = [
-        { phase: "search" as const, label: "Searching..." },
-      ];
+      const statuses = [{ phase: "search" as const, label: "Searching..." }];
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
       // Component includes a spinner element
@@ -268,15 +266,27 @@ describe("ResearchActivity", () => {
       expect(result?.type).toBe("div");
     });
 
-    it("should return null when no research activity to report", () => {
+    it("should render when there is at least one web source", () => {
       const meta: ChatMeta = {
         research: { mode: "web", sub_queries: [] },
         sources: [{ kind: "web", title: "Source", url: "http://example.com" }],
         workspace_chunks: 0,
       };
       const result = ResearchSummaryRow({ meta });
-      // Only web source, no queries, no workspace → should have segments but let's check
-      expect(result !== null || result === null);
+      // One web source → "Read 1 source" segment → should render
+      expect(result?.type).toBe("div");
+      expect(result?.props).toBeDefined();
+    });
+
+    it("should return null when truly no research activity to report", () => {
+      const meta: ChatMeta = {
+        research: { mode: "web", sub_queries: [] },
+        sources: [],
+        workspace_chunks: 0,
+      };
+      const result = ResearchSummaryRow({ meta });
+      // No sources, no queries, no workspace → no segments → return null
+      expect(result).toBeNull();
     });
   });
 });

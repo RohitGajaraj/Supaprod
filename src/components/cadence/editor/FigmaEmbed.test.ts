@@ -264,16 +264,29 @@ describe("FigmaEmbed.config.addCommands()", () => {
     expect(typeof handler).toBe("function");
   });
 
-  test("setFigmaEmbed handler accepts commands object and returns boolean", () => {
+  test("setFigmaEmbed handler invokes insertContent with correct payload", () => {
     const commands = FigmaEmbed.config.addCommands();
     const attrs = { src: "https://www.figma.com/file/abc123" };
     const handler = commands.setFigmaEmbed(attrs);
 
-    // The handler should be a function that accepts the command context
-    expect(typeof handler).toBe("function");
+    // Mock the TipTap command context
+    const insertContentSpy = (payload: unknown) => true;
+    const mockCommandContext = { commands: { insertContent: insertContentSpy } };
 
-    // Verify the handler signature by checking its call pattern
-    // (we don't call it here since it requires a real TipTap context)
+    // Track what insertContent was called with
+    let capturedPayload: unknown;
+    const trackedInsertContent = (payload: unknown) => {
+      capturedPayload = payload;
+      return true;
+    };
+
+    const result = handler({ commands: { insertContent: trackedInsertContent } });
+
+    // Verify the handler calls insertContent and returns true
+    expect(result).toBe(true);
+    expect(capturedPayload).toBeDefined();
+    expect((capturedPayload as { type?: string; attrs?: unknown }).type).toBe("figmaEmbed");
+    expect((capturedPayload as { type?: string; attrs?: unknown }).attrs).toEqual(attrs);
   });
 
   test("setFigmaEmbed command constructs correct node type and attributes", () => {
@@ -281,16 +294,41 @@ describe("FigmaEmbed.config.addCommands()", () => {
     const testUrl = "https://www.figma.com/file/test123";
     const attrs = { src: testUrl };
 
-    // The command should pass { type: 'figmaEmbed', attrs } to insertContent
+    let capturedPayload: unknown;
     const handler = commands.setFigmaEmbed(attrs);
-    expect(handler).toBeDefined();
+    handler({
+      commands: {
+        insertContent: (p) => {
+          capturedPayload = p;
+          return true;
+        },
+      },
+    });
+
+    expect(capturedPayload).toBeDefined();
+    const payload = capturedPayload as { type?: string; attrs?: unknown };
+    expect(payload.type).toBe("figmaEmbed");
+    expect((payload.attrs as { src?: string })?.src).toBe(testUrl);
   });
 
   test("setFigmaEmbed handles empty src gracefully", () => {
     const commands = FigmaEmbed.config.addCommands();
     const attrs = { src: "" };
     const handler = commands.setFigmaEmbed(attrs);
-    expect(handler).toBeDefined();
-    expect(typeof handler).toBe("function");
+
+    let capturedPayload: unknown;
+    const result = handler({
+      commands: {
+        insertContent: (p) => {
+          capturedPayload = p;
+          return true;
+        },
+      },
+    });
+
+    expect(result).toBe(true);
+    expect(capturedPayload).toBeDefined();
+    const payload = capturedPayload as { type?: string; attrs?: unknown };
+    expect((payload.attrs as { src?: string })?.src).toBe("");
   });
 });

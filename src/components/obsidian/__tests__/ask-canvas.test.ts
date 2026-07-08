@@ -1,5 +1,11 @@
 import { describe, it, expect } from "bun:test";
-import { runStatusLabel, hasCanvasContent, ProgressBlock, MemoryBlock, CriticBlock } from "../ask-canvas";
+import {
+  runStatusLabel,
+  hasCanvasContent,
+  ProgressBlock,
+  MemoryBlock,
+  CriticBlock,
+} from "../ask-canvas";
 import type { LoopStep } from "@/lib/ai/loop.server";
 import type { StudioApproval } from "@/lib/studio.functions";
 import type { CriticReview } from "@/lib/ai/critic.server";
@@ -112,8 +118,10 @@ describe("ProgressBlock", () => {
       approvals: [],
     });
     expect(result?.type).toBe("div");
-    // The rendered content includes the status label and step descriptions
-    expect(result?.props).toBeDefined();
+    // Verify the div contains child elements (MonoLabel, step list)
+    const children = result?.props.children;
+    expect(children).toBeDefined();
+    expect(Array.isArray(children) || children !== undefined).toBe(true);
   });
 
   it("shows only the last 5 steps when more steps are present", () => {
@@ -142,7 +150,10 @@ describe("MemoryBlock", () => {
     ];
     const result = MemoryBlock({ recalls });
     expect(result?.type).toBe("div");
-    expect(result?.props).toBeDefined();
+    const children = result?.props.children;
+    expect(children).toBeDefined();
+    // Verify the div has child elements (MonoLabel, recall list)
+    expect(Array.isArray(children) || children !== undefined).toBe(true);
   });
 
   it("displays each recall with its kind label", () => {
@@ -170,7 +181,13 @@ describe("CriticBlock", () => {
     };
     const result = CriticBlock({ verdict });
     expect(result?.type).toBe("div");
-    expect(result?.props).toBeDefined();
+    const children = result?.props.children;
+    expect(children).toBeDefined();
+    // First child should be the header div with MonoLabel and VerdictChip
+    expect(children?.[0]?.type).toBe("div");
+    // Second child should be the summary paragraph
+    expect(children?.[1]?.type).toBe("p");
+    expect(children?.[1]?.props.children).toBe("This is a clear ship.");
   });
 
   it("renders a REVISE verdict with a neutral mono-caps label, not an ember chip", () => {
