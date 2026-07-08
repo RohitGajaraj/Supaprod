@@ -2078,19 +2078,19 @@ const studioPrMerge = def({
 });
 
 /**
- * Studio: sync the changeset's PR branch with the default branch — the
+ * Studio: sync the changeset's PR branch with the default branch, the
  * agent-callable equivalent of GitHub's "Update branch" button. Merges the
  * default branch INTO the studio/* branch via the Merge-a-branch endpoint;
  * it never touches files, so it needs no path allow-listing
- * (assertStudioPathAllowed is irrelevant here — nothing is staged or
+ * (assertStudioPathAllowed is irrelevant here, nothing is staged or
  * written through the Git Data API). Use case: the base branch moved on
- * (another PR landed) and the PR's CI run is now stale/out of date — this
+ * (another PR landed) and the PR's CI run is now stale/out of date. This
  * re-triggers a fresh CI run on the updated branch without a code change.
  */
 const studioSyncBranch = def({
   name: "studio.sync_branch",
   description:
-    "Studio: sync this mission's changeset branch with the repo's default branch — the same effect as clicking GitHub's 'Update branch' button on a PR. Use this when a stale or out-of-date CI check needs re-triggering because the default branch moved on since the PR branch was created (e.g. another PR merged first). Merges the default branch INTO the changeset branch via the GitHub Merge API; touches no files and stages nothing, so it never conflicts with restricted paths like .github/workflows/*. If the branch is already up to date, reports that as success, not an error.",
+    "Studio: sync this mission's changeset branch with the repo's default branch, the same effect as clicking GitHub's 'Update branch' button on a PR. Use this when a stale or out-of-date CI check needs re-triggering because the default branch moved on since the PR branch was created (e.g. another PR merged first). Merges the default branch INTO the changeset branch via the GitHub Merge API; touches no files and stages nothing, so it never conflicts with restricted paths like .github/workflows/*. If the branch is already up to date, reports that as success, not an error.",
   category: "write",
   argsSchema: z.object({}),
   preview: () => "Sync PR branch with the default branch (re-trigger CI)",
@@ -2098,8 +2098,8 @@ const studioSyncBranch = def({
     const { supabase, missionId } = ctx;
     if (!missionId) throw new Error("studio.sync_branch requires a mission");
     const changeset = await getActiveChangeset(supabase, missionId);
-    if (!changeset) throw new Error("no active changeset — call studio.stage first");
-    if (!changeset.branch) throw new Error("changeset has no branch — call studio.commit first");
+    if (!changeset) throw new Error("no active changeset, call studio.stage first");
+    if (!changeset.branch) throw new Error("changeset has no branch, call studio.commit first");
 
     const { token, repo } = await requireGithub(ctx);
     const headers = ghHeaders(token);
@@ -2111,7 +2111,7 @@ const studioSyncBranch = def({
       body: JSON.stringify({
         base: changeset.branch,
         head: defaultBranch,
-        commit_message: `Sync ${changeset.branch} with ${defaultBranch} to re-trigger CI — Cadence Studio`,
+        commit_message: `Sync ${changeset.branch} with ${defaultBranch} to re-trigger CI, Cadence Studio`,
       }),
     });
 
@@ -2125,7 +2125,7 @@ const studioSyncBranch = def({
         branch: changeset.branch,
         base: defaultBranch,
         synced: false,
-        message: `${changeset.branch} is already up to date with ${defaultBranch} — nothing to sync.`,
+        message: `${changeset.branch} is already up to date with ${defaultBranch}, nothing to sync.`,
       };
     }
     if (res.status === 409) {
@@ -2145,7 +2145,7 @@ const studioSyncBranch = def({
       synced: true,
       merge_sha: j.sha ?? null,
       merge_url: j.html_url ?? null,
-      message: `Synced ${changeset.branch} with the latest ${defaultBranch} — CI will re-run on the new head commit.`,
+      message: `Synced ${changeset.branch} with the latest ${defaultBranch}. CI will re-run on the new head commit.`,
     };
   },
 });
