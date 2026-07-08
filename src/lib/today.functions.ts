@@ -156,17 +156,22 @@ export async function countNeedsYouCalls(
   }
 
   const [live, expired, specs, opps, challenges, playbooks] = await Promise.all([
+    // A LIVE call is one still awaiting a decision: status='pending'. Bug fix
+    // 2026-07-08: escalation_state stays 'pending' even after a gate executes
+    // or fails (only the decision-path clears it), so filtering escalation
+    // alone counted resolved gates forever and inflated "N calls need you".
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("escalation_state", "pending")
+      .eq("status", "pending")
       .or(liveGateOr(nowIso))
       .or(notSnoozedOr(nowIso)),
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
+      .eq("status", "pending")
       .or(expiredGateOr(nowIso)),
     supabase.from("prds").select("id", { count: "exact", head: true }).eq("status", "review"),
     supabase
@@ -244,7 +249,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
             "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
           )
           .eq("user_id", userId)
-          .eq("escalation_state", "pending")
+          .eq("status", "pending")
           .or(liveGateOr(nowIso))
           .or(notSnoozedOr(nowIso))
           .order("expires_at", { ascending: true })
@@ -253,6 +258,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
           .from("agent_approvals")
           .select("id,agent_slug,tool_name,expires_at,created_at")
           .eq("user_id", userId)
+          .eq("status", "pending")
           .or(expiredGateOr(nowIso))
           .order("expires_at", { ascending: false })
           .limit(8),

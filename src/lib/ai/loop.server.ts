@@ -1539,6 +1539,10 @@ export async function executeApproval(
       .from("agent_approvals")
       .update({
         status: "executed",
+        // Clear the escalation flag on resolution (bug fix 2026-07-08): a
+        // decided gate must leave escalation_state='pending' so the live
+        // "needs you" count never counts an already-executed gate.
+        escalation_state: "resolved",
         result: result as Record<string, unknown> | null,
       })
       .eq("id", approvalId);
@@ -1547,7 +1551,7 @@ export async function executeApproval(
     const msg = e instanceof Error ? e.message : String(e);
     await supabase
       .from("agent_approvals")
-      .update({ status: "failed", error: msg })
+      .update({ status: "failed", escalation_state: "resolved", error: msg })
       .eq("id", approvalId);
     throw e;
   }
