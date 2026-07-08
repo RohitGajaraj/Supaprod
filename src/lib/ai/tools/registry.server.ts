@@ -1390,7 +1390,7 @@ const repoSearch = def({
 const studioStage = def({
   name: "studio.stage",
   description:
-    "Studio: stage multi-file edits into the mission's changeset. REQUIRED on every change: 'path', 'op' ('create'|'update'|'delete'), and 'content' (the FULL new file text, not a diff — omit only when op is 'delete'). Edits land in the platform DB — nothing touches GitHub until studio.commit. Re-stage a path to replace its staged contents.",
+    "Studio: stage multi-file edits into the mission's changeset. REQUIRED on every change: 'path', 'op' ('create'|'update'|'delete'), and 'content' (the FULL new file text, not a diff; omit only when op is 'delete'). Edits land in the platform DB, nothing touches GitHub until studio.commit. Re-stage a path to replace its staged contents.",
   category: "write",
   argsSchema: z.object({
     changes: z
@@ -1715,7 +1715,7 @@ const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
 const ciLogs = def({
   name: "ci.logs",
   description:
-    "Builder agent: fetch the FAILING check runs on a PR with their full output detail and job log tails. Read-only. Use to diagnose red CI before staging a fix — github.ci.read only carries 240-char summaries. pr_number is optional: omit it to use this mission's own open PR.",
+    "Builder agent: fetch the FAILING check runs on a PR with their full output detail and job log tails. Read-only. Use to diagnose red CI before staging a fix (github.ci.read only carries 240-char summaries). pr_number is optional: omit it to use this mission's own open PR.",
   category: "read",
   argsSchema: z.object({
     pr_number: z.number().int().min(1).max(10_000_000).optional(),

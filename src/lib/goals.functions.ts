@@ -84,7 +84,7 @@ export const createGoal = createServerFn({ method: "POST" })
     // Finding 22 (SW-7 terminal walkthrough): a double submission (e.g. a
     // double-click or a retried request) created two identical ACTIVE goals.
     // Dedupe on the normalized title among this user's active goals before
-    // inserting a new one — a paused/achieved/archived goal with the same
+    // inserting a new one. A paused/achieved/archived goal with the same
     // title is a deliberate restart, not a duplicate, so it doesn't block.
     const normalizedTitle = data.title.trim().toLowerCase();
     const { data: existingActive } = await db

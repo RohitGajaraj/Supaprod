@@ -202,7 +202,7 @@ export type LoopStep =
  * Finding 24 (SW-7 terminal walkthrough): a run that gave up honestly (every
  * tool call errored or was denied, no productive step ever landed) was still
  * written as "completed", so the Build list showed a dead mission as
- * FINISHED with no verdict — indistinguishable from a real success. Mirrors
+ * FINISHED with no verdict, indistinguishable from a real success. Mirrors
  * the anyFailed check handoff.server.ts/orchestrator.server.ts already use.
  */
 function anyToolStepFailed(steps: LoopStep[]): boolean {
@@ -1575,7 +1575,7 @@ export async function executeApproval(
       .update({ status: "failed", escalation_state: "resolved", error: msg })
       .eq("id", approvalId);
     // Finding 30 (SW-7 terminal walkthrough): a post-approval tool failure
-    // previously left the owning run "running" forever — the resume cron
+    // previously left the owning run "running" forever: the resume cron
     // kept it alive, and `release_claims_for_terminal_run` only fires on a
     // genuine agent_runs terminal status, so its Build file claims orphaned
     // and blocked every successor mission. Mirror the KI-07 fix (loop.server.ts's
