@@ -2302,32 +2302,62 @@ html[data-obsidian] {
 }
 
 /* ===========================================================================
- * AI-PULSE (founder ruling 2026-07-08, SW-7) - the live machine-activity
- * one-liner shown wherever the swarm is working. The landing page's flowing
- * sheen, rebuilt on the AZURE working voice (--action-blue is already the
- * live/running state color) with the contract-sanctioned --violet-shimmer
- * as the moving highlight. Small, readable, always in motion while work runs.
- * Honors data-motion="off" and prefers-reduced-motion like .agent-live. */
+ * AI-PULSE (founder ruling 2026-07-08, SW-7; recolored to brand 2026-07-08) -
+ * the live machine-activity one-liner shown wherever the swarm is working.
+ * The landing page's flowing sheen, on the BRAND's warm register (founder
+ * call: the AI-blue read as generic AI slop). Two tones:
+ *   .ai-pulse-text (working)  = amber -> gold, the machine humming, brand-warm.
+ *   .ai-pulse-text.human      = rose/fuchsia, a decision that needs YOU - a
+ *                               distinct hue so "your call" never wears the
+ *                               same color as "the machine is busy".
+ * The mark is the Cadence butterfly (a logo in motion, not a generic dot),
+ * fluttering while work runs. All motion honors data-motion + reduced-motion. */
 .ai-pulse-text {
   background: linear-gradient(
     90deg,
-    #6f9bff,
-    #a9c2ff 30%,
-    var(--violet-shimmer, #c77dff) 50%,
-    #a9c2ff 70%,
-    #6f9bff
+    #d98a2e,
+    #f4c25c 30%,
+    #ffe6b0 50%,
+    #f4c25c 70%,
+    #d98a2e
   );
   background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: agent-shimmer 3s linear infinite;
+  animation: agent-shimmer 3.4s linear infinite;
 }
-html[data-motion="off"] .ai-pulse-text {
+.ai-pulse-text.human {
+  background: linear-gradient(
+    90deg,
+    #d64f8a,
+    #f2a0c4 40%,
+    #ffd9ea 50%,
+    #f2a0c4 60%,
+    #d64f8a
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+/* The butterfly mark: a slow wing-breathe (scaleX), the brand's own motion,
+ * so the logo reads as ALIVE, not a generic spinner. */
+@keyframes ai-pulse-flutter {
+  0%, 100% { transform: scaleX(1) rotate(-2deg); }
+  50% { transform: scaleX(0.82) rotate(2deg); }
+}
+.ai-pulse-mark {
+  display: inline-block;
+  transform-origin: center;
+  animation: ai-pulse-flutter 2.4s ease-in-out infinite;
+}
+html[data-motion="off"] .ai-pulse-text,
+html[data-motion="off"] .ai-pulse-mark {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ai-pulse-text {
+  .ai-pulse-text,
+  .ai-pulse-mark {
     animation: none;
   }
 }

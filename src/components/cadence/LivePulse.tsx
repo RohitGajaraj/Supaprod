@@ -4,7 +4,7 @@
 // working line, and any surface-local pulse - so the platform never
 // disagrees with itself about what the machine is doing.
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLiveActivity, type LiveActivityItem } from "@/lib/agents.functions";
 import { AiPulse } from "@/components/obsidian/AiPulse";
@@ -15,13 +15,19 @@ export function pollWhenVisible(ms: number) {
     typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
 }
 
-/** The one shared live-activity read; every mount rides this cache. */
+/** The one shared live-activity read; every mount rides this cache.
+ * PERSISTENCE (founder ruling 2026-07-08): the 4s cadence is only how often
+ * we check for the newest step - keepPreviousData holds the last result while
+ * the next fetch is in flight, so the pulse never blanks between polls. It
+ * stays visible the ENTIRE time a run is active (its label updates per step)
+ * and only disappears when the run is truly done (items -> []). */
 export function useLiveActivity() {
   const fetchActivity = useServerFn(getLiveActivity);
   const q = useQuery({
     queryKey: ["live-activity"],
     queryFn: () => fetchActivity(),
     refetchInterval: pollWhenVisible(4000),
+    placeholderData: keepPreviousData,
   });
   return { items: q.data?.items ?? [], isPending: q.isPending };
 }
@@ -50,7 +56,8 @@ export function LiveTicker() {
   const first = items[0];
   const more = items.length - 1;
   const label = `${itemLabel(first)}${more > 0 ? ` · +${more} more` : ""}`;
-  const inner = <AiPulse label={label} style={{ maxWidth: 380 }} />;
+  const tone = first.status === "waiting_approval" ? "human" : "working";
+  const inner = <AiPulse label={label} tone={tone} style={{ maxWidth: 380 }} />;
   return first.missionId ? (
     <Link
       to="/build/$missionId"
@@ -79,5 +86,12 @@ export function LivePulse({ missionId, size }: { missionId?: string; size?: numb
   const { items } = useLiveActivity();
   const scoped = missionId ? items.filter((i) => i.missionId === missionId) : items;
   if (scoped.length === 0) return null;
-  return <AiPulse label={itemLabel(scoped[0])} size={size} />;
+  const item = scoped[0];
+  return (
+    <AiPulse
+      label={itemLabel(item)}
+      tone={item.status === "waiting_approval" ? "human" : "working"}
+      size={size}
+    />
+  );
 }

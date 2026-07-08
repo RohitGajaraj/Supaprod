@@ -1,20 +1,26 @@
-// AI-PULSE (founder ruling 2026-07-08, SW-7 live-run): whenever the machine is
-// working, every surface says so with a small, readable, continuously moving
-// one-liner - the landing page's flowing sheen rebuilt on the AZURE working
-// voice (founder call: not ember, which reads as Claude Code; not glacier),
-// with --violet-shimmer as the moving highlight (the one place the contract
-// allows it). Motion guards ride the .ai-pulse-text class in styles.css.
+// AI-PULSE (founder ruling 2026-07-08, SW-7; recolored to brand + logo mark
+// 2026-07-08): whenever the machine is working, every surface says so with a
+// small, readable, continuously moving one-liner. The mark is the Cadence
+// butterfly fluttering (a logo in motion, the Anthropic/Kiro pattern - not a
+// generic blinking dot). Two tones on the brand's warm register (founder call:
+// the AI-blue read as generic slop):
+//   working = amber/gold shimmer (the machine humming);
+//   human   = rose/fuchsia (a decision that needs YOU - a distinct hue).
+// Motion guards ride the .ai-pulse-text / .ai-pulse-mark classes in styles.css.
 import * as React from "react";
 
 export function AiPulse({
   label,
   size = 11,
+  tone = "working",
   style,
 }: {
   /** The one-liner: what the machine is doing right now. Keep it short. */
   label: string;
   /** Font size in px; stays small and readable per the ruling. */
   size?: number;
+  /** working = the machine (amber). human = a gate that needs you (rose). */
+  tone?: "working" | "human";
   style?: React.CSSProperties;
 }) {
   return (
@@ -22,25 +28,23 @@ export function AiPulse({
       className="flex items-center"
       role="status"
       aria-live="polite"
-      style={{ gap: 7, minWidth: 0, ...style }}
+      style={{ gap: 6, minWidth: 0, ...style }}
     >
-      <span
-        aria-hidden
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: 999,
-          background: "#6f9bff",
-          animation: "pulse-dot 1.6s ease-in-out infinite",
-          flexShrink: 0,
-        }}
+      <img
+        src={tone === "human" ? "/assets/butterfly-idle.svg" : "/assets/butterfly-ember.svg"}
+        alt=""
+        aria-hidden="true"
+        className="ai-pulse-mark shrink-0"
+        width={Math.round(size * 1.25)}
+        height={Math.round(size * 1.25)}
+        style={{ opacity: 0.95 }}
       />
       <span
-        className="ai-pulse-text"
+        className={tone === "human" ? "ai-pulse-text human" : "ai-pulse-text"}
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: size,
-          letterSpacing: "0.05em",
+          letterSpacing: "0.02em",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
