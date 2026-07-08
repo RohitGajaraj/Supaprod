@@ -1,50 +1,46 @@
-// AI-PULSE (founder ruling 2026-07-08, SW-7; recolored to brand + logo mark
-// 2026-07-08): whenever the machine is working, every surface says so with a
-// small, readable, continuously moving one-liner. The mark is the Cadence
-// butterfly fluttering (a logo in motion, the Anthropic/Kiro pattern - not a
-// generic blinking dot). Two tones on the brand's warm register (founder call:
-// the AI-blue read as generic slop):
-//   working = amber/gold shimmer (the machine humming);
-//   human   = rose/fuchsia (a decision that needs YOU - a distinct hue).
-// Motion guards ride the .ai-pulse-text / .ai-pulse-mark classes in styles.css.
+// AI-PULSE (founder ruling 2026-07-08, SW-7; v3): the live machine-activity
+// line. It shows the ACTION ("Drafting changes"), never the mission title, in
+// ONE place (the top bar). The shimmer is the landing page's exact ember sheen
+// and it passes through the butterfly too (the mark is masked by the same
+// moving gradient). Working = ember, moving. The human gate = a calm STEADY
+// glacier (stillness is the signal). Motion guards ride the styles.css classes.
 import * as React from "react";
 
 export function AiPulse({
   label,
-  size = 11,
-  tone = "working",
+  state = "working",
+  size = 12,
   style,
 }: {
-  /** The one-liner: what the machine is doing right now. Keep it short. */
+  /** The short action, e.g. "Drafting changes". Never the mission title. */
   label: string;
-  /** Font size in px; stays small and readable per the ruling. */
+  /** working = the machine (ember shimmer). waiting = your gate (glacier, still). */
+  state?: "working" | "waiting";
+  /** Font size in px; kept small and readable. */
   size?: number;
-  /** working = the machine (amber). human = a gate that needs you (rose). */
-  tone?: "working" | "human";
   style?: React.CSSProperties;
 }) {
+  const waiting = state === "waiting";
+  const mark = Math.round(size * 1.2);
   return (
     <span
       className="flex items-center"
       role="status"
       aria-live="polite"
-      style={{ gap: 6, minWidth: 0, ...style }}
+      style={{ gap: 7, minWidth: 0, ...style }}
     >
-      <img
-        src={tone === "human" ? "/assets/butterfly-idle.svg" : "/assets/butterfly-ember.svg"}
-        alt=""
+      <span
         aria-hidden="true"
-        className="ai-pulse-mark shrink-0"
-        width={Math.round(size * 1.25)}
-        height={Math.round(size * 1.25)}
-        style={{ opacity: 0.95 }}
+        className={waiting ? "ai-pulse-mark waiting" : "ai-pulse-mark"}
+        style={{ width: mark, height: mark }}
       />
       <span
-        className={tone === "human" ? "ai-pulse-text human" : "ai-pulse-text"}
+        className={waiting ? "ai-pulse-text waiting" : "ai-pulse-text"}
         style={{
-          fontFamily: "var(--font-mono)",
+          fontFamily: "var(--font-ui)",
           fontSize: size,
-          letterSpacing: "0.02em",
+          fontWeight: 500,
+          letterSpacing: "0.01em",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",

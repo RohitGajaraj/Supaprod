@@ -2302,54 +2302,80 @@ html[data-obsidian] {
 }
 
 /* ===========================================================================
- * AI-PULSE (founder ruling 2026-07-08, SW-7; recolored to brand 2026-07-08) -
- * the live machine-activity one-liner shown wherever the swarm is working.
- * The landing page's flowing sheen, on the BRAND's warm register (founder
- * call: the AI-blue read as generic AI slop). Two tones:
- *   .ai-pulse-text (working)  = amber -> gold, the machine humming, brand-warm.
- *   .ai-pulse-text.human      = rose/fuchsia, a decision that needs YOU - a
- *                               distinct hue so "your call" never wears the
- *                               same color as "the machine is busy".
- * The mark is the Cadence butterfly (a logo in motion, not a generic dot),
- * fluttering while work runs. All motion honors data-motion + reduced-motion. */
+ * AI-PULSE (founder ruling 2026-07-08, SW-7; v3 2026-07-08) - the live
+ * machine-activity line, shown in ONE place (the top bar) while the swarm
+ * works. It shows the ACTION ("Drafting changes"), never the mission title.
+ *
+ * The shimmer is the LANDING PAGE's exact sheen (.lp-memwrite): ember glowing
+ * out to warm cream and back, sweeping left to right. The butterfly is masked
+ * by the SAME moving gradient, so the sheen passes through the logo in sync
+ * with the words - one premium ember shimmer, not two effects. Working =
+ * ember, moving. The human gate = a calm STEADY glacier (cool + still = your
+ * turn), the one restrained second tone; motion stopping is itself the signal.
+ * Palette stays tight (ember + glacier, both existing brand tokens). */
+@keyframes ai-pulse-sheen {
+  0% { background-position: 200% 0; }
+  100% { background-position: -60% 0; }
+}
+/* The butterfly's own subtle life while working: a gentle wing-breathe. Still
+ * when gated (the .waiting rule below clears it). */
+@keyframes ai-pulse-flutter {
+  0%, 100% { transform: scaleX(1) rotate(-1.5deg); }
+  50% { transform: scaleX(0.88) rotate(1.5deg); }
+}
 .ai-pulse-text {
   background: linear-gradient(
     90deg,
-    #d98a2e,
-    #f4c25c 30%,
-    #ffe6b0 50%,
-    #f4c25c 70%,
-    #d98a2e
+    rgba(251, 113, 0, 0.55) 0%,
+    #ffb870 42%,
+    #fff1de 50%,
+    #ffb870 58%,
+    rgba(251, 113, 0, 0.55) 100%
   );
-  background-size: 260% 100%;
+  background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: agent-shimmer 3.4s linear infinite;
+  animation: ai-pulse-sheen 2.8s linear infinite;
 }
-.ai-pulse-text.human {
-  background: linear-gradient(
-    90deg,
-    #d64f8a,
-    #f2a0c4 40%,
-    #ffd9ea 50%,
-    #f2a0c4 60%,
-    #d64f8a
-  );
-  background-size: 260% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-/* The butterfly mark: a slow wing-breathe (scaleX), the brand's own motion,
- * so the logo reads as ALIVE, not a generic spinner. */
-@keyframes ai-pulse-flutter {
-  0%, 100% { transform: scaleX(1) rotate(-2deg); }
-  50% { transform: scaleX(0.82) rotate(2deg); }
-}
+/* The butterfly, masked by the same moving ember gradient: the sheen sweeps
+ * through the logo's shape, in sync with the text. */
 .ai-pulse-mark {
   display: inline-block;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(251, 113, 0, 0.55) 0%,
+    #ffb870 42%,
+    #fff1de 50%,
+    #ffb870 58%,
+    rgba(251, 113, 0, 0.55) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
+  mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
   transform-origin: center;
-  animation: ai-pulse-flutter 2.4s ease-in-out infinite;
+  /* two animations at once: the ember sheen sweeps through the shape, and the
+   * wings breathe (founder ruling 2026-07-08: the butterfly moves subtly while
+   * working, and stays still when gated). */
+  animation:
+    ai-pulse-sheen 2.8s linear infinite,
+    ai-pulse-flutter 2.6s ease-in-out infinite;
+}
+/* Human gate: cool, calm, STILL. No shimmer, no flutter - the stillness says
+ * "it paused for you". Glacier is the brand's existing calm tone (palette
+ * stays tight: ember + glacier only). */
+.ai-pulse-text.waiting {
+  background: none;
+  -webkit-text-fill-color: var(--glacier, #84b3ec);
+  color: var(--glacier, #84b3ec);
+  animation: none;
+}
+.ai-pulse-mark.waiting {
+  background: var(--glacier, #84b3ec);
+  transform: none;
+  animation: none;
 }
 html[data-motion="off"] .ai-pulse-text,
 html[data-motion="off"] .ai-pulse-mark {

@@ -1,12 +1,12 @@
-// AI-PULSE (founder ruling 2026-07-08): the platform-wide live-activity
-// ticker. ONE shared query key + ONE 4s poll (paused while the tab is
-// hidden) feeds every mount - the TopBar ticker on every screen, the rail
-// working line, and any surface-local pulse - so the platform never
-// disagrees with itself about what the machine is doing.
+// AI-PULSE (founder ruling 2026-07-08, v3): the platform-wide live-activity
+// line, in ONE place - the top bar. One shared 4s poll (paused when the tab is
+// hidden) feeds it; keepPreviousData holds the line across the refetch so it
+// never blanks. It shows the ACTION verb (never the mission title), fades only
+// when the machine is truly idle. The sidebar no longer duplicates it.
 import { Link } from "@tanstack/react-router";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getLiveActivity, type LiveActivityItem } from "@/lib/agents.functions";
+import { getLiveActivity, type LiveActivity } from "@/lib/agents.functions";
 import { AiPulse } from "@/components/obsidian/AiPulse";
 
 /** Polls stop while the tab is hidden, resume on the next visible tick. */
@@ -15,13 +15,10 @@ export function pollWhenVisible(ms: number) {
     typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
 }
 
-/** The one shared live-activity read; every mount rides this cache.
- * PERSISTENCE (founder ruling 2026-07-08): the 4s cadence is only how often
- * we check for the newest step - keepPreviousData holds the last result while
- * the next fetch is in flight, so the pulse never blanks between polls. It
- * stays visible the ENTIRE time a run is active (its label updates per step)
- * and only disappears when the run is truly done (items -> []). */
-export function useLiveActivity() {
+const EMPTY: LiveActivity = { count: 0, missionId: null, action: "", status: null };
+
+/** The one shared live-activity read; every mount rides this cache. */
+export function useLiveActivity(): LiveActivity {
   const fetchActivity = useServerFn(getLiveActivity);
   const q = useQuery({
     queryKey: ["live-activity"],
@@ -29,41 +26,26 @@ export function useLiveActivity() {
     refetchInterval: pollWhenVisible(4000),
     placeholderData: keepPreviousData,
   });
-  return { items: q.data?.items ?? [], isPending: q.isPending };
-}
-
-/** Progressive verb per run state - what a human wants to read, not a status enum. */
-export function liveVerb(item: LiveActivityItem): string {
-  if (item.status === "waiting_approval") return "waiting on you";
-  if (item.status === "queued") return "queued";
-  return item.stepIndex > 0 ? `working · step ${item.stepIndex}` : "working";
-}
-
-function itemLabel(item: LiveActivityItem): string {
-  const name = item.missionTitle ?? item.agentName;
-  return `${name} · ${liveVerb(item)}`;
+  return q.data ?? EMPTY;
 }
 
 /**
- * The global ticker (mounted in the TopBar, so it rides every authenticated
- * screen). Renders nothing when the machine is idle; while anything runs it
- * shows the newest run's one-liner in the azure working shimmer, linking to
- * the mission's cockpit (or /build when the run has no mission).
+ * The global ticker (mounted in the top bar, so it rides every authenticated
+ * screen). Renders nothing when the machine is idle. While anything runs it
+ * shows the newest run's ACTION in the ember shimmer, linking to the mission's
+ * cockpit; at a human gate it goes calm and still ("Waiting on you").
  */
 export function LiveTicker() {
-  const { items } = useLiveActivity();
-  if (items.length === 0) return null;
-  const first = items[0];
-  const more = items.length - 1;
-  const label = `${itemLabel(first)}${more > 0 ? ` · +${more} more` : ""}`;
-  const tone = first.status === "waiting_approval" ? "human" : "working";
-  const inner = <AiPulse label={label} tone={tone} style={{ maxWidth: 380 }} />;
-  return first.missionId ? (
+  const a = useLiveActivity();
+  if (a.count === 0 || !a.action) return null;
+  const state = a.status === "waiting_approval" ? "waiting" : "working";
+  const inner = <AiPulse label={a.action} state={state} style={{ maxWidth: 260 }} />;
+  return a.missionId ? (
     <Link
       to="/build/$missionId"
-      params={{ missionId: first.missionId }}
+      params={{ missionId: a.missionId }}
       style={{ textDecoration: "none", minWidth: 0 }}
-      aria-label={`Open the running mission: ${label}`}
+      aria-label={`Open the running mission (${a.action})`}
     >
       {inner}
     </Link>
@@ -71,27 +53,9 @@ export function LiveTicker() {
     <Link
       to="/build"
       style={{ textDecoration: "none", minWidth: 0 }}
-      aria-label={`Open Build: ${label}`}
+      aria-label={`Open Build (${a.action})`}
     >
       {inner}
     </Link>
-  );
-}
-
-/**
- * A surface-local pulse: same cache, optionally filtered to one mission.
- * Renders nothing when that scope is idle.
- */
-export function LivePulse({ missionId, size }: { missionId?: string; size?: number }) {
-  const { items } = useLiveActivity();
-  const scoped = missionId ? items.filter((i) => i.missionId === missionId) : items;
-  if (scoped.length === 0) return null;
-  const item = scoped[0];
-  return (
-    <AiPulse
-      label={itemLabel(item)}
-      tone={item.status === "waiting_approval" ? "human" : "working"}
-      size={size}
-    />
   );
 }
