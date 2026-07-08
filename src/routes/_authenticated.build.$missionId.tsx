@@ -30,6 +30,7 @@ import {
   type StudioFileSetPolicy,
   type StudioRunDetail,
 } from "@/lib/studio.functions";
+import { renameMission } from "@/lib/missions.functions";
 import { listDeployments } from "@/lib/deployments.functions";
 import { SessionTimeline } from "@/components/studio/SessionTimeline";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
@@ -471,6 +472,25 @@ function BuildSessionPage() {
 
   const activeTabLabel = TAB_DISPLAY.find(([id]) => id === tab)?.[1] ?? "Changes";
 
+  const fRenameMission = useServerFn(renameMission);
+  const [renamingTitle, setRenamingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const renameMut = useMutation({
+    mutationFn: (title: string) => fRenameMission({ data: { missionId, title } }),
+    onSuccess: () => invalidate(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const startTitleRename = () => {
+    if (!mission) return;
+    setTitleDraft(stripAutoPrefix(mission.title));
+    setRenamingTitle(true);
+  };
+  const commitTitleRename = () => {
+    const next = titleDraft.trim().slice(0, 200);
+    setRenamingTitle(false);
+    if (next && mission && next !== stripAutoPrefix(mission.title)) renameMut.mutate(next);
+  };
+
   return (
     <>
       <TopBar
@@ -506,19 +526,55 @@ function BuildSessionPage() {
         {!isOrchestratorMission && mission && (
           <header style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <h1
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  fontSize: 25,
-                  fontWeight: 460,
-                  letterSpacing: "-0.015em",
-                  lineHeight: 1.2,
-                  color: "var(--text-primary)",
-                  margin: 0,
-                }}
-              >
-                {stripAutoPrefix(mission.title)}
-              </h1>
+              {renamingTitle ? (
+                <input
+                  autoFocus
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onBlur={commitTitleRename}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      commitTitleRename();
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      setRenamingTitle(false);
+                    }
+                  }}
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 25,
+                    fontWeight: 460,
+                    letterSpacing: "-0.015em",
+                    lineHeight: 1.2,
+                    color: "var(--text-primary)",
+                    background: "var(--surface-raised)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: 6,
+                    padding: "2px 8px",
+                    flex: "1 1 auto",
+                    minWidth: 200,
+                  }}
+                />
+              ) : (
+                <h1
+                  onClick={startTitleRename}
+                  title="Click to rename"
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 25,
+                    fontWeight: 460,
+                    letterSpacing: "-0.015em",
+                    lineHeight: 1.2,
+                    color: "var(--text-primary)",
+                    margin: 0,
+                    cursor: "pointer",
+                  }}
+                >
+                  {stripAutoPrefix(mission.title)}
+                </h1>
+              )}
               <StatusChip status={mission.status} />
             </div>
             {/* §6: the maker's mark — a static 24px thread under the title. */}

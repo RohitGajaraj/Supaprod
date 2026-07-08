@@ -26,6 +26,7 @@ import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
+import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 
 // Monaco stays out of the main bundle — it only loads when a file is opened.
 const DiffEditor = lazy(() =>
@@ -71,6 +72,12 @@ function languageFor(path: string): string | undefined {
   return LANG_BY_EXT[ext];
 }
 
+/** Markdown files get a rendered-document view alongside the code diff (docs read as docs, not as text). */
+function isMarkdownFile(path: string): boolean {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return ext === "md" || ext === "mdx";
+}
+
 const spinnerBox = (
   <div
     style={{
@@ -104,6 +111,7 @@ export function ChangesPanel({
   constraints?: StudioConstraints;
 }) {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [docView, setDocView] = useState<"diff" | "preview">("diff");
   const fDiff = useServerFn(getChangesetDiff);
   const diff = useQuery({
     queryKey: ["studio-diff", changeset?.id],
@@ -149,6 +157,7 @@ export function ChangesPanel({
   const canCurate = changeset?.status === "staged";
   const [rejected, setRejected] = useState<Set<number>>(new Set());
   useEffect(() => setRejected(new Set()), [selectedPath]);
+  useEffect(() => setDocView("diff"), [selectedPath]);
   const fApply = useServerFn(applyStagedHunkSelection);
   const fReject = useServerFn(rejectStagedFile);
   const refetchAll = () => {
@@ -1117,7 +1126,7 @@ export function ChangesPanel({
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
-                  color: "var(--text-body)",
+                  color: "var(--moss)",
                 }}
               >
                 +{fmtCompact(c.new_chars)}
@@ -1129,7 +1138,7 @@ export function ChangesPanel({
                   textAlign: "right",
                   fontFamily: "var(--font-mono)",
                   fontSize: 10.5,
-                  color: "var(--text-subtle)",
+                  color: "var(--madder)",
                 }}
               >
                 −{fmtCompact(c.base_chars)}
@@ -1177,6 +1186,28 @@ export function ChangesPanel({
             <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
               base vs staged
             </span>
+            {isMarkdownFile(selectedPath) ? (
+              <div style={{ display: "flex", border: "1px solid var(--hairline)", borderRadius: 6 }}>
+                {(["diff", "preview"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setDocView(mode)}
+                    className="mono-label"
+                    style={{
+                      border: "none",
+                      borderRadius: 5,
+                      padding: "3px 10px",
+                      background: docView === mode ? "var(--surface-raised)" : "transparent",
+                      color: docView === mode ? "var(--text-primary)" : "var(--text-subtle)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {mode === "diff" ? "Diff" : "Preview"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {canCurate && selectedPath ? (
               <button
                 type="button"
@@ -1198,6 +1229,10 @@ export function ChangesPanel({
           </div>
           {diff.isLoading || !selected ? (
             spinnerBox
+          ) : isMarkdownFile(selectedPath) && docView === "preview" ? (
+            <div style={{ height: 420, overflowY: "auto", padding: "16px 20px" }}>
+              <ChatMarkdown content={selected.new_content ?? ""} />
+            </div>
           ) : (
             <Suspense fallback={spinnerBox}>
               <DiffEditor

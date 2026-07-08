@@ -16,6 +16,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { track } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { extractRejectedAlternatives } from "@/lib/ai/decision-alternatives";
+import { callModel } from "@/lib/ai/runtime.server";
 
 export type HandoffPayload = {
   /** Short headline the receiver should solve next. */
@@ -166,6 +167,46 @@ export type MissionRow = {
   completed_at: string | null;
 };
 
+/**
+ * Every caller passes a title that's really just a truncated slice of the raw
+ * user prompt (the goal's first line, cut to ~80-200 chars) - readable for a
+ * one-liner, unreadable for a multi-sentence brief. Synthesize a short, clear
+ * title from the full goal instead; the truncated slice is the fallback on
+ * any model failure, so this never blocks mission creation.
+ */
+async function synthesizeMissionTitle(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string,
+  goal: string,
+  fallback: string,
+): Promise<string> {
+  try {
+    const result = await callModel(supabase, userId, {
+      surface: "agent",
+      surface_ref: "mission_title",
+      model: "google/gemini-2.5-flash",
+      workspaceId,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Return a single concise title (max 60 chars, sentence case, no quotes, no trailing punctuation) summarizing what this task will do. Only the title, nothing else.",
+        },
+        { role: "user", content: goal.slice(0, 2000) },
+      ],
+    });
+    const title = (result.output || "")
+      .trim()
+      .replace(/^["'`]+|["'`]+$/g, "")
+      .split("\n")[0]
+      .slice(0, 200);
+    return title || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function createMission(
   supabase: SupabaseClient,
   userId: string,
@@ -176,12 +217,19 @@ export async function createMission(
   // missions) omit it and the column default ('native') applies.
   input: { title: string; goal: string; starting_agent_id: string; build_driver?: string },
 ): Promise<MissionRow> {
+  const title = await synthesizeMissionTitle(
+    supabase,
+    userId,
+    workspaceId,
+    input.goal,
+    input.title.slice(0, 200),
+  );
   const { data, error } = await supabase
     .from("missions")
     .insert({
       user_id: userId,
       workspace_id: workspaceId,
-      title: input.title.slice(0, 200),
+      title,
       goal: input.goal,
       current_agent_id: input.starting_agent_id,
       status: "running",

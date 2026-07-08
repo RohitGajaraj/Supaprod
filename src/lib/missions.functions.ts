@@ -492,6 +492,26 @@ export const cancelMission = createServerFn({ method: "POST" })
   );
 
 /**
+ * Manual override for the AI-synthesized title (`createMission` in
+ * handoff.server.ts generates it at dispatch time) - same rename-affordance
+ * pattern as renameConversation.
+ */
+export const renameMission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { missionId: string; title: string }) =>
+    z.object({ missionId: z.string().uuid(), title: z.string().min(1).max(200) }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
+    const { supabase } = context;
+    const { error } = await supabase
+      .from("missions")
+      .update({ title: data.title, updated_at: new Date().toISOString() })
+      .eq("id", data.missionId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
  * HITL gate: promote a proposed mission to queued so the resume-runs cron
  * picks it up.
  *
