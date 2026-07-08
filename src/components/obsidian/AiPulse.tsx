@@ -1,9 +1,10 @@
-// AI-PULSE (founder ruling 2026-07-08, SW-7; v3): the live machine-activity
-// line. It shows the ACTION ("Drafting changes"), never the mission title, in
-// ONE place (the top bar). The shimmer is the landing page's exact ember sheen
-// and it passes through the butterfly too (the mark is masked by the same
-// moving gradient). Working = ember, moving. The human gate = a calm STEADY
-// glacier (stillness is the signal). Motion guards ride the styles.css classes.
+// AI-PULSE (founder ruling 2026-07-08, SW-7; v3.1): the live machine-activity
+// line. ONE thing - the machine is working - shown in ONE place (the top bar).
+// It shows the ACTION ("Drafting changes"), never the mission title. The
+// shimmer is an ember-orange sheen (the landing register), flowing through the
+// text AND the butterfly (the mark is masked by the same moving gradient), with
+// a warm glow. Motion guards ride the styles.css classes. No human-gate tone:
+// a paused run isn't "active work", so the pulse simply goes idle.
 import * as React from "react";
 
 export function AiPulse({
@@ -14,7 +15,8 @@ export function AiPulse({
 }: {
   /** The short action, e.g. "Drafting changes". Never the mission title. */
   label: string;
-  /** working = the machine (ember shimmer). waiting = your gate (glacier, still). */
+  /** working = ember shimmer + flutter; waiting = glacier + a calm attention
+   *  pulse on the butterfly (so a pending action still catches the eye). */
   state?: "working" | "waiting";
   /** Font size in px; kept small and readable. */
   size?: number;

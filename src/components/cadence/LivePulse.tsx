@@ -15,7 +15,7 @@ export function pollWhenVisible(ms: number) {
     typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
 }
 
-const EMPTY: LiveActivity = { count: 0, missionId: null, action: "", status: null };
+const EMPTY: LiveActivity = { state: "idle", missionId: null, action: "" };
 
 /** The one shared live-activity read; every mount rides this cache. */
 export function useLiveActivity(): LiveActivity {
@@ -31,15 +31,21 @@ export function useLiveActivity(): LiveActivity {
 
 /**
  * The global ticker (mounted in the top bar, so it rides every authenticated
- * screen). Renders nothing when the machine is idle. While anything runs it
- * shows the newest run's ACTION in the ember shimmer, linking to the mission's
- * cockpit; at a human gate it goes calm and still ("Waiting on you").
+ * screen). Renders nothing when the machine is idle. While work runs it shows
+ * the ACTION in the ember shimmer, linking to the mission's cockpit. It does
+ * NOT show human-gate state - that lives in its own surfaces (Today badge +
+ * gate cards), so a stale open approval never keeps the pulse lit.
  */
 export function LiveTicker() {
   const a = useLiveActivity();
-  if (a.count === 0 || !a.action) return null;
-  const state = a.status === "waiting_approval" ? "waiting" : "working";
-  const inner = <AiPulse label={a.action} state={state} style={{ maxWidth: 260 }} />;
+  if (a.state === "idle" || !a.action) return null;
+  const inner = (
+    <AiPulse
+      label={a.action}
+      state={a.state === "waiting" ? "waiting" : "working"}
+      style={{ maxWidth: 260 }}
+    />
+  );
   return a.missionId ? (
     <Link
       to="/build/$missionId"

@@ -2302,80 +2302,83 @@ html[data-obsidian] {
 }
 
 /* ===========================================================================
- * AI-PULSE (founder ruling 2026-07-08, SW-7; v3 2026-07-08) - the live
- * machine-activity line, shown in ONE place (the top bar) while the swarm
- * works. It shows the ACTION ("Drafting changes"), never the mission title.
- *
- * The shimmer is the LANDING PAGE's exact sheen (.lp-memwrite): ember glowing
- * out to warm cream and back, sweeping left to right. The butterfly is masked
- * by the SAME moving gradient, so the sheen passes through the logo in sync
- * with the words - one premium ember shimmer, not two effects. Working =
- * ember, moving. The human gate = a calm STEADY glacier (cool + still = your
- * turn), the one restrained second tone; motion stopping is itself the signal.
- * Palette stays tight (ember + glacier, both existing brand tokens). */
+ * AI-PULSE (founder ruling 2026-07-08, SW-7; v3.1) - the live machine-activity
+ * line, shown in ONE place (the top bar) while the swarm ACTIVELY works. It
+ * shows the ACTION ("Drafting changes"), never the mission title, and goes
+ * idle (renders nothing) when no run is working - it never surfaces a paused
+ * gate (that has its own surfaces). ONE treatment: a clearly EMBER-ORANGE
+ * sheen (founder call: the earlier gradient read yellow), flowing through the
+ * text AND the butterfly (masked by the same moving gradient), with a warm
+ * glow. The wings breathe. Palette stays tight - ember only. */
 @keyframes ai-pulse-sheen {
   0% { background-position: 200% 0; }
   100% { background-position: -60% 0; }
 }
-/* The butterfly's own subtle life while working: a gentle wing-breathe. Still
- * when gated (the .waiting rule below clears it). */
 @keyframes ai-pulse-flutter {
   0%, 100% { transform: scaleX(1) rotate(-1.5deg); }
   50% { transform: scaleX(0.88) rotate(1.5deg); }
 }
+/* Clearly ember-orange the whole way across - a lighter orange sweeps the
+ * highlight (no cream, so it never reads yellow). */
 .ai-pulse-text {
   background: linear-gradient(
     90deg,
-    rgba(251, 113, 0, 0.55) 0%,
-    #ffb870 42%,
-    #fff1de 50%,
-    #ffb870 58%,
-    rgba(251, 113, 0, 0.55) 100%
+    #fb7100 0%,
+    #ff8a34 36%,
+    #ffc089 50%,
+    #ff8a34 64%,
+    #fb7100 100%
   );
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: ai-pulse-sheen 2.8s linear infinite;
+  filter: drop-shadow(0 0 7px rgba(251, 113, 0, 0.3));
+  animation: ai-pulse-sheen 2.6s linear infinite;
 }
-/* The butterfly, masked by the same moving ember gradient: the sheen sweeps
- * through the logo's shape, in sync with the text. */
+/* The butterfly, masked by the same moving ember gradient + a subtle flutter:
+ * the sheen sweeps through the logo's shape in sync with the words. */
 .ai-pulse-mark {
   display: inline-block;
   flex-shrink: 0;
   background: linear-gradient(
     90deg,
-    rgba(251, 113, 0, 0.55) 0%,
-    #ffb870 42%,
-    #fff1de 50%,
-    #ffb870 58%,
-    rgba(251, 113, 0, 0.55) 100%
+    #fb7100 0%,
+    #ff8a34 36%,
+    #ffc089 50%,
+    #ff8a34 64%,
+    #fb7100 100%
   );
   background-size: 220% 100%;
   -webkit-mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
   mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
   transform-origin: center;
-  /* two animations at once: the ember sheen sweeps through the shape, and the
-   * wings breathe (founder ruling 2026-07-08: the butterfly moves subtly while
-   * working, and stays still when gated). */
+  filter: drop-shadow(0 0 5px rgba(251, 113, 0, 0.3));
   animation:
-    ai-pulse-sheen 2.8s linear infinite,
+    ai-pulse-sheen 2.6s linear infinite,
     ai-pulse-flutter 2.6s ease-in-out infinite;
 }
-/* Human gate: cool, calm, STILL. No shimmer, no flutter - the stillness says
- * "it paused for you". Glacier is the brand's existing calm tone (palette
- * stays tight: ember + glacier only). */
+/* Human gate: calm glacier, steady text (readable). The butterfly keeps a
+ * GENTLE attention pulse (founder ruling 2026-07-08: even while waiting, the
+ * mark should draw the eye that something needs you) - a soft breathe, not the
+ * working shimmer. Palette stays tight: ember + glacier only. */
+@keyframes ai-pulse-attention {
+  0%, 100% { opacity: 0.6; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
 .ai-pulse-text.waiting {
   background: none;
   -webkit-text-fill-color: var(--glacier, #84b3ec);
   color: var(--glacier, #84b3ec);
+  filter: none;
   animation: none;
 }
 .ai-pulse-mark.waiting {
   background: var(--glacier, #84b3ec);
-  transform: none;
-  animation: none;
+  filter: drop-shadow(0 0 5px rgba(132, 179, 236, 0.4));
+  transform-origin: center;
+  animation: ai-pulse-attention 1.8s ease-in-out infinite;
 }
 html[data-motion="off"] .ai-pulse-text,
 html[data-motion="off"] .ai-pulse-mark {
