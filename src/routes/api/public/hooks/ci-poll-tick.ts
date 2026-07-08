@@ -20,19 +20,9 @@ import {
  * MergeBlocked reason. Every 2 minutes this tick:
  *
  *   1. Reads CI on every open studio PR (status 'pr_open').
- *   1.5. RED -> FIRST checks whether the base branch moved since this PR was
- *      opened/last synced (another PR merged first, so the CI run here is
- *      against a stale base) and, if so, autonomously syncs the PR branch
- *      with the base branch via GitHub's Merge-a-branch endpoint, the same
- *      motion Dependabot / GitHub auto-merge do to keep PR branches current.
- *      No agent dispatch, no human approval; bounded by branch_sync_attempts
- *      (cap BRANCH_SYNC_BUDGET) so a genuinely broken PR is never resynced
- *      forever. This closes a real gap: previously a stale-check red PR sat
- *      until a human noticed and clicked "Update branch" by hand.
- *   2. RED (still, after the sync check above did nothing or hit a real
- *      conflict) -> dispatches ONE bounded autonomous fix run (diagnose from
- *      the failing logs, stage, studio.fix.commit to the same branch),
- *      consuming the changeset's fix budget (fix_attempts, cap CI_FIX_BUDGET).
+ *   2. RED  -> dispatches ONE bounded autonomous fix run (diagnose from the
+ *      failing logs, stage, studio.fix.commit to the same branch), consuming
+ *      the changeset's fix budget (fix_attempts, cap CI_FIX_BUDGET).
  *      Budget exhausted -> the mission is parked 'blocked' once, honestly,
  *      for the human at the merge gate.
  *   3. GREEN / pending / neutral -> no-op (the merge gate handles green).
@@ -47,10 +37,6 @@ import {
  */
 
 const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
-// Small, separate budget from CI_FIX_BUDGET: a branch sync is a cheap,
-// content-free GitHub API call (no agent, no tokens spent diagnosing), so it
-// gets its own low cap rather than sharing the fix-run budget.
-const BRANCH_SYNC_BUDGET = Math.max(1, Number(process.env.BRANCH_SYNC_BUDGET ?? 2) || 2);
 const NON_TERMINAL_RUN = ["queued", "running", "in_progress", "waiting_approval"];
 
 type ChangesetLite = {
@@ -65,7 +51,6 @@ type ChangesetLite = {
   pr_number: number | null;
   status: string;
   fix_attempts?: number;
-  branch_sync_attempts?: number;
 };
 
 function ghHeaders(token: string): Record<string, string> {
@@ -87,7 +72,7 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
           const { data: rows, error } = await supabaseAdmin
             .from("studio_changesets")
             .select(
-              "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,fix_attempts,branch_sync_attempts",
+              "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,fix_attempts",
             )
             .in("status", ["pr_open", "merged"])
             // Fairness: oldest-updated first within a 7-day window, so a busy
@@ -188,11 +173,6 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
               }
               const pr = (await prRes.json()) as {
                 head: { sha: string };
-                // GitHub snapshots base.sha at PR-open time and refreshes it
-                // on each sync; comparing it to the base ref's CURRENT sha
-                // is exactly how we detect "the base branch moved on since
-                // this PR was created/last synced", i.e. a stale check.
-                base: { ref: string; sha: string };
                 merged: boolean;
                 state: string;
               };
@@ -234,80 +214,6 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
               checked++;
               const overall = overallFromChecks(lites);
               if (overall !== "failure") continue;
-
-              // SEAM-2 STALE-BRANCH AUTOSYNC (fully autonomous: no agent
-              // dispatch, no human approval). The gap this closes: a PR's
-              // CI can go red purely because ANOTHER PR merged first and
-              // moved the base branch, with zero code problem in THIS PR at
-              // all. Previously that required a human to notice and click
-              // GitHub's "Update branch" by hand; Dependabot / GitHub
-              // auto-merge solve exactly this for their own PRs, and now
-              // Cadence does the same for studio PRs. A stale check and a
-              // genuine code failure look identical from here, so we try
-              // the sync and let the response tell us which one this is.
-              //
-              // Conservative on purpose: only fires when the base ref's
-              // current sha has actually moved past what this PR's base
-              // snapshot points at (real staleness signal, not a guess),
-              // and it is bounded by its own small budget
-              // (branch_sync_attempts / BRANCH_SYNC_BUDGET) separate from
-              // the fix-run budget below, so a genuinely broken PR that
-              // conflicts every time is never resynced forever.
-              const syncAttempts = cs.branch_sync_attempts ?? 0;
-              failures.push(
-                `${cs.id.slice(0, 8)}: DIAG branch=${cs.branch} baseRef=${pr.base?.ref} baseSha=${pr.base?.sha} syncAttempts=${syncAttempts} budget=${BRANCH_SYNC_BUDGET}`,
-              );
-              if (cs.branch && pr.base?.ref && pr.base?.sha && syncAttempts < BRANCH_SYNC_BUDGET) {
-                const baseRefRes = await fetch(
-                  `https://api.github.com/repos/${repo}/git/ref/heads/${encodeURIComponent(pr.base.ref)}`,
-                  { headers },
-                );
-                const baseCurrentSha = baseRefRes.ok
-                  ? ((await baseRefRes.json()) as { object: { sha: string } }).object.sha
-                  : null;
-                const baseMoved = !!baseCurrentSha && baseCurrentSha !== pr.base.sha;
-
-                if (baseMoved) {
-                  // Spend one attempt of the budget regardless of outcome
-                  // (mirrors the fix_attempts pattern below) so the retry
-                  // count is honest even if the sync hits a conflict.
-                  await supabaseAdmin
-                    .from("studio_changesets")
-                    .update({ branch_sync_attempts: syncAttempts + 1 })
-                    .eq("id", cs.id);
-
-                  const mergeRes = await fetch(`https://api.github.com/repos/${repo}/merges`, {
-                    method: "POST",
-                    headers,
-                    body: JSON.stringify({
-                      base: cs.branch,
-                      head: pr.base.ref,
-                      commit_message: `Sync ${cs.branch} with ${pr.base.ref} to re-trigger CI, Cadence autonomous`,
-                    }),
-                  });
-
-                  if (mergeRes.status === 204) {
-                    // Already up to date: the branch already contains
-                    // everything from the base, so this red result is NOT
-                    // explained by staleness. Fall through to the genuine
-                    // red-CI-fix logic below.
-                  } else if (mergeRes.status === 409) {
-                    // Real merge conflict. Not fatal, not distinguishable
-                    // from a genuine code failure until we tried (which we
-                    // just did). Log it and fall through to the existing
-                    // red-CI-autofix path below.
-                    failures.push(`${cs.id.slice(0, 8)}: branch-sync conflict (409)`);
-                  } else if (mergeRes.ok) {
-                    // Synced. A fresh CI run is now in flight on the new
-                    // head commit; this tick's job for this changeset is
-                    // done, the next tick (2 minutes) checks the fresh
-                    // result. Skip the autofix dispatch below.
-                    continue;
-                  } else {
-                    failures.push(`${cs.id.slice(0, 8)}: branch-sync ${mergeRes.status}`);
-                  }
-                }
-              }
 
               const attempts = cs.fix_attempts ?? 0;
               if (attempts >= CI_FIX_BUDGET) {
