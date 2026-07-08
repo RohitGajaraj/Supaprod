@@ -3,7 +3,10 @@ import { cn } from "@/lib/utils";
 import { StatusDot, STATUS_STYLES, STATUS_WORD, type StatusState } from "./status";
 import { VerdictChip, type VerdictTone } from "./verdict";
 
-export type MissionRowStatus = Extract<StatusState, "working" | "gate" | "done" | "queued">;
+export type MissionRowStatus = Extract<
+  StatusState,
+  "working" | "gate" | "done" | "blocked" | "queued"
+>;
 
 export interface MissionRowProps {
   status: MissionRowStatus;
@@ -54,7 +57,9 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       >
         {title}
       </span>
-      {status === "done" && verdict ? <VerdictChip tone={verdict} /> : null}
+      {(status === "done" || status === "blocked") && verdict ? (
+        <VerdictChip tone={verdict} />
+      ) : null}
       <span
         className="shrink-0 text-right uppercase"
         style={{

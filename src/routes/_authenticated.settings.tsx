@@ -859,6 +859,7 @@ function CreditsTabInner() {
   const fGetCatalog = useServerFn(getPricingCatalog);
   const fGetAttribution = useServerFn(getCreditAttribution);
 
+  // Resolve env lazily so a missing payments token doesn't crash render.
   let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
   try {
     envSafe = getStripeEnvironment();
@@ -866,10 +867,16 @@ function CreditsTabInner() {
     envSafe = null;
   }
 
+  // getMyCreditsView is a pure Supabase read (balance/ledger/enabled flag) -
+  // `environment` only scopes the recent-topups filter, so a missing Stripe
+  // client token must never block the balance itself from loading (it used
+  // to, via `enabled: !!envSafe`, which left the card stuck on an
+  // unexplained "--" forever instead of the dormant-metering message below).
+  // Same fallback idiom as `mySub` above.
+  const creditsEnv: "sandbox" | "live" = envSafe ?? "sandbox";
   const credits = useQuery({
-    queryKey: ["my-credits", envSafe],
-    queryFn: () => fGetCredits({ data: { environment: envSafe! } }),
-    enabled: !!envSafe,
+    queryKey: ["my-credits", creditsEnv],
+    queryFn: () => fGetCredits({ data: { environment: creditsEnv } }),
   });
   const catalog = useQuery({
     queryKey: ["pricing-catalog"],
