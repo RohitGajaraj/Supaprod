@@ -78,6 +78,15 @@ export type NeedsYou = {
     evidenceText: string | null;
     created_at: string;
   }[];
+  /** SW-3 (mission 3.8b): proposed playbooks from the compounding pass - 3+
+   *  same-shaped learnings waiting for the human to adopt or dismiss. */
+  playbookCalls: {
+    id: string;
+    title: string;
+    body: string;
+    created_at: string;
+    sourceCount: number;
+  }[];
   spendTodayUsd: number;
   /** Median minutes from gate raised to human decision, last 7 days.
    *  Null until at least one gate has been decided. Backs the Today
@@ -99,6 +108,9 @@ export type NeedsYouCounts = {
   opportunities: number;
   /** Open assumption-supersession challenges. */
   assumptions: number;
+  /** SW-3 (mission 3.8b): proposed playbooks from the compounding pass,
+   *  awaiting the human's adopt/dismiss. */
+  playbooks: number;
   /** Gates that expired unanswered. NOT part of liveCalls. */
   expired: number;
   /** The one number every "needs you" surface shows: the live calls total. */
@@ -143,7 +155,7 @@ export async function countNeedsYouCalls(
     wsId = workspaceId;
   }
 
-  const [live, expired, specs, opps, challenges] = await Promise.all([
+  const [live, expired, specs, opps, challenges, playbooks] = await Promise.all([
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
@@ -169,19 +181,31 @@ export async function countNeedsYouCalls(
           .eq("workspace_id", wsId)
           .eq("status", "open")
       : Promise.resolve({ count: 0 }),
+    // SW-3 (mission 3.8b): open playbook proposals are Calls (Law 2 - anything
+    // needing the human is a Call in the one queue). Pre-migration tolerant:
+    // a missing table errors softly and counts 0.
+    wsId
+      ? supabase
+          .from("playbook_proposals")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wsId)
+          .eq("status", "proposed")
+      : Promise.resolve({ count: 0 }),
   ]);
 
   const approvals = live.count ?? 0;
   const specCount = specs.count ?? 0;
   const oppCount = opps.count ?? 0;
   const assumptionCount = challenges.count ?? 0;
+  const playbookCount = playbooks.count ?? 0;
   return {
     approvals,
     specs: specCount,
     opportunities: oppCount,
     assumptions: assumptionCount,
+    playbooks: playbookCount,
     expired: expired.count ?? 0,
-    liveCalls: approvals + specCount + oppCount + assumptionCount,
+    liveCalls: approvals + specCount + oppCount + assumptionCount + playbookCount,
   };
 }
 
@@ -211,7 +235,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
     // pending-and-inside-window rows only; expired rows (state or window) come
     // back separately for the quiet end-of-queue group. Snoozed rows (Later)
     // stay out of both until their window passes.
-    const [counts, approvals, expiredRows, prds, opps, events, decided, challenges] =
+    const [counts, approvals, expiredRows, prds, opps, events, decided, challenges, proposals] =
       await Promise.all([
         countNeedsYouCalls(db, userId, workspaceId),
         db
@@ -266,6 +290,18 @@ export const getNeedsYou = createServerFn({ method: "GET" })
               .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
               .eq("workspace_id", workspaceId)
               .eq("status", "open")
+              .order("created_at", { ascending: false })
+              .limit(5)
+          : Promise.resolve({ data: [] as unknown[] }),
+        // SW-3 (mission 3.8b): open playbook proposals ride the queue as Calls.
+        // playbook_proposals postdates the generated types (db, untyped); a
+        // missing table pre-migration errors softly into an empty list.
+        workspaceId
+          ? db
+              .from("playbook_proposals")
+              .select("id,title,body,created_at,source_learning_ids")
+              .eq("workspace_id", workspaceId)
+              .eq("status", "proposed")
               .order("created_at", { ascending: false })
               .limit(5)
           : Promise.resolve({ data: [] as unknown[] }),
@@ -439,12 +475,31 @@ export const getNeedsYou = createServerFn({ method: "GET" })
         .filter((c): c is NeedsYou["assumptionCalls"][number] => c !== null);
     }
 
+    // SW-3 (mission 3.8b): proposal rows -> queue calls, provenance count riding
+    // along (the body already quotes the learnings verbatim).
+    const playbookCalls: NeedsYou["playbookCalls"] = (
+      (proposals.data ?? []) as {
+        id: string;
+        title: string;
+        body: string;
+        created_at: string;
+        source_learning_ids: string[] | null;
+      }[]
+    ).map((p) => ({
+      id: p.id,
+      title: p.title,
+      body: p.body,
+      created_at: p.created_at,
+      sourceCount: p.source_learning_ids?.length ?? 0,
+    }));
+
     return {
       approvals: enrichedApprovals,
       expiredApprovals: (expiredRows.data ?? []) as NeedsYou["expiredApprovals"],
       prdCalls: (prds.data ?? []) as NeedsYou["prdCalls"],
       oppCalls: (opps.data ?? []) as NeedsYou["oppCalls"],
       assumptionCalls,
+      playbookCalls,
       spendTodayUsd,
       gateMedianMinutes,
       counts,

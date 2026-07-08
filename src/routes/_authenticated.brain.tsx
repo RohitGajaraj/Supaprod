@@ -44,6 +44,11 @@ const CompoundingPanel = lazy(() =>
     default: m.CompoundingPanel,
   })),
 );
+const PlaybookProposalsPanel = lazy(() =>
+  import("@/components/knowledge/PlaybookProposalsPanel").then((m) => ({
+    default: m.PlaybookProposalsPanel,
+  })),
+);
 const LearningDetail = lazy(() =>
   import("@/components/knowledge/LearningDetail").then((m) => ({ default: m.LearningDetail })),
 );
@@ -502,7 +507,17 @@ function BrainPage() {
           {tab === "calendar" && <CalendarPanel meetingId={meeting} onMeetingChange={setMeeting} />}
           {tab === "memory" && <MemoryList />}
           {tab === "learnings" &&
-            (learning ? <LearningDetail id={learning} /> : <CompoundingPanel />)}
+            (learning ? (
+              <LearningDetail id={learning} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {/* SW-3 (mission 3.8b): the compounding pass's human half -
+                    open playbook proposals render above the feed they
+                    compound from; the panel is invisible when none wait. */}
+                <PlaybookProposalsPanel />
+                <CompoundingPanel />
+              </div>
+            ))}
           {tab === "decisions" &&
             (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
           {tab === "design" && <DesignMemoryPanel />}

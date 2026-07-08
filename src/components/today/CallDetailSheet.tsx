@@ -50,7 +50,7 @@ interface CallDetailBase {
   onNo: () => void;
 }
 
-/** A Today call, in full. A discriminated union over the four families; each
+/** A Today call, in full. A discriminated union over the five families; each
  * member holds only real getNeedsYou columns. */
 export type CallDetail =
   | (CallDetailBase & {
@@ -84,6 +84,13 @@ export type CallDetail =
       rationale: string;
       evidenceText: string | null;
       createdAt: string;
+    })
+  | (CallDetailBase & {
+      /** SW-3 (mission 3.8b): a compounding-pass playbook proposal. */
+      kind: "playbook";
+      body: string;
+      sourceCount: number;
+      createdAt: string;
     });
 
 /** The registered trace prefix per family (dim 17 registry). */
@@ -92,6 +99,7 @@ const PREFIX: Record<CallDetail["kind"], string> = {
   spec: "PRD",
   opportunity: "OPP",
   assumption: "ASM",
+  playbook: "PBP",
 };
 
 function fmtUsd(n: number): string {
@@ -137,6 +145,8 @@ function statusMeta(detail: CallDetail): { label: string; tone: string } {
       return { label: "Backlog", tone: "var(--text-muted)" };
     case "assumption":
       return { label: "Open challenge", tone: "var(--amber)" };
+    case "playbook":
+      return { label: "Proposed method", tone: "var(--glacier)" };
   }
 }
 
@@ -281,12 +291,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
   }
 
   const status = statusMeta(detail);
-  const timeIso =
-    detail.kind === "spec"
-      ? detail.updatedAt
-      : detail.kind === "ship" || detail.kind === "opportunity" || detail.kind === "assumption"
-        ? detail.createdAt
-        : "";
+  const timeIso = detail.kind === "spec" ? detail.updatedAt : detail.createdAt;
   const timeVerb = detail.kind === "spec" ? "UPDATED" : "RAISED";
 
   const copyId = () => {
@@ -460,7 +465,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         </DetailSection>
       </>
     );
-  } else {
+  } else if (detail.kind === "assumption") {
     band = {
       recommended: "Re-examine reopens the decision for review. Nothing changes without you.",
       rationale: detail.rationale,
@@ -487,6 +492,42 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         <DetailSection heading="Activity">
           <div style={{ display: "grid", gap: "3px" }}>
             <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Challenged</span>
+            <TimeLine iso={detail.createdAt} />
+          </div>
+        </DetailSection>
+      </>
+    );
+  } else {
+    // SW-3 (mission 3.8b): a compounding-pass playbook proposal. Adopt keeps
+    // the method on the record; Dismiss retires it for good (the sweep never
+    // re-proposes a dismissed group), so the card's Dismiss is confirm-gated.
+    band = {
+      recommended:
+        "Adopt keeps the method on the record with its source learnings. Dismiss retires it for good.",
+      rationale: null,
+    };
+    sections = (
+      <>
+        <DetailSection heading="The proposed method">
+          <span
+            style={{
+              fontSize: "12.5px",
+              lineHeight: 1.6,
+              color: "var(--text-body)",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {detail.body}
+          </span>
+        </DetailSection>
+        <ProvenanceSection
+          body={`Compounded from ${detail.sourceCount} same-shaped learning${detail.sourceCount === 1 ? "" : "s"} in this workspace.`}
+          linkLabel="Open in Brain"
+          onOpen={() => navigate({ to: "/brain", search: { tab: "learnings" } as never })}
+        />
+        <DetailSection heading="Activity">
+          <div style={{ display: "grid", gap: "3px" }}>
+            <span style={{ fontSize: "11px", color: "var(--text-subtle)" }}>Proposed</span>
             <TimeLine iso={detail.createdAt} />
           </div>
         </DetailSection>

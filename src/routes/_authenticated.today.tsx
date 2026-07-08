@@ -36,6 +36,8 @@ import { getTodayLanes } from "@/lib/today-lanes.functions";
 import { markInsightActioned } from "@/lib/brain-insights.functions";
 import { resolveApproval } from "@/lib/governance.functions";
 import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
+import { decidePlaybookProposal } from "@/lib/playbooks.functions";
+import { useConfirm } from "@/hooks/use-confirm";
 import { listLearnings } from "@/lib/outcome.functions";
 import { rescoresOf } from "@/lib/moat-vis";
 import { listAgentRuns } from "@/lib/agents.functions";
@@ -339,6 +341,7 @@ function Dashboard() {
   const mResolveApproval = useServerFn(resolveApproval);
   const mSnoozeApproval = useServerFn(snoozeApproval);
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
+  const mDecideProposal = useServerFn(decidePlaybookProposal);
   const mSavePrd = useServerFn(savePrd);
   const mUpdateOpp = useServerFn(updateOpportunity);
   const mBrief = useServerFn(generateDailyBrief);
@@ -524,12 +527,44 @@ function Dashboard() {
     onError: (e: Error) => showToast(e.message),
   });
 
+  // SW-3 (mission 3.8b): adopt/dismiss a compounding-pass playbook proposal.
+  // Dismiss is gated behind a destructive confirm (destructive-actions
+  // convention): the sweep never re-proposes a dismissed group key, so a
+  // single misclick would retire the compounded method for good.
+  const confirmDialog = useConfirm();
+  const decideProposal = useMutation({
+    mutationFn: (data: { proposalId: string; decision: "confirm" | "dismiss" }) =>
+      mDecideProposal({ data }),
+    onSuccess: (_res, vars) => {
+      for (const key of ["needs-you", "playbook-proposals"])
+        qc.invalidateQueries({ queryKey: [key] });
+      answered();
+      showToast(
+        vars.decision === "confirm"
+          ? "Playbook adopted. It stays on the record with its source learnings."
+          : "Proposal dismissed for good.",
+      );
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
+  const dismissProposal = (proposalId: string) => {
+    void confirmDialog({
+      title: "Dismiss this proposed playbook?",
+      body: "This dismisses the proposal for good. The same lesson will not be proposed again.",
+      confirmLabel: "Dismiss for good",
+      destructive: true,
+    }).then((ok) => {
+      if (ok) decideProposal.mutate({ proposalId, decision: "dismiss" });
+    });
+  };
+
   const anyDeciding =
     decideApproval.isPending ||
     snoozeGate.isPending ||
     decidePrd.isPending ||
     decideOpp.isPending ||
-    decideChallenge.isPending;
+    decideChallenge.isPending ||
+    decideProposal.isPending;
 
   // ---- Triage grouping (DESIGN-LOOM §8b) --------------------------------
   // Dim 17 trace-and-time tail: the faintest tone for the trace ref, a touch
@@ -641,8 +676,8 @@ function Dashboard() {
     }),
   ]);
 
-  const reexamineCalls: QueueCall[] = sortWithinGroup(
-    (ny?.assumptionCalls ?? []).map((c) => ({
+  const reexamineCalls: QueueCall[] = sortWithinGroup([
+    ...(ny?.assumptionCalls ?? []).map((c) => ({
       id: c.id,
       expiresAt: null,
       raisedAt: Date.parse(c.created_at) || 0,
@@ -662,7 +697,33 @@ function Dashboard() {
         onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
       },
     })),
-  );
+    // SW-3 (mission 3.8b): the compounding pass's proposals are Calls in the
+    // one queue (Law 2) - the same lesson repeated until it became a method.
+    ...(ny?.playbookCalls ?? []).map((p) => ({
+      id: p.id,
+      expiresAt: null,
+      raisedAt: Date.parse(p.created_at) || 0,
+      props: {
+        kind: "MAKE IT A METHOD?",
+        expiry: "",
+        title: p.title,
+        body: p.body,
+        ev:
+          p.sourceCount > 0
+            ? [{ src: "LEARNINGS", text: `${p.sourceCount} same-shaped learnings behind this` }]
+            : [],
+        okLabel: "Adopt playbook",
+        noLabel: "Dismiss",
+        consequence:
+          "Adopt keeps the method on the record · Dismiss retires this proposal for good",
+        onOpen: () => setActiveCallId(p.id),
+        traceRef: traceNode("PBP", p.id),
+        time: timeNode(p.created_at),
+        onOk: () => decideProposal.mutate({ proposalId: p.id, decision: "confirm" }),
+        onNo: () => dismissProposal(p.id),
+      },
+    })),
+  ]);
 
   // Group chips read the server counts, so a display cap can never make a
   // chip understate (R2-ATTENTION #1).
@@ -673,7 +734,11 @@ function Dashboard() {
       calls: buildCalls,
       total: ny ? ny.counts.specs + ny.counts.opportunities : undefined,
     },
-    { family: "reexamine", calls: reexamineCalls, total: ny?.counts.assumptions },
+    {
+      family: "reexamine",
+      calls: reexamineCalls,
+      total: ny ? ny.counts.assumptions + ny.counts.playbooks : undefined,
+    },
   ];
 
   // R2-ATTENTION #2: expired gates, out of the live queue. resolveApproval
@@ -754,6 +819,20 @@ function Dashboard() {
       noLabel: "Still holds",
       onOk: () => decideChallenge.mutate({ id: c.id, action: "confirm" }),
       onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
+    };
+  }
+  for (const p of ny?.playbookCalls ?? []) {
+    callDetails[p.id] = {
+      kind: "playbook",
+      id: p.id,
+      title: p.title,
+      body: p.body,
+      sourceCount: p.sourceCount,
+      createdAt: p.created_at,
+      okLabel: "Adopt playbook",
+      noLabel: "Dismiss",
+      onOk: () => decideProposal.mutate({ proposalId: p.id, decision: "confirm" }),
+      onNo: () => dismissProposal(p.id),
     };
   }
   // Resolve the open detail; a call answered elsewhere (keyboard, card) simply
@@ -954,7 +1033,9 @@ function Dashboard() {
                     {callCount + (lanesData?.lane1.count ?? 0)}
                   </span>
                 ) : null}
-                <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
+                <div
+                  style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
+                />
               </div>
               {needsYou.isError ? (
                 <div
@@ -1045,7 +1126,9 @@ function Dashboard() {
                   {lanesData ? (
                     <PushedInsights
                       lane={lanesData.lane1}
-                      onOpen={() => navigate({ to: "/brain", search: { tab: "insights" } as never })}
+                      onOpen={() =>
+                        navigate({ to: "/brain", search: { tab: "insights" } as never })
+                      }
                       onAct={(ins) => {
                         // SEAM-3 one-click: settle the push, then take the
                         // user to the action's surface. Fail-soft: the
