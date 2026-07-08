@@ -47,6 +47,16 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const GOOGLE_OPENAI_GATEWAY =
   "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
+// A single non-streaming model call (callAnthropic / callOpenAICompat / callGateway,
+// invoked from callModel's attempt()) had no client-side timeout: a hung, slow, or
+// rate-limited provider left the fetch pending forever, which froze a mission's
+// in-progress step ("step N/7 reasoning") with no error, no retry, and no recovery -
+// the KI-07 fail-mark in loop.server.ts never ran because nothing ever threw. 90s
+// gives room for a legitimately slow generation over a large prompt (a full ARD/contract
+// plus tool descriptions can be several thousand tokens) while still bounding a step to a
+// duration a human waiting on "reasoning..." will tolerate before something visibly happens.
+const MODEL_CALL_TIMEOUT_MS = 90_000;
+
 // Mask API-key-shaped tokens out of a provider error body before it is thrown (and later
 // persisted into ai_events.error_message). A 401/4xx body can echo back the caller's own key
 // prefix; this keeps even that out of stored telemetry. Conservative: only known key shapes.
@@ -470,6 +480,7 @@ async function callAnthropic(
   const t0 = Date.now();
   const res = await fetch(url, {
     method: "POST",
+    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
     headers: {
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
@@ -572,6 +583,7 @@ async function callOpenAICompat(
   const t0 = Date.now();
   const res = await fetch(url, {
     method: "POST",
+    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model,
@@ -611,6 +623,7 @@ async function callGateway(
   const t0 = Date.now();
   const res = await fetch(gw.url, {
     method: "POST",
+    signal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
     headers: { Authorization: `Bearer ${gw.key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: gw.model,
