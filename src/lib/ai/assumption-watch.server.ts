@@ -7,7 +7,7 @@ import { callModel } from "./runtime.server";
 // (no vector search — signals.embedding is not populated by writeSignals
 // today, and adding that plumbing is out of this ticket's scope).
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const MODEL = "google/gemini-2.5-flash" as const;
 const WATCH_WINDOW_DAYS = 7;
 const MAX_ASSUMPTIONS_PER_TICK = 10;
 const MAX_EVIDENCE_ROWS = 20;

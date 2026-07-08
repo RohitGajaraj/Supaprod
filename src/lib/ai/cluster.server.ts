@@ -60,7 +60,12 @@ export async function clusterSignalsCore(
     .select("id,content,source,tags,sentiment")
     .eq("user_id", userId)
     .is("theme_id", null);
-  if (projectId) sigQuery = sigQuery.eq("project_id", projectId);
+  // A manual "cluster now" scoped to one product must still pick up
+  // workspace-level signals with no product of their own (connector ingest
+  // never assigns project_id) - same fix as listSignals/listThemes, so a
+  // signal that's invisible in the product view can't also be un-clusterable
+  // from it.
+  if (projectId) sigQuery = sigQuery.or(`project_id.eq.${projectId},project_id.is.null`);
   // KI-31: scope the read to the workspace the cron is processing. The cron path
   // runs service-role (RLS off) and clusters "on behalf of a workspace owner"; an
   // owner with signals in multiple workspaces would otherwise have workspace A's

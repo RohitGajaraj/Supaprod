@@ -4,7 +4,7 @@ import { callModel } from "./runtime.server";
 // FS-02: at decision time, extract the assumptions a decision stands on as
 // typed rows so a later watcher can match incoming signals against them.
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const MODEL = "google/gemini-2.5-flash" as const;
 const MAX_ASSUMPTIONS = 3;
 const MIN_RATIONALE_CHARS = 20;
 

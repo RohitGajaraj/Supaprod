@@ -271,7 +271,7 @@ async function extractBriefAssumptions(
     const res = await callModel(supabase as never, userId, {
       surface: "sense",
       surface_ref: "extract_brief_assumptions",
-      model: "anthropic/claude-haiku-4-5-20251001",
+      model: "google/gemini-2.5-flash",
       workspaceId,
       responseFormat: "json_object",
       messages: [

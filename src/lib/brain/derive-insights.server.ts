@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "@/lib/ai/runtime.server";
 import { scoreTheme } from "@/lib/brain/score";
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const MODEL = "google/gemini-2.5-flash" as const;
 const MIN_SCORE = 0.12;
 const FRESH_MS = 30 * 60 * 1000;
 

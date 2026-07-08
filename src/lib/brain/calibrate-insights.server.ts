@@ -5,7 +5,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 // against what actually happened, throttles a kind that keeps missing, and
 // makes the resulting hit rate readable ("Cadence called 7 of the last 9").
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const MODEL = "google/gemini-2.5-flash" as const;
 const CALIBRATE_BATCH = 10;
 const THROTTLE_HOURS = 72;
 const MIN_SAMPLES_FOR_THROTTLE = 3;

@@ -450,7 +450,7 @@ export type BrainAnalysis = {
   sparse: boolean; // true when the workspace has too little data for meaningful analysis
 };
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const MODEL = "google/gemini-2.5-flash" as const;
 
 const ANALYST_SYSTEM = `You are the Cadence intelligence analyst. You volunteer useful intelligence from a PM's decision and outcome graph.
 Rules:

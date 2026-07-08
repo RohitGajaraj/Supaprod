@@ -423,7 +423,7 @@ Key metric I care about: ${data.keyMetric}`;
       surface: "agent",
       surface_ref: `concierge:onboarding:${userId}`,
       model: "google/gemini-2.5-flash",
-      fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+      fallbackModel: "google/gemini-2.5-flash",
       responseFormat: "json_object",
       messages: [
         { role: "system", content: system },

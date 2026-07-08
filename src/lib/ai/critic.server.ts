@@ -59,7 +59,7 @@ export async function runDesignCriticLens(
       surface: "judge",
       surface_ref: opts.surfaceRef,
       model: "google/gemini-2.5-flash",
-      fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+      fallbackModel: "google/gemini-2.5-flash",
       responseFormat: "json_object",
       messages: [
         { role: "system", content: DESIGN_CRITIC_SYSTEM },

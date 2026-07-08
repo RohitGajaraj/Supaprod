@@ -30,6 +30,7 @@ import {
   type StudioFileSetPolicy,
   type StudioRunDetail,
 } from "@/lib/studio.functions";
+import { listDeployments } from "@/lib/deployments.functions";
 import { SessionTimeline } from "@/components/studio/SessionTimeline";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { EngineRoomDisclosure } from "@/components/studio/EngineRoomDisclosure";
@@ -149,11 +150,13 @@ function JourneyStrip({
   changeset,
   ci,
   missionStatus,
+  productionDeployed,
 }: {
   runs: StudioRunDetail[];
   changeset: StudioChangesetSummary | null;
   ci: StudioCi;
   missionStatus: string | undefined;
+  productionDeployed: boolean;
 }) {
   const anyLive = runs.some((r) => ["queued", "running", "waiting_approval"].includes(r.status));
   const anyFailed = runs.some((r) => r.status === "failed" || r.status === "halted");
@@ -185,7 +188,12 @@ function JourneyStrip({
           ? "failed"
           : "planned";
 
-  const shippedStatus = changeset?.status === "merged" ? "completed" : "planned";
+  const shippedStatus =
+    changeset?.status === "merged"
+      ? productionDeployed
+        ? "completed"
+        : "running"
+      : "planned";
 
   const stages: { label: string; status: string; href?: string }[] = [
     { label: "build", status: buildStatus },
@@ -433,6 +441,20 @@ function BuildSessionPage() {
   const constraints = (data?.constraints ?? null) as StudioConstraints;
   const approvals = (data?.approvals ?? []) as StudioApproval[];
   const ci = (data?.ci ?? null) as StudioCi;
+
+  // The pipeline breadcrumb's "shipped" dot must reflect an actual production
+  // deployment, not just a merge (deploy.promote is a distinct, later human
+  // gate from studio.pr.merge - conflating the two hid the real promote step
+  // behind a JourneyStrip that was already green at merge time).
+  const fDeployments = useServerFn(listDeployments);
+  const deploymentsQ = useQuery({
+    queryKey: ["changeset-deployments", changeset?.id],
+    queryFn: () => fDeployments({ data: { changesetId: changeset!.id } }),
+    enabled: !!changeset?.id,
+  });
+  const productionDeployed = (
+    (deploymentsQ.data?.deployments ?? []) as Array<{ environment: string; status: string }>
+  ).some((d) => d.environment === "production" && d.status === "success");
   const inspection = (data?.inspection ?? null) as Inspection | null;
   const steers = (data?.steers ?? []) as Steer[];
   const totalCost = data?.total_cost_usd ?? 0;
@@ -624,7 +646,13 @@ function BuildSessionPage() {
         )}
 
         {!isOrchestratorMission && data && mission && (
-          <JourneyStrip runs={runs} changeset={changeset} ci={ci} missionStatus={mission.status} />
+          <JourneyStrip
+            runs={runs}
+            changeset={changeset}
+            ci={ci}
+            missionStatus={mission.status}
+            productionDeployed={productionDeployed}
+          />
         )}
 
         {session.isError ? (

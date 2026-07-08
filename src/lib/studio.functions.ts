@@ -1497,92 +1497,104 @@ export const generateRollbackNote = createServerFn({ method: "POST" })
  * on the changeset so they are operator-reviewable and stable across views.
  * Deploy itself is external (Lovable); this is the ship artifact, not a trigger.
  */
+/**
+ * Core of generateReleaseNotes, factored out so promoteToProduction can call
+ * it inline (best-effort, non-fatal) as well as the client-facing server fn -
+ * the spec's own "release notes attach automatically on ship" line needs a
+ * plain function, not a second HTTP round trip through the server-fn wrapper.
+ */
+export async function generateReleaseNotesCore(
+  db: SupabaseClient,
+  userId: string,
+  changesetId: string,
+): Promise<{ release_notes: string }> {
+  const { data: csRow, error: csErr } = await db
+    .from("studio_changesets")
+    .select("id,workspace_id,mission_id,repo,branch,title,summary")
+    .eq("id", changesetId)
+    .maybeSingle();
+  if (csErr) throw new Error(csErr.message);
+  if (!csRow) throw new Error("Changeset not found.");
+  const cs = csRow as {
+    id: string;
+    workspace_id: string | null;
+    mission_id: string | null;
+    repo: string;
+    branch: string | null;
+    title: string | null;
+    summary: string | null;
+  };
+
+  const { data: fileRows } = await db
+    .from("studio_changes")
+    .select("path,op")
+    .eq("changeset_id", cs.id)
+    .order("path");
+  const { data: revRows } = await db
+    .from("studio_changeset_revisions")
+    .select("revision_no,message")
+    .eq("changeset_id", cs.id)
+    .order("revision_no", { ascending: true });
+  const files = (fileRows ?? []) as Array<{ path: string; op: string }>;
+  const revs = (revRows ?? []) as Array<{ revision_no: number; message: string }>;
+  if (files.length === 0 && revs.length === 0)
+    throw new Error("Nothing to describe yet: stage and commit changes first.");
+
+  let workOrder = "";
+  if (cs.mission_id) {
+    const { data: m } = await db
+      .from("missions")
+      .select("title,goal")
+      .eq("id", cs.mission_id)
+      .maybeSingle();
+    const mm = m as { title?: string | null; goal?: string | null } | null;
+    workOrder = (mm?.goal ?? mm?.title ?? "").slice(0, 4000);
+  }
+
+  const fileList = files.map((f) => `${f.op} ${f.path}`).join("\n") || "(none recorded)";
+  // Cap each commit message (untrusted: an agent or member authored it) so a
+  // crafted message can't dominate or hijack the release-notes prompt.
+  const commits = revs.map((r) => `r${r.revision_no}: ${r.message.slice(0, 500)}`).join("\n");
+  const system =
+    "You write concise, factual software release notes. Output GitHub-flavored markdown: a one-line summary, then a short bulleted 'What changed' grounded ONLY in the provided files and commit messages, then a 'Notable' line only if warranted. No marketing tone, no hype, no invented features or claims. Under 180 words.";
+  const user = [
+    cs.title ? `Title: ${cs.title}` : "",
+    cs.summary ? `Summary: ${cs.summary}` : "",
+    workOrder ? `Work order context:\n${workOrder}` : "",
+    `Files changed:\n${fileList}`,
+    commits ? `Commits:\n${commits}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const result = await callModel(db, userId, {
+    surface: "studio",
+    surface_ref: `release-notes:${cs.id}`,
+    model: "google/gemini-2.5-flash",
+    workspaceId: cs.workspace_id,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  });
+  if (result.status !== "ok" || !result.output.trim())
+    throw new Error(result.error || "Release-notes generation failed.");
+  const notes = result.output.trim();
+
+  const { error: upErr } = await db
+    .from("studio_changesets")
+    .update({ release_notes: notes, release_notes_at: new Date().toISOString() })
+    .eq("id", cs.id);
+  if (upErr) throw new Error(upErr.message);
+  return { release_notes: notes };
+}
+
 export const generateReleaseNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }): Promise<{ release_notes: string }> => {
-    const { supabase, userId } = context;
-    const db = supabase as unknown as SupabaseClient;
-
-    const { data: csRow, error: csErr } = await db
-      .from("studio_changesets")
-      .select("id,workspace_id,mission_id,repo,branch,title,summary")
-      .eq("id", data.changesetId)
-      .maybeSingle();
-    if (csErr) throw new Error(csErr.message);
-    if (!csRow) throw new Error("Changeset not found.");
-    const cs = csRow as {
-      id: string;
-      workspace_id: string | null;
-      mission_id: string | null;
-      repo: string;
-      branch: string | null;
-      title: string | null;
-      summary: string | null;
-    };
-
-    const { data: fileRows } = await db
-      .from("studio_changes")
-      .select("path,op")
-      .eq("changeset_id", cs.id)
-      .order("path");
-    const { data: revRows } = await db
-      .from("studio_changeset_revisions")
-      .select("revision_no,message")
-      .eq("changeset_id", cs.id)
-      .order("revision_no", { ascending: true });
-    const files = (fileRows ?? []) as Array<{ path: string; op: string }>;
-    const revs = (revRows ?? []) as Array<{ revision_no: number; message: string }>;
-    if (files.length === 0 && revs.length === 0)
-      throw new Error("Nothing to describe yet: stage and commit changes first.");
-
-    let workOrder = "";
-    if (cs.mission_id) {
-      const { data: m } = await db
-        .from("missions")
-        .select("title,goal")
-        .eq("id", cs.mission_id)
-        .maybeSingle();
-      const mm = m as { title?: string | null; goal?: string | null } | null;
-      workOrder = (mm?.goal ?? mm?.title ?? "").slice(0, 4000);
-    }
-
-    const fileList = files.map((f) => `${f.op} ${f.path}`).join("\n") || "(none recorded)";
-    // Cap each commit message (untrusted: an agent or member authored it) so a
-    // crafted message can't dominate or hijack the release-notes prompt.
-    const commits = revs.map((r) => `r${r.revision_no}: ${r.message.slice(0, 500)}`).join("\n");
-    const system =
-      "You write concise, factual software release notes. Output GitHub-flavored markdown: a one-line summary, then a short bulleted 'What changed' grounded ONLY in the provided files and commit messages, then a 'Notable' line only if warranted. No marketing tone, no hype, no invented features or claims. Under 180 words.";
-    const user = [
-      cs.title ? `Title: ${cs.title}` : "",
-      cs.summary ? `Summary: ${cs.summary}` : "",
-      workOrder ? `Work order context:\n${workOrder}` : "",
-      `Files changed:\n${fileList}`,
-      commits ? `Commits:\n${commits}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    const result = await callModel(supabase, userId, {
-      surface: "studio",
-      surface_ref: `release-notes:${cs.id}`,
-      model: "google/gemini-2.5-flash",
-      workspaceId: cs.workspace_id,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    });
-    if (result.status !== "ok" || !result.output.trim())
-      throw new Error(result.error || "Release-notes generation failed.");
-    const notes = result.output.trim();
-
-    const { error: upErr } = await db
-      .from("studio_changesets")
-      .update({ release_notes: notes, release_notes_at: new Date().toISOString() })
-      .eq("id", cs.id);
-    if (upErr) throw new Error(upErr.message);
-    return { release_notes: notes };
+    const db = context.supabase as unknown as SupabaseClient;
+    return generateReleaseNotesCore(db, context.userId, data.changesetId);
   });
 
 export type LaunchKit = {

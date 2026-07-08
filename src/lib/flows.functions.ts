@@ -124,7 +124,7 @@ export const generateFlow = createServerFn({ method: "POST" })
     const res = await callModel(supabase as never, userId, {
       surface: "prd",
       surface_ref: "generate_flow",
-      model: "anthropic/claude-haiku-4-5-20251001",
+      model: "google/gemini-2.5-flash",
       workspaceId: prd.workspace_id as string,
       responseFormat: "json_object",
       messages: [

@@ -68,7 +68,7 @@ export type DesignMemoryRow = {
 const SELECT_COLUMNS =
   "id,workspace_id,category,title,content,rationale,source_kind,status,decided_by,decided_at,created_at";
 
-const EXTRACT_MODEL = "anthropic/claude-haiku-4-5-20251001" as const;
+const EXTRACT_MODEL = "google/gemini-2.5-flash" as const;
 const MAX_EXTRACTED_ITEMS = 12;
 
 async function resolveWorkspaceId(

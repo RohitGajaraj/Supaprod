@@ -146,17 +146,28 @@ export async function runGoalWorkPass(client: SupabaseClient, goal: GoalRow): Pr
 
   const context = await gatherGoalContext(client, goal);
 
-  const res = await callModel(client as never, goal.user_id, {
-    surface: "discovery",
-    surface_ref: `goal:${goal.id}`,
-    model: "anthropic/claude-haiku-4-5-20251001",
-    workspaceId: goal.workspace_id,
-    responseFormat: "json_object",
-    messages: [
-      { role: "system", content: GOAL_PROPOSER_SYSTEM },
-      { role: "user", content: `${context}\n\nDecide: skip, or propose ONE new opportunity.` },
-    ],
-  });
+  // A model/gateway failure here must not strand the goal at last_worked_at
+  // = NULL forever: an unguarded throw would keep re-sorting it to the front
+  // of the tick's oldest-first queue and fail identically on every future
+  // tick (observed live: a stale hardcoded model id did exactly this for
+  // 8+ hours straight before the string was corrected).
+  let res: Awaited<ReturnType<typeof callModel>>;
+  try {
+    res = await callModel(client as never, goal.user_id, {
+      surface: "discovery",
+      surface_ref: `goal:${goal.id}`,
+      model: "google/gemini-2.5-flash",
+      workspaceId: goal.workspace_id,
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: GOAL_PROPOSER_SYSTEM },
+        { role: "user", content: `${context}\n\nDecide: skip, or propose ONE new opportunity.` },
+      ],
+    });
+  } catch (e) {
+    await touchGoal(client, goal.id);
+    return { proposed: 0, skipped: `model call failed: ${e instanceof Error ? e.message : "unknown"}` };
+  }
 
   const parsed = parseGoalProposal(res.json);
   if ("skip" in parsed) {

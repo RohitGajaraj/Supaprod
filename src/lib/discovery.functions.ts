@@ -224,7 +224,15 @@ export const listSignals = createServerFn({ method: "GET" })
       .select("*")
       .order("created_at", { ascending: false })
       .limit(200);
-    if (data.productId) query = query.eq("project_id", data.productId);
+    // A product-scoped view must still surface workspace-level signals with
+    // no product of their own (connector ingest - github/slack/etc - never
+    // assigns project_id, since a bound repo or channel isn't inherently
+    // one product in a multi-product workspace). Without the OR, every
+    // connector-sensed signal silently vanished the moment ANY product was
+    // active, which in practice is always, since a product is the sticky
+    // default context - "unassigned signals live in the all-products view"
+    // was true in principle but unreachable for real users.
+    if (data.productId) query = query.or(`project_id.eq.${data.productId},project_id.is.null`);
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     return { signals: rows ?? [] };
@@ -314,7 +322,10 @@ export const listThemes = createServerFn({ method: "GET" })
       .from("themes")
       .select("*")
       .order("frequency", { ascending: false });
-    if (data.productId) query = query.eq("project_id", data.productId);
+    // Same fix as listSignals: a theme clustered by the cron path (projectId
+    // null - it clusters a whole workspace, not one product) must still show
+    // inside a product-scoped view, not just the unreachable all-products one.
+    if (data.productId) query = query.or(`project_id.eq.${data.productId},project_id.is.null`);
     const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     return { themes: rows ?? [] };

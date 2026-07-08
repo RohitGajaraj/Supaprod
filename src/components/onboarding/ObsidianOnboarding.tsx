@@ -351,10 +351,23 @@ export function ObsidianOnboarding() {
       const typed = belief.trim();
       const editedBelief =
         typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
+      // The teardown/critic call is best-effort narration for the "surprise"
+      // beat, never a completion gate - unlike fWedgeTeardown, fRunCritic had
+      // no .catch(), so a failed run (a missing seeded target, an AI hiccup)
+      // threw out of the whole mutationFn and skipped fComplete/markOnboarded
+      // below. onError still navigated to /today, but with onboarded never
+      // set true server-side, the route gate bounced straight back to
+      // /onboarding's first screen - the "progress evaporated" loop this
+      // fixes. Both calls now degrade the same way: log and move on.
       if (editedBelief) {
         await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } }).catch(() => null);
       } else if (beliefTarget) {
-        await fRunCritic({ data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id } });
+        await fRunCritic({
+          data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id },
+        }).catch((e) => {
+          console.error("onboarding critic run failed (non-fatal):", e);
+          return null;
+        });
       }
       await fComplete({ data: {} });
       const { data } = await supabase.auth.getSession();
@@ -364,8 +377,12 @@ export function ObsidianOnboarding() {
       window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
       navigate({ to: "/today" });
     },
-    onError: () => {
-      // never traps: the teardown finishing is best-effort; still land on Today
+    onError: (e) => {
+      // fComplete itself (or the session/markOnboarded read) failed - the one
+      // failure mode the teardown catches above can't cover. Still land on
+      // Today per the "never traps" intent, but this case is a real gap: the
+      // gate will bounce back next load since onboarded was never set.
+      console.error("onboarding completion failed:", e);
       window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
       navigate({ to: "/today" });
     },

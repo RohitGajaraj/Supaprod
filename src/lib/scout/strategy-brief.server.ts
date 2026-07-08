@@ -69,7 +69,7 @@ async function synthesizeBrief(
     surface: "sense",
     surface_ref: `strategy-head:${kind}:${workspaceId}`,
     model: agenticModel,
-    fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+    fallbackModel: "google/gemini-2.5-flash",
     messages: [
       { role: "system", content: spec.system },
       { role: "user", content: snippets },

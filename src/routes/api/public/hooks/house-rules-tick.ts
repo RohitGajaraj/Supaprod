@@ -151,7 +151,7 @@ async function distillWorkspace(
     surface: "judge",
     surface_ref: `house-rules-tick:${workspaceId}:${isoWeekKey(new Date())}`,
     model,
-    fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+    fallbackModel: "google/gemini-2.5-flash",
     responseFormat: "json_object",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },

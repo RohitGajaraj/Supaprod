@@ -329,7 +329,7 @@ export async function proposePromptOptimization(
     surface: "judge",
     surface_ref: `prompt-optimize-tick:${template.surface}.${template.key}`,
     model: "google/gemini-2.5-flash",
-    fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+    fallbackModel: "google/gemini-2.5-flash",
     responseFormat: "json_object",
     messages: draftingMessages(activeVersion.system_prompt as string, evidence),
   });

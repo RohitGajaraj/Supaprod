@@ -140,7 +140,7 @@ async function buildDesignScaffoldHtml(
     surface: "prd",
     surface_ref: `design-scaffold:${data.prdId}`,
     model: "google/gemini-2.5-flash",
-    fallbackModel: "anthropic/claude-haiku-4-5-20251001",
+    fallbackModel: "google/gemini-2.5-flash",
     messages: [
       { role: "system", content: buildSystemPrompt(Boolean(designMemoryBlock)) },
       { role: "user", content: userMsg },

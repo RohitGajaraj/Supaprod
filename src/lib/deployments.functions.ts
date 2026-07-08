@@ -9,6 +9,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { collectRepoFiles, deployChangesetApp } from "@/lib/hosting/changeset-deploy.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
+import { generateReleaseNotesCore } from "@/lib/studio.functions";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
@@ -209,6 +210,18 @@ export const promoteToProduction = createServerFn({ method: "POST" })
       { onConflict: "changeset_id,environment,commit_sha" },
     );
     if (depErr) throw new Error(depErr.message);
+
+    // Release notes attach automatically on ship (mission 3.7). Best-effort
+    // and skip-if-present - a human may already have written/edited one, and
+    // a generation failure (nothing staged to describe, a model hiccup) must
+    // never fail the promote itself, which has already gone live.
+    if (!cs.release_notes) {
+      try {
+        await generateReleaseNotesCore(db, userId, cs.id as string);
+      } catch (e) {
+        console.error("auto release-notes on promote failed (non-fatal):", e);
+      }
+    }
 
     // The promote receipt: a decided approval on the ledger. Best-effort - the
     // deploy already happened; a receipt failure must not fail the promote.
