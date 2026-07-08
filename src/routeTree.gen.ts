@@ -39,7 +39,6 @@ import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
 import { Route as AuthenticatedProductRouteImport } from './routes/_authenticated.product'
 import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.prds'
-import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated.plan'
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
@@ -293,11 +292,6 @@ const AuthenticatedPrdsRoute = AuthenticatedPrdsRouteImport.update({
   path: '/prds',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedOutcomeRoute = AuthenticatedOutcomeRouteImport.update({
   id: '/outcome',
   path: '/outcome',
@@ -506,9 +500,9 @@ const AuthenticatedPrdsIndexRoute = AuthenticatedPrdsIndexRouteImport.update({
   getParentRoute: () => AuthenticatedPrdsRoute,
 } as any)
 const AuthenticatedPlanIndexRoute = AuthenticatedPlanIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedPlanRoute,
+  id: '/plan/',
+  path: '/plan/',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMissionsIndexRoute =
   AuthenticatedMissionsIndexRouteImport.update({
@@ -823,9 +817,9 @@ const ApiPublicA2aTasksRoute = ApiPublicA2aTasksRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPlanSpecIdRoute = AuthenticatedPlanSpecIdRouteImport.update({
-  id: '/spec/$id',
-  path: '/spec/$id',
-  getParentRoute: () => AuthenticatedPlanRoute,
+  id: '/plan/spec/$id',
+  path: '/plan/spec/$id',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const ApiPublicConnectGithubCallbackRoute =
   ApiPublicConnectGithubCallbackRouteImport.update({
@@ -900,7 +894,6 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
-  '/plan': typeof AuthenticatedPlanRouteWithChildren
   '/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/product': typeof AuthenticatedProductRoute
   '/prompts': typeof AuthenticatedPromptsRoute
@@ -1165,7 +1158,6 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
-  '/_authenticated/plan': typeof AuthenticatedPlanRouteWithChildren
   '/_authenticated/prds': typeof AuthenticatedPrdsRouteWithChildren
   '/_authenticated/product': typeof AuthenticatedProductRoute
   '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
@@ -1300,7 +1292,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
-    | '/plan'
     | '/prds'
     | '/product'
     | '/prompts'
@@ -1564,7 +1555,6 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
-    | '/_authenticated/plan'
     | '/_authenticated/prds'
     | '/_authenticated/product'
     | '/_authenticated/prompts'
@@ -1927,13 +1917,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPrdsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/plan': {
-      id: '/_authenticated/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof AuthenticatedPlanRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/outcome': {
       id: '/_authenticated/outcome'
       path: '/outcome'
@@ -2216,10 +2199,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/plan/': {
       id: '/_authenticated/plan/'
-      path: '/'
+      path: '/plan'
       fullPath: '/plan/'
       preLoaderRoute: typeof AuthenticatedPlanIndexRouteImport
-      parentRoute: typeof AuthenticatedPlanRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/missions/': {
       id: '/_authenticated/missions/'
@@ -2608,10 +2591,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/plan/spec/$id': {
       id: '/_authenticated/plan/spec/$id'
-      path: '/spec/$id'
+      path: '/plan/spec/$id'
       fullPath: '/plan/spec/$id'
       preLoaderRoute: typeof AuthenticatedPlanSpecIdRouteImport
-      parentRoute: typeof AuthenticatedPlanRoute
+      parentRoute: typeof AuthenticatedRoute
     }
     '/api/public/connect/github/callback': {
       id: '/api/public/connect/github/callback'
@@ -2682,19 +2665,6 @@ const AuthenticatedMeetingsRouteWithChildren =
     AuthenticatedMeetingsRouteChildren,
   )
 
-interface AuthenticatedPlanRouteChildren {
-  AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
-  AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
-}
-
-const AuthenticatedPlanRouteChildren: AuthenticatedPlanRouteChildren = {
-  AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
-  AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
-}
-
-const AuthenticatedPlanRouteWithChildren =
-  AuthenticatedPlanRoute._addFileChildren(AuthenticatedPlanRouteChildren)
-
 interface AuthenticatedPrdsRouteChildren {
   AuthenticatedPrdsIdRoute: typeof AuthenticatedPrdsIdRoute
   AuthenticatedPrdsIndexRoute: typeof AuthenticatedPrdsIndexRoute
@@ -2756,7 +2726,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
-  AuthenticatedPlanRoute: typeof AuthenticatedPlanRouteWithChildren
   AuthenticatedPrdsRoute: typeof AuthenticatedPrdsRouteWithChildren
   AuthenticatedProductRoute: typeof AuthenticatedProductRoute
   AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
@@ -2774,7 +2743,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStudioMissionIdRoute: typeof AuthenticatedStudioMissionIdRoute
   AuthenticatedBuildIndexRoute: typeof AuthenticatedBuildIndexRoute
   AuthenticatedMissionsIndexRoute: typeof AuthenticatedMissionsIndexRoute
+  AuthenticatedPlanIndexRoute: typeof AuthenticatedPlanIndexRoute
   AuthenticatedStudioIndexRoute: typeof AuthenticatedStudioIndexRoute
+  AuthenticatedPlanSpecIdRoute: typeof AuthenticatedPlanSpecIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -2814,7 +2785,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
-  AuthenticatedPlanRoute: AuthenticatedPlanRouteWithChildren,
   AuthenticatedPrdsRoute: AuthenticatedPrdsRouteWithChildren,
   AuthenticatedProductRoute: AuthenticatedProductRoute,
   AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
@@ -2832,7 +2802,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedStudioMissionIdRoute: AuthenticatedStudioMissionIdRoute,
   AuthenticatedBuildIndexRoute: AuthenticatedBuildIndexRoute,
   AuthenticatedMissionsIndexRoute: AuthenticatedMissionsIndexRoute,
+  AuthenticatedPlanIndexRoute: AuthenticatedPlanIndexRoute,
   AuthenticatedStudioIndexRoute: AuthenticatedStudioIndexRoute,
+  AuthenticatedPlanSpecIdRoute: AuthenticatedPlanSpecIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
