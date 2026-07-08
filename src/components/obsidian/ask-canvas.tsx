@@ -59,7 +59,7 @@ export function hasCanvasContent(data: {
   );
 }
 
-function ProgressBlock({
+export function ProgressBlock({
   run,
   approvals,
 }: {
@@ -93,7 +93,7 @@ function ProgressBlock({
   );
 }
 
-function MemoryBlock({ recalls }: { recalls: AskMemoryRecall[] }) {
+export function MemoryBlock({ recalls }: { recalls: AskMemoryRecall[] }) {
   if (recalls.length === 0) return null;
   // Citation's own anatomy is an inline superscript marker threaded into
   // prose; there is no surrounding sentence here to thread it into, so each
@@ -124,7 +124,7 @@ function MemoryBlock({ recalls }: { recalls: AskMemoryRecall[] }) {
   );
 }
 
-function CriticBlock({ verdict }: { verdict: CriticReview }) {
+export function CriticBlock({ verdict }: { verdict: CriticReview }) {
   const tone = verdict.verdict.toUpperCase() as VerdictTone;
   // Ask's own rule (obsidian-extensions.md §2) reserves the panel's one
   // ember for a CTA the answer proposes; a Critic verdict is advisory, never

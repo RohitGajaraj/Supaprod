@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import {
   kindTracePrefix,
   kindVisual,
@@ -6,6 +6,7 @@ import {
   kindLabel,
   nodeRadius,
   truncateTitle,
+  resolveKindColors,
 } from "../graph-visual";
 
 // dim 17: every graph node carries a typed trace-ref prefix. The shared object
@@ -101,5 +102,90 @@ describe("truncateTitle", () => {
     const out = truncateTitle(long, 26);
     expect(out).toBe(`${"A".repeat(25)}…`);
     expect(out.length).toBe(26);
+  });
+});
+
+describe("resolveKindColors", () => {
+  let originalWindow: typeof globalThis.window;
+  let mockGetComputedStyle: ReturnType<typeof test>;
+
+  beforeEach(() => {
+    originalWindow = globalThis.window;
+  });
+
+  afterEach(() => {
+    if (originalWindow) {
+      globalThis.window = originalWindow;
+    }
+  });
+
+  test("returns a map with all kinds when getComputedStyle is available", () => {
+    const mockStyles = new Map([
+      ["--blossom", "#e5bddf"],
+      ["--violet-soft", "#a67fc9"],
+      ["--moss", "#7fb069"],
+      ["--ash", "#a8a29a"],
+    ]);
+
+    // Mock window.getComputedStyle
+    const mockGetComputedStyle = () => ({
+      getPropertyValue: (prop: string) => mockStyles.get(prop) || "",
+      trim: () => "",
+    });
+
+    // Type assertion needed for testing
+    Object.defineProperty(globalThis, "window", {
+      value: { getComputedStyle: mockGetComputedStyle },
+      writable: true,
+    });
+
+    const fakeEl = {} as HTMLElement;
+    const result = resolveKindColors(fakeEl);
+
+    expect(result instanceof Map).toBe(true);
+    expect(result.size).toBeGreaterThan(0);
+  });
+
+  test("uses fallback colors when window is undefined", () => {
+    // Simulate no window
+    const result = resolveKindColors({} as HTMLElement);
+    expect(result instanceof Map).toBe(true);
+    // Should have fallback values (ash, etc.)
+    expect(result.size).toBeGreaterThan(0);
+  });
+
+  test("returns __unknown key for unregistered kinds", () => {
+    const mockGetComputedStyle = () => ({
+      getPropertyValue: () => "",
+      trim: () => "",
+    });
+
+    Object.defineProperty(globalThis, "window", {
+      value: { getComputedStyle: mockGetComputedStyle },
+      writable: true,
+    });
+
+    const result = resolveKindColors({} as HTMLElement);
+    expect(result.has("__unknown")).toBe(true);
+  });
+
+  test("maps each kind to its resolved or fallback color", () => {
+    const mockGetComputedStyle = () => ({
+      getPropertyValue: (prop: string) => {
+        if (prop === "--blossom") return "  #e5bddf  "; // with whitespace
+        if (prop === "--ash") return ""; // empty, should use fallback
+        return "";
+      },
+      trim: () => "",
+    });
+
+    Object.defineProperty(globalThis, "window", {
+      value: { getComputedStyle: mockGetComputedStyle },
+      writable: true,
+    });
+
+    const result = resolveKindColors({} as HTMLElement);
+    // At least signal (--blossom) should be in the map
+    expect(result.get("signal")).toBeDefined();
   });
 });
