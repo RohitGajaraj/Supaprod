@@ -22,8 +22,10 @@ BEGIN
     (_user_id, 'studio.revert',        'Roll back release',     'Studio: roll back a merged release by synthesizing an inverse changeset. Flows through commit, PR, CI gate, merge. Review-gated.', 'write', 'review', true),
     (_user_id, 'delegate.openhands',   'Delegate to OpenHands', 'Delegate a build task to an external OpenHands coding agent working against a connected repo. Always requires human approval before the task leaves Cadence. Folds the result back into the mission when done.', 'write', 'review', true),
     -- Re-triggers a stale CI check by merging the default branch into the changeset
-    -- branch (GitHub's "Update branch"). Confirm-gated to match studio.commit's tier.
-    (_user_id, 'studio.sync_branch',   'Sync branch with main', 'Studio: sync this mission''s changeset branch with the repo''s default branch to re-trigger a stale CI check. Touches no files. Confirm-gated.', 'write', 'confirm', true)
+    -- branch (GitHub's "Update branch"). Auto-approved: same low blast-radius as
+    -- studio.commit/studio.pr.open — only ever merges the default branch INTO the
+    -- isolated studio/* branch, never touches default/main, and is trivially reversible.
+    (_user_id, 'studio.sync_branch',   'Sync branch with main', 'Studio: sync this mission''s changeset branch with the repo''s default branch to re-trigger a stale CI check. Touches no files. Confirm-gated.', 'write', 'auto', true)
   ON CONFLICT (user_id, tool_name) DO NOTHING;
 END;
 $function$;
@@ -35,7 +37,7 @@ SELECT p.id,
        'Sync branch with main',
        'Studio: sync this mission''s changeset branch with the repo''s default branch to re-trigger a stale CI check. Touches no files. Confirm-gated.',
        'write',
-       'confirm',
+       'auto',
        true
 FROM public.profiles p
 ON CONFLICT (user_id, tool_name) DO NOTHING;

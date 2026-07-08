@@ -6443,6 +6443,7 @@ export type Database = {
         Row: {
           base_sha: string | null
           branch: string | null
+          branch_sync_attempts: number
           created_at: string
           fix_attempts: number
           id: string
@@ -6464,6 +6465,7 @@ export type Database = {
         Insert: {
           base_sha?: string | null
           branch?: string | null
+          branch_sync_attempts?: number
           created_at?: string
           fix_attempts?: number
           id?: string
@@ -6485,6 +6487,7 @@ export type Database = {
         Update: {
           base_sha?: string | null
           branch?: string | null
+          branch_sync_attempts?: number
           created_at?: string
           fix_attempts?: number
           id?: string

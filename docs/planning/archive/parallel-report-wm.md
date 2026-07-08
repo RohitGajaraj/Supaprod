@@ -53,3 +53,17 @@
 - **Doc-loop:** dashboard new row 8c → ◐ + H2-WRITES row 8 bumped to [~85%] + claim cleared; `plan.md` §4; `docs/features/h2-writes.md` UI section.
 - **◐ not ✅:** renders real history on publish (once audit rows exist); not render-verified locally.
 - **Released claim** after ship.
+
+---
+
+### 2026-07-08 23:45 — BOARD DRY (awaiting Build Sequence) — Lane 0 long-poll
+
+- **Status:** `lane.sh next` returned "BOARD DRY: no eligible Tier-1/Tier-3 ⬜/◐ item unclaimed + not done"
+- **Analysis:** Tier-1 items complete or in-dev:
+  - Rows 3-6: ✅ DONE (SW-3, SW-4, SW-5, SW-6)
+  - Row 2: 🔨 In Dev (SW-2, goal, claimed 2026-07-07)
+  - Row 7: 🔨 In Dev (SW-7, lanelane3, claimed 2026-07-08, reaped after 6h+ stale)
+- **Tier-3 items:** none unclaimed ⬜ (DSN-05 is Gated, not Tier-3; SANDBOX/BYO-P5 are Gated)
+- **Blocker:** Build Sequence (founder ruling: "pick-by-number, Tier-1-first") has not yet landed in AGENTS.md §3 or feature-dashboard. A prior session authored it; awaiting landing on origin/main.
+- **Next:** Per handoff: if Build Sequence not landed, note board status + recheck ~25 min. Will poll via `lane.sh next` on interval.
+- **Decision:** Lane 0 standing by. No autonomous Tier-1 work available until Build Sequence lands or SW-2/SW-7 land and re-open.
