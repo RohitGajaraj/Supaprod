@@ -940,7 +940,16 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         status: "error",
       });
       conv.push({ role: "assistant", content: assistantContent });
-      conv.push({ role: "user", content: `Tool error: ${msg}. Pick a valid tool or finalize.` });
+      // SW-7 live-run fix (MIS-98247F): the corrective message must RESTATE the
+      // valid tool names, or a model that lost (or never saw) the catalog can
+      // only guess fresh fake names forever - the observed failure was five
+      // invented tools in a row, then a dead mission. With an empty enabled
+      // set, saying so lets the model finalize honestly instead of flailing.
+      const validNames = [...modeOf.keys()].join(", ") || "(none enabled for this agent)";
+      conv.push({
+        role: "user",
+        content: `Tool error: ${msg}. Valid tools: ${validNames}. Pick one of those or finalize.`,
+      });
       continue;
     }
     const parseRes = def.argsSchema.safeParse(call.args);

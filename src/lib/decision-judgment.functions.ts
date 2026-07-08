@@ -158,7 +158,7 @@ export const getOpportunityJudgment = createServerFn({ method: "POST" })
         .from("opportunities")
         .select("id,title,ice_score")
         .eq("workspace_id", o.workspace_id)
-        .in("status", ["backlog", "now", "next"])
+        .in("status", ["backlog", "now", "next", "committed"])
         .neq("id", o.id)
         .order("ice_score", { ascending: false })
         .limit(3);
