@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
+import { stepLabel } from "@/lib/agent-vocabulary";
+import { countNeedsYouCalls } from "@/lib/today.functions";
 
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
 
@@ -65,69 +68,78 @@ export const getLiveRunCounts = createServerFn({ method: "GET" })
     };
   });
 
-/** One live-activity item: an active run, named for humans. */
-export type LiveActivityItem = {
-  runId: string;
+/** The live-activity read: what the machine is doing / whether it needs you. */
+export type LiveActivity = {
+  /** working = a run is active; waiting = it needs you; idle = nothing. */
+  state: "working" | "waiting" | "idle";
+  /** The primary run's mission, for click-through (working only). */
   missionId: string | null;
-  missionTitle: string | null;
-  agentName: string;
-  /** running | queued | waiting_approval */
-  status: string;
-  stepIndex: number;
-  startedAt: string;
+  /** The SHORT action verb, e.g. "Drafting changes", or "Waiting on you".
+   *  Never the mission title (founder ruling 2026-07-08). Empty when idle. */
+  action: string;
 };
 
 /**
- * AI-PULSE (founder ruling 2026-07-08): THE platform-wide "what is the machine
- * doing right now" read. One tiny row per active run (running / queued /
- * waiting on a gate) with the mission's human name - light enough for a 4s
- * poll from the global ticker on every screen. Deliberately no checkpoint
- * join (checkpoint state carries the full conv; the cockpit renders the rich
- * per-step caption from its own session read).
+ * AI-PULSE (founder ruling 2026-07-08, v3.2): THE platform-wide "what is going
+ * on right now" read, in ONE place (the top bar). Priority:
+ *   1. a run is actively RUNNING -> ember shimmer + the ACTION verb;
+ *   2. else a GENUINE pending action waits on you -> "Waiting on you" (glacier,
+ *      still) - gated on the SAME live-calls truth the Today badge uses, which
+ *      already excludes expired/stale gates, so a resolved queue goes idle
+ *      (founder ruling: show waiting only when something really needs you);
+ *   3. else idle (renders nothing).
+ * Never the mission title. Cheap: one runs query (+ the running run's latest
+ * checkpoint); the needs-you count only runs when nothing is actively running.
  */
 export const getLiveActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ items: LiveActivityItem[] }> => {
+  .handler(async ({ context }): Promise<LiveActivity> => {
     const { data, error } = await context.supabase
       .from("agent_runs")
-      .select("id,mission_id,agent_name,agent_slug,status,step_index,created_at")
-      .in("status", ["running", "queued", "waiting_approval"])
+      .select("id,mission_id,status,created_at")
+      .in("status", ["running", "queued"])
       .order("created_at", { ascending: false })
       .limit(8);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as Array<{
       id: string;
       mission_id: string | null;
-      agent_name: string | null;
-      agent_slug: string | null;
       status: string;
-      step_index: number | null;
       created_at: string;
     }>;
 
-    const missionIds = [...new Set(rows.map((r) => r.mission_id).filter((m): m is string => !!m))];
-    const titleById = new Map<string, string>();
-    if (missionIds.length > 0) {
-      const { data: missions } = await context.supabase
-        .from("missions")
-        .select("id,title")
-        .in("id", missionIds);
-      for (const m of (missions ?? []) as Array<{ id: string; title: string | null }>) {
-        if (m.title) titleById.set(m.id, m.title);
+    // 1. Actively running work -> the ember action verb.
+    const running = rows.find((r) => r.status === "running");
+    if (running) {
+      let action = "Working";
+      const { data: cp } = await context.supabase
+        .from("agent_run_checkpoints")
+        .select("steps:state->steps")
+        .eq("run_id", running.id)
+        .order("step_index", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const steps = (cp as { steps?: Array<{ kind: string; name?: string }> } | null)?.steps;
+      if (Array.isArray(steps) && steps.length > 0) {
+        const raw = stepLabel(steps[steps.length - 1]);
+        action = raw.charAt(0).toUpperCase() + raw.slice(1);
       }
+      return { state: "working", missionId: running.mission_id, action };
+    }
+    // A just-queued run is about to work.
+    if (rows.length > 0) {
+      return { state: "working", missionId: rows[0].mission_id, action: "Starting up" };
     }
 
-    return {
-      items: rows.map((r) => ({
-        runId: r.id,
-        missionId: r.mission_id,
-        missionTitle: r.mission_id ? (titleById.get(r.mission_id) ?? null) : null,
-        agentName: r.agent_name || r.agent_slug || "agent",
-        status: r.status,
-        stepIndex: r.step_index ?? 0,
-        startedAt: r.created_at,
-      })),
-    };
+    // 2. Nothing running: is a GENUINE action pending on the human? (Same live
+    // count the Today badge shows; expired/stale gates are already excluded.)
+    const counts = await countNeedsYouCalls(context.supabase as SupabaseClient, context.userId);
+    if (counts.liveCalls > 0) {
+      return { state: "waiting", missionId: null, action: "Waiting on you" };
+    }
+
+    // 3. Idle.
+    return { state: "idle", missionId: null, action: "" };
   });
 
 export const runAgent = createServerFn({ method: "POST" })

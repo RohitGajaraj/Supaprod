@@ -198,6 +198,19 @@ export type LoopStep =
     }
   | { kind: "final"; message: string };
 
+/**
+ * Finding 24 (SW-7 terminal walkthrough): a run that gave up honestly (every
+ * tool call errored or was denied, no productive step ever landed) was still
+ * written as "completed", so the Build list showed a dead mission as
+ * FINISHED with no verdict, indistinguishable from a real success. Mirrors
+ * the anyFailed check handoff.server.ts/orchestrator.server.ts already use.
+ */
+function anyToolStepFailed(steps: LoopStep[]): boolean {
+  return steps.some(
+    (s) => s.kind === "tool_call" && (s.status === "error" || s.status === "denied"),
+  );
+}
+
 export type LoopResult = {
   trace_id: string;
   agent_slug: string;
@@ -555,7 +568,11 @@ export async function runAgentLoop(
         await supabase
           .from("agent_runs")
           .update({
-            status: halted ? "halted" : "completed",
+            status: halted
+              ? "halted"
+              : anyToolStepFailed(steps)
+                ? "completed_with_failures"
+                : "completed",
             output: finalMsg,
             duration_ms: 0,
           })
@@ -1442,7 +1459,11 @@ export async function resumeAgentLoop(
       await supabase
         .from("agent_runs")
         .update({
-          status: halted ? "halted" : "completed",
+          status: halted
+            ? "halted"
+            : anyToolStepFailed(steps)
+              ? "completed_with_failures"
+              : "completed",
           output: finalMsg,
           duration_ms: 0,
         })
@@ -1539,6 +1560,10 @@ export async function executeApproval(
       .from("agent_approvals")
       .update({
         status: "executed",
+        // Clear the escalation flag on resolution (bug fix 2026-07-08): a
+        // decided gate must leave escalation_state='pending' so the live
+        // "needs you" count never counts an already-executed gate.
+        escalation_state: "resolved",
         result: result as Record<string, unknown> | null,
       })
       .eq("id", approvalId);
@@ -1547,8 +1572,48 @@ export async function executeApproval(
     const msg = e instanceof Error ? e.message : String(e);
     await supabase
       .from("agent_approvals")
-      .update({ status: "failed", error: msg })
+      .update({ status: "failed", escalation_state: "resolved", error: msg })
       .eq("id", approvalId);
+    // Finding 30 (SW-7 terminal walkthrough): a post-approval tool failure
+    // previously left the owning run "running" forever: the resume cron
+    // kept it alive, and `release_claims_for_terminal_run` only fires on a
+    // genuine agent_runs terminal status, so its Build file claims orphaned
+    // and blocked every successor mission. Mirror the KI-07 fix (loop.server.ts's
+    // own tool-call catch) here too, since executeApproval is a separate
+    // code path invoked after a human answers a queued gate.
+    const runId = (appr as { run_id?: string | null }).run_id ?? null;
+    const missionId = (appr as { mission_id?: string | null }).mission_id ?? null;
+    if (runId) {
+      try {
+        await supabase.from("agent_runs").update({ status: "failed", output: msg }).eq("id", runId);
+      } catch (err) {
+        console.error("agent_runs fail-mark failed (executeApproval):", err);
+      }
+    }
+    if (missionId) {
+      try {
+        const { data: priorMission } = await supabase
+          .from("missions")
+          .select("status")
+          .eq("id", missionId)
+          .maybeSingle();
+        await supabase
+          .from("missions")
+          .update({ status: "halted", updated_at: new Date().toISOString() })
+          .eq("id", missionId);
+        await recordStageEvent(supabase, {
+          entityType: "mission",
+          entityId: missionId,
+          from: (priorMission as { status?: string } | null)?.status ?? null,
+          to: "halted",
+          actor: appr.agent_slug ?? "agent",
+          workspaceId: (appr as { workspace_id?: string | null }).workspace_id ?? null,
+          userId,
+        });
+      } catch (err) {
+        console.error("mission halt-mark failed (executeApproval):", err);
+      }
+    }
     throw e;
   }
 }

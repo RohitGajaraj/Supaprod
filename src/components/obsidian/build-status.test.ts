@@ -24,18 +24,20 @@ describe("studioToMissionRowStatus", () => {
   test("queued reads as queued", () => {
     expect(studioToMissionRowStatus("queued", 0)).toBe("queued");
   });
-  test("completed, failed, and halted all collapse to done (disambiguated by verdict)", () => {
+  test("completed stays done", () => {
     expect(studioToMissionRowStatus("completed", 0)).toBe("done");
-    expect(studioToMissionRowStatus("failed", 0)).toBe("done");
-    expect(studioToMissionRowStatus("halted", 0)).toBe("done");
+  });
+  test("failed and halted read as their own blocked state, not a false done", () => {
+    expect(studioToMissionRowStatus("failed", 0)).toBe("blocked");
+    expect(studioToMissionRowStatus("halted", 0)).toBe("blocked");
   });
 
   test("missions.status 'blocked' (the mission-table gate value, never 'waiting_approval') is a gate", () => {
     expect(studioToMissionRowStatus("blocked", 0)).toBe("gate");
   });
-  test("cancelled and completed_with_failures also collapse to done (disambiguated by verdict)", () => {
-    expect(studioToMissionRowStatus("cancelled", 0)).toBe("done");
-    expect(studioToMissionRowStatus("completed_with_failures", 0)).toBe("done");
+  test("cancelled and completed_with_failures also read as blocked, not a false done", () => {
+    expect(studioToMissionRowStatus("cancelled", 0)).toBe("blocked");
+    expect(studioToMissionRowStatus("completed_with_failures", 0)).toBe("blocked");
   });
   // OBS-10: 'proposed' is the trigger-tick's own HITL gate (a mission an
   // ambient trigger proposed but no human has promoted to 'queued' yet via

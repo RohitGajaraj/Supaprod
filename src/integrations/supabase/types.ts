@@ -553,6 +553,39 @@ export type Database = {
           },
         ]
       }
+      agent_tool_modes: {
+        Row: {
+          agent_slug: string
+          created_at: string
+          id: string
+          mode: string
+          source: string
+          tool_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_slug: string
+          created_at?: string
+          id?: string
+          mode: string
+          source?: string
+          tool_name: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          agent_slug?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          source?: string
+          tool_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_tools: {
         Row: {
           built_in: boolean
@@ -6948,6 +6981,51 @@ export type Database = {
           },
         ]
       }
+      trust_graduation_proposals: {
+        Row: {
+          agent_slug: string
+          clean_streak: number
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          from_mode: string
+          id: string
+          rationale: string | null
+          status: string
+          to_mode: string
+          tool_name: string
+          user_id: string
+        }
+        Insert: {
+          agent_slug: string
+          clean_streak?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          from_mode: string
+          id?: string
+          rationale?: string | null
+          status?: string
+          to_mode: string
+          tool_name: string
+          user_id?: string
+        }
+        Update: {
+          agent_slug?: string
+          clean_streak?: number
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          from_mode?: string
+          id?: string
+          rationale?: string | null
+          status?: string
+          to_mode?: string
+          tool_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_api_keys: {
         Row: {
           api_key_cipher: string | null
@@ -7457,6 +7535,7 @@ export type Database = {
           deleted_at: string | null
           design_stage_enabled: boolean
           id: string
+          is_sample: boolean
           last_auto_cluster_at: string | null
           last_auto_derive_at: string | null
           last_auto_scout_at: string | null
@@ -7485,6 +7564,7 @@ export type Database = {
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
+          is_sample?: boolean
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
           last_auto_scout_at?: string | null
@@ -7513,6 +7593,7 @@ export type Database = {
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
+          is_sample?: boolean
           last_auto_cluster_at?: string | null
           last_auto_derive_at?: string | null
           last_auto_scout_at?: string | null

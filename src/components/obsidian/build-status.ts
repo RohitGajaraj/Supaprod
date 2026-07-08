@@ -31,9 +31,10 @@ import type { StudioApproval } from "@/lib/studio.functions";
 const FAILURE_STATUSES = new Set(["failed", "halted", "cancelled", "completed_with_failures"]);
 const TERMINAL_OK_STATUSES = new Set(["completed", "done"]);
 
-/** `MissionRowStatus` only has four buckets (working/gate/done/queued, see missionrow.tsx) ·
- * terminal outcomes (completed/failed/halted/cancelled) all collapse to "done"; `studioVerdict`
- * below is what tells success from failure via the row's optional verdict chip. */
+/** `MissionRowStatus` now has five buckets (working/gate/done/blocked/queued, see missionrow.tsx) ·
+ * a failed/halted/cancelled/completed_with_failures mission reads its own "blocked" state, matching
+ * the slide-over, rather than collapsing into "done"; `studioVerdict` below still drives the row's
+ * optional verdict chip (which now also renders on "blocked" rows) to tell KILL from SHIP. */
 export function studioToMissionRowStatus(
   status: string,
   pendingApprovals: number,
@@ -46,7 +47,8 @@ export function studioToMissionRowStatus(
   if (status === "proposed") return "gate";
   if (status === "running") return "working";
   if (status === "queued") return "queued";
-  if (FAILURE_STATUSES.has(status) || TERMINAL_OK_STATUSES.has(status)) return "done";
+  if (FAILURE_STATUSES.has(status)) return "blocked";
+  if (TERMINAL_OK_STATUSES.has(status)) return "done";
   return "queued";
 }
 
@@ -84,11 +86,12 @@ export function studioVerdict(
  * says what the status MEANS instead (LOOM v4: the old copy repeated the
  * StatusDot's word verbatim, so "WAITING ON YOU" printed twice per row);
  * the real step-by-step detail lives one layer deeper, in the slide-over.
- * Every phrase still derives purely from the 4-bucket status. */
+ * Every phrase still derives purely from the 5-bucket status. */
 export const MISSION_ROW_STEP_LABEL: Record<MissionRowStatus, string> = {
   working: "RUNNING UNATTENDED",
   gate: "ONE ANSWER UNBLOCKS IT",
   done: "FINISHED",
+  blocked: "DID NOT SHIP",
   queued: "STARTS SHORTLY",
 };
 

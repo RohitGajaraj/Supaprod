@@ -2302,32 +2302,120 @@ html[data-obsidian] {
 }
 
 /* ===========================================================================
- * AI-PULSE (founder ruling 2026-07-08, SW-7) - the live machine-activity
- * one-liner shown wherever the swarm is working. The landing page's flowing
- * sheen, rebuilt on the AZURE working voice (--action-blue is already the
- * live/running state color) with the contract-sanctioned --violet-shimmer
- * as the moving highlight. Small, readable, always in motion while work runs.
- * Honors data-motion="off" and prefers-reduced-motion like .agent-live. */
+ * AI-PULSE (founder ruling 2026-07-08, SW-7; v3.1) - the live machine-activity
+ * line, shown in ONE place (the top bar) while the swarm ACTIVELY works. It
+ * shows the ACTION ("Drafting changes"), never the mission title, and goes
+ * idle (renders nothing) when no run is working - it never surfaces a paused
+ * gate (that has its own surfaces). ONE treatment: a clearly EMBER-ORANGE
+ * sheen (founder call: the earlier gradient read yellow), flowing through the
+ * text AND the butterfly (masked by the same moving gradient), with a warm
+ * glow. The wings breathe. Palette stays tight - ember only. */
+@keyframes ai-pulse-sheen {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+@keyframes ai-pulse-flutter {
+  0%, 100% { transform: scaleX(1) rotate(-1.5deg); }
+  50% { transform: scaleX(0.88) rotate(1.5deg); }
+}
+/* A GLOSSY spotlight sweep: clearly ember-orange overall, with a NARROW
+ * near-white-hot glint at the centre that reads as a moving gloss (not a pale
+ * wash - the highlight is only ~4% wide, so it never yellows). A warm glow
+ * sits under it. (founder ruling 2026-07-08: make the shimmer evident + glossy.) */
 .ai-pulse-text {
   background: linear-gradient(
-    90deg,
-    #6f9bff,
-    #a9c2ff 30%,
-    var(--violet-shimmer, #c77dff) 50%,
-    #a9c2ff 70%,
-    #6f9bff
+    100deg,
+    #e85d00 0%,
+    #ff8a34 32%,
+    #ffd7a6 47%,
+    #fff6ec 50%,
+    #ffd7a6 53%,
+    #ff8a34 68%,
+    #e85d00 100%
   );
   background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: agent-shimmer 3s linear infinite;
+  filter: drop-shadow(0 0 9px rgba(251, 113, 0, 0.5));
+  animation: ai-pulse-sheen 2.4s linear infinite;
 }
-html[data-motion="off"] .ai-pulse-text {
+/* The butterfly, masked by the same glossy sweep + a subtle flutter. */
+.ai-pulse-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  background: linear-gradient(
+    100deg,
+    #e85d00 0%,
+    #ff8a34 32%,
+    #ffd7a6 47%,
+    #fff6ec 50%,
+    #ffd7a6 53%,
+    #ff8a34 68%,
+    #e85d00 100%
+  );
+  background-size: 260% 100%;
+  -webkit-mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
+  mask: url("/assets/butterfly-ember.svg") center / contain no-repeat;
+  transform-origin: center;
+  filter: drop-shadow(0 0 6px rgba(251, 113, 0, 0.55));
+  animation:
+    ai-pulse-sheen 2.4s linear infinite,
+    ai-pulse-flutter 2.6s ease-in-out infinite;
+}
+/* Human gate (founder ruling 2026-07-08): the SAME glossy sweep + glow, in
+ * glacier - so "waiting on you" also shimmers and carries a spotlight, just in
+ * a cool hue instead of ember. The butterfly keeps a gentle attention pulse
+ * on top so it draws the eye. Palette stays tight: ember + glacier only. */
+@keyframes ai-pulse-attention {
+  0%, 100% { transform: scale(0.94); }
+  50% { transform: scale(1.06); }
+}
+.ai-pulse-text.waiting {
+  background: linear-gradient(
+    100deg,
+    #4f83c7 0%,
+    #84b3ec 32%,
+    #d6e9ff 47%,
+    #ffffff 50%,
+    #d6e9ff 53%,
+    #84b3ec 68%,
+    #4f83c7 100%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 9px rgba(132, 179, 236, 0.5));
+  animation: ai-pulse-sheen 2.4s linear infinite;
+}
+.ai-pulse-mark.waiting {
+  background: linear-gradient(
+    100deg,
+    #4f83c7 0%,
+    #84b3ec 32%,
+    #d6e9ff 47%,
+    #ffffff 50%,
+    #d6e9ff 53%,
+    #84b3ec 68%,
+    #4f83c7 100%
+  );
+  background-size: 260% 100%;
+  filter: drop-shadow(0 0 6px rgba(132, 179, 236, 0.6));
+  transform-origin: center;
+  animation:
+    ai-pulse-sheen 2.4s linear infinite,
+    ai-pulse-attention 1.8s ease-in-out infinite;
+}
+html[data-motion="off"] .ai-pulse-text,
+html[data-motion="off"] .ai-pulse-mark {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ai-pulse-text {
+  .ai-pulse-text,
+  .ai-pulse-mark {
     animation: none;
   }
 }

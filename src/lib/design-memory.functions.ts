@@ -369,8 +369,7 @@ export const importDesignMemoryFromUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof ImportUrlSchema>) => ImportUrlSchema.parse(d))
   .handler(async ({ context, data }): Promise<ImportDesignMemoryResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const workspaceId = await resolveWorkspaceId(supabase, null);
     if (!workspaceId) throw new Error("importDesignMemoryFromUrl: no workspace");
 
@@ -427,8 +426,7 @@ export const importDesignMemoryFromText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof ImportTextSchema>) => ImportTextSchema.parse(d))
   .handler(async ({ context, data }): Promise<ImportDesignMemoryResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const workspaceId = await resolveWorkspaceId(supabase, null);
     if (!workspaceId) throw new Error("importDesignMemoryFromText: no workspace");
 
@@ -489,8 +487,7 @@ export type SeedDefaultDesignMemoryResult = { inserted: number; alreadySeeded: b
 export const seedDefaultDesignMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<SeedDefaultDesignMemoryResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const workspaceId = await resolveWorkspaceId(supabase, null);
     if (!workspaceId) throw new Error("seedDefaultDesignMemory: no workspace");
 
@@ -529,8 +526,7 @@ export const recordDesignScaffoldFeedback = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof ScaffoldFeedbackSchema>) => ScaffoldFeedbackSchema.parse(d))
   .handler(async ({ context, data }): Promise<RecordDesignScaffoldFeedbackResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const workspaceId = await resolveWorkspaceId(supabase, null);
     if (!workspaceId) return { learned: 0 };
 

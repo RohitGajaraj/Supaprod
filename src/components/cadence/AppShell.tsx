@@ -12,7 +12,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
 import { getNeedsYou } from "@/lib/today.functions";
-import { useLiveActivity } from "@/components/cadence/LivePulse";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { renameWorkspace, deleteWorkspace, leaveWorkspace } from "@/lib/workspaces.functions";
 import { triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
@@ -243,15 +242,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // sum understates once a display cap bites, and the rail may never disagree
   // with the hero.
   const callCount = needsYou?.counts.liveCalls ?? 0;
-
-  // The shimmer working line - AI-PULSE (founder ruling 2026-07-08): the rail
-  // now rides the SAME shared live-activity poll as the TopBar ticker (one
-  // query key, one 4s cadence, one truth) and names the newest running
-  // mission instead of a bare count.
-  const { items: liveItems } = useLiveActivity();
-  const runningCount = liveItems.filter((i) => i.status === "running").length;
-  const queuedCount = liveItems.filter((i) => i.status === "queued").length;
-  const liveMissionTitle = liveItems[0]?.missionTitle ?? null;
 
   // Profile row identity from the auth session.
   const [userName, setUserName] = useState("Account");
@@ -743,49 +733,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {pauseState.reason ? ` · ${pauseState.reason}` : ""}
               </Link>
             )}
-            {runningCount > 0 && !askOpen && (
-              <Link
-                to="/build"
-                className="flex items-center"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 9.5,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  gap: 7,
-                  padding: "2px 4px",
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="shrink-0"
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: 99,
-                    background: "var(--glacier)",
-                    animation: "cadPulse 2s ease-in-out infinite",
-                  }}
-                />
-                <span
-                  style={{
-                    backgroundImage: "var(--shimmer-gradient)",
-                    backgroundSize: "280% 100%",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent",
-                    animation: "cadShimmer 5s linear infinite",
-                  }}
-                >
-                  {liveMissionTitle
-                    ? `${liveMissionTitle.slice(0, 34)}${liveMissionTitle.length > 34 ? "…" : ""} · working`
-                    : `${runningCount} agent${runningCount === 1 ? "" : "s"} working`}
-                </span>
-                {queuedCount > 0 && (
-                  <span style={{ color: "var(--text-faint)" }}>· {queuedCount} queued</span>
-                )}
-              </Link>
-            )}
+            {/* AI-PULSE (founder ruling 2026-07-08, v3): the live working line
+                used to live here AND in the top bar - a duplicate. It now lives
+                in ONE place, the top-bar LiveTicker (which survives a future
+                sidebar collapse), so the sidebar no longer shows it. */}
 
             {FOOTER_NAV.filter((n) => n.to !== "/admin" || isAdmin || noAdminsYet).map((n) => (
               <NavRow

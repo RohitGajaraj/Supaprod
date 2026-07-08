@@ -86,7 +86,7 @@ const PENCIL_SAMPLE: Record<PencilInk, string> = {
   "pet-feature": "my favorite",
   "scope-creep": "scope creep",
 };
-const MISSION_ROW_STATUSES: MissionRowStatus[] = ["working", "gate", "done", "queued"];
+const MISSION_ROW_STATUSES: MissionRowStatus[] = ["working", "gate", "done", "blocked", "queued"];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -269,7 +269,7 @@ function ObsidianSpecimenContent() {
                   key={status}
                   status={status}
                   title={`Mission in the ${status} state`}
-                  verdict={status === "done" ? "SHIP" : undefined}
+                  verdict={status === "done" ? "SHIP" : status === "blocked" ? "KILL" : undefined}
                   stepLabel={status === "queued" ? "NOT STARTED" : "STEP 3 OF 5"}
                   cost="$0.42"
                   onOpen={() => showToast(`Opened ${status} mission`)}

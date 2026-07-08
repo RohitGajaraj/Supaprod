@@ -336,11 +336,50 @@ export const getMissionChain = createServerFn({ method: "GET" })
       }
     }
 
-    // Design + test have no dedicated substrate today (design is founder-gated;
-    // test attempts are not yet first-class rows). We render them honestly: CI
-    // runs on the PR in this build spine, so only a changeset that reached
-    // pr_open/merged carries test evidence - 'committed' pushed a commit with
-    // no PR (no CI), and 'abandoned' may never have left staging intent.
+    // SW-7 (mission 3.4): the design station is real now (design_gate_status +
+    // design_stage_enabled both ship) - this used to hardcode designOff:true
+    // from before the station was built, which silently showed a real approved
+    // design gate as "skipped, off for this workspace" (found live 2026-07-08).
+    // Off is still honest when the workspace never turned the stage on; a
+    // decided gate is present; an undecided gate on an enabled stage is pending.
+    let designEvidence: { id: string; at: string | null; detail: string } | null = null;
+    let designOff = true;
+    if (prdRow) {
+      const prdDesign = must(
+        await db
+          .from("prds")
+          .select("design_gate_status, design_decided_at, workspace_id")
+          .eq("id", prdRow.id)
+          .maybeSingle(),
+      ) as {
+        design_gate_status: string | null;
+        design_decided_at: string | null;
+        workspace_id: string | null;
+      } | null;
+      if (prdDesign?.workspace_id) {
+        const ws = must(
+          await db
+            .from("workspaces")
+            .select("design_stage_enabled")
+            .eq("id", prdDesign.workspace_id)
+            .maybeSingle(),
+        ) as { design_stage_enabled: boolean | null } | null;
+        designOff = !ws?.design_stage_enabled;
+      }
+      if (!designOff && prdDesign?.design_gate_status) {
+        designEvidence = {
+          id: prdRow.id,
+          at: prdDesign.design_decided_at,
+          detail: `Design gate ${prdDesign.design_gate_status}`,
+        };
+      }
+    }
+
+    // Test has no dedicated substrate today (test attempts are not yet
+    // first-class rows). We render it honestly: CI runs on the PR in this
+    // build spine, so only a changeset that reached pr_open/merged carries
+    // test evidence - 'committed' pushed a commit with no PR (no CI), and
+    // 'abandoned' may never have left staging intent.
     const testChangeset =
       changesetRows.find((c) => c.status === "pr_open" || c.status === "merged") ?? null;
     const buildChangeset = changesetRows[0] ?? null;
@@ -361,8 +400,8 @@ export const getMissionChain = createServerFn({ method: "GET" })
       contract: prdRow
         ? { id: prdRow.id, at: prdRow.created_at, detail: prdRow.title ?? "Contract (spec)" }
         : null,
-      design: null,
-      designOff: true, // no design station substrate yet (founder-gated, mission 3.4)
+      design: designEvidence,
+      designOff,
       build: buildChangeset
         ? {
             id: buildChangeset.id,
