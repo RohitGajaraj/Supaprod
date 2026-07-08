@@ -87,6 +87,15 @@ export type NeedsYou = {
     created_at: string;
     sourceCount: number;
   }[];
+  /** SW-7 (mission 3.4): specs whose design mockup gate is undecided, on a
+   *  workspace with the design stage on. The design station has no queue
+   *  page of its own (it lives on the spec) - this is what makes a pending
+   *  design decision discoverable without a new sidebar destination. */
+  designGateCalls: {
+    id: string;
+    title: string;
+    updated_at: string;
+  }[];
   spendTodayUsd: number;
   /** Median minutes from gate raised to human decision, last 7 days.
    *  Null until at least one gate has been decided. Backs the Today
@@ -111,6 +120,8 @@ export type NeedsYouCounts = {
   /** SW-3 (mission 3.8b): proposed playbooks from the compounding pass,
    *  awaiting the human's adopt/dismiss. */
   playbooks: number;
+  /** SW-7 (mission 3.4): specs with an undecided design gate. */
+  designGates: number;
   /** Gates that expired unanswered. NOT part of liveCalls. */
   expired: number;
   /** The one number every "needs you" surface shows: the live calls total. */
@@ -155,18 +166,38 @@ export async function countNeedsYouCalls(
     wsId = workspaceId;
   }
 
-  const [live, expired, specs, opps, challenges, playbooks] = await Promise.all([
+  // SW-7 (mission 3.4): design gates only exist where the workspace turned the
+  // design stage on. A separate lookup (not a join) keeps the count query below
+  // simple and correct rather than guessing Supabase's embedded-resource name.
+  let designStageEnabled = false;
+  if (wsId) {
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("design_stage_enabled")
+      .eq("id", wsId)
+      .maybeSingle();
+    designStageEnabled = Boolean(
+      (ws as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
+    );
+  }
+
+  const [live, expired, specs, opps, challenges, playbooks, designGates] = await Promise.all([
+    // A LIVE call is one still awaiting a decision: status='pending'. Bug fix
+    // 2026-07-08: escalation_state stays 'pending' even after a gate executes
+    // or fails (only the decision-path clears it), so filtering escalation
+    // alone counted resolved gates forever and inflated "N calls need you".
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
-      .eq("escalation_state", "pending")
+      .eq("status", "pending")
       .or(liveGateOr(nowIso))
       .or(notSnoozedOr(nowIso)),
     supabase
       .from("agent_approvals")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
+      .eq("status", "pending")
       .or(expiredGateOr(nowIso)),
     supabase.from("prds").select("id", { count: "exact", head: true }).eq("status", "review"),
     supabase
@@ -191,6 +222,13 @@ export async function countNeedsYouCalls(
           .eq("workspace_id", wsId)
           .eq("status", "proposed")
       : Promise.resolve({ count: 0 }),
+    wsId && designStageEnabled
+      ? supabase
+          .from("prds")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wsId)
+          .is("design_gate_status", null)
+      : Promise.resolve({ count: 0 }),
   ]);
 
   const approvals = live.count ?? 0;
@@ -198,14 +236,16 @@ export async function countNeedsYouCalls(
   const oppCount = opps.count ?? 0;
   const assumptionCount = challenges.count ?? 0;
   const playbookCount = playbooks.count ?? 0;
+  const designGateCount = designGates.count ?? 0;
   return {
     approvals,
     specs: specCount,
     opportunities: oppCount,
     assumptions: assumptionCount,
     playbooks: playbookCount,
+    designGates: designGateCount,
     expired: expired.count ?? 0,
-    liveCalls: approvals + specCount + oppCount + assumptionCount + playbookCount,
+    liveCalls: approvals + specCount + oppCount + assumptionCount + playbookCount + designGateCount,
   };
 }
 
@@ -231,81 +271,117 @@ export const getNeedsYou = createServerFn({ method: "GET" })
     // untyped client + explicit row casts (the listGovernApprovals precedent).
     const db = supabase as unknown as SupabaseClient;
 
+    // SW-7 (mission 3.4): mirrors countNeedsYouCalls's own lookup so the list
+    // below only fires when the design stage is genuinely on for this workspace.
+    let designStageEnabled = false;
+    if (workspaceId) {
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("design_stage_enabled")
+        .eq("id", workspaceId)
+        .maybeSingle();
+      designStageEnabled = Boolean(
+        (ws as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
+      );
+    }
+
     // R2-ATTENTION #2: expired gates leave the live queue. The live fetch takes
     // pending-and-inside-window rows only; expired rows (state or window) come
     // back separately for the quiet end-of-queue group. Snoozed rows (Later)
     // stay out of both until their window passes.
-    const [counts, approvals, expiredRows, prds, opps, events, decided, challenges, proposals] =
-      await Promise.all([
-        countNeedsYouCalls(db, userId, workspaceId),
-        db
-          .from("agent_approvals")
-          .select(
-            "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
-          )
-          .eq("user_id", userId)
-          .eq("escalation_state", "pending")
-          .or(liveGateOr(nowIso))
-          .or(notSnoozedOr(nowIso))
-          .order("expires_at", { ascending: true })
-          .limit(10),
-        supabase
-          .from("agent_approvals")
-          .select("id,agent_slug,tool_name,expires_at,created_at")
-          .eq("user_id", userId)
-          .or(expiredGateOr(nowIso))
-          .order("expires_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("prds")
-          .select("id,title,status,critic_review,updated_at")
-          .eq("status", "review")
-          .order("updated_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("opportunities")
-          .select("id,title,critic_review,created_at")
-          .filter("critic_review->>verdict", "in", '("revise","kill")')
-          // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
-          // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
-          // the call is decided and must not resurface on the next visit.
-          .eq("status", "backlog")
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("ai_events")
-          .select("est_cost_usd")
-          .gte("created_at", dayStart.toISOString())
-          .limit(1000),
-        supabase
-          .from("agent_approvals")
-          .select("created_at,decided_at")
-          .eq("user_id", userId)
-          .not("decided_at", "is", null)
-          .gte("decided_at", weekAgo)
-          .limit(200),
-        workspaceId
-          ? supabase
-              .from("assumption_challenges")
-              .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
-              .eq("workspace_id", workspaceId)
-              .eq("status", "open")
-              .order("created_at", { ascending: false })
-              .limit(5)
-          : Promise.resolve({ data: [] as unknown[] }),
-        // SW-3 (mission 3.8b): open playbook proposals ride the queue as Calls.
-        // playbook_proposals postdates the generated types (db, untyped); a
-        // missing table pre-migration errors softly into an empty list.
-        workspaceId
-          ? db
-              .from("playbook_proposals")
-              .select("id,title,body,created_at,source_learning_ids")
-              .eq("workspace_id", workspaceId)
-              .eq("status", "proposed")
-              .order("created_at", { ascending: false })
-              .limit(5)
-          : Promise.resolve({ data: [] as unknown[] }),
-      ]);
+    const [
+      counts,
+      approvals,
+      expiredRows,
+      prds,
+      opps,
+      events,
+      decided,
+      challenges,
+      proposals,
+      designGatePrds,
+    ] = await Promise.all([
+      countNeedsYouCalls(db, userId, workspaceId),
+      db
+        .from("agent_approvals")
+        .select(
+          "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
+        )
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .or(liveGateOr(nowIso))
+        .or(notSnoozedOr(nowIso))
+        .order("expires_at", { ascending: true })
+        .limit(10),
+      supabase
+        .from("agent_approvals")
+        .select("id,agent_slug,tool_name,expires_at,created_at")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .or(expiredGateOr(nowIso))
+        .order("expires_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("prds")
+        .select("id,title,status,critic_review,updated_at")
+        .eq("status", "review")
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("opportunities")
+        .select("id,title,critic_review,created_at")
+        .filter("critic_review->>verdict", "in", '("revise","kill")')
+        // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
+        // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
+        // the call is decided and must not resurface on the next visit.
+        .eq("status", "backlog")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("ai_events")
+        .select("est_cost_usd")
+        .gte("created_at", dayStart.toISOString())
+        .limit(1000),
+      supabase
+        .from("agent_approvals")
+        .select("created_at,decided_at")
+        .eq("user_id", userId)
+        .not("decided_at", "is", null)
+        .gte("decided_at", weekAgo)
+        .limit(200),
+      workspaceId
+        ? supabase
+            .from("assumption_challenges")
+            .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+            .eq("workspace_id", workspaceId)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+      // SW-3 (mission 3.8b): open playbook proposals ride the queue as Calls.
+      // playbook_proposals postdates the generated types (db, untyped); a
+      // missing table pre-migration errors softly into an empty list.
+      workspaceId
+        ? db
+            .from("playbook_proposals")
+            .select("id,title,body,created_at,source_learning_ids")
+            .eq("workspace_id", workspaceId)
+            .eq("status", "proposed")
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+      // SW-7 (mission 3.4): specs with an undecided design gate, on a
+      // workspace with the design stage on.
+      workspaceId && designStageEnabled
+        ? supabase
+            .from("prds")
+            .select("id,title,updated_at")
+            .eq("workspace_id", workspaceId)
+            .is("design_gate_status", null)
+            .order("updated_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+    ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(
       (s, e) => s + Number((e as { est_cost_usd: number | null }).est_cost_usd || 0),
@@ -500,6 +576,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       oppCalls: (opps.data ?? []) as NeedsYou["oppCalls"],
       assumptionCalls,
       playbookCalls,
+      designGateCalls: (designGatePrds.data ?? []) as NeedsYou["designGateCalls"],
       spendTodayUsd,
       gateMedianMinutes,
       counts,

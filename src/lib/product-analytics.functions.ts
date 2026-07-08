@@ -140,8 +140,7 @@ export const runAnalyticsIngest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
 
     // Verify caller is a workspace member or owner.
     const { data: ws } = await supabase

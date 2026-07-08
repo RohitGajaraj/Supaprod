@@ -199,6 +199,14 @@ export interface OpportunityDetailSheetProps {
    * priority band with its one-line meaning so a human or an agent reads what
    * the bet is and what to do. Absent renders nothing. */
   designation?: Designation;
+  /** Any mutation in flight for this bet: disables both action buttons so a
+   * second click can never double-fire. */
+  busy?: boolean;
+  /** The Critic challenge is in flight: the Challenge button shows its
+   * spinner. */
+  challengePending?: boolean;
+  /** The spec draft is in flight: the Draft spec button shows its spinner. */
+  draftPending?: boolean;
 }
 
 /**
@@ -225,6 +233,9 @@ export function OpportunityDetailSheet({
   rationale,
   nextAction,
   designation,
+  busy = false,
+  challengePending = false,
+  draftPending = false,
 }: OpportunityDetailSheetProps) {
   const copyTraceId = () => {
     if (!opportunity) return;
@@ -569,10 +580,22 @@ export function OpportunityDetailSheet({
                 borderTop: "1px solid var(--hairline)",
               }}
             >
-              <Button variant="primary" size="sm" onClick={onDraftSpec}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={onDraftSpec}
+                loading={draftPending}
+                disabled={busy}
+              >
                 Draft spec
               </Button>
-              <Button variant="secondary" size="sm" onClick={onChallenge}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onChallenge}
+                loading={challengePending}
+                disabled={busy}
+              >
                 Challenge with the Critic
               </Button>
               <Button

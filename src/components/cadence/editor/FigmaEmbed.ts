@@ -7,7 +7,10 @@ export function toEmbedUrl(url: string): string {
     if (u.protocol !== "http:" && u.protocol !== "https:") {
       return url;
     }
-    if (u.hostname.includes("figma.com") && !u.pathname.startsWith("/embed")) {
+    // Validate hostname to ensure it's actually figma.com or a subdomain (not a substring match).
+    // Prevents attacker-controlled URLs like "evilfigma.com" or "figma.com.attacker.io".
+    const isFigmaHost = u.hostname === "figma.com" || u.hostname.endsWith(".figma.com");
+    if (isFigmaHost && !u.pathname.startsWith("/embed")) {
       return `https://www.figma.com/embed?embed_host=cadence&url=${encodeURIComponent(url)}`;
     }
     return url;

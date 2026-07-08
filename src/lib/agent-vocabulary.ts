@@ -712,3 +712,30 @@ export function conductorEntry(): CatalogEntry | null {
 function titleCase(slug: string): string {
   return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/**
+ * AI-PULSE (founder ruling 2026-07-08): the outcome-named caption for a tool
+ * the loop is running RIGHT NOW - never the raw tool id (a new tool must not
+ * leak its internal name to the user). Shared by the Build cockpit's live
+ * header and the platform-wide activity ticker so the two can never disagree.
+ */
+export const ACTION_LABEL: Record<string, string> = {
+  "repo.read": "reading the repo",
+  "repo.tree": "reading the repo",
+  "repo.search": "searching the repo",
+  "studio.stage": "drafting changes",
+  "studio.commit": "saving changes",
+  "studio.pr.open": "opening a pull request",
+  "studio.pr.merge": "merging",
+  "github.ci.read": "checking tests",
+  "ci.logs": "reading the failing check",
+  "github.commit.append": "fixing the failing check",
+};
+
+/** The one-liner for a run's latest step; calm fallbacks, never internals. */
+export function stepLabel(step: { kind: string; name?: string } | undefined | null): string {
+  if (!step) return "starting up";
+  if (step.kind === "tool_call") return ACTION_LABEL[step.name ?? ""] ?? "working";
+  if (step.kind === "thought") return "thinking";
+  return "working";
+}

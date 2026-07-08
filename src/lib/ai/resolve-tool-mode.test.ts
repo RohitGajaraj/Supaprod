@@ -65,11 +65,19 @@ describe("resolveToolMode - seam-2 one-motion consent + the bounded CI-fix appen
     expect(resolveToolMode("studio.pr.open", "confirm", "proving", true)).toBe("auto");
   });
 
-  it("without contract approval the two mechanics tools keep their floors", () => {
+  it("a tightened arc (proving) still gates the mechanics without a contract", () => {
+    // The operator's dial-down is respected: proving keeps confirm at confirm.
     expect(resolveToolMode("studio.commit", "confirm", "proving", false)).toBe("confirm");
     expect(resolveToolMode("studio.pr.open", "confirm", "proving", false)).toBe("confirm");
-    // The floor also still knocks a dialed auto back to confirm unapproved.
-    expect(resolveToolMode("studio.commit", "confirm", "trusted", false)).toBe("confirm");
+  });
+
+  it("at trusted the build-lane mechanics run auto with NO contract precondition (founder ruling 2026-07-08)", () => {
+    // The dial resolves confirm -> auto at trusted, and the high-risk
+    // demotion now skips BUILD_LANE_AUTONOMOUS: the branch and draft PR are
+    // reversible; only the review-pinned merge decides what lands.
+    expect(resolveToolMode("studio.commit", "confirm", "trusted", false)).toBe("auto");
+    expect(resolveToolMode("studio.pr.open", "confirm", "trusted", false)).toBe("auto");
+    expect(resolveToolMode("studio.stage", "auto", "trusted", false)).toBe("auto");
   });
 
   it("one-motion consent never reaches the decisive gates or the other floored tools", () => {

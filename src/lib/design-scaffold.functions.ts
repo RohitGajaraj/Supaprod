@@ -253,8 +253,7 @@ export const generateDesignScaffold = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<DesignScaffold> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
     const scaffold = await buildDesignScaffoldHtml(supabase, userId, data);
     await persistScaffold(supabase, userId, {
       prdId: data.prdId,
@@ -327,8 +326,7 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<ScaffoldDesignCriticResult> => {
-    const { supabase } = context;
-    const userId = context.auth.user.id;
+    const { supabase, userId } = context;
 
     let workspaceId: string | null = null;
     try {
@@ -375,20 +373,25 @@ export const getDesignGate = createServerFn({ method: "GET" })
       .eq("id", data.prdId)
       .maybeSingle();
     // Pre-migration window: the columns are absent, the stage reads as off.
-    if (prdErr || !prdRow) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
+    if (prdErr || !prdRow)
+      return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
     const prd = prdRow as unknown as {
       design_gate_status: "pending" | "approved" | "rejected" | null;
       design_decided_at: string | null;
       workspace_id: string | null;
     };
-    if (!prd.workspace_id) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
+    if (!prd.workspace_id)
+      return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
     const { data: ws, error: wsErr } = await supabase
       .from("workspaces")
       .select("design_stage_enabled, owner_id")
       .eq("id", prd.workspace_id)
       .maybeSingle();
     if (wsErr) return { stageEnabled: false, status: null, decidedAt: null, isOwner: false };
-    const w = ws as unknown as { design_stage_enabled?: boolean | null; owner_id?: string | null } | null;
+    const w = ws as unknown as {
+      design_stage_enabled?: boolean | null;
+      owner_id?: string | null;
+    } | null;
     return {
       stageEnabled: Boolean(w?.design_stage_enabled),
       status: prd.design_gate_status ?? null,
@@ -411,7 +414,11 @@ export const decideDesignGate = createServerFn({ method: "POST" })
       .eq("id", data.prdId)
       .single();
     if (readErr || !prdRow) throw new Error(readErr?.message ?? "Spec not found");
-    const prd = prdRow as unknown as { id: string; workspace_id: string | null; design_gate_status?: string | null };
+    const prd = prdRow as unknown as {
+      id: string;
+      workspace_id: string | null;
+      design_gate_status?: string | null;
+    };
 
     const { error } = await supabase
       .from("prds")
@@ -424,7 +431,9 @@ export const decideDesignGate = createServerFn({ method: "POST" })
       .eq("id", data.prdId);
     if (error) {
       if (error.code === "42703" || error.code === "PGRST204") {
-        throw new Error("The design stage is not migrated yet; apply the sw4_design_station migration first.");
+        throw new Error(
+          "The design stage is not migrated yet; apply the sw4_design_station migration first.",
+        );
       }
       throw new Error(error.message);
     }

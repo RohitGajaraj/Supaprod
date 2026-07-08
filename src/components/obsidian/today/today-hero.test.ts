@@ -9,15 +9,16 @@ describe("computeHero — the OBS-04 hero sentence", () => {
     });
   });
 
-  it("1 pending -> singular 'One call'", () => {
+  it("1 pending -> singular 'One call' with the singular verb (SW-7 live-run fix)", () => {
     expect(computeHero(1)).toEqual({
       heroA: "One call",
-      heroB: " need your judgment today.",
+      heroB: " needs your judgment today.",
     });
   });
 
-  it("2 pending -> 'Two calls'", () => {
+  it("2 pending -> 'Two calls' with the plural verb", () => {
     expect(computeHero(2).heroA).toBe("Two calls");
+    expect(computeHero(2).heroB).toBe(" need your judgment today.");
   });
 
   it("3 pending -> 'Three calls'", () => {

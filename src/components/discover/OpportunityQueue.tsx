@@ -116,7 +116,10 @@ export function OpportunityQueue() {
   // Opportunities tab (draft spec / lineage / status / delete).
   const draftSpec = useMutation({
     mutationFn: (id: string) => fDraftSpec({ data: { opportunity_id: id } }),
-    onMutate: (id) => setBusy(id, true),
+    onMutate: (id) => {
+      setBusy(id, true);
+      toast("Drafting the spec. Lands in Plan when ready.");
+    },
     onSuccess: (r) => {
       toast.success("Spec drafted");
       navigate({ to: "/plan/spec/$id", params: { id: r.prd.id }, search: { tab: "contract" } });
@@ -278,6 +281,7 @@ export function OpportunityQueue() {
               challengePending={rowBusy && challenge.isPending}
               actionsPending={rowBusy}
               onDraftSpec={() => draftSpec.mutate(o.id)}
+              draftPending={rowBusy && draftSpec.isPending}
               onLineage={() => setLineageId(o.id)}
               onSetStatus={(status) => setStatus.mutate({ id: o.id, status })}
               onDelete={async () => {
@@ -332,6 +336,9 @@ export function OpportunityQueue() {
         designation={activeRanked?.designation}
         rationale={activeRanked?.rationale}
         nextAction={activeRanked?.nextAction}
+        busy={activeOpp ? busyIds.has(activeOpp.id) : false}
+        challengePending={challenge.isPending && !!activeOpp && busyIds.has(activeOpp.id)}
+        draftPending={draftSpec.isPending && !!activeOpp && busyIds.has(activeOpp.id)}
         onChallenge={() => activeOpp && challenge.mutate(activeOpp.id)}
         onDraftSpec={() => activeOpp && draftSpec.mutate(activeOpp.id)}
         onViewLineage={() => {

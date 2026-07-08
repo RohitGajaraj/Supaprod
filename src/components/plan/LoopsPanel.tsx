@@ -68,7 +68,16 @@ export function LoopsPanel() {
 
   const setStatus = useMutation({
     mutationFn: (v: { loopId: string; status: LoopStatus }) => fStatus({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["loops"] }),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ["loops"] });
+      toast.success(
+        v.status === "paused"
+          ? "Loop paused."
+          : v.status === "active"
+            ? "Loop resumed."
+            : "Loop archived.",
+      );
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -144,6 +153,7 @@ export function LoopsPanel() {
               key={l.id}
               loop={l}
               onSetStatus={(status) => setStatus.mutate({ loopId: l.id, status })}
+              statusPending={setStatus.isPending}
             />
           ))}
         </div>
@@ -171,9 +181,11 @@ function fmtCost(v: number | null | undefined): string {
 function LoopCard({
   loop,
   onSetStatus,
+  statusPending = false,
 }: {
   loop: LoopListItem;
   onSetStatus: (s: LoopStatus) => void;
+  statusPending?: boolean;
 }) {
   const last = fmtWhen(loop.last_run_at);
   const next = fmtWhen(loop.next_run_at);
@@ -274,15 +286,15 @@ function LoopCard({
       ) : null}
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
         {loop.status === "active" ? (
-          <Button variant="tertiary" onClick={() => onSetStatus("paused")}>
+          <Button variant="tertiary" onClick={() => onSetStatus("paused")} disabled={statusPending}>
             Pause
           </Button>
         ) : loop.status === "paused" ? (
-          <Button variant="tertiary" onClick={() => onSetStatus("active")}>
+          <Button variant="tertiary" onClick={() => onSetStatus("active")} disabled={statusPending}>
             Resume
           </Button>
         ) : null}
-        <Button variant="tertiary" onClick={() => onSetStatus("archived")}>
+        <Button variant="tertiary" onClick={() => onSetStatus("archived")} disabled={statusPending}>
           Archive
         </Button>
       </div>

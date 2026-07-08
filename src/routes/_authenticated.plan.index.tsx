@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
     };
   },
   component: PlanPage,
-  head: () => ({ meta: [{ title: "Plan · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Define · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
     <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
       <div
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
         }}
       >
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-          COULDN'T LOAD PLAN
+          COULDN'T LOAD DEFINE
         </div>
         <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
           {(error as Error)?.message ?? "Unknown error"}
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
             cursor: "pointer",
           }}
         >
-          Retry · reloads Plan
+          Retry · reloads Define
         </button>
       </div>
     </div>
@@ -60,7 +60,7 @@ function PlanPage() {
   const { view } = Route.useSearch();
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Plan"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Define"]} />
       <PlanSurface view={view} />
     </>
   );

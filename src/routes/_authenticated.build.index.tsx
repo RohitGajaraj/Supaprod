@@ -229,12 +229,22 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       else toast.error(e.message);
     },
   });
-  const gatedDispatch = () =>
-    gateDispatch({
-      check: () => fCanDispatch({ data: { prdId: prdId ?? undefined } }),
-      dispatch: () => dispatch.mutate(),
-      openGate: (reason) => setRepoGate({ reason }),
-    });
+  // Feedback ruling 2026-07-08: the repo pre-check is a real network wait, so
+  // it shows the same pending state as the dispatch itself and blocks a
+  // second Start click from double-dispatching.
+  const [checking, setChecking] = useState(false);
+  const gatedDispatch = async () => {
+    setChecking(true);
+    try {
+      await gateDispatch({
+        check: () => fCanDispatch({ data: { prdId: prdId ?? undefined } }),
+        dispatch: () => dispatch.mutate(),
+        openGate: (reason) => setRepoGate({ reason }),
+      });
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const startMission = useMutation({
     mutationFn: () =>
@@ -253,7 +263,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const isPending = mode === "ship" ? dispatch.isPending : startMission.isPending;
+  const isPending = mode === "ship" ? checking || dispatch.isPending : startMission.isPending;
   const canStart =
     mode === "ship"
       ? (prompt.trim().length >= 4 || !!prdId) && !isPending

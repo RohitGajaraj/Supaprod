@@ -150,6 +150,7 @@ export function MissionSlideOver({
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
       qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
     },
+    onError: (e: Error) => showToast(e.message),
   });
 
   // OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
@@ -162,6 +163,7 @@ export function MissionSlideOver({
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
       qc.invalidateQueries({ queryKey: ["studio-session", missionId] });
     },
+    onError: (e: Error) => showToast(e.message),
   });
 
   const copyId = () => {

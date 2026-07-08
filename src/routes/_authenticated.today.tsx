@@ -46,6 +46,7 @@ import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
 import { savePrd, updateOpportunity } from "@/lib/discovery.functions";
+import { decideDesignGate } from "@/lib/design-scaffold.functions";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { CriticReview } from "@/lib/discovery.functions";
 import {
@@ -242,12 +243,30 @@ function TodaySpotlight({
           >
             {fullOpen ? "Hide the full brief" : "Read the full brief"}
           </button>
-          {fullOpen ? (
+          {refreshing ? (
+            // Feedback ruling 2026-07-08: the in-flight line stays visible even
+            // with the brief collapsed, so a refresh never looks like it
+            // silently died (same shimmer anatomy as AskPanel's status).
+            <span
+              role="status"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                background: "var(--shimmer-gradient)",
+                backgroundSize: "280%",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                animation: "cadShimmer 5s linear infinite",
+              }}
+            >
+              {"Drafting today's brief…"}
+            </span>
+          ) : fullOpen ? (
             <button
               type="button"
               onClick={onRefreshBrief}
-              disabled={refreshing}
-              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
+              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
               style={{
                 ...monoLabel,
                 color: "var(--glacier)",
@@ -257,7 +276,7 @@ function TodaySpotlight({
                 cursor: "pointer",
               }}
             >
-              {refreshing ? "Refreshing" : "Refresh"}
+              Refresh
             </button>
           ) : null}
         </div>
@@ -343,6 +362,7 @@ function Dashboard() {
   const mResolveChallenge = useServerFn(resolveAssumptionChallenge);
   const mDecideProposal = useServerFn(decidePlaybookProposal);
   const mSavePrd = useServerFn(savePrd);
+  const mDecideDesignGate = useServerFn(decideDesignGate);
   const mUpdateOpp = useServerFn(updateOpportunity);
   const mBrief = useServerFn(generateDailyBrief);
   const recordRitual = useServerFn(recordRitualSession);
@@ -488,6 +508,24 @@ function Dashboard() {
       }
       answered();
       showToast(vars.ok ? "Spec approved. The decision is logged." : "Sent back to draft.");
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
+
+  // SW-7 (mission 3.4): the design station's gate, decided from the same
+  // queue as every other call. Approve writes a taste learning (the
+  // scaffold-feedback writeback design-scaffold.functions.ts already does).
+  const decideDesignGateCall = useMutation({
+    mutationFn: (v: { id: string; ok: boolean }) =>
+      mDecideDesignGate({ data: { prdId: v.id, decision: v.ok ? "approve" : "reject" } }),
+    onSuccess: (_res, vars) => {
+      for (const key of ["needs-you", "prds", "specs", "dashboard", "design-gate"]) {
+        qc.invalidateQueries({ queryKey: [key] });
+      }
+      answered();
+      showToast(
+        vars.ok ? "Design approved. This spec can now dispatch to Build." : "Changes requested.",
+      );
     },
     onError: (e: Error) => showToast(e.message),
   });
@@ -674,6 +712,28 @@ function Dashboard() {
         },
       };
     }),
+    // SW-7 (mission 3.4): a spec whose design mockup gate is undecided - the
+    // design station's one queue entry, since it has no page of its own.
+    ...(ny?.designGateCalls ?? []).map((p) => ({
+      id: p.id,
+      expiresAt: null,
+      raisedAt: Date.parse(p.updated_at) || 0,
+      props: {
+        kind: "DESIGN READY?",
+        expiry: "",
+        title: p.title,
+        body: "The generated mockup is waiting on your call before this spec can dispatch to Build.",
+        ev: [],
+        okLabel: "Approve design",
+        noLabel: "Request changes",
+        consequence: "Approve unblocks Build for this spec · Request changes keeps the gate closed",
+        onOpen: () => setActiveCallId(p.id),
+        traceRef: traceNode("PRD", p.id),
+        time: timeNode(p.updated_at),
+        onOk: () => decideDesignGateCall.mutate({ id: p.id, ok: true }),
+        onNo: () => decideDesignGateCall.mutate({ id: p.id, ok: false }),
+      },
+    })),
   ]);
 
   const reexamineCalls: QueueCall[] = sortWithinGroup([
@@ -732,7 +792,7 @@ function Dashboard() {
     {
       family: "build",
       calls: buildCalls,
-      total: ny ? ny.counts.specs + ny.counts.opportunities : undefined,
+      total: ny ? ny.counts.specs + ny.counts.opportunities + ny.counts.designGates : undefined,
     },
     {
       family: "reexamine",
@@ -790,6 +850,20 @@ function Dashboard() {
       noLabel: "Send back",
       onOk: () => decidePrd.mutate({ id: p.id, ok: true }),
       onNo: () => decidePrd.mutate({ id: p.id, ok: false }),
+    };
+  }
+  for (const p of ny?.designGateCalls ?? []) {
+    callDetails[p.id] = {
+      kind: "spec",
+      id: p.id,
+      title: p.title,
+      status: "design pending",
+      critic: null,
+      updatedAt: p.updated_at,
+      okLabel: "Approve design",
+      noLabel: "Request changes",
+      onOk: () => decideDesignGateCall.mutate({ id: p.id, ok: true }),
+      onNo: () => decideDesignGateCall.mutate({ id: p.id, ok: false }),
     };
   }
   for (const o of ny?.oppCalls ?? []) {
