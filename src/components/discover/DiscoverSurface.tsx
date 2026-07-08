@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listSignals } from "@/lib/discovery.functions";
+import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
@@ -52,8 +53,11 @@ function ConstellationMotif() {
 export function DiscoverSurface() {
   const navigate = useNavigate();
   const { tab } = useSearch({ from: "/_authenticated/discover" });
-  const { activeProductId } = useWorkspace();
+  const { activeProductId, activeWorkspaceId } = useWorkspace();
   const fSignals = useServerFn(listSignals);
+  const fSeedEnabled = useServerFn(isDemoSeedEnabled);
+  const fTriggerSeed = useServerFn(triggerWorkspaceSeed);
+  const queryClient = useQueryClient();
 
   // Loom W2 (audit D-24): honor the deep-link ?tab= from the legacy redirects
   // and the palette pass. Only the signals column lives here now (the
@@ -77,6 +81,23 @@ export function DiscoverSurface() {
 
   const signalsEmpty =
     !signals.isLoading && !signals.error && (signals.data?.signals.length ?? 0) === 0;
+
+  // SW-6 cold-start: a not-yet-connected workspace can fill its empty feed with a
+  // clearly-labelled example set on demand, instead of staring at a blank desk. The
+  // opt-in is dormant unless ONBOARDING_SEED_ENABLED=1 (the same gate onboarding reads),
+  // so a real deployment shows nothing fabricated until the founder turns it on. Real
+  // signals, once a source is connected, always win; this only fills the empty case.
+  const seedEnabledQ = useQuery({
+    queryKey: ["demo-seed-enabled"],
+    queryFn: () => fSeedEnabled(),
+    enabled: signalsEmpty,
+  });
+  const seedMutation = useMutation({
+    mutationFn: () => fTriggerSeed({ data: { workspaceId: activeWorkspaceId as string } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["signals"] }),
+  });
+  const sampleOffered =
+    signalsEmpty && (seedEnabledQ.data?.enabled ?? false) && !!activeWorkspaceId;
 
   return (
     <div
@@ -172,6 +193,38 @@ export function DiscoverSurface() {
           >
             Opens Connections · reading starts the moment a source is linked
           </p>
+          {sampleOffered ? (
+            <div
+              style={{
+                marginTop: "22px",
+                paddingTop: "20px",
+                borderTop: "1px solid var(--hairline)",
+              }}
+            >
+              <Button
+                variant="tertiary"
+                disabled={seedMutation.isPending}
+                onClick={() => seedMutation.mutate()}
+              >
+                {seedMutation.isPending ? "Setting up sample data…" : "Explore with sample data"}
+              </Button>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-subtle)",
+                  marginTop: "10px",
+                }}
+              >
+                Fills this workspace with a labelled example set so you can look around before
+                connecting · about 5 seconds
+              </p>
+              {seedMutation.isError ? (
+                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
+                  Could not load sample data. Try again.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <>

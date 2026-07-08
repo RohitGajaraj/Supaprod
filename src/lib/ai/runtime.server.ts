@@ -1118,7 +1118,13 @@ async function incrementBudget(
 ) {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7) + "-01";
-  const { data: existing } = await supabase
+  // The spend ledger is service-role territory. authenticated is column-restricted
+  // to caps only (migration 20260708153000), so a user cannot PATCH their own usage
+  // back to 0 or roll the window forward to dodge the cap. The runtime therefore
+  // meters through supabaseAdmin, the same principal split that lets checkBudget
+  // still read via the user client while only the service role advances the ledger.
+  const admin = supabaseAdmin as unknown as SupabaseClient;
+  const { data: existing } = await admin
     .from("ai_budgets")
     .select(
       "id,day_window,month_window,daily_tokens_used,monthly_tokens_used,daily_usd_used,monthly_usd_used,daily_usd_cap,monthly_usd_cap,alert_at_pct",
@@ -1126,7 +1132,7 @@ async function incrementBudget(
     .eq("user_id", userId)
     .maybeSingle();
   if (!existing) {
-    await supabase.from("ai_budgets").insert({
+    await admin.from("ai_budgets").insert({
       user_id: userId,
       daily_tokens_used: tokens,
       monthly_tokens_used: tokens,
@@ -1141,7 +1147,7 @@ async function incrementBudget(
   const monthReset = existing.month_window !== thisMonth;
   const newDailyUsd = Number(dayReset ? 0 : existing.daily_usd_used) + usd;
   const newMonthlyUsd = Number(monthReset ? 0 : existing.monthly_usd_used) + usd;
-  await supabase
+  await admin
     .from("ai_budgets")
     .update({
       day_window: today,
@@ -1198,7 +1204,10 @@ async function incrementSurfaceBudget(
 ) {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7) + "-01";
-  const { data: existing } = await supabase
+  // Same ledger split as incrementBudget: authenticated is column-restricted to
+  // caps/enabled, so the runtime meters the surface ledger through supabaseAdmin.
+  const admin = supabaseAdmin as unknown as SupabaseClient;
+  const { data: existing } = await admin
     .from("ai_surface_budgets")
     .select(
       "id,day_window,month_window,daily_usd_used,monthly_usd_used,daily_usd_cap,monthly_usd_cap",
@@ -1213,7 +1222,7 @@ async function incrementSurfaceBudget(
   const prevMonthly = Number(monthReset ? 0 : existing.monthly_usd_used);
   const newDaily = prevDaily + usd;
   const newMonthly = prevMonthly + usd;
-  await supabase
+  await admin
     .from("ai_surface_budgets")
     .update({
       day_window: today,
