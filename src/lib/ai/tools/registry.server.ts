@@ -1390,7 +1390,7 @@ const repoSearch = def({
 const studioStage = def({
   name: "studio.stage",
   description:
-    "Studio: stage multi-file edits into the mission's changeset. Pass the FULL new file contents per path (not a diff). Edits land in the platform DB — nothing touches GitHub until studio.commit. Re-stage a path to replace its staged contents.",
+    "Studio: stage multi-file edits into the mission's changeset. REQUIRED on every change: 'path', 'op' ('create'|'update'|'delete'), and 'content' (the FULL new file text, not a diff — omit only when op is 'delete'). Edits land in the platform DB — nothing touches GitHub until studio.commit. Re-stage a path to replace its staged contents.",
   category: "write",
   argsSchema: z.object({
     changes: z
@@ -1715,17 +1715,28 @@ const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
 const ciLogs = def({
   name: "ci.logs",
   description:
-    "Builder agent: fetch the FAILING check runs on a PR with their full output detail and job log tails. Read-only. Use to diagnose red CI before staging a fix — github.ci.read only carries 240-char summaries.",
+    "Builder agent: fetch the FAILING check runs on a PR with their full output detail and job log tails. Read-only. Use to diagnose red CI before staging a fix — github.ci.read only carries 240-char summaries. pr_number is optional: omit it to use this mission's own open PR.",
   category: "read",
   argsSchema: z.object({
-    pr_number: z.number().int().min(1).max(10_000_000),
+    pr_number: z.number().int().min(1).max(10_000_000).optional(),
   }),
-  preview: (a) => `Read failing CI detail on PR #${a.pr_number}`,
+  preview: (a) =>
+    a.pr_number ? `Read failing CI detail on PR #${a.pr_number}` : "Read failing CI detail on this mission's PR",
   run: async (a, ctx) => {
     const { token, repo } = await requireGithub(ctx);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error(`Invalid GitHub repo format: ${repo}`);
+    // Finding 32 (SW-7): every run used to fumble this arg once before
+    // self-correcting. The mission's own active changeset already carries the
+    // PR it opened, so resolve it there when the caller omits pr_number.
+    let prNumber = a.pr_number ?? null;
+    if (!prNumber && ctx.missionId) {
+      const changeset = await getActiveChangeset(ctx.supabase, ctx.missionId);
+      prNumber = changeset?.pr_number ?? null;
+    }
+    if (!prNumber)
+      throw new Error("ci.logs: no pr_number given and this mission has no open PR to default to");
     const headers = ghHeaders(token);
-    const prRes = await fetch(`https://api.github.com/repos/${repo}/pulls/${a.pr_number}`, {
+    const prRes = await fetch(`https://api.github.com/repos/${repo}/pulls/${prNumber}`, {
       headers,
     });
     if (!prRes.ok)
@@ -1733,7 +1744,7 @@ const ciLogs = def({
     const prJson = (await prRes.json()) as { head: { sha: string } };
     const detail = await fetchFailingCiDetail({ token, repo, headSha: prJson.head.sha });
     return {
-      pr_number: a.pr_number,
+      pr_number: prNumber,
       head_sha: detail.headSha,
       overall: detail.overall,
       failing_count: detail.failing.length,

@@ -81,6 +81,23 @@ export const createGoal = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }): Promise<{ goal: GoalRow; firstPass: GoalPassResult | null }> => {
     const db = context.supabase as unknown as SupabaseClient;
+    // Finding 22 (SW-7 terminal walkthrough): a double submission (e.g. a
+    // double-click or a retried request) created two identical ACTIVE goals.
+    // Dedupe on the normalized title among this user's active goals before
+    // inserting a new one — a paused/achieved/archived goal with the same
+    // title is a deliberate restart, not a duplicate, so it doesn't block.
+    const normalizedTitle = data.title.trim().toLowerCase();
+    const { data: existingActive } = await db
+      .from("goals")
+      .select("id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at")
+      .eq("user_id", context.userId)
+      .eq("status", "active")
+      .ilike("title", normalizedTitle)
+      .limit(1)
+      .maybeSingle();
+    if (existingActive) {
+      return { goal: existingActive as GoalRow, firstPass: null };
+    }
     const { data: goal, error } = await db
       .from("goals")
       .insert({
