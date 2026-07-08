@@ -229,15 +229,19 @@ export const getMissionChain = createServerFn({ method: "GET" })
 
     const prdIds = Array.from(
       new Set(
-        [
-          ...decisionRows.map((d) => d.prd_id),
-          ...changesetRows.map((c) => c.prd_id),
-        ].filter((id): id is string => Boolean(id)),
+        [...decisionRows.map((d) => d.prd_id), ...changesetRows.map((c) => c.prd_id)].filter(
+          (id): id is string => Boolean(id),
+        ),
       ),
     );
 
     // Contract (prd), plus its opportunity for the signal hop.
-    type PrdRow = { id: string; title: string | null; created_at: string; opportunity_id: string | null };
+    type PrdRow = {
+      id: string;
+      title: string | null;
+      created_at: string;
+      opportunity_id: string | null;
+    };
     let prdRow: PrdRow | null = null;
     if (prdIds.length > 0) {
       const prds = must(
@@ -253,7 +257,13 @@ export const getMissionChain = createServerFn({ method: "GET" })
 
     // Deployments for the changesets. Only a SUCCESSFUL deploy is evidence the
     // thing shipped - a failed/pending row must not render a present link.
-    type DeployRow = { id: string; deploy_url: string | null; status: string; deployed_at: string | null; created_at: string };
+    type DeployRow = {
+      id: string;
+      deploy_url: string | null;
+      status: string;
+      deployed_at: string | null;
+      created_at: string;
+    };
     const changesetIds = changesetRows.map((c) => c.id);
     let deployRow: DeployRow | null = null;
     if (changesetIds.length > 0) {
@@ -270,7 +280,12 @@ export const getMissionChain = createServerFn({ method: "GET" })
     }
 
     // Outcome: learnings by direct mission_id, else by prd_id (the fragile hop).
-    type LearningRow = { id: string; summary: string | null; verdict: string | null; created_at: string };
+    type LearningRow = {
+      id: string;
+      summary: string | null;
+      verdict: string | null;
+      created_at: string;
+    };
     let learningRow: LearningRow | null = null;
     {
       const byMission = must(
@@ -382,7 +397,7 @@ export const getMissionChain = createServerFn({ method: "GET" })
             at: learningRow.created_at,
             detail: learningRow.verdict
               ? `Outcome: ${learningRow.verdict}`
-              : learningRow.summary ?? "Outcome recorded",
+              : (learningRow.summary ?? "Outcome recorded"),
           }
         : null,
     };
@@ -394,20 +409,22 @@ export const getMissionChain = createServerFn({ method: "GET" })
  * (RLS alone spans every workspace the caller belongs to - see resolveWorkspaceId). */
 export const listChainMissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<Array<{ id: string; title: string; status: string | null }>> => {
-    const { supabase } = context;
-    const db = supabase as unknown as SupabaseClient;
-    const workspaceId = await resolveWorkspaceId(db);
-    if (!workspaceId) return [];
-    const rows = must(
-      await db
-        .from("missions")
-        .select("id, title, status")
-        .eq("workspace_id", workspaceId)
-        .order("created_at", { ascending: false })
-        .limit(25),
-    );
-    return ((rows ?? []) as Array<{ id: string; title: string | null; status: string | null }>).map(
-      (m) => ({ id: m.id, title: m.title ?? "Untitled mission", status: m.status }),
-    );
-  });
+  .handler(
+    async ({ context }): Promise<Array<{ id: string; title: string; status: string | null }>> => {
+      const { supabase } = context;
+      const db = supabase as unknown as SupabaseClient;
+      const workspaceId = await resolveWorkspaceId(db);
+      if (!workspaceId) return [];
+      const rows = must(
+        await db
+          .from("missions")
+          .select("id, title, status")
+          .eq("workspace_id", workspaceId)
+          .order("created_at", { ascending: false })
+          .limit(25),
+      );
+      return (
+        (rows ?? []) as Array<{ id: string; title: string | null; status: string | null }>
+      ).map((m) => ({ id: m.id, title: m.title ?? "Untitled mission", status: m.status }));
+    },
+  );
