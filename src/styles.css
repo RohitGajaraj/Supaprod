@@ -2300,3 +2300,34 @@ html[data-motion="off"] .agent-live {
 html[data-obsidian] {
   scrollbar-gutter: stable;
 }
+
+/* ===========================================================================
+ * AI-PULSE (founder ruling 2026-07-08, SW-7) - the live machine-activity
+ * one-liner shown wherever the swarm is working. The landing page's flowing
+ * sheen, rebuilt on the AZURE working voice (--action-blue is already the
+ * live/running state color) with the contract-sanctioned --violet-shimmer
+ * as the moving highlight. Small, readable, always in motion while work runs.
+ * Honors data-motion="off" and prefers-reduced-motion like .agent-live. */
+.ai-pulse-text {
+  background: linear-gradient(
+    90deg,
+    #6f9bff,
+    #a9c2ff 30%,
+    var(--violet-shimmer, #c77dff) 50%,
+    #a9c2ff 70%,
+    #6f9bff
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: agent-shimmer 3s linear infinite;
+}
+html[data-motion="off"] .ai-pulse-text {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-pulse-text {
+    animation: none;
+  }
+}

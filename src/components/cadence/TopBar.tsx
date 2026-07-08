@@ -3,11 +3,14 @@
 // the machine-view toggle (the ?view=machine mechanism stays for agents),
 // the AttentionBell (Today's queue + the rail badge own attention), the
 // weather/geo AmbientChip (its ipapi fetch is CORS-dead in prod and showed
-// wrong data), and the ConstructionPill/CookingBanner/LoopThread strips
-// (the rail's shimmer working line is THE one ambient machine-status
-// signal). Left: title crumb, the `actions` slot, mono date, workspace pill.
+// wrong data), and the ConstructionPill/CookingBanner/LoopThread strips.
+// AI-PULSE (founder ruling 2026-07-08, supersedes LOOM 9b's rail-only line):
+// the LiveTicker rides here so EVERY screen shows what the machine is doing
+// while it runs - it and the rail working line share one query, one truth.
+// Left: title crumb, the ticker, the `actions` slot, mono date, workspace pill.
 import { useEffect, useState, type ReactNode } from "react";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { LiveTicker } from "@/components/cadence/LivePulse";
 
 export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactNode }) {
   const [date, setDate] = useState("");
@@ -53,6 +56,7 @@ export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactN
         )}
       </div>
       <span style={{ flex: 1 }} />
+      <LiveTicker />
       {actions}
       <span
         style={{

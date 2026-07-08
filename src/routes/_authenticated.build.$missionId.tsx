@@ -18,6 +18,7 @@ import { ChevronDown, ChevronRight, Send, Copy } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel, StepDot, SubTabs } from "@/components/cadence/Primitives";
+import { stepLabel } from "@/lib/agent-vocabulary";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getStudioSession,
@@ -346,27 +347,16 @@ function SteerComposer({
 }
 
 // The agent's current action, for the live header caption (the Cursor-style
-// "what's it doing right now"). Outcome-named, never the raw tool id; falls back
-// to a calm "working" so a new tool can never leak its internal name to the user.
-const ACTION_LABEL: Record<string, string> = {
-  "repo.read": "reading the repo",
-  "repo.tree": "reading the repo",
-  "repo.search": "searching the repo",
-  "studio.stage": "drafting changes",
-  "studio.commit": "saving changes",
-  "studio.pr.open": "opening a pull request",
-  "studio.pr.merge": "merging",
-  "github.ci.read": "checking tests",
-  "github.commit.append": "fixing the failing check",
-};
-function currentAction(runs: StudioRunDetail[]): string | null {
+// "what's it doing right now"). AI-PULSE: the labels moved to
+// agent-vocabulary.ts (stepLabel) so this caption and the platform-wide
+// ticker can never disagree. When no run is live but the MISSION still is,
+// the caption says "queuing the next run" instead of collapsing to a bare
+// "Live" - continuous feedback, never dead air (founder ruling 2026-07-08).
+function currentAction(runs: StudioRunDetail[], missionLive: boolean): string | null {
   const liveRun = [...runs].reverse().find((r) => r.status === "running" || r.status === "queued");
-  if (!liveRun) return null;
+  if (!liveRun) return missionLive ? "queuing the next run" : null;
   const last = liveRun.steps[liveRun.steps.length - 1];
-  if (!last) return "starting up";
-  if (last.kind === "tool_call") return ACTION_LABEL[last.name] ?? "working";
-  if (last.kind === "thought") return "thinking";
-  return "working";
+  return stepLabel(last);
 }
 
 /** Why steering is closed, or null while it is open. All terminal states close
@@ -451,7 +441,7 @@ function BuildSessionPage() {
   const isLive =
     mission?.status === "running" ||
     runs.some((r) => ["queued", "running", "waiting_approval"].includes(r.status));
-  const liveAction = isLive ? currentAction(runs) : null;
+  const liveAction = isLive ? currentAction(runs, mission?.status === "running") : null;
   const mergeGatePending = approvals.some(
     (a) => a.status === "pending" && a.tool_name === "studio.pr.merge",
   );

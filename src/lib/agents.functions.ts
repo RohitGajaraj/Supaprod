@@ -65,6 +65,71 @@ export const getLiveRunCounts = createServerFn({ method: "GET" })
     };
   });
 
+/** One live-activity item: an active run, named for humans. */
+export type LiveActivityItem = {
+  runId: string;
+  missionId: string | null;
+  missionTitle: string | null;
+  agentName: string;
+  /** running | queued | waiting_approval */
+  status: string;
+  stepIndex: number;
+  startedAt: string;
+};
+
+/**
+ * AI-PULSE (founder ruling 2026-07-08): THE platform-wide "what is the machine
+ * doing right now" read. One tiny row per active run (running / queued /
+ * waiting on a gate) with the mission's human name - light enough for a 4s
+ * poll from the global ticker on every screen. Deliberately no checkpoint
+ * join (checkpoint state carries the full conv; the cockpit renders the rich
+ * per-step caption from its own session read).
+ */
+export const getLiveActivity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ items: LiveActivityItem[] }> => {
+    const { data, error } = await context.supabase
+      .from("agent_runs")
+      .select("id,mission_id,agent_name,agent_slug,status,step_index,created_at")
+      .in("status", ["running", "queued", "waiting_approval"])
+      .order("created_at", { ascending: false })
+      .limit(8);
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as Array<{
+      id: string;
+      mission_id: string | null;
+      agent_name: string | null;
+      agent_slug: string | null;
+      status: string;
+      step_index: number | null;
+      created_at: string;
+    }>;
+
+    const missionIds = [...new Set(rows.map((r) => r.mission_id).filter((m): m is string => !!m))];
+    const titleById = new Map<string, string>();
+    if (missionIds.length > 0) {
+      const { data: missions } = await context.supabase
+        .from("missions")
+        .select("id,title")
+        .in("id", missionIds);
+      for (const m of (missions ?? []) as Array<{ id: string; title: string | null }>) {
+        if (m.title) titleById.set(m.id, m.title);
+      }
+    }
+
+    return {
+      items: rows.map((r) => ({
+        runId: r.id,
+        missionId: r.mission_id,
+        missionTitle: r.mission_id ? (titleById.get(r.mission_id) ?? null) : null,
+        agentName: r.agent_name || r.agent_slug || "agent",
+        status: r.status,
+        stepIndex: r.step_index ?? 0,
+        startedAt: r.created_at,
+      })),
+    };
+  });
+
 export const runAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>

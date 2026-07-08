@@ -12,7 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
 import { getNeedsYou } from "@/lib/today.functions";
-import { getLiveRunCounts } from "@/lib/agents.functions";
+import { useLiveActivity } from "@/components/cadence/LivePulse";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { renameWorkspace, deleteWorkspace, leaveWorkspace } from "@/lib/workspaces.functions";
 import { triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
@@ -244,18 +244,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // with the hero.
   const callCount = needsYou?.counts.liveCalls ?? 0;
 
-  // The shimmer working line — a dedicated unbounded count (listAgentRuns'
-  // 20-row window can drop a long-running run, and a "live" line must never
-  // under-report).
-  const fetchLiveCounts = useServerFn(getLiveRunCounts);
-  const { data: liveCounts } = useQuery({
-    queryKey: ["live-run-counts"],
-    queryFn: () => fetchLiveCounts(),
-    // 15s, the liveliest signal (the working line); paused while hidden.
-    refetchInterval: pollWhenVisible(15_000),
-  });
-  const runningCount = liveCounts?.running ?? 0;
-  const queuedCount = liveCounts?.queued ?? 0;
+  // The shimmer working line - AI-PULSE (founder ruling 2026-07-08): the rail
+  // now rides the SAME shared live-activity poll as the TopBar ticker (one
+  // query key, one 4s cadence, one truth) and names the newest running
+  // mission instead of a bare count.
+  const { items: liveItems } = useLiveActivity();
+  const runningCount = liveItems.filter((i) => i.status === "running").length;
+  const queuedCount = liveItems.filter((i) => i.status === "queued").length;
+  const liveMissionTitle = liveItems[0]?.missionTitle ?? null;
 
   // Profile row identity from the auth session.
   const [userName, setUserName] = useState("Account");
@@ -781,7 +777,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     animation: "cadShimmer 5s linear infinite",
                   }}
                 >
-                  {runningCount} agent{runningCount === 1 ? "" : "s"} working
+                  {liveMissionTitle
+                    ? `${liveMissionTitle.slice(0, 34)}${liveMissionTitle.length > 34 ? "…" : ""} · working`
+                    : `${runningCount} agent${runningCount === 1 ? "" : "s"} working`}
                 </span>
                 {queuedCount > 0 && (
                   <span style={{ color: "var(--text-faint)" }}>· {queuedCount} queued</span>
