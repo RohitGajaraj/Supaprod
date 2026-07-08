@@ -379,7 +379,7 @@ function SpecEditorPage() {
 
   const chrome = (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Plan", "Spec"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Define", "Spec"]} />
       <LoopThread />
     </>
   );
@@ -462,7 +462,7 @@ function SpecEditorPage() {
         <div style={container}>
           <div style={{ ...CARD, padding: 32, maxWidth: 560, textAlign: "center" }}>
             <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-              This spec doesn't exist or was deleted. Every live spec is listed on Plan.
+              This spec doesn't exist or was deleted. Every live spec is listed on Define.
             </p>
             <Link
               to="/plan"
@@ -474,7 +474,7 @@ function SpecEditorPage() {
                 color: "var(--glacier)",
               }}
             >
-              Back to Plan
+              Back to Define
             </Link>
           </div>
         </div>
@@ -501,7 +501,7 @@ function SpecEditorPage() {
             marginBottom: 20,
           }}
         >
-          ← Plan
+          ← Define
         </Link>
 
         {/* Document metadata row: mono-caps + middots */}
