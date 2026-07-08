@@ -18,7 +18,12 @@ export function computeHero(pendingCalls: number): { heroA: string; heroB: strin
         : pendingCalls === 3
           ? "Three calls"
           : `${pendingCalls} calls`;
-  return { heroA, heroB: " need your judgment today." };
+  // SW-7 live-run copy fix: singular subject takes "needs" ("One call needs
+  // your judgment"), plural stays "need".
+  return {
+    heroA,
+    heroB: pendingCalls === 1 ? " needs your judgment today." : " need your judgment today.",
+  };
 }
 
 export interface HeroProps {
