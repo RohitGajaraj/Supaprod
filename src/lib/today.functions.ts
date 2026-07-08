@@ -301,87 +301,87 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       proposals,
       designGatePrds,
     ] = await Promise.all([
-        countNeedsYouCalls(db, userId, workspaceId),
-        db
-          .from("agent_approvals")
-          .select(
-            "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
-          )
-          .eq("user_id", userId)
-          .eq("status", "pending")
-          .or(liveGateOr(nowIso))
-          .or(notSnoozedOr(nowIso))
-          .order("expires_at", { ascending: true })
-          .limit(10),
-        supabase
-          .from("agent_approvals")
-          .select("id,agent_slug,tool_name,expires_at,created_at")
-          .eq("user_id", userId)
-          .eq("status", "pending")
-          .or(expiredGateOr(nowIso))
-          .order("expires_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("prds")
-          .select("id,title,status,critic_review,updated_at")
-          .eq("status", "review")
-          .order("updated_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("opportunities")
-          .select("id,title,critic_review,created_at")
-          .filter("critic_review->>verdict", "in", '("revise","kill")')
-          // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
-          // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
-          // the call is decided and must not resurface on the next visit.
-          .eq("status", "backlog")
-          .order("created_at", { ascending: false })
-          .limit(5),
-        supabase
-          .from("ai_events")
-          .select("est_cost_usd")
-          .gte("created_at", dayStart.toISOString())
-          .limit(1000),
-        supabase
-          .from("agent_approvals")
-          .select("created_at,decided_at")
-          .eq("user_id", userId)
-          .not("decided_at", "is", null)
-          .gte("decided_at", weekAgo)
-          .limit(200),
-        workspaceId
-          ? supabase
-              .from("assumption_challenges")
-              .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
-              .eq("workspace_id", workspaceId)
-              .eq("status", "open")
-              .order("created_at", { ascending: false })
-              .limit(5)
-          : Promise.resolve({ data: [] as unknown[] }),
-        // SW-3 (mission 3.8b): open playbook proposals ride the queue as Calls.
-        // playbook_proposals postdates the generated types (db, untyped); a
-        // missing table pre-migration errors softly into an empty list.
-        workspaceId
-          ? db
-              .from("playbook_proposals")
-              .select("id,title,body,created_at,source_learning_ids")
-              .eq("workspace_id", workspaceId)
-              .eq("status", "proposed")
-              .order("created_at", { ascending: false })
-              .limit(5)
-          : Promise.resolve({ data: [] as unknown[] }),
-        // SW-7 (mission 3.4): specs with an undecided design gate, on a
-        // workspace with the design stage on.
-        workspaceId && designStageEnabled
-          ? supabase
-              .from("prds")
-              .select("id,title,updated_at")
-              .eq("workspace_id", workspaceId)
-              .is("design_gate_status", null)
-              .order("updated_at", { ascending: false })
-              .limit(5)
-          : Promise.resolve({ data: [] as unknown[] }),
-      ]);
+      countNeedsYouCalls(db, userId, workspaceId),
+      db
+        .from("agent_approvals")
+        .select(
+          "id,agent_slug,tool_name,rationale,escalation_state,expires_at,created_at,trace_id,mission_id,snoozed_until",
+        )
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .or(liveGateOr(nowIso))
+        .or(notSnoozedOr(nowIso))
+        .order("expires_at", { ascending: true })
+        .limit(10),
+      supabase
+        .from("agent_approvals")
+        .select("id,agent_slug,tool_name,expires_at,created_at")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .or(expiredGateOr(nowIso))
+        .order("expires_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("prds")
+        .select("id,title,status,critic_review,updated_at")
+        .eq("status", "review")
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("opportunities")
+        .select("id,title,critic_review,created_at")
+        .filter("critic_review->>verdict", "in", '("revise","kill")')
+        // Loom W2-TODAY: only calls the human has NOT answered yet. Once an
+        // opportunity leaves backlog (kept -> now, dropped -> dropped, ...)
+        // the call is decided and must not resurface on the next visit.
+        .eq("status", "backlog")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("ai_events")
+        .select("est_cost_usd")
+        .gte("created_at", dayStart.toISOString())
+        .limit(1000),
+      supabase
+        .from("agent_approvals")
+        .select("created_at,decided_at")
+        .eq("user_id", userId)
+        .not("decided_at", "is", null)
+        .gte("decided_at", weekAgo)
+        .limit(200),
+      workspaceId
+        ? supabase
+            .from("assumption_challenges")
+            .select("id,assumption_id,signal_id,learning_id,rationale,created_at")
+            .eq("workspace_id", workspaceId)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+      // SW-3 (mission 3.8b): open playbook proposals ride the queue as Calls.
+      // playbook_proposals postdates the generated types (db, untyped); a
+      // missing table pre-migration errors softly into an empty list.
+      workspaceId
+        ? db
+            .from("playbook_proposals")
+            .select("id,title,body,created_at,source_learning_ids")
+            .eq("workspace_id", workspaceId)
+            .eq("status", "proposed")
+            .order("created_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+      // SW-7 (mission 3.4): specs with an undecided design gate, on a
+      // workspace with the design stage on.
+      workspaceId && designStageEnabled
+        ? supabase
+            .from("prds")
+            .select("id,title,updated_at")
+            .eq("workspace_id", workspaceId)
+            .is("design_gate_status", null)
+            .order("updated_at", { ascending: false })
+            .limit(5)
+        : Promise.resolve({ data: [] as unknown[] }),
+    ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(
       (s, e) => s + Number((e as { est_cost_usd: number | null }).est_cost_usd || 0),

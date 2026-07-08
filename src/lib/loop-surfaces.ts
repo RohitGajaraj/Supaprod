@@ -23,7 +23,7 @@ export const LOOP_SURFACES = [
   // OBS-10: /product folded (final closure); Discover is now this stage's
   // home (signals + opportunities + strategy all live there).
   { id: "product", label: "Discover", to: "/discover", produces: "a ranked opportunity" },
-  // LOOM W2 (2026-07-04): the spec stage's home is Define (nav-model.ts) —
+  // LOOM W2 (2026-07-04): the spec stage's home is Define (nav-model.ts).
   // /prds redirects there and the full editor lives at /plan/spec/$id (both
   // match via the "/plan" prefix, the internal identifier that stays per the
   // Studio-rename precedent). The user-facing artifact word is "spec" (the

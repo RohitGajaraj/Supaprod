@@ -513,7 +513,7 @@ function Dashboard() {
   });
 
   // SW-7 (mission 3.4): the design station's gate, decided from the same
-  // queue as every other call — approve writes a taste learning (the
+  // queue as every other call. Approve writes a taste learning (the
   // scaffold-feedback writeback design-scaffold.functions.ts already does).
   const decideDesignGateCall = useMutation({
     mutationFn: (v: { id: string; ok: boolean }) =>
@@ -523,7 +523,9 @@ function Dashboard() {
         qc.invalidateQueries({ queryKey: [key] });
       }
       answered();
-      showToast(vars.ok ? "Design approved. This spec can now dispatch to Build." : "Changes requested.");
+      showToast(
+        vars.ok ? "Design approved. This spec can now dispatch to Build." : "Changes requested.",
+      );
     },
     onError: (e: Error) => showToast(e.message),
   });
