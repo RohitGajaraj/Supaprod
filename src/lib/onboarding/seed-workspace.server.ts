@@ -214,7 +214,17 @@ export async function seedWorkspace(workspaceId: string, userId: string): Promis
 /** Minimal shape of the admin client's rpc() we call, to avoid depending on
  *  regenerated DB types for the new function (types are Lovable-managed). */
 interface RpcClient {
-  rpc(fn: string, args: Record<string, unknown>): Promise<{ error: { message: string } | null }>;
+  rpc(
+    fn: string,
+    args: Record<string, unknown>,
+  ): Promise<{ data: unknown; error: { message: string } | null }>;
+  // Minimal shape for the is_sample flag write, to avoid depending on the
+  // regenerated Database type for the new column (types are Lovable-managed).
+  from(table: string): {
+    update(values: Record<string, unknown>): {
+      eq(column: string, value: string): Promise<{ error: { message: string } | null }>;
+    };
+  };
 }
 
 /**
@@ -231,14 +241,31 @@ interface RpcClient {
  * never blocks the signup / first-run path. The sample workspace is not billed
  * (it is seeded data, not user AI usage).
  */
-export async function seedSampleWorkspace(userId: string): Promise<void> {
-  if (process.env.SAMPLE_WORKSPACE_ENABLED !== "1") return;
+export async function seedSampleWorkspace(userId: string): Promise<string | null> {
+  if (process.env.SAMPLE_WORKSPACE_ENABLED !== "1") return null;
   try {
-    const { error } = await (supabaseAdmin as unknown as RpcClient).rpc("seed_sample_workspace", {
-      _user_id: userId,
-    });
+    const { data, error } = await (supabaseAdmin as unknown as RpcClient).rpc(
+      "seed_sample_workspace",
+      { _user_id: userId },
+    );
     if (error) throw new Error(error.message);
+    // The DB function RETURNS the sample workspace uuid so the caller can switch
+    // the user straight into it.
+    const workspaceId = typeof data === "string" ? data : null;
+    // Flag it as sample data so the shell labels it (banner + badge). Keyed on
+    // the exact workspace the seed created/returned, not its name, so it is
+    // drift-proof and never mis-flags a real workspace. Service-role write;
+    // idempotent, so the idempotent re-seed path re-affirms the flag harmlessly.
+    if (workspaceId) {
+      const { error: flagError } = await (supabaseAdmin as unknown as RpcClient)
+        .from("workspaces")
+        .update({ is_sample: true })
+        .eq("id", workspaceId);
+      if (flagError) console.error("[SAMPLE-SEED] is_sample flag failed:", flagError.message);
+    }
+    return workspaceId;
   } catch (err) {
     console.error("[SAMPLE-SEED] seedSampleWorkspace failed:", err);
+    return null;
   }
 }

@@ -14,6 +14,11 @@ export type Workspace = {
   // present once WM-M2's schema is the deployed read schema, and absent before.
   // The move filter treats an absent/null value as "unknown" and fails open.
   account_id?: string | null;
+  // Sample-data honesty: true for the rich seeded "Sample workspace" so the shell
+  // can label it (a tag + a banner). Optional + nullable: the workspaces query
+  // selects "*", so it is present once the is_sample column is the deployed read
+  // schema, and treated as false before.
+  is_sample?: boolean | null;
 };
 
 export type Product = {
