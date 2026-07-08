@@ -99,6 +99,85 @@ export const getDecisionJudgment = createServerFn({ method: "POST" })
     return { alternatives, citedByCount, critic, precedents };
   });
 
+/** SW-7 step-3 oracle: the best bet on /decide must show its judgment, not
+ * just the Critic - the precedent recall ("last time we reasoned this way,
+ * here is what happened") and what the ranking weighed it against. Same
+ * substrate as the decision card, anchored on the OPPORTUNITY text; READ-ONLY
+ * (citation receipts stay decision-scoped, an opportunity view never bumps a
+ * past decision). Same structural-read posture as getDecisionJudgment. */
+export type OpportunityJudgment = {
+  precedents: JudgmentPrecedent[];
+  /** The nearest live peers in the same workspace queue - the real
+   * alternative set this bet was ranked against. */
+  consideredAgainst: { id: string; title: string; ice: number | null }[];
+};
+
+const EMPTY_OPP: OpportunityJudgment = { precedents: [], consideredAgainst: [] };
+
+export const getOpportunityJudgment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<OpportunityJudgment> => {
+    const { userId } = context;
+    const db = context.supabase as unknown as SupabaseClient;
+
+    const { data: row } = await db
+      .from("opportunities")
+      .select("id,title,problem,hypothesis,workspace_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!row) return EMPTY_OPP;
+    const o = row as {
+      id: string;
+      title: string | null;
+      problem: string | null;
+      hypothesis: string | null;
+      workspace_id: string | null;
+    };
+
+    // Precedent recall anchored on the bet's own words; a bet never cites
+    // its own outcome as "last time".
+    const text = [o.title, o.problem, o.hypothesis]
+      .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+      .join(". ");
+    let precedents: JudgmentPrecedent[] = [];
+    if (text) {
+      const matches = await loadDecisionPrecedent(db, {
+        userId,
+        workspaceId: o.workspace_id,
+        text,
+      });
+      precedents = assemblePrecedentBlock(matches).filter((p) => p.opportunityId !== o.id);
+    }
+
+    // The live queue peers this bet was ranked against (real rows, strongest
+    // first) - the honest "alternatives considered" of a ranked bet.
+    let consideredAgainst: OpportunityJudgment["consideredAgainst"] = [];
+    if (o.workspace_id) {
+      const { data: peers } = await db
+        .from("opportunities")
+        .select("id,title,ice_score")
+        .eq("workspace_id", o.workspace_id)
+        .in("status", ["backlog", "now", "next"])
+        .neq("id", o.id)
+        .order("ice_score", { ascending: false })
+        .limit(3);
+      consideredAgainst = (
+        (peers ?? []) as Array<{
+          id: string;
+          title: string | null;
+          ice_score: number | string | null;
+        }>
+      ).map((p) => ({
+        id: p.id,
+        title: p.title ?? "Untitled bet",
+        ice: p.ice_score == null ? null : Number(p.ice_score),
+      }));
+    }
+
+    return { precedents, consideredAgainst };
+  });
+
 /** Resolve served precedents to learnings + past decisions, then write the
  * receipts the pure planner approves: learning_citations inserts and
  * bump_decision_cited_by RPCs. Deduped via trace_id "decision:<id>". */

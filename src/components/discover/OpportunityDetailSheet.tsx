@@ -1,5 +1,8 @@
 import { Copy, GitBranch } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
+import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +92,90 @@ function TimeLine({ iso }: { iso: string }) {
         {relTimeCaps(iso)}
       </span>
     </span>
+  );
+}
+
+/** SW-7 step-3 oracle: the best bet shows its precedent ("last time we
+ * reasoned this way, here is what happened", the same Ambient Precedent
+ * recall the decision card uses) and the live queue it was ranked against.
+ * Honest empty states - the blocks never fabricate and never hide. */
+function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string }) {
+  const fJudgment = useServerFn(getOpportunityJudgment);
+  const q = useQuery({
+    queryKey: ["opportunity-judgment", opportunityId],
+    queryFn: () => fJudgment({ data: { id: opportunityId } }),
+  });
+
+  const precedents = q.data?.precedents ?? [];
+  const peers = q.data?.consideredAgainst ?? [];
+  const emptyLine: React.CSSProperties = {
+    fontSize: "12px",
+    color: "var(--text-subtle)",
+    fontStyle: "italic",
+    margin: 0,
+  };
+
+  return (
+    <>
+      <DetailSection heading="Precedent">
+        {q.isPending ? (
+          <p style={emptyLine}>Recalling past outcomes…</p>
+        ) : precedents.length > 0 ? (
+          <div style={{ display: "grid", gap: "8px" }}>
+            <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>
+              Last time we reasoned this way, here is what happened.
+            </p>
+            {precedents.map((p) => (
+              <div key={p.memoryId} style={{ display: "grid", gap: "2px" }}>
+                <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                  {p.verdict.toUpperCase()}
+                  {p.title ? ` · ${p.title}` : ""}
+                </span>
+                <span style={{ fontSize: "12px", color: "var(--text-subtle)", lineHeight: 1.5 }}>
+                  {p.summary}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={emptyLine}>
+            No recorded outcome matches this bet yet. As outcomes land, the Brain recalls them here.
+          </p>
+        )}
+      </DetailSection>
+
+      <DetailSection heading="Considered against">
+        {q.isPending ? (
+          <p style={emptyLine}>Reading the queue…</p>
+        ) : peers.length > 0 ? (
+          <div style={{ display: "grid", gap: "6px" }}>
+            {peers.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-baseline"
+                style={{ gap: "8px", fontSize: "12.5px", color: "var(--text-body)" }}
+              >
+                <span style={{ flex: 1, minWidth: 0 }}>{a.title}</span>
+                {a.ice != null ? (
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "10.5px",
+                      letterSpacing: "0.06em",
+                      color: "var(--text-subtle)",
+                    }}
+                  >
+                    {a.ice.toFixed(1)} ICE
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={emptyLine}>Nothing else is live in the queue right now.</p>
+        )}
+      </DetailSection>
+    </>
   );
 }
 
@@ -448,6 +535,10 @@ export function OpportunityDetailSheet({
                 )}
               </div>
             </DetailSection>
+
+            {/* SW-7 step 3: the bet's judgment - precedent recall + the queue
+                it was ranked against. Self-fetched, honest empty states. */}
+            <OpportunityJudgmentBlocks opportunityId={opportunity.id} />
 
             {/* Stage history: real per-transition rows; renders nothing until
                 the first transition lands. */}
