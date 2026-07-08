@@ -65,8 +65,8 @@ export const isDemoSeedEnabled = createServerFn({ method: "GET" }).handler(async
 export const triggerSampleWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await seedSampleWorkspace(context.userId);
-    return { ok: true };
+    const workspaceId = await seedSampleWorkspace(context.userId);
+    return { ok: true, workspaceId };
   });
 
 /**

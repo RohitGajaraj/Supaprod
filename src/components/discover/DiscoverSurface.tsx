@@ -5,7 +5,10 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listSignals } from "@/lib/discovery.functions";
-import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
+import {
+  isSampleWorkspaceEnabled,
+  triggerSampleWorkspace,
+} from "@/lib/onboarding/onboarding.functions";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
@@ -53,10 +56,10 @@ function ConstellationMotif() {
 export function DiscoverSurface() {
   const navigate = useNavigate();
   const { tab } = useSearch({ from: "/_authenticated/discover" });
-  const { activeProductId, activeWorkspaceId } = useWorkspace();
+  const { activeProductId, setActiveWorkspaceId, refreshWorkspaces } = useWorkspace();
   const fSignals = useServerFn(listSignals);
-  const fSeedEnabled = useServerFn(isDemoSeedEnabled);
-  const fTriggerSeed = useServerFn(triggerWorkspaceSeed);
+  const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
+  const fTriggerSample = useServerFn(triggerSampleWorkspace);
   const queryClient = useQueryClient();
 
   // Loom W2 (audit D-24): honor the deep-link ?tab= from the legacy redirects
@@ -82,22 +85,27 @@ export function DiscoverSurface() {
   const signalsEmpty =
     !signals.isLoading && !signals.error && (signals.data?.signals.length ?? 0) === 0;
 
-  // SW-6 cold-start: a not-yet-connected workspace can fill its empty feed with a
-  // clearly-labelled example set on demand, instead of staring at a blank desk. The
-  // opt-in is dormant unless ONBOARDING_SEED_ENABLED=1 (the same gate onboarding reads),
-  // so a real deployment shows nothing fabricated until the founder turns it on. Real
-  // signals, once a source is connected, always win; this only fills the empty case.
-  const seedEnabledQ = useQuery({
-    queryKey: ["demo-seed-enabled"],
-    queryFn: () => fSeedEnabled(),
+  // SW-6 cold-start: from an empty feed, a user can open a SEPARATE Explore workspace
+  // (the rich Prism + Trellis showcase) to look around, instead of staring at a blank
+  // desk. It never fills their real workspace with example data; the sample data lives
+  // in its own is_sample-flagged workspace that the shell banners and badges. The
+  // opt-in is dormant unless SAMPLE_WORKSPACE_ENABLED=1, so a real deployment shows
+  // nothing until the founder turns it on. On success we switch the user into it.
+  const sampleEnabledQ = useQuery({
+    queryKey: ["sample-workspace-enabled"],
+    queryFn: () => fSampleEnabled(),
     enabled: signalsEmpty,
   });
-  const seedMutation = useMutation({
-    mutationFn: () => fTriggerSeed({ data: { workspaceId: activeWorkspaceId as string } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["signals"] }),
+  const sampleMutation = useMutation({
+    mutationFn: () => fTriggerSample(),
+    onSuccess: (res) => {
+      refreshWorkspaces();
+      const id = (res as { workspaceId?: string | null } | undefined)?.workspaceId;
+      if (id) setActiveWorkspaceId(id);
+      queryClient.invalidateQueries({ queryKey: ["signals"] });
+    },
   });
-  const sampleOffered =
-    signalsEmpty && (seedEnabledQ.data?.enabled ?? false) && !!activeWorkspaceId;
+  const sampleOffered = signalsEmpty && (sampleEnabledQ.data?.enabled ?? false);
 
   return (
     <div
@@ -203,10 +211,12 @@ export function DiscoverSurface() {
             >
               <Button
                 variant="tertiary"
-                disabled={seedMutation.isPending}
-                onClick={() => seedMutation.mutate()}
+                disabled={sampleMutation.isPending}
+                onClick={() => sampleMutation.mutate()}
               >
-                {seedMutation.isPending ? "Setting up sample data…" : "Explore with sample data"}
+                {sampleMutation.isPending
+                  ? "Opening sample workspace…"
+                  : "Explore a sample workspace"}
               </Button>
               <p
                 style={{
@@ -215,12 +225,12 @@ export function DiscoverSurface() {
                   marginTop: "10px",
                 }}
               >
-                Fills this workspace with a labelled example set so you can look around before
-                connecting · about 5 seconds
+                Opens a separate Explore workspace of clearly labelled example data · your own
+                workspace stays empty · about 5 seconds
               </p>
-              {seedMutation.isError ? (
+              {sampleMutation.isError ? (
                 <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
-                  Could not load sample data. Try again.
+                  Could not open the sample workspace. Try again.
                 </p>
               ) : null}
             </div>

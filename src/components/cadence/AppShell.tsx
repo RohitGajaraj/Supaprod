@@ -137,6 +137,41 @@ function pollWhenVisible(ms: number) {
     typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
 }
 
+/** Honest, persistent label for a sample/demo workspace. Blossom is the
+ *  information voice (never ember, which is reserved for a human decision); it
+ *  stays visible while the sample workspace is active so example data is never
+ *  mistaken for real data. */
+function SampleWorkspaceBanner() {
+  return (
+    <div
+      role="note"
+      aria-label="Sample workspace"
+      className="flex flex-wrap items-center gap-x-[10px] gap-y-[2px]"
+      style={{
+        padding: "8px 20px",
+        background: "var(--card)",
+        borderBottom: "1px solid var(--hairline)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "10.5px",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--blossom)",
+        }}
+      >
+        Sample data
+      </span>
+      <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+        This workspace holds example data so you can explore. Connect a real source to start your
+        own.
+      </span>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const searchTab = useRouterState({
@@ -231,11 +266,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         | { display_name?: string; full_name?: string; name?: string }
         | undefined;
       const name =
-        meta?.display_name ??
-        meta?.full_name ??
-        meta?.name ??
-        u?.email?.split("@")[0] ??
-        "Account";
+        meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "Account";
       setUserName(name);
     });
   }, []);
@@ -525,7 +556,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setActiveWorkspaceId(w.id)}
                     className="flex items-center justify-between cursor-pointer"
                   >
-                    <span className="truncate font-medium">{w.name}</span>
+                    <span className="flex min-w-0 items-center gap-[7px]">
+                      <span className="truncate font-medium">{w.name}</span>
+                      {w.is_sample ? (
+                        <span
+                          style={{
+                            fontFamily: "var(--font-mono)",
+                            fontSize: "9.5px",
+                            letterSpacing: "0.05em",
+                            textTransform: "uppercase",
+                            color: "var(--blossom)",
+                          }}
+                        >
+                          Sample
+                        </span>
+                      ) : null}
+                    </span>
                     {w.id === activeWorkspaceId && (
                       <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
                     )}
@@ -804,7 +850,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
                 </Link>
                 <Link to="/settings" search={{ section: "plan" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">Pricing and billing</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    Pricing and billing
+                  </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer">
@@ -821,6 +869,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="loom-atmosphere" aria-hidden="true" />
           {/* Flex column so full-height screens can pin to the viewport with
               internal scroll. Block screens are unaffected. */}
+          {activeWorkspace?.is_sample ? <SampleWorkspaceBanner /> : null}
           <div className="flex-1 min-w-0 min-h-0 flex flex-col relative" style={{ zIndex: 1 }}>
             {children}
           </div>
