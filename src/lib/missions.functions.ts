@@ -495,6 +495,12 @@ export const cancelMission = createServerFn({ method: "POST" })
  * Manual override for the AI-synthesized title (`createMission` in
  * handoff.server.ts generates it at dispatch time) - same rename-affordance
  * pattern as renameConversation.
+ *
+ * RLS ("Owners can write their missions", cmd ALL, auth.uid() = user_id)
+ * already blocks a cross-user rename, but the explicit user_id filter here
+ * (matching cancelMission/promoteMission in this same file) means a missing
+ * or misconfigured policy fails closed with a clear "not found" instead of a
+ * silent zero-row update.
  */
 export const renameMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -502,12 +508,16 @@ export const renameMission = createServerFn({ method: "POST" })
     z.object({ missionId: z.string().uuid(), title: z.string().min(1).max(200) }).parse(d),
   )
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
-    const { supabase } = context;
-    const { error } = await supabase
+    const { supabase, userId } = context;
+    const { data: updated, error } = await supabase
       .from("missions")
       .update({ title: data.title, updated_at: new Date().toISOString() })
-      .eq("id", data.missionId);
+      .eq("id", data.missionId)
+      .eq("user_id", userId)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Mission not found");
     return { ok: true };
   });
 
