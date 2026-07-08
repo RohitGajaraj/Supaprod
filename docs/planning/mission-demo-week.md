@@ -291,3 +291,8 @@ Recommendation if forced today: keep presenting as Cadence for the demo week; a 
 ---
 
 _Closure rule: when this mission completes, fold its results into SOURCE-OF-TRUTH section 0, mark this doc CLOSED at the top exactly like the overnight-pass handoff, and log the week's decisions in `session-decisions.md`._
+
+**Live-oracle findings (2026-07-08, seams 3+5 driving):**
+- 13. **DEFECT FIXED (migration `20260708100000`): empty agent roster on signup.** handle_new_user (2026-06-17 rebuild) stopped seeding public.agents, so a fresh signup + the demo account had no 'builder' agent and "Send to Build" threw "Studio agent not found in your roster". Restored the seed + backfilled agent-less profiles. FOUNDER: apply this migration; it unblocks cold-start (3.12) and the build-spine oracle (3.5).
+- 14. **DESIGN CALL surfaced: the Brain's insight-push is gated behind `workspaces.auto_sense_enabled`** (it rides derive-tick's workspace selection). A user who hasn't opted into ambient signal-clustering still never gets their Brain's high-signal judgment pushes. Consider decoupling the push channel from the sense opt-in. For the oracle, ambient sense was enabled on the demo workspace so the next derive-tick fires the push.
+- 15. **Trust Ledger chain (3.11 deliverable B) now walks fully** in code: receipts carry build/deploy blocks, clickable evidence edges, the proving learning, per-record StageTimeline, and mission-scoped links. The demo data itself is thin (no changeset/deployment rows on the sample mission yet) - a DEMO-SEED-RICH item, not a code gap.
