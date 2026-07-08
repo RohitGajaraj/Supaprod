@@ -1,17 +1,66 @@
 {
-  "timestamp": "2026-07-08T20:40:31.093Z",
-  "mode": "local",
-  "memoryUsage": {
-    "rss": 38846464,
-    "heapTotal": 29999104,
-    "heapUsed": 25423008,
-    "external": 4268803,
-    "arrayBuffers": 349095
+  "timestamp": "2026-07-08T21:21:43.342Z",
+  "mode": "headless",
+  "workerType": "optimize",
+  "model": "sonnet",
+  "durationMs": 565561,
+  "executionId": "optimize_1783545137781_nnb26p",
+  "success": true,
+  "findings": {
+    "sections": [
+      {
+        "title": "1. N+1 query patterns",
+        "content": "\n**`design-memory.functions.ts:259-295`** — `insertDesignMemoryItems` loops up to 12 extracted items doing sequential `insert().select().single()` + conditional `upsert()` per item = up to 24 round trips per extraction run (URL import, pasted brand doc, scaffold write-back).\n```ts\n// before\nfor (const item of items) {\n  const { data: row } = await supabase.from(\"design_memory\").insert({...}).select(\"id\").single();\n  if (supersedes) await supabase.from(\"artifact_lineage\").upsert({...});\n}\n// after — one insert, one upsert\nconst { data: rows } = await supabase.from(\"design_memory\").insert(items).select(\"id\");\nawait supabase.from(\"artifact_lineage\").upsert(lineageEdgesFor(rows));\n```\n\n**`studio.functions.ts:586-587`** — `listStudioSessions` (loaded every visit to `/build`) awaits two independent `costAndStatusByMission()` calls back-to-back when neither depends on the other.\n```ts\nconst [builder, other] = await Promise.all([\n  costAndStatusByMission(runRows),\n  costAndStatusByMission(otherRunRows),\n]);\n```\n\n**`notifications.functions.ts:580-639`** — the digest cron loops sequentially over every due workspace/user. Not user-latency-facing, but chunk it with `Promise.all` so the tick doesn't serialize at scale.\n\n**`feedback.functions.ts:49-51`** — one `bump_memory_importance` RPC call per memory id in a loop; small in practice (1-3 per trace) but should be a batched RPC.\n\n",
+        "level": 2
+      },
+      {
+        "title": "2. Unnecessary React re-renders",
+        "content": "\n**`OpportunityQueue.tsx:217`** — `rankOpportunities(rows, ...)` runs unmemoized in the render body — the full sort plus per-item `rationaleFor`/`deriveDesignation` reruns on every render (any unrelated hover/open-id state change), even when `rows` hasn't changed.\n```ts\nconst ranked = useMemo(\n  () => rankOpportunities(rows, corroborationOf),\n  [rows, themeById],\n);\n```\n\n**`hooks/use-machine-view.tsx:26-37`** — `MachineViewContext.Provider` gets a fresh `{isMachineView, toggle}` object every render. It sits near the app root, so any unrelated root re-render invalidates every consumer.\n```ts\nconst toggle = useCallback(() => setIsMachineView(v => !v), []);\nconst value = useMemo(() => ({ isMachineView, toggle }), [isMachineView]);\n```\n\nChecked and clean: `usePrefersReducedMotion` properly cleans up its listener; `Sketch.tsx`'s `sketchPath` is already `useMemo`'d in both chart components — my earlier concern about those two didn't hold up under closer reading.\n\n",
+        "level": 2
+      },
+      {
+        "title": "3. Caching opportunities",
+        "content": "\n**Workspace-id resolution duplicated 46x across 12 files** — `resolveWorkspaceId` reimplements the same `current_user_default_workspace` RPC call independently in `design-memory.functions.ts`, `deployments.functions.ts`, `billing.functions.ts`, etc. Any page that fires several server functions in parallel without an explicit workspace id pays N identical round trips in the same request. Fix: resolve once in the `requireSupabaseAuth` middleware context and thread it through, rather than re-resolving per function.\n\nReact Query's global config (`router.tsx:105-110`) already sets `staleTime: 30_000` + `refetchOnWindowFocus: false` — that's already correctly tuned, no gap there.\n\n",
+        "level": 2
+      },
+      {
+        "title": "4. Memory leaks",
+        "content": "\n**`AccountConnectionsSection.tsx:107-120`** — the GitHub-connect flow starts a `setInterval` polling every 3s, self-clearing only when a 5-minute deadline is reached from inside its own callback. It's never tied to a ref or an unmount cleanup — navigating away mid-poll leaves it running and refetching for up to 5 minutes after the component is gone.\n```ts\nconst ivRef = useRef<ReturnType<typeof setInterval>>();\n// in onSuccess:\nivRef.current = setInterval(() => {\n  qc.invalidateQueries({ queryKey: [\"connections\"] });\n  if (Date.now() > deadline) clearInterval(ivRef.current);\n}, 3_000);\n// in the component's unmount effect:\nuseEffect(() => () => clearInterval(ivRef.current), []);\n```\nA repo-wide listener audit found no other add/remove mismatches.\n\n",
+        "level": 2
+      },
+      {
+        "title": "5. Redundant computations",
+        "content": "**`ranking.ts`** — `compareOpportunities` calls `verdictFor()` on every pairwise `sort` comparison (O(n log n) calls instead of n). Cheap today, but it's the kind of comparator that grows expensive later without anyone noticing:\n```ts\nconst decorated = opps.map(o => ({ o, v: verdictRankOf(verdictFor(o)) }));\ndecorated.sort((a, b) => b.v - a.v || compareRest(a.o, b.o, corroborationOf));\n```\n\n**Three near-duplicate relative-time formatters** (`format.ts`, `decisions-shared.ts`, `ship-format.ts`) — confirmed O(1) each, lists are low-hundreds of rows at most. This is a maintainability cleanup, not a real perf win.\n\nNo O(n²) patterns found in the knowledge-graph code — `knowledge-graph-view.ts` uses `Map`/`Set` lookups throughout.\n\n---\n**Priority order if you want me to fix any of these**: the `AccountConnectionsSection` leak (#4) and the design-memory N+1 (#1) are the two with concrete user-visible impact — the leak wastes network/battery post-navigation, the insert loop adds real latency to every design-language extraction. Want me to patch either one now?",
+        "level": 2
+      }
+    ],
+    "codeBlocks": [
+      {
+        "language": "ts",
+        "code": "// before\nfor (const item of items) {\n  const { data: row } = await supabase.from(\"design_memory\").insert({...}).select(\"id\").single();\n  if (supersedes) await supabase.from(\"artifact_lineage\").upsert({...});\n}\n// after — one insert, one upsert\nconst { data: rows } = await supabase.from(\"design_memory\").insert(items).select(\"id\");\nawait supabase.from(\"artifact_lineage\").upsert(lineageEdgesFor(rows));"
+      },
+      {
+        "language": "ts",
+        "code": "const [builder, other] = await Promise.all([\n  costAndStatusByMission(runRows),\n  costAndStatusByMission(otherRunRows),\n]);"
+      },
+      {
+        "language": "ts",
+        "code": "const ranked = useMemo(\n  () => rankOpportunities(rows, corroborationOf),\n  [rows, themeById],\n);"
+      },
+      {
+        "language": "ts",
+        "code": "const toggle = useCallback(() => setIsMachineView(v => !v), []);\nconst value = useMemo(() => ({ isMachineView, toggle }), [isMachineView]);"
+      },
+      {
+        "language": "ts",
+        "code": "const ivRef = useRef<ReturnType<typeof setInterval>>();\n// in onSuccess:\nivRef.current = setInterval(() => {\n  qc.invalidateQueries({ queryKey: [\"connections\"] });\n  if (Date.now() > deadline) clearInterval(ivRef.current);\n}, 3_000);\n// in the component's unmount effect:\nuseEffect(() => () => clearInterval(ivRef.current), []);"
+      },
+      {
+        "language": "ts",
+        "code": "const decorated = opps.map(o => ({ o, v: verdictRankOf(verdictFor(o)) }));\ndecorated.sort((a, b) => b.v - a.v || compareRest(a.o, b.o, corroborationOf));"
+      }
+    ]
   },
-  "uptime": 2833.946383958,
-  "optimizations": {
-    "cacheHitRate": 0.78,
-    "avgResponseTime": 45
-  },
-  "note": "Install Claude Code CLI for AI-powered optimization suggestions"
+  "rawOutputPreview": "The deeper audit finished — here's the consolidated picture, real findings from `src/lib/*.functions.ts` and the route/component layer, ranked by actual impact.\n\n## 1. N+1 query patterns\n\n**`design-memory.functions.ts:259-295`** — `insertDesignMemoryItems` loops up to 12 extracted items doing sequential `insert().select().single()` + conditional `upsert()` per item = up to 24 round trips per extraction run (URL import, pasted brand doc, scaffold write-back).\n```ts\n// before\nfor (const item of items) {\n  const { data: row } = await supabase.from(\"design_memory\").insert({...}).select(\"id\").single();\n  if (supersedes) await supabase.from(\"artifact_lineage\").upsert({...});\n}\n// after — one insert, one upsert\nconst { data: rows } = await supabase.from(\"design_memory\").insert(items).select(\"id\");\nawait supabase.from(\"artifact_lineage\").upsert(lineageEdgesFor(rows));\n```\n\n**`studio.functions.ts:586-587`** — `listStudioSessions` (loaded every visit to `/build`) awaits two independent `costAndStatusByMission()` calls back-to-back when neither depends on the other.\n```ts\nconst [builder, other] = await Promise.all([\n  costAndStatusByMission(runRows),\n  costAndStatusByMission(otherRunRows),\n]);\n```\n\n**`notifications.functions.ts:580-639`** — the digest cron loops sequentially over every due workspace/user. Not user-latency-facing, but chunk it with `Promise.all` so the tick doesn't serialize at scale.\n\n**`feedback.functions.ts:49-51`** — one `bump_memory_importance` RPC call per memory id in a loop; small in practice (1-3 per trace) but should be a batched RPC.\n\n## 2. Unnecessary React re-renders\n\n**`OpportunityQueue.tsx:217`** — `rankOpportunities(rows, ...)` runs unmemoized in the render body — the full sort plus per-item `rationaleFor`/`deriveDesignation` reruns on every render (any unrelated hover/open-id state change), even when `rows` hasn't changed.\n```ts\nconst ranked = useMemo(\n  () => rankOpportunities(rows, corroborationOf),\n  [rows, themeById],\n);\n```\n\n**`hooks/use-m",
+  "rawOutputLength": 5174
 }
