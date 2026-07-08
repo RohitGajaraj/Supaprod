@@ -254,6 +254,9 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
               // the fix-run budget below, so a genuinely broken PR that
               // conflicts every time is never resynced forever.
               const syncAttempts = cs.branch_sync_attempts ?? 0;
+              failures.push(
+                `${cs.id.slice(0, 8)}: DIAG branch=${cs.branch} baseRef=${pr.base?.ref} baseSha=${pr.base?.sha} syncAttempts=${syncAttempts} budget=${BRANCH_SYNC_BUDGET}`,
+              );
               if (cs.branch && pr.base?.ref && pr.base?.sha && syncAttempts < BRANCH_SYNC_BUDGET) {
                 const baseRefRes = await fetch(
                   `https://api.github.com/repos/${repo}/git/ref/heads/${encodeURIComponent(pr.base.ref)}`,
