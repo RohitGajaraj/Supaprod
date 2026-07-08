@@ -122,11 +122,17 @@ describe("shouldProposeGraduation", () => {
   });
 
   it("never proposes past a high-risk ceiling", () => {
+    expect(shouldProposeGraduation({ ...base, toolName: "studio.pr.merge" })).toBeNull();
+    // The remaining min-confirm ceiling (founder ruling 2026-07-08 moved the
+    // build-lane mechanics out of it; calendar.create still stops at confirm).
     expect(
-      shouldProposeGraduation({ ...base, toolName: "studio.pr.merge" }),
+      shouldProposeGraduation({ ...base, toolName: "calendar.create", currentMode: "confirm" }),
     ).toBeNull();
+  });
+
+  it("build-lane mechanics graduate to auto (founder ruling 2026-07-08)", () => {
     expect(
       shouldProposeGraduation({ ...base, toolName: "studio.commit", currentMode: "confirm" }),
-    ).toBeNull();
+    ).toEqual({ from: "confirm", to: "auto" });
   });
 });

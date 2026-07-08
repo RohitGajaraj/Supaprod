@@ -247,5 +247,9 @@ export async function loadAgentArc(
     .eq("user_id", userId)
     .eq("agent_id", agentId)
     .maybeSingle();
-  return (data as { arc?: Arc } | null)?.arc ?? "observing";
+  // Founder ruling 2026-07-08 (SW-7): autonomous by default - an agent with
+  // no earned/operator-set arc runs TRUSTED (confirm-seeded tools execute
+  // inline; review-pinned tools and the FORCE_REVIEW floor still hold). The
+  // ramp remains the dial for tightening (proving/observing) per agent.
+  return (data as { arc?: Arc } | null)?.arc ?? "trusted";
 }

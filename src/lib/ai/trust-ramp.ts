@@ -27,11 +27,16 @@ export const TRUST_RAMP_OUTCOME_WINDOW_MS = 30 * 24 * 3600_000;
  * its resolveToolMode floors, and the ramp uses them as graduation ceilings
  * so it never proposes a mode the floor would immediately override.
  */
-export const HIGH_RISK_MIN_CONFIRM = new Set([
-  "calendar.create",
-  "studio.commit",
-  "studio.pr.open",
-]);
+export const HIGH_RISK_MIN_CONFIRM = new Set(["calendar.create"]);
+/**
+ * Founder ruling 2026-07-08 (SW-7 live-run): the build lane's own mechanics
+ * run autonomously. A studio/* branch commit and a draft PR are isolated and
+ * reversible - the WHAT only ever lands through the review-pinned
+ * studio.pr.merge gate above. studio.commit / studio.pr.open moved out of
+ * HIGH_RISK_MIN_CONFIRM into this exemption set (the generic high-risk
+ * demotion in resolveToolMode skips these three).
+ */
+export const BUILD_LANE_AUTONOMOUS = new Set(["studio.stage", "studio.commit", "studio.pr.open"]);
 /** Safety floor: always `review`. Never graduates. */
 export const HIGH_RISK_FORCE_REVIEW = new Set([
   "studio.pr.merge",

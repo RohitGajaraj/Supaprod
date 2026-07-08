@@ -25,7 +25,7 @@ import {
   renderHouseRulesBlock,
 } from "@/lib/house-rules.functions";
 import { loadAgentArc, resolveApprovalMode, type Arc, type ToolMode } from "./trust.server";
-import { HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW } from "./trust-ramp";
+import { HIGH_RISK_MIN_CONFIRM, HIGH_RISK_FORCE_REVIEW, BUILD_LANE_AUTONOMOUS } from "./trust-ramp";
 import { consumeInboundHandoff, renderHandoffBlock, maybeCompleteMission } from "./handoff.server";
 import { autoReflect, maybeAutoAdvanceArc } from "./reflection.server";
 import { isHighRiskTool, toolRisk, toolConsequence } from "@/lib/tool-consequences";
@@ -146,17 +146,18 @@ export function resolveToolMode(
     // within the changeset's fix budget - and the review-pinned merge gate
     // still decides whether any of it lands.
     mode = dialedMode;
-  } else if ((HIGH_RISK_MIN_CONFIRM.has(toolName) || isHighRiskTool(toolName)) && mode === "auto") {
-    // SEAM-2 one-motion (founder grant 2026-07-07): an approved Outcome
-    // Contract pre-consents the machine's own branch/PR mechanics. The WHAT
-    // was human-approved at the contract gate; studio.commit and
-    // studio.pr.open only stage that approved work on an isolated studio/*
-    // branch and a draft PR, and the decisive studio.pr.merge gate stays
-    // review-pinned above. Without this, "one continuous motion" collapses
-    // into three ceremonial clicks per build.
-    if (!(contractApproved && (toolName === "studio.commit" || toolName === "studio.pr.open"))) {
-      mode = "confirm";
-    }
+  } else if (
+    (HIGH_RISK_MIN_CONFIRM.has(toolName) ||
+      (isHighRiskTool(toolName) && !BUILD_LANE_AUTONOMOUS.has(toolName))) &&
+    mode === "auto"
+  ) {
+    // Founder ruling 2026-07-08 (supersedes the 2026-07-07 contract-gated
+    // carve-out): build-lane mechanics (stage/commit/pr.open) run
+    // autonomously with NO contract precondition - the branch and draft PR
+    // are reversible, and the decisive studio.pr.merge gate stays
+    // review-pinned above. Every other high-risk write still demotes to
+    // confirm here.
+    mode = "confirm";
   } else if (mode === "confirm" && toolRisk(toolName) === "low") {
     mode = "auto";
   } else if (
