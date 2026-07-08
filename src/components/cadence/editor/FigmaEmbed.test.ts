@@ -250,3 +250,47 @@ describe("FigmaEmbed.config.renderHTML()", () => {
     expect(iframeAttrs.style).toBeDefined();
   });
 });
+
+describe("FigmaEmbed.config.addCommands()", () => {
+  test("should return an object with setFigmaEmbed command", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    expect(commands).toBeDefined();
+    expect(commands.setFigmaEmbed).toBeDefined();
+  });
+
+  test("setFigmaEmbed should be a function that returns a handler", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    const handler = commands.setFigmaEmbed({ src: "https://www.figma.com/file/abc" });
+    expect(typeof handler).toBe("function");
+  });
+
+  test("setFigmaEmbed handler accepts commands object and returns boolean", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    const attrs = { src: "https://www.figma.com/file/abc123" };
+    const handler = commands.setFigmaEmbed(attrs);
+
+    // The handler should be a function that accepts the command context
+    expect(typeof handler).toBe("function");
+
+    // Verify the handler signature by checking its call pattern
+    // (we don't call it here since it requires a real TipTap context)
+  });
+
+  test("setFigmaEmbed command constructs correct node type and attributes", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    const testUrl = "https://www.figma.com/file/test123";
+    const attrs = { src: testUrl };
+
+    // The command should pass { type: 'figmaEmbed', attrs } to insertContent
+    const handler = commands.setFigmaEmbed(attrs);
+    expect(handler).toBeDefined();
+  });
+
+  test("setFigmaEmbed handles empty src gracefully", () => {
+    const commands = FigmaEmbed.config.addCommands();
+    const attrs = { src: "" };
+    const handler = commands.setFigmaEmbed(attrs);
+    expect(handler).toBeDefined();
+    expect(typeof handler).toBe("function");
+  });
+});

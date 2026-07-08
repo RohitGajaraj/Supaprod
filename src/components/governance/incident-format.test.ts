@@ -4,6 +4,7 @@ import {
   incidentRealId,
   incidentTraceRef,
   incidentTone,
+  INCIDENT_TONE_VAR,
 } from "./incident-format";
 
 describe("incidentRealId", () => {
@@ -35,5 +36,28 @@ describe("incidentTone — severity roles", () => {
     expect(incidentTone("guardrail")).toBe("glacier");
     expect(incidentTone("cost")).toBe("marigold");
     expect(incidentTone("manual")).toBe("muted");
+  });
+});
+
+describe("INCIDENT_TONE_VAR — CSS variable mapping", () => {
+  test("maps all incident tones to valid CSS variables", () => {
+    expect(INCIDENT_TONE_VAR.madder).toBe("var(--madder)");
+    expect(INCIDENT_TONE_VAR.glacier).toBe("var(--glacier)");
+    expect(INCIDENT_TONE_VAR.marigold).toBe("var(--marigold)");
+    expect(INCIDENT_TONE_VAR.muted).toBe("var(--text-muted)");
+  });
+
+  test("has entries for all known incident tones", () => {
+    expect(Object.keys(INCIDENT_TONE_VAR)).toHaveLength(4);
+    expect(Object.keys(INCIDENT_TONE_VAR)).toContain("madder");
+    expect(Object.keys(INCIDENT_TONE_VAR)).toContain("glacier");
+    expect(Object.keys(INCIDENT_TONE_VAR)).toContain("marigold");
+    expect(Object.keys(INCIDENT_TONE_VAR)).toContain("muted");
+  });
+
+  test("all values are valid CSS var() expressions", () => {
+    for (const [tone, cssVar] of Object.entries(INCIDENT_TONE_VAR)) {
+      expect(cssVar).toMatch(/^var\(--[\w-]+\)$/);
+    }
   });
 });

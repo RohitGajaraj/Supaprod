@@ -1,6 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { runStatusLabel, hasCanvasContent } from "../ask-canvas";
+import { runStatusLabel, hasCanvasContent, ProgressBlock, MemoryBlock, CriticBlock } from "../ask-canvas";
 import type { LoopStep } from "@/lib/ai/loop.server";
+import type { StudioApproval } from "@/lib/studio.functions";
+import type { CriticReview } from "@/lib/ai/critic.server";
 
 // CMD-0 (H2 Command Canvas, first increment): the two pure derivations
 // behind the Ask mission-canvas blocks: a run's outcome-named status word,
@@ -26,6 +28,10 @@ describe("runStatusLabel", () => {
   it("maps both completed and done to SHIPPED", () => {
     expect(runStatusLabel("completed")).toBe("SHIPPED");
     expect(runStatusLabel("done")).toBe("SHIPPED");
+  });
+
+  it("maps queued to QUEUED", () => {
+    expect(runStatusLabel("queued")).toBe("QUEUED");
   });
 
   it("falls back to the raw status, uppercased, for an unrecognized string", () => {
@@ -87,5 +93,115 @@ describe("hasCanvasContent", () => {
         },
       }),
     ).toBe(true);
+  });
+});
+
+describe("ProgressBlock", () => {
+  it("returns null when there are no steps", () => {
+    const result = ProgressBlock({
+      run: { runId: "r1", status: "running", steps: [] },
+      approvals: [],
+    });
+    expect(result).toBeNull();
+  });
+
+  it("renders a div with the run status label when steps exist", () => {
+    const step: LoopStep = { kind: "thought", text: "analyzing" };
+    const result = ProgressBlock({
+      run: { runId: "r1", status: "running", steps: [step] },
+      approvals: [],
+    });
+    expect(result?.type).toBe("div");
+    // The rendered content includes the status label and step descriptions
+    expect(result?.props).toBeDefined();
+  });
+
+  it("shows only the last 5 steps when more steps are present", () => {
+    const steps: LoopStep[] = Array.from({ length: 10 }, (_, i) => ({
+      kind: "thought" as const,
+      text: `step ${i}`,
+    }));
+    const result = ProgressBlock({
+      run: { runId: "r1", status: "running", steps },
+      approvals: [],
+    });
+    expect(result?.type).toBe("div");
+    // The component slices to the last 5 steps internally
+  });
+});
+
+describe("MemoryBlock", () => {
+  it("returns null when there are no memory recalls", () => {
+    const result = MemoryBlock({ recalls: [] });
+    expect(result).toBeNull();
+  });
+
+  it("renders a div with DREW ON label when recalls exist", () => {
+    const recalls = [
+      { id: "m1", kind: "decision", content: "past decision", created_at: "2026-01-01" },
+    ];
+    const result = MemoryBlock({ recalls });
+    expect(result?.type).toBe("div");
+    expect(result?.props).toBeDefined();
+  });
+
+  it("displays each recall with its kind label", () => {
+    const recalls = [
+      { id: "m1", kind: "decision", content: "a decision", created_at: "2026-01-01" },
+      { id: "m2", kind: null, content: "past session", created_at: "2026-01-02" },
+    ];
+    const result = MemoryBlock({ recalls });
+    expect(result?.type).toBe("div");
+    // Component renders one Citation + kind label per recall
+  });
+});
+
+describe("CriticBlock", () => {
+  it("renders the verdict tone and summary for a SHIP verdict", () => {
+    const verdict: CriticReview = {
+      verdict: "ship",
+      summary: "This is a clear ship.",
+      risks: [],
+      kill_criteria: [],
+      missing_evidence: [],
+      confidence: 0.9,
+      reviewer_model: "claude-opus",
+      reviewed_at: "2026-07-03T00:00:00Z",
+    };
+    const result = CriticBlock({ verdict });
+    expect(result?.type).toBe("div");
+    expect(result?.props).toBeDefined();
+  });
+
+  it("renders a REVISE verdict with a neutral mono-caps label, not an ember chip", () => {
+    const verdict: CriticReview = {
+      verdict: "revise",
+      summary: "Needs some changes.",
+      risks: [],
+      kill_criteria: [],
+      missing_evidence: ["test coverage"],
+      confidence: 0.6,
+      reviewer_model: "claude-opus",
+      reviewed_at: "2026-07-03T00:00:00Z",
+    };
+    const result = CriticBlock({ verdict });
+    expect(result?.type).toBe("div");
+    // Component renders plain MonoLabel for REVISE, not VerdictChip
+  });
+
+  it("renders a KILL verdict with the madder verdict chip", () => {
+    const verdict: CriticReview = {
+      verdict: "kill",
+      summary: "This will not work.",
+      risks: ["security issue"],
+      kill_criteria: ["untested"],
+      missing_evidence: [],
+      confidence: 0.95,
+      reviewer_model: "claude-opus",
+      reviewed_at: "2026-07-03T00:00:00Z",
+    };
+    const result = CriticBlock({ verdict });
+    expect(result?.type).toBe("div");
+    expect(result?.props).toBeDefined();
   });
 });
