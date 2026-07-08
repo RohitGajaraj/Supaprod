@@ -4,7 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
 import { Button, MonoLabel } from "@/components/obsidian";
-import { createGoal, listGoals, setGoalStatus, type GoalListItem, type GoalStatus } from "@/lib/goals.functions";
+import {
+  createGoal,
+  listGoals,
+  setGoalStatus,
+  type GoalListItem,
+  type GoalStatus,
+} from "@/lib/goals.functions";
 
 /**
  * SW-4 / mission 3.10 GOAL MODE: the standing-objectives panel on Plan.
@@ -40,7 +46,9 @@ export function GoalsPanel() {
       if (r.firstPass?.proposed === 1) {
         toast.success("Goal set. The swarm already proposed its first opportunity into Decide.");
       } else {
-        toast.success("Goal set. The swarm found nothing new yet; it keeps watching and re-plans every 20 minutes.");
+        toast.success(
+          "Goal set. The swarm found nothing new yet; it keeps watching and re-plans every 20 minutes.",
+        );
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -48,7 +56,18 @@ export function GoalsPanel() {
 
   const setStatus = useMutation({
     mutationFn: (v: { goalId: string; status: GoalStatus }) => fStatus({ data: v }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["goals"] }),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      toast.success(
+        v.status === "paused"
+          ? "Goal paused."
+          : v.status === "active"
+            ? "Goal resumed."
+            : v.status === "achieved"
+              ? "Goal marked achieved."
+              : "Goal archived.",
+      );
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -113,7 +132,12 @@ export function GoalsPanel() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {goals.map((g) => (
-            <GoalCard key={g.id} goal={g} onSetStatus={(status) => setStatus.mutate({ goalId: g.id, status })} />
+            <GoalCard
+              key={g.id}
+              goal={g}
+              onSetStatus={(status) => setStatus.mutate({ goalId: g.id, status })}
+              statusPending={setStatus.isPending}
+            />
           ))}
         </div>
       )}
@@ -121,9 +145,22 @@ export function GoalsPanel() {
   );
 }
 
-function GoalCard({ goal, onSetStatus }: { goal: GoalListItem; onSetStatus: (s: GoalStatus) => void }) {
+function GoalCard({
+  goal,
+  onSetStatus,
+  statusPending = false,
+}: {
+  goal: GoalListItem;
+  onSetStatus: (s: GoalStatus) => void;
+  statusPending?: boolean;
+}) {
   const worked = goal.last_worked_at
-    ? new Date(goal.last_worked_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+    ? new Date(goal.last_worked_at).toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : null;
   return (
     <div
@@ -135,7 +172,9 @@ function GoalCard({ goal, onSetStatus }: { goal: GoalListItem; onSetStatus: (s: 
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{goal.title}</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+          {goal.title}
+        </span>
         <span
           style={{
             fontFamily: "var(--font-mono)",
@@ -155,7 +194,16 @@ function GoalCard({ goal, onSetStatus }: { goal: GoalListItem; onSetStatus: (s: 
         {worked ? ` Last worked ${worked}.` : " Not worked yet."}
       </p>
       {goal.recent_opportunities.length > 0 ? (
-        <ul style={{ margin: "8px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
+        <ul
+          style={{
+            margin: "8px 0 0",
+            padding: 0,
+            listStyle: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
           {goal.recent_opportunities.map((o) => (
             <li key={o.id} style={{ fontSize: 12.5 }}>
               <Link to="/decide" style={{ color: "var(--glacier)", textDecoration: "none" }}>
@@ -167,20 +215,28 @@ function GoalCard({ goal, onSetStatus }: { goal: GoalListItem; onSetStatus: (s: 
       ) : null}
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
         {goal.status === "active" ? (
-          <Button variant="tertiary" onClick={() => onSetStatus("paused")}>
+          <Button variant="tertiary" onClick={() => onSetStatus("paused")} disabled={statusPending}>
             Pause
           </Button>
         ) : goal.status === "paused" ? (
-          <Button variant="tertiary" onClick={() => onSetStatus("active")}>
+          <Button variant="tertiary" onClick={() => onSetStatus("active")} disabled={statusPending}>
             Resume
           </Button>
         ) : null}
         {goal.status !== "achieved" ? (
-          <Button variant="tertiary" onClick={() => onSetStatus("achieved")}>
+          <Button
+            variant="tertiary"
+            onClick={() => onSetStatus("achieved")}
+            disabled={statusPending}
+          >
             Mark achieved
           </Button>
         ) : (
-          <Button variant="tertiary" onClick={() => onSetStatus("archived")}>
+          <Button
+            variant="tertiary"
+            onClick={() => onSetStatus("archived")}
+            disabled={statusPending}
+          >
             Archive
           </Button>
         )}

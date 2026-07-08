@@ -308,7 +308,7 @@ export function ThemeDetail({
                 <Button variant="primary" onClick={onPromote} loading={busy} disabled={busy}>
                   Promote to opportunity
                 </Button>
-                <Button variant="secondary" onClick={onDraftSpec} disabled={busy}>
+                <Button variant="secondary" onClick={onDraftSpec} loading={busy} disabled={busy}>
                   Draft spec
                 </Button>
               </div>

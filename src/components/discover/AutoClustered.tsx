@@ -262,7 +262,10 @@ export function AutoClustered() {
       const r = await fDraftSpec({ data: { brief } });
       return { id: r.prd.id };
     },
-    onMutate: (id) => setBusy(id, true),
+    onMutate: (id) => {
+      setBusy(id, true);
+      toast("Drafting the spec from this theme.");
+    },
     onSuccess: (r) => {
       toast.success("Spec drafted");
       navigate({ to: "/plan/spec/$id", params: { id: r.id }, search: { tab: "contract" } });

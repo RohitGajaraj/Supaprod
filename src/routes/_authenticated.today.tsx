@@ -242,12 +242,30 @@ function TodaySpotlight({
           >
             {fullOpen ? "Hide the full brief" : "Read the full brief"}
           </button>
-          {fullOpen ? (
+          {refreshing ? (
+            // Feedback ruling 2026-07-08: the in-flight line stays visible even
+            // with the brief collapsed, so a refresh never looks like it
+            // silently died (same shimmer anatomy as AskPanel's status).
+            <span
+              role="status"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 10,
+                background: "var(--shimmer-gradient)",
+                backgroundSize: "280%",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                animation: "cadShimmer 5s linear infinite",
+              }}
+            >
+              {"Drafting today's brief…"}
+            </span>
+          ) : fullOpen ? (
             <button
               type="button"
               onClick={onRefreshBrief}
-              disabled={refreshing}
-              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
+              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
               style={{
                 ...monoLabel,
                 color: "var(--glacier)",
@@ -257,7 +275,7 @@ function TodaySpotlight({
                 cursor: "pointer",
               }}
             >
-              {refreshing ? "Refreshing" : "Refresh"}
+              Refresh
             </button>
           ) : null}
         </div>

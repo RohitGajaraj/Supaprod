@@ -83,10 +83,7 @@ export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet
 
 /** The one-line meaning behind each non-best designation, so hovering the tag
  * (and the detail sheet) tells a human or an agent what to do about the bet. */
-export const DESIGNATION_MEANING: Record<
-  Exclude<NonNullable<Designation>, "best bet">,
-  string
-> = {
+export const DESIGNATION_MEANING: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
   "needs validation": "High appeal, thin evidence. Let the Critic weigh in before you commit.",
   "quick win": "Low effort for real impact. A fast, safe ship.",
   "heavy lift": "Large effort for the expected return. Consider slicing it smaller.",
@@ -207,6 +204,9 @@ export interface OpportunityRowProps {
   /** OBS-10: write actions ported from the retired /product Opportunities
    * tab. Omit any handler to hide it entirely rather than disabling it. */
   onDraftSpec?: () => void;
+  /** The spec draft is in flight for this row: the Draft spec button shows
+   * its spinner. */
+  draftPending?: boolean;
   onLineage?: () => void;
   onDelete?: () => void;
   onSetStatus?: (status: OpportunityStatus) => void;
@@ -250,6 +250,7 @@ export function OpportunityRow({
   onChallenge,
   challengePending,
   onDraftSpec,
+  draftPending = false,
   onLineage,
   onDelete,
   onSetStatus,
@@ -425,6 +426,7 @@ export function OpportunityRow({
                 event.stopPropagation();
                 onDraftSpec();
               }}
+              loading={draftPending}
               disabled={actionsPending}
               title="Draft the cited spec from this bet"
             >
