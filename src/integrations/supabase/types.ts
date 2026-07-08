@@ -3201,6 +3201,56 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          last_worked_at: string | null
+          status: string
+          target_date: string | null
+          target_metric: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_worked_at?: string | null
+          status?: string
+          target_date?: string | null
+          target_metric?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_worked_at?: string | null
+          status?: string
+          target_date?: string | null
+          target_metric?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardrail_hits: {
         Row: {
           action: string
@@ -4517,6 +4567,7 @@ export type Database = {
           created_at: string
           critic_review: Json | null
           ease: number
+          goal_id: string | null
           hypothesis: string | null
           ice_score: number | null
           id: string
@@ -4543,6 +4594,7 @@ export type Database = {
           created_at?: string
           critic_review?: Json | null
           ease?: number
+          goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
           id?: string
@@ -4569,6 +4621,7 @@ export type Database = {
           created_at?: string
           critic_review?: Json | null
           ease?: number
+          goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
           id?: string
@@ -4591,6 +4644,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "opportunities_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "opportunities_product_id_fkey"
             columns: ["product_id"]
