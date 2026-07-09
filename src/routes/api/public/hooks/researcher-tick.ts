@@ -153,14 +153,17 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
                 continue;
               }
 
-              // Respect owner's active model preference; fall back to Gemini if not set.
+              // MA-2: respect owner's agentic_model if pinned, then default_model, then Gemini.
               const { data: ownerProf } = await supabaseAdmin
                 .from("profiles")
-                .select("default_model")
+                .select("agentic_model, default_model")
                 .eq("id", ws.owner_id)
                 .maybeSingle();
               const agenticModel =
-                (ownerProf as { default_model?: string | null } | null)?.default_model?.trim() ||
+                (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
+                  ?.agentic_model?.trim() ||
+                (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
+                  ?.default_model?.trim() ||
                 "google/gemini-2.5-flash";
 
               // Synthesize competitive brief via AI

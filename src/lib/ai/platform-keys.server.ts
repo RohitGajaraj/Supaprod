@@ -80,6 +80,10 @@ export function listConfiguredPlatformProviders(): string[] {
 }
 
 /**
+ * MA-2: if a user pins an agentic_model in profiles, that model is used for all automatic
+ * and agentic runs (agent loop, autoReflect, researcher-tick, etc), overriding capability
+ * routing. The user's chosen BYO key (if any) resolves credentials for that model.
+ *
  * Tier-1 priority list for agentic work, ranked by tool-use accuracy + JSON output quality.
  * Covers every provider that has a known best model for structured agentic tasks.
  * New providers added here are immediately considered at runtime when their key is set
@@ -134,19 +138,36 @@ export function resolveBestAgentModel(): string {
 }
 
 /**
- * Vault-aware variant of resolveBestAgentModel. When no platform env key is
- * configured for any priority provider, this also walks the user's BYO vault
- * (user_api_keys) in AGENT_MODEL_PRIORITY order and picks the first provider the
- * user has a key for. This is the correct function to call from the agent loop —
- * it makes "auto" mode work for ANY provider the user has configured, whether that
- * is a platform-level key OR a per-user BYO key, without any code changes.
+ * Vault-aware variant of resolveBestAgentModel. MA-2: if the user has pinned an
+ * agentic_model in profiles, returns it immediately (deterministic, user-chosen).
+ * Otherwise, when no platform env key is configured for any priority provider, this
+ * also walks the user's BYO vault (user_api_keys) in AGENT_MODEL_PRIORITY order and
+ * picks the first provider the user has a key for. This is the correct function to
+ * call from the agent loop — it makes "auto" mode work for ANY provider the user has
+ * configured, whether that is a platform-level key OR a per-user BYO key, without
+ * any code changes.
  *
- * Signature is async because vault lookup hits Supabase.
+ * Signature is async because profile/vault lookup hits Supabase.
  */
 export async function resolveBestAgentModelForUser(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   userId: string,
 ): Promise<string> {
+  // MA-2: check if the user has pinned an agentic_model in profiles.
+  // If so, use it (deterministic, user-chosen). Non-fatal on lookup failure.
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("agentic_model")
+      .eq("id", userId)
+      .maybeSingle();
+    const pinnedModel = (profile as { agentic_model?: string | null } | null)
+      ?.agentic_model;
+    if (pinnedModel) return pinnedModel;
+  } catch (e) {
+    // Profile lookup failing is non-fatal; fall through to the default logic.
+  }
+
   // Platform env keys take priority (shared operator quota, no per-user lookup needed).
   const platformModel = resolveBestAgentModel();
   if (!platformModel.startsWith("google/")) return platformModel;
