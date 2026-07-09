@@ -374,3 +374,85 @@ describe("rankOpportunities designation", () => {
     expect(ranked.find((r) => r.opp.id === "watch")!.designation).toBe("watch this week");
   });
 });
+
+// --- The reinforcement seam: recorded outcomes move the order ---------------
+// (2026-07-10) What actually happened to past bets on the same evidence now
+// informs NEW bets: after ICE and the Critic's verdict, a theme with a
+// validated record lifts its bets and a missed record sinks them - capped so
+// memory advises the human's scoring, never overrules it.
+
+import { outcomeSupportFromCounts } from "./ranking";
+
+describe("outcomeSupportFromCounts", () => {
+  test("validated lifts, missed sinks, mixed history nets out", () => {
+    expect(outcomeSupportFromCounts(2, 0)).toBe(2);
+    expect(outcomeSupportFromCounts(0, 2)).toBe(-2);
+    expect(outcomeSupportFromCounts(2, 1)).toBe(1);
+    expect(outcomeSupportFromCounts(0, 0)).toBe(0);
+  });
+
+  test("each side caps at 3 so one prolific theme cannot swamp the scoring", () => {
+    expect(outcomeSupportFromCounts(10, 0)).toBe(3);
+    expect(outcomeSupportFromCounts(0, 10)).toBe(-3);
+    expect(outcomeSupportFromCounts(10, 10)).toBe(0);
+  });
+
+  test("garbage-tolerant: negative inputs clamp to zero", () => {
+    expect(outcomeSupportFromCounts(-5, -5)).toBe(0);
+  });
+});
+
+describe("outcome support in the comparator chain", () => {
+  test("splits an ICE-and-verdict tie: the theme with proven outcomes wins", () => {
+    const proven = mk({ id: "b-proven", theme_id: "t-proven" });
+    const burned = mk({ id: "a-burned", theme_id: "t-burned" });
+    const support = (o: RankableOpportunity) =>
+      o.theme_id === "t-proven" ? 2 : o.theme_id === "t-burned" ? -1 : 0;
+    // Without support the ids alone would put a-burned first...
+    expect(compareOpportunities(burned, proven, () => 0)).toBeLessThan(0);
+    // ...with it, the proven theme's bet wins the tie.
+    expect(compareOpportunities(burned, proven, () => 0, support)).toBeGreaterThan(0);
+  });
+
+  test("never outranks the Critic: a SHIP verdict beats any outcome support", () => {
+    const endorsedNoHistory = mk({ id: "endorsed", critic_review: critic("ship") });
+    const provenButRevise = mk({
+      id: "proven",
+      theme_id: "t",
+      critic_review: critic("revise"),
+    });
+    const support = (o: RankableOpportunity) => (o.theme_id === "t" ? 3 : 0);
+    expect(compareOpportunities(endorsedNoHistory, provenButRevise, () => 0, support)).toBeLessThan(
+      0,
+    );
+  });
+
+  test("outranks corroboration: one recorded outcome beats raw signal volume", () => {
+    const loudButBurned = mk({ id: "loud", theme_id: "t-loud" });
+    const quietButProven = mk({ id: "quiet", theme_id: "t-quiet" });
+    const corroboration = (o: RankableOpportunity) => (o.theme_id === "t-loud" ? 9 : 0);
+    const support = (o: RankableOpportunity) => (o.theme_id === "t-quiet" ? 1 : 0);
+    expect(
+      compareOpportunities(quietButProven, loudButBurned, corroboration, support),
+    ).toBeLessThan(0);
+  });
+
+  test("rankOpportunities carries the support through and speaks it in the rationale", () => {
+    const ranked = rankOpportunities(
+      [mk({ id: "a", theme_id: "t-proven" }), mk({ id: "b", theme_id: "t-burned" })],
+      () => 0,
+      (o) => (o.theme_id === "t-proven" ? 2 : -1),
+    );
+    expect(ranked[0].opp.id).toBe("a");
+    expect(ranked[0].outcomeSupport).toBe(2);
+    expect(ranked[0].rationale).toContain("outcomes on this theme run proven");
+    expect(ranked[1].outcomeSupport).toBe(-1);
+    expect(ranked[1].rationale).toContain("outcomes on this theme have missed");
+  });
+
+  test("default callback keeps every existing caller byte-identical: support 0, no clause", () => {
+    const ranked = rankOpportunities([mk({ id: "a" })], () => 0);
+    expect(ranked[0].outcomeSupport).toBe(0);
+    expect(ranked[0].rationale).not.toContain("outcomes on this theme");
+  });
+});

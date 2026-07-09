@@ -18,7 +18,7 @@ import {
 import { listLearnings } from "@/lib/outcome.functions";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
-import { rankOpportunities } from "./ranking";
+import { rankOpportunities, outcomeSupportFromCounts } from "./ranking";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
 import { OpportunityDetailSheet, type OpportunityDetailRecord } from "./OpportunityDetailSheet";
 import { SkeletonBar } from "./SkeletonBar";
@@ -101,7 +101,31 @@ export function OpportunityQueue() {
     () => opps.data?.opportunities ?? [],
     [opps.data],
   );
+
+  // The reinforcement seam: each theme's decisive recorded outcomes (already
+  // fetched above for the rescore chip) folded into one capped support number
+  // per theme. What actually happened to past bets on this evidence now moves
+  // the order of NEW bets on it - see ranking.ts outcomeSupportFromCounts.
+  const outcomeSupportByTheme = useMemo(() => {
+    const counts = new Map<string, { validated: number; missed: number }>();
+    for (const l of learnings.data?.learnings ?? []) {
+      const themeId = l.opportunity_theme_id;
+      if (!themeId) continue;
+      if (l.verdict !== "validated" && l.verdict !== "missed") continue;
+      const c = counts.get(themeId) ?? { validated: 0, missed: 0 };
+      if (l.verdict === "validated") c.validated += 1;
+      else c.missed += 1;
+      counts.set(themeId, c);
+    }
+    const map = new Map<string, number>();
+    for (const [themeId, c] of counts) {
+      map.set(themeId, outcomeSupportFromCounts(c.validated, c.missed));
+    }
+    return map;
+  }, [learnings.data]);
+
   // Deterministic total order: the fixed tie-break chain (ICE, Critic verdict,
+  // outcome support = the theme's recorded validated-minus-missed record,
   // corroboration = the backing theme's signal frequency, confidence, impact,
   // created_at, id) so two equal-ICE bets never coin-flip and #1 is the single
   // best bet. See ranking.ts.
@@ -113,10 +137,12 @@ export function OpportunityQueue() {
   // previous render" and crashing the whole route via its error boundary.
   const ranked = useMemo(
     () =>
-      rankOpportunities(rows, (o) =>
-        o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
+      rankOpportunities(
+        rows,
+        (o) => (o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0),
+        (o) => (o.theme_id ? (outcomeSupportByTheme.get(o.theme_id) ?? 0) : 0),
       ),
-    [rows, themeById],
+    [rows, themeById, outcomeSupportByTheme],
   );
 
   const challenge = useMutation({

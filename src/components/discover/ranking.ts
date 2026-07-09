@@ -40,7 +40,9 @@ export type Designation =
 
 /** One ranked bet: the source opportunity, its 1-based position, the single
  * best-bet flag, its system-derived designation, and the human-and-agent
- * readable rationale plus the recommended next action. */
+ * readable rationale plus the recommended next action. `outcomeSupport` is
+ * the recorded-outcome signal that informed the order (0 when the theme has
+ * no decisive history yet, or no support callback was wired). */
 export interface RankedOpportunity<T> {
   opp: T;
   rank: number;
@@ -48,6 +50,21 @@ export interface RankedOpportunity<T> {
   designation: Designation;
   rationale: string;
   nextAction: string;
+  outcomeSupport: number;
+}
+
+/**
+ * The reinforcement seam: fold a theme's decisive recorded outcomes into one
+ * comparable number. Validated outcomes lift NEW bets on the same evidence,
+ * missed ones sink them; each side is capped at 3 so one prolific theme can
+ * never swamp the human's own ICE scoring, and 'mixed' verdicts are
+ * deliberately neutral. Pure and deterministic like everything else in this
+ * engine - the DB read that produces the counts lives with the callers.
+ */
+export function outcomeSupportFromCounts(validated: number, missed: number): number {
+  const v = Math.min(Math.max(validated, 0), 3);
+  const m = Math.min(Math.max(missed, 0), 3);
+  return v - m;
 }
 
 /**
@@ -87,13 +104,17 @@ function timeOf(iso: string): number {
 
 /**
  * The deterministic comparator. The tie-break chain, in strict order:
- *   1. ice_score      desc  (the primary priority signal)
- *   2. verdict rank   desc  (the Critic's strongest bets first)
- *   3. corroboration  desc  (backing signal count via corroborationOf)
- *   4. confidence     desc
- *   5. impact         desc
- *   6. created_at     asc   (the older, proven bet first)
- *   7. id             asc   (absolute stable finalizer, never random)
+ *   1. ice_score       desc  (the primary priority signal)
+ *   2. verdict rank    desc  (the Critic's strongest bets first)
+ *   3. outcome support desc  (recorded outcomes on the same evidence: what
+ *                             actually happened beats what might - a theme
+ *                             with validated history lifts its new bets, a
+ *                             theme with missed history sinks them)
+ *   4. corroboration   desc  (backing signal count via corroborationOf)
+ *   5. confidence      desc
+ *   6. impact          desc
+ *   7. created_at      asc   (the older, proven bet first)
+ *   8. id              asc   (absolute stable finalizer, never random)
  *
  * Returns a negative number when `a` should sort before `b`.
  */
@@ -101,12 +122,16 @@ export function compareOpportunities<T extends RankableOpportunity>(
   a: T,
   b: T,
   corroborationOf: (opp: T) => number,
+  outcomeSupportOf: (opp: T) => number = () => 0,
 ): number {
   const byIce = scoreOf(b) - scoreOf(a);
   if (byIce !== 0) return byIce;
 
   const byVerdict = verdictRankOf(verdictFor(b)) - verdictRankOf(verdictFor(a));
   if (byVerdict !== 0) return byVerdict;
+
+  const bySupport = outcomeSupportOf(b) - outcomeSupportOf(a);
+  if (bySupport !== 0) return bySupport;
 
   const byCorroboration = corroborationOf(b) - corroborationOf(a);
   if (byCorroboration !== 0) return byCorroboration;
@@ -128,7 +153,12 @@ export function compareOpportunities<T extends RankableOpportunity>(
 /** Build the short rationale sentence from the discriminators that are true or
  * nonzero for this bet, e.g. "Ranked #1: top ICE score, Critic endorsed,
  * backed by 7 signals". */
-function rationaleFor(opp: RankableOpportunity, rank: number, corroboration: number): string {
+function rationaleFor(
+  opp: RankableOpportunity,
+  rank: number,
+  corroboration: number,
+  outcomeSupport: number = 0,
+): string {
   const verdict = verdictFor(opp);
   const clauses: string[] = [];
   // PostgREST can serialize the `numeric` ice_score column as a string, not a
@@ -144,6 +174,12 @@ function rationaleFor(opp: RankableOpportunity, rank: number, corroboration: num
   else if (verdict === "WATCH") clauses.push("flagged to watch");
   else if (verdict === "REVISE") clauses.push("Critic says revise");
   else if (verdict === "KILL") clauses.push("Critic says kill");
+
+  // Qualitative on purpose: the support number is a capped NET of validated
+  // minus missed, so quoting it as a raw count could overstate or understate
+  // the record. The receipts live on the theme's outcome history.
+  if (outcomeSupport > 0) clauses.push("outcomes on this theme run proven");
+  else if (outcomeSupport < 0) clauses.push("outcomes on this theme have missed");
 
   if (corroboration > 0) {
     clauses.push(`backed by ${corroboration} signal${corroboration === 1 ? "" : "s"}`);
@@ -204,11 +240,15 @@ export function deriveDesignation(input: {
 export function rankOpportunities<T extends RankableOpportunity>(
   opps: readonly T[],
   corroborationOf: (opp: T) => number,
+  outcomeSupportOf: (opp: T) => number = () => 0,
 ): RankedOpportunity<T>[] {
-  const sorted = [...opps].sort((a, b) => compareOpportunities(a, b, corroborationOf));
+  const sorted = [...opps].sort((a, b) =>
+    compareOpportunities(a, b, corroborationOf, outcomeSupportOf),
+  );
   return sorted.map((opp, index) => {
     const rank = index + 1;
     const corroboration = corroborationOf(opp);
+    const outcomeSupport = outcomeSupportOf(opp);
     return {
       opp,
       rank,
@@ -220,8 +260,9 @@ export function rankOpportunities<T extends RankableOpportunity>(
         ease: opp.ease,
         corroboration,
       }),
-      rationale: rationaleFor(opp, rank, corroboration),
+      rationale: rationaleFor(opp, rank, corroboration, outcomeSupport),
       nextAction: nextActionFor(opp),
+      outcomeSupport,
     };
   });
 }

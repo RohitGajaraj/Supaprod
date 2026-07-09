@@ -511,7 +511,7 @@ export const listLearnings = createServerFn({ method: "GET" })
     const { data: learnings, error } = await db
       .from("learnings")
       .select(
-        "id, prd_id, opportunity_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, opportunity:opportunities(title)",
+        "id, prd_id, opportunity_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, opportunity:opportunities(title, theme_id)",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -534,12 +534,22 @@ export const listLearnings = createServerFn({ method: "GET" })
       prior_ice: number | string | null;
       new_ice: number | string | null;
       created_at: string;
-      opportunity: { title: string | null } | { title: string | null }[] | null;
+      opportunity:
+        | { title: string | null; theme_id: string | null }
+        | { title: string | null; theme_id: string | null }[]
+        | null;
     };
     const rows = (learnings ?? []) as LearningWire[];
     const flattened = rows.map(({ opportunity, ...rest }) => {
       const opp = Array.isArray(opportunity) ? opportunity[0] : opportunity;
-      return { ...rest, opportunity_title: opp?.title ?? null };
+      // opportunity_theme_id feeds the reinforcement seam (ranking.ts
+      // outcomeSupportFromCounts): the queue folds each theme's decisive
+      // outcome record into the order of NEW bets on the same evidence.
+      return {
+        ...rest,
+        opportunity_title: opp?.title ?? null,
+        opportunity_theme_id: opp?.theme_id ?? null,
+      };
     });
     return { learnings: flattened };
   });

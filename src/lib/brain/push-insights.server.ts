@@ -7,7 +7,11 @@
 // overflow). Deterministic end to end: zero AI spend.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { rankOpportunities, type RankableOpportunity } from "@/components/discover/ranking";
+import {
+  rankOpportunities,
+  outcomeSupportFromCounts,
+  type RankableOpportunity,
+} from "@/components/discover/ranking";
 import { supersedesParentMap } from "@/lib/brain-insights.functions";
 import type { LineageEdgeLite } from "@/lib/trust-ledger.functions";
 import {
@@ -40,8 +44,8 @@ export async function runInsightPush(
   const dayStart = `${nowIso.slice(0, 10)}T00:00:00.000Z`;
   const sinceIso = new Date(now.getTime() - LOOKBACK_MS).toISOString();
 
-  const [decisionsRes, lineageRes, oppsRes, themesRes, learningsRes, missesRes] =
-    await Promise.all([
+  const [decisionsRes, lineageRes, oppsRes, themesRes, learningsRes, missesRes] = await Promise.all(
+    [
       supabase
         .from("decisions")
         .select("id,title,status,mission_id,prd_id,meeting_id")
@@ -63,7 +67,7 @@ export async function runInsightPush(
       supabase.from("themes").select("id,frequency").eq("workspace_id", workspaceId).limit(500),
       supabase
         .from("learnings")
-        .select("id,opportunity_id,verdict,summary,created_at")
+        .select("id,opportunity_id,verdict,summary,created_at,opportunity:opportunities(theme_id)")
         .eq("workspace_id", workspaceId)
         .gte("created_at", sinceIso)
         .order("created_at", { ascending: false })
@@ -75,12 +79,17 @@ export async function runInsightPush(
         .eq("resolution", "miss")
         .gte("resolved_at", sinceIso)
         .limit(50),
-    ]);
+    ],
+  );
 
   // Pre-valid_to lineage schemas: refetch without the column rather than erroring out.
   let edges = (lineageRes.data ?? []) as unknown as LineageEdgeLite[];
   const lineageErr = (lineageRes.error?.message ?? "").toLowerCase();
-  if (lineageRes.error && lineageErr.includes("does not exist") && lineageErr.includes("valid_to")) {
+  if (
+    lineageRes.error &&
+    lineageErr.includes("does not exist") &&
+    lineageErr.includes("valid_to")
+  ) {
     const retry = await supabase
       .from("artifact_lineage")
       .select("parent_kind,parent_id,child_kind,child_id,relation")
@@ -119,8 +128,35 @@ export async function runInsightPush(
       t.frequency ?? 0,
     ]),
   );
-  const ranked = rankOpportunities(oppRows, (o) =>
-    o.theme_id ? (freqByTheme.get(o.theme_id) ?? 0) : 0,
+  // The reinforcement seam, server-side twin of the Discover queue's map:
+  // decisive recorded outcomes per theme (validated lifts, missed sinks,
+  // capped in outcomeSupportFromCounts) so the best bet the judgment lane
+  // pushes is informed by what actually happened, not just scores.
+  const supportCounts = new Map<string, { validated: number; missed: number }>();
+  for (const l of (learningsRes.data ?? []) as Array<{
+    verdict: string | null;
+    opportunity: { theme_id: string | null } | { theme_id: string | null }[] | null;
+  }>) {
+    const opp = Array.isArray(l.opportunity) ? l.opportunity[0] : l.opportunity;
+    const themeId = opp?.theme_id ?? null;
+    if (!themeId) continue;
+    if (l.verdict !== "validated" && l.verdict !== "missed") continue;
+    const c = supportCounts.get(themeId) ?? { validated: 0, missed: 0 };
+    if (l.verdict === "validated") c.validated += 1;
+    else c.missed += 1;
+    supportCounts.set(themeId, c);
+  }
+  const supportByTheme = new Map(
+    [...supportCounts].map(([themeId, c]) => [
+      themeId,
+      outcomeSupportFromCounts(c.validated, c.missed),
+    ]),
+  );
+
+  const ranked = rankOpportunities(
+    oppRows,
+    (o) => (o.theme_id ? (freqByTheme.get(o.theme_id) ?? 0) : 0),
+    (o) => (o.theme_id ? (supportByTheme.get(o.theme_id) ?? 0) : 0),
   );
   const top = ranked[0]?.opp ?? null;
   const bestBet = top ? { id: top.id, title: String(top.title ?? "this bet") } : null;
