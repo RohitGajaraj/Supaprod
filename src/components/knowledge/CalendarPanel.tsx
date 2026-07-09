@@ -564,7 +564,7 @@ export function CalendarPanel({
             </button>
           </div>
           {mPlan.isPending ? (
-            <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+            <span style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
               fitting your deep-work tasks around your calendar…
             </span>
           ) : blocks.length === 0 ? (

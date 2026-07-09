@@ -27,16 +27,17 @@ const REPLAY_STEP_MS = 650;
 
 function NoticeLine({ color, children }: { color?: string; children: React.ReactNode }) {
   return (
-    <MonoLabel
+    <p
       style={{
-        marginBottom: 8,
-        display: "block",
-        fontSize: "var(--text-mono-floor)",
+        margin: "0 0 8px",
+        fontFamily: "var(--font-ui)",
+        fontSize: 12.5,
+        lineHeight: 1.5,
         color: color ?? "var(--text-subtle)",
       }}
     >
       {children}
-    </MonoLabel>
+    </p>
   );
 }
 

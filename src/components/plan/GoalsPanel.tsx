@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { Button } from "@/components/obsidian";
 import {
   createGoal,
   listGoals,
@@ -92,7 +92,16 @@ export function GoalsPanel() {
           marginBottom: 16,
         }}
       >
-        <MonoLabel tone="muted">What outcome should the swarm keep working?</MonoLabel>
+        <span
+          style={{
+            display: "block",
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            color: "var(--text-muted)",
+          }}
+        >
+          What outcome should the swarm keep working?
+        </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <input
             value={title}

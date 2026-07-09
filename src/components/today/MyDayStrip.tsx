@@ -275,7 +275,7 @@ export function MyDayStrip() {
               active={open === "focus"}
               onClick={() => setOpen(open === "focus" ? null : "focus")}
             >
-              Focus next · {focusInsight.headline.slice(0, 48)}
+              Focus next
             </SegmentButton>
           </>
         ) : null}

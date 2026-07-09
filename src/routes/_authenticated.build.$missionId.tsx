@@ -493,7 +493,7 @@ function BuildSessionPage() {
         crumbs={[
           activeWorkspace?.name ?? "Workspace",
           "Build",
-          ...(mission ? [mission.title] : []),
+          ...(mission ? [stripAutoPrefix(mission.title)] : []),
         ]}
       />
       <div
@@ -726,7 +726,7 @@ function BuildSessionPage() {
         ) : isOrchestratorMission ? (
           <MissionOrchestratorDetail missionId={missionId} />
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
             <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Real heading (quality register: MonoLabel spans left the page
                   with no navigable outline); the mono-caps look stays via style. */}

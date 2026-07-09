@@ -216,7 +216,11 @@ export function EngineRoomDisclosure({
             <MonoLabel>Engine Room</MonoLabel>
             <span
               className="mono-label"
-              style={{ fontSize: "var(--text-mono-floor)", color: "var(--text-faint)" }}
+              style={{
+                fontSize: "var(--text-mono-floor)",
+                color: "var(--text-faint)",
+                whiteSpace: "normal",
+              }}
             >
               PR, checks, and merge controls
             </span>

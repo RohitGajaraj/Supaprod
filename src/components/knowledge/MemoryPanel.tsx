@@ -184,7 +184,7 @@ export function MemoryPanel() {
                       style={{ fontSize: 8.5, display: "block", marginTop: 2 }}
                     >
                       moved{" "}
-                      <span style={{ color: "var(--ink)" }}>
+                      <span style={{ color: "var(--ink)", textTransform: "none" }}>
                         {l.opportunity_title ?? "a priority"}
                       </span>{" "}
                       · ICE {Number(l.prior_ice).toFixed(1)} → {Number(l.new_ice).toFixed(1)}

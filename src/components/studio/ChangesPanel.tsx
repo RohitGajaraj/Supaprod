@@ -594,6 +594,9 @@ export function ChangesPanel({
                 lineHeight: 1.6,
                 color: "var(--text-primary)",
                 whiteSpace: "pre-wrap",
+                overflowWrap: "anywhere",
+                maxHeight: 260,
+                overflowY: "auto",
               }}
             >
               {changeset.release_notes}
@@ -680,6 +683,9 @@ export function ChangesPanel({
                         lineHeight: 1.6,
                         color: "var(--text-primary)",
                         whiteSpace: "pre-wrap",
+                        overflowWrap: "anywhere",
+                        maxHeight: 260,
+                        overflowY: "auto",
                       }}
                     >
                       {launchKit[key]}
@@ -1086,6 +1092,7 @@ export function ChangesPanel({
             >
               <span
                 className="truncate"
+                title={c.path}
                 style={{
                   flex: 1,
                   minWidth: 0,

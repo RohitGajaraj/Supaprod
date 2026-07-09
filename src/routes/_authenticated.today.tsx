@@ -218,7 +218,7 @@ function TodaySpotlight({
           <div style={row}>
             <span style={{ ...monoLabel, color: "var(--moss)" }}>All quiet</span>
             <span style={{ color: "var(--text-muted)" }}>
-              Nothing needs your judgment right now. The loop is running itself.
+              Nothing needs your judgment right now.
             </span>
           </div>
         )}
@@ -983,24 +983,31 @@ function Dashboard() {
 
   const acceptPct = acceptance.data?.rate != null ? Math.round(acceptance.data.rate * 100) : null;
   const autonomyPct = autonomy.data?.ratio != null ? Math.round(autonomy.data.ratio * 100) : null;
-  const loopScore =
-    acceptPct != null && autonomyPct != null ? Math.round((acceptPct + autonomyPct) / 2) : null;
+  // One interpretable metric, not a blended score: how much of the work ran
+  // without a human (the product's whole promise), read straight off the
+  // autonomy ratio. The approval rate rides along as the caption so the card
+  // carries two real numbers, each meaning one clear thing.
+  const loopValue = autonomyPct != null ? `${autonomyPct}%` : "-";
   const loopHue =
-    loopScore == null
+    autonomyPct == null
       ? "healthy"
-      : loopScore >= 60
+      : autonomyPct >= 60
         ? "healthy"
-        : loopScore >= 35
+        : autonomyPct >= 35
           ? "attention"
           : "failing";
+  const loopTrend =
+    acceptance.data?.trend === "up" || autonomy.data?.trend === "up"
+      ? "trending up"
+      : acceptance.data?.trend === "down" || autonomy.data?.trend === "down"
+        ? "needs attention"
+        : "last 14 days";
   const loopNote =
-    loopScore == null
-      ? "Not enough data yet · keep the loop running."
-      : acceptance.data?.trend === "up" || autonomy.data?.trend === "up"
-        ? "Approval hit rate + autonomy ratio · trending up"
-        : acceptance.data?.trend === "down" || autonomy.data?.trend === "down"
-          ? "Approval hit rate + autonomy ratio · needs attention"
-          : "Approval hit rate + autonomy ratio · holding";
+    autonomyPct == null
+      ? "Not enough data yet · keep the loop running"
+      : acceptPct != null
+        ? `${acceptPct}% approved · ${loopTrend}`
+        : `Ran without you · ${loopTrend}`;
 
   // Never assert "All clear" before the true call count has actually
   // arrived — OBS-04.md §7 "Loading" state: skeleton, no spinner, and the
@@ -1181,13 +1188,11 @@ function Dashboard() {
                       margin: "0 0 6px",
                     }}
                   >
-                    All clear.{" "}
-                    <em style={{ fontStyle: "italic", color: "var(--moss)" }}>
-                      Enjoy the quiet roadmap.
-                    </em>
+                    Your queue is{" "}
+                    <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
                   </h3>
                   <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                    The loop is running itself. New calls will find you here first.
+                    New calls surface here first. Cadence keeps sensing in the background.
                   </p>
                 </div>
               ) : (
@@ -1277,7 +1282,7 @@ function Dashboard() {
           <div className="flex flex-col" style={{ gap: 14 }}>
             {/* Lane 3 — At risk / watch */}
             {lanesData ? <WatchLane lane={lanesData.lane3} /> : null}
-            <LoopHealthCard score={loopScore} note={loopNote} hue={loopHue} />
+            <LoopHealthCard label="Runs itself" value={loopValue} note={loopNote} hue={loopHue} />
             <StrategicBriefCard />
           </div>
         </div>

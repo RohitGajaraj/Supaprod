@@ -1,9 +1,9 @@
 import { useState, memo } from "react";
-import { MonoLabel, VerdictChip } from "@/components/obsidian";
+import { VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
-import { measureCaps, decisionOptionLabel } from "./format";
+import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
   id: string;
@@ -96,7 +96,7 @@ function BetCardComponent({
   editPending = false,
 }: BetCardProps) {
   const style = COLUMN_STYLE[column];
-  const capped = measureCaps(measure);
+  const measureText = measure && measure.trim().length > 0 ? measure : null;
   const [editing, setEditing] = useState(false);
   const [outcomeVal, setOutcomeVal] = useState(outcome ?? "");
   const [measureVal, setMeasureVal] = useState(measure ?? "");
@@ -168,10 +168,16 @@ function BetCardComponent({
           {decisionOptionLabel(title)}
         </span>
       </span>
-      {capped && (
-        <MonoLabel style={{ fontSize: "var(--text-mono-floor)", color: "var(--text-subtle)" }}>
-          <MeasureLine measure={capped} />
-        </MonoLabel>
+      {measureText && (
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "var(--text-mono-floor)",
+            color: "var(--text-subtle)",
+          }}
+        >
+          <MeasureLine measure={measureText} />
+        </span>
       )}
 
       {editing ? (

@@ -226,7 +226,10 @@ export function CiPanel({
             >
               {ci.gate.reason}
             </p>
-            <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
+            <span
+              className="mono-label"
+              style={{ color: "var(--text-subtle)", whiteSpace: "normal" }}
+            >
               ran on · {ci.gate.providerLabel}
             </span>
           </div>
@@ -280,7 +283,15 @@ export function CiPanel({
           )}
         </div>
         {ci?.updated_at ? (
-          <div className="mono-label" style={{ marginTop: 10, color: "var(--text-subtle)" }}>
+          <div
+            className="mono-label"
+            style={{
+              marginTop: 10,
+              color: "var(--text-subtle)",
+              whiteSpace: "normal",
+              overflowWrap: "anywhere",
+            }}
+          >
             snapshot · {new Date(ci.updated_at).toLocaleString()}
           </div>
         ) : null}
