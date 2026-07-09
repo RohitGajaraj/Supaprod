@@ -137,7 +137,7 @@ function useConnectorActions(qc: QueryClient) {
     onError: (e: Error) => toast.error(e.message),
   });
   // Native OAuth (SW-7): Cadence's own registered app. Same mechanics as
-  // mGithub — a new tab (not a same-tab redirect), so the callback's
+  // mGithub: a new tab (not a same-tab redirect), so the callback's
   // close-tab page actually closes something and the Settings tab keeps
   // polling for the new connection instead of being navigated away.
   const mNative = useMutation({

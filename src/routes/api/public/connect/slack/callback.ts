@@ -7,7 +7,7 @@ import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
 
 /**
- * SW-7 — Slack native OAuth callback (public, unauthenticated). Slack
+ * SW-7: Slack native OAuth callback (public, unauthenticated). Slack
  * redirects here after the user approves the app with
  * ?code=&state=(&error=). The user is identified by the HMAC-signed state
  * minted by startNativeOAuthConnect (connections.functions.ts); an invalid or
@@ -15,7 +15,7 @@ import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
  * connect/github/callback.ts's shape exactly (same redirect-back UX), but
  * exchanges an authorization code for a real access token instead of probing
  * an installation id, and vaults that token via connection_secrets (auth_kind
- * 'token' — the same generic kind resolve.server.ts already decrypts for
+ * 'token', the same generic kind resolve.server.ts already decrypts for
  * any non-github_app/oauth_gateway row).
  */
 
@@ -126,7 +126,7 @@ export const Route = createFileRoute("/api/public/connect/slack/callback")({
               })
               .eq("id", (existing as { id: string }).id);
             if (error) throw new Error(error.message);
-            // Old secret is now orphaned — delete it so the vault doesn't
+            // Old secret is now orphaned, delete it so the vault doesn't
             // accumulate dead ciphertext on every reconnect.
             if (oldSecretId) await admin.from("connection_secrets").delete().eq("id", oldSecretId);
           } else {
@@ -155,7 +155,7 @@ export const Route = createFileRoute("/api/public/connect/slack/callback")({
 
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>Slack Connected — Cadence</title>
+<title>Slack Connected - Cadence</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">Slack connected</h2>

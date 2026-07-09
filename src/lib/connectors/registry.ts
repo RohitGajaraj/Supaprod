@@ -49,7 +49,7 @@ export type AuthMethod =
       scopes?: string[];
     }
   // SW-7: Cadence registers its OWN OAuth app directly with the provider
-  // (same shape as github_app, generalized) — no Lovable gateway dependency.
+  // (same shape as github_app, generalized), no Lovable gateway dependency.
   // The founder registers a real app in the provider's developer console and
   // sets clientIdEnv/clientSecretEnv; the callback lives at
   // /api/public/connect/<provider>/callback (see startNativeOAuthConnect).

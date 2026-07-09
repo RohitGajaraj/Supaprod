@@ -95,7 +95,7 @@ export type ProviderAvailability = Record<
     githubAppConfigured?: boolean;
     gatewayConfigured?: boolean;
     /** True when Cadence's own OAuth app (clientIdEnv + clientSecretEnv) is
-     *  registered directly with the provider — the real "Connect" round-trip
+     *  registered directly with the provider: the real "Connect" round-trip
      *  (SW-7), same shape as githubAppConfigured but for oauth_native. */
     nativeOAuthConfigured?: boolean;
     /** True when the provider's server-side env token (envFallback.tokenEnv) is
@@ -185,7 +185,7 @@ function deriveProviderAvailability(): ProviderAvailability {
         entry.gatewayConfigured = !!process.env[method.clientIdEnv] && lovableKeyPresent;
       }
       if (method.kind === "oauth_native") {
-        // Native connect needs Cadence's own OAuth app credentials — no
+        // Native connect needs Cadence's own OAuth app credentials, no
         // Lovable dependency (SW-7).
         if (!process.env[method.clientIdEnv]) missingEnv.push(method.clientIdEnv);
         if (!process.env[method.clientSecretEnv]) missingEnv.push(method.clientSecretEnv);
@@ -246,7 +246,7 @@ export const startGithubAppConnect = createServerFn({ method: "POST" })
   });
 
 /**
- * Kick off Cadence's own OAuth connect flow for an oauth_native provider —
+ * Kick off Cadence's own OAuth connect flow for an oauth_native provider:
  * returns the provider's authorize URL for a FULL-PAGE redirect (same UX as
  * the GitHub App install: no popup/postMessage machinery). SW-7: this is the
  * generalized pattern every non-GitHub provider uses once its OAuth app is
