@@ -34,6 +34,12 @@ describe("ageOf", () => {
     const iso = new Date(Date.now() + 60_000).toISOString();
     expect(ageOf(iso)).toBe("now");
   });
+
+  test("a malformed timestamp does not render as 'Invalid Date'", () => {
+    // This guards against NaN propagation that would lead to "Invalid Date" being rendered to users
+    const result = ageOf("not-a-valid-timestamp");
+    expect(result).not.toContain("Invalid");
+  });
 });
 
 describe("hasSource", () => {

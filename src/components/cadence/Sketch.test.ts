@@ -286,58 +286,48 @@ describe("barInsight", () => {
 });
 
 describe("SketchLine", () => {
-  it.todo("returns null for less than 2 data points — requires React DOM test env");
-  it.todo("returns null for empty data — requires React DOM test env");
-  it.todo("returns an SVG element for valid data — requires React DOM test env");
-  it.todo("includes two path elements for the double-stroke effect — requires React DOM test env");
-  it.todo("includes a circle element for the end-point dot — requires React DOM test env");
-  it.todo("respects custom color prop — requires React DOM test env");
-  it.todo("respects custom width and height — requires React DOM test env");
-  it.todo(
-    "includes baseline line when baseline is within data range — requires React DOM test env",
-  );
-  it.todo(
-    "does not include baseline line when baseline is outside data range — requires React DOM test env",
-  );
-  it.todo("applies animate class when animate prop is true — requires React DOM test env");
-  it.todo("handles flat data (all same values) — requires React DOM test env");
-  it.todo("has aria-hidden for semantic compliance — requires React DOM test env");
+  it.todo("returns null for less than 2 data points");
+  it.todo("returns null for empty data");
+  it.todo("returns an SVG element for valid data");
+  it.todo("includes two path elements for the double-stroke effect");
+  it.todo("includes a circle element for the end-point dot");
+  it.todo("respects custom color prop");
+  it.todo("respects custom width and height");
+  it.todo("includes baseline line when baseline is within data range");
+  it.todo("does not include baseline line when baseline is outside data range");
+  it.todo("applies animate class when animate prop is true");
+  it.todo("handles flat data (all same values)");
+  it.todo("has aria-hidden for semantic compliance");
 });
 
 describe("SketchBar", () => {
-  it.todo("returns an SVG element — requires React DOM test env");
-  it.todo("respects custom color prop — requires React DOM test env");
-  it.todo("respects custom trackH — requires React DOM test env");
-  it.todo("includes hatch and outline paths — requires React DOM test env");
-  it.todo("clamps pct to 0-100 range conceptually — requires React DOM test env");
-  it.todo("varies outline based on seed (deterministic) — requires React DOM test env");
-  it.todo("uses preserveAspectRatio='none' for stretching — requires React DOM test env");
-  it.todo("has aria-hidden for semantic compliance — requires React DOM test env");
-  it.todo("handles edge case: pct = 0 — requires React DOM test env");
-  it.todo("handles edge case: pct = 100 — requires React DOM test env");
+  it.todo("returns an SVG element");
+  it.todo("respects custom color prop");
+  it.todo("respects custom trackH");
+  it.todo("includes hatch and outline paths");
+  it.todo("clamps pct to 0-100 range conceptually");
+  it.todo("varies outline based on seed (deterministic)");
+  it.todo("uses preserveAspectRatio='none' for stretching");
+  it.todo("has aria-hidden for semantic compliance");
+  it.todo("handles edge case: pct = 0");
+  it.todo("handles edge case: pct = 100");
 });
 
 describe("SketchBarChart", () => {
-  it.todo("returns null for empty data — requires React DOM test env");
-});
-
-describe("SketchBarChart", () => {
-  it.todo("returns null for empty data — requires React DOM test env");
-  it.todo("returns a div with role='group' for valid data — requires React DOM test env");
-  it.todo("includes aria-label in group — requires React DOM test env");
-  it.todo("auto-derives insight text from data when not provided — requires React DOM test env");
-  it.todo("uses provided insight text over auto-derived — requires React DOM test env");
-  it.todo("does not include insight when showInsight=false — requires React DOM test env");
-  it.todo("respects custom formatValue — requires React DOM test env");
-  it.todo("includes baseline line when baseline is provided — requires React DOM test env");
-  it.todo(
-    "does not include baseline when baseline is 0 or undefined — requires React DOM test env",
-  );
-  it.todo("renders a button for each data point — requires React DOM test env");
-  it.todo("includes peak and floor labels — requires React DOM test env");
-  it.todo("respects custom color — requires React DOM test env");
-  it.todo("handles single data point — requires React DOM test env");
-  it.todo("tracks hover state via buttons — requires React DOM test env");
-  it.todo("includes value display overlay — requires React DOM test env");
-  it.todo("respects custom trackH — requires React DOM test env");
+  it.todo("returns null for empty data");
+  it.todo("returns a div with role='group' for valid data");
+  it.todo("includes aria-label in group");
+  it.todo("auto-derives insight text from data when not provided");
+  it.todo("uses provided insight text over auto-derived");
+  it.todo("does not include insight when showInsight=false");
+  it.todo("respects custom formatValue");
+  it.todo("includes baseline line when baseline is provided");
+  it.todo("does not include baseline when baseline is 0 or undefined");
+  it.todo("renders a button for each data point");
+  it.todo("includes peak and floor labels");
+  it.todo("respects custom color");
+  it.todo("handles single data point");
+  it.todo("tracks hover state via buttons");
+  it.todo("includes value display overlay");
+  it.todo("respects custom trackH");
 });

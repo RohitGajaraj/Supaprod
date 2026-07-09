@@ -121,6 +121,15 @@ describe("FigmaEmbed.config.parseHTML()", () => {
   });
 });
 
+describe("FigmaEmbed.config.addAttributes()", () => {
+  test("should define src attribute with empty string default", () => {
+    const attrs = FigmaEmbed.config.addAttributes();
+    expect(attrs).toBeDefined();
+    expect(attrs.src).toBeDefined();
+    expect(attrs.src.default).toBe("");
+  });
+});
+
 describe("FigmaEmbed.config.renderHTML()", () => {
   test("should render a div with data-figma-embed attribute", () => {
     const output = FigmaEmbed.config.renderHTML({

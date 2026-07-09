@@ -19,7 +19,9 @@ export const STATUS_TONE: Record<DecisionRow["status"], VerdictTone> = {
 };
 
 export function ageOf(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return ""; // Guard against malformed timestamps
+  const ms = Date.now() - then;
   const m = Math.floor(ms / 60_000);
   if (m < 1) return "now";
   if (m < 60) return `${m}m ago`;
