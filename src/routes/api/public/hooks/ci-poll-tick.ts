@@ -35,7 +35,16 @@ import {
  *      consuming the changeset's fix budget (fix_attempts, cap CI_FIX_BUDGET).
  *      Budget exhausted -> the mission is parked 'blocked' once, honestly,
  *      for the human at the merge gate.
- *   3. GREEN / pending / neutral -> no-op (the merge gate handles green).
+ *   3. GREEN -> if no studio.pr.merge approval is pending/decided for this
+ *      mission yet and no live run is still working it, surface ONE pending
+ *      approval directly (deterministic, no agent dispatch). This closes a
+ *      real gap: a mission that halted (e.g. a merge attempt refused while
+ *      CI was still pending) can never act on its own PR again once its
+ *      session ends, and no OTHER mission can touch a PR it does not own,
+ *      so without this the PR sits mergeable forever with nothing prompting
+ *      a human. studio.pr.merge stays review-gated either way; this only
+ *      guarantees the gate actually appears.
+ *   3.5. pending / neutral -> no-op.
  *   4. MERGED changesets on Cadence-managed repos (cadence.json) auto-deploy
  *      ONCE to a Deno Deploy preview revision (mission 3.7: merge is not the
  *      end; a live URL is); the promote gate moves production.
@@ -241,9 +250,63 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
               ];
               checked++;
               const overall = overallFromChecks(lites);
-              failures.push(
-                `${cs.id.slice(0, 8)}: DEBUG pr#${cs.pr_number} overall=${overall} nLites=${lites.length} conclusions=${JSON.stringify(lites.map((l) => l.conclusion))}`,
-              );
+
+              // SEAM-2 MERGE-READY SURFACE (deterministic, no agent dispatch,
+              // still human-gated). The gap this closes: a mission can only
+              // request studio.pr.merge from ITS OWN active run; if that run
+              // already gave up (a merge attempt refused while CI was still
+              // pending, or any other halt) before CI finished, the PR is
+              // stuck forever once CI does go green, since no fresh mission
+              // can act on another mission's changeset and the halted one
+              // can no longer be steered. ci-poll-tick already reads CI here
+              // every 2 minutes, so it is the natural place to notice CI
+              // turned green and put a merge decision in front of a human,
+              // without needing an agent to notice for it. This does NOT
+              // change studio.pr.merge's review floor: the approval still
+              // sits in the normal Needs-your-judgment queue and a human
+              // still clicks Approve; this only stops that gate from
+              // silently never appearing.
+              if (overall === "success" && cs.mission_id) {
+                const { count: pendingOrDone } = await supabaseAdmin
+                  .from("agent_approvals")
+                  .select("id", { count: "exact", head: true })
+                  .eq("mission_id", cs.mission_id)
+                  .eq("tool_name", "studio.pr.merge")
+                  .in("status", ["pending", "approved", "executed"]);
+                if (!pendingOrDone) {
+                  const { count: liveRunsForMerge } = await supabaseAdmin
+                    .from("agent_runs")
+                    .select("id", { count: "exact", head: true })
+                    .eq("mission_id", cs.mission_id)
+                    .in("status", NON_TERMINAL_RUN);
+                  if (!liveRunsForMerge) {
+                    const { data: builderAgent } = await supabaseAdmin
+                      .from("agents")
+                      .select("id")
+                      .eq("user_id", cs.user_id)
+                      .eq("slug", "builder")
+                      .maybeSingle();
+                    const { error: apprErr } = await supabaseAdmin
+                      .from("agent_approvals")
+                      .insert({
+                        user_id: cs.user_id,
+                        workspace_id: cs.workspace_id,
+                        mission_id: cs.mission_id,
+                        agent_id: (builderAgent as { id: string } | null)?.id ?? null,
+                        agent_slug: "builder",
+                        tool_name: "studio.pr.merge",
+                        args: {},
+                        status: "pending",
+                        rationale:
+                          "CI is green on this PR, but the mission that opened it is no longer running to request the merge itself. Surfaced by ci-poll-tick so this does not sit stuck.",
+                      });
+                    if (apprErr) {
+                      failures.push(`${cs.id.slice(0, 8)}: merge-approval insert ${apprErr.message}`);
+                    }
+                  }
+                }
+              }
+
               if (overall !== "failure") continue;
 
               // SEAM-2 STALE-BRANCH AUTOSYNC (fully autonomous: no agent
@@ -274,9 +337,6 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
                   ? ((await baseRefRes.json()) as { object: { sha: string } }).object.sha
                   : null;
                 const baseMoved = !!baseCurrentSha && baseCurrentSha !== pr.base.sha;
-                failures.push(
-                  `${cs.id.slice(0, 8)}: DEBUG baseRefOk=${baseRefRes.ok} baseRefStatus=${baseRefRes.status} prBaseSha=${pr.base.sha} baseCurrentSha=${baseCurrentSha} baseMoved=${baseMoved}`,
-                );
 
                 if (baseMoved) {
                   // Spend one attempt of the budget regardless of outcome
@@ -427,7 +487,6 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
             exhausted,
             previewsDeployed,
             failures,
-            debugMarker: "SW7-DEPLOY-CHECK-4de04d4c",
           });
         });
       },
