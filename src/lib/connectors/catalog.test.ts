@@ -29,8 +29,10 @@ describe("connector catalog — de-dup + coverage", () => {
     expect(categoryOf("firecrawl")).toBeNull();
   });
 
-  it("catalogEntryCount equals the number of user-facing providers (17)", () => {
-    expect(catalogEntryCount()).toBe(17);
+  it("catalogEntryCount equals the number of user-facing providers (19)", () => {
+    // 19 = the 17 pre-suite providers + Gmail + Outlook Mail (native OAuth
+    // suite ingest, 2026-07-09). Keep this literal in step with the registry.
+    expect(catalogEntryCount()).toBe(19);
     expect(catalogEntryCount()).toBe(allEntries().length);
   });
 });
