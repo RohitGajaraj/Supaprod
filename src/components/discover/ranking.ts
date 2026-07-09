@@ -1,3 +1,4 @@
+import { iceNum } from "@/lib/moat-vis";
 import { verdictFor, type OpportunityVerdictInput, type VerdictWord } from "./format";
 
 /**
@@ -127,16 +128,17 @@ export function compareOpportunities<T extends RankableOpportunity>(
 /** Build the short rationale sentence from the discriminators that are true or
  * nonzero for this bet, e.g. "Ranked #1: top ICE score, Critic endorsed,
  * backed by 7 signals". */
-function rationaleFor(
-  opp: RankableOpportunity,
-  rank: number,
-  corroboration: number,
-): string {
+function rationaleFor(opp: RankableOpportunity, rank: number, corroboration: number): string {
   const verdict = verdictFor(opp);
   const clauses: string[] = [];
+  // PostgREST can serialize the `numeric` ice_score column as a string, not a
+  // number (the generated Supabase type lies) - iceNum coerces it the same
+  // way moat-vis.ts and decision-judgment.functions.ts already do for the
+  // same column, so .toFixed never throws here.
+  const ice = iceNum(opp.ice_score);
 
   if (rank === 1) clauses.push("top ICE score");
-  else if (opp.ice_score != null) clauses.push(`ICE ${opp.ice_score.toFixed(1)}`);
+  else if (ice != null) clauses.push(`ICE ${ice.toFixed(1)}`);
 
   if (verdict === "SHIP") clauses.push("Critic endorsed");
   else if (verdict === "WATCH") clauses.push("flagged to watch");

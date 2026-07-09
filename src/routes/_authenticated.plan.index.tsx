@@ -18,41 +18,47 @@ export const Route = createFileRoute("/_authenticated/plan/")({
   },
   component: PlanPage,
   head: () => ({ meta: [{ title: "Define · Cadence" }] }),
-  errorComponent: ({ error, reset }) => (
-    <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 560,
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
-          boxShadow: "var(--shadow-elevated)",
-        }}
-      >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-          COULDN'T LOAD DEFINE
-        </div>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
-          {(error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          onClick={reset}
-          className="loom-press"
+  errorComponent: ({ error, reset }) => {
+    // Route-level crashes previously threw away the real error - log it so
+    // any future occurrence is diagnosable from the console instead of a
+    // silent "COULDN'T LOAD DEFINE" with no trace.
+    console.error("[Define] route crashed:", error);
+    return (
+      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
+        <div
           style={{
-            marginTop: 14,
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--glacier)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
+            padding: 24,
+            maxWidth: 560,
+            background: "var(--surface-card)",
+            borderRadius: "var(--radius-panel)",
+            boxShadow: "var(--shadow-elevated)",
           }}
         >
-          Retry · reloads Define
-        </button>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+            COULDN'T LOAD DEFINE
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            {(error as Error)?.message ?? "Unknown error"}
+          </p>
+          <button
+            onClick={reset}
+            className="loom-press"
+            style={{
+              marginTop: 14,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--glacier)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Retry · reloads Define
+          </button>
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
 });
 
 function PlanPage() {

@@ -16,7 +16,7 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
-import { rescoreNoteOf } from "@/lib/moat-vis";
+import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { rankOpportunities } from "./ranking";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
@@ -271,7 +271,7 @@ export function OpportunityQueue() {
           return (
             <OpportunityRow
               key={o.id}
-              ice={o.ice_score ?? 0}
+              ice={iceNum(o.ice_score) ?? 0}
               rank={r.rank}
               designation={r.designation}
               title={o.title}

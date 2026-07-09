@@ -17,6 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/notify";
+import { iceNum } from "@/lib/moat-vis";
 import type { CriticReview } from "@/lib/discovery.functions";
 import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
@@ -249,6 +250,11 @@ export function OpportunityDetailSheet({
   // communicated by the band's tint + rank + rationale, so it carries none.
   const designationMeaning =
     designation && designation !== "best bet" ? DESIGNATION_MEANING[designation] : null;
+  // PostgREST can serialize the `numeric` ice_score column as a string, not a
+  // number (the generated Supabase type lies) - iceNum coerces it the same
+  // way moat-vis.ts and decision-judgment.functions.ts already do for the
+  // same column, so .toFixed never throws here.
+  const iceScore = opportunity ? iceNum(opportunity.ice_score) : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -463,8 +469,8 @@ export function OpportunityDetailSheet({
               />
               <StatCell
                 label="ICE"
-                value={opportunity.ice_score != null ? opportunity.ice_score.toFixed(1) : "-"}
-                tone={toneForScore(opportunity.ice_score ?? 0)}
+                value={iceScore != null ? iceScore.toFixed(1) : "-"}
+                tone={toneForScore(iceScore ?? 0)}
               />
             </StatStrip>
 
