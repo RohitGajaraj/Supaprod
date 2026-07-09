@@ -21,14 +21,23 @@ import { PLAN_TIERS, entitlementsFor } from "./entitlements";
 
 const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
 
-/** Find the migration that defines backfill_account_credits (robust to renames). */
+/**
+ * Find the migration that defines backfill_account_credits (robust to
+ * renames). Several migrations may CREATE OR REPLACE it over time (first the
+ * original backfill, then the 2026-07-09 starter-grant bump); the DB applies
+ * them in timestamp order, so the LATEST definition is the live one and the
+ * guard must compare against that, not the first hit.
+ */
 function readBackfillMigration(): string {
-  const files = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql"));
-  const hit = files.find((f) =>
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  const hits = files.filter((f) =>
     readFileSync(join(MIGRATIONS_DIR, f), "utf8").includes(
       "function public.backfill_account_credits",
     ),
   );
+  const hit = hits[hits.length - 1];
   if (!hit) {
     throw new Error(
       "No migration defines public.backfill_account_credits — the credit-grant CASE moved or was " +

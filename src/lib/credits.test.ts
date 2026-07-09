@@ -11,11 +11,13 @@ import {
 
 describe("monthlyGrantCredits", () => {
   it("grants each tier its FREE_MONTHLY_CREDITS * multiplier base", () => {
-    // 500 base * (free 1 / pro 5 / max 20 / team 20)
-    expect(monthlyGrantCredits("free")).toBe(500);
-    expect(monthlyGrantCredits("pro")).toBe(2500);
-    expect(monthlyGrantCredits("max")).toBe(10000);
-    expect(monthlyGrantCredits("team")).toBe(10000);
+    // 750 base * (free 1 / pro 5 / max 20 / team 20). Founder ruling
+    // 2026-07-09: 500 -> 750 so a new account's first exploration never
+    // runs the meter dry mid-loop.
+    expect(monthlyGrantCredits("free")).toBe(750);
+    expect(monthlyGrantCredits("pro")).toBe(3750);
+    expect(monthlyGrantCredits("max")).toBe(15000);
+    expect(monthlyGrantCredits("team")).toBe(15000);
   });
 
   it("returns 0 for enterprise (a negotiated custom model, not the base grant)", () => {

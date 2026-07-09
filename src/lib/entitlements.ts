@@ -65,8 +65,17 @@ export const FREE_MEMORY_RETENTION_DAYS = 30;
  * Placeholder monthly AI-credit grant for the free tier (the 1x base). Higher
  * tiers multiply it (Pro 5x, Max 20x). Founder-tunable (plan §7.2 / WM-M11);
  * only the meter, never the value driver (we price the decision layer).
+ * 500 -> 750 (founder ruling 2026-07-09): a new account must be able to run
+ * the whole first loop while exploring without the meter cutting it short.
  */
-export const FREE_MONTHLY_CREDITS = 500;
+export const FREE_MONTHLY_CREDITS = 750;
+
+/**
+ * Below this balance the app surfaces a quiet running-low notice (founder
+ * ruling 2026-07-09: prompt around the last hundred credits to top up or
+ * upgrade - subtle, never a blocker). Consumed by BillingBanner.
+ */
+export const LOW_CREDITS_WARN = 100;
 
 /**
  * Placeholder per-cycle ceiling on purchased fair-use top-ups (paid tiers).

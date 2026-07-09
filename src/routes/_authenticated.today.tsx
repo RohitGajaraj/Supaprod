@@ -55,6 +55,7 @@ import {
   todayCoachMarkDismissed,
   shouldShowCoachMark,
 } from "@/components/onboarding/TodayCoachMark";
+import { CreditsWelcome, creditsWelcomeDismissed } from "@/components/onboarding/CreditsWelcome";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: Dashboard,
@@ -343,9 +344,13 @@ function Dashboard() {
   // OBS-14 - the one coach mark the product shows: only right after the
   // onboarding flow hands off, and never again once dismissed.
   const [showCoachMark, setShowCoachMark] = useState(false);
+  // Founder ruling 2026-07-09: the same landing also greets the new account
+  // with its starter-credit grant, once, for a few seconds.
+  const [showCreditsWelcome, setShowCreditsWelcome] = useState(false);
   useEffect(() => {
     const justLanded = window.sessionStorage.getItem("cadence.onboarding.justLanded") === "1";
     if (shouldShowCoachMark(justLanded, todayCoachMarkDismissed())) setShowCoachMark(true);
+    if (justLanded && !creditsWelcomeDismissed()) setShowCreditsWelcome(true);
     window.sessionStorage.removeItem("cadence.onboarding.justLanded");
   }, []);
 
@@ -1020,6 +1025,9 @@ function Dashboard() {
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]} />
       {showCoachMark ? <TodayCoachMark onDismiss={() => setShowCoachMark(false)} /> : null}
+      {showCreditsWelcome ? (
+        <CreditsWelcome onDismiss={() => setShowCreditsWelcome(false)} />
+      ) : null}
       {/* Loom v4 §4b: Today rides the standard desktop container (1240px),
           not the v3 1060px column — the room is used, not framed. */}
       <div

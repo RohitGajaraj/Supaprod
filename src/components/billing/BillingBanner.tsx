@@ -1,21 +1,53 @@
 /**
- * Top-of-app billing banner. Two layers:
+ * Top-of-app billing banner. Three layers:
  *   1. (LOOM W1) the test-mode banner moved to billing surfaces only.
  *   2. Dunning notice — if the most recent subscription is `past_due`,
  *      prompts the user to update their card via the Stripe portal.
  *      Access is preserved during Stripe's retry window (founder ruling).
+ *   3. Running-low notice (founder ruling 2026-07-09) — when the metered
+ *      credit balance drops under LOW_CREDITS_WARN, a quiet line prompts a
+ *      top-up or upgrade. Session-dismissable, never a blocker, and only
+ *      while the credits engine is actually on (no lying about a 0 balance
+ *      in the dormant state).
  */
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
-import { createPortalSession } from "@/lib/payments.functions";
+import { createPortalSession, getMyCreditsView } from "@/lib/payments.functions";
+import { LOW_CREDITS_WARN } from "@/lib/entitlements";
+
+const LOW_DISMISS_KEY = "cadence.credits.low-dismissed";
 
 export function BillingBanner() {
   const [pastDue, setPastDue] = useState(false);
   const [opening, setOpening] = useState(false);
   const fPortal = useServerFn(createPortalSession);
+  const fGetCredits = useServerFn(getMyCreditsView);
+
+  // Same env-fallback idiom as Settings' Credits tab: a missing Stripe client
+  // token must never block the balance read itself.
+  let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
+  try {
+    envSafe = getStripeEnvironment();
+  } catch {
+    envSafe = null;
+  }
+  const creditsEnv: "sandbox" | "live" = envSafe ?? "sandbox";
+  const credits = useQuery({
+    queryKey: ["my-credits", creditsEnv],
+    queryFn: () => fGetCredits({ data: { environment: creditsEnv } }),
+    staleTime: 5 * 60_000,
+  });
+  const [lowDismissed, setLowDismissed] = useState(
+    () => typeof window !== "undefined" && window.sessionStorage.getItem(LOW_DISMISS_KEY) === "1",
+  );
+  const balance = credits.data?.balanceCredits ?? null;
+  const runningLow =
+    !!credits.data?.enabled && balance !== null && balance <= LOW_CREDITS_WARN && !lowDismissed;
 
   useEffect(() => {
     // Dormant payments = no subscriptions to dun. Skip entirely rather than
@@ -56,6 +88,11 @@ export function BillingBanner() {
     }
   };
 
+  function dismissLow() {
+    window.sessionStorage.setItem(LOW_DISMISS_KEY, "1");
+    setLowDismissed(true);
+  }
+
   return (
     <>
       {/* LOOM W1: the checkout-preview banner is contextual to billing
@@ -70,6 +107,31 @@ export function BillingBanner() {
             className="rounded-[8px] bg-red-700 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-red-800 disabled:opacity-60"
           >
             {opening ? "Opening..." : "Update card"}
+          </button>
+        </div>
+      ) : null}
+      {!pastDue && runningLow ? (
+        <div
+          className="flex w-full items-center justify-center gap-3 px-4 py-1.5 text-xs"
+          style={{
+            borderBottom: "1px solid var(--hairline)",
+            background: "color-mix(in oklab, var(--ember) 10%, transparent)",
+            color: "var(--text-body)",
+          }}
+        >
+          <span>
+            Running low: {balance} AI {balance === 1 ? "credit" : "credits"} left. Top up or upgrade
+            so the loop keeps running.
+          </span>
+          <Link to="/settings" style={{ color: "var(--action-blue)", fontWeight: 500 }}>
+            Add credits
+          </Link>
+          <button
+            type="button"
+            onClick={dismissLow}
+            style={{ color: "var(--text-subtle)", background: "transparent", border: "none" }}
+          >
+            Later
           </button>
         </div>
       ) : null}
