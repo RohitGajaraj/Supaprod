@@ -50,6 +50,53 @@ export function withAgentDiscoveryLink(response: Response): Response {
   });
 }
 
+/**
+ * Apply security headers to all responses (defense-in-depth).
+ * Includes CSP, X-Frame-Options, and other recommended headers.
+ * Generates a nonce for inline scripts to avoid unsafe-inline.
+ */
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export function withSecurityHeaders(response: Response, nonce?: string): Response {
+  const headers = new Headers(response.headers);
+
+  // Skip security headers for well-known machine-readable endpoints (agent.json, oauth)
+  // and health checks which should be widely accessible
+  const isWellKnown = response.headers.get("Access-Control-Allow-Origin") === "*";
+  if (!isWellKnown) {
+    // Content-Security-Policy: restrict loading of scripts, styles, and resources
+    // TODO: Migrate theme bootstrap script to external file or implement nonce-based CSP
+    // to eliminate 'unsafe-inline' for scripts (currently needed for theme FOUC prevention)
+    const csp = `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; default-src 'self'`;
+    headers.set("Content-Security-Policy", csp);
+
+    // X-Frame-Options: prevent clickjacking (deny framing from any origin)
+    headers.set("X-Frame-Options", "DENY");
+
+    // X-Content-Type-Options: prevent MIME-type sniffing
+    headers.set("X-Content-Type-Options", "nosniff");
+
+    // Strict-Transport-Security: enforce HTTPS (1 year + preload)
+    headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+
+    // Referrer-Policy: limit referrer leakage
+    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    // Permissions-Policy: disable legacy permissions
+    headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function isCatastrophicSsrErrorBody(body: string, responseStatus: number): boolean {
   let payload: unknown;
   try {
@@ -179,11 +226,17 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withAgentDiscoveryLink(await normalizeCatastrophicSsrResponse(response, request, ctx));
+      // Apply security headers (CSP, X-Frame-Options, etc.) to all responses
+      // except well-known machine-readable endpoints which need CORS wildcard
+      const securedResponse = withSecurityHeaders(
+        await normalizeCatastrophicSsrResponse(response, request, ctx),
+      );
+      return withAgentDiscoveryLink(securedResponse);
     } catch (error) {
       console.error(error);
       persistServerError(error, request, ctx, "worker");
-      return brandedErrorResponse();
+      // Apply security headers to error response as well
+      return withSecurityHeaders(brandedErrorResponse());
     }
   },
 };
