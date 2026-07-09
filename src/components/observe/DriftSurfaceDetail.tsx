@@ -287,7 +287,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             flexWrap: "wrap",
           }}
         >
-          <span className="mono-label" style={{ flex: 1 }}>
+          <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-subtle)" }}>
             No drift data for this surface — nothing sampled in the last 30 days.
           </span>
           <button className="btn btn-ghost btn-sm" onClick={back}>

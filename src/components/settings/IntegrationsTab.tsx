@@ -239,8 +239,12 @@ export function IntegrationsTab() {
             }}
           >
             <div
-              className="mono-label"
-              style={{ fontSize: 9, color: "var(--ember)", marginBottom: 6 }}
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                color: "var(--ember)",
+                marginBottom: 6,
+              }}
             >
               New token · copy it now, it will not be shown again
             </div>
