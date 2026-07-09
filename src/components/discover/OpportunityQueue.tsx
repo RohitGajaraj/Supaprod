@@ -16,7 +16,7 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
-import { rescoreNoteOf } from "@/lib/moat-vis";
+import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { rankOpportunities } from "./ranking";
 import { OpportunityRow, type OpportunityStatus } from "./OpportunityRow";
@@ -96,6 +96,28 @@ export function OpportunityQueue() {
     const newest = rows.reduce((a, b) => (new Date(a.created_at) > new Date(b.created_at) ? a : b));
     return relTimeCaps(newest.created_at);
   }, [learnings.data]);
+
+  const rows: OpportunityDetailRecord[] = useMemo(
+    () => opps.data?.opportunities ?? [],
+    [opps.data],
+  );
+  // Deterministic total order: the fixed tie-break chain (ICE, Critic verdict,
+  // corroboration = the backing theme's signal frequency, confidence, impact,
+  // created_at, id) so two equal-ICE bets never coin-flip and #1 is the single
+  // best bet. See ranking.ts.
+  //
+  // Rules of Hooks: this must run unconditionally, before the isLoading/error
+  // early returns below - a prior version placed it after them, so the very
+  // first render past the loading state called one more hook than the
+  // loading-state render did, throwing "Rendered more hooks than during the
+  // previous render" and crashing the whole route via its error boundary.
+  const ranked = useMemo(
+    () =>
+      rankOpportunities(rows, (o) =>
+        o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
+      ),
+    [rows, themeById],
+  );
 
   const challenge = useMutation({
     mutationFn: (id: string) =>
@@ -209,18 +231,6 @@ export function OpportunityQueue() {
     );
   }
 
-  const rows: OpportunityDetailRecord[] = opps.data?.opportunities ?? [];
-  // Deterministic total order: the fixed tie-break chain (ICE, Critic verdict,
-  // corroboration = the backing theme's signal frequency, confidence, impact,
-  // created_at, id) so two equal-ICE bets never coin-flip and #1 is the single
-  // best bet. See ranking.ts.
-  const ranked = useMemo(
-    () =>
-      rankOpportunities(rows, (o) =>
-        o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
-      ),
-    [rows, themeById],
-  );
   const activeOpp = openId ? (rows.find((o) => o.id === openId) ?? null) : null;
   const activeRanked = openId ? (ranked.find((r) => r.opp.id === openId) ?? null) : null;
 
@@ -271,7 +281,7 @@ export function OpportunityQueue() {
           return (
             <OpportunityRow
               key={o.id}
-              ice={o.ice_score ?? 0}
+              ice={iceNum(o.ice_score) ?? 0}
               rank={r.rank}
               designation={r.designation}
               title={o.title}

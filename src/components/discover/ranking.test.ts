@@ -183,7 +183,12 @@ describe("rankOpportunities", () => {
 
   test("rationale includes 'flagged to watch' for WATCH verdict", () => {
     const opps = [
-      mk({ id: "watch", ice_score: 5, critic_review: { verdict: "watch" } as never, status: "next" }),
+      mk({
+        id: "watch",
+        ice_score: 5,
+        critic_review: { verdict: "watch" } as never,
+        status: "next",
+      }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
     expect(ranked[0].rationale).toContain("flagged to watch");
@@ -191,7 +196,12 @@ describe("rankOpportunities", () => {
 
   test("rationale includes 'Critic says revise' for REVISE verdict", () => {
     const opps = [
-      mk({ id: "revise", ice_score: 5, critic_review: { verdict: "revise" } as never, status: "backlog" }),
+      mk({
+        id: "revise",
+        ice_score: 5,
+        critic_review: { verdict: "revise" } as never,
+        status: "backlog",
+      }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
     expect(ranked[0].rationale).toContain("Critic says revise");
@@ -199,17 +209,19 @@ describe("rankOpportunities", () => {
 
   test("rationale includes 'Critic says kill' for KILL verdict", () => {
     const opps = [
-      mk({ id: "killed", ice_score: 5, critic_review: { verdict: "kill" } as never, status: "dropped" }),
+      mk({
+        id: "killed",
+        ice_score: 5,
+        critic_review: { verdict: "kill" } as never,
+        status: "dropped",
+      }),
     ];
     const ranked = rankOpportunities(opps, noCorr);
     expect(ranked[0].rationale).toContain("Critic says kill");
   });
 
   test("rationale includes ICE score for non-rank-1 bets", () => {
-    const opps = [
-      mk({ id: "high", ice_score: 9 }),
-      mk({ id: "mid", ice_score: 5.7 }),
-    ];
+    const opps = [mk({ id: "high", ice_score: 9 }), mk({ id: "mid", ice_score: 5.7 })];
     const ranked = rankOpportunities(opps, noCorr);
     const mid = ranked.find((r) => r.opp.id === "mid");
     expect(mid?.rationale).toContain("ICE 5.7");
@@ -223,9 +235,7 @@ describe("rankOpportunities", () => {
   });
 
   test("rationale handles zero corroboration (no 'backed by' clause)", () => {
-    const opps = [
-      mk({ id: "no-corr", ice_score: 5, critic_review: critic("ship") }),
-    ];
+    const opps = [mk({ id: "no-corr", ice_score: 5, critic_review: critic("ship") })];
     const ranked = rankOpportunities(opps, () => 0);
     expect(ranked[0].rationale).toContain("Critic endorsed");
     expect(ranked[0].rationale).not.toContain("backed by");
@@ -257,6 +267,20 @@ describe("rankOpportunities", () => {
   test("next action: shipped bets are told to review the outcome", () => {
     const opps = [mk({ id: "s", status: "shipped", critic_review: critic("ship") })];
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Review the outcome");
+  });
+
+  test("does not throw when ice_score arrives as a numeric string (PostgREST numeric columns serialize as strings, not JS numbers)", () => {
+    // ice_score is typed `number | null`, but PostgREST's actual wire shape for
+    // a NUMERIC column is a string - the generated Supabase type lies. A
+    // non-#1 row with a string ice_score used to crash rationaleFor's
+    // .toFixed() call synchronously during OpportunityQueue's render.
+    const opps = [
+      mk({ id: "top", ice_score: 9 }),
+      mk({ id: "stringy", ice_score: "7.333333333333333333" as unknown as number }),
+    ];
+    expect(() => rankOpportunities(opps, noCorr)).not.toThrow();
+    const stringy = rankOpportunities(opps, noCorr).find((r) => r.opp.id === "stringy")!;
+    expect(stringy.rationale).toBe("Ranked #2: ICE 7.3");
   });
 });
 
