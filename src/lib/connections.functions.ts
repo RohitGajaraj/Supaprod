@@ -13,7 +13,7 @@ import {
 } from "@/lib/connectors/registry";
 import { materializeAuth, type ResolvedAuth } from "@/lib/connectors/resolve.server";
 import { getProviderAdapter } from "@/lib/connectors/providers/index.server";
-import { makeConnectState } from "@/lib/connectors/providers/github.server";
+import { makeConnectState, makePkcePair } from "@/lib/connectors/providers/github.server";
 import { authorizeAppUserOAuth } from "@/integrations/lovable/appUserConnector";
 import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
 
@@ -294,7 +294,8 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
       }
       authorizeUrlBase = authorizeUrlBase.replace("{subdomain}", subdomain);
     }
-    const state = await makeConnectState(context.userId, data.returnTo);
+    const pkce = method.pkce ? await makePkcePair() : null;
+    const state = await makeConnectState(context.userId, data.returnTo, pkce?.codeVerifier);
     const redirectUri = `${origin}/api/public/connect/${data.provider}/callback`;
     const url = new URL(authorizeUrlBase);
     url.searchParams.set("client_id", clientId);
@@ -303,6 +304,10 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
     }
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("state", state);
+    if (pkce) {
+      url.searchParams.set("code_challenge", pkce.codeChallenge);
+      url.searchParams.set("code_challenge_method", "S256");
+    }
     for (const [key, value] of Object.entries(method.extraAuthorizeParams ?? {})) {
       url.searchParams.set(key, value);
     }

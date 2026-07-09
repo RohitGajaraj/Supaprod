@@ -59,7 +59,7 @@ export const Route = createFileRoute("/api/public/connect/salesforce/callback")(
 
           const stateResult = await readConnectState(state);
           if (!stateResult) return redirect("error=salesforce_connect");
-          const { userId, returnTo } = stateResult;
+          const { userId, returnTo, codeVerifier } = stateResult;
 
           const method = CONNECTOR_REGISTRY.salesforce.authMethods.find(
             (m) => m.kind === "oauth_native",
@@ -77,16 +77,22 @@ export const Route = createFileRoute("/api/public/connect/salesforce/callback")(
           // Salesforce's Web Server Flow token endpoint takes a standard
           // form-urlencoded body with client_id/client_secret included in the
           // body (not a Basic auth header), same shape as Slack's exchange.
+          // code_verifier is only present when startNativeOAuthConnect generated a PKCE pair
+          // (registry.ts salesforce.pkce: true, added 2026-07-09 - this org's security policy
+          // rejects an authorize request with no code_challenge, so the token exchange must
+          // echo the matching verifier back or Salesforce rejects this leg too).
+          const tokenBody: Record<string, string> = {
+            grant_type: "authorization_code",
+            client_id: clientId,
+            client_secret: clientSecret,
+            code,
+            redirect_uri: redirectUri,
+          };
+          if (codeVerifier) tokenBody.code_verifier = codeVerifier;
           const tokenRes = await fetch(SALESFORCE_TOKEN_URL, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-              grant_type: "authorization_code",
-              client_id: clientId,
-              client_secret: clientSecret,
-              code,
-              redirect_uri: redirectUri,
-            }),
+            body: new URLSearchParams(tokenBody),
           });
           const body = (await tokenRes.json()) as SalesforceOAuthResponse;
           if (!tokenRes.ok || !body.access_token || !body.instance_url) {

@@ -154,41 +154,79 @@ async function stateHmac(payload: string): Promise<string> {
  * parsing stays unambiguous for both formats.
  */
 const CONNECT_RETURN_TOS = new Set(["onboarding"]);
-export type ConnectStateResult = { userId: string; returnTo: string | null };
+export type ConnectStateResult = {
+  userId: string;
+  returnTo: string | null;
+  /** PKCE code_verifier, when this connect flow generated one (see makePkcePair). */
+  codeVerifier: string | null;
+};
 
-/** state = base64url(user_id|exp[|return_to]|hmac), 15-minute expiry. */
-export async function makeConnectState(userId: string, returnTo?: string): Promise<string> {
+/** state = base64url(user_id|exp[|return_to[|code_verifier]]|hmac), 15-minute expiry.
+ *  code_verifier rides inside the signed state instead of separate server-side storage
+ *  (session/cookie) - it is authenticated by the same HMAC, so a tampered verifier is
+ *  caught exactly like a tampered userId, and no new storage layer is needed for PKCE. */
+export async function makeConnectState(
+  userId: string,
+  returnTo?: string,
+  codeVerifier?: string,
+): Promise<string> {
   const exp = Date.now() + 15 * 60 * 1000;
   const rt = returnTo && CONNECT_RETURN_TOS.has(returnTo) ? returnTo : "";
-  const payload = rt ? `${userId}|${exp}|${rt}` : `${userId}|${exp}`;
+  let payload: string;
+  if (codeVerifier) {
+    payload = `${userId}|${exp}|${rt}|${codeVerifier}`;
+  } else if (rt) {
+    payload = `${userId}|${exp}|${rt}`;
+  } else {
+    payload = `${userId}|${exp}`;
+  }
   const mac = await stateHmac(payload);
   return bytesToBase64Url(new TextEncoder().encode(`${payload}|${mac}`));
 }
 
-/** Returns {userId, returnTo} when the state is authentic and unexpired, else null. Never
- *  throws. Accepts the legacy 3-part (userId|exp|mac) and 4-part (userId|exp|returnTo|mac)
- *  forms, so states minted before this deploy stay valid across it. */
+/** Returns {userId, returnTo, codeVerifier} when the state is authentic and unexpired, else
+ *  null. Never throws. Accepts the legacy 3-part (userId|exp|mac), 4-part
+ *  (userId|exp|returnTo|mac), and 5-part (userId|exp|returnTo|codeVerifier|mac) forms, so
+ *  states minted before this deploy stay valid across it. */
 export async function readConnectState(state: string): Promise<ConnectStateResult | null> {
   try {
     const decoded = new TextDecoder().decode(base64UrlToBytes(state));
     const parts = decoded.split("|");
-    if (parts.length !== 3 && parts.length !== 4) return null;
+    if (parts.length < 3 || parts.length > 5) return null;
     const [userId, expRaw] = parts;
-    const returnTo = parts.length === 4 ? parts[2] : "";
     const mac = parts[parts.length - 1];
+    const returnTo = parts.length >= 4 ? parts[2] : "";
+    const codeVerifier = parts.length === 5 ? parts[3] : "";
     if (!userId || !expRaw || !mac) return null;
     const exp = Number(expRaw);
     if (!Number.isFinite(exp) || exp < Date.now()) return null;
-    const payload = returnTo ? `${userId}|${exp}|${returnTo}` : `${userId}|${exp}`;
+    let payload: string;
+    if (parts.length === 5) payload = `${userId}|${exp}|${returnTo}|${codeVerifier}`;
+    else if (parts.length === 4) payload = `${userId}|${exp}|${returnTo}`;
+    else payload = `${userId}|${exp}`;
     const expected = await stateHmac(payload);
     if (mac !== expected) return null;
     return {
       userId,
       returnTo: returnTo && CONNECT_RETURN_TOS.has(returnTo) ? returnTo : null,
+      codeVerifier: codeVerifier || null,
     };
   } catch {
     return null;
   }
+}
+
+/** RFC 7636 PKCE pair: a random code_verifier and its S256 code_challenge. Used for
+ *  providers whose org/security policy requires PKCE even on confidential
+ *  (client_secret-bearing) Web Server flows - e.g. Salesforce orgs with "Require PKCE"
+ *  enabled, which reject an authorize request with no code_challenge. */
+export async function makePkcePair(): Promise<{ codeVerifier: string; codeChallenge: string }> {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  const codeVerifier = bytesToBase64Url(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
+  const codeChallenge = bytesToBase64Url(new Uint8Array(digest));
+  return { codeVerifier, codeChallenge };
 }
 
 // ---- ConnectorAdapter ----

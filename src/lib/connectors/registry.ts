@@ -91,6 +91,17 @@ export type AuthMethod =
        * appears in a rare/dev-only mode (Stripe: test-mode connections only,
        * Notion: refresh is optional and frequently absent in practice). */
       supportsRefresh?: boolean;
+      /** True when the authorize request must carry an RFC 7636 PKCE
+       * code_challenge (S256) or the provider rejects it outright. Most
+       * providers here don't require this on a confidential (client_secret-
+       * bearing) Web Server flow, but some org-level security policies do
+       * (Salesforce: "Require Proof Key for Code Exchange (PKCE) Extension
+       * for Supported Authorization Flows", found 2026-07-09 as a real
+       * "missing required code challenge" authorize error, not a config typo).
+       * startNativeOAuthConnect generates the pair and rides code_verifier
+       * inside the signed state; the callback echoes it back in the token
+       * exchange. */
+      pkce?: boolean;
     }
   // Retained for type compatibility only (legacy rows / UI narrowing during
   // teardown). POLICY: no registry entry may use api_key — OAuth-only.
@@ -290,6 +301,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         scopes: ["api", "refresh_token"],
         extraAuthorizeParams: { response_type: "code" },
         supportsRefresh: true,
+        pkce: true,
       },
     ],
     resourceTypes: [],
