@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast, setFlowActive, drainHeldNotifications, heldCount } from "@/lib/notify";
-import { playChime, playCue } from "@/lib/flow/chime";
+import { playChime, playCue, playStart } from "@/lib/flow/chime";
 import * as soundscape from "@/lib/flow/soundscape";
 import {
   appendFocusHistory,
@@ -257,6 +257,9 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     setPhase(phaseOf(session, now));
     writeSession(session);
 
+    // The block starting is a consequential, deliberate moment — it earns a
+    // felt cue (founder ask 2026-07-09; Interaction-Feel Law calibration).
+    playStart();
     if (next.preset !== "off") {
       void soundscape.start(next.preset, next.volume).then((ok) => {
         if (!ok) setSoundUnavailable(true);

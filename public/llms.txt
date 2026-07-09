@@ -30,7 +30,7 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 
 | Route | What it contains |
 |---|---|
-| `/today` | Live dashboard: active missions, recent decisions, signal queue, pending approvals |
+| `/today` | Live dashboard: active missions, recent decisions, signal queue, pending approvals. Carries the PM Desk: an intent-based focus block (client-side session, visible via machine view), tasks due today (agents may read/create tasks via the `workspace.list_tasks` / `tasks.create` tools), quick signal capture, and a ready-to-send stakeholder update |
 | `/missions` | Autonomous mission management: running, completed, staged |
 | `/build` | Live build surface: agent activity, PR/CI status, cost per session |
 | `/knowledge` | Decision brain and memory layer: beliefs, supersession graph, learnings |

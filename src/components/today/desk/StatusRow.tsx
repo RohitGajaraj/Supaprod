@@ -24,7 +24,10 @@ export function StatusRow() {
       style={{ gap: 10, paddingTop: 10, borderTop: "1px solid var(--hairline)" }}
     >
       <span style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>Stakeholders</span>
-      <span className="min-w-0 flex-1 truncate" style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+      <span
+        className="min-w-0 flex-1 truncate"
+        style={{ fontSize: 12.5, color: "var(--text-muted)" }}
+      >
         A ready-to-send update from live state
       </span>
       <Button variant="secondary" onClick={() => setOpen(true)} style={{ fontSize: 12 }}>

@@ -491,6 +491,14 @@ Then a manual dev-server pass (`bun run dev`):
 
 ## 8. Follow-ups (recorded, NOT in scope)
 
+0. Branded sound pack via ElevenLabs (founder ask 2026-07-09): the ElevenLabs
+   MCP is not registered in the current session (the flow soundscapes were
+   generated with it on 2026-06-17 per public/soundscape/README.md). When
+   reconnected, generate three short unique cues (block start, closing nudge,
+   completion) and swap them in — `src/lib/flow/chime.ts` is the single seam
+   (keep the synthesized versions as fallback when the files are absent,
+   mirroring the soundscape player's graceful degrade).
+
 1. Focus-session log as durable memory (a `focus_sessions` table + outcome reflection
    "did you close it?" feeding the decision brain) — needs a migration, founder-gated
    publish.

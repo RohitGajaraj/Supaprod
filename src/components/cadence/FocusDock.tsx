@@ -159,235 +159,262 @@ export function FocusDock() {
     : remainingLabel;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        left: "50%",
-        transform: "translateX(-50%)",
-        bottom: 10,
-        zIndex: 45,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      <span className="sr-only" role="status">
-        {announcement}
-      </span>
-
-      {/* Idle composer: the sliver, expanded (Wispr model). */}
-      {!running && composerOpen ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            start();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setDraftIntent("");
-              setComposerOpen(false);
-            }
-          }}
+    <>
+      {/* The session edge glow (founder ask 2026-07-09; the Claude caps-lock
+          reference): while a block runs, the screen's edges carry a faint
+          phase-colored light — glacier while the machine holds the room,
+          ember through the closing stretch. A legal glow field: atmosphere
+          with meaning, aria-hidden, pointer-transparent, breathing only
+          while the session is genuinely live. */}
+      {running ? (
+        <div
+          aria-hidden="true"
           style={{
-            width: 340,
-            padding: "12px 14px",
-            marginBottom: 6,
-            background: "var(--card)",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-card)",
-            boxShadow: "0 24px 64px -16px rgba(0,0,0,0.65), var(--top-light)",
-            animation: "cadRise 200ms var(--ease) both",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
+            position: "fixed",
+            inset: 0,
+            pointerEvents: "none",
+            zIndex: 44,
+            boxShadow:
+              phase === "closing"
+                ? "inset 0 0 140px -48px rgba(255,107,44,0.17), inset 0 0 48px -24px rgba(255,107,44,0.10)"
+                : "inset 0 0 140px -48px rgba(127,209,220,0.13), inset 0 0 48px -24px rgba(127,209,220,0.07)",
+            transition: "box-shadow 280ms var(--ease)",
+            animation: "cadFocusBreathe 6s var(--ease-in-out, ease-in-out) infinite",
           }}
-        >
-          <input
-            ref={intentInputRef}
-            value={draftIntent}
-            onChange={(e) => setDraftIntent(e.target.value)}
-            maxLength={120}
-            placeholder="What are you closing in this block?"
-            style={{
-              width: "100%",
-              background: "var(--surface-card-deep)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-control)",
-              padding: "8px 12px",
-              fontSize: 13,
-              color: "var(--text-primary)",
-            }}
-          />
-          <div className="flex items-center" style={{ gap: 8 }}>
-            {TIMER_QUICK_MIN.map((m) => (
-              <DurationChip
-                key={m}
-                minutes={m}
-                active={config.timerMin === m}
-                onClick={() => setConfig({ timerMin: m })}
-              />
-            ))}
-            <div style={{ flex: 1 }} />
-            <Button variant="secondary" type="submit">
-              Start the block
-            </Button>
-          </div>
-        </form>
+        />
       ) : null}
+      <div
+        style={{
+          position: "fixed",
+          left: "50%",
+          transform: "translateX(-50%)",
+          bottom: 10,
+          zIndex: 45,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <span className="sr-only" role="status">
+          {announcement}
+        </span>
 
-      {!running ? (
-        // The idle sliver: a whisper of presence on every page.
-        <button
-          type="button"
-          aria-label="Start a focus block (Option F)"
-          onClick={() => setComposerOpen((v) => !v)}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            padding: "2px 10px 4px",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <span
-            aria-hidden="true"
+        {/* Idle composer: the sliver, expanded (Wispr model). */}
+        {!running && composerOpen ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              start();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setDraftIntent("");
+                setComposerOpen(false);
+              }
+            }}
             style={{
-              ...mono,
-              fontSize: 9.5,
-              color: "var(--text-subtle)",
-              opacity: hovered || composerOpen ? 1 : 0,
-              transition: "opacity 200ms var(--ease)",
+              width: 340,
+              padding: "12px 14px",
+              marginBottom: 6,
+              background: "var(--card)",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--radius-card)",
+              boxShadow: "0 24px 64px -16px rgba(0,0,0,0.65), var(--top-light)",
+              animation: "cadRise 200ms var(--ease) both",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
             }}
           >
-            Focus · ⌥F
-          </span>
-          <span
-            aria-hidden="true"
-            style={{
-              width: 36,
-              borderTop: `2px dotted ${hovered || composerOpen ? "var(--text-muted)" : "var(--text-faint)"}`,
-              transition: "border-color 200ms var(--ease)",
-            }}
-          />
-        </button>
-      ) : (
-        // The running pill at the same anchor.
-        <Popover open={controlsOpen} onOpenChange={setControlsOpen}>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              aria-label="Focus block controls (Option F)"
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            <input
+              ref={intentInputRef}
+              value={draftIntent}
+              onChange={(e) => setDraftIntent(e.target.value)}
+              maxLength={120}
+              placeholder="What are you closing in this block?"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                maxWidth: 340,
-                padding: "8px 14px 10px",
-                background: "var(--card)",
+                width: "100%",
+                background: "var(--surface-card-deep)",
                 border: "1px solid var(--hairline-strong)",
-                borderRadius: "var(--radius-card)",
-                boxShadow: "0 24px 64px -16px rgba(0,0,0,0.65), var(--top-light)",
-                cursor: "pointer",
-                position: "relative",
-                overflow: "hidden",
-                animation: "cadRise 200ms var(--ease) both",
+                borderRadius: "var(--radius-control)",
+                padding: "8px 12px",
+                fontSize: 13,
+                color: "var(--text-primary)",
+              }}
+            />
+            <div className="flex items-center" style={{ gap: 8 }}>
+              {TIMER_QUICK_MIN.map((m) => (
+                <DurationChip
+                  key={m}
+                  minutes={m}
+                  active={config.timerMin === m}
+                  onClick={() => setConfig({ timerMin: m })}
+                />
+              ))}
+              <div style={{ flex: 1 }} />
+              <Button variant="secondary" type="submit">
+                Start the block
+              </Button>
+            </div>
+          </form>
+        ) : null}
+
+        {!running ? (
+          // The idle sliver: a whisper of presence on every page.
+          <button
+            type="button"
+            aria-label="Start a focus block (Option F)"
+            onClick={() => setComposerOpen((v) => !v)}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
+              padding: "2px 10px 4px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                ...mono,
+                fontSize: 9.5,
+                color: "var(--text-subtle)",
+                opacity: hovered || composerOpen ? 1 : 0,
+                transition: "opacity 200ms var(--ease)",
               }}
             >
-              <span
-                aria-hidden="true"
-                className={phase === "closing" ? undefined : "flow-pulse"}
+              Focus · ⌥F
+            </span>
+            <span
+              aria-hidden="true"
+              style={{
+                width: 36,
+                borderTop: `2px dotted ${hovered || composerOpen ? "var(--text-muted)" : "var(--text-faint)"}`,
+                transition: "border-color 200ms var(--ease)",
+              }}
+            />
+          </button>
+        ) : (
+          // The running pill at the same anchor.
+          <Popover open={controlsOpen} onOpenChange={setControlsOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Focus block controls (Option F)"
+                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 99,
-                  background: phase === "closing" ? "var(--ember)" : "var(--glacier)",
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                aria-live="off"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 13,
-                  fontVariantNumeric: "tabular-nums",
-                  color: openEnded ? "var(--text-muted)" : color,
-                  flexShrink: 0,
-                  transition: "color 280ms var(--ease)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  maxWidth: 340,
+                  padding: "8px 14px 10px",
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-card)",
+                  boxShadow: "0 24px 64px -16px rgba(0,0,0,0.65), var(--top-light)",
+                  cursor: "pointer",
+                  position: "relative",
+                  overflow: "hidden",
+                  animation: "cadRise 200ms var(--ease) both",
                 }}
               >
-                {timeText}
-              </span>
-              <span
-                className="truncate"
-                style={{ fontSize: 12.5, color: "var(--text-body)", minWidth: 0 }}
-              >
-                {intent ?? "Focus block"}
-              </span>
-              {heldCount > 0 ? (
-                <span style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>
-                  {heldCount} held
-                </span>
-              ) : null}
-              {fractionLeft !== null ? (
                 <span
                   aria-hidden="true"
+                  className={phase === "closing" ? undefined : "flow-pulse"}
                   style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: 2,
-                    background: color,
-                    transform: `scaleX(${Math.max(0, Math.min(1, fractionLeft))})`,
-                    transformOrigin: "left",
-                    transition: "transform 1s linear, background 280ms var(--ease)",
+                    width: 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: phase === "closing" ? "var(--ember)" : "var(--glacier)",
+                    flexShrink: 0,
                   }}
                 />
-              ) : null}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent side="top" align="center" sideOffset={10} className="w-72 p-3">
-            <div className="flex flex-col" style={{ gap: 10 }}>
-              {intent ? (
-                <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-body)", margin: 0 }}>
-                  {intent}
-                </p>
-              ) : null}
-              <span style={{ ...mono, color: "var(--text-subtle)" }}>
-                {openEnded
-                  ? `${timeText} in · open block`
-                  : `${remainingLabel} left${
-                      remainingMs !== null && elapsedMs !== null
-                        ? ` · ${Math.round((remainingMs + elapsedMs) / 60_000)} min block`
-                        : ""
-                    }`}
-              </span>
-              <div className="flex items-center" style={{ gap: 8 }}>
-                {!openEnded ? (
-                  <Button variant="secondary" onClick={() => extendSession(5)}>
-                    Add 5 minutes
-                  </Button>
-                ) : null}
-                <Button variant="secondary" onClick={() => exitFlow()}>
-                  End the block
-                </Button>
-              </div>
-              {heldCount > 0 ? (
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                  {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly
+                <span
+                  aria-live="off"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 13,
+                    fontVariantNumeric: "tabular-nums",
+                    color: openEnded ? "var(--text-muted)" : color,
+                    flexShrink: 0,
+                    transition: "color 280ms var(--ease)",
+                  }}
+                >
+                  {timeText}
                 </span>
-              ) : null}
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
-    </div>
+                <span
+                  className="truncate"
+                  style={{ fontSize: 12.5, color: "var(--text-body)", minWidth: 0 }}
+                >
+                  {intent ?? "Focus block"}
+                </span>
+                {heldCount > 0 ? (
+                  <span style={{ ...mono, color: "var(--text-subtle)", flexShrink: 0 }}>
+                    {heldCount} held
+                  </span>
+                ) : null}
+                {fractionLeft !== null ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 2,
+                      background: color,
+                      transform: `scaleX(${Math.max(0, Math.min(1, fractionLeft))})`,
+                      transformOrigin: "left",
+                      transition: "transform 1s linear, background 280ms var(--ease)",
+                    }}
+                  />
+                ) : null}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="center" sideOffset={10} className="w-72 p-3">
+              <div className="flex flex-col" style={{ gap: 10 }}>
+                {intent ? (
+                  <p
+                    style={{ fontSize: 13, lineHeight: 1.5, color: "var(--text-body)", margin: 0 }}
+                  >
+                    {intent}
+                  </p>
+                ) : null}
+                <span style={{ ...mono, color: "var(--text-subtle)" }}>
+                  {openEnded
+                    ? `${timeText} in · open block`
+                    : `${remainingLabel} left${
+                        remainingMs !== null && elapsedMs !== null
+                          ? ` · ${Math.round((remainingMs + elapsedMs) / 60_000)} min block`
+                          : ""
+                      }`}
+                </span>
+                <div className="flex items-center" style={{ gap: 8 }}>
+                  {!openEnded ? (
+                    <Button variant="secondary" onClick={() => extendSession(5)}>
+                      Add 5 minutes
+                    </Button>
+                  ) : null}
+                  <Button variant="secondary" onClick={() => exitFlow()}>
+                    End the block
+                  </Button>
+                </div>
+                {heldCount > 0 ? (
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly
+                  </span>
+                ) : null}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </>
   );
 }

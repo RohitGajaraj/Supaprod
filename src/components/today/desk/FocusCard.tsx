@@ -61,15 +61,7 @@ function phaseColor(phase: FocusPhase | null): string {
   return "var(--glacier)";
 }
 
-function Chip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -201,9 +193,7 @@ export function FocusCard() {
           >
             {openEnded ? `${elapsedMin} min in` : remainingLabel}
           </span>
-          <span style={{ fontSize: 13, color: "var(--text-body)" }}>
-            {intent ?? "Open block"}
-          </span>
+          <span style={{ fontSize: 13, color: "var(--text-body)" }}>{intent ?? "Open block"}</span>
           {heldCount > 0 ? (
             <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
               {heldCount} update{heldCount === 1 ? "" : "s"} waiting quietly

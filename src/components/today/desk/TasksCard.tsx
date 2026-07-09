@@ -12,13 +12,7 @@ import { Button } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTasks, createTask, updateTask } from "@/lib/tasks.functions";
-import {
-  dueRowsOf,
-  isOverdue,
-  openDueCountOf,
-  todayStr,
-  type TaskRow,
-} from "./task-filters";
+import { dueRowsOf, isOverdue, openDueCountOf, todayStr, type TaskRow } from "./task-filters";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",

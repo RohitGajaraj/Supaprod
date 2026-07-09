@@ -44,9 +44,9 @@ describe("task selectors", () => {
     expect(isDoneToday(task({ status: "done", completed_at: `${TODAY}T10:00:00Z` }), TODAY)).toBe(
       true,
     );
-    expect(
-      isDoneToday(task({ status: "done", completed_at: "2026-07-08T10:00:00Z" }), TODAY),
-    ).toBe(false);
+    expect(isDoneToday(task({ status: "done", completed_at: "2026-07-08T10:00:00Z" }), TODAY)).toBe(
+      false,
+    );
   });
 
   test("dueRowsOf keeps open due rows and rows finished today, drops the rest", () => {

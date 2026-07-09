@@ -2041,6 +2041,19 @@ html[data-motion="off"] .agent-live {
   }
 }
 
+/* PM Desk — the focus-session edge glow breathes slowly while a block runs
+ * (the machine is genuinely live, so motion is legal); the global
+ * prefers-reduced-motion block stills it to a constant glow. Opacity-only. */
+@keyframes cadFocusBreathe {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* OBS-14 — the onboarding Arrival butterfly's one-shot fly-in, before it
  * settles into the cadFlutter idle rest. */
 @keyframes cadArrive {

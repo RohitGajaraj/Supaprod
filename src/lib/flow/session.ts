@@ -166,7 +166,10 @@ export function appendFocusHistory(
 }
 
 /** The entries whose block STARTED today (local time), for the Desk's tally. */
-export function todaysFocusTally(entries: FocusHistoryEntry[], now: number): {
+export function todaysFocusTally(
+  entries: FocusHistoryEntry[],
+  now: number,
+): {
   blocks: number;
   minutes: number;
 } {
