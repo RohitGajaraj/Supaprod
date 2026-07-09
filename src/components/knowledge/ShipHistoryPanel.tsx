@@ -14,7 +14,8 @@ import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { StatusDot, STATUS_WORD } from "@/components/obsidian/status";
 import { fmtUsd, relTime } from "./ship-format";
 import { PanelSkeleton } from "./PanelSkeleton";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
@@ -117,6 +118,7 @@ export function ShipHistoryPanel() {
           >
             {stripAutoPrefix(m.title)}
           </span>
+          {isAutoTitle(m.title) ? <AutoChip /> : null}
           <span
             className="truncate"
             style={{ flex: 1, minWidth: 0, fontSize: 13, color: "var(--text-muted)" }}

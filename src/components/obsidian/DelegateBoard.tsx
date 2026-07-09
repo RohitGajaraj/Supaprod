@@ -10,7 +10,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getDelegateDesk } from "@/lib/delegate-desk.functions";
 import type { DeskLane, DeskMission } from "@/lib/delegate-desk";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 
 const LANE_ACCENT: Record<string, string> = {
   needsYou: "var(--coral, #e11d48)",
@@ -67,8 +68,11 @@ function MissionCard({ m, onOpen }: { m: DeskMission; onOpen: (missionId: string
         cursor: "pointer",
       }}
     >
-      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", lineHeight: 1.3 }}>
-        {stripAutoPrefix(m.title) || "Untitled mission"}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, lineHeight: 1.3 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+          {stripAutoPrefix(m.title) || "Untitled mission"}
+        </span>
+        {isAutoTitle(m.title) ? <AutoChip /> : null}
       </div>
       {m.goal ? (
         <div
