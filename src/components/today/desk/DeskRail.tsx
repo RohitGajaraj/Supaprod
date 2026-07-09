@@ -8,6 +8,7 @@ import * as React from "react";
 import { FocusCard } from "./FocusCard";
 import { TasksCard } from "./TasksCard";
 import { CaptureCard } from "./CaptureCard";
+import { NotepadCard } from "./NotepadCard";
 import { MeetingsRow } from "./MeetingsRow";
 import { StatusRow } from "./StatusRow";
 
@@ -32,6 +33,7 @@ export function DeskRail() {
       <FocusCard />
       <TasksCard />
       <CaptureCard />
+      <NotepadCard />
       <div className="flex flex-col" style={{ gap: 2 }}>
         <MeetingsRow />
         <StatusRow />

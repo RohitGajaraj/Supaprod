@@ -8,10 +8,29 @@
 // the block is genuinely asking the human to wrap up). Chrome, not a surface;
 // every control is a real Button (no bare text-buttons, DESIGN-LOOM §0.1.1).
 import * as React from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/obsidian";
+import { useToast } from "@/components/obsidian/toast";
 import { useFlowMode } from "@/hooks/use-flow-mode";
-import { formatRemaining, TIMER_QUICK_MIN, type FocusPhase } from "@/lib/flow/session";
+import { useWorkspace } from "@/hooks/use-workspace";
+import {
+  formatRemaining,
+  clampMinutes,
+  MAX_CUSTOM_MIN,
+  MIN_CUSTOM_MIN,
+  TIMER_QUICK_MIN,
+  type FocusPhase,
+} from "@/lib/flow/session";
+import {
+  readNotepad,
+  writeNotepad,
+  NOTEPAD_CHANGE_EVENT,
+  NOTEPAD_DEBOUNCE_MS,
+} from "@/lib/notepad";
+import { createTask } from "@/lib/tasks.functions";
+import { todayStr } from "@/components/today/desk/task-filters";
 
 /** The palette (and anything else) can open the composer via this event. */
 export const FOCUS_COMPOSE_EVENT = "cadence:focus-compose";
@@ -68,6 +87,38 @@ function DurationChip({
   );
 }
 
+/** Quick-access panel tab, sentence case (DESIGN-LOOM §0.1.1: a real bordered
+ * control, never a bare text-button). "Focus" is the default/first tab. */
+function ComposerTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="tertiary"
+      size="sm"
+      onClick={onClick}
+      style={{
+        fontSize: 12,
+        padding: "4px 11px",
+        borderColor: active ? "var(--hairline-strong)" : "var(--hairline)",
+        background: active ? "var(--raised)" : "transparent",
+        color: active ? "var(--text-primary)" : "var(--text-muted)",
+      }}
+    >
+      {label}
+    </Button>
+  );
+}
+
+type ComposerTabId = "focus" | "task" | "note";
+
 export function FocusDock() {
   const {
     isFlowMode,
@@ -87,8 +138,59 @@ export function FocusDock() {
   const [composerOpen, setComposerOpen] = React.useState(false);
   const [controlsOpen, setControlsOpen] = React.useState(false);
   const [draftIntent, setDraftIntent] = React.useState("");
+  const [customStr, setCustomStr] = React.useState("");
   const [hovered, setHovered] = React.useState(false);
   const intentInputRef = React.useRef<HTMLInputElement>(null);
+
+  // The quick-access panel (founder feedback 2026-07-09): a couple of the
+  // things a PM reaches for constantly from any page, not just the timer.
+  // "Focus" is the default/first tab; never persisted across sessions.
+  const [activeTab, setActiveTab] = React.useState<ComposerTabId>("focus");
+  const { activeWorkspaceId, activeProductId } = useWorkspace();
+  const showToast = useToast();
+  const qc = useQueryClient();
+
+  const [taskTitle, setTaskTitle] = React.useState("");
+  const fCreateTask = useServerFn(createTask);
+  const addTask = useMutation({
+    mutationFn: (title: string) =>
+      fCreateTask({ data: { title, due_date: todayStr(), project_id: activeProductId ?? null } }),
+    onSuccess: () => {
+      setTaskTitle("");
+      showToast("Added to today's list.");
+      void qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (e: Error) => showToast(e.message),
+  });
+
+  // The Note tab shares the exact same store as the Desk's NotepadCard (never
+  // two notes). Read fresh whenever the tab opens, so an edit made elsewhere
+  // is never shadowed by a stale value; write is a plain debounced effect.
+  const [noteText, setNoteText] = React.useState("");
+  React.useEffect(() => {
+    if (!composerOpen || activeTab !== "note") return;
+    setNoteText(readNotepad(window.localStorage, activeWorkspaceId).text);
+  }, [composerOpen, activeTab, activeWorkspaceId]);
+  React.useEffect(() => {
+    if (!composerOpen || activeTab !== "note") return;
+    const timer = setTimeout(() => {
+      writeNotepad(window.localStorage, activeWorkspaceId, noteText);
+    }, NOTEPAD_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteText, activeWorkspaceId]);
+
+  // Never two notes (live-verification finding): while the Note tab is open,
+  // pick up an edit made on the Desk's NotepadCard instead of silently
+  // shadowing it on the next debounced write.
+  React.useEffect(() => {
+    if (!composerOpen || activeTab !== "note") return;
+    const onChange = () => {
+      setNoteText(readNotepad(window.localStorage, activeWorkspaceId).text);
+    };
+    window.addEventListener(NOTEPAD_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(NOTEPAD_CHANGE_EVENT, onChange);
+  }, [composerOpen, activeTab, activeWorkspaceId]);
 
   const running = isFlowMode;
   const openEnded = running && remainingMs === null;
@@ -124,9 +226,15 @@ export function FocusDock() {
     };
   }, []);
 
+  // Every open (Option F, the palette event, or the idle sliver) lands on the
+  // Focus tab — the palette's "Start a focus block" entry relies on this.
   React.useEffect(() => {
-    if (composerOpen) intentInputRef.current?.focus();
+    if (composerOpen) setActiveTab("focus");
   }, [composerOpen]);
+
+  React.useEffect(() => {
+    if (composerOpen && activeTab === "focus") intentInputRef.current?.focus();
+  }, [composerOpen, activeTab]);
 
   // A block starting closes the composer; a block ending closes the controls.
   React.useEffect(() => {
@@ -146,6 +254,14 @@ export function FocusDock() {
     enterFlow({ intent: draftIntent });
     setDraftIntent("");
     setComposerOpen(false);
+  };
+
+  // Mirrors FocusCard's exact custom-minutes pattern (founder feedback
+  // 2026-07-09): a numeric input beside the quick chips, clamped, live.
+  const applyCustom = (v: string) => {
+    setCustomStr(v);
+    const n = Number(v);
+    if (v !== "" && Number.isFinite(n)) setConfig({ timerMin: clampMinutes(n) });
   };
 
   const color = phaseColor(phase);
@@ -199,13 +315,13 @@ export function FocusDock() {
           {announcement}
         </span>
 
-        {/* Idle composer: the sliver, expanded (Wispr model). */}
+        {/* Idle composer: the sliver, expanded into a small quick-access panel
+            (founder feedback 2026-07-09) — a couple of the things a PM
+            reaches for constantly from any page, not just a timer starter.
+            "Focus" (default) starts a block; "Task" and "Note" are one-step
+            reaches into the Desk's task list and scratch notepad. */}
         {!running && composerOpen ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              start();
-            }}
+          <div
             onKeyDown={(e) => {
               if (e.key === "Escape") {
                 setDraftIntent("");
@@ -226,37 +342,143 @@ export function FocusDock() {
               gap: 10,
             }}
           >
-            <input
-              ref={intentInputRef}
-              value={draftIntent}
-              onChange={(e) => setDraftIntent(e.target.value)}
-              maxLength={120}
-              placeholder="What are you closing in this block?"
-              style={{
-                width: "100%",
-                background: "var(--surface-card-deep)",
-                border: "1px solid var(--hairline-strong)",
-                borderRadius: "var(--radius-control)",
-                padding: "8px 12px",
-                fontSize: 13,
-                color: "var(--text-primary)",
-              }}
-            />
-            <div className="flex items-center" style={{ gap: 8 }}>
-              {TIMER_QUICK_MIN.map((m) => (
-                <DurationChip
-                  key={m}
-                  minutes={m}
-                  active={config.timerMin === m}
-                  onClick={() => setConfig({ timerMin: m })}
-                />
-              ))}
-              <div style={{ flex: 1 }} />
-              <Button variant="secondary" type="submit">
-                Start the block
-              </Button>
+            <div className="flex items-center" style={{ gap: 6 }}>
+              <ComposerTab
+                label="Focus"
+                active={activeTab === "focus"}
+                onClick={() => setActiveTab("focus")}
+              />
+              <ComposerTab
+                label="Task"
+                active={activeTab === "task"}
+                onClick={() => setActiveTab("task")}
+              />
+              <ComposerTab
+                label="Note"
+                active={activeTab === "note"}
+                onClick={() => setActiveTab("note")}
+              />
             </div>
-          </form>
+
+            {activeTab === "focus" ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  start();
+                }}
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                <input
+                  ref={intentInputRef}
+                  value={draftIntent}
+                  onChange={(e) => setDraftIntent(e.target.value)}
+                  maxLength={120}
+                  placeholder="What are you closing in this block?"
+                  style={{
+                    width: "100%",
+                    background: "var(--surface-card-deep)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: "var(--radius-control)",
+                    padding: "8px 12px",
+                    fontSize: 13,
+                    color: "var(--text-primary)",
+                  }}
+                />
+                <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+                  {TIMER_QUICK_MIN.map((m) => (
+                    <DurationChip
+                      key={m}
+                      minutes={m}
+                      active={customStr === "" && config.timerMin === m}
+                      onClick={() => {
+                        setCustomStr("");
+                        setConfig({ timerMin: m });
+                      }}
+                    />
+                  ))}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={MIN_CUSTOM_MIN}
+                    max={MAX_CUSTOM_MIN}
+                    placeholder="min"
+                    value={customStr}
+                    onChange={(e) => applyCustom(e.target.value)}
+                    aria-label="Custom focus minutes"
+                    style={{
+                      width: 56,
+                      background: "transparent",
+                      border: "1px solid var(--hairline)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "4px 8px",
+                      fontSize: 11.5,
+                      fontVariantNumeric: "tabular-nums",
+                      color: "var(--text-primary)",
+                    }}
+                  />
+                  <div style={{ flex: 1 }} />
+                  <Button variant="secondary" type="submit">
+                    Start the block
+                  </Button>
+                </div>
+              </form>
+            ) : null}
+
+            {activeTab === "task" ? (
+              <form
+                className="flex items-center"
+                style={{ gap: 8 }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (taskTitle.trim().length >= 2) addTask.mutate(taskTitle.trim());
+                }}
+              >
+                <input
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  maxLength={280}
+                  placeholder="Add a task for today"
+                  style={{
+                    flex: 1,
+                    background: "var(--surface-card-deep)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: "var(--radius-control)",
+                    padding: "8px 12px",
+                    fontSize: 13,
+                    color: "var(--text-primary)",
+                  }}
+                />
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  loading={addTask.isPending}
+                  disabled={taskTitle.trim().length < 2}
+                >
+                  Add
+                </Button>
+              </form>
+            ) : null}
+
+            {activeTab === "note" ? (
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Jot anything. Only you see this."
+                style={{
+                  width: "100%",
+                  height: 70,
+                  resize: "vertical",
+                  background: "var(--surface-card-deep)",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "8px 12px",
+                  fontSize: 13,
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-ui)",
+                }}
+              />
+            ) : null}
+          </div>
         ) : null}
 
         {!running ? (

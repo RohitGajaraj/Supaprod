@@ -28,7 +28,7 @@ export function StatusRow() {
         className="min-w-0 flex-1 truncate"
         style={{ fontSize: 12.5, color: "var(--text-muted)" }}
       >
-        A ready-to-send update from live state
+        A ready-to-send update from live state, built to paste into email or Slack
       </span>
       <Button variant="secondary" onClick={() => setOpen(true)} style={{ fontSize: 12 }}>
         Share status

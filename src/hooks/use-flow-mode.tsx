@@ -66,7 +66,10 @@ type FlowContextValue = {
 const CONFIG_KEY = "cadence.flow.config";
 const SESSION_KEY = "cadence.flow.session";
 
-const DEFAULT_CONFIG: FlowConfig = { preset: "ocean", volume: 0.5, timerMin: 25 };
+// Sound defaults OFF (founder correction, 2026-07-09): starting a block must
+// never surprise a PM in a professional setting with ambient audio. Sound is
+// an explicit, opt-in choice — a preset the PM picks, never a default.
+const DEFAULT_CONFIG: FlowConfig = { preset: "off", volume: 0.5, timerMin: 25 };
 
 const FlowContext = createContext<FlowContextValue | null>(null);
 
@@ -270,10 +273,12 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     setPhase(phaseOf(session, now));
     writeSession(session);
 
-    // The block starting is a consequential, deliberate moment — it earns a
-    // felt cue (founder ask 2026-07-09; Interaction-Feel Law calibration).
-    playStart();
+    // Sound is opt-in only (founder correction, 2026-07-09): a block starting
+    // is consequential, but it may NEVER surprise a PM in a professional
+    // setting with unrequested audio. The start cue and the ambient track
+    // both gate on the same signal — the preset the PM explicitly picked.
     if (next.preset !== "off") {
+      playStart();
       void soundscape.start(next.preset, next.volume).then((ok) => {
         if (!ok) setSoundUnavailable(true);
       });
@@ -363,7 +368,7 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
         setPhase(nextPhase);
         if (nextPhase === "closing" && !cuedRef.current) {
           cuedRef.current = true;
-          playCue();
+          if (configRef.current.preset !== "off") playCue();
           const stored = readSession();
           if (stored) writeSession({ ...stored, cued: true });
         }
@@ -371,7 +376,7 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
         // tab; navigation may rewrite it, the next tick reclaims it.
         document.title = `${formatRemaining(left)} · ${intentRef.current ?? "Focus"} · Cadence`;
         if (left !== null && left <= 0) {
-          playChime();
+          if (configRef.current.preset !== "off") playChime();
           exitRef.current("completed");
         }
       }

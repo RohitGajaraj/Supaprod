@@ -229,7 +229,6 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
                   className="w-16 rounded-md border border-foreground/15 bg-transparent px-2 py-1 text-[12px] tabular-nums focus:border-foreground/30 focus:outline-none"
                   aria-label="Custom focus minutes"
                 />
-                <span className="text-[11px] text-ink-subtle">min</span>
               </div>
             </div>
           ) : null}

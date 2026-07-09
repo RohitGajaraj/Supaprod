@@ -280,8 +280,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // day's focus tally. The tasks fetch only happens while machine view is on.
   const flow = useFlowMode();
   const tasksFn = useServerFn(listTasks);
+  // A DISTINCT key from the Desk's own ["tasks"] query (bug found live,
+  // 2026-07-09): AppShell mounts above every route, so a shared key made this
+  // a second, disabled observer racing the Desk's TasksCard — TasksCard's
+  // fetch never fired and its card hung in the loading skeleton forever.
   const machineTasks = useQuery({
-    queryKey: ["tasks"],
+    queryKey: ["tasks", "machine-view"],
     queryFn: () => tasksFn(),
     enabled: isMachineView,
   });
