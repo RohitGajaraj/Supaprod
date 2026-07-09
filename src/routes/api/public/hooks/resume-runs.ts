@@ -222,6 +222,15 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             const planned: { id: string; run_id?: string; error?: string }[] = [];
             for (const m of toReplan) {
               try {
+                // Self-healing: seed_default_agents seeds 'orchestrator' at
+                // signup, but this call must never trust that alone — an
+                // account created before this was added, restored from an
+                // older backup, or otherwise missing its roster would
+                // otherwise fail here forever with "Unknown agent:
+                // orchestrator" and (worse) permanently occupy one of the
+                // fixed REPLAN_BATCH slots every tick, starving every other
+                // tenant's re-plan sweep behind it. Idempotent; cheap.
+                await admin.rpc("seed_orchestrator_agent", { p_user_id: m.user_id });
                 const res = await runAgentLoop(admin, m.user_id, {
                   agentSlug: "orchestrator",
                   goal: m.goal,
