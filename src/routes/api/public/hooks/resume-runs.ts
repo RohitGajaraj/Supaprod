@@ -223,7 +223,7 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             for (const m of toReplan) {
               try {
                 // Self-healing: seed_default_agents seeds 'orchestrator' at
-                // signup, but this call must never trust that alone — an
+                // signup, but this call must never trust that alone. An
                 // account created before this was added, restored from an
                 // older backup, or otherwise missing its roster would
                 // otherwise fail here forever with "Unknown agent:
