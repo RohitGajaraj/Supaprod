@@ -274,9 +274,7 @@ async function insertDesignMemoryItems(
 
   const { data: rows, error: insertError } = await supabase
     .from("design_memory")
-    .insert(
-      toInsert.map(({ originalItem, ...row }) => row),
-    )
+    .insert(toInsert.map(({ originalItem, ...row }) => row))
     .select("id, category, title");
 
   if (insertError || !rows) return 0;
