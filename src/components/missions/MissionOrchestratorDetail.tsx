@@ -49,6 +49,7 @@ import {
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
+import { stripAutoPrefix } from "@/components/plan/format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useConfirm } from "@/hooks/use-confirm";
 import { supabase } from "@/integrations/supabase/client";
@@ -586,7 +587,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
 
   const copySnapshot = () => {
     const lines = [
-      `# ${data.mission.title}: compounding snapshot`,
+      `# ${stripAutoPrefix(data.mission.title)}: compounding snapshot`,
       "",
       n === 0
         ? "This mission started fresh. No prior memory recalled yet."
@@ -878,7 +879,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 color: "var(--text-primary)",
               }}
             >
-              {data.mission.title}
+              {stripAutoPrefix(data.mission.title)}
             </h1>
             {/* §6: the maker's mark — a static 24px thread under the title. */}
             <div
@@ -895,6 +896,10 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{
                 fontSize: 13.5,
                 color: "color-mix(in oklab, var(--text-primary) 70%, transparent)",
+                display: "-webkit-box",
+                WebkitLineClamp: 4,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
               }}
             >
               {data.mission.goal}
@@ -1112,7 +1117,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
         )}
         <CaptureMissionDecision
           missionId={data.mission.id}
-          title={data.mission.title}
+          title={stripAutoPrefix(data.mission.title)}
           goal={data.mission.goal}
         />
       </div>
@@ -1258,7 +1263,17 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                         </span>
                       ) : null}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--text-body)", marginTop: 3 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "var(--text-body)",
+                        marginTop: 3,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}
+                    >
                       {s.goal}
                     </div>
                     {s.note ? (

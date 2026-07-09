@@ -51,6 +51,10 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
                 fontWeight: 460,
                 lineHeight: 1.3,
                 color: "var(--text-primary)",
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
               {title}

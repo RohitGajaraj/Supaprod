@@ -49,6 +49,8 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
             color: "var(--text-subtle)",
             fontStyle: "italic",
             wordBreak: "break-word",
+            maxHeight: 160,
+            overflow: "auto",
           }}
         >
           thought · {step.text}
@@ -100,6 +102,8 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
           color: "var(--text-body)",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
+          maxHeight: 260,
+          overflowY: "auto",
         }}
       >
         {step.message}

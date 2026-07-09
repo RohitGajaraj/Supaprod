@@ -62,12 +62,16 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       ) : null}
       <span
         className="shrink-0 text-right uppercase"
+        title={stepLabel}
         style={{
           width: "96px",
           fontFamily: "var(--font-mono)",
           fontSize: "9px",
           letterSpacing: "0.11em",
           color: STATUS_STYLES[status].color,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
         {stepLabel}

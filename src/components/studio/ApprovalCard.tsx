@@ -72,6 +72,8 @@ export function ApprovalCard({
             border: "1px solid var(--hairline)",
             borderRadius: 6,
             padding: "1px 6px",
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
           }}
         >
           {approval.tool_name}
