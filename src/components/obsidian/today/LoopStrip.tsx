@@ -25,11 +25,13 @@ function Pill({
   label,
   tone,
   pulse,
+  title,
   onGo,
 }: {
   label: string;
   tone: PillTone;
   pulse?: boolean;
+  title?: string;
   onGo: () => void;
 }) {
   const s = TONE_STYLE[tone];
@@ -37,6 +39,7 @@ function Pill({
     <button
       type="button"
       onClick={onGo}
+      title={title}
       className="inline-flex items-center outline-none transition-colors hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
       style={{
         gap: 7,
@@ -80,29 +83,75 @@ export interface LoopStripProps {
  * each a jump to its surface. DECIDE and BUILD read live state (pending
  * calls / working agents); SENSE, DEFINE, LEARN read the 24h loop pulse. */
 export function LoopStrip({ counts, pendingCalls, workingCount, onGo }: LoopStripProps) {
-  const pills: { key: LoopSurface; label: string; tone: PillTone; pulse?: boolean }[] = [
-    { key: "discover", label: `SENSE · ${counts.sense}`, tone: "quiet" },
+  const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const pills: {
+    key: LoopSurface;
+    label: string;
+    tone: PillTone;
+    pulse?: boolean;
+    title: string;
+  }[] = [
+    {
+      key: "discover",
+      label: `SENSE · ${counts.sense}`,
+      tone: "quiet",
+      title: `${count(counts.sense, "signal", "signals")} sensed in the last 24 hours`,
+    },
     {
       key: "today",
       label: `DECIDE · ${pendingCalls} CALL${pendingCalls === 1 ? "" : "S"}`,
       tone: decideTone(pendingCalls),
+      title:
+        pendingCalls > 0
+          ? `${count(pendingCalls, "call", "calls")} waiting on you right now`
+          : "No calls waiting on you right now",
     },
-    { key: "define", label: `DEFINE · ${counts.define}`, tone: "quiet" },
-    { key: "build", label: `BUILD · ${workingCount}`, tone: "glacier", pulse: true },
-    { key: "brain", label: `LEARN · ${counts.learn}`, tone: "quiet" },
+    {
+      key: "define",
+      label: `DEFINE · ${counts.define}`,
+      tone: "quiet",
+      title: `${count(counts.define, "spec", "specs")} drafted in the last 24 hours`,
+    },
+    {
+      key: "build",
+      label: `BUILD · ${workingCount}`,
+      tone: "glacier",
+      pulse: true,
+      title:
+        workingCount > 0
+          ? `${count(workingCount, "mission", "missions")} building right now`
+          : "Nothing building right now",
+    },
+    {
+      key: "brain",
+      label: `LEARN · ${counts.learn}`,
+      tone: "quiet",
+      title: `${count(counts.learn, "outcome", "outcomes")} recorded in the last 24 hours`,
+    },
   ];
   return (
-    <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 28 }}>
-      {pills.map((p, i) => (
-        <React.Fragment key={p.key}>
-          {i > 0 && (
-            <span aria-hidden="true" style={{ color: "var(--text-faint)", fontSize: 11 }}>
-              →
-            </span>
-          )}
-          <Pill label={p.label} tone={p.tone} pulse={p.pulse} onGo={() => onGo(p.key)} />
-        </React.Fragment>
-      ))}
+    <div style={{ marginBottom: 28 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+        {pills.map((p, i) => (
+          <React.Fragment key={p.key}>
+            {i > 0 && (
+              <span aria-hidden="true" style={{ color: "var(--text-faint)", fontSize: 11 }}>
+                →
+              </span>
+            )}
+            <Pill
+              label={p.label}
+              tone={p.tone}
+              pulse={p.pulse}
+              title={p.title}
+              onGo={() => onGo(p.key)}
+            />
+          </React.Fragment>
+        ))}
+      </div>
+      <p style={{ margin: "9px 0 0", fontSize: 11, lineHeight: 1.4, color: "var(--text-faint)" }}>
+        Sensed, defined, and learned in the last 24 hours. Calls and builds are live now.
+      </p>
     </div>
   );
 }
