@@ -1011,7 +1011,7 @@ function SpecEditorPage() {
                 </button>
               ))}
               {provQ.data!.truncated ? (
-                <span style={{ ...MONO_CAPS, color: "var(--text-subtle)" }}>
+                <span style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
                   the chain continues past these first steps
                 </span>
               ) : null}

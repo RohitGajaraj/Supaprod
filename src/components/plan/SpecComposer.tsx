@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { Button } from "@/components/obsidian";
 import { draftContractFromIntent } from "@/lib/discovery.functions";
 
 /**
@@ -51,7 +51,16 @@ export function SpecComposer() {
         marginBottom: 16,
       }}
     >
-      <MonoLabel tone="muted">What do you want to build?</MonoLabel>
+      <span
+        style={{
+          display: "block",
+          fontFamily: "var(--font-ui)",
+          fontSize: 12.5,
+          color: "var(--text-muted)",
+        }}
+      >
+        What do you want to build?
+      </span>
       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
         <input
           value={intent}

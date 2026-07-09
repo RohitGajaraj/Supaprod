@@ -197,25 +197,25 @@ export function InsightsPanel() {
             What the record supports
           </MonoLabel>
           {d.insights.map((ins, i) => {
-          const t = TONE[ins.tone];
-          return (
-            <div
-              key={i}
-              className="bento"
-              style={{
-                padding: "12px 15px",
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-              }}
-            >
-              <ToneDot color={t.color} />
-              <span style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5 }}>
-                {ins.text}
-              </span>
-            </div>
-          );
-        })}
+            const t = TONE[ins.tone];
+            return (
+              <div
+                key={i}
+                className="bento"
+                style={{
+                  padding: "12px 15px",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                }}
+              >
+                <ToneDot color={t.color} />
+                <span style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5 }}>
+                  {ins.text}
+                </span>
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -315,10 +315,7 @@ export function InsightsPanel() {
                   </span>
                 )}
                 {b.superseded && b.revisedBy ? (
-                  <span
-                    className="mono-label"
-                    style={{ fontSize: 10.5, color: "var(--madder-bright)", paddingLeft: 2 }}
-                  >
+                  <span style={{ fontSize: 11.5, color: "var(--madder-bright)", paddingLeft: 2 }}>
                     now replaced by: {b.revisedBy}
                   </span>
                 ) : null}

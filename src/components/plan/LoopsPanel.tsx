@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
-import { Button, MonoLabel } from "@/components/obsidian";
+import { Button } from "@/components/obsidian";
 import { LOOP_KINDS, type LoopCadence, type LoopKind } from "@/lib/loops.shared";
 import {
   createLoop,
@@ -96,7 +96,16 @@ export function LoopsPanel() {
           marginBottom: 16,
         }}
       >
-        <MonoLabel tone="muted">What should the swarm keep re-running?</MonoLabel>
+        <span
+          style={{
+            display: "block",
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            color: "var(--text-muted)",
+          }}
+        >
+          What should the swarm keep re-running?
+        </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
           <select
             aria-label="Loop kind"
