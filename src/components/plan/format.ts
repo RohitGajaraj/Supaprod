@@ -10,6 +10,17 @@ export function stripAutoPrefix(title: string): string {
   return title.replace(/^\[auto\]\s*/i, "").trim();
 }
 
+/**
+ * Whether a stored title carries the machine "[auto]" origin prefix. Pairs with
+ * `stripAutoPrefix`: strip the prefix for the visible text, then use this to
+ * decide whether to show a small "Auto" provenance chip, so a user or an agent
+ * can tell the item was raised by the loop itself, without the raw prefix ever
+ * leaking into the copy.
+ */
+export function isAutoTitle(title: string | null | undefined): boolean {
+  return /^\[auto\]\s*/i.test(title ?? "");
+}
+
 export type SpecStateTone = "moss" | "marigold" | "glacier";
 
 export interface SpecStateChip {

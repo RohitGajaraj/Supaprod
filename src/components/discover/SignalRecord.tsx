@@ -14,14 +14,8 @@ import {
 } from "@/components/ui/sheet";
 import { getLineage } from "@/lib/lineage.functions";
 import { toast } from "@/lib/notify";
-import {
-  DetailHeader,
-  DetailSection,
-  StatCell,
-  StatStrip,
-  type StatTone,
-} from "./DetailKit";
-import { relTimeCaps, sourceCaps, traceRef } from "./format";
+import { DetailHeader, DetailSection, StatCell, StatStrip, type StatTone } from "./DetailKit";
+import { relTimeCaps, signalCleanBody, signalHasRaw, sourceCaps, traceRef } from "./format";
 
 /** The verbatim signal record, shared by the raw-signal detail sheet (Column
  * A) and the in-pane theme drill (Column B). Every field is a real signal
@@ -140,7 +134,9 @@ function LineageSection({
       {loading ? (
         <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>Loading</p>
       ) : peers.length === 0 ? (
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}>
+        <p
+          style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
+        >
           {emptyText}
         </p>
       ) : (
@@ -393,7 +389,9 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
         </div>
       </DetailSection>
 
-      {/* The verbatim signal itself. */}
+      {/* The captured signal, cleaned of connector noise (raw JSON, embedded
+          images, bare URLs) so it reads as signal. The untouched original stays
+          one click away whenever the capture arrived as a raw payload. */}
       <DetailSection heading="What was captured">
         <p
           style={{
@@ -403,10 +401,48 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
             margin: 0,
             paddingLeft: "12px",
             borderLeft: "2px solid var(--hairline-strong)",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "anywhere",
           }}
         >
-          {record.content}
+          {signalCleanBody(record.content) || record.content}
         </p>
+        {signalHasRaw(record.content) ? (
+          <details style={{ marginTop: "10px" }}>
+            <summary
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "10.5px",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--text-subtle)",
+                cursor: "pointer",
+                userSelect: "none",
+              }}
+            >
+              Raw capture
+            </summary>
+            <pre
+              style={{
+                margin: "8px 0 0",
+                padding: "10px",
+                maxHeight: "240px",
+                overflow: "auto",
+                fontFamily: "var(--font-mono)",
+                fontSize: "11px",
+                lineHeight: 1.5,
+                color: "var(--text-muted)",
+                background: "var(--surface-raised)",
+                border: "1px solid var(--hairline-faint)",
+                borderRadius: "var(--radius-control)",
+                whiteSpace: "pre-wrap",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {record.content}
+            </pre>
+          </details>
+        ) : null}
       </DetailSection>
 
       {/* The audited Sources list: the origin plus every reference, deduped. */}
@@ -457,7 +493,9 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
           />
           <LineageSection
             heading="Became"
-            icon={<ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />}
+            icon={
+              <ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />
+            }
             loading={q.isLoading}
             emptyText="Nothing promoted from this yet."
             peers={descendants.map((e) => ({

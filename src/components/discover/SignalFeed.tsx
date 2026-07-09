@@ -321,7 +321,7 @@ export function SignalFeed() {
           itself.
         </p>
       ) : (
-        <div className="grid gap-3.5">
+        <div className="grid gap-3.5 min-w-0">
           {(showAll ? rows : rows.slice(0, VISIBLE_SIGNALS)).map((s, i, shown) => {
             const theme = s.theme_id ? themeById.get(s.theme_id) : undefined;
             return (

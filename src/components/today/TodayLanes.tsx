@@ -14,6 +14,7 @@ import type {
   TodayLane4,
   WatchItem,
 } from "@/lib/today-lanes.functions";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 function fmtUsd(n: number): string {
   if (n <= 0) return "$0";
@@ -59,9 +60,7 @@ function LaneSection({
         {typeof count === "number" ? (
           <span style={{ ...monoLabel, fontSize: 10.5, color: "var(--text-faint)" }}>{count}</span>
         ) : null}
-        {hint ? (
-          <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>{hint}</span>
-        ) : null}
+        {hint ? <span style={{ fontSize: 11.5, color: "var(--text-faint)" }}>{hint}</span> : null}
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
       </div>
       {children}
@@ -71,7 +70,9 @@ function LaneSection({
 
 function LaneEmpty({ text }: { text: string }) {
   return (
-    <p style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}>
+    <p
+      style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "2px 0 0", fontStyle: "italic" }}
+    >
       {text}
     </p>
   );
@@ -111,6 +112,11 @@ export function PushedInsights({
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       {lane.insights.map((ins) => {
         const pushAction = ins.action?.kind && onAct ? ins.action : null;
+        // The button carries a short, plain action label, never the full goal
+        // sentence: dumping the goal into a mono-caps label produced an
+        // all-uppercase sentence (a Loom section 1 violation). The goal already
+        // reads in the headline and detail above.
+        const actionLabel = pushAction?.label?.trim() || "Open in Brain";
         return (
           <div
             key={ins.id}
@@ -126,7 +132,16 @@ export function PushedInsights({
             </div>
             {ins.detail ? (
               <p
-                style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 8px", lineHeight: 1.5 }}
+                style={{
+                  fontSize: 12.5,
+                  color: "var(--text-body)",
+                  margin: "0 0 10px",
+                  lineHeight: 1.5,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
               >
                 {ins.detail}
               </p>
@@ -134,22 +149,21 @@ export function PushedInsights({
             <button
               type="button"
               onClick={pushAction ? () => onAct!(ins) : onOpen}
-              className="loom-press"
+              className="loom-press transition-colors hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
-                ...monoLabel,
-                fontSize: 10.5,
+                alignSelf: "flex-start",
+                fontFamily: "var(--font-ui)",
+                fontSize: 12,
+                fontWeight: 500,
                 color: "var(--glacier)",
                 background: "transparent",
-                border: "none",
-                padding: 0,
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-control)",
+                padding: "5px 11px",
                 cursor: "pointer",
               }}
             >
-              {pushAction?.label
-                ? pushAction.label
-                : ins.action?.goal
-                  ? `Act: ${ins.action.goal}`
-                  : "Open in Brain"}
+              {actionLabel}
             </button>
           </div>
         );
@@ -172,7 +186,11 @@ export function SwarmActivityLane({
   return (
     <LaneSection
       title="What the swarm did"
-      hint={lane.total_cost_usd > 0 ? `${fmtUsd(lane.total_cost_usd)} in the last 24h` : "in the last 24 hours"}
+      hint={
+        lane.total_cost_usd > 0
+          ? `${fmtUsd(lane.total_cost_usd)} in the last 24h`
+          : "in the last 24 hours"
+      }
     >
       {lane.groups.length === 0 ? (
         <LaneEmpty text="No swarm activity in the last 24 hours." />
@@ -206,7 +224,7 @@ export function SwarmActivityLane({
                     className="min-w-0 flex-1 truncate"
                     style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
                   >
-                    {g.title}
+                    {stripAutoPrefix(g.title)}
                   </span>
                   {g.cost_usd > 0 ? (
                     <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
@@ -218,7 +236,9 @@ export function SwarmActivityLane({
                   </span>
                 </div>
                 {g.goal ? (
-                  <div style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 2 }}>{g.goal}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 2 }}>
+                    {g.goal}
+                  </div>
                 ) : null}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                   {g.items.map((it) => (
@@ -269,8 +289,7 @@ export function WatchLane({ lane }: { lane: TodayLane3 }) {
                 <span
                   style={{
                     ...monoLabel,
-                    color:
-                      it.type === "calibration_miss" ? "var(--madder)" : "var(--text-subtle)",
+                    color: it.type === "calibration_miss" ? "var(--madder)" : "var(--text-subtle)",
                   }}
                 >
                   {WATCH_LABEL[it.type]}
@@ -288,7 +307,14 @@ export function WatchLane({ lane }: { lane: TodayLane3 }) {
                 ) : null}
               </div>
               {it.description ? (
-                <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: "0 0 4px", lineHeight: 1.5 }}>
+                <p
+                  style={{
+                    fontSize: 12.5,
+                    color: "var(--text-body)",
+                    margin: "0 0 4px",
+                    lineHeight: 1.5,
+                  }}
+                >
                   {it.description}
                 </p>
               ) : null}
@@ -361,7 +387,14 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                 ) : null}
               </div>
               {it.metric_label && it.metric_value != null ? (
-                <div style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 3, paddingLeft: 17 }}>
+                <div
+                  style={{
+                    fontSize: 11.5,
+                    color: "var(--text-faint)",
+                    marginTop: 3,
+                    paddingLeft: 17,
+                  }}
+                >
                   {it.metric_label}: {it.metric_value}
                 </div>
               ) : null}

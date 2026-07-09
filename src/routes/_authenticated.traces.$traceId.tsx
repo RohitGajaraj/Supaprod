@@ -19,6 +19,7 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
 import { getTrace } from "@/lib/traces.functions";
 import { relTime } from "@/components/product/format";
+import { stripAutoPrefix } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
@@ -551,7 +552,7 @@ export function TraceDetail({ id }: { id: string }) {
             )}
           </>
         }
-        title={mission ? mission.title : `${rootSurface ?? "trace"} · ${id.slice(0, 8)}`}
+        title={mission ? stripAutoPrefix(mission.title) : `${rootSurface ?? "trace"} · ${id.slice(0, 8)}`}
         right={
           mission ? (
             <Link

@@ -315,10 +315,16 @@ export function DiscoverSurface() {
           </div>
 
           <div className="grid grid-cols-1 items-start lg:grid-cols-2" style={{ gap: "24px" }}>
-            <div ref={signalsRef} id="signals" tabIndex={-1} style={{ outline: "none" }}>
+            <div
+              ref={signalsRef}
+              id="signals"
+              tabIndex={-1}
+              className="min-w-0"
+              style={{ outline: "none" }}
+            >
               <SignalFeed />
             </div>
-            <div style={{ outline: "none" }}>
+            <div className="min-w-0" style={{ outline: "none" }}>
               <AutoClustered />
             </div>
           </div>
