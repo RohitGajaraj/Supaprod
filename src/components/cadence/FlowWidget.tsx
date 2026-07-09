@@ -115,7 +115,9 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
       title={isFlowMode ? "Flow mode on" : "Flow mode"}
       className={cn(
         "flex items-center gap-1.5 rounded-md px-1 py-0.5 transition",
-        isFlowMode ? "text-foreground ring-1 ring-foreground/20" : "text-ink-subtle hover:text-foreground",
+        isFlowMode
+          ? "text-foreground ring-1 ring-foreground/20"
+          : "text-ink-subtle hover:text-foreground",
       )}
     >
       <Waves className={cn("h-[13px] w-[13px]", isFlowMode && "flow-pulse")} strokeWidth={1.75} />

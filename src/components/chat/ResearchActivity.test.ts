@@ -179,8 +179,12 @@ describe("ResearchActivity", () => {
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
       // The latest status is the last one in the array
-      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
-      const labelSpan = children.find((child: any) => child?.type === "span" && child?.props?.children === "Reading sources...");
+      const children = Array.isArray(result?.props.children)
+        ? result.props.children
+        : [result?.props.children];
+      const labelSpan = children.find(
+        (child: any) => child?.type === "span" && child?.props?.children === "Reading sources...",
+      );
       expect(labelSpan).toBeDefined();
     });
 
@@ -194,8 +198,12 @@ describe("ResearchActivity", () => {
       expect(result?.type).toBe("div");
       // plan and search are completed (not read which is current)
       // Should show summary of completed work
-      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
-      const summarySpan = children.find((child: any) => child?.type === "span" && child?.props?.className?.includes("mono-label"));
+      const children = Array.isArray(result?.props.children)
+        ? result.props.children
+        : [result?.props.children];
+      const summarySpan = children.find(
+        (child: any) => child?.type === "span" && child?.props?.className?.includes("mono-label"),
+      );
       expect(summarySpan).toBeDefined();
       expect(summarySpan?.props.children).toContain("Searched 1 query");
     });
@@ -205,7 +213,9 @@ describe("ResearchActivity", () => {
       const result = ResearchActivityLine({ statuses });
       expect(result?.type).toBe("div");
       // Check for spinner className in children
-      const children = Array.isArray(result?.props.children) ? result.props.children : [result?.props.children];
+      const children = Array.isArray(result?.props.children)
+        ? result.props.children
+        : [result?.props.children];
       const spinner = children.find((child: any) => child?.props?.className === "spinner");
       expect(spinner).toBeDefined();
     });
@@ -311,7 +321,9 @@ describe("ResearchActivity", () => {
       expect(result?.type).toBe("div");
       expect(result?.props.className).toContain("flex");
       // Should have children that are span chips
-      const children = Array.isArray(result?.props.children) ? result?.props.children : [result?.props.children];
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
       expect(children.length).toBeGreaterThan(0);
       const firstChip = children[0];
       expect(firstChip?.type).toBe("span");
@@ -329,7 +341,9 @@ describe("ResearchActivity", () => {
         workspace_chunks: 3,
       };
       const result = ResearchSummaryRow({ meta });
-      const children = Array.isArray(result?.props.children) ? result?.props.children : [result?.props.children];
+      const children = Array.isArray(result?.props.children)
+        ? result?.props.children
+        : [result?.props.children];
       const chipTexts = children.map((chip: any) => chip?.props?.children);
       expect(chipTexts).toContain("Searched 1 query");
       expect(chipTexts).toContain("Read 2 sources");

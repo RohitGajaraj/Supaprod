@@ -80,7 +80,7 @@ describe("SketchLine component", () => {
         const pathElements = root.findAllByType("path");
         expect(pathElements.length).toBeGreaterThan(0);
         // Verify path data exists
-        pathElements.forEach(p => {
+        pathElements.forEach((p) => {
           expect(p.props.d).toBeDefined();
           expect(typeof p.props.d).toBe("string");
         });
@@ -105,7 +105,7 @@ describe("SketchLine component", () => {
       try {
         const root = instance.root;
         const pathElements = root.findAllByType("path");
-        const hasColoredStroke = pathElements.some(p => p.props.stroke === testColor);
+        const hasColoredStroke = pathElements.some((p) => p.props.stroke === testColor);
         expect(hasColoredStroke).toBe(true);
       } catch {
         expect(true).toBe(true);
@@ -214,7 +214,7 @@ describe("SketchBar component", () => {
       try {
         const root = instance.root;
         const rects = root.findAllByType("rect");
-        const hasColoredRect = rects.some(r => r.props.fill === testColor);
+        const hasColoredRect = rects.some((r) => r.props.fill === testColor);
         expect(hasColoredRect).toBe(true);
       } catch {
         expect(true).toBe(true);
@@ -231,9 +231,7 @@ describe("SketchBar component", () => {
   test("renders bars for all percentage values", () => {
     const percentages = [0, 25, 50, 75, 100];
     for (const pct of percentages) {
-      const instance = ReactTestRenderer.create(
-        React.createElement(SketchBar, { pct, seed: 1 }),
-      );
+      const instance = ReactTestRenderer.create(React.createElement(SketchBar, { pct, seed: 1 }));
       try {
         try {
           const root = instance.root;
@@ -392,7 +390,7 @@ describe("SketchBarChart component", () => {
       try {
         const root = instance.root;
         const rects = root.findAllByType("rect");
-        const hasColoredRects = rects.some(r => r.props.fill === testColor);
+        const hasColoredRects = rects.some((r) => r.props.fill === testColor);
         expect(hasColoredRects).toBe(true);
       } catch {
         expect(true).toBe(true);
@@ -472,8 +470,10 @@ describe("SketchBarChart component", () => {
       try {
         const root = instance.root;
         const textElements = root.findAllByType("text");
-        const hasFormattedText = textElements.some(t =>
-          t.children && t.children.some((child: any) => typeof child === "string" && child.includes("$"))
+        const hasFormattedText = textElements.some(
+          (t) =>
+            t.children &&
+            t.children.some((child: any) => typeof child === "string" && child.includes("$")),
         );
         expect(hasFormattedText).toBe(true);
       } catch {

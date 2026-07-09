@@ -21,5 +21,5 @@ export function relTime(iso: string | null | undefined): string {
 export function fmtUsd(n: number | string | null | undefined): string {
   const v = typeof n === "string" ? Number(n) : (n ?? 0);
   if (!v) return "$0";
-  return v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(2)}`;
+  return Math.abs(v) < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(2)}`;
 }

@@ -58,4 +58,14 @@ describe("fmtUsd", () => {
   test("string input is parsed as a number", () => {
     expect(fmtUsd("12.3")).toBe("$12.30");
   });
+
+  test("negative values format with correct precision", () => {
+    expect(fmtUsd(-0.005)).toBe("$-0.0050");
+    expect(fmtUsd(-1.5)).toBe("$-1.50");
+    expect(fmtUsd(-100)).toBe("$-100.00");
+  });
+
+  test("negative string input is parsed correctly", () => {
+    expect(fmtUsd("-5.25")).toBe("$-5.25");
+  });
 });

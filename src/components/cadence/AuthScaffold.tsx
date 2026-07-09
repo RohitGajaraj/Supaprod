@@ -122,7 +122,12 @@ export function AuthScaffold({
 
       <div
         className="fade-up"
-        style={{ width: cardWidth, maxWidth: "calc(100vw - 48px)", position: "relative", zIndex: 1 }}
+        style={{
+          width: cardWidth,
+          maxWidth: "calc(100vw - 48px)",
+          position: "relative",
+          zIndex: 1,
+        }}
       >
         <div style={header}>
           {intro ? (
