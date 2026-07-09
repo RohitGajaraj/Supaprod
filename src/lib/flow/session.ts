@@ -133,6 +133,17 @@ export type FocusHistoryEntry = {
 export const HISTORY_KEY = "cadence.flow.history";
 const HISTORY_CAP = 50;
 
+/** The localStorage GETTER itself can throw (storage-denied browsers: blocked
+ *  cookies, sandboxed iframes). Every flow call site reaches storage through
+ *  this guard so the ledger nicety can never crash a route (review fix). */
+export function safeLocalStorage(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export function readFocusHistory(storage: Pick<Storage, "getItem"> | null): FocusHistoryEntry[] {
   if (!storage) return [];
   try {

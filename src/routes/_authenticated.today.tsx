@@ -29,6 +29,7 @@ import { CallDetailSheet, type CallDetail } from "@/components/today/CallDetailS
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useFlowMode } from "@/hooks/use-flow-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
 import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
@@ -336,6 +337,8 @@ function Dashboard() {
   const navigate = useNavigate();
   const showToast = useToast();
   const { activeWorkspace } = useWorkspace();
+  // PM Desk: the hero glow yields to the session edge glow while a block runs.
+  const { isFlowMode } = useFlowMode();
 
   // OBS-14 - the one coach mark the product shows: only right after the
   // onboarding flow hands off, and never again once dismissed.
@@ -1031,12 +1034,16 @@ function Dashboard() {
         }}
       >
         {/* Loom §2b glow field: the one ambient wash behind the hero. Ember-warm
-            only while calls actually pend; otherwise the default glacier light. */}
-        <div
-          aria-hidden="true"
-          className="loom-glow-field"
-          data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
-        />
+            only while calls actually pend; otherwise the default glacier light.
+            While a focus block runs, this yields to the session edge glow so the
+            screen never carries two ambient washes (review fix, §2b max one). */}
+        {!isFlowMode ? (
+          <div
+            aria-hidden="true"
+            className="loom-glow-field"
+            data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
+          />
+        ) : null}
         {needsYouLoaded ? (
           <Hero
             greeting={greeting.data?.greeting ?? "Hello"}

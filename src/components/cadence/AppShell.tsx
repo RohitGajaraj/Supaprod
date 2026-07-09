@@ -9,9 +9,14 @@ import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { FlowWidget } from "./FlowWidget";
 import { useFlowMode } from "@/hooks/use-flow-mode";
-import { readFocusHistory, todaysFocusTally } from "@/lib/flow/session";
+import { readFocusHistory, safeLocalStorage, todaysFocusTally } from "@/lib/flow/session";
 import { listTasks } from "@/lib/tasks.functions";
-import { dueRowsOf, openDueCountOf, todayStr, type TaskRow } from "@/components/today/desk/task-filters";
+import {
+  dueRowsOf,
+  openDueCountOf,
+  todayStr,
+  type TaskRow,
+} from "@/components/today/desk/task-filters";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
@@ -294,12 +299,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     } else {
       lines.push(`- No focus block running.`);
     }
-    const tally = todaysFocusTally(
-      readFocusHistory(typeof window === "undefined" ? null : window.localStorage),
-      Date.now(),
-    );
-    if (tally.blocks > 0) lines.push(`- Focus today: ${tally.blocks} blocks · ${tally.minutes} min`);
-    const rows = dueRowsOf(((machineTasks.data?.tasks ?? []) as TaskRow[]), todayStr());
+    const tally = todaysFocusTally(readFocusHistory(safeLocalStorage()), Date.now());
+    if (tally.blocks > 0)
+      lines.push(`- Focus today: ${tally.blocks} blocks · ${tally.minutes} min`);
+    const rows = dueRowsOf((machineTasks.data?.tasks ?? []) as TaskRow[], todayStr());
     const open = rows.filter((t) => t.status !== "done");
     lines.push(`- Tasks due today: ${openDueCountOf(rows)} open`);
     for (const t of open.slice(0, 10)) lines.push(`  - [ ] ${t.title}`);

@@ -2043,7 +2043,10 @@ html[data-motion="off"] .agent-live {
 
 /* PM Desk — the focus-session edge glow breathes slowly while a block runs
  * (the machine is genuinely live, so motion is legal); the global
- * prefers-reduced-motion block stills it to a constant glow. Opacity-only. */
+ * prefers-reduced-motion block stills it to a constant glow. Opacity-only.
+ * The animation lives in a class (not an inline style) so the in-product
+ * motion toggle (html[data-motion="off"]) can kill it, per DESIGN-LOOM §5
+ * "the in-product toggle survives". */
 @keyframes cadFocusBreathe {
   0%,
   100% {
@@ -2052,6 +2055,20 @@ html[data-motion="off"] .agent-live {
   50% {
     opacity: 1;
   }
+}
+
+.cad-focus-glow {
+  animation: cadFocusBreathe 6s var(--ease-in-out, ease-in-out) infinite;
+}
+
+html[data-motion="off"] .cad-focus-glow {
+  animation: none;
+}
+
+/* Review fix (PM Desk pass): the flow dot's pulse honored only
+ * prefers-reduced-motion, never the in-product toggle. */
+html[data-motion="off"] .flow-pulse {
+  animation: none;
 }
 
 /* OBS-14 — the onboarding Arrival butterfly's one-shot fly-in, before it

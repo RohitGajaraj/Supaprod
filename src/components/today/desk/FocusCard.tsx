@@ -21,6 +21,7 @@ import {
   TIMER_QUICK_MIN,
   clampMinutes,
   readFocusHistory,
+  safeLocalStorage,
   todaysFocusTally,
   type FocusPhase,
   type SoundPreset,
@@ -109,10 +110,12 @@ export function FocusCard() {
   const [customStr, setCustomStr] = React.useState("");
   const intentRef = React.useRef<HTMLInputElement>(null);
 
-  // Today's tally from the local ledger; recomputed when a block ends.
+  // Today's tally from the local ledger; recomputed when a block ends. The
+  // storage getter goes through the guard: denied storage means no tally,
+  // never a crashed route (review fix).
   const [tally, setTally] = React.useState<{ blocks: number; minutes: number } | null>(null);
   React.useEffect(() => {
-    setTally(todaysFocusTally(readFocusHistory(window.localStorage), Date.now()));
+    setTally(todaysFocusTally(readFocusHistory(safeLocalStorage()), Date.now()));
   }, [isFlowMode]);
 
   // "Until the next meeting": the calendar-clamped block length a PM actually

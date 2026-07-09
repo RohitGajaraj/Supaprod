@@ -169,6 +169,7 @@ export function FocusDock() {
       {running ? (
         <div
           aria-hidden="true"
+          className="cad-focus-glow"
           style={{
             position: "fixed",
             inset: 0,
@@ -176,10 +177,9 @@ export function FocusDock() {
             zIndex: 44,
             boxShadow:
               phase === "closing"
-                ? "inset 0 0 140px -48px rgba(255,107,44,0.17), inset 0 0 48px -24px rgba(255,107,44,0.10)"
-                : "inset 0 0 140px -48px rgba(127,209,220,0.13), inset 0 0 48px -24px rgba(127,209,220,0.07)",
+                ? "inset 0 0 140px -48px rgba(255,107,44,0.14), inset 0 0 48px -24px rgba(255,107,44,0.08)"
+                : "inset 0 0 140px -48px rgba(127,209,220,0.10), inset 0 0 48px -24px rgba(127,209,220,0.05)",
             transition: "box-shadow 280ms var(--ease)",
-            animation: "cadFocusBreathe 6s var(--ease-in-out, ease-in-out) infinite",
           }}
         />
       ) : null}
@@ -260,45 +260,52 @@ export function FocusDock() {
         ) : null}
 
         {!running ? (
-          // The idle sliver: a whisper of presence on every page.
+          // The idle sliver: a whisper of presence on every page — but a REAL
+          // control (review fix, DESIGN-LOOM §0.1.1): a quiet pill with shape,
+          // fill, and border, its label in the sentence-case UI voice, so
+          // affordance survives even at minimum emphasis. The label fades in
+          // on hover/focus; the dotted thread stays the resting motif.
           <button
             type="button"
             aria-label="Start a focus block (Option F)"
             onClick={() => setComposerOpen((v) => !v)}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            onFocus={() => setHovered(true)}
+            onBlur={() => setHovered(false)}
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
             style={{
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: 4,
-              padding: "2px 10px 4px",
-              background: "transparent",
-              border: "none",
+              gap: 8,
+              padding: "5px 12px",
+              background: "var(--card)",
+              border: `1px solid ${hovered || composerOpen ? "var(--hairline-strong)" : "var(--hairline)"}`,
+              borderRadius: 999,
+              boxShadow: "var(--top-light)",
               cursor: "pointer",
+              transition: "border-color 200ms var(--ease)",
             }}
           >
             <span
               aria-hidden="true"
               style={{
-                ...mono,
-                fontSize: 9.5,
-                color: "var(--text-subtle)",
-                opacity: hovered || composerOpen ? 1 : 0,
-                transition: "opacity 200ms var(--ease)",
-              }}
-            >
-              Focus · ⌥F
-            </span>
-            <span
-              aria-hidden="true"
-              style={{
-                width: 36,
+                width: 24,
                 borderTop: `2px dotted ${hovered || composerOpen ? "var(--text-muted)" : "var(--text-faint)"}`,
                 transition: "border-color 200ms var(--ease)",
               }}
             />
+            <span
+              aria-hidden="true"
+              style={{
+                fontSize: 11,
+                color: hovered || composerOpen ? "var(--text-muted)" : "var(--text-faint)",
+                whiteSpace: "nowrap",
+                transition: "color 200ms var(--ease)",
+              }}
+            >
+              Focus · ⌥F
+            </span>
           </button>
         ) : (
           // The running pill at the same anchor.

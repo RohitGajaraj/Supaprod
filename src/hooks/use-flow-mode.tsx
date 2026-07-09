@@ -13,6 +13,7 @@ import * as soundscape from "@/lib/flow/soundscape";
 import {
   appendFocusHistory,
   endsAtFor,
+  safeLocalStorage,
   formatRemaining,
   isResumable,
   phaseOf,
@@ -132,6 +133,10 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
   // Latest values for the interval + completion path without resubscribing.
   const configRef = useRef(config);
   configRef.current = config;
+  // Mirrors endsAt for exitFlow's history clamp: a machine that slept through
+  // the deadline must not record the suspended hours as focused time.
+  const endsAtRef = useRef<number | null>(null);
+  endsAtRef.current = endsAt;
   const exitRef = useRef<(reason: "manual" | "completed") => void>(() => {});
   // Session shape the interval + exit paths need without re-subscribing:
   // intent/startedAt/plannedMin feed the history entry; cued gates the one
@@ -185,11 +190,19 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     writeSession(null);
 
     // The finished block lands in the local ledger (the Desk's daily tally).
+    // A completed block clamps its end to the deadline (review fix): waking a
+    // slept machine fires the completion tick hours late, and those suspended
+    // hours are not focused minutes.
     if (startedAtRef.current !== null) {
-      appendFocusHistory(typeof window === "undefined" ? null : window.localStorage, {
+      const now = Date.now();
+      const endedAt =
+        reason === "completed" && endsAtRef.current !== null
+          ? Math.min(now, endsAtRef.current)
+          : now;
+      appendFocusHistory(safeLocalStorage(), {
         intent: intentRef.current,
         startedAt: startedAtRef.current,
-        endedAt: Date.now(),
+        endedAt,
         plannedMin: plannedMinRef.current,
         completed: reason === "completed",
       });
