@@ -236,7 +236,17 @@ export function SwarmActivityLane({
                   </span>
                 </div>
                 {g.goal ? (
-                  <div style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 2 }}>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "var(--text-faint)",
+                      marginTop: 2,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
                     {g.goal}
                   </div>
                 ) : null}
