@@ -108,7 +108,6 @@ const PROVIDER_CATEGORY: Record<ProviderId, ConnectorCategory | null> = {
   salesforce: "crm",
   canny: "feedback",
   productboard: "feedback",
-  delighted: "feedback",
   slack: "chat",
   linear: "issues",
   jira: "issues",

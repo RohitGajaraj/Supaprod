@@ -13,7 +13,6 @@ import { hubspotAdapter } from "./hubspot.server";
 import { salesforceAdapter } from "./salesforce.server";
 import { cannyAdapter } from "./canny.server";
 import { productboardAdapter } from "./productboard.server";
-import { delightedAdapter } from "./delighted.server";
 import type { ConnectorAdapter } from "./types.server";
 
 const stubAdapter: ConnectorAdapter = {
@@ -30,7 +29,6 @@ export const CONNECTOR_ADAPTERS: Record<ProviderId, ConnectorAdapter> = {
   salesforce: salesforceAdapter,
   canny: cannyAdapter,
   productboard: productboardAdapter,
-  delighted: delightedAdapter,
   linear: stubAdapter,
   notion: stubAdapter,
   google_docs: stubAdapter,

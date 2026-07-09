@@ -29,10 +29,12 @@ describe("connector catalog — de-dup + coverage", () => {
     expect(categoryOf("firecrawl")).toBeNull();
   });
 
-  it("catalogEntryCount equals the number of user-facing providers (19)", () => {
-    // 19 = the 17 pre-suite providers + Gmail + Outlook Mail (native OAuth
-    // suite ingest, 2026-07-09). Keep this literal in step with the registry.
-    expect(catalogEntryCount()).toBe(19);
+  it("catalogEntryCount equals the number of user-facing providers (18)", () => {
+    // 18 = the 16 pre-suite providers + Gmail + Outlook Mail (native OAuth
+    // suite ingest, 2026-07-09), minus Delighted (removed 2026-07-09 - Qualtrics
+    // sunset the product and it never had third-party OAuth). Keep this literal
+    // in step with the registry.
+    expect(catalogEntryCount()).toBe(18);
     expect(catalogEntryCount()).toBe(allEntries().length);
   });
 });
@@ -56,7 +58,6 @@ describe("connector catalog — categorization", () => {
     expect(cat("salesforce")).toBe("crm");
     expect(cat("canny")).toBe("feedback");
     expect(cat("productboard")).toBe("feedback");
-    expect(cat("delighted")).toBe("feedback");
     expect(cat("slack")).toBe("chat");
   });
 

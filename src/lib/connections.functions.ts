@@ -353,6 +353,36 @@ export const verifyConnection = createServerFn({ method: "POST" })
   });
 
 /**
+ * Live-check an admin-managed env-fallback credential (HubSpot/Salesforce/Canny-style
+ * "Active" cards) - these have no `connections` row, so verifyConnection above can't reach
+ * them, and the "Active" badge itself only proves the env var is SET, not that it still
+ * authenticates (found 2026-07-09: Salesforce's env token had expired months ago while the
+ * UI kept showing the same unconditional "Active" pill as HubSpot's genuinely working one).
+ * Never persisted - there is no row to persist onto; each call re-checks live.
+ */
+export const verifyEnvCredential = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ provider: z.string() }).parse(i))
+  .handler(async ({ data }) => {
+    const checkedAt = new Date().toISOString();
+    const spec = CONNECTOR_REGISTRY[data.provider as ProviderId];
+    if (!spec?.envFallback) {
+      return { ok: false, detail: "This connector has no admin credential to verify.", checkedAt };
+    }
+    const token = process.env[spec.envFallback.tokenEnv];
+    if (!token) {
+      return { ok: false, detail: `${spec.envFallback.tokenEnv} is not set.`, checkedAt };
+    }
+    try {
+      const adapter = getProviderAdapter(data.provider as ProviderId);
+      const result = await adapter.validate({ kind: "env", token });
+      return { ok: result.ok, detail: result.detail ?? null, checkedAt };
+    } catch (e) {
+      return { ok: false, detail: e instanceof Error ? e.message : String(e), checkedAt };
+    }
+  });
+
+/**
  * Revoke the stored credential but keep the row (and its bindings, which render
  * as visibly-broken reconnectable chips). Secret rows are service-role only.
  */

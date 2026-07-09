@@ -17,6 +17,7 @@ import {
   startGithubAppConnect,
   startNativeOAuthConnect,
   verifyConnection,
+  verifyEnvCredential,
   disconnectConnection,
   deleteConnection,
   type ConnectionRow as AccountConnection,
@@ -47,9 +48,11 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 // hint on hover). Every card carries the real brand logo (ProviderLogo, inline
 // simple-icons marks in official brand color). GitHub uses the App install
 // redirect; native OAuth providers (the vast majority) redirect to their own
-// consent screen in a new tab, same mechanics (window.open + poll). Canny/
-// Delighted are the last two still on the (effectively dead) Lovable gateway
-// popup, pending their own OAuth support. The Google/Microsoft suite
+// consent screen in a new tab, same mechanics (window.open + poll). Canny is
+// the last one still on the (effectively dead) Lovable gateway popup,
+// pending its own OAuth support. Delighted was removed from the catalog
+// entirely (2026-07-09) - Qualtrics sunset the product 2026-07-01 and it
+// never had third-party OAuth to migrate to. The Google/Microsoft suite
 // (Calendar + Gmail/Outlook Mail) is multi-account, so it connects through
 // its own layer (startSuiteConnect / listMySuiteConnections /
 // disconnectSuiteConnection, user_calendar_connections) rather than the
@@ -865,6 +868,21 @@ export function ConnectorDetail({
   });
   const manageBusy = mDisconnect.isPending || mDelete.isPending || mSuiteDisconnect.isPending;
 
+  const fVerifyEnv = useServerFn(verifyEnvCredential);
+  const [envCheck, setEnvCheck] = useState<{
+    ok: boolean;
+    detail: string | null;
+    checkedAt: string;
+  } | null>(null);
+  const mVerifyEnv = useMutation({
+    mutationFn: () => fVerifyEnv({ data: { provider } }),
+    onSuccess: (r) => {
+      setEnvCheck(r);
+      if (!r.ok) toast.error(r.detail ?? "Verification failed.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const spec = CONNECTOR_REGISTRY[provider];
   const suiteSpec = SUITE_PROVIDERS[provider];
   const isSuite = suiteSpec !== undefined;
@@ -943,17 +961,46 @@ export function ConnectorDetail({
           kicker="Connector · active via admin credential"
           title={spec.label}
         />
-        <div
-          className="bento"
-          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
-        >
-          <StatusPill tone="muted" title="Reading through a workspace-level server credential">
-            Active
-          </StatusPill>
-          <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-subtle)" }}>
-            {spec.description} Already connected through an admin-managed server credential - there
-            is nothing for you to connect personally.
-          </span>
+        <div className="bento" style={{ padding: "var(--card-pad)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <StatusPill tone="muted" title="Reading through a workspace-level server credential">
+              Active
+            </StatusPill>
+            <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-subtle)" }}>
+              {spec.description} Already connected through an admin-managed server credential -
+              there is nothing for you to connect personally.
+            </span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => mVerifyEnv.mutate()}
+              disabled={mVerifyEnv.isPending}
+            >
+              {mVerifyEnv.isPending ? "Testing…" : "Test connection"}
+            </button>
+          </div>
+          {envCheck ? (
+            <div
+              style={{
+                marginTop: 12,
+                paddingTop: 12,
+                borderTop: "1px solid var(--hairline)",
+                fontSize: 12.5,
+                color: envCheck.ok ? "var(--moss-bright)" : "var(--madder)",
+              }}
+            >
+              {envCheck.ok
+                ? `Verified just now - the credential still authenticates.`
+                : `Verification failed - ${envCheck.detail ?? "unknown error"}. "Active" only means the secret is set; this one needs the admin to rotate it in Lovable Secrets.`}
+            </div>
+          ) : (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
+              <span style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>
+                "Active" only confirms the credential is set, not that it still works - press Test
+                connection to check right now.
+              </span>
+            </div>
+          )}
         </div>
       </div>
     );

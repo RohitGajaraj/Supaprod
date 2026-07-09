@@ -77,10 +77,10 @@ Microsoft products share ONE Entra app.
 - **Canny** - no `/oauth/authorize` or `/oauth/token` endpoint exists for
   third-party apps per Canny's own docs (confirmed 2026-07-09). Admin API key
   (`CANNY_API_KEY`) is the only path; nothing to register here.
-- **Delighted** - same (HTTP Basic with a static per-project API key, no
-  OAuth app-registration flow). Also note: Qualtrics sunset the entire
-  Delighted product on 2026-07-01 - this connector is likely permanently
-  dead, not just pending.
+
+Delighted was removed from the connector catalog entirely on 2026-07-09 -
+Qualtrics sunset the product on 2026-07-01 and it never had a third-party
+OAuth flow to migrate to, so there was nothing left to keep it for.
 
 ## Known caveats (real, not bugs, worth reading before testing)
 

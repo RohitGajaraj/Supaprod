@@ -33,8 +33,7 @@ export type ProviderId =
   | "hubspot"
   | "salesforce"
   | "canny"
-  | "productboard"
-  | "delighted";
+  | "productboard";
 
 export type AuthMethod =
   | { kind: "github_app"; appSlugEnv: "GITHUB_APP_SLUG"; requiredEnv: string[] }
@@ -340,26 +339,6 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     envFallback: { tokenEnv: "PRODUCTBOARD_API_TOKEN" },
     setupHint:
       "Register a Productboard OAuth app: Client ID/Secret go in PRODUCTBOARD_CLIENT_ID/PRODUCTBOARD_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
-  },
-  // No standard third-party OAuth exists for Delighted (auth is HTTP Basic with a
-  // single static per-project API key, no OAuth app-registration flow documented);
-  // also note Qualtrics sunset and shut down the entire Delighted product on
-  // 2026-07-01. Stays admin-token-only until Delighted ships one, if ever.
-  delighted: {
-    id: "delighted",
-    label: "Delighted",
-    description: "Pull NPS / CSAT survey responses as customer-voice signals.",
-    authMethods: [
-      {
-        kind: "oauth_gateway",
-        connectorId: "delighted",
-        clientIdEnv: "DELIGHTED_APP_USER_CONNECTOR_CLIENT_ID",
-      },
-    ],
-    resourceTypes: [],
-    capabilities: { inflow: true, outflow: false, sync: false },
-    envFallback: { tokenEnv: "DELIGHTED_API_KEY" },
-    setupHint: "Copy your API key from Delighted (Settings → API).",
   },
   linear: {
     id: "linear",
