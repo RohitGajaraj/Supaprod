@@ -27,13 +27,9 @@ import { kickFirstIngest } from "@/lib/onboarding/first-ingest.server";
  *      so instead of storing it in plaintext metadata it is packed alongside
  *      the access token into one JSON string and encrypted as a single
  *      connection_secrets row, the same single-ciphertext shape Slack uses
- *      for its bare access token.
- *      Caveat: resolve.server.ts's materializeAuth currently treats a
- *      "token" auth_kind row as a bare decrypted string. A future caller
- *      that needs the figma refresh_token will require materializeAuth to
- *      JSON.parse that string for the figma provider before the
- *      refresh_token is actually usable; that change is intentionally not
- *      made here.
+ *      for its bare access token. resolve.server.ts's materializeAuth
+ *      unwraps this shape and proactively refreshes using token_expires_at
+ *      (below) before the 90-day lifetime runs out.
  */
 
 const FIGMA_TOKEN_URL = "https://api.figma.com/v1/oauth/token";
@@ -128,7 +124,7 @@ export const Route = createFileRoute("/api/public/connect/figma/callback")({
 
           // Pack access_token + refresh_token into one JSON string before
           // encrypting, since the refresh_token is itself sensitive (see the
-          // file-header caveat about resolve.server.ts's materializeAuth).
+          // file-header note about resolve.server.ts's materializeAuth).
           const secretPlaintext = JSON.stringify({
             access_token: body.access_token,
             refresh_token: body.refresh_token ?? null,
@@ -151,12 +147,18 @@ export const Route = createFileRoute("/api/public/connect/figma/callback")({
           const accountLabel = me.handle ?? me.email ?? null;
           const accountEmail = me.email ?? null;
           const now = new Date().toISOString();
-          // Non-sensitive token bookkeeping for a future refresh scheduler
-          // (access_token expires after 90 days per Figma's docs).
+          // Non-sensitive token bookkeeping (access_token expires after 90
+          // days per Figma's docs). token_expires_at is what resolve.server.ts's
+          // proactive refresh reads.
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
           const metadata = {
             token_type: body.token_type ?? "bearer",
             expires_in: body.expires_in ?? null,
             obtained_at: now,
+            token_expires_at: tokenExpiresAt,
           };
 
           const { data: existing, error: existingError } = await admin

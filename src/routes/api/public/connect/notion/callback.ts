@@ -99,14 +99,12 @@ export const Route = createFileRoute("/api/public/connect/notion/callback")({
           // token itself it is a long-lived credential, so when present it is
           // vaulted alongside the access token in the SAME encrypted secret
           // (JSON-stringified), not left in the plaintext metadata column.
-          // Caveat: resolve.server.ts's materializeAuth today decrypts a
-          // "token" auth_kind row as one raw string and hands it back as-is
-          // ({kind:"token", token}), so a caller resolving this connection
-          // would currently receive this raw JSON string as the token, not
-          // the bare access_token, until materializeAuth gets a follow-up
-          // change to detect and JSON.parse this shape. Left as-is here per
-          // scope: this file only writes the vault, it does not change how
-          // other call sites read it.
+          // resolve.server.ts's materializeAuth correctly unwraps this shape
+          // either way, but registry.ts sets supportsRefresh: false for
+          // Notion (the refresh grant is optional and frequently absent in
+          // practice), so it won't proactively refresh this one even when a
+          // refresh_token is present; the data is captured and ready if that
+          // is ever flipped on.
           const hasRefreshToken =
             typeof body.refresh_token === "string" && body.refresh_token.length > 0;
           const secretPlaintext = hasRefreshToken

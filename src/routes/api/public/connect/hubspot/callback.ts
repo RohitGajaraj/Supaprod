@@ -95,12 +95,10 @@ export const Route = createFileRoute("/api/public/connect/hubspot/callback")({
           // right, so when one is present it must be encrypted alongside the
           // access token rather than left in plaintext metadata. It is stored
           // as a single JSON-stringified plaintext ({access_token,
-          // refresh_token}) inside the same vault secret. NOTE: resolve.server.ts's
-          // materializeAuth today decrypts a "token" auth_kind row as a single
-          // plaintext string; it will need a follow-up change to JSON.parse
-          // this blob before the refresh_token is actually usable by a
-          // HubSpot refresh flow (access_token expires in 30 minutes per
-          // expires_in).
+          // refresh_token}) inside the same vault secret. resolve.server.ts's
+          // materializeAuth unwraps this shape and proactively refreshes
+          // using token_expires_at (below) before the 30-minute access token
+          // lifetime runs out, per registry.ts's supportsRefresh flag.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;
@@ -120,7 +118,17 @@ export const Route = createFileRoute("/api/public/connect/hubspot/callback")({
             throw new Error(secretError?.message ?? "vault insert failed");
 
           const now = new Date().toISOString();
-          const metadata = { hub_domain: hubDomain, hub_id: hubId };
+          // Access tokens expire in 30 minutes per expires_in; stamped here
+          // so resolve.server.ts's proactive refresh knows when to renew.
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
+          const metadata = {
+            hub_domain: hubDomain,
+            hub_id: hubId,
+            token_expires_at: tokenExpiresAt,
+          };
 
           const { data: existing, error: existingError } = await admin
             .from("connections")

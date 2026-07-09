@@ -100,10 +100,9 @@ export const Route = createFileRoute("/api/public/connect/jira/callback")({
           // when one is present it must be encrypted alongside the access token
           // rather than left in plaintext metadata. It is stored as a single
           // JSON-stringified plaintext ({access_token, refresh_token}) inside the
-          // same vault secret. NOTE: resolve.server.ts's materializeAuth today
-          // decrypts a "token" auth_kind row as a single plaintext string; it
-          // will need a follow-up change to JSON.parse this blob before the
-          // refresh_token is actually usable by a Jira adapter/refresh flow.
+          // same vault secret. resolve.server.ts's materializeAuth unwraps this
+          // shape and proactively refreshes using token_expires_at (below)
+          // before the access token's short lifetime runs out.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;
@@ -124,7 +123,16 @@ export const Route = createFileRoute("/api/public/connect/jira/callback")({
 
           const scopes = body.scope ? body.scope.split(" ") : [];
           const now = new Date().toISOString();
-          const metadata = { cloud_id: cloudId, site_name: siteName, site_url: siteUrl };
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
+          const metadata = {
+            cloud_id: cloudId,
+            site_name: siteName,
+            site_url: siteUrl,
+            token_expires_at: tokenExpiresAt,
+          };
 
           const { data: existing, error: existingError } = await admin
             .from("connections")

@@ -101,10 +101,10 @@ export const Route = createFileRoute("/api/public/connect/zendesk/callback")({
           // and must be encrypted alongside the access token rather than left
           // in plaintext metadata. Stored as a single JSON-stringified
           // plaintext ({access_token, refresh_token}) inside the same vault
-          // secret. NOTE: resolve.server.ts's materializeAuth today decrypts a
-          // "token" auth_kind row as a single plaintext string, it will need a
-          // follow-up change to JSON.parse this blob before the refresh_token
-          // is actually usable by a Zendesk refresh flow.
+          // secret. resolve.server.ts's materializeAuth unwraps this shape and
+          // proactively refreshes using token_expires_at (below), persisting
+          // whichever new refresh_token comes back since Zendesk rotates it
+          // on every use.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;
@@ -146,7 +146,11 @@ export const Route = createFileRoute("/api/public/connect/zendesk/callback")({
 
           const scopes = body.scope ? body.scope.split(" ") : [];
           const now = new Date().toISOString();
-          const metadata = { subdomain };
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
+          const metadata = { subdomain, token_expires_at: tokenExpiresAt };
 
           const { data: existing, error: existingError } = await admin
             .from("connections")

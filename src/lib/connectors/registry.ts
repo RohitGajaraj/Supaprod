@@ -74,6 +74,22 @@ export type AuthMethod =
        * one). Until a real per-connection subdomain-capture UI exists, this
        * is a single shared value, same limitation as the envFallback path. */
       subdomainEnv?: string;
+      /** How the token exchange (and refresh) authenticates the client:
+       * "body" puts client_id/client_secret in the POST body (most
+       * providers); "basic_header" sends them as an HTTP Basic Authorization
+       * header instead (Notion, Figma). Defaults to "body". */
+      tokenAuthMethod?: "body" | "basic_header";
+      /** Request body encoding for the token/refresh POST. "form"
+       * (application/x-www-form-urlencoded) is the default and what most
+       * providers want; Jira and Notion take a JSON body instead. */
+      tokenBodyFormat?: "form" | "json";
+      /** True when this provider's refresh_token grant is supported and
+       * worth wiring up (resolve.server.ts refreshes proactively before
+       * expiry). False/omitted for providers whose token doesn't meaningfully
+       * expire in normal use (Slack, Intercom) or whose refresh_token only
+       * appears in a rare/dev-only mode (Stripe: test-mode connections only,
+       * Notion: refresh is optional and frequently absent in practice). */
+      supportsRefresh?: boolean;
     }
   // Retained for type compatibility only (legacy rows / UI narrowing during
   // teardown). POLICY: no registry entry may use api_key — OAuth-only.
@@ -165,6 +181,10 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         tokenUrl: "https://connect.stripe.com/oauth/token",
         scopes: ["read_write"],
         extraAuthorizeParams: { response_type: "code" },
+        // Stripe only issues a refresh_token for test-mode connections; live
+        // connections don't expire on a schedule the way the others here do,
+        // so proactive refresh isn't worth wiring up for the common case.
+        supportsRefresh: false,
       },
     ],
     resourceTypes: [],
@@ -224,6 +244,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         // subdomain before the redirect, so this is a single, shared value
         // (same interim limitation the envFallback path already has).
         subdomainEnv: "ZENDESK_SUBDOMAIN",
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -245,6 +266,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         tokenUrl: "https://api.hubapi.com/oauth/v1/token",
         scopes: ["crm.objects.deals.read", "crm.objects.deals.write"],
         extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -266,6 +288,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         tokenUrl: "https://login.salesforce.com/services/oauth2/token",
         scopes: ["api", "refresh_token"],
         extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -307,6 +330,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         tokenUrl: "https://app.productboard.com/oauth2/token",
         scopes: ["notes:read"],
         extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -349,6 +373,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         scopes: ["read", "write"],
         scopeSeparator: ",",
         extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [{ kind: "team", label: "Team" }],
@@ -374,6 +399,14 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         // Developer Portal, applying to every user who connects.
         scopes: [],
         extraAuthorizeParams: { response_type: "code", owner: "user" },
+        tokenAuthMethod: "basic_header",
+        tokenBodyFormat: "json",
+        // Notion's refresh_token is optional and frequently absent in
+        // practice (only present when the integration's Developer Portal
+        // settings enabled the refresh grant), so proactive refresh isn't
+        // wired up for it; the data is still captured if Notion does return
+        // one, ready to flip this on later.
+        supportsRefresh: false,
       },
     ],
     resourceTypes: [{ kind: "database", label: "Database" }],
@@ -401,6 +434,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         // access_type=offline + prompt=consent are required for Google to
         // actually hand back a refresh_token (otherwise it never does).
         extraAuthorizeParams: { response_type: "code", access_type: "offline", prompt: "consent" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -460,6 +494,8 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
           "file_comments:write",
         ],
         extraAuthorizeParams: { response_type: "code" },
+        tokenAuthMethod: "basic_header",
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],
@@ -487,6 +523,8 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
           audience: "api.atlassian.com",
           prompt: "consent",
         },
+        tokenBodyFormat: "json",
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [],

@@ -155,11 +155,14 @@ export const Route = createFileRoute("/api/public/connect/stripe/callback")({
           // alongside the access token into one JSON string and encrypted as
           // a single connection_secrets row, the same shape
           // connect/jira/callback.ts and connect/figma/callback.ts use.
-          // NOTE: resolve.server.ts's materializeAuth today decrypts a
-          // "token" auth_kind row as a bare plaintext string; it would need a
-          // follow-up change to JSON.parse this blob before either the
-          // refresh_token or a Stripe-Account-header-aware call could
-          // actually use these fields. Not made here.
+          // resolve.server.ts's materializeAuth unwraps this shape correctly
+          // either way, but registry.ts sets supportsRefresh: false for
+          // Stripe (see file header note 3), so it never proactively
+          // refreshes this one. The Stripe-Account-header calling convention
+          // (file header note 2) is a separate, still-open gap: even a fresh
+          // access_token from materializeAuth isn't how a Stripe adapter
+          // should authenticate a real API call on behalf of this
+          // connection.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;

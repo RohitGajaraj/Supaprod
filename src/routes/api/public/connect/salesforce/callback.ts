@@ -126,11 +126,10 @@ export const Route = createFileRoute("/api/public/connect/salesforce/callback")(
           // is present it must be encrypted alongside the access token rather
           // than left in plaintext metadata. It is stored as a single
           // JSON-stringified plaintext ({access_token, refresh_token}) inside
-          // the same vault secret. NOTE: resolve.server.ts's materializeAuth
-          // today decrypts a "token" auth_kind row as a single plaintext
-          // string; it will need a follow-up change to JSON.parse this blob
-          // before the refresh_token is actually usable by a Salesforce
-          // adapter/refresh flow.
+          // the same vault secret. resolve.server.ts's materializeAuth
+          // unwraps this shape and proactively refreshes using
+          // token_expires_at (below, a conservative heuristic since
+          // Salesforce has no expires_in field of its own).
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;
@@ -156,7 +155,19 @@ export const Route = createFileRoute("/api/public/connect/salesforce/callback")(
           // real domain), never against login.salesforce.com. organization_id
           // rides along for reference even though it is also the
           // external_handle below.
-          const metadata = { instance_url: body.instance_url, organization_id: organizationId };
+          //
+          // Salesforce's token response has no expires_in: session lifetime
+          // is an org-configurable policy, not a fixed grant duration. 90
+          // minutes is a conservative floor under the common defaults (org
+          // session timeout is rarely set below 2 hours), so resolve.server.ts's
+          // proactive refresh renews before a real session timeout hits
+          // rather than treating every resolution as needing a refresh.
+          const tokenExpiresAt = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+          const metadata = {
+            instance_url: body.instance_url,
+            organization_id: organizationId,
+            token_expires_at: tokenExpiresAt,
+          };
 
           const { data: existing, error: existingError } = await admin
             .from("connections")

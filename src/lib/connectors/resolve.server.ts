@@ -11,8 +11,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { CONNECTOR_REGISTRY, type ProviderId } from "./registry";
-import { decryptSecret } from "./crypto.server";
+import { decryptSecret, encryptSecret } from "./crypto.server";
 import { mintInstallationToken } from "./providers/github.server";
+import { providerSupportsRefresh, refreshNativeOAuthToken } from "./oauth-refresh.server";
 import {
   assertConnectorCapability,
   normalizePlanTier,
@@ -59,6 +60,7 @@ type ConnectionRow = {
   external_handle: string | null;
   secret_id: string | null;
   status: string;
+  metadata?: Record<string, unknown> | null;
 };
 
 type BindingRow = {
@@ -133,12 +135,86 @@ export async function materializeAuth(
     .eq("id", row.secret_id)
     .maybeSingle();
   if (error || !secret) return null;
-  const token = await decryptSecret({
+  const plaintext = await decryptSecret({
     ciphertext: secret.ciphertext as string,
     iv: secret.iv as string,
     keyVersion: (secret.key_version as number | null) ?? 1,
   });
-  return { kind: "token", token, ownerUserId: row.user_id, connectionRowId: row.id };
+
+  // Providers whose OAuth grant includes a refresh_token vault it alongside
+  // the access token as a JSON blob ({access_token, refresh_token}) rather
+  // than a bare string, see each provider's connect callback. Unwrap that
+  // shape here so every call site keeps getting a plain bearer token back,
+  // never a raw JSON string.
+  let accessToken = plaintext;
+  let refreshToken: string | null = null;
+  if (plaintext.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(plaintext) as { access_token?: string; refresh_token?: string };
+      if (parsed.access_token) {
+        accessToken = parsed.access_token;
+        refreshToken = parsed.refresh_token ?? null;
+      }
+    } catch {
+      // Not actually JSON: treat the raw plaintext as the bearer token.
+    }
+  }
+
+  // Proactive refresh: if this provider issues a refresh_token and supports
+  // the refresh grant (registry.ts supportsRefresh), and the scheduled expiry
+  // has passed or is within a 5-minute safety buffer, refresh now rather than
+  // handing back a token about to stop working. Best-effort: a failed
+  // refresh falls back to the existing access token, same as an unrefreshed
+  // token failure has always surfaced downstream, this never blocks
+  // resolution.
+  if (refreshToken && providerSupportsRefresh(provider as ProviderId)) {
+    const expiresAtRaw = row.metadata?.token_expires_at;
+    const expiresAtMs = typeof expiresAtRaw === "string" ? new Date(expiresAtRaw).getTime() : NaN;
+    const needsRefresh = !Number.isFinite(expiresAtMs) || expiresAtMs - Date.now() < 5 * 60 * 1000;
+    if (needsRefresh) {
+      const refreshed = await refreshNativeOAuthToken(provider as ProviderId, refreshToken);
+      if (refreshed) {
+        accessToken = refreshed.accessToken;
+        const nextRefreshToken = refreshed.refreshToken ?? refreshToken;
+        const nextPlaintext = JSON.stringify({
+          access_token: accessToken,
+          refresh_token: nextRefreshToken,
+        });
+        try {
+          const encrypted = await encryptSecret(nextPlaintext);
+          const now = new Date().toISOString();
+          await admin()
+            .from("connection_secrets")
+            .update({
+              ciphertext: encrypted.ciphertext,
+              iv: encrypted.iv,
+              key_version: encrypted.keyVersion,
+            })
+            .eq("id", row.secret_id);
+          await admin()
+            .from("connections")
+            .update({
+              metadata: {
+                ...(row.metadata ?? {}),
+                token_expires_at:
+                  refreshed.expiresInSeconds != null
+                    ? new Date(Date.now() + refreshed.expiresInSeconds * 1000).toISOString()
+                    : null,
+              },
+              last_verified_at: now,
+              updated_at: now,
+            })
+            .eq("id", row.id);
+        } catch (e) {
+          console.warn(`[connectors] ${provider} refresh succeeded but vault write failed:`, e);
+        }
+      }
+      // else: refresh failed, fall through with the existing (possibly
+      // stale) access token; downstream callers surface the real failure.
+    }
+  }
+
+  return { kind: "token", token: accessToken, ownerUserId: row.user_id, connectionRowId: row.id };
 }
 
 export async function resolveProviderAuth(args: {
@@ -203,7 +279,7 @@ export async function resolveProviderAuth(args: {
       if (binding) {
         const { data: conn } = await admin()
           .from("connections")
-          .select("id,user_id,provider,auth_kind,external_handle,secret_id,status")
+          .select("id,user_id,provider,auth_kind,external_handle,secret_id,status,metadata")
           .eq("id", binding.connection_id)
           .maybeSingle();
         if (conn && (conn as ConnectionRow).status === "connected") {
@@ -264,7 +340,7 @@ export async function resolveProviderAuth(args: {
       if (binding) {
         const { data: conn } = await admin()
           .from("connections")
-          .select("id,user_id,provider,auth_kind,external_handle,secret_id,status")
+          .select("id,user_id,provider,auth_kind,external_handle,secret_id,status,metadata")
           .eq("id", binding.connection_id)
           .maybeSingle();
         if (conn && (conn as ConnectionRow).status === "connected") {
@@ -315,7 +391,7 @@ export async function resolveProviderAuth(args: {
     try {
       let q = userClient
         .from("connections")
-        .select("id,user_id,provider,auth_kind,external_handle,secret_id,status")
+        .select("id,user_id,provider,auth_kind,external_handle,secret_id,status,metadata")
         .eq("provider", provider)
         .eq("status", "connected");
       if (userId) q = q.eq("user_id", userId);

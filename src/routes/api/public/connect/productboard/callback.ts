@@ -100,13 +100,10 @@ export const Route = createFileRoute("/api/public/connect/productboard/callback"
           // Productboard's refresh_token is a long-lived credential in its
           // own right (about 180 days), so when one is present it is
           // encrypted alongside the access token rather than left in
-          // plaintext metadata, same as connect/hubspot/callback.ts. NOTE:
-          // resolve.server.ts's materializeAuth today decrypts a "token"
-          // auth_kind row as a single plaintext string, so it will need a
-          // follow-up change to JSON.parse this blob before the refresh_token
-          // is actually usable by a refresh job. Access tokens are short-
-          // lived (about 24h) and refreshed tokens reportedly expire about 60
-          // minutes after use, so that follow-up is not optional long term.
+          // plaintext metadata, same as connect/hubspot/callback.ts.
+          // resolve.server.ts's materializeAuth unwraps this shape and
+          // proactively refreshes using token_expires_at (below) before the
+          // short access token lifetime (about 24h) runs out.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;
@@ -128,13 +125,18 @@ export const Route = createFileRoute("/api/public/connect/productboard/callback"
           const now = new Date().toISOString();
           // Token lifetimes are unusually short for Productboard, so the
           // expiry bookkeeping fields are kept in plain metadata (not
-          // independently sensitive on their own) for a future refresh job
-          // to read; the refresh_token itself lives only in the encrypted
-          // blob above.
+          // independently sensitive on their own) for resolve.server.ts's
+          // proactive refresh to read; the refresh_token itself lives only
+          // in the encrypted blob above.
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
           const metadata = {
             expires_in: body.expires_in ?? null,
             refresh_token_expires_in: body.refresh_token_expires_in ?? null,
             token_created_at: body.created_at ?? null,
+            token_expires_at: tokenExpiresAt,
           };
 
           const { data: existing, error: existingError } = await admin

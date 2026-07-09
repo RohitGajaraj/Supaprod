@@ -124,14 +124,12 @@ export const Route = createFileRoute("/api/public/connect/linear/callback")({
           // grant_type=refresh_token against the same token endpoint, and Linear
           // rotates the refresh_token on every use (the previous one is
           // invalidated immediately), so the newest refresh_token must always be
-          // the one persisted. NOTE: when a refresh_token is present, the vaulted
-          // secret below is a JSON blob {access_token, refresh_token} rather than
-          // a bare string. resolve.server.ts's materializeAuth for auth_kind
-          // 'token' today decrypts and returns the ciphertext AS the bearer token
-          // directly (no JSON.parse), so any call site resolving this connection
-          // would get this raw JSON string as the token until materializeAuth is
-          // taught to detect and parse this shape. That follow-up change is out
-          // of scope here; this comment documents the caveat so it is not missed.
+          // the one persisted. When a refresh_token is present, the vaulted
+          // secret below is a JSON blob {access_token, refresh_token} rather
+          // than a bare string; resolve.server.ts's materializeAuth unwraps
+          // this shape and proactively refreshes using token_expires_at
+          // (below), persisting whichever new refresh_token comes back since
+          // Linear invalidates the previous one on every use.
           const secretPlaintext = body.refresh_token
             ? JSON.stringify({ access_token: body.access_token, refresh_token: body.refresh_token })
             : body.access_token;

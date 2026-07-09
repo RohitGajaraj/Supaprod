@@ -130,11 +130,9 @@ export const Route = createFileRoute("/api/public/connect/google_docs/callback")
 
           // refresh_token is a long-lived credential, so when present it must
           // be encrypted alongside the access token rather than left in
-          // plaintext metadata. resolve.server.ts's materializeAuth today
-          // only decrypts auth_kind "token" rows as a single plaintext
-          // string, so storing this JSON blob is a one-way trip until that
-          // function also learns to JSON.parse it. Left as a caveat rather
-          // than editing resolve.server.ts, which is out of scope here.
+          // plaintext metadata. resolve.server.ts's materializeAuth unwraps
+          // this shape and proactively refreshes using token_expires_at
+          // (below) before the 1-hour access token lifetime runs out.
           const hasRefreshToken =
             typeof body.refresh_token === "string" && body.refresh_token.length > 0;
           const secretPlaintext = hasRefreshToken
@@ -157,8 +155,13 @@ export const Route = createFileRoute("/api/public/connect/google_docs/callback")
 
           const scopes = body.scope ? body.scope.split(" ") : [];
           const now = new Date().toISOString();
+          const tokenExpiresAt =
+            typeof body.expires_in === "number"
+              ? new Date(Date.now() + body.expires_in * 1000).toISOString()
+              : null;
           const metadata = {
             secret_format: hasRefreshToken ? "json_access_refresh" : "plain_access_token",
+            token_expires_at: tokenExpiresAt,
           };
 
           const { data: existing, error: existingError } = await admin
