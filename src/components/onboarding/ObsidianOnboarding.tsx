@@ -18,12 +18,9 @@ import {
   saveGatewayConnection,
   startGatewayConnect,
   startGithubAppConnect,
+  startNativeOAuthConnect,
 } from "@/lib/connections.functions";
-import {
-  listMyCalendarConnections,
-  saveCalendarConnection,
-  startCalendarConnect,
-} from "@/lib/calendar-connections.functions";
+import { listMySuiteConnections, startSuiteConnect } from "@/lib/calendar-connections.functions";
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import {
@@ -39,9 +36,15 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalButterfly } from "@/components/onboarding/ArrivalButterfly";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
-const CALENDAR_PROVIDERS: Partial<Record<ProviderId, "google" | "microsoft">> = {
-  google_calendar: "google",
-  microsoft_outlook: "microsoft",
+// SW-7: multi-account suite providers (Calendar + Gmail/Outlook Mail), same
+// mapping AccountConnectionsSection.tsx uses for its own settings-page grid.
+const SUITE_PROVIDERS: Partial<
+  Record<ProviderId, { provider: "google" | "microsoft"; product: "calendar" | "mail" }>
+> = {
+  google_calendar: { provider: "google", product: "calendar" },
+  gmail: { provider: "google", product: "mail" },
+  microsoft_outlook: { provider: "microsoft", product: "calendar" },
+  microsoft_mail: { provider: "microsoft", product: "mail" },
 };
 const TRACKS: OnboardingTrack[] = ["solo", "founding", "tech"];
 export const FALLBACK_BELIEF = "Mobile capture is our biggest gap";
@@ -230,9 +233,9 @@ export function ObsidianOnboarding() {
   const fStartGithub = useServerFn(startGithubAppConnect);
   const fStartGateway = useServerFn(startGatewayConnect);
   const fSaveGateway = useServerFn(saveGatewayConnection);
-  const fCalList = useServerFn(listMyCalendarConnections);
-  const fCalStart = useServerFn(startCalendarConnect);
-  const fCalSave = useServerFn(saveCalendarConnection);
+  const fSuiteList = useServerFn(listMySuiteConnections);
+  const fStartSuite = useServerFn(startSuiteConnect);
+  const fStartNative = useServerFn(startNativeOAuthConnect);
   const fSeedEnabled = useServerFn(isDemoSeedEnabled);
   const fTriggerSeed = useServerFn(triggerWorkspaceSeed);
   const fListOpportunities = useServerFn(listOpportunities);
@@ -242,9 +245,9 @@ export function ObsidianOnboarding() {
     queryFn: () => fListConnections(),
     enabled: phase === "connect",
   });
-  const calendarsQ = useQuery({
+  const suiteQ = useQuery({
     queryKey: ["calendar-connections"],
-    queryFn: () => fCalList(),
+    queryFn: () => fSuiteList(),
     enabled: phase === "connect",
   });
   const seedEnabledQ = useQuery({
@@ -255,8 +258,12 @@ export function ObsidianOnboarding() {
 
   const providers = Object.values(CONNECTOR_REGISTRY).filter((s) => s.userFacing !== false);
   function isConnected(spec: ProviderSpec): boolean {
-    const cal = CALENDAR_PROVIDERS[spec.id];
-    if (cal) return (calendarsQ.data?.connections ?? []).some((c) => c.provider === cal);
+    const suiteSpec = SUITE_PROVIDERS[spec.id];
+    if (suiteSpec) {
+      return (suiteQ.data?.connections ?? []).some(
+        (c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product,
+      );
+    }
     return (connectionsQ.data?.connections ?? []).some(
       (c) => c.provider === spec.id && c.status === "connected",
     );
@@ -287,23 +294,28 @@ export function ObsidianOnboarding() {
   const [connectError, setConnectError] = useState<string | null>(null);
   const mConnect = useMutation({
     mutationFn: async (spec: ProviderSpec) => {
-      const cal = CALENDAR_PROVIDERS[spec.id];
-      if (cal) {
-        const result = await connectAppUser({
-          connectorId: spec.id,
-          gatewayBaseUrl: GATEWAY_BASE_URL,
-          start: (targetOrigin) => fCalStart({ data: { provider: cal, targetOrigin } }),
+      // SW-6/SW-7: every full-page-redirect flow here rides returnTo:
+      // "onboarding" in the signed state, so its callback sends the user
+      // back here (?connected=<id>) instead of stranding them on a
+      // close-tab page meant for the Settings page's new-tab+poll flow.
+      const suiteSpec = SUITE_PROVIDERS[spec.id];
+      if (suiteSpec) {
+        const { authorizeUrl } = await fStartSuite({
+          data: { ...suiteSpec, returnTo: "onboarding" },
         });
-        if (!result.success || !result.connectionId)
-          throw new Error(result.error ?? "Connect failed");
-        return fCalSave({ data: { provider: cal, connectionId: result.connectionId } });
+        window.location.assign(authorizeUrl);
+        return null;
       }
       if (spec.id === "github") {
-        // SW-6: returnTo rides in the signed state so the install callback
-        // sends the user back here (?connected=github) instead of stranding
-        // them on a close-tab page after this full-page redirect.
         const { installUrl } = await fStartGithub({ data: { returnTo: "onboarding" } });
         window.location.assign(installUrl);
+        return null;
+      }
+      if (spec.authMethods.some((m) => m.kind === "oauth_native")) {
+        const { authorizeUrl } = await fStartNative({
+          data: { provider: spec.id, returnTo: "onboarding" },
+        });
+        window.location.assign(authorizeUrl);
         return null;
       }
       const method = spec.authMethods.find((m) => m.kind === "oauth_gateway");
@@ -403,17 +415,20 @@ export function ObsidianOnboarding() {
   const fSeedTrack = useServerFn(seedWorkspaceForTrack);
   const [pendingTrack, setPendingTrack] = useState<OnboardingTrack | null>(null);
 
-  // SW-6: returning from the GitHub App install (full-page redirect), the
-  // callback lands on /onboarding?connected=github. Resume at the critic step
-  // with the freshly seeded opportunity instead of restarting at arrival.
+  // SW-6/SW-7: returning from any full-page-redirect connect (GitHub App
+  // install, or any native-OAuth/suite provider), the callback lands on
+  // /onboarding?connected=<id>. Resume at the critic step with the freshly
+  // seeded opportunity instead of restarting at arrival. Generalized beyond
+  // "github" once every other connector also got a real OAuth redirect.
   const resumedRef = useRef(false);
   useEffect(() => {
     if (resumedRef.current) return;
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("connected") === "github") {
+    if (params.get("connected")) {
       resumedRef.current = true;
       qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["calendar-connections"] });
       void afterConnected();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

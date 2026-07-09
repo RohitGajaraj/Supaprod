@@ -29,12 +29,10 @@ import {
   type WorkBlock,
 } from "@/lib/calendar.functions";
 import {
-  listMyCalendarConnections,
-  startCalendarConnect,
-  saveCalendarConnection,
-  disconnectCalendar,
+  listMySuiteConnections,
+  startSuiteConnect,
+  disconnectSuiteConnection,
 } from "@/lib/calendar-connections.functions";
-import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { listMeetings } from "@/lib/meetings.functions";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { MeetingDetailBody } from "@/components/cadence/MeetingDetailBody";
@@ -115,10 +113,9 @@ export function CalendarPanel({
   const fCreate = useServerFn(createCalendarEvent);
   const fPropose = useServerFn(proposeSlots);
   const fMeetings = useServerFn(listMeetings);
-  const fListConns = useServerFn(listMyCalendarConnections);
-  const fStartConnect = useServerFn(startCalendarConnect);
-  const fSaveConn = useServerFn(saveCalendarConnection);
-  const fDisconnect = useServerFn(disconnectCalendar);
+  const fListConns = useServerFn(listMySuiteConnections);
+  const fStartConnect = useServerFn(startSuiteConnect);
+  const fDisconnect = useServerFn(disconnectSuiteConnection);
   const fUpdate = useServerFn(updateCalendarEvent);
   const fDelete = useServerFn(deleteCalendarEvent);
   const fPlan = useServerFn(proposeWorkBlocks);
@@ -208,20 +205,19 @@ export function CalendarPanel({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // SW-7: native OAuth, new-tab + poll (Google/Microsoft's own consent
+  // screen), matching every other connector - no separate "save" step, the
+  // callback route writes the connection directly.
   const mConnect = useMutation({
-    mutationFn: async (provider: "google" | "microsoft") => {
-      const result = await connectAppUser({
-        connectorId: provider === "google" ? "google_calendar" : "microsoft_outlook",
-        gatewayBaseUrl: "https://connector-gateway.lovable.dev",
-        start: (targetOrigin) => fStartConnect({ data: { provider, targetOrigin } }),
-      });
-      if (!result.success || !result.connectionId)
-        throw new Error(result.error ?? "Connect failed");
-      return fSaveConn({ data: { provider, connectionId: result.connectionId } });
-    },
-    onSuccess: () => {
-      toast.success("Calendar connected");
-      qc.invalidateQueries({ queryKey: ["calendar-connections"] });
+    mutationFn: (provider: "google" | "microsoft") =>
+      fStartConnect({ data: { provider, product: "calendar" } }),
+    onSuccess: ({ authorizeUrl }) => {
+      window.open(authorizeUrl, "_blank", "noopener");
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const iv = setInterval(() => {
+        qc.invalidateQueries({ queryKey: ["calendar-connections"] });
+        if (Date.now() > deadline) clearInterval(iv);
+      }, 3_000);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -388,8 +384,13 @@ export function CalendarPanel({
         <ConnectButton
           open={connectOpen}
           setOpen={setConnectOpen}
-          connections={connections.data?.connections ?? []}
-          available={connections.data?.providersAvailable ?? { google: false, microsoft: false }}
+          connections={(connections.data?.connections ?? []).filter(
+            (c) => c.product === "calendar",
+          )}
+          available={{
+            google: connections.data?.providersAvailable.google_calendar ?? false,
+            microsoft: connections.data?.providersAvailable.microsoft_outlook ?? false,
+          }}
           onConnect={(p) => mConnect.mutate(p)}
           onDisconnect={async (id) => {
             const ok = await confirm({

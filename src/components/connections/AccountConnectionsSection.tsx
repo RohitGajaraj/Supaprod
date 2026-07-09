@@ -23,10 +23,11 @@ import {
   type ProviderAvailability,
 } from "@/lib/connections.functions";
 import {
-  listMyCalendarConnections,
-  saveCalendarConnection,
-  startCalendarConnect,
-  disconnectCalendar,
+  listMySuiteConnections,
+  startSuiteConnect,
+  disconnectSuiteConnection,
+  type SuiteProduct,
+  type SuiteProvider,
 } from "@/lib/calendar-connections.functions";
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -44,15 +45,19 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 // ConnectorDetail drill), env-active (muted-green "Active" pill, also clickable),
 // OAuth-configured (a real Connect button), or coming soon (disabled, setup
 // hint on hover). Every card carries the real brand logo (ProviderLogo, inline
-// simple-icons marks in official brand color). OAuth-only: GitHub uses the App
-// install redirect; everything else goes through the Lovable connector gateway
-// popup (tokens stay in the gateway, we persist only the connection id). The two
-// calendar providers connect through the existing calendar connection layer
-// (listMyCalendarConnections / startCalendarConnect / saveCalendarConnection),
-// same popup driver as the old CalendarAccountsSection. Per-connection
-// management (verify / disconnect / bindings) lives in the ConnectorDetail
-// drill; workspace-level resource bindings live on /sync, linked from the rail.
-// Anchorable via /settings?section=connections.
+// simple-icons marks in official brand color). GitHub uses the App install
+// redirect; native OAuth providers (the vast majority) redirect to their own
+// consent screen in a new tab, same mechanics (window.open + poll). Canny/
+// Delighted are the last two still on the (effectively dead) Lovable gateway
+// popup, pending their own OAuth support. The Google/Microsoft suite
+// (Calendar + Gmail/Outlook Mail) is multi-account, so it connects through
+// its own layer (startSuiteConnect / listMySuiteConnections /
+// disconnectSuiteConnection, user_calendar_connections) rather than the
+// single-connection-per-provider `connections` table, but uses the exact
+// same native-OAuth-redirect UX. Per-connection management (verify /
+// disconnect / bindings) lives in the ConnectorDetail drill; workspace-level
+// resource bindings live on /sync, linked from the rail. Anchorable via
+// /settings?section=connections.
 //
 // Screen 6 (loop-detail drill-downs) adds ConnectorDetail - the per-provider
 // drill ported from design-reference/cadence/loop-detail.jsx (ConnectorDetail,
@@ -66,11 +71,17 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 
-// Registry providers backed by the calendar connection layer (multi-account,
-// stored in user_calendar_connections - not the connections table).
-const CALENDAR_PROVIDERS: Partial<Record<ProviderId, "google" | "microsoft">> = {
-  google_calendar: "google",
-  microsoft_outlook: "microsoft",
+// Registry providers backed by the multi-account suite-connections layer
+// (stored in user_calendar_connections, native OAuth - not the single-
+// connection-per-provider connections table). SW-7: extended beyond
+// calendar to also cover Gmail/Outlook Mail, same table, a "product" column.
+const SUITE_PROVIDERS: Partial<
+  Record<ProviderId, { provider: SuiteProvider; product: SuiteProduct }>
+> = {
+  google_calendar: { provider: "google", product: "calendar" },
+  gmail: { provider: "google", product: "mail" },
+  microsoft_outlook: { provider: "microsoft", product: "calendar" },
+  microsoft_mail: { provider: "microsoft", product: "mail" },
 };
 
 function setupHintFor(spec: ProviderSpec): string {
@@ -119,8 +130,7 @@ function useConnectorActions(qc: QueryClient) {
   const fSaveGateway = useServerFn(saveGatewayConnection);
   const fStartNative = useServerFn(startNativeOAuthConnect);
   const fVerify = useServerFn(verifyConnection);
-  const fCalStart = useServerFn(startCalendarConnect);
-  const fCalSave = useServerFn(saveCalendarConnection);
+  const fStartSuite = useServerFn(startSuiteConnect);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
@@ -187,22 +197,21 @@ function useConnectorActions(qc: QueryClient) {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  // Calendar connect - exact mechanics of the legacy CalendarAccountsSection:
-  // gateway popup via connectAppUser, then persist via saveCalendarConnection.
-  const mCalConnect = useMutation({
-    mutationFn: async (provider: "google" | "microsoft") => {
-      const result = await connectAppUser({
-        connectorId: provider === "google" ? "google_calendar" : "microsoft_outlook",
-        gatewayBaseUrl: GATEWAY_BASE_URL,
-        start: (targetOrigin) => fCalStart({ data: { provider, targetOrigin } }),
-      });
-      if (!result.success || !result.connectionId)
-        throw new Error(result.error ?? "Connect failed");
-      return fCalSave({ data: { provider, connectionId: result.connectionId } });
-    },
-    onSuccess: () => {
-      toast.success("Calendar connected");
-      qc.invalidateQueries({ queryKey: ["calendar-connections"] });
+  // Suite connect (SW-7): native OAuth, same new-tab+poll mechanics as
+  // mNative/mGithub - Google/Microsoft's own consent screen, not a gateway
+  // popup. Multi-account (a user can connect several accounts of the same
+  // product), so success just invalidates the list; there is no separate
+  // "save" step, the callback route writes the connection directly.
+  const mSuite = useMutation({
+    mutationFn: (args: { provider: SuiteProvider; product: SuiteProduct }) =>
+      fStartSuite({ data: args }),
+    onSuccess: ({ authorizeUrl }) => {
+      window.open(authorizeUrl, "_blank", "noopener");
+      const deadline = Date.now() + 5 * 60 * 1000;
+      pollRef.current = setInterval(() => {
+        qc.invalidateQueries({ queryKey: ["calendar-connections"] });
+        if (Date.now() > deadline) clearInterval(pollRef.current);
+      }, 3_000);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -220,10 +229,10 @@ function useConnectorActions(qc: QueryClient) {
     mGithub.isPending ||
     mGateway.isPending ||
     mNative.isPending ||
-    mCalConnect.isPending ||
+    mSuite.isPending ||
     mVerify.isPending;
 
-  return { mGithub, mGateway, mNative, mCalConnect, mVerify, busy };
+  return { mGithub, mGateway, mNative, mSuite, mVerify, busy };
 }
 
 // Per-provider status the grid renders and the rail counts.
@@ -415,12 +424,12 @@ export function AccountConnectionsSection({
   }, []);
 
   const fList = useServerFn(listConnections);
-  const fCalList = useServerFn(listMyCalendarConnections);
+  const fSuiteList = useServerFn(listMySuiteConnections);
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
-  const calendars = useQuery({
+  const suite = useQuery({
     queryKey: ["calendar-connections"],
-    queryFn: () => fCalList(),
+    queryFn: () => fSuiteList(),
   });
 
   // Detect a newly-appeared GitHub connection (for the new-tab polling flow).
@@ -442,7 +451,7 @@ export function AccountConnectionsSection({
   }, [list.data, list.isLoading]);
 
   // Connect flows shared with ConnectorDetail (one implementation).
-  const { mGithub, mGateway, mNative, mCalConnect, busy } = useConnectorActions(qc);
+  const { mGithub, mGateway, mNative, mSuite, busy } = useConnectorActions(qc);
 
   const byProvider = new Map<ProviderId, AccountConnection[]>();
   for (const c of list.data?.connections ?? []) {
@@ -450,7 +459,7 @@ export function AccountConnectionsSection({
     arr.push(c);
     byProvider.set(c.provider, arr);
   }
-  const calendarAccounts = calendars.data?.connections ?? [];
+  const suiteAccounts = suite.data?.connections ?? [];
 
   // End-user providers only: internal/service connectors (firecrawl, anything
   // flagged userFacing: false in the registry) never render here.
@@ -461,10 +470,14 @@ export function AccountConnectionsSection({
   const availability = list.data?.providerAvailability;
 
   // A provider is "connected" when it has at least one account row (connections
-  // table) or one calendar account.
+  // table) or one suite account (calendar/mail, same provider+product).
   const isConnected = (spec: ProviderSpec): boolean => {
-    const cal = CALENDAR_PROVIDERS[spec.id];
-    if (cal) return calendarAccounts.some((c) => c.provider === cal);
+    const suiteSpec = SUITE_PROVIDERS[spec.id];
+    if (suiteSpec) {
+      return suiteAccounts.some(
+        (c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product,
+      );
+    }
     return (byProvider.get(spec.id)?.length ?? 0) > 0;
   };
 
@@ -488,10 +501,12 @@ export function AccountConnectionsSection({
   // there is no real timestamp yet, so the card falls back to its flow label
   // rather than inventing a time.
   const lastActivityFor = (spec: ProviderSpec): { iso: string; verb: string } | null => {
-    const cal = CALENDAR_PROVIDERS[spec.id];
-    if (cal) {
+    const suiteSpec = SUITE_PROVIDERS[spec.id];
+    if (suiteSpec) {
       const iso = latestIso(
-        calendarAccounts.filter((c) => c.provider === cal).map((c) => c.last_sync_at),
+        suiteAccounts
+          .filter((c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product)
+          .map((c) => c.last_sync_at),
       );
       return iso ? { iso, verb: "SYNCED" } : null;
     }
@@ -500,10 +515,10 @@ export function AccountConnectionsSection({
   };
 
   // The connect flow for a not-yet-connected provider (GitHub App redirect,
-  // calendar popup, or the gateway OAuth popup) is unchanged.
+  // suite OAuth redirect, native OAuth redirect, or the legacy gateway popup).
   const connectProvider = (spec: ProviderSpec) => {
-    const cal = CALENDAR_PROVIDERS[spec.id];
-    if (cal) mCalConnect.mutate(cal);
+    const suiteSpec = SUITE_PROVIDERS[spec.id];
+    if (suiteSpec) mSuite.mutate(suiteSpec);
     else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
     else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
@@ -816,11 +831,11 @@ export function ConnectorDetail({
 }) {
   const qc = useQueryClient();
   const confirm = useConfirm();
-  const { mGithub, mGateway, mNative, mCalConnect, mVerify, busy } = useConnectorActions(qc);
+  const { mGithub, mGateway, mNative, mSuite, mVerify, busy } = useConnectorActions(qc);
 
   const fDisconnect = useServerFn(disconnectConnection);
   const fDelete = useServerFn(deleteConnection);
-  const fCalDisconnect = useServerFn(disconnectCalendar);
+  const fSuiteDisconnect = useServerFn(disconnectSuiteConnection);
   const mDisconnect = useMutation({
     mutationFn: (id: string) => fDisconnect({ data: { id } }),
     onSuccess: () => {
@@ -840,30 +855,30 @@ export function ConnectorDetail({
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const mCalDisconnect = useMutation({
-    mutationFn: (id: string) => fCalDisconnect({ data: { id } }),
+  const mSuiteDisconnect = useMutation({
+    mutationFn: (id: string) => fSuiteDisconnect({ data: { id } }),
     onSuccess: () => {
       toast.success("Disconnected");
       qc.invalidateQueries({ queryKey: ["calendar-connections"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const manageBusy = mDisconnect.isPending || mDelete.isPending || mCalDisconnect.isPending;
+  const manageBusy = mDisconnect.isPending || mDelete.isPending || mSuiteDisconnect.isPending;
 
   const spec = CONNECTOR_REGISTRY[provider];
-  const calProvider = CALENDAR_PROVIDERS[provider];
-  const isCalendar = calProvider !== undefined;
+  const suiteSpec = SUITE_PROVIDERS[provider];
+  const isSuite = suiteSpec !== undefined;
 
   const fList = useServerFn(listConnections);
   const fBindings = useServerFn(listWorkspaceBindings);
-  const fCalList = useServerFn(listMyCalendarConnections);
+  const fSuiteList = useServerFn(listMySuiteConnections);
 
   const list = useQuery({ queryKey: ["connections"], queryFn: () => fList() });
   const bindingsQ = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
-  const calendars = useQuery({
+  const suite = useQuery({
     queryKey: ["calendar-connections"],
-    queryFn: () => fCalList(),
-    enabled: isCalendar,
+    queryFn: () => fSuiteList(),
+    enabled: isSuite,
   });
 
   // The route validates ?connector= against the registry; this guards a
@@ -881,7 +896,7 @@ export function ConnectorDetail({
     );
   }
 
-  if (list.isLoading || bindingsQ.isLoading || (isCalendar && calendars.isLoading)) {
+  if (list.isLoading || bindingsQ.isLoading || (isSuite && suite.isLoading)) {
     return (
       <div
         style={{
@@ -900,12 +915,14 @@ export function ConnectorDetail({
   const envActive = providerEnvActive(spec, list.data?.providerAvailability);
   const hint = setupHintFor(spec);
   const conns = (list.data?.connections ?? []).filter((c) => c.provider === provider);
-  const calAccounts = isCalendar
-    ? (calendars.data?.connections ?? []).filter((c) => c.provider === calProvider)
+  const calAccounts = suiteSpec
+    ? (suite.data?.connections ?? []).filter(
+        (c) => c.provider === suiteSpec.provider && c.product === suiteSpec.product,
+      )
     : [];
 
   const connect = () => {
-    if (calProvider) mCalConnect.mutate(calProvider);
+    if (suiteSpec) mSuite.mutate(suiteSpec);
     else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
     else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
@@ -968,7 +985,7 @@ export function ConnectorDetail({
   }
 
   /* -- Configured, no connection yet: the real OAuth connect flow. -- */
-  if (isCalendar ? calAccounts.length === 0 : conns.length === 0) {
+  if (isSuite ? calAccounts.length === 0 : conns.length === 0) {
     return (
       <div className="fade-up">
         <DrillHeader
@@ -999,7 +1016,7 @@ export function ConnectorDetail({
 
   /* -- Connected: stat row, workspace bindings, per-account table. -- */
   const primary = conns[0]; // listConnections orders by created_at ascending
-  const earliest = isCalendar ? calAccounts[0]?.created_at : primary?.created_at;
+  const earliest = isSuite ? calAccounts[0]?.created_at : primary?.created_at;
   const since = earliest
     ? new Date(earliest).toLocaleDateString(undefined, {
         month: "short",
@@ -1007,13 +1024,13 @@ export function ConnectorDetail({
         year: "numeric",
       })
     : null;
-  const statusText = isCalendar ? "connected" : primary.status;
+  const statusText = isSuite ? "connected" : primary.status;
   const lastSync = calAccounts.reduce<string | null>(
     (acc, c) => (c.last_sync_at && (!acc || c.last_sync_at > acc) ? c.last_sync_at : acc),
     null,
   );
 
-  const stats: [string, string, string | undefined][] = isCalendar
+  const stats: [string, string, string | undefined][] = isSuite
     ? [
         ["Last sync", lastSync ? shortDate(lastSync) : "never", undefined],
         ["Accounts", String(calAccounts.length), undefined],
@@ -1047,13 +1064,13 @@ export function ConnectorDetail({
         kicker={`Connector${since ? ` · since ${since}` : ""} · ${statusText}`}
         title={spec.label}
         right={
-          isCalendar ? (
+          isSuite ? (
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
                 disabled={busy}
-                onClick={() => mCalConnect.mutate(calProvider)}
+                onClick={() => suiteSpec && mSuite.mutate(suiteSpec)}
               >
                 Connect another account
               </button>
@@ -1064,12 +1081,15 @@ export function ConnectorDetail({
                   disabled={busy || manageBusy}
                   onClick={async () => {
                     const ok = await confirm({
-                      title: "Disconnect this calendar?",
-                      body: "Stored events stay but no further sync will happen.",
+                      title: `Disconnect this ${suiteSpec?.product === "mail" ? "mailbox" : "calendar"}?`,
+                      body:
+                        suiteSpec?.product === "mail"
+                          ? "Stored signals stay but no further messages will be pulled in."
+                          : "Stored events stay but no further sync will happen.",
                       confirmLabel: "Disconnect",
                       destructive: true,
                     });
-                    if (ok) mCalDisconnect.mutate(calAccounts[0]!.id);
+                    if (ok) mSuiteDisconnect.mutate(calAccounts[0]!.id);
                   }}
                 >
                   Disconnect
@@ -1189,9 +1209,9 @@ export function ConnectorDetail({
           >
             <span>Account</span>
             <span>Status</span>
-            <span>{isCalendar ? "Synced" : "Verified"}</span>
+            <span>{isSuite ? "Synced" : "Verified"}</span>
           </div>
-          {isCalendar
+          {isSuite
             ? calAccounts.map((c, i) => (
                 <div key={c.id} style={detailRowStyle(i, calAccounts.length)}>
                   <span

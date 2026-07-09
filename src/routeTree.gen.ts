@@ -143,11 +143,15 @@ import { Route as ApiPublicConnectSlackCallbackRouteImport } from './routes/api/
 import { Route as ApiPublicConnectSalesforceCallbackRouteImport } from './routes/api/public/connect/salesforce/callback'
 import { Route as ApiPublicConnectProductboardCallbackRouteImport } from './routes/api/public/connect/productboard/callback'
 import { Route as ApiPublicConnectNotionCallbackRouteImport } from './routes/api/public/connect/notion/callback'
+import { Route as ApiPublicConnectMicrosoft_outlookCallbackRouteImport } from './routes/api/public/connect/microsoft_outlook/callback'
+import { Route as ApiPublicConnectMicrosoft_mailCallbackRouteImport } from './routes/api/public/connect/microsoft_mail/callback'
 import { Route as ApiPublicConnectLinearCallbackRouteImport } from './routes/api/public/connect/linear/callback'
 import { Route as ApiPublicConnectJiraCallbackRouteImport } from './routes/api/public/connect/jira/callback'
 import { Route as ApiPublicConnectIntercomCallbackRouteImport } from './routes/api/public/connect/intercom/callback'
 import { Route as ApiPublicConnectHubspotCallbackRouteImport } from './routes/api/public/connect/hubspot/callback'
 import { Route as ApiPublicConnectGoogle_docsCallbackRouteImport } from './routes/api/public/connect/google_docs/callback'
+import { Route as ApiPublicConnectGoogle_calendarCallbackRouteImport } from './routes/api/public/connect/google_calendar/callback'
+import { Route as ApiPublicConnectGmailCallbackRouteImport } from './routes/api/public/connect/gmail/callback'
 import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api/public/connect/github/callback'
 import { Route as ApiPublicConnectFigmaCallbackRouteImport } from './routes/api/public/connect/figma/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
@@ -876,6 +880,18 @@ const ApiPublicConnectNotionCallbackRoute =
     path: '/api/public/connect/notion/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicConnectMicrosoft_outlookCallbackRoute =
+  ApiPublicConnectMicrosoft_outlookCallbackRouteImport.update({
+    id: '/api/public/connect/microsoft_outlook/callback',
+    path: '/api/public/connect/microsoft_outlook/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectMicrosoft_mailCallbackRoute =
+  ApiPublicConnectMicrosoft_mailCallbackRouteImport.update({
+    id: '/api/public/connect/microsoft_mail/callback',
+    path: '/api/public/connect/microsoft_mail/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicConnectLinearCallbackRoute =
   ApiPublicConnectLinearCallbackRouteImport.update({
     id: '/api/public/connect/linear/callback',
@@ -904,6 +920,18 @@ const ApiPublicConnectGoogle_docsCallbackRoute =
   ApiPublicConnectGoogle_docsCallbackRouteImport.update({
     id: '/api/public/connect/google_docs/callback',
     path: '/api/public/connect/google_docs/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectGoogle_calendarCallbackRoute =
+  ApiPublicConnectGoogle_calendarCallbackRouteImport.update({
+    id: '/api/public/connect/google_calendar/callback',
+    path: '/api/public/connect/google_calendar/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectGmailCallbackRoute =
+  ApiPublicConnectGmailCallbackRouteImport.update({
+    id: '/api/public/connect/gmail/callback',
+    path: '/api/public/connect/gmail/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicConnectGithubCallbackRoute =
@@ -1068,11 +1096,15 @@ export interface FileRoutesByFullPath {
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
+  '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
   '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/microsoft_mail/callback': typeof ApiPublicConnectMicrosoft_mailCallbackRoute
+  '/api/public/connect/microsoft_outlook/callback': typeof ApiPublicConnectMicrosoft_outlookCallbackRoute
   '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
   '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
   '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
@@ -1211,11 +1243,15 @@ export interface FileRoutesByTo {
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
+  '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
   '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/microsoft_mail/callback': typeof ApiPublicConnectMicrosoft_mailCallbackRoute
+  '/api/public/connect/microsoft_outlook/callback': typeof ApiPublicConnectMicrosoft_outlookCallbackRoute
   '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
   '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
   '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
@@ -1358,11 +1394,15 @@ export interface FileRoutesById {
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
+  '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
   '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/microsoft_mail/callback': typeof ApiPublicConnectMicrosoft_mailCallbackRoute
+  '/api/public/connect/microsoft_outlook/callback': typeof ApiPublicConnectMicrosoft_outlookCallbackRoute
   '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
   '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
   '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
@@ -1505,11 +1545,15 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/gmail/callback'
+    | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
     | '/api/public/connect/linear/callback'
+    | '/api/public/connect/microsoft_mail/callback'
+    | '/api/public/connect/microsoft_outlook/callback'
     | '/api/public/connect/notion/callback'
     | '/api/public/connect/productboard/callback'
     | '/api/public/connect/salesforce/callback'
@@ -1648,11 +1692,15 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/gmail/callback'
+    | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
     | '/api/public/connect/linear/callback'
+    | '/api/public/connect/microsoft_mail/callback'
+    | '/api/public/connect/microsoft_outlook/callback'
     | '/api/public/connect/notion/callback'
     | '/api/public/connect/productboard/callback'
     | '/api/public/connect/salesforce/callback'
@@ -1794,11 +1842,15 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/gmail/callback'
+    | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
     | '/api/public/connect/linear/callback'
+    | '/api/public/connect/microsoft_mail/callback'
+    | '/api/public/connect/microsoft_outlook/callback'
     | '/api/public/connect/notion/callback'
     | '/api/public/connect/productboard/callback'
     | '/api/public/connect/salesforce/callback'
@@ -1873,11 +1925,15 @@ export interface RootRouteChildren {
   ApiPublicA2aMessageStreamRoute: typeof ApiPublicA2aMessageStreamRoute
   ApiPublicConnectFigmaCallbackRoute: typeof ApiPublicConnectFigmaCallbackRoute
   ApiPublicConnectGithubCallbackRoute: typeof ApiPublicConnectGithubCallbackRoute
+  ApiPublicConnectGmailCallbackRoute: typeof ApiPublicConnectGmailCallbackRoute
+  ApiPublicConnectGoogle_calendarCallbackRoute: typeof ApiPublicConnectGoogle_calendarCallbackRoute
   ApiPublicConnectGoogle_docsCallbackRoute: typeof ApiPublicConnectGoogle_docsCallbackRoute
   ApiPublicConnectHubspotCallbackRoute: typeof ApiPublicConnectHubspotCallbackRoute
   ApiPublicConnectIntercomCallbackRoute: typeof ApiPublicConnectIntercomCallbackRoute
   ApiPublicConnectJiraCallbackRoute: typeof ApiPublicConnectJiraCallbackRoute
   ApiPublicConnectLinearCallbackRoute: typeof ApiPublicConnectLinearCallbackRoute
+  ApiPublicConnectMicrosoft_mailCallbackRoute: typeof ApiPublicConnectMicrosoft_mailCallbackRoute
+  ApiPublicConnectMicrosoft_outlookCallbackRoute: typeof ApiPublicConnectMicrosoft_outlookCallbackRoute
   ApiPublicConnectNotionCallbackRoute: typeof ApiPublicConnectNotionCallbackRoute
   ApiPublicConnectProductboardCallbackRoute: typeof ApiPublicConnectProductboardCallbackRoute
   ApiPublicConnectSalesforceCallbackRoute: typeof ApiPublicConnectSalesforceCallbackRoute
@@ -2827,6 +2883,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicConnectNotionCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/connect/microsoft_outlook/callback': {
+      id: '/api/public/connect/microsoft_outlook/callback'
+      path: '/api/public/connect/microsoft_outlook/callback'
+      fullPath: '/api/public/connect/microsoft_outlook/callback'
+      preLoaderRoute: typeof ApiPublicConnectMicrosoft_outlookCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/microsoft_mail/callback': {
+      id: '/api/public/connect/microsoft_mail/callback'
+      path: '/api/public/connect/microsoft_mail/callback'
+      fullPath: '/api/public/connect/microsoft_mail/callback'
+      preLoaderRoute: typeof ApiPublicConnectMicrosoft_mailCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/connect/linear/callback': {
       id: '/api/public/connect/linear/callback'
       path: '/api/public/connect/linear/callback'
@@ -2860,6 +2930,20 @@ declare module '@tanstack/react-router' {
       path: '/api/public/connect/google_docs/callback'
       fullPath: '/api/public/connect/google_docs/callback'
       preLoaderRoute: typeof ApiPublicConnectGoogle_docsCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/google_calendar/callback': {
+      id: '/api/public/connect/google_calendar/callback'
+      path: '/api/public/connect/google_calendar/callback'
+      fullPath: '/api/public/connect/google_calendar/callback'
+      preLoaderRoute: typeof ApiPublicConnectGoogle_calendarCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/gmail/callback': {
+      id: '/api/public/connect/gmail/callback'
+      path: '/api/public/connect/gmail/callback'
+      fullPath: '/api/public/connect/gmail/callback'
+      preLoaderRoute: typeof ApiPublicConnectGmailCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/connect/github/callback': {
@@ -3151,12 +3235,19 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicA2aMessageStreamRoute: ApiPublicA2aMessageStreamRoute,
   ApiPublicConnectFigmaCallbackRoute: ApiPublicConnectFigmaCallbackRoute,
   ApiPublicConnectGithubCallbackRoute: ApiPublicConnectGithubCallbackRoute,
+  ApiPublicConnectGmailCallbackRoute: ApiPublicConnectGmailCallbackRoute,
+  ApiPublicConnectGoogle_calendarCallbackRoute:
+    ApiPublicConnectGoogle_calendarCallbackRoute,
   ApiPublicConnectGoogle_docsCallbackRoute:
     ApiPublicConnectGoogle_docsCallbackRoute,
   ApiPublicConnectHubspotCallbackRoute: ApiPublicConnectHubspotCallbackRoute,
   ApiPublicConnectIntercomCallbackRoute: ApiPublicConnectIntercomCallbackRoute,
   ApiPublicConnectJiraCallbackRoute: ApiPublicConnectJiraCallbackRoute,
   ApiPublicConnectLinearCallbackRoute: ApiPublicConnectLinearCallbackRoute,
+  ApiPublicConnectMicrosoft_mailCallbackRoute:
+    ApiPublicConnectMicrosoft_mailCallbackRoute,
+  ApiPublicConnectMicrosoft_outlookCallbackRoute:
+    ApiPublicConnectMicrosoft_outlookCallbackRoute,
   ApiPublicConnectNotionCallbackRoute: ApiPublicConnectNotionCallbackRoute,
   ApiPublicConnectProductboardCallbackRoute:
     ApiPublicConnectProductboardCallbackRoute,

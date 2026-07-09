@@ -1,164 +1,157 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { authorizeAppUserOAuth, callAsAppUser } from "@/integrations/lovable/appUserConnector";
+import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
+import { makeConnectState } from "@/lib/connectors/providers/github.server";
 
-const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
+// SW-7 (founder goal, 2026-07-09): native OAuth replaces the Lovable
+// connector gateway for the whole Google/Microsoft suite (Calendar + Mail).
+// Multi-account is the one real difference from every other connector: a
+// user can connect several Google/Microsoft accounts (personal + work), so
+// this stays on its own table (user_calendar_connections, now also product-
+// aware) instead of the single-connection-per-provider `connections` table.
+// Token vaulting, encryption, and proactive refresh are otherwise identical
+// to the main system - see connect/google_calendar/callback.ts etc. and
+// src/lib/connectors/oauth-refresh.server.ts (both keyed off the SAME
+// registry entries this file reads client/scope/endpoint data from).
 
-type Provider = "google" | "microsoft";
+export type SuiteProvider = "google" | "microsoft";
+export type SuiteProduct = "calendar" | "mail";
 
-function clientIdFor(provider: Provider): string | null {
-  if (provider === "google") return process.env.GOOGLE_APP_USER_CONNECTOR_CLIENT_ID ?? null;
-  return process.env.MICROSOFT_APP_USER_CONNECTOR_CLIENT_ID ?? null;
+function providerIdFor(provider: SuiteProvider, product: SuiteProduct): ProviderId {
+  if (provider === "google") return product === "calendar" ? "google_calendar" : "gmail";
+  return product === "calendar" ? "microsoft_outlook" : "microsoft_mail";
 }
 
-function connectorIdFor(provider: Provider): string {
-  return provider === "google" ? "google_calendar" : "microsoft_outlook";
+function findOAuthMethod(providerId: ProviderId) {
+  const method = CONNECTOR_REGISTRY[providerId].authMethods.find((m) => m.kind === "oauth_native");
+  if (!method || method.kind !== "oauth_native") {
+    throw new Error(`${providerId} is not configured for native OAuth.`);
+  }
+  return method;
 }
 
-function scopesFor(provider: Provider): string[] {
-  if (provider === "google") return ["https://www.googleapis.com/auth/calendar"];
-  return ["Calendars.ReadWrite", "User.Read", "offline_access"];
-}
-
-export const startCalendarConnect = createServerFn({ method: "POST" })
+/**
+ * Kick off native OAuth for one (provider, product) pair - a full-page
+ * redirect out to Google/Microsoft's own consent screen, same UX as every
+ * other connector. redirect_uri is derived from the request's own Origin
+ * header, never client-supplied (same hardening as startNativeOAuthConnect).
+ */
+export const startSuiteConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
     z
       .object({
         provider: z.enum(["google", "microsoft"]),
-        targetOrigin: z.string().url(),
+        product: z.enum(["calendar", "mail"]),
+        returnTo: z.enum(["onboarding"]).optional(),
       })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const clientId = clientIdFor(data.provider);
+    const providerId = providerIdFor(data.provider, data.product);
+    const method = findOAuthMethod(providerId);
+    const clientId = process.env[method.clientIdEnv];
     if (!clientId) {
+      const spec = CONNECTOR_REGISTRY[providerId];
       throw new Error(
-        `Connect setup pending. The ${data.provider === "google" ? "Google" : "Microsoft"} calendar credential has not been configured yet. Contact the workspace admin.`,
+        `${spec.label} setup pending. An admin must register the OAuth app and set ${method.clientIdEnv}.` +
+          (spec.setupHint ? ` ${spec.setupHint}` : ""),
       );
     }
-    const { authorizationUrl } = await authorizeAppUserOAuth({
-      gatewayBaseUrl: GATEWAY_BASE_URL,
-      connectorId: connectorIdFor(data.provider),
-      appUserId: context.userId,
-      connectorClientId: clientId,
-      returnUrl: `${data.targetOrigin}/calendar`,
-      responseMode: "web_message",
-      webMessageTargetOrigin: data.targetOrigin,
-      credentialsConfiguration: { scopes: scopesFor(data.provider) },
-    });
-    return { authorizationUrl };
-  });
-
-async function fetchAccountIdentity(
-  provider: Provider,
-  connectionId: string,
-): Promise<{ email: string | null; name: string | null }> {
-  try {
-    if (provider === "google") {
-      const res = await callAsAppUser({
-        gatewayBaseUrl: GATEWAY_BASE_URL,
-        connectionId,
-        connectorId: "google_calendar",
-        path: "/calendar/v3/users/me/calendarList?maxResults=1",
-      });
-      if (!res.ok) return { email: null, name: null };
-      const body = (await res.json()) as { items?: { id?: string; summary?: string }[] };
-      const primary = body.items?.[0];
-      return { email: primary?.id ?? null, name: primary?.summary ?? null };
+    const origin = getRequestHeader("origin");
+    if (!origin) {
+      throw new Error("Missing Origin header. Cannot start OAuth connect.");
     }
-    const res = await callAsAppUser({
-      gatewayBaseUrl: GATEWAY_BASE_URL,
-      connectionId,
-      connectorId: "microsoft_outlook",
-      path: "/v1.0/me",
-    });
-    if (!res.ok) return { email: null, name: null };
-    const body = (await res.json()) as {
-      mail?: string;
-      userPrincipalName?: string;
-      displayName?: string;
-    };
-    return { email: body.mail ?? body.userPrincipalName ?? null, name: body.displayName ?? null };
-  } catch {
-    return { email: null, name: null };
-  }
-}
-
-export const saveCalendarConnection = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        provider: z.enum(["google", "microsoft"]),
-        connectionId: z.string().min(1).max(300),
-      })
-      .parse(i),
-  )
-  .handler(async ({ context, data }) => {
-    const { email, name } = await fetchAccountIdentity(data.provider, data.connectionId);
-    const { error } = await context.supabase.from("user_calendar_connections").upsert(
-      {
-        user_id: context.userId,
-        provider: data.provider,
-        connection_id: data.connectionId,
-        account_email: email,
-        display_name: name,
-      } as never,
-      { onConflict: "user_id,provider,account_email" },
-    );
-    if (error) throw new Error(error.message);
-    return { ok: true, email, name };
+    const state = await makeConnectState(context.userId, data.returnTo);
+    const redirectUri = `${origin}/api/public/connect/${providerId}/callback`;
+    const url = new URL(method.authorizeUrl);
+    url.searchParams.set("client_id", clientId);
+    if (method.scopes.length > 0) {
+      url.searchParams.set("scope", method.scopes.join(method.scopeSeparator ?? " "));
+    }
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("state", state);
+    for (const [key, value] of Object.entries(method.extraAuthorizeParams ?? {})) {
+      url.searchParams.set(key, value);
+    }
+    return { authorizeUrl: url.toString() };
   });
 
-export const listMyCalendarConnections = createServerFn({ method: "GET" })
+export const listMySuiteConnections = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("user_calendar_connections")
-      .select("id,provider,account_email,display_name,connection_id,last_sync_at,created_at")
+      .select(
+        "id,provider,product,account_email,display_name,last_sync_at,created_at,connection_id",
+      )
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     return {
       connections: (data ?? []) as Array<{
         id: string;
-        provider: Provider;
+        provider: SuiteProvider;
+        product: SuiteProduct;
         account_email: string | null;
         display_name: string | null;
-        connection_id: string;
         last_sync_at: string | null;
         created_at: string;
+        connection_id: string;
       }>,
       providersAvailable: {
-        google: !!process.env.GOOGLE_APP_USER_CONNECTOR_CLIENT_ID,
-        microsoft: !!process.env.MICROSOFT_APP_USER_CONNECTOR_CLIENT_ID,
+        google_calendar: !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
+        gmail: !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
+        microsoft_outlook:
+          !!process.env.MICROSOFT_CLIENT_ID && !!process.env.MICROSOFT_CLIENT_SECRET,
+        microsoft_mail: !!process.env.MICROSOFT_CLIENT_ID && !!process.env.MICROSOFT_CLIENT_SECRET,
       },
     };
   });
 
-export const disconnectCalendar = createServerFn({ method: "POST" })
+export const disconnectSuiteConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
+    const admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as never;
+    const { data: row } = await context.supabase
+      .from("user_calendar_connections")
+      .select("secret_id")
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    const secretId = (row as { secret_id?: string } | null)?.secret_id ?? null;
     const { error } = await context.supabase
       .from("user_calendar_connections")
       .delete()
       .eq("id", data.id)
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
+    if (secretId) {
+      await (
+        admin as {
+          from: (t: string) => { delete: () => { eq: (c: string, v: string) => Promise<unknown> } };
+        }
+      )
+        .from("connection_secrets")
+        .delete()
+        .eq("id", secretId);
+    }
     return { ok: true };
   });
 
 // Internal helper used by other server fns (calendar.functions.ts) to read the
-// active connection for a user; exported as a server fn so the dispatcher
-// can stay client-importable.
+// active calendar connection for a user; exported as a server fn so the
+// dispatcher can stay client-importable. Unchanged shape from before -
+// callers only ever asked for the calendar product.
 export const getPrimaryConnection = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("user_calendar_connections")
       .select("id,provider,connection_id,account_email")
+      .eq("product", "calendar")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -166,7 +159,7 @@ export const getPrimaryConnection = createServerFn({ method: "GET" })
     return {
       connection: data as {
         id: string;
-        provider: Provider;
+        provider: SuiteProvider;
         connection_id: string;
         account_email: string | null;
       } | null,
