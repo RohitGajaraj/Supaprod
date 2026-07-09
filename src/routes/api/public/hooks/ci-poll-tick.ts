@@ -271,6 +271,9 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
                   ? ((await baseRefRes.json()) as { object: { sha: string } }).object.sha
                   : null;
                 const baseMoved = !!baseCurrentSha && baseCurrentSha !== pr.base.sha;
+                failures.push(
+                  `${cs.id.slice(0, 8)}: DEBUG baseRefOk=${baseRefRes.ok} baseRefStatus=${baseRefRes.status} prBaseSha=${pr.base.sha} baseCurrentSha=${baseCurrentSha} baseMoved=${baseMoved}`,
+                );
 
                 if (baseMoved) {
                   // Spend one attempt of the budget regardless of outcome
