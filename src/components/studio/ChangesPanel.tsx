@@ -694,7 +694,11 @@ export function ChangesPanel({
                 ) : null,
               )}
               <span
-                style={{ fontFamily: "var(--font-ui)", fontSize: 12.5, color: "var(--text-subtle)" }}
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 12.5,
+                  color: "var(--text-subtle)",
+                }}
               >
                 Drafts only. Nothing is sent, so copy what you want to use.
               </span>
