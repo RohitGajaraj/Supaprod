@@ -18,6 +18,7 @@ export type ProviderId =
   | "google_docs"
   | "google_calendar"
   | "gmail"
+  | "google_tasks"
   | "microsoft_outlook"
   | "microsoft_mail"
   | "figma"
@@ -436,7 +437,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "GOOGLE_DOCS_API_KEY" },
     setupHint:
-      "Register a Google OAuth app (shared with Calendar and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Calendar, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // SW-7 (founder goal, 2026-07-09): converted off the Lovable connector
   // gateway onto native OAuth, same as every other provider. This one and
@@ -465,7 +466,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "calendar", label: "Calendar" }],
     capabilities: { inflow: true, outflow: true, sync: true },
     setupHint:
-      "Register a Google OAuth app (shared with Docs and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Docs, Gmail, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // New (SW-7): lead/customer insight sitting in email. Multi-account, same
   // calendar-connections system, its own scope (readonly - inflow only).
@@ -488,7 +489,37 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     resourceTypes: [{ kind: "inbox", label: "Inbox" }],
     capabilities: { inflow: true, outflow: false, sync: false },
     setupHint:
-      "Register a Google OAuth app (shared with Docs and Calendar): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Docs, Calendar, and Tasks): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+  },
+  // Added 2026-07-10 alongside the founder's own Google Cloud registration
+  // (Tasks API enabled at the same time as Docs/Calendar/Gmail). Multi-account,
+  // same calendar-connections system. Connect flow is real; what Cadence DOES
+  // with a connected Tasks account (push action items out, pull existing
+  // tasks in, or both) is not yet scoped - capabilities below are provisional
+  // (outflow: push-action-items-out was the stated intent) and the adapter
+  // stays a stub until that product decision is made. Connecting succeeds
+  // with no error but has no visible effect yet, same as Linear/Notion/Figma/
+  // Jira.
+  google_tasks: {
+    id: "google_tasks",
+    label: "Google Tasks",
+    description: "Sync action items with Google Tasks.",
+    authMethods: [
+      {
+        kind: "oauth_native",
+        clientIdEnv: "GOOGLE_CLIENT_ID",
+        clientSecretEnv: "GOOGLE_CLIENT_SECRET",
+        authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+        scopes: ["https://www.googleapis.com/auth/tasks"],
+        extraAuthorizeParams: { response_type: "code", access_type: "offline", prompt: "consent" },
+        supportsRefresh: true,
+      },
+    ],
+    resourceTypes: [{ kind: "tasklist", label: "Task list" }],
+    capabilities: { inflow: false, outflow: true, sync: false },
+    setupHint:
+      "Register a Google OAuth app (shared with Docs, Calendar, and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // SW-7: same conversion as google_calendar - native OAuth, multi-account
   // calendar-connections system, registry entry carries OAuth metadata only.

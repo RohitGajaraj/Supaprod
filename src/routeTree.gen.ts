@@ -149,6 +149,7 @@ import { Route as ApiPublicConnectLinearCallbackRouteImport } from './routes/api
 import { Route as ApiPublicConnectJiraCallbackRouteImport } from './routes/api/public/connect/jira/callback'
 import { Route as ApiPublicConnectIntercomCallbackRouteImport } from './routes/api/public/connect/intercom/callback'
 import { Route as ApiPublicConnectHubspotCallbackRouteImport } from './routes/api/public/connect/hubspot/callback'
+import { Route as ApiPublicConnectGoogle_tasksCallbackRouteImport } from './routes/api/public/connect/google_tasks/callback'
 import { Route as ApiPublicConnectGoogle_docsCallbackRouteImport } from './routes/api/public/connect/google_docs/callback'
 import { Route as ApiPublicConnectGoogle_calendarCallbackRouteImport } from './routes/api/public/connect/google_calendar/callback'
 import { Route as ApiPublicConnectGmailCallbackRouteImport } from './routes/api/public/connect/gmail/callback'
@@ -916,6 +917,12 @@ const ApiPublicConnectHubspotCallbackRoute =
     path: '/api/public/connect/hubspot/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicConnectGoogle_tasksCallbackRoute =
+  ApiPublicConnectGoogle_tasksCallbackRouteImport.update({
+    id: '/api/public/connect/google_tasks/callback',
+    path: '/api/public/connect/google_tasks/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicConnectGoogle_docsCallbackRoute =
   ApiPublicConnectGoogle_docsCallbackRouteImport.update({
     id: '/api/public/connect/google_docs/callback',
@@ -1099,6 +1106,7 @@ export interface FileRoutesByFullPath {
   '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
   '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/google_tasks/callback': typeof ApiPublicConnectGoogle_tasksCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
@@ -1246,6 +1254,7 @@ export interface FileRoutesByTo {
   '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
   '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/google_tasks/callback': typeof ApiPublicConnectGoogle_tasksCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
@@ -1397,6 +1406,7 @@ export interface FileRoutesById {
   '/api/public/connect/gmail/callback': typeof ApiPublicConnectGmailCallbackRoute
   '/api/public/connect/google_calendar/callback': typeof ApiPublicConnectGoogle_calendarCallbackRoute
   '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/google_tasks/callback': typeof ApiPublicConnectGoogle_tasksCallbackRoute
   '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
   '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
   '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
@@ -1548,6 +1558,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/gmail/callback'
     | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/google_tasks/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
@@ -1695,6 +1706,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/gmail/callback'
     | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/google_tasks/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
@@ -1845,6 +1857,7 @@ export interface FileRouteTypes {
     | '/api/public/connect/gmail/callback'
     | '/api/public/connect/google_calendar/callback'
     | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/google_tasks/callback'
     | '/api/public/connect/hubspot/callback'
     | '/api/public/connect/intercom/callback'
     | '/api/public/connect/jira/callback'
@@ -1928,6 +1941,7 @@ export interface RootRouteChildren {
   ApiPublicConnectGmailCallbackRoute: typeof ApiPublicConnectGmailCallbackRoute
   ApiPublicConnectGoogle_calendarCallbackRoute: typeof ApiPublicConnectGoogle_calendarCallbackRoute
   ApiPublicConnectGoogle_docsCallbackRoute: typeof ApiPublicConnectGoogle_docsCallbackRoute
+  ApiPublicConnectGoogle_tasksCallbackRoute: typeof ApiPublicConnectGoogle_tasksCallbackRoute
   ApiPublicConnectHubspotCallbackRoute: typeof ApiPublicConnectHubspotCallbackRoute
   ApiPublicConnectIntercomCallbackRoute: typeof ApiPublicConnectIntercomCallbackRoute
   ApiPublicConnectJiraCallbackRoute: typeof ApiPublicConnectJiraCallbackRoute
@@ -2925,6 +2939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicConnectHubspotCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/connect/google_tasks/callback': {
+      id: '/api/public/connect/google_tasks/callback'
+      path: '/api/public/connect/google_tasks/callback'
+      fullPath: '/api/public/connect/google_tasks/callback'
+      preLoaderRoute: typeof ApiPublicConnectGoogle_tasksCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/connect/google_docs/callback': {
       id: '/api/public/connect/google_docs/callback'
       path: '/api/public/connect/google_docs/callback'
@@ -3240,6 +3261,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicConnectGoogle_calendarCallbackRoute,
   ApiPublicConnectGoogle_docsCallbackRoute:
     ApiPublicConnectGoogle_docsCallbackRoute,
+  ApiPublicConnectGoogle_tasksCallbackRoute:
+    ApiPublicConnectGoogle_tasksCallbackRoute,
   ApiPublicConnectHubspotCallbackRoute: ApiPublicConnectHubspotCallbackRoute,
   ApiPublicConnectIntercomCallbackRoute: ApiPublicConnectIntercomCallbackRoute,
   ApiPublicConnectJiraCallbackRoute: ApiPublicConnectJiraCallbackRoute,

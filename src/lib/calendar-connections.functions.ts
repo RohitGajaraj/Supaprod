@@ -17,11 +17,18 @@ import { makeConnectState } from "@/lib/connectors/providers/github.server";
 // registry entries this file reads client/scope/endpoint data from).
 
 export type SuiteProvider = "google" | "microsoft";
-export type SuiteProduct = "calendar" | "mail";
+// "tasks" is Google-only (Microsoft has no equivalent wired up here).
+export type SuiteProduct = "calendar" | "mail" | "tasks";
 
 function providerIdFor(provider: SuiteProvider, product: SuiteProduct): ProviderId {
-  if (provider === "google") return product === "calendar" ? "google_calendar" : "gmail";
-  return product === "calendar" ? "microsoft_outlook" : "microsoft_mail";
+  if (provider === "google") {
+    if (product === "calendar") return "google_calendar";
+    if (product === "tasks") return "google_tasks";
+    return "gmail";
+  }
+  if (product === "calendar") return "microsoft_outlook";
+  if (product === "mail") return "microsoft_mail";
+  throw new Error("Microsoft Tasks is not supported.");
 }
 
 function findOAuthMethod(providerId: ProviderId) {
@@ -44,7 +51,7 @@ export const startSuiteConnect = createServerFn({ method: "POST" })
     z
       .object({
         provider: z.enum(["google", "microsoft"]),
-        product: z.enum(["calendar", "mail"]),
+        product: z.enum(["calendar", "mail", "tasks"]),
         returnTo: z.enum(["onboarding"]).optional(),
       })
       .parse(i),
@@ -103,6 +110,7 @@ export const listMySuiteConnections = createServerFn({ method: "GET" })
       providersAvailable: {
         google_calendar: !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
         gmail: !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
+        google_tasks: !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
         microsoft_outlook:
           !!process.env.MICROSOFT_CLIENT_ID && !!process.env.MICROSOFT_CLIENT_SECRET,
         microsoft_mail: !!process.env.MICROSOFT_CLIENT_ID && !!process.env.MICROSOFT_CLIENT_SECRET,

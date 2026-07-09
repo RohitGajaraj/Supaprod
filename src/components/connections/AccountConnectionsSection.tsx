@@ -83,6 +83,7 @@ const SUITE_PROVIDERS: Partial<
 > = {
   google_calendar: { provider: "google", product: "calendar" },
   gmail: { provider: "google", product: "mail" },
+  google_tasks: { provider: "google", product: "tasks" },
   microsoft_outlook: { provider: "microsoft", product: "calendar" },
   microsoft_mail: { provider: "microsoft", product: "mail" },
 };

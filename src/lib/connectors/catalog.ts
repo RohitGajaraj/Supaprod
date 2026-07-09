@@ -111,6 +111,7 @@ const PROVIDER_CATEGORY: Record<ProviderId, ConnectorCategory | null> = {
   slack: "chat",
   linear: "issues",
   jira: "issues",
+  google_tasks: "issues",
   notion: "docs",
   google_docs: "docs",
   google_calendar: "calendar",

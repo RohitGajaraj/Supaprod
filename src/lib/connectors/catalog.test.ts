@@ -29,12 +29,12 @@ describe("connector catalog — de-dup + coverage", () => {
     expect(categoryOf("firecrawl")).toBeNull();
   });
 
-  it("catalogEntryCount equals the number of user-facing providers (18)", () => {
-    // 18 = the 16 pre-suite providers + Gmail + Outlook Mail (native OAuth
-    // suite ingest, 2026-07-09), minus Delighted (removed 2026-07-09 - Qualtrics
-    // sunset the product and it never had third-party OAuth). Keep this literal
-    // in step with the registry.
-    expect(catalogEntryCount()).toBe(18);
+  it("catalogEntryCount equals the number of user-facing providers (19)", () => {
+    // 19 = the 16 pre-suite providers + Gmail + Outlook Mail (native OAuth
+    // suite ingest, 2026-07-09) + Google Tasks (2026-07-10), minus Delighted
+    // (removed 2026-07-09 - Qualtrics sunset the product and it never had
+    // third-party OAuth). Keep this literal in step with the registry.
+    expect(catalogEntryCount()).toBe(19);
     expect(catalogEntryCount()).toBe(allEntries().length);
   });
 });
@@ -84,7 +84,7 @@ describe("connector catalog — categorization", () => {
 
   it("sorts entries within a category by label", () => {
     const issues = buildConnectorCatalog().find((g) => g.id === "issues")!;
-    expect(issues.entries.map((e) => e.label)).toEqual(["Jira", "Linear"]);
+    expect(issues.entries.map((e) => e.label)).toEqual(["Google Tasks", "Jira", "Linear"]);
   });
 });
 

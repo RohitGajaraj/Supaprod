@@ -66,11 +66,12 @@ Microsoft products share ONE Entra app.
 | --- | --- | --- | --- |
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `.../api/public/connect/google_calendar/callback` | Built, needs registration |
 | Gmail | same Google app as above | `.../api/public/connect/gmail/callback` | Built, needs registration |
+| Google Tasks | same Google app as above | `.../api/public/connect/google_tasks/callback` | Built, needs registration (connect only - see caveat below) |
 | Microsoft Outlook (calendar) | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | `.../api/public/connect/microsoft_outlook/callback` | Built, needs registration |
 | Outlook Mail | same Microsoft app as above | `.../api/public/connect/microsoft_mail/callback` | Built, needs registration |
 
-**Register Google's OAuth app once**, add all three redirect URLs to it
-(Docs, Calendar, Gmail). Same for Microsoft (Calendar, Mail).
+**Register Google's OAuth app once**, add all four redirect URLs to it
+(Docs, Calendar, Gmail, Tasks). Same for Microsoft (Calendar, Mail).
 
 ## Providers with no OAuth to register (stay admin-token-only)
 
@@ -97,16 +98,20 @@ OAuth flow to migrate to, so there was nothing left to keep it for.
   and vaults a real token, but nothing downstream yet knows to call Stripe
   the special way. Documented in `connect/stripe/callback.ts`'s file header;
   not fixed as of 2026-07-09.
-- **Linear, Notion, Google Docs, Figma, Jira**: their connect flow is fully
-  real (vaults a real, auto-refreshing token) but their provider adapters
-  (`src/lib/connectors/providers/{linear,notion,google_docs,figma,jira}.server.ts`)
+- **Linear, Notion, Google Docs, Figma, Jira, Google Tasks**: their connect
+  flow is fully real (vaults a real, auto-refreshing token) but their
+  provider adapters
+  (`src/lib/connectors/providers/{linear,notion,google_docs,figma,jira}.server.ts`;
+  Google Tasks has no adapter file yet at all, it just uses the shared stub)
   are still stub placeholders (`{validate: () => "not implemented"}`) - no
   ingest or push logic reads through these connections yet. Connecting one of
-  these five will succeed with no error, but nothing visible happens
+  these six will succeed with no error, but nothing visible happens
   afterward until adapter/ingest code is built for it (net-new build work,
-  not a credential gap). Slack, HubSpot, Salesforce, Intercom, Stripe,
-  Zendesk, Canny, Productboard, Delighted, Gmail, and Outlook Mail all DO
-  have real ingest logic already (`src/lib/connectors/providers/*-ingest.server.ts`,
+  not a credential gap - Google Tasks additionally needs a product decision
+  on what it should even do, see registry.ts's google_tasks comment). Slack,
+  HubSpot, Salesforce, Intercom, Stripe, Zendesk, Canny, Productboard, Gmail,
+  and Outlook Mail all DO have real ingest logic already
+  (`src/lib/connectors/providers/*-ingest.server.ts`,
   registered in `pull-ingestors.server.ts`, run every sense-tick).
 - **Token refresh** is real and automatic for every provider whose OAuth
   grant includes a refresh_token, EXCEPT Stripe (only issues one in

@@ -33,6 +33,7 @@ export const CONNECTOR_ADAPTERS: Record<ProviderId, ConnectorAdapter> = {
   notion: stubAdapter,
   google_docs: stubAdapter,
   google_calendar: stubAdapter,
+  google_tasks: stubAdapter,
   microsoft_outlook: stubAdapter,
   gmail: stubAdapter,
   microsoft_mail: stubAdapter,
