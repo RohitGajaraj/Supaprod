@@ -241,6 +241,9 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
               ];
               checked++;
               const overall = overallFromChecks(lites);
+              failures.push(
+                `${cs.id.slice(0, 8)}: DEBUG pr#${cs.pr_number} overall=${overall} nLites=${lites.length} conclusions=${JSON.stringify(lites.map((l) => l.conclusion))}`,
+              );
               if (overall !== "failure") continue;
 
               // SEAM-2 STALE-BRANCH AUTOSYNC (fully autonomous: no agent
