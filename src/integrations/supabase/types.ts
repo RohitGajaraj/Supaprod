@@ -7082,7 +7082,11 @@ export type Database = {
           display_name: string | null
           id: string
           last_sync_at: string | null
+          metadata: Json
+          product: string
           provider: Database["public"]["Enums"]["calendar_provider"]
+          scopes: string[]
+          secret_id: string | null
           updated_at: string
           user_id: string
           workspace_id: string | null
@@ -7094,7 +7098,11 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_sync_at?: string | null
+          metadata?: Json
+          product?: string
           provider: Database["public"]["Enums"]["calendar_provider"]
+          scopes?: string[]
+          secret_id?: string | null
           updated_at?: string
           user_id: string
           workspace_id?: string | null
@@ -7106,12 +7114,24 @@ export type Database = {
           display_name?: string | null
           id?: string
           last_sync_at?: string | null
+          metadata?: Json
+          product?: string
           provider?: Database["public"]["Enums"]["calendar_provider"]
+          scopes?: string[]
+          secret_id?: string | null
           updated_at?: string
           user_id?: string
           workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_calendar_connections_secret_id_fkey"
+            columns: ["secret_id"]
+            isOneToOne: false
+            referencedRelation: "connection_secrets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_integrations: {
         Row: {
