@@ -14,6 +14,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "@/lib/notify";
+import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
   listDecisions,
   createDecision,
@@ -152,10 +153,13 @@ export function DecisionsPanel() {
   const fList = useServerFn(listDecisions);
   const fCreate = useServerFn(createDecision);
 
+  // Debounce search input so keystrokes don't fire a request per character.
+  const debouncedQ = useDebouncedValue(q, 275);
+
   const listInput = {
     source: source === "all" ? undefined : source,
     status: status === "all" ? undefined : status,
-    q: q.trim() || undefined,
+    q: debouncedQ.trim() || undefined,
   };
   const decisions = useQuery({
     queryKey: ["decisions", listInput],

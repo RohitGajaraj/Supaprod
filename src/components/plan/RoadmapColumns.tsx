@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
@@ -190,6 +190,20 @@ export function RoadmapColumns() {
     (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
   );
 
+  // Memoize bucket grouping so we don't re-filter/sort on every render (e.g., when selectedIds changes).
+  // Maps each column key to its sorted items, computed once per items change.
+  const itemsByBucket = useMemo(() => {
+    const grouped = new Map<RoadmapBucket, RoadmapItem[]>();
+    for (const col of COLUMNS) grouped.set(col.key, []);
+    for (const item of items) {
+      grouped.get(item.bucket)?.push(item);
+    }
+    for (const arr of grouped.values()) {
+      arr.sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
+    }
+    return grouped;
+  }, [items]);
+
   if (items.length === 0) {
     return (
       <p
@@ -272,9 +286,7 @@ export function RoadmapColumns() {
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
         {COLUMNS.map((col) => {
-          const colItems = items
-            .filter((i) => i.bucket === col.key)
-            .sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
+          const colItems = itemsByBucket.get(col.key) ?? [];
           return (
             <div key={col.key}>
               <MonoLabel style={{ color: col.color, marginBottom: 10, display: "block" }}>

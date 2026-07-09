@@ -162,16 +162,20 @@ async function fetchSubgraph(
     const next: FocusNode[] = [];
     for (const [kind, ids] of byKind) {
       for (const batch of chunk(ids, IN_BATCH)) {
-        const { data: up } = await supabase
-          .from("artifact_lineage")
-          .select(cols)
-          .eq("child_kind", kind)
-          .in("child_id", batch);
-        const { data: down } = await supabase
-          .from("artifact_lineage")
-          .select(cols)
-          .eq("parent_kind", kind)
-          .in("parent_id", batch);
+        // Parallelize the two independent queries: parents (up) and children (down).
+        // Both queries on the same batch can run concurrently instead of serially.
+        const [{ data: up }, { data: down }] = await Promise.all([
+          supabase
+            .from("artifact_lineage")
+            .select(cols)
+            .eq("child_kind", kind)
+            .in("child_id", batch),
+          supabase
+            .from("artifact_lineage")
+            .select(cols)
+            .eq("parent_kind", kind)
+            .in("parent_id", batch),
+        ]);
         // The dynamic `cols` string defeats the client's row-type inference (it
         // returns GenericStringError[]); cast through unknown, the same escape hatch
         // hydrateTitles uses for its dynamic table name.

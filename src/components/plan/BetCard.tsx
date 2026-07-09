@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { MonoLabel, VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
@@ -80,7 +80,7 @@ function MeasureLine({ measure }: { measure: string }) {
  * commit time), and the "why is this here" audit trail (RoadmapHistory,
  * reused unchanged).
  */
-export function BetCard({
+function BetCardComponent({
   id,
   title,
   measure,
@@ -311,3 +311,6 @@ export function BetCard({
     </div>
   );
 }
+
+// Memoize BetCard so it doesn't re-render when sibling rows' selection state changes.
+export const BetCard = memo(BetCardComponent);
