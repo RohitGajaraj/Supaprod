@@ -1589,11 +1589,19 @@ function ModelsTab() {
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
 
   const [defaultModel, setDefaultModel] = useState("google/gemini-3-flash-preview");
+  const [agenticModel, setAgenticModel] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [editingAgentic, setEditingAgentic] = useState(false);
 
   useEffect(() => {
-    const p = profile.data?.profile as { default_model?: string } | null;
-    if (p) setDefaultModel(p.default_model ?? "google/gemini-3-flash-preview");
+    const p = profile.data?.profile as {
+      default_model?: string;
+      agentic_model?: string | null;
+    } | null;
+    if (p) {
+      setDefaultModel(p.default_model ?? "google/gemini-3-flash-preview");
+      setAgenticModel(p.agentic_model ?? null);
+    }
   }, [profile.data]);
 
   const saveModel = useMutation({
@@ -1606,7 +1614,19 @@ function ModelsTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // MA-2: save agentic model for automatic/background runs
+  const saveAgenticModel = useMutation({
+    mutationFn: () => mUpdate({ data: { agentic_model: agenticModel } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      setEditingAgentic(false);
+      toast.success("Agentic model saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const current = MODELS.find((m) => m.id === defaultModel);
+  const currentAgentic = agenticModel ? MODELS.find((m) => m.id === agenticModel) : null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1684,6 +1704,89 @@ function ModelsTab() {
               onClick={() => saveModel.mutate()}
             >
               {saveModel.isPending ? "Saving…" : "Save · chat and agent runs use it"}
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* MA-2: agentic model for automatic/background runs (researcher-tick, cluster-tick, etc) */}
+      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+        {profile.isLoading ? (
+          <div
+            className="mono-label"
+            style={{ padding: "24px 0", textAlign: "center", color: "var(--ink-faint)" }}
+          >
+            loading…
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "13px 18px",
+              borderBottom: editingAgentic ? "1px solid var(--hairline)" : "none",
+              fontSize: 13,
+            }}
+          >
+            <span style={{ flex: 1, color: "var(--ink-muted)" }}>
+              Agentic · automatic runs (researcher, cluster, reflection)
+            </span>
+            <span className="mono-label" style={{ color: "var(--ink)" }}>
+              {!agenticModel
+                ? "Auto"
+                : currentAgentic
+                  ? currentAgentic.label
+                  : agenticModel}
+            </span>
+            <span className="mono-label" style={{ fontSize: 9 }}>
+              {!agenticModel
+                ? "routed"
+                : currentAgentic
+                  ? currentAgentic.live
+                    ? "gateway"
+                    : "byo"
+                  : "unknown"}
+            </span>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => setEditingAgentic((v) => !v)}
+            >
+              Change
+            </button>
+          </div>
+        )}
+        {editingAgentic ? (
+          <div className="fade-up" style={{ display: "flex", gap: 8, padding: "13px 18px" }}>
+            <select
+              className="input"
+              value={agenticModel ?? ""}
+              onChange={(e) => setAgenticModel(e.target.value || null)}
+              aria-label="Agentic model for automatic runs"
+            >
+              <option value="">Auto: best model per task</option>
+              <optgroup label="Live (Lovable AI Gateway)">
+                {MODELS.filter((m) => m.live).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}: {m.desc}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Adapter-ready (platform / enterprise key)">
+                {MODELS.filter((m) => !m.live).map((m) => (
+                  <option key={m.id} value={m.id} disabled>
+                    {m.label}: {m.desc}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            <button
+              className="btn btn-primary btn-sm"
+              style={{ flexShrink: 0 }}
+              disabled={saveAgenticModel.isPending}
+              onClick={() => saveAgenticModel.mutate()}
+            >
+              {saveAgenticModel.isPending ? "Saving…" : "Save"}
             </button>
           </div>
         ) : null}

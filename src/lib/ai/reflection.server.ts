@@ -26,6 +26,8 @@ export type ReflectionInput = {
   finalMsg: string;
   /** Optional pre-rendered step summary (cheaper than re-querying). */
   stepSummary?: string;
+  /** MA-2: model used for this run's reflection. When provided, uses this model. */
+  model?: string;
 };
 
 export type ReflectionRow = {
@@ -113,15 +115,22 @@ export async function autoReflect(
       input.stepSummary,
     );
 
-    // Respect the user's active model preference; fall back to Gemini if not set.
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("default_model")
-      .eq("id", input.userId)
-      .maybeSingle();
-    const agenticModel =
-      (prof as { default_model?: string | null } | null)?.default_model?.trim() ||
-      "google/gemini-2.5-flash";
+    // MA-2: use the model passed from the run (already resolved + persisted),
+    // or read agentic_model from profiles, or fall back to default_model, or Gemini.
+    let agenticModel = input.model?.trim();
+    if (!agenticModel) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("agentic_model, default_model")
+        .eq("id", input.userId)
+        .maybeSingle();
+      agenticModel =
+        (prof as { agentic_model?: string | null; default_model?: string | null } | null)
+          ?.agentic_model?.trim() ||
+        (prof as { agentic_model?: string | null; default_model?: string | null } | null)
+          ?.default_model?.trim() ||
+        "google/gemini-2.5-flash";
+    }
 
     const res = await callModel(supabase, input.userId, {
       surface: "agent",

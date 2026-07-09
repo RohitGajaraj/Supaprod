@@ -348,6 +348,13 @@ export async function runAgentLoop(
     workspaceId = (ws as string | null) ?? null;
   }
 
+  // MA-2: resolve the active model before creating the run row so it can be persisted
+  // and used consistently across all steps. input.model can override (used in tests/internal).
+  const resolvedModel =
+    !input.model || input.model === "auto"
+      ? await resolveBestAgentModelForUser(supabase, userId)
+      : input.model;
+
   // Backpressure: cap concurrent running missions per workspace. Over-cap
   // missions are enqueued and promoted by the resume-runs sweeper.
   if (workspaceId) {
@@ -370,6 +377,7 @@ export async function runAgentLoop(
           mission_id: input.missionId ?? null,
           mission_spend_cap_usd: input.missionSpendCapUsd ?? null,
           mission_token_cap: input.missionTokenCap ?? null,
+          model: resolvedModel,
         })
         .select("id")
         .single();
@@ -387,6 +395,7 @@ export async function runAgentLoop(
   }
 
   // Create an agent_runs row so mission caps + usage can be tracked.
+  // MA-2: include the resolved model so it's persisted and available to resumeAgentLoop.
   const { data: runRow, error: runInsertErr } = await supabase
     .from("agent_runs")
     .insert({
@@ -400,6 +409,7 @@ export async function runAgentLoop(
       mission_id: input.missionId ?? null,
       mission_spend_cap_usd: input.missionSpendCapUsd ?? null,
       mission_token_cap: input.missionTokenCap ?? null,
+      model: resolvedModel,
     })
     .select("id")
     .single();
@@ -556,10 +566,8 @@ export async function runAgentLoop(
     missionId: input.missionId ?? null,
     workspaceId,
   };
-  const model =
-    !input.model || input.model === "auto"
-      ? await resolveBestAgentModelForUser(supabase, userId)
-      : input.model;
+  // MA-2: use the pre-resolved model from above (already persisted in agent_runs).
+  const model = resolvedModel;
 
   const halted: { kind: string; reason: string } | null = null;
   const finalize = async (finalMsg: string) => {
@@ -585,6 +593,7 @@ export async function runAgentLoop(
     // Halted runs skip both — a halt is a governance signal that should not
     // be turned into a self-confirming "lesson" without operator review.
     if (!halted) {
+      // MA-2: pass the same model used for this run to reflection.
       await autoReflect(supabase, {
         userId,
         agentId: agent.id,
@@ -594,6 +603,7 @@ export async function runAgentLoop(
         traceId,
         goal: input.goal,
         finalMsg,
+        model: resolvedModel,
       });
       await maybeAutoAdvanceArc(supabase, userId, agent.id, agent.slug);
     }

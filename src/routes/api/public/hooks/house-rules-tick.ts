@@ -138,13 +138,17 @@ async function distillWorkspace(
     })
     .join("\n");
 
+  // MA-2: respect owner's agentic_model if pinned, then default_model, then Gemini.
   const { data: ownerProf } = await db
     .from("profiles")
-    .select("default_model")
+    .select("agentic_model, default_model")
     .eq("id", ownerId)
     .maybeSingle();
   const model =
-    (ownerProf as { default_model?: string | null } | null)?.default_model?.trim() ||
+    (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
+      ?.agentic_model?.trim() ||
+    (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
+      ?.default_model?.trim() ||
     "google/gemini-2.5-flash";
 
   const res = await callModel(supabaseAdmin as never, ownerId, {

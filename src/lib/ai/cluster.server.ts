@@ -96,10 +96,24 @@ Return STRICT JSON only, no prose, no markdown fences.`;
 
   const user = `Signals:\n${indexed}\n\nReturn JSON:\n{"themes":[{"title":"...","summary":"...","severity":3,"confidence":0.7,"members":[0,2,5]}]}`;
 
+  // MA-2: use user's pinned agentic model if set, else default to cluster-optimized model
+  let clusterModel = "google/gemini-2.5-pro";
+  try {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("agentic_model")
+      .eq("id", userId)
+      .maybeSingle();
+    const pinnedModel = (prof as { agentic_model?: string | null } | null)?.agentic_model?.trim();
+    if (pinnedModel) clusterModel = pinnedModel;
+  } catch {
+    // Non-fatal: use the default if profile lookup fails
+  }
+
   const result = await callModel(supabase, userId, {
     surface: "sense",
     surface_ref: "cluster_signals",
-    model: "google/gemini-2.5-pro",
+    model: clusterModel,
     fallbackModel: "google/gemini-2.5-flash",
     responseFormat: "json_object",
     workspaceId,
