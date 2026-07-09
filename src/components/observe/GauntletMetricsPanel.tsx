@@ -163,7 +163,10 @@ function MemoryCompoundsCard({
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <span key={label} className="mono-label" style={{ fontSize: 9 }}>
-                  <strong className="tabular-nums" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                  <strong
+                    className="tabular-nums"
+                    style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
                     {value}
                   </strong>{" "}
                   {label}
@@ -179,7 +182,14 @@ function MemoryCompoundsCard({
             : "Not enough data yet, memory tracking lights up on the next sync."}
         </p>
       )}
-      <div className="mono-label" style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10 }}>
+      <div
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 11,
+          color: "var(--text-faint)",
+          marginTop: 10,
+        }}
+      >
         NDR and expansion land here once billing ships (pricing, M-C).
       </div>
     </div>
@@ -243,7 +253,10 @@ function OutcomeAccuracyCard({
                 ] as [string, string][]
               ).map(([label, value]) => (
                 <span key={label} className="mono-label" style={{ fontSize: 9 }}>
-                  <strong className="tabular-nums" style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                  <strong
+                    className="tabular-nums"
+                    style={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
                     {value}
                   </strong>{" "}
                   {label}
@@ -259,7 +272,14 @@ function OutcomeAccuracyCard({
             : "Not enough data yet, outcome tracking lights up on the next sync."}
         </p>
       )}
-      <div className="mono-label" style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10 }}>
+      <div
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 11,
+          color: "var(--text-faint)",
+          marginTop: 10,
+        }}
+      >
         Accuracy is the validated share; causal memory-lift needs an on/off control we don't claim.
       </div>
     </div>
@@ -362,8 +382,13 @@ function MemoryDepthSplitCard({
         <p style={{ fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.45 }}>{notMsg}</p>
       )}
       <div
-        className="mono-label"
-        style={{ fontSize: 8, color: "var(--text-faint)", marginTop: 10, lineHeight: 1.5 }}
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 11,
+          color: "var(--text-faint)",
+          marginTop: 10,
+          lineHeight: 1.5,
+        }}
       >
         Correlational, within your account. We compare bets by how much memory had accumulated when
         each was decided, not a memory on/off test. Bets with deeper memory are usually also later
@@ -446,8 +471,13 @@ export function GauntletMetricsPanel() {
   return (
     <div>
       <div
-        className="mono-label"
-        style={{ fontSize: 9, color: "var(--text-faint)", marginBottom: 12, lineHeight: 1.5 }}
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 11.5,
+          color: "var(--text-faint)",
+          marginBottom: 12,
+          lineHeight: 1.5,
+        }}
       >
         The Gauntlet · the three proof metrics, read from real activity. The loop runs the
         reversible work; you make the calls. Sparse windows read "not enough data yet" — never an

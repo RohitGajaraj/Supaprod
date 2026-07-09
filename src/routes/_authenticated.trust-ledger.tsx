@@ -28,7 +28,8 @@ import {
   type TrustReceipt,
 } from "@/lib/trust-ledger.functions";
 import { shortHead } from "@/lib/trust-verify";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 import { relTimeCaps } from "@/components/discover/format";
 import {
   receiptStatusTone,
@@ -173,6 +174,7 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
             <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>
               {stripAutoPrefix(r.title)}
             </span>
+            {isAutoTitle(r.title) ? <AutoChip /> : null}
             <OutcomePill outcome={r.outcome} supersededBy={r.supersededBy} />
           </div>
           {r.rationale ? (

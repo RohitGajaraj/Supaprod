@@ -25,7 +25,8 @@ import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/d
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 import type { ReceiptEdge, TrustReceipt } from "@/lib/trust-ledger.functions";
 import { RECEIPT_PREFIX, receiptStatusTone, receiptStatusLabel, RECEIPT_TONE_VAR } from "./format";
 
@@ -233,6 +234,7 @@ export function ReceiptDetailSheet({
                   label={superseded ? "Superseded" : r.outcome === "proven" ? "Proven" : "Standing"}
                   tone={superseded ? "var(--text-muted)" : "var(--moss)"}
                 />
+                {isAutoTitle(r.title) ? <AutoChip /> : null}
               </>
             }
             time={

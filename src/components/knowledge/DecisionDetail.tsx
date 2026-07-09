@@ -28,7 +28,8 @@ import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
 import { DetailHeader, DetailSection, StatCell, StatStrip } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
 import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
 import { PanelSkeleton } from "./PanelSkeleton";
@@ -315,6 +316,7 @@ export function DecisionDetail({ id }: { id: string }) {
             <>
               <VerdictChip tone={OBS_STATUS_TONE[d.status]} />
               <StatusPill label={`From ${SOURCE_LABEL[sourceKind]}`} />
+              {isAutoTitle(d.title) ? <AutoChip /> : null}
             </>
           }
           time={

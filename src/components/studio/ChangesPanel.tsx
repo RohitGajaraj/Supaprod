@@ -693,7 +693,9 @@ export function ChangesPanel({
                   </div>
                 ) : null,
               )}
-              <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
+              <span
+                style={{ fontFamily: "var(--font-ui)", fontSize: 12.5, color: "var(--text-subtle)" }}
+              >
                 Drafts only. Nothing is sent, so copy what you want to use.
               </span>
             </div>
@@ -981,7 +983,9 @@ export function ChangesPanel({
             <div
               style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 10 }}
             >
-              <label className="mono-label" style={{ color: "var(--text-body)" }}>
+              <label
+                style={{ fontFamily: "var(--font-ui)", fontSize: 12.5, color: "var(--text-body)" }}
+              >
                 Touch list: one path per line. A trailing / matches a folder; * and ** are globs.
               </label>
               <textarea

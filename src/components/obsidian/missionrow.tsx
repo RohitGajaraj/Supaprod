@@ -2,6 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { StatusDot, STATUS_STYLES, STATUS_WORD, type StatusState } from "./status";
 import { VerdictChip, type VerdictTone } from "./verdict";
+import { AutoChip } from "@/components/cadence/AutoChip";
 
 export type MissionRowStatus = Extract<
   StatusState,
@@ -11,6 +12,8 @@ export type MissionRowStatus = Extract<
 export interface MissionRowProps {
   status: MissionRowStatus;
   title: string;
+  /** When true, a small "Auto" chip marks the row as a loop-raised mission. */
+  isAuto?: boolean;
   verdict?: VerdictTone;
   stepLabel: string;
   cost: string;
@@ -26,7 +29,7 @@ export interface MissionRowProps {
 /** Full-width real `<button>` row (README §5.12: every acting row is a
  * `<button>`). Hover is tonal (background fill), never spatial. */
 export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
-  ({ status, title, verdict, stepLabel, cost, time, traceLabel, onOpen, className }, ref) => (
+  ({ status, title, isAuto, verdict, stepLabel, cost, time, traceLabel, onOpen, className }, ref) => (
     <button
       ref={ref}
       type="button"
@@ -57,6 +60,7 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       >
         {title}
       </span>
+      {isAuto ? <AutoChip /> : null}
       {(status === "done" || status === "blocked") && verdict ? (
         <VerdictChip tone={verdict} />
       ) : null}

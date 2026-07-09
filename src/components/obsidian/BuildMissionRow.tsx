@@ -15,7 +15,7 @@ import { MissionRow } from "./missionrow";
 import { studioToMissionRowStatus, studioVerdict, MISSION_ROW_STEP_LABEL } from "./build-status";
 import { fmtCost } from "@/components/studio/studio-format";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
 
 export function BuildMissionRow({
@@ -39,6 +39,7 @@ export function BuildMissionRow({
         className="flex-1"
         status={status}
         title={stripAutoPrefix(session.title)}
+        isAuto={isAutoTitle(session.title)}
         verdict={verdict}
         stepLabel={MISSION_ROW_STEP_LABEL[status]}
         cost={fmtCost(session.cost_usd)}

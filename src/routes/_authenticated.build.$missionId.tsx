@@ -42,7 +42,8 @@ import { StatusChip, LOOM_CARD, SkeletonBlock } from "@/components/studio/studio
 import { fmtCost } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 
 type Tab = "changes" | "pr" | "preview" | "cost";
 const TABS: Tab[] = ["changes", "pr", "preview", "cost"];
@@ -571,6 +572,7 @@ function BuildSessionPage() {
                   {stripAutoPrefix(mission.title)}
                 </h1>
               )}
+              {isAutoTitle(mission.title) ? <AutoChip /> : null}
               <StatusChip status={mission.status} />
             </div>
             {/* §6: the maker's mark — a static 24px thread under the title. */}

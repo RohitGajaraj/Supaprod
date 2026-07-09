@@ -74,7 +74,17 @@ export function ReliabilityGlance() {
           }}
         >
           <span style={{ color: "var(--text-subtle)" }}>Heads up</span>
-          <span style={{ color: "var(--text-body)" }}>{parts.join(" · ")}</span>
+          <span
+            style={{
+              color: "var(--text-body)",
+              fontFamily: "var(--font-ui)",
+              fontSize: 12.5,
+              letterSpacing: "normal",
+              textTransform: "none",
+            }}
+          >
+            {parts.join(" · ")}
+          </span>
           <span style={{ color: "var(--glacier)" }}>details →</span>
         </div>
       </PopoverTrigger>
