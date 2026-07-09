@@ -47,6 +47,7 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
       spendRes,
       acceptRes,
       accuracyRes,
+      profileRes,
     ] = await Promise.all([
       supabase
         .from("tasks")
@@ -110,6 +111,9 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
         .in("verdict", ["validated", "missed", "mixed"])
         .gte("created_at", ninetyAgo)
         .limit(2000),
+      // The author byline (headline + closing line), own-row RLS -- same precedent as the
+      // Today brief's greeting (copilot.functions.ts).
+      supabase.from("profiles").select("display_name,full_name").maybeSingle(),
     ]);
 
     const tasks = (tasksRes.data ?? []) as {
@@ -137,9 +141,9 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
     const activeMissions = ((missionsRes.data ?? []) as { title: string | null }[])
       .map((m) => m.title?.trim())
       .filter((t): t is string => !!t);
-    const upNext = ((nextRes.data ?? []) as { title: string | null }[])
-      .map((o) => o.title?.trim())
-      .filter((t): t is string => !!t);
+    const upNext = ((nextRes.data ?? []) as { title: string | null; ice_score: number | null }[])
+      .map((o) => ({ title: o.title?.trim() ?? "", iceScore: o.ice_score ?? null }))
+      .filter((o) => o.title.length > 0);
 
     const needsYou =
       (apprPendingRes.data ?? []).length +
@@ -150,6 +154,12 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
       (s, e) => s + Number(e.est_cost_usd || 0),
       0,
     );
+
+    const profile = profileRes.data as {
+      display_name: string | null;
+      full_name: string | null;
+    } | null;
+    const authorName = profile?.display_name?.trim() || profile?.full_name?.trim() || null;
 
     // Acceptance (14d): approved/executed/failed are yes-decisions; rejected is the no.
     // Reads `status` (the terminal decision), matching gauntlet.getAcceptanceRate exactly so
@@ -173,6 +183,7 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
     return buildStakeholderUpdate({
       periodLabel: "the last 7 days",
       workspaceName: data.workspaceName ?? null,
+      authorName,
       shipped,
       decisions,
       validated,

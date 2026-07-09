@@ -18,7 +18,10 @@ const full: StakeholderSnapshot = {
   decisions: 3,
   validated: 1,
   activeMissions: ["Ship Escalation Policy Engine v0", "Smart routing beta"],
-  upNext: ["Per-segment tone calibration", "Macro suggestion from resolved history"],
+  upNext: [
+    { title: "Per-segment tone calibration", iceScore: null },
+    { title: "Macro suggestion from resolved history", iceScore: null },
+  ],
   needsYou: 3,
   metrics: { acceptancePct: 100, autonomyPct: 50, outcomeAccuracyPct: 100 },
   spendUsd: 0.05,
@@ -149,5 +152,60 @@ describe("buildStakeholderUpdate", () => {
 
   test("is deterministic - same snapshot, identical output", () => {
     expect(buildStakeholderUpdate(full)).toEqual(buildStakeholderUpdate(full));
+  });
+
+  test("no authorName: headline stays byte-identical to the anonymous format", () => {
+    const u = buildStakeholderUpdate(full);
+    expect(u.headline).toBe("Project Glasswing, the last 7 days");
+  });
+
+  test("authorName present: headline opens with the PM's name, middot, then the dateline", () => {
+    const u = buildStakeholderUpdate({ ...full, authorName: "Rohit" });
+    expect(u.headline).toBe("Rohit's update · Project Glasswing, the last 7 days");
+  });
+
+  test("authorName present: the closing line names the PM instead of 'you'", () => {
+    const u = buildStakeholderUpdate({ ...full, authorName: "Rohit" });
+    expect(u.markdown).toContain("3 calls waiting on Rohit.");
+    expect(u.markdown).not.toContain("waiting on you");
+  });
+
+  test("authorName absent or blank: closing line is unchanged", () => {
+    expect(buildStakeholderUpdate(full).markdown).toContain("3 calls waiting on you.");
+    expect(buildStakeholderUpdate({ ...full, authorName: "  " }).markdown).toContain(
+      "3 calls waiting on you.",
+    );
+    expect(buildStakeholderUpdate({ ...full, authorName: null }).markdown).toContain(
+      "3 calls waiting on you.",
+    );
+  });
+
+  test("Next bullets carry the ICE score when it is a positive number", () => {
+    const u = buildStakeholderUpdate({
+      ...full,
+      upNext: [
+        { title: "Per-segment tone calibration", iceScore: 8.47 },
+        { title: "Macro suggestion from resolved history", iceScore: 0 },
+        { title: "Escalation digest for VIP accounts", iceScore: null },
+      ],
+    });
+    const next = u.sections.find((s) => s.title === "Next")!;
+    expect(next.bullets).toContain("Per-segment tone calibration (ICE 8.5)");
+    // Zero and null ICE scores fall back to the plain title, never a fabricated "(ICE 0.0)".
+    expect(next.bullets).toContain("Macro suggestion from resolved history");
+    expect(next.bullets).toContain("Escalation digest for VIP accounts");
+  });
+
+  test("Next list capping still works on the ICE-formatted strings", () => {
+    const many = Array.from({ length: 7 }, (_, i) => ({
+      title: `Opportunity ${i + 1}`,
+      iceScore: 5,
+    }));
+    const next = buildStakeholderUpdate({ ...full, upNext: many }).sections.find(
+      (s) => s.title === "Next",
+    )!;
+    expect(next.bullets.length).toBe(6); // 5 shown + 1 overflow
+    expect(next.bullets[0]).toBe("Opportunity 1 (ICE 5.0)");
+    expect(next.bullets[5]).toContain("2 more");
   });
 });

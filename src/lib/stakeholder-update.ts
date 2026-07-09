@@ -19,6 +19,12 @@ export type StakeholderSnapshot = {
   /** e.g. "the last 7 days". */
   periodLabel: string;
   workspaceName: string | null;
+  /**
+   * The signed-in author's display name, when known. Personalizes the headline ("Rohit's
+   * update...") and the closing line ("N calls waiting on Rohit."). Null/omitted keeps the
+   * anonymous voice byte-identical to the pre-authorName format.
+   */
+  authorName?: string | null;
   /** Deep-work tasks completed in the period. */
   shipped: number;
   /** Decisions (approvals) decided in the period. */
@@ -27,8 +33,8 @@ export type StakeholderSnapshot = {
   validated: number;
   /** Names of currently-running missions. */
   activeMissions: string[];
-  /** Titles of the now/next roadmap commitments. */
-  upNext: string[];
+  /** The now/next roadmap commitments, each with its ICE score when known. */
+  upNext: { title: string; iceScore: number | null }[];
   /** Size of the calls queue (decisions waiting on the human). */
   needsYou: number;
   /** The three proof metrics, each 0..100 or null when there is not enough data. */
@@ -79,7 +85,12 @@ function capList(items: string[]): string[] {
 /** PURE. Compose the live snapshot into a headline + signal-first lede + sections + markdown. */
 export function buildStakeholderUpdate(s: StakeholderSnapshot): StakeholderUpdateResult {
   const ws = s.workspaceName?.trim() || "Workspace";
-  const headline = `${ws}, ${s.periodLabel}`;
+  const author = s.authorName?.trim() || null;
+  // A middot, never an em/en dash (humanized-output law), separates the author's byline from
+  // the dateline. Without an author, the headline is byte-identical to the anonymous format.
+  const headline = author
+    ? `${author}'s update · ${ws}, ${s.periodLabel}`
+    : `${ws}, ${s.periodLabel}`;
 
   // Interpreted metric phrasing - the register shifts to "meaning, not data".
   const acc = s.metrics.acceptancePct;
@@ -122,7 +133,15 @@ export function buildStakeholderUpdate(s: StakeholderSnapshot): StakeholderUpdat
 
   if (s.activeMissions.length)
     sections.push({ title: "In flight", bullets: capList(s.activeMissions) });
-  if (s.upNext.length) sections.push({ title: "Next", bullets: capList(s.upNext) });
+  if (s.upNext.length) {
+    // Real product metrics, not bare titles: name the ICE score when there is one to show.
+    const upNextBullets = s.upNext.map(({ title, iceScore }) =>
+      typeof iceScore === "number" && iceScore > 0
+        ? `${title} (ICE ${iceScore.toFixed(1)})`
+        : title,
+    );
+    sections.push({ title: "Next", bullets: capList(upNextBullets) });
+  }
 
   // Health: interpreted metrics + spend. Null metrics are omitted, never shown as 0% or null.
   const healthBullets: string[] = [];
@@ -140,7 +159,7 @@ export function buildStakeholderUpdate(s: StakeholderSnapshot): StakeholderUpdat
     for (const b of sec.bullets) lines.push(`- ${b}`);
     lines.push("");
   }
-  if (s.needsYou > 0) lines.push(`${count(s.needsYou, "call")} waiting on you.`);
+  if (s.needsYou > 0) lines.push(`${count(s.needsYou, "call")} waiting on ${author ?? "you"}.`);
 
   const markdown = lines
     .join("\n")

@@ -39,6 +39,15 @@ function RowTag({ text, color }: { text: string; color: string }) {
   );
 }
 
+/** Quiet mono due-date label for the backlog list: "Jul 15" or "No date". */
+function fmtDueDate(dueDate: string | null): string {
+  if (!dueDate) return "No date";
+  return new Date(`${dueDate}T00:00:00`).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export function TasksCard() {
   const qc = useQueryClient();
   const showToast = useToast();
@@ -52,12 +61,14 @@ export function TasksCard() {
 
   const [draft, setDraft] = React.useState("");
   const [expanded, setExpanded] = React.useState(false);
+  const [backlogOpen, setBacklogOpen] = React.useState(false);
 
   const addTask = useMutation({
     mutationFn: (title: string) =>
       mCreate({ data: { title, due_date: todayStr(), project_id: activeProductId ?? null } }),
     onSuccess: () => {
       setDraft("");
+      showToast("Added to today's list.");
       void qc.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (e: Error) => showToast(e.message),
@@ -102,6 +113,11 @@ export function TasksCard() {
   const openCount = openDueCountOf(dueRows);
   const visible = expanded ? dueRows : dueRows.slice(0, VISIBLE_CAP);
   const hiddenCount = dueRows.length - visible.length;
+
+  // Open tasks that exist but never surface above: no due date, or a due
+  // date past today. Without this they silently vanish from the Desk.
+  const dueRowIds = new Set(dueRows.map((t) => t.id));
+  const backlogRows = allRows.filter((t) => t.status !== "done" && !dueRowIds.has(t.id));
 
   if (tasks.isPending) {
     return (
@@ -184,6 +200,37 @@ export function TasksCard() {
           ) : null}
         </div>
       )}
+
+      {backlogRows.length > 0 ? (
+        <div style={{ marginBottom: 10 }}>
+          <Button
+            variant="tertiary"
+            onClick={() => setBacklogOpen((v) => !v)}
+            style={{ fontSize: 12, alignSelf: "flex-start" }}
+          >
+            {backlogOpen ? "Hide backlog" : `Backlog (${backlogRows.length})`}
+          </Button>
+          {backlogOpen ? (
+            <div className="flex flex-col" style={{ gap: 6, marginTop: 8 }}>
+              {backlogRows.map((t) => (
+                <div key={t.id} className="flex items-center" style={{ gap: 9 }}>
+                  <span
+                    className="min-w-0 flex-1 truncate"
+                    style={{ fontSize: 13, color: "var(--text-body)" }}
+                  >
+                    {t.title}
+                  </span>
+                  <span
+                    style={{ ...mono, fontSize: 9.5, color: "var(--text-faint)", flexShrink: 0 }}
+                  >
+                    {fmtDueDate(t.due_date)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <form
         className="flex items-center"
