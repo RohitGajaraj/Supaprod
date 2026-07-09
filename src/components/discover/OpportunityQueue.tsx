@@ -214,8 +214,12 @@ export function OpportunityQueue() {
   // corroboration = the backing theme's signal frequency, confidence, impact,
   // created_at, id) so two equal-ICE bets never coin-flip and #1 is the single
   // best bet. See ranking.ts.
-  const ranked = rankOpportunities(rows, (o) =>
-    o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
+  const ranked = useMemo(
+    () =>
+      rankOpportunities(rows, (o) =>
+        o.theme_id ? (themeById.get(o.theme_id)?.frequency ?? 0) : 0,
+      ),
+    [rows, themeById],
   );
   const activeOpp = openId ? (rows.find((o) => o.id === openId) ?? null) : null;
   const activeRanked = openId ? (ranked.find((r) => r.opp.id === openId) ?? null) : null;

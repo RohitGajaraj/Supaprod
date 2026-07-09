@@ -41,6 +41,7 @@ type SimNode = SimulationNodeDatum & {
   title: string;
   influence: number;
   r: number;
+  label: string;
   x: number;
   y: number;
 };
@@ -344,10 +345,10 @@ export function GraphForceCanvas({
       const sx = w / 2 + cam.x + n.x * cam.k;
       const sy = h / 2 + cam.y + n.y * cam.k;
       if (sx < -40 || sx > w + 40 || sy < -20 || sy > h + 30) continue;
-      const label = truncateTitle(n.title || kindLabel(n.kind));
+      // Use pre-computed label instead of recomputing every frame (was: truncateTitle(n.title || kindLabel(n.kind))).
       ctx.fillStyle = n.key === selected || n.key === hovered ? chrome.labelBright : chrome.label;
       ctx.globalAlpha = litNode ? 1 : 0.35;
-      ctx.fillText(label, sx, sy + n.r * cam.k + 13);
+      ctx.fillText(n.label, sx, sy + n.r * cam.k + 13);
     }
     ctx.globalAlpha = 1;
   };
@@ -425,6 +426,8 @@ export function GraphForceCanvas({
         title: n.title,
         influence: n.influence,
         r: Math.round(nodeRadius(n, n.key === graph.focusKey) * 2) / 2,
+        // Pre-compute label once at node creation (not per-frame in draw()).
+        label: truncateTitle(n.title || kindLabel(n.kind)),
         x: prior?.x ?? n.x,
         y: prior?.y ?? n.y,
       };

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
   ScrollText,
   Gavel,
@@ -558,9 +559,11 @@ function TrustLedgerPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const fList = useServerFn(listTrustReceipts);
+  // Debounce search input so keystrokes don't fire a request per character.
+  const debouncedQ = useDebouncedValue(q, 275);
   const query = useQuery({
-    queryKey: ["trust-receipts", kind, outcome, q],
-    queryFn: () => fList({ data: { kind, outcome, q: q.trim() || undefined } }),
+    queryKey: ["trust-receipts", kind, outcome, debouncedQ],
+    queryFn: () => fList({ data: { kind, outcome, q: debouncedQ.trim() || undefined } }),
   });
 
   const receipts = query.data?.receipts ?? [];

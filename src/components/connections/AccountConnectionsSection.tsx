@@ -119,6 +119,15 @@ function useConnectorActions(qc: QueryClient) {
   const fCalStart = useServerFn(startCalendarConnect);
   const fCalSave = useServerFn(saveCalendarConnection);
 
+  const pollRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Clean up polling interval on unmount to prevent lingering queries after navigation.
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
   const mGithub = useMutation({
     mutationFn: () => fStartGithub(),
     onSuccess: ({ installUrl }) => {
@@ -126,9 +135,9 @@ function useConnectorActions(qc: QueryClient) {
       // The callback writes to the DB; the parent tab detects it via polling.
       window.open(installUrl, "_blank", "noopener");
       const deadline = Date.now() + 5 * 60 * 1000;
-      const iv = setInterval(() => {
+      pollRef.current = setInterval(() => {
         qc.invalidateQueries({ queryKey: ["connections"] });
-        if (Date.now() > deadline) clearInterval(iv);
+        if (Date.now() > deadline) clearInterval(pollRef.current);
       }, 3_000);
     },
     onError: (e: Error) => toast.error(e.message),
