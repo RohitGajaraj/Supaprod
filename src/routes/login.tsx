@@ -29,13 +29,22 @@ export const Route = createFileRoute("/login")({
     typeof search.next === "string" ? { next: search.next } : {},
   beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) return;
-    const dest = safeNextPath(search.next);
-    // Preserve the SPA redirect for the common (no-next) case; a real next is an
-    // opaque internal path, so navigate via the browser to reach it reliably.
-    if (dest === "/") throw redirect({ to: "/" });
-    window.location.replace(dest);
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      const dest = safeNextPath(search.next);
+      // Preserve the SPA redirect for the common (no-next) case; a real next is an
+      // opaque internal path, so navigate via the browser to reach it reliably.
+      if (dest === "/") throw redirect({ to: "/" });
+      window.location.replace(dest);
+    } catch (error) {
+      // Suppress stale refresh-token errors from prior session's localStorage.
+      // The login form will handle a fresh signin attempt cleanly.
+      if (error instanceof Error && error.name === "Error") {
+        // Re-throw redirect errors (they are control flow)
+        if ("statusCode" in error) throw error;
+      }
+    }
   },
   component: LoginPage,
   head: () => ({ meta: [{ title: "Sign in · Cadence" }] }),
