@@ -198,6 +198,43 @@ describe("signalPreview", () => {
     const json = JSON.stringify(["Item one", "Item two", "Item three"]);
     expect(signalPreview(json)).toContain("Item");
   });
+
+  test("extracts gist from nested JSON without title/body keys (recursion fallback)", () => {
+    // Nested object without the standard keys should fall back to finding readable nested values
+    const json = JSON.stringify({ custom: { title: "Nested Title", description: "Nested desc" } });
+    const result = signalPreview(json);
+    expect(result).toContain("Nested");
+  });
+
+  test("strips fenced code blocks from markdown", () => {
+    const text = "Check this:\n```\ncode here\n```\nMore text";
+    expect(signalPreview(text)).not.toContain("```");
+  });
+
+  test("strips inline code but preserves text", () => {
+    expect(signalPreview("Use `const x = 5` in your code")).toContain("const x = 5");
+    expect(signalPreview("Use `const x = 5` in your code")).not.toContain("`");
+  });
+
+  test("strips markdown heading markers", () => {
+    expect(signalPreview("# Main Title")).toBe("Main Title");
+    expect(signalPreview("## Subtitle here")).toBe("Subtitle here");
+  });
+
+  test("strips blockquote markers", () => {
+    expect(signalPreview("> This is quoted")).not.toContain(">");
+  });
+
+  test("strips list bullets", () => {
+    const list = "- Item one\n- Item two";
+    expect(signalPreview(list)).not.toContain("-");
+    expect(signalPreview(list)).toContain("Item one");
+  });
+
+  test("strips bold and strikethrough markers", () => {
+    expect(signalPreview("This is **bold** and ~~struck~~")).not.toContain("*");
+    expect(signalPreview("This is **bold** and ~~struck~~")).not.toContain("~");
+  });
 });
 
 describe("signalCleanBody", () => {
