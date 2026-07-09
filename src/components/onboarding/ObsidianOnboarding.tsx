@@ -222,7 +222,19 @@ export function ObsidianOnboarding() {
   const needsDetails =
     !!profileQ.data && !(profileQ.data.profile as { display_name?: string } | null)?.display_name;
 
-  const [phase, setPhase] = useState<Phase>("arrival");
+  // SW-7 step-0 rerun (2026-07-09): the step state was memory-only, so any
+  // refresh (or a full-page bounce that missed ?connected=) restarted the
+  // whole flow at arrival. Persist the phase for the tab's lifetime; the
+  // finish mutation clears it on the way to Today.
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (typeof window === "undefined") return "arrival";
+    const saved = window.sessionStorage.getItem("cadence.onboarding.phase");
+    return saved === "track" || saved === "connect" || saved === "critic" ? saved : "arrival";
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.setItem("cadence.onboarding.phase", phase);
+  }, [phase]);
   const [belief, setBelief] = useState<string>(FALLBACK_BELIEF);
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
     null,
@@ -386,6 +398,7 @@ export function ObsidianOnboarding() {
       if (data.session) await markOnboarded(data.session.user.id);
     },
     onSuccess: () => {
+      window.sessionStorage.removeItem("cadence.onboarding.phase");
       window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
       navigate({ to: "/today" });
     },
@@ -393,7 +406,9 @@ export function ObsidianOnboarding() {
       // fComplete itself (or the session/markOnboarded read) failed - the one
       // failure mode the teardown catches above can't cover. Still land on
       // Today per the "never traps" intent, but this case is a real gap: the
-      // gate will bounce back next load since onboarded was never set.
+      // gate will bounce back next load since onboarded was never set. The
+      // persisted phase is intentionally KEPT here so the bounce-back resumes
+      // at the critic step instead of restarting the whole flow.
       console.error("onboarding completion failed:", e);
       window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
       navigate({ to: "/today" });
@@ -435,9 +450,12 @@ export function ObsidianOnboarding() {
   }, []);
 
   if (profileQ.isLoading)
+    // Never a dead-blank screen: after the login redirect this state was
+    // observed holding for 14+ seconds while the profile query settled, and
+    // the empty span read as a broken app (SW-7 step-0 rerun, 2026-07-09).
     return (
       <Screen>
-        <span />
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Waking your workspace…</p>
       </Screen>
     );
   if (needsDetails && !detailsDone) {
