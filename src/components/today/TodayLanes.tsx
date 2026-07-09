@@ -14,7 +14,8 @@ import type {
   TodayLane4,
   WatchItem,
 } from "@/lib/today-lanes.functions";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AutoChip } from "@/components/cadence/AutoChip";
 
 function fmtUsd(n: number): string {
   if (n <= 0) return "$0";
@@ -226,6 +227,7 @@ export function SwarmActivityLane({
                   >
                     {stripAutoPrefix(g.title)}
                   </span>
+                  {isAutoTitle(g.title) ? <AutoChip /> : null}
                   {g.cost_usd > 0 ? (
                     <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-subtle)" }}>
                       {fmtUsd(g.cost_usd)}
