@@ -427,6 +427,7 @@ export const Route = createFileRoute("/api/public/hooks/ci-poll-tick")({
             exhausted,
             previewsDeployed,
             failures,
+            debugMarker: "SW7-DEPLOY-CHECK-4de04d4c",
           });
         });
       },
