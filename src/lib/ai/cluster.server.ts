@@ -194,15 +194,25 @@ Return STRICT JSON only, no prose, no markdown fences.`;
     const claimedIds = (claimedRows ?? []).map((r) => (r as { id: string }).id);
     // SW-5 chain audit: the stamp is fail-soft so one bad edge write can never
     // abort the remaining themes after their signals were already claimed.
-    for (const sid of claimedIds) {
-      await recordLineageSafe(supabase, userId, {
-        parent_kind: "signal",
-        parent_id: sid,
-        child_kind: "theme",
-        child_id: theme.id,
-        rationale: "Clustered into theme",
-        created_by_agent: "discovery-scout",
-      });
+    // PERF: batch lineage inserts instead of N+1 individual upserts.
+    if (claimedIds.length > 0) {
+      try {
+        const edges = claimedIds.map((sid) => ({
+          user_id: userId,
+          parent_kind: "signal" as const,
+          parent_id: sid,
+          child_kind: "theme" as const,
+          child_id: theme.id,
+          relation: "promoted",
+          rationale: "Clustered into theme",
+          created_by_agent: "discovery-scout",
+        }));
+        await supabase.from("artifact_lineage").upsert(edges, {
+          onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+        });
+      } catch {
+        // Best-effort provenance; the artifacts already exist and are claimed.
+      }
     }
     created++;
   }

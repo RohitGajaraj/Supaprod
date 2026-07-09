@@ -255,44 +255,59 @@ async function insertDesignMemoryItems(
   // url_import/pasted/learned entries stand for a human's call, same as house_rules.
   const status: DesignMemoryStatus = sourceKind === "default" ? "approved" : "pending";
 
-  let inserted = 0;
-  for (const item of items) {
+  // PERF: batch insert design memory items instead of N+1 individual inserts.
+  const toInsert = items.map((item) => {
     const screenedContent = assessAndQuarantine(item.content);
     const screenedRationale = item.rationale ? assessAndQuarantine(item.rationale) : null;
-    const { data: row, error } = await supabase
-      .from("design_memory")
-      .insert({
-        user_id: userId,
-        workspace_id: workspaceId,
-        category: item.category,
-        title: item.title,
-        content: screenedContent.text,
-        rationale: screenedRationale?.text ?? null,
-        source_kind: sourceKind,
-        status,
-      })
-      .select("id")
-      .single();
-    if (error || !row) continue;
-    inserted += 1;
+    return {
+      user_id: userId,
+      workspace_id: workspaceId,
+      category: item.category,
+      title: item.title,
+      content: screenedContent.text,
+      rationale: screenedRationale?.text ?? null,
+      source_kind: sourceKind,
+      status,
+      originalItem: item, // Keep reference for lineage lookup
+    };
+  });
 
-    const supersedes = activeBySlot.get(`${item.category}:${normalizeTitle(item.title)}`);
-    if (supersedes) {
-      await supabase.from("artifact_lineage").upsert(
-        {
-          user_id: userId,
-          parent_kind: "design_memory",
-          parent_id: (row as { id: string }).id,
-          child_kind: "design_memory",
-          child_id: supersedes.id,
-          relation: "supersedes",
-          rationale: item.rationale ?? null,
-          created_by_agent: null,
-        },
-        { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
-      );
-    }
+  const { data: rows, error: insertError } = await supabase
+    .from("design_memory")
+    .insert(
+      toInsert.map(({ originalItem, ...row }) => row),
+    )
+    .select("id, category, title");
+
+  if (insertError || !rows) return 0;
+
+  const inserted = rows.length;
+
+  // Batch upsert lineage edges for items that supersede existing entries.
+  const lineageEdges = rows
+    .map((row, idx) => {
+      const item = toInsert[idx]!.originalItem;
+      const supersedes = activeBySlot.get(`${item.category}:${normalizeTitle(item.title)}`);
+      if (!supersedes) return null;
+      return {
+        user_id: userId,
+        parent_kind: "design_memory" as const,
+        parent_id: row.id,
+        child_kind: "design_memory" as const,
+        child_id: supersedes.id,
+        relation: "supersedes",
+        rationale: item.rationale ?? null,
+        created_by_agent: null,
+      };
+    })
+    .filter((e) => e !== null);
+
+  if (lineageEdges.length > 0) {
+    await supabase.from("artifact_lineage").upsert(lineageEdges, {
+      onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+    });
   }
+
   return inserted;
 }
 

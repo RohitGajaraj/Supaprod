@@ -274,24 +274,33 @@ export function AutoClustered() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
-  const sortedThemes: ThemeMeta[] = [...(themes.data?.themes ?? [])]
-    .map((t) => ({
-      id: t.id,
-      title: t.title,
-      frequency: t.frequency,
-      summary: t.summary ?? null,
-      createdAt: t.created_at,
-    }))
-    .sort((a, b) => b.frequency - a.frequency);
+  // PERF: memoize sorted themes to avoid recalculation on every render.
+  const sortedThemes: ThemeMeta[] = useMemo(
+    () =>
+      [...(themes.data?.themes ?? [])]
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          frequency: t.frequency,
+          summary: t.summary ?? null,
+          createdAt: t.created_at,
+        }))
+        .sort((a, b) => b.frequency - a.frequency),
+    [themes.data?.themes],
+  );
 
   // When a source filter is active, keep only the themes that hold at least
   // one signal from that source; the rank (i+1) below is the position within
   // this filtered, still-sorted list.
-  const themeList: ThemeMeta[] = sourceFilter
-    ? sortedThemes.filter((t) =>
-        (signalsByTheme.get(t.id) ?? []).some((m) => m.source === sourceFilter),
-      )
-    : sortedThemes;
+  const themeList: ThemeMeta[] = useMemo(
+    () =>
+      sourceFilter
+        ? sortedThemes.filter((t) =>
+            (signalsByTheme.get(t.id) ?? []).some((m) => m.source === sourceFilter),
+          )
+        : sortedThemes,
+    [sortedThemes, sourceFilter, signalsByTheme],
+  );
 
   if (signals.isLoading || themes.isLoading) {
     return (
