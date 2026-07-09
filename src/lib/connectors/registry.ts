@@ -60,6 +60,20 @@ export type AuthMethod =
       authorizeUrl: string;
       tokenUrl: string;
       scopes: string[];
+      /** How scopes join in the authorize URL's scope param. Most providers
+       * use a space (the OAuth2 convention); Slack and Linear use a comma.
+       * Defaults to " " when omitted. */
+      scopeSeparator?: "," | " ";
+      /** Extra required query params on the authorize URL beyond
+       * client_id/scope/redirect_uri/state, e.g. response_type=code (needed
+       * by every provider here except Slack) or Atlassian's audience. */
+      extraAuthorizeParams?: Record<string, string>;
+      /** Set when the authorizeUrl contains a literal "{subdomain}" token
+       * that must be substituted from this env var before use (Zendesk: the
+       * authorize/token host is the customer's own subdomain, not a fixed
+       * one). Until a real per-connection subdomain-capture UI exists, this
+       * is a single shared value, same limitation as the envFallback path. */
+      subdomainEnv?: string;
     }
   // Retained for type compatibility only (legacy rows / UI narrowing during
   // teardown). POLICY: no registry entry may use api_key — OAuth-only.
@@ -115,15 +129,23 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull support conversations as discovery signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "intercom",
-        clientIdEnv: "INTERCOM_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "INTERCOM_CLIENT_ID",
+        clientSecretEnv: "INTERCOM_CLIENT_SECRET",
+        authorizeUrl: "https://app.intercom.com/oauth",
+        tokenUrl: "https://api.intercom.io/auth/eagle/token",
+        // Intercom has no scope query param at all: access is governed by
+        // static capability checkboxes on the app in the Developer Hub, set
+        // once, applying to every user who connects.
+        scopes: [],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [{ kind: "inbox", label: "Inbox" }],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "INTERCOM_ACCESS_TOKEN", resourceKind: "inbox" },
-    setupHint: "Register an OAuth app in the Intercom Developer Hub (app.intercom.com/developers).",
+    setupHint:
+      "Register an Intercom OAuth app: Client ID/Secret go in INTERCOM_CLIENT_ID/INTERCOM_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // ── SF-CONNECTORS (Signal Fabric Phase 2): inside-out customer-voice fleet ──
   // Each is inflow-only (read customer voice in; never writes back), so the catalog
@@ -136,15 +158,20 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull canceled-subscription churn and cancellation reasons as signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "stripe",
-        clientIdEnv: "STRIPE_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "STRIPE_CLIENT_ID",
+        clientSecretEnv: "STRIPE_CLIENT_SECRET",
+        authorizeUrl: "https://connect.stripe.com/oauth/authorize",
+        tokenUrl: "https://connect.stripe.com/oauth/token",
+        scopes: ["read_write"],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "STRIPE_API_KEY" },
-    setupHint: "Create a restricted API key in the Stripe Dashboard (Developers → API keys).",
+    setupHint:
+      "Register a Stripe OAuth app: Client ID/Secret go in STRIPE_CLIENT_ID/STRIPE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // JNY-05: Slack is the one SF-CONNECTOR with a second, outflow purpose —
   // posting the ambient stakeholder digest to a team channel (write-back),
@@ -167,6 +194,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         authorizeUrl: "https://slack.com/oauth/v2/authorize",
         tokenUrl: "https://slack.com/api/oauth.v2.access",
         scopes: ["channels:history", "channels:read", "chat:write"],
+        scopeSeparator: ",",
       },
     ],
     resourceTypes: [
@@ -184,15 +212,25 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull recent support tickets as customer-voice signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "zendesk",
-        clientIdEnv: "ZENDESK_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "ZENDESK_CLIENT_ID",
+        clientSecretEnv: "ZENDESK_CLIENT_SECRET",
+        authorizeUrl: "https://{subdomain}.zendesk.com/oauth/authorizations/new",
+        tokenUrl: "https://{subdomain}.zendesk.com/oauth/tokens",
+        scopes: ["read", "write"],
+        extraAuthorizeParams: { response_type: "code" },
+        // Zendesk's authorize/token host is the customer's OWN subdomain, not
+        // a fixed one. No UI exists yet to capture a per-connection
+        // subdomain before the redirect, so this is a single, shared value
+        // (same interim limitation the envFallback path already has).
+        subdomainEnv: "ZENDESK_SUBDOMAIN",
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "ZENDESK_API_TOKEN" },
-    setupHint: "Create an API token in Zendesk Admin; set ZENDESK_SUBDOMAIN and ZENDESK_EMAIL.",
+    setupHint:
+      "Register a Zendesk OAuth app: Client ID/Secret go in ZENDESK_CLIENT_ID/ZENDESK_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   hubspot: {
     id: "hubspot",
@@ -200,16 +238,20 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull closed-lost deals and their loss reasons as win/loss signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "hubspot",
-        clientIdEnv: "HUBSPOT_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "HUBSPOT_CLIENT_ID",
+        clientSecretEnv: "HUBSPOT_CLIENT_SECRET",
+        authorizeUrl: "https://app.hubspot.com/oauth/authorize",
+        tokenUrl: "https://api.hubapi.com/oauth/v1/token",
+        scopes: ["crm.objects.deals.read", "crm.objects.deals.write"],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "HUBSPOT_ACCESS_TOKEN" },
     setupHint:
-      "Create a private app + access token in HubSpot (Settings → Integrations → Private Apps).",
+      "Register a HubSpot OAuth app: Client ID/Secret go in HUBSPOT_CLIENT_ID/HUBSPOT_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   salesforce: {
     id: "salesforce",
@@ -217,16 +259,25 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull closed-lost opportunities as win/loss signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "salesforce",
-        clientIdEnv: "SALESFORCE_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "SALESFORCE_CLIENT_ID",
+        clientSecretEnv: "SALESFORCE_CLIENT_SECRET",
+        authorizeUrl: "https://login.salesforce.com/services/oauth2/authorize",
+        tokenUrl: "https://login.salesforce.com/services/oauth2/token",
+        scopes: ["api", "refresh_token"],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "SALESFORCE_ACCESS_TOKEN" },
-    setupHint: "Create a connected app in Salesforce Setup; set SALESFORCE_INSTANCE_URL.",
+    setupHint:
+      "Register a Salesforce OAuth app: Client ID/Secret go in SALESFORCE_CLIENT_ID/SALESFORCE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
+  // No standard third-party OAuth exists for Canny (it authenticates with a single
+  // static per-workspace secret API key; Canny's own docs document no
+  // /oauth/authorize or /oauth/token endpoint for third-party apps); stays
+  // admin-token-only until Canny ships one.
   canny: {
     id: "canny",
     label: "Canny",
@@ -249,16 +300,25 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Pull customer notes and insights as feedback signals.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "productboard",
-        clientIdEnv: "PRODUCTBOARD_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "PRODUCTBOARD_CLIENT_ID",
+        clientSecretEnv: "PRODUCTBOARD_CLIENT_SECRET",
+        authorizeUrl: "https://app.productboard.com/oauth2/authorize",
+        tokenUrl: "https://app.productboard.com/oauth2/token",
+        scopes: ["notes:read"],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "PRODUCTBOARD_API_TOKEN" },
-    setupHint: "Create an access token in Productboard (Settings → Integrations → Public API).",
+    setupHint:
+      "Register a Productboard OAuth app: Client ID/Secret go in PRODUCTBOARD_CLIENT_ID/PRODUCTBOARD_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
+  // No standard third-party OAuth exists for Delighted (auth is HTTP Basic with a
+  // single static per-project API key, no OAuth app-registration flow documented);
+  // also note Qualtrics sunset and shut down the entire Delighted product on
+  // 2026-07-01. Stays admin-token-only until Delighted ships one, if ever.
   delighted: {
     id: "delighted",
     label: "Delighted",
@@ -281,15 +341,21 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Push planned work to Linear and pull issue state back into the loop.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "linear",
-        clientIdEnv: "LINEAR_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "LINEAR_CLIENT_ID",
+        clientSecretEnv: "LINEAR_CLIENT_SECRET",
+        authorizeUrl: "https://linear.app/oauth/authorize",
+        tokenUrl: "https://api.linear.app/oauth/token",
+        scopes: ["read", "write"],
+        scopeSeparator: ",",
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [{ kind: "team", label: "Team" }],
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "LINEAR_API_KEY", resourceKind: "team" },
-    setupHint: "Register an OAuth application in Linear → Settings → API → OAuth applications.",
+    setupHint:
+      "Register a Linear OAuth app: Client ID/Secret go in LINEAR_CLIENT_ID/LINEAR_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   notion: {
     id: "notion",
@@ -297,15 +363,24 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Read and publish docs against a shared Notion database.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "notion",
-        clientIdEnv: "NOTION_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "NOTION_CLIENT_ID",
+        clientSecretEnv: "NOTION_CLIENT_SECRET",
+        authorizeUrl: "https://api.notion.com/v1/oauth/authorize",
+        tokenUrl: "https://api.notion.com/v1/oauth/token",
+        // Notion has no "scope" query parameter at all: access is governed by
+        // "Capabilities" (Read/Insert/Update content, Read/Insert comments,
+        // user information) configured once on the integration itself in the
+        // Developer Portal, applying to every user who connects.
+        scopes: [],
+        extraAuthorizeParams: { response_type: "code", owner: "user" },
       },
     ],
     resourceTypes: [{ kind: "database", label: "Database" }],
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "NOTION_API_KEY", resourceKind: "database" },
-    setupHint: "Register a public integration at notion.so/my-integrations.",
+    setupHint:
+      "Register a Notion OAuth app: Client ID/Secret go in NOTION_CLIENT_ID/NOTION_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   google_docs: {
     id: "google_docs",
@@ -313,21 +388,26 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Ingest source documents from Google Docs.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "google_docs",
-        // Reuses the Google OAuth client registered for Google Calendar.
-        clientIdEnv: "GOOGLE_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "GOOGLE_DOCS_CLIENT_ID",
+        clientSecretEnv: "GOOGLE_DOCS_CLIENT_SECRET",
+        authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
         scopes: [
           "https://www.googleapis.com/auth/documents.readonly",
           "https://www.googleapis.com/auth/drive.readonly",
+          "https://www.googleapis.com/auth/documents",
         ],
+        // access_type=offline + prompt=consent are required for Google to
+        // actually hand back a refresh_token (otherwise it never does).
+        extraAuthorizeParams: { response_type: "code", access_type: "offline", prompt: "consent" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "GOOGLE_DOCS_API_KEY" },
     setupHint:
-      "Register an OAuth client in the Google Cloud Console (shared with Google Calendar).",
+      "Register a Google Docs OAuth app: Client ID/Secret go in GOOGLE_DOCS_CLIENT_ID/GOOGLE_DOCS_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   google_calendar: {
     id: "google_calendar",
@@ -365,14 +445,27 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Reference design files from specs and briefs.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "figma",
-        clientIdEnv: "FIGMA_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "FIGMA_CLIENT_ID",
+        clientSecretEnv: "FIGMA_CLIENT_SECRET",
+        authorizeUrl: "https://www.figma.com/oauth",
+        tokenUrl: "https://api.figma.com/v1/oauth/token",
+        scopes: [
+          "file_content:read",
+          "file_metadata:read",
+          "file_comments:read",
+          "file_versions:read",
+          "projects:read",
+          "current_user:read",
+          "file_comments:write",
+        ],
+        extraAuthorizeParams: { response_type: "code" },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: false, outflow: false, sync: false },
-    setupHint: "Register an OAuth app in the Figma developer console (figma.com/developers/apps).",
+    setupHint:
+      "Register a Figma OAuth app: Client ID/Secret go in FIGMA_CLIENT_ID/FIGMA_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   jira: {
     id: "jira",
@@ -380,14 +473,26 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     description: "Push planned work to Jira projects.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "jira",
-        clientIdEnv: "ATLASSIAN_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "JIRA_CLIENT_ID",
+        clientSecretEnv: "JIRA_CLIENT_SECRET",
+        authorizeUrl: "https://auth.atlassian.com/authorize",
+        tokenUrl: "https://auth.atlassian.com/oauth/token",
+        scopes: ["read:jira-work", "read:jira-user", "offline_access", "write:jira-work"],
+        // audience is mandatory for Atlassian's 3LO flow to issue a token
+        // usable against the Cloud REST APIs; prompt=consent ensures the
+        // consent screen (and a fresh refresh_token) on every connect.
+        extraAuthorizeParams: {
+          response_type: "code",
+          audience: "api.atlassian.com",
+          prompt: "consent",
+        },
       },
     ],
     resourceTypes: [],
     capabilities: { inflow: false, outflow: false, sync: false },
-    setupHint: "Register an OAuth 2.0 (3LO) app in the Atlassian developer console.",
+    setupHint:
+      "Register a Jira OAuth app: Client ID/Secret go in JIRA_CLIENT_ID/JIRA_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
   // Platform infrastructure, not a user connector: the agent loop's web.*
   // tools read FIRECRAWL_API_KEY via the env fallback (resolve.server.ts and

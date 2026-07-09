@@ -137,8 +137,19 @@ import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/
 import { Route as ApiPublicArdSchemaRouteImport } from './routes/api/public/ard.schema'
 import { Route as ApiPublicA2aTasksRouteImport } from './routes/api/public/a2a.tasks'
 import { Route as AuthenticatedPlanSpecIdRouteImport } from './routes/_authenticated.plan.spec.$id'
+import { Route as ApiPublicConnectZendeskCallbackRouteImport } from './routes/api/public/connect/zendesk/callback'
+import { Route as ApiPublicConnectStripeCallbackRouteImport } from './routes/api/public/connect/stripe/callback'
 import { Route as ApiPublicConnectSlackCallbackRouteImport } from './routes/api/public/connect/slack/callback'
+import { Route as ApiPublicConnectSalesforceCallbackRouteImport } from './routes/api/public/connect/salesforce/callback'
+import { Route as ApiPublicConnectProductboardCallbackRouteImport } from './routes/api/public/connect/productboard/callback'
+import { Route as ApiPublicConnectNotionCallbackRouteImport } from './routes/api/public/connect/notion/callback'
+import { Route as ApiPublicConnectLinearCallbackRouteImport } from './routes/api/public/connect/linear/callback'
+import { Route as ApiPublicConnectJiraCallbackRouteImport } from './routes/api/public/connect/jira/callback'
+import { Route as ApiPublicConnectIntercomCallbackRouteImport } from './routes/api/public/connect/intercom/callback'
+import { Route as ApiPublicConnectHubspotCallbackRouteImport } from './routes/api/public/connect/hubspot/callback'
+import { Route as ApiPublicConnectGoogle_docsCallbackRouteImport } from './routes/api/public/connect/google_docs/callback'
 import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api/public/connect/github/callback'
+import { Route as ApiPublicConnectFigmaCallbackRouteImport } from './routes/api/public/connect/figma/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
 import { Route as ApiPublicA2aMessageSendRouteImport } from './routes/api/public/a2a.message.send'
 import { Route as ApiPublicA2aAgentsCadenceCardRouteImport } from './routes/api/public/a2a.agents.cadence.card'
@@ -829,16 +840,82 @@ const AuthenticatedPlanSpecIdRoute = AuthenticatedPlanSpecIdRouteImport.update({
   path: '/plan/spec/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicConnectZendeskCallbackRoute =
+  ApiPublicConnectZendeskCallbackRouteImport.update({
+    id: '/api/public/connect/zendesk/callback',
+    path: '/api/public/connect/zendesk/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectStripeCallbackRoute =
+  ApiPublicConnectStripeCallbackRouteImport.update({
+    id: '/api/public/connect/stripe/callback',
+    path: '/api/public/connect/stripe/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicConnectSlackCallbackRoute =
   ApiPublicConnectSlackCallbackRouteImport.update({
     id: '/api/public/connect/slack/callback',
     path: '/api/public/connect/slack/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicConnectSalesforceCallbackRoute =
+  ApiPublicConnectSalesforceCallbackRouteImport.update({
+    id: '/api/public/connect/salesforce/callback',
+    path: '/api/public/connect/salesforce/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectProductboardCallbackRoute =
+  ApiPublicConnectProductboardCallbackRouteImport.update({
+    id: '/api/public/connect/productboard/callback',
+    path: '/api/public/connect/productboard/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectNotionCallbackRoute =
+  ApiPublicConnectNotionCallbackRouteImport.update({
+    id: '/api/public/connect/notion/callback',
+    path: '/api/public/connect/notion/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectLinearCallbackRoute =
+  ApiPublicConnectLinearCallbackRouteImport.update({
+    id: '/api/public/connect/linear/callback',
+    path: '/api/public/connect/linear/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectJiraCallbackRoute =
+  ApiPublicConnectJiraCallbackRouteImport.update({
+    id: '/api/public/connect/jira/callback',
+    path: '/api/public/connect/jira/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectIntercomCallbackRoute =
+  ApiPublicConnectIntercomCallbackRouteImport.update({
+    id: '/api/public/connect/intercom/callback',
+    path: '/api/public/connect/intercom/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectHubspotCallbackRoute =
+  ApiPublicConnectHubspotCallbackRouteImport.update({
+    id: '/api/public/connect/hubspot/callback',
+    path: '/api/public/connect/hubspot/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectGoogle_docsCallbackRoute =
+  ApiPublicConnectGoogle_docsCallbackRouteImport.update({
+    id: '/api/public/connect/google_docs/callback',
+    path: '/api/public/connect/google_docs/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicConnectGithubCallbackRoute =
   ApiPublicConnectGithubCallbackRouteImport.update({
     id: '/api/public/connect/github/callback',
     path: '/api/public/connect/github/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicConnectFigmaCallbackRoute =
+  ApiPublicConnectFigmaCallbackRouteImport.update({
+    id: '/api/public/connect/figma/callback',
+    path: '/api/public/connect/figma/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicA2aMessageStreamRoute =
@@ -989,8 +1066,19 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
+  '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
+  '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
+  '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
+  '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
+  '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
+  '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
+  '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
+  '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRoutesByTo {
@@ -1121,8 +1209,19 @@ export interface FileRoutesByTo {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
+  '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
+  '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
+  '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
+  '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
+  '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
+  '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
+  '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
+  '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRoutesById {
@@ -1257,8 +1356,19 @@ export interface FileRoutesById {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
+  '/api/public/connect/figma/callback': typeof ApiPublicConnectFigmaCallbackRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/google_docs/callback': typeof ApiPublicConnectGoogle_docsCallbackRoute
+  '/api/public/connect/hubspot/callback': typeof ApiPublicConnectHubspotCallbackRoute
+  '/api/public/connect/intercom/callback': typeof ApiPublicConnectIntercomCallbackRoute
+  '/api/public/connect/jira/callback': typeof ApiPublicConnectJiraCallbackRoute
+  '/api/public/connect/linear/callback': typeof ApiPublicConnectLinearCallbackRoute
+  '/api/public/connect/notion/callback': typeof ApiPublicConnectNotionCallbackRoute
+  '/api/public/connect/productboard/callback': typeof ApiPublicConnectProductboardCallbackRoute
+  '/api/public/connect/salesforce/callback': typeof ApiPublicConnectSalesforceCallbackRoute
   '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
+  '/api/public/connect/stripe/callback': typeof ApiPublicConnectStripeCallbackRoute
+  '/api/public/connect/zendesk/callback': typeof ApiPublicConnectZendeskCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRouteTypes {
@@ -1393,8 +1503,19 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
+    | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/hubspot/callback'
+    | '/api/public/connect/intercom/callback'
+    | '/api/public/connect/jira/callback'
+    | '/api/public/connect/linear/callback'
+    | '/api/public/connect/notion/callback'
+    | '/api/public/connect/productboard/callback'
+    | '/api/public/connect/salesforce/callback'
     | '/api/public/connect/slack/callback'
+    | '/api/public/connect/stripe/callback'
+    | '/api/public/connect/zendesk/callback'
     | '/api/public/a2a/agents/cadence/card'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1525,8 +1646,19 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
+    | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/hubspot/callback'
+    | '/api/public/connect/intercom/callback'
+    | '/api/public/connect/jira/callback'
+    | '/api/public/connect/linear/callback'
+    | '/api/public/connect/notion/callback'
+    | '/api/public/connect/productboard/callback'
+    | '/api/public/connect/salesforce/callback'
     | '/api/public/connect/slack/callback'
+    | '/api/public/connect/stripe/callback'
+    | '/api/public/connect/zendesk/callback'
     | '/api/public/a2a/agents/cadence/card'
   id:
     | '__root__'
@@ -1660,8 +1792,19 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
+    | '/api/public/connect/figma/callback'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/google_docs/callback'
+    | '/api/public/connect/hubspot/callback'
+    | '/api/public/connect/intercom/callback'
+    | '/api/public/connect/jira/callback'
+    | '/api/public/connect/linear/callback'
+    | '/api/public/connect/notion/callback'
+    | '/api/public/connect/productboard/callback'
+    | '/api/public/connect/salesforce/callback'
     | '/api/public/connect/slack/callback'
+    | '/api/public/connect/stripe/callback'
+    | '/api/public/connect/zendesk/callback'
     | '/api/public/a2a/agents/cadence/card'
   fileRoutesById: FileRoutesById
 }
@@ -1728,8 +1871,19 @@ export interface RootRouteChildren {
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicA2aMessageSendRoute: typeof ApiPublicA2aMessageSendRoute
   ApiPublicA2aMessageStreamRoute: typeof ApiPublicA2aMessageStreamRoute
+  ApiPublicConnectFigmaCallbackRoute: typeof ApiPublicConnectFigmaCallbackRoute
   ApiPublicConnectGithubCallbackRoute: typeof ApiPublicConnectGithubCallbackRoute
+  ApiPublicConnectGoogle_docsCallbackRoute: typeof ApiPublicConnectGoogle_docsCallbackRoute
+  ApiPublicConnectHubspotCallbackRoute: typeof ApiPublicConnectHubspotCallbackRoute
+  ApiPublicConnectIntercomCallbackRoute: typeof ApiPublicConnectIntercomCallbackRoute
+  ApiPublicConnectJiraCallbackRoute: typeof ApiPublicConnectJiraCallbackRoute
+  ApiPublicConnectLinearCallbackRoute: typeof ApiPublicConnectLinearCallbackRoute
+  ApiPublicConnectNotionCallbackRoute: typeof ApiPublicConnectNotionCallbackRoute
+  ApiPublicConnectProductboardCallbackRoute: typeof ApiPublicConnectProductboardCallbackRoute
+  ApiPublicConnectSalesforceCallbackRoute: typeof ApiPublicConnectSalesforceCallbackRoute
   ApiPublicConnectSlackCallbackRoute: typeof ApiPublicConnectSlackCallbackRoute
+  ApiPublicConnectStripeCallbackRoute: typeof ApiPublicConnectStripeCallbackRoute
+  ApiPublicConnectZendeskCallbackRoute: typeof ApiPublicConnectZendeskCallbackRoute
   ApiPublicA2aAgentsCadenceCardRoute: typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 
@@ -2631,6 +2785,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlanSpecIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/connect/zendesk/callback': {
+      id: '/api/public/connect/zendesk/callback'
+      path: '/api/public/connect/zendesk/callback'
+      fullPath: '/api/public/connect/zendesk/callback'
+      preLoaderRoute: typeof ApiPublicConnectZendeskCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/stripe/callback': {
+      id: '/api/public/connect/stripe/callback'
+      path: '/api/public/connect/stripe/callback'
+      fullPath: '/api/public/connect/stripe/callback'
+      preLoaderRoute: typeof ApiPublicConnectStripeCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/connect/slack/callback': {
       id: '/api/public/connect/slack/callback'
       path: '/api/public/connect/slack/callback'
@@ -2638,11 +2806,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicConnectSlackCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/connect/salesforce/callback': {
+      id: '/api/public/connect/salesforce/callback'
+      path: '/api/public/connect/salesforce/callback'
+      fullPath: '/api/public/connect/salesforce/callback'
+      preLoaderRoute: typeof ApiPublicConnectSalesforceCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/productboard/callback': {
+      id: '/api/public/connect/productboard/callback'
+      path: '/api/public/connect/productboard/callback'
+      fullPath: '/api/public/connect/productboard/callback'
+      preLoaderRoute: typeof ApiPublicConnectProductboardCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/notion/callback': {
+      id: '/api/public/connect/notion/callback'
+      path: '/api/public/connect/notion/callback'
+      fullPath: '/api/public/connect/notion/callback'
+      preLoaderRoute: typeof ApiPublicConnectNotionCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/linear/callback': {
+      id: '/api/public/connect/linear/callback'
+      path: '/api/public/connect/linear/callback'
+      fullPath: '/api/public/connect/linear/callback'
+      preLoaderRoute: typeof ApiPublicConnectLinearCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/jira/callback': {
+      id: '/api/public/connect/jira/callback'
+      path: '/api/public/connect/jira/callback'
+      fullPath: '/api/public/connect/jira/callback'
+      preLoaderRoute: typeof ApiPublicConnectJiraCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/intercom/callback': {
+      id: '/api/public/connect/intercom/callback'
+      path: '/api/public/connect/intercom/callback'
+      fullPath: '/api/public/connect/intercom/callback'
+      preLoaderRoute: typeof ApiPublicConnectIntercomCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/hubspot/callback': {
+      id: '/api/public/connect/hubspot/callback'
+      path: '/api/public/connect/hubspot/callback'
+      fullPath: '/api/public/connect/hubspot/callback'
+      preLoaderRoute: typeof ApiPublicConnectHubspotCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/google_docs/callback': {
+      id: '/api/public/connect/google_docs/callback'
+      path: '/api/public/connect/google_docs/callback'
+      fullPath: '/api/public/connect/google_docs/callback'
+      preLoaderRoute: typeof ApiPublicConnectGoogle_docsCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/connect/github/callback': {
       id: '/api/public/connect/github/callback'
       path: '/api/public/connect/github/callback'
       fullPath: '/api/public/connect/github/callback'
       preLoaderRoute: typeof ApiPublicConnectGithubCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/connect/figma/callback': {
+      id: '/api/public/connect/figma/callback'
+      path: '/api/public/connect/figma/callback'
+      fullPath: '/api/public/connect/figma/callback'
+      preLoaderRoute: typeof ApiPublicConnectFigmaCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/a2a/message/stream': {
@@ -2918,8 +3149,22 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicA2aMessageSendRoute: ApiPublicA2aMessageSendRoute,
   ApiPublicA2aMessageStreamRoute: ApiPublicA2aMessageStreamRoute,
+  ApiPublicConnectFigmaCallbackRoute: ApiPublicConnectFigmaCallbackRoute,
   ApiPublicConnectGithubCallbackRoute: ApiPublicConnectGithubCallbackRoute,
+  ApiPublicConnectGoogle_docsCallbackRoute:
+    ApiPublicConnectGoogle_docsCallbackRoute,
+  ApiPublicConnectHubspotCallbackRoute: ApiPublicConnectHubspotCallbackRoute,
+  ApiPublicConnectIntercomCallbackRoute: ApiPublicConnectIntercomCallbackRoute,
+  ApiPublicConnectJiraCallbackRoute: ApiPublicConnectJiraCallbackRoute,
+  ApiPublicConnectLinearCallbackRoute: ApiPublicConnectLinearCallbackRoute,
+  ApiPublicConnectNotionCallbackRoute: ApiPublicConnectNotionCallbackRoute,
+  ApiPublicConnectProductboardCallbackRoute:
+    ApiPublicConnectProductboardCallbackRoute,
+  ApiPublicConnectSalesforceCallbackRoute:
+    ApiPublicConnectSalesforceCallbackRoute,
   ApiPublicConnectSlackCallbackRoute: ApiPublicConnectSlackCallbackRoute,
+  ApiPublicConnectStripeCallbackRoute: ApiPublicConnectStripeCallbackRoute,
+  ApiPublicConnectZendeskCallbackRoute: ApiPublicConnectZendeskCallbackRoute,
   ApiPublicA2aAgentsCadenceCardRoute: ApiPublicA2aAgentsCadenceCardRoute,
 }
 export const routeTree = rootRouteImport

@@ -284,13 +284,28 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
     if (!origin) {
       throw new Error("Missing Origin header. Cannot start OAuth connect.");
     }
+    let authorizeUrlBase = method.authorizeUrl;
+    if (method.subdomainEnv) {
+      const subdomain = process.env[method.subdomainEnv];
+      if (!subdomain) {
+        throw new Error(
+          `${spec.label} setup pending. An admin must set ${method.subdomainEnv} before members can connect.`,
+        );
+      }
+      authorizeUrlBase = authorizeUrlBase.replace("{subdomain}", subdomain);
+    }
     const state = await makeConnectState(context.userId, data.returnTo);
     const redirectUri = `${origin}/api/public/connect/${data.provider}/callback`;
-    const url = new URL(method.authorizeUrl);
+    const url = new URL(authorizeUrlBase);
     url.searchParams.set("client_id", clientId);
-    url.searchParams.set("scope", method.scopes.join(","));
+    if (method.scopes.length > 0) {
+      url.searchParams.set("scope", method.scopes.join(method.scopeSeparator ?? " "));
+    }
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("state", state);
+    for (const [key, value] of Object.entries(method.extraAuthorizeParams ?? {})) {
+      url.searchParams.set(key, value);
+    }
     return { authorizeUrl: url.toString() };
   });
 
