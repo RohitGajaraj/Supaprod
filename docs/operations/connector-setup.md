@@ -45,14 +45,14 @@ For every row below:
 | Slack | `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` | `.../api/public/connect/slack/callback` | **Done, working** (registered + tested 2026-07-09) |
 | Linear | `LINEAR_CLIENT_ID`, `LINEAR_CLIENT_SECRET` | `.../api/public/connect/linear/callback` | Built, needs registration |
 | Notion | `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET` | `.../api/public/connect/notion/callback` | Built, needs registration |
-| Google Docs | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (shared, see suite section) | `.../api/public/connect/google_docs/callback` | Built, needs registration |
+| Google Docs | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (shared, see suite section) | `.../api/public/connect/google_docs/callback` | **Registered + tested 2026-07-10** (see Google verification caveat below) |
 | Figma | `FIGMA_CLIENT_ID`, `FIGMA_CLIENT_SECRET` | `.../api/public/connect/figma/callback` | Built, needs registration |
 | Jira (Atlassian) | `JIRA_CLIENT_ID`, `JIRA_CLIENT_SECRET` | `.../api/public/connect/jira/callback` | Built, needs registration |
 | Intercom | `INTERCOM_CLIENT_ID`, `INTERCOM_CLIENT_SECRET` | `.../api/public/connect/intercom/callback` | Built, needs registration |
 | Stripe | `STRIPE_CLIENT_ID`, `STRIPE_CLIENT_SECRET` | `.../api/public/connect/stripe/callback` | Built, needs registration (see caveat below) |
 | Zendesk | `ZENDESK_CLIENT_ID`, `ZENDESK_CLIENT_SECRET`, **`ZENDESK_SUBDOMAIN`** | `.../api/public/connect/zendesk/callback` | Built, needs registration (see caveat below) |
-| HubSpot | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `.../api/public/connect/hubspot/callback` | Built, needs registration |
-| Salesforce | `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET` | `.../api/public/connect/salesforce/callback` | Built, needs registration |
+| HubSpot | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `.../api/public/connect/hubspot/callback` | Built, needs registration (also **Active** today via a legacy admin token, verified working 2026-07-09) |
+| Salesforce | `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET` | `.../api/public/connect/salesforce/callback` | **Registered + tested 2026-07-10** - real per-user OAuth connection live, replaced a dead legacy admin token. Needed a `pkce: true` registry fix (this org requires PKCE on the authorize request) - see `oauth-refresh` / `github.server.ts`'s `makePkcePair`. |
 | Productboard | `PRODUCTBOARD_CLIENT_ID`, `PRODUCTBOARD_CLIENT_SECRET` | `.../api/public/connect/productboard/callback` | Built, needs registration |
 
 ## Multi-account suite connectors (a user can connect several accounts)
@@ -64,9 +64,9 @@ Microsoft products share ONE Entra app.
 
 | Provider | Secrets | Redirect URL | Status |
 | --- | --- | --- | --- |
-| Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `.../api/public/connect/google_calendar/callback` | Built, needs registration |
-| Gmail | same Google app as above | `.../api/public/connect/gmail/callback` | Built, needs registration |
-| Google Tasks | same Google app as above | `.../api/public/connect/google_tasks/callback` | Built, needs registration (connect only - see caveat below) |
+| Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `.../api/public/connect/google_calendar/callback` | **Registered + tested 2026-07-10** (see Google verification caveat below) |
+| Gmail | same Google app as above | `.../api/public/connect/gmail/callback` | **Registered + tested 2026-07-10** (see Google verification caveat below - Gmail specifically needs a *restricted*-scope review, not just standard) |
+| Google Tasks | same Google app as above | `.../api/public/connect/google_tasks/callback` | **Registered + tested 2026-07-10** (connect only - see stub-adapter caveat below; also gated by the Google verification caveat) |
 | Microsoft Outlook (calendar) | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | `.../api/public/connect/microsoft_outlook/callback` | Built, needs registration |
 | Outlook Mail | same Microsoft app as above | `.../api/public/connect/microsoft_mail/callback` | Built, needs registration |
 
@@ -85,6 +85,34 @@ OAuth flow to migrate to, so there was nothing left to keep it for.
 
 ## Known caveats (real, not bugs, worth reading before testing)
 
+- **Google's OAuth consent screen is still in Testing publish status** (the
+  "Cadence" connector app - NOT the separate "Cadence Login" app used only
+  for the login/signup button, which is unaffected and already open to
+  anyone). While in Testing, only Google accounts explicitly added as test
+  users can get past the consent screen at all - anyone else hits `Error
+  403: access_denied` ("Access blocked... has not completed the Google
+  verification process"). Confirmed live 2026-07-10 connecting with a real
+  Google account not yet on the test-user list.
+  **Founder decision (2026-07-10): deferred on purpose, not a bug to fix.**
+  Strategy: stay on Testing, manually add test users as needed for demo
+  purposes (Google allows up to 100), and move to full verification once the
+  product is solid enough to invest in it. The real long-term fix when that
+  time comes:
+  - **Docs, Calendar, Tasks** use Google's standard "sensitive" scope tier -
+    verification needs a live privacy policy URL, a live homepage, domain
+    ownership verified in Google Search Console, and a scope-usage
+    explanation. Turnaround is normally days, not weeks, once those
+    prerequisites exist. Cadence has a privacy policy already; it does not
+    yet have a public homepage - that is the actual blocker for even
+    starting this, not anything technical.
+  - **Gmail's `gmail.readonly`** is a Google *restricted* scope, not merely
+    sensitive - on top of the standard review it requires a paid third-party
+    security assessment (Google calls this CASA), adding real cost and lead
+    time beyond the other three. Founder ruling: pursue Docs/Calendar/Tasks
+    verification first as a separate, smaller step; treat Gmail's CASA
+    assessment as its own later decision, not bundled in.
+  - To add a test user meanwhile: Google Console → the "Cadence" project →
+    APIs & Services → OAuth consent screen → Test users → Add users.
 - **Zendesk's `ZENDESK_SUBDOMAIN`** is a single, shared value - there's no
   per-connecting-user subdomain-capture step in the UI yet (Zendesk's
   authorize/token host IS the customer's own subdomain, so this only works
