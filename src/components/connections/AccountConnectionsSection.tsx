@@ -58,7 +58,10 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 // lines 243-292) onto real data, exported from this file and rendered by the
 // settings route when ?connector= is set. The connect/verify mutations are
 // shared between the list and the detail via the local useConnectorActions
-// hook so both surfaces drive the exact same OAuth flows.
+// hook so both surfaces drive the exact same OAuth flows. Four states: setup
+// required (no OAuth app AND no env token - genuinely "coming soon"), active
+// via an admin-managed env credential (envConfigured, no personal OAuth to
+// offer), configured-but-not-connected (real Connect flow), and connected.
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 
@@ -88,6 +91,18 @@ function providerConfigured(
   if (m.kind === "github_app") return !!a.githubAppConfigured;
   if (m.kind === "oauth_gateway") return !!a.gatewayConfigured;
   return false; // legacy api_key - OAuth migration pending, treat as setup-required
+}
+
+/** True when the provider's admin-managed env-fallback token is set: Cadence
+ *  is already reading through it even with no per-user OAuth connection, so
+ *  the UI must show it as active rather than "coming soon" (founder ruling
+ *  2026-07-06). Shared by the list badge (statusFor) and ConnectorDetail's
+ *  third state so both surfaces agree on what "active" means. */
+function providerEnvActive(
+  spec: ProviderSpec,
+  availability: ProviderAvailability | undefined,
+): boolean {
+  return !!availability?.[spec.id]?.envConfigured;
 }
 
 /**
@@ -420,7 +435,7 @@ export function AccountConnectionsSection({
   // token, an OAuth app that is configured (real Connect), or coming soon.
   const statusFor = (spec: ProviderSpec): CardStatus => {
     if (isConnected(spec)) return "connected";
-    if (availability?.[spec.id]?.envConfigured) return "active";
+    if (providerEnvActive(spec, availability)) return "active";
     if (providerConfigured(spec, availability)) return "connect";
     return "soon";
   };
@@ -843,6 +858,7 @@ export function ConnectorDetail({
   }
 
   const configured = providerConfigured(spec, list.data?.providerAvailability);
+  const envActive = providerEnvActive(spec, list.data?.providerAvailability);
   const hint = setupHintFor(spec);
   const conns = (list.data?.connections ?? []).filter((c) => c.provider === provider);
   const calAccounts = isCalendar
@@ -854,6 +870,37 @@ export function ConnectorDetail({
     else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
     else mGateway.mutate(spec);
   };
+
+  /* -- Active via an admin-managed env credential (envConfigured), no
+     per-user OAuth registered (gatewayConfigured false): Cadence is already
+     reading through the workspace token, so there is nothing for THIS user
+     to Connect. Showing "coming soon" with a disabled button here would be
+     misleading - the list card already badges this provider "Active"
+     (founder ruling 2026-07-06). -- */
+  if (envActive && !configured && conns.length === 0 && calAccounts.length === 0) {
+    return (
+      <div className="fade-up">
+        <DrillHeader
+          onBack={onBack}
+          backLabel="All connections"
+          kicker="Connector · active via admin credential"
+          title={spec.label}
+        />
+        <div
+          className="bento"
+          style={{ padding: "var(--card-pad)", display: "flex", alignItems: "center", gap: 14 }}
+        >
+          <StatusPill tone="muted" title="Reading through a workspace-level server credential">
+            Active
+          </StatusPill>
+          <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-subtle)" }}>
+            {spec.description} Already connected through an admin-managed server credential - there
+            is nothing for you to connect personally.
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   /* -- Not configured: the admin hasn't registered the OAuth app yet. -- */
   if (!configured && conns.length === 0 && calAccounts.length === 0) {

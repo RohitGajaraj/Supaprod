@@ -124,18 +124,37 @@ function QuietTextAction({
 }
 
 /** Not-yet-connected row: no glowing status (the §8 vocabulary is for an
- * existing connection); a quiet muted word plus the one Connect action. */
+ * existing connection); a quiet muted word plus the one Connect action.
+ * `envActive` is a third state - an admin-managed server credential
+ * (envFallback) already makes this provider live even with no per-user
+ * OAuth connection, so there is nothing for THIS user to Connect. Rendering
+ * "coming soon" with a disabled button in that case is misleading (founder
+ * ruling 2026-07-06); instead show the same glowing-status vocabulary a real
+ * connection uses (see ConnectedRow below), with the word "ACTIVE". */
 function NotConnectedRow({
   hint,
   onConnect,
   busy,
   configured,
+  envActive = false,
 }: {
   hint?: string;
   onConnect: () => void;
   busy: boolean;
   configured: boolean;
+  envActive?: boolean;
 }) {
+  if (envActive && !configured) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+        <StatusDot
+          state="live"
+          word="ACTIVE"
+          title="Already connected through an admin-managed server credential - there is nothing for you to connect personally."
+        />
+      </div>
+    );
+  }
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
       <span
@@ -224,6 +243,7 @@ export function ConnectionRow({
   provider,
   label,
   configured,
+  envActive = false,
   setupHint,
   busy,
   onConnect,
@@ -243,6 +263,10 @@ export function ConnectionRow({
   /** Accepted for caller compatibility; the §8 anatomy's mono metadata line replaces the free-text sentence this used to render. */
   description?: string;
   configured: boolean;
+  /** True when an admin-managed env credential already makes this provider
+   *  active with no per-user OAuth connection (founder ruling 2026-07-06) -
+   *  drives the third NotConnectedRow state instead of "coming soon". */
+  envActive?: boolean;
   setupHint?: string;
   busy: boolean;
   onConnect: () => void;
@@ -263,7 +287,7 @@ export function ConnectionRow({
   const permissions = primary?.scopes?.length ? primary.scopes.join(" · ").toUpperCase() : null;
 
   return (
-    <div style={configured ? undefined : { opacity: 0.6 }}>
+    <div style={configured || envActive ? undefined : { opacity: 0.6 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 0" }}>
         <ProviderLogo provider={provider} size={32} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -324,6 +348,7 @@ export function ConnectionRow({
                 onConnect={onConnect}
                 busy={busy}
                 configured={configured}
+                envActive={envActive}
               />
             )
           ) : primary ? (
@@ -344,6 +369,7 @@ export function ConnectionRow({
               onConnect={onConnect}
               busy={busy}
               configured={configured}
+              envActive={envActive}
             />
           )}
         </div>
