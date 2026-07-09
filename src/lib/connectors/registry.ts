@@ -48,6 +48,19 @@ export type AuthMethod =
        */
       scopes?: string[];
     }
+  // SW-7: Cadence registers its OWN OAuth app directly with the provider
+  // (same shape as github_app, generalized) — no Lovable gateway dependency.
+  // The founder registers a real app in the provider's developer console and
+  // sets clientIdEnv/clientSecretEnv; the callback lives at
+  // /api/public/connect/<provider>/callback (see startNativeOAuthConnect).
+  | {
+      kind: "oauth_native";
+      clientIdEnv: string;
+      clientSecretEnv: string;
+      authorizeUrl: string;
+      tokenUrl: string;
+      scopes: string[];
+    }
   // Retained for type compatibility only (legacy rows / UI narrowing during
   // teardown). POLICY: no registry entry may use api_key — OAuth-only.
   | { kind: "api_key"; placeholder: string; help: string };
@@ -148,9 +161,12 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
       "Pull messages from a feedback channel as customer-voice signals, and post the stakeholder digest to a team channel.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "slack",
-        clientIdEnv: "SLACK_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "SLACK_CLIENT_ID",
+        clientSecretEnv: "SLACK_CLIENT_SECRET",
+        authorizeUrl: "https://slack.com/oauth/v2/authorize",
+        tokenUrl: "https://slack.com/api/oauth.v2.access",
+        scopes: ["channels:history", "channels:read", "chat:write"],
       },
     ],
     resourceTypes: [
@@ -160,7 +176,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: true, sync: false },
     envFallback: { tokenEnv: "SLACK_BOT_TOKEN", resourceKind: "channel" },
     setupHint:
-      "Create a Slack app + bot token (api.slack.com/apps) with channels:history and chat:write scopes; set SLACK_SIGNAL_CHANNEL to the channel id.",
+      "Register a Slack OAuth app (api.slack.com/apps): Client ID/Secret are on Basic Information -> App Credentials; add the Cadence redirect URL under OAuth & Permissions -> Redirect URLs.",
   },
   zendesk: {
     id: "zendesk",

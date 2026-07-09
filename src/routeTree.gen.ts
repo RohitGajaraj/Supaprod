@@ -137,6 +137,7 @@ import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/
 import { Route as ApiPublicArdSchemaRouteImport } from './routes/api/public/ard.schema'
 import { Route as ApiPublicA2aTasksRouteImport } from './routes/api/public/a2a.tasks'
 import { Route as AuthenticatedPlanSpecIdRouteImport } from './routes/_authenticated.plan.spec.$id'
+import { Route as ApiPublicConnectSlackCallbackRouteImport } from './routes/api/public/connect/slack/callback'
 import { Route as ApiPublicConnectGithubCallbackRouteImport } from './routes/api/public/connect/github/callback'
 import { Route as ApiPublicA2aMessageStreamRouteImport } from './routes/api/public/a2a.message.stream'
 import { Route as ApiPublicA2aMessageSendRouteImport } from './routes/api/public/a2a.message.send'
@@ -828,6 +829,12 @@ const AuthenticatedPlanSpecIdRoute = AuthenticatedPlanSpecIdRouteImport.update({
   path: '/plan/spec/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicConnectSlackCallbackRoute =
+  ApiPublicConnectSlackCallbackRouteImport.update({
+    id: '/api/public/connect/slack/callback',
+    path: '/api/public/connect/slack/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicConnectGithubCallbackRoute =
   ApiPublicConnectGithubCallbackRouteImport.update({
     id: '/api/public/connect/github/callback',
@@ -983,6 +990,7 @@ export interface FileRoutesByFullPath {
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRoutesByTo {
@@ -1114,6 +1122,7 @@ export interface FileRoutesByTo {
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRoutesById {
@@ -1249,6 +1258,7 @@ export interface FileRoutesById {
   '/api/public/a2a/message/send': typeof ApiPublicA2aMessageSendRoute
   '/api/public/a2a/message/stream': typeof ApiPublicA2aMessageStreamRoute
   '/api/public/connect/github/callback': typeof ApiPublicConnectGithubCallbackRoute
+  '/api/public/connect/slack/callback': typeof ApiPublicConnectSlackCallbackRoute
   '/api/public/a2a/agents/cadence/card': typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 export interface FileRouteTypes {
@@ -1384,6 +1394,7 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/slack/callback'
     | '/api/public/a2a/agents/cadence/card'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1515,6 +1526,7 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/slack/callback'
     | '/api/public/a2a/agents/cadence/card'
   id:
     | '__root__'
@@ -1649,6 +1661,7 @@ export interface FileRouteTypes {
     | '/api/public/a2a/message/send'
     | '/api/public/a2a/message/stream'
     | '/api/public/connect/github/callback'
+    | '/api/public/connect/slack/callback'
     | '/api/public/a2a/agents/cadence/card'
   fileRoutesById: FileRoutesById
 }
@@ -1716,6 +1729,7 @@ export interface RootRouteChildren {
   ApiPublicA2aMessageSendRoute: typeof ApiPublicA2aMessageSendRoute
   ApiPublicA2aMessageStreamRoute: typeof ApiPublicA2aMessageStreamRoute
   ApiPublicConnectGithubCallbackRoute: typeof ApiPublicConnectGithubCallbackRoute
+  ApiPublicConnectSlackCallbackRoute: typeof ApiPublicConnectSlackCallbackRoute
   ApiPublicA2aAgentsCadenceCardRoute: typeof ApiPublicA2aAgentsCadenceCardRoute
 }
 
@@ -2617,6 +2631,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlanSpecIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/connect/slack/callback': {
+      id: '/api/public/connect/slack/callback'
+      path: '/api/public/connect/slack/callback'
+      fullPath: '/api/public/connect/slack/callback'
+      preLoaderRoute: typeof ApiPublicConnectSlackCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/connect/github/callback': {
       id: '/api/public/connect/github/callback'
       path: '/api/public/connect/github/callback'
@@ -2898,6 +2919,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicA2aMessageSendRoute: ApiPublicA2aMessageSendRoute,
   ApiPublicA2aMessageStreamRoute: ApiPublicA2aMessageStreamRoute,
   ApiPublicConnectGithubCallbackRoute: ApiPublicConnectGithubCallbackRoute,
+  ApiPublicConnectSlackCallbackRoute: ApiPublicConnectSlackCallbackRoute,
   ApiPublicA2aAgentsCadenceCardRoute: ApiPublicA2aAgentsCadenceCardRoute,
 }
 export const routeTree = rootRouteImport

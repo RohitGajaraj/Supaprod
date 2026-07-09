@@ -94,6 +94,10 @@ export type ProviderAvailability = Record<
     missingEnv: string[];
     githubAppConfigured?: boolean;
     gatewayConfigured?: boolean;
+    /** True when Cadence's own OAuth app (clientIdEnv + clientSecretEnv) is
+     *  registered directly with the provider — the real "Connect" round-trip
+     *  (SW-7), same shape as githubAppConfigured but for oauth_native. */
+    nativeOAuthConfigured?: boolean;
     /** True when the provider's server-side env token (envFallback.tokenEnv) is
      *  set: Cadence can already read/ingest through the workspace token even
      *  without a per-user OAuth grant, so the UI must show it as active, not
@@ -120,6 +124,20 @@ type GatewayAuthMethod = Extract<AuthMethod, { kind: "oauth_gateway" }>;
 function findGatewayMethod(spec: ProviderSpec): GatewayAuthMethod {
   const method = spec.authMethods.find((m) => m.kind === "oauth_gateway");
   if (!method || method.kind !== "oauth_gateway") {
+    throw new Error(`${spec.label} does not support OAuth connect.`);
+  }
+  return method;
+}
+
+const NATIVE_OAUTH_PROVIDER_IDS = Object.values(CONNECTOR_REGISTRY)
+  .filter((spec) => spec.authMethods.some((m) => m.kind === "oauth_native"))
+  .map((spec) => spec.id) as [ProviderId, ...ProviderId[]];
+
+type NativeOAuthMethod = Extract<AuthMethod, { kind: "oauth_native" }>;
+
+function findNativeOAuthMethod(spec: ProviderSpec): NativeOAuthMethod {
+  const method = spec.authMethods.find((m) => m.kind === "oauth_native");
+  if (!method || method.kind !== "oauth_native") {
     throw new Error(`${spec.label} does not support OAuth connect.`);
   }
   return method;
@@ -165,6 +183,14 @@ function deriveProviderAvailability(): ProviderAvailability {
         if (!process.env[method.clientIdEnv]) missingEnv.push(method.clientIdEnv);
         if (!lovableKeyPresent) missingEnv.push("LOVABLE_API_KEY");
         entry.gatewayConfigured = !!process.env[method.clientIdEnv] && lovableKeyPresent;
+      }
+      if (method.kind === "oauth_native") {
+        // Native connect needs Cadence's own OAuth app credentials — no
+        // Lovable dependency (SW-7).
+        if (!process.env[method.clientIdEnv]) missingEnv.push(method.clientIdEnv);
+        if (!process.env[method.clientSecretEnv]) missingEnv.push(method.clientSecretEnv);
+        entry.nativeOAuthConfigured =
+          !!process.env[method.clientIdEnv] && !!process.env[method.clientSecretEnv];
       }
     }
     // Providers with no user-facing auth method (userFacing: false infra like
@@ -217,6 +243,44 @@ export const startGithubAppConnect = createServerFn({ method: "POST" })
     return {
       installUrl: `https://github.com/apps/${encodeURIComponent(slug)}/installations/new?state=${encodeURIComponent(state)}`,
     };
+  });
+
+/**
+ * Kick off Cadence's own OAuth connect flow for an oauth_native provider —
+ * returns the provider's authorize URL for a FULL-PAGE redirect (same UX as
+ * the GitHub App install: no popup/postMessage machinery). SW-7: this is the
+ * generalized pattern every non-GitHub provider uses once its OAuth app is
+ * registered directly with the provider (no Lovable gateway dependency).
+ */
+export const startNativeOAuthConnect = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        provider: z.enum(NATIVE_OAUTH_PROVIDER_IDS),
+        targetOrigin: z.string().url(),
+        returnTo: z.enum(["onboarding"]).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const spec = CONNECTOR_REGISTRY[data.provider];
+    const method = findNativeOAuthMethod(spec);
+    const clientId = process.env[method.clientIdEnv];
+    if (!clientId) {
+      throw new Error(
+        `${spec.label} setup pending. An admin must register the ${spec.label} OAuth app and set ${method.clientIdEnv}.` +
+          (spec.setupHint ? ` ${spec.setupHint}` : ""),
+      );
+    }
+    const state = await makeConnectState(context.userId, data.returnTo);
+    const redirectUri = `${data.targetOrigin}/api/public/connect/${data.provider}/callback`;
+    const url = new URL(method.authorizeUrl);
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("scope", method.scopes.join(","));
+    url.searchParams.set("redirect_uri", redirectUri);
+    url.searchParams.set("state", state);
+    return { authorizeUrl: url.toString() };
   });
 
 /** Re-run the provider adapter's validate and persist status/last_verified_at/status_detail. */

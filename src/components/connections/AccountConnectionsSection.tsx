@@ -15,6 +15,7 @@ import {
   saveGatewayConnection,
   startGatewayConnect,
   startGithubAppConnect,
+  startNativeOAuthConnect,
   verifyConnection,
   disconnectConnection,
   deleteConnection,
@@ -90,6 +91,7 @@ function providerConfigured(
   if (!m || !a) return false;
   if (m.kind === "github_app") return !!a.githubAppConfigured;
   if (m.kind === "oauth_gateway") return !!a.gatewayConfigured;
+  if (m.kind === "oauth_native") return !!a.nativeOAuthConfigured;
   return false; // legacy api_key - OAuth migration pending, treat as setup-required
 }
 
@@ -115,6 +117,7 @@ function useConnectorActions(qc: QueryClient) {
   const fStartGithub = useServerFn(startGithubAppConnect);
   const fStartGateway = useServerFn(startGatewayConnect);
   const fSaveGateway = useServerFn(saveGatewayConnection);
+  const fStartNative = useServerFn(startNativeOAuthConnect);
   const fVerify = useServerFn(verifyConnection);
   const fCalStart = useServerFn(startCalendarConnect);
   const fCalSave = useServerFn(saveCalendarConnection);
@@ -125,6 +128,23 @@ function useConnectorActions(qc: QueryClient) {
       // Open GitHub in a new tab so the user keeps their place in the app.
       // The callback writes to the DB; the parent tab detects it via polling.
       window.open(installUrl, "_blank", "noopener");
+      const deadline = Date.now() + 5 * 60 * 1000;
+      const iv = setInterval(() => {
+        qc.invalidateQueries({ queryKey: ["connections"] });
+        if (Date.now() > deadline) clearInterval(iv);
+      }, 3_000);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  // Native OAuth (SW-7): Cadence's own registered app. Same mechanics as
+  // mGithub — a new tab (not a same-tab redirect), so the callback's
+  // close-tab page actually closes something and the Settings tab keeps
+  // polling for the new connection instead of being navigated away.
+  const mNative = useMutation({
+    mutationFn: (spec: ProviderSpec) =>
+      fStartNative({ data: { provider: spec.id, targetOrigin: window.location.origin } }),
+    onSuccess: ({ authorizeUrl }) => {
+      window.open(authorizeUrl, "_blank", "noopener");
       const deadline = Date.now() + 5 * 60 * 1000;
       const iv = setInterval(() => {
         qc.invalidateQueries({ queryKey: ["connections"] });
@@ -189,9 +209,13 @@ function useConnectorActions(qc: QueryClient) {
   });
 
   const busy =
-    mGithub.isPending || mGateway.isPending || mCalConnect.isPending || mVerify.isPending;
+    mGithub.isPending ||
+    mGateway.isPending ||
+    mNative.isPending ||
+    mCalConnect.isPending ||
+    mVerify.isPending;
 
-  return { mGithub, mGateway, mCalConnect, mVerify, busy };
+  return { mGithub, mGateway, mNative, mCalConnect, mVerify, busy };
 }
 
 // Per-provider status the grid renders and the rail counts.
@@ -290,7 +314,10 @@ function StatusPill({
         whiteSpace: "nowrap",
       }}
     >
-      <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 99, background: color }} />
+      <span
+        aria-hidden="true"
+        style={{ width: 5, height: 5, borderRadius: 99, background: color }}
+      />
       {children}
     </span>
   );
@@ -367,8 +394,11 @@ export function AccountConnectionsSection({
     const error = params.get("error");
     if (!connected && !error) return;
     if (connected === "github") toast.success("GitHub connected");
+    else if (connected === "slack") toast.success("Slack connected");
     else if (error === "github_connect") {
       toast.error("GitHub connect failed. Try again or check the app installation.");
+    } else if (error === "slack_connect") {
+      toast.error("Slack connect failed. Try again or check the app's OAuth settings.");
     }
     params.delete("connected");
     params.delete("error");
@@ -404,7 +434,7 @@ export function AccountConnectionsSection({
   }, [list.data, list.isLoading]);
 
   // Connect flows shared with ConnectorDetail (one implementation).
-  const { mGithub, mGateway, mCalConnect, busy } = useConnectorActions(qc);
+  const { mGithub, mGateway, mNative, mCalConnect, busy } = useConnectorActions(qc);
 
   const byProvider = new Map<ProviderId, AccountConnection[]>();
   for (const c of list.data?.connections ?? []) {
@@ -467,6 +497,7 @@ export function AccountConnectionsSection({
     const cal = CALENDAR_PROVIDERS[spec.id];
     if (cal) mCalConnect.mutate(cal);
     else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
+    else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
   };
 
@@ -777,7 +808,7 @@ export function ConnectorDetail({
 }) {
   const qc = useQueryClient();
   const confirm = useConfirm();
-  const { mGithub, mGateway, mCalConnect, mVerify, busy } = useConnectorActions(qc);
+  const { mGithub, mGateway, mNative, mCalConnect, mVerify, busy } = useConnectorActions(qc);
 
   const fDisconnect = useServerFn(disconnectConnection);
   const fDelete = useServerFn(deleteConnection);
@@ -868,6 +899,7 @@ export function ConnectorDetail({
   const connect = () => {
     if (calProvider) mCalConnect.mutate(calProvider);
     else if (spec.authMethods.some((m) => m.kind === "github_app")) mGithub.mutate();
+    else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
   };
 
