@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
@@ -51,7 +51,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const { next } = Route.useSearch();
   const dest = safeNextPath(next);
   const [email, setEmail] = useState("");
@@ -75,8 +74,13 @@ function LoginPage() {
       return toast.error(msg);
     }
     toast.success("Welcome back");
-    if (dest === "/") navigate({ to: "/" });
-    else window.location.assign(dest);
+    // Always a full browser navigation, never the SPA transition. The SPA
+    // path was observed live (SW-7 step-0 rerun, 2026-07-09) hanging as an
+    // empty Suspense tree mid gate-redirect (/ -> /onboarding) on fresh
+    // accounts - a hard blank screen until manual reload. A real page load
+    // runs the whole gate chain server-side and lands correctly every time;
+    // login is a full context switch, so the reload cost is right anyway.
+    window.location.assign(dest);
   }
 
   async function signInGoogle() {
@@ -91,7 +95,9 @@ function LoginPage() {
       return toast.error(authErrorMessage(result.error, "oauth"));
     }
     if (result.redirected) return;
-    navigate({ to: "/" });
+    // Same rule as the email path: a full browser navigation, so the gate
+    // chain can never strand a fresh account on a hung blank transition.
+    window.location.assign("/");
   }
 
   return (
