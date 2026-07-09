@@ -22,6 +22,8 @@ import { ingestSalesforceSignals } from "./salesforce-ingest.server";
 import { ingestCannySignals } from "./canny-ingest.server";
 import { ingestProductboardSignals } from "./productboard-ingest.server";
 import { ingestDelightedSignals } from "./delighted-ingest.server";
+import { ingestGmailSignals } from "./gmail-ingest.server";
+import { ingestOutlookMailSignals } from "./outlook-mail-ingest.server";
 
 /** The shared shape every pull connector's ingest returns. */
 export type PullIngestResult = { inserted: number; skipped: number; source: string };
@@ -42,4 +44,9 @@ export const PULL_INGESTORS: PullIngestor[] = [
   { provider: "canny", ingest: ingestCannySignals },
   { provider: "productboard", ingest: ingestProductboardSignals },
   { provider: "delighted", ingest: ingestDelightedSignals },
+  // SW-7 (founder goal, 2026-07-09): multi-account, resolved via
+  // resolveSuiteAuth (user_calendar_connections) rather than
+  // resolveProviderAuth - see gmail-ingest.server.ts's header note.
+  { provider: "gmail", ingest: ingestGmailSignals },
+  { provider: "microsoft_mail", ingest: ingestOutlookMailSignals },
 ];

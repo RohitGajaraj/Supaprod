@@ -29,7 +29,10 @@ export interface MissionRowProps {
 /** Full-width real `<button>` row (README §5.12: every acting row is a
  * `<button>`). Hover is tonal (background fill), never spatial. */
 export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
-  ({ status, title, isAuto, verdict, stepLabel, cost, time, traceLabel, onOpen, className }, ref) => (
+  (
+    { status, title, isAuto, verdict, stepLabel, cost, time, traceLabel, onOpen, className },
+    ref,
+  ) => (
     <button
       ref={ref}
       type="button"

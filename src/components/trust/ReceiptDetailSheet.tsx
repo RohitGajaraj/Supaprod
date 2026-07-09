@@ -418,7 +418,11 @@ export function ReceiptDetailSheet({
                 {sources.map((s) => {
                   const go = sourceGo(s);
                   return (
-                    <div key={`${s.kind}-${s.id}`} className="flex items-center" style={{ gap: "8px" }}>
+                    <div
+                      key={`${s.kind}-${s.id}`}
+                      className="flex items-center"
+                      style={{ gap: "8px" }}
+                    >
                       <span
                         style={{
                           fontSize: "12.5px",

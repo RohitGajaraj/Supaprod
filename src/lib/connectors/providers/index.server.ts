@@ -36,6 +36,8 @@ export const CONNECTOR_ADAPTERS: Record<ProviderId, ConnectorAdapter> = {
   google_docs: stubAdapter,
   google_calendar: stubAdapter,
   microsoft_outlook: stubAdapter,
+  gmail: stubAdapter,
+  microsoft_mail: stubAdapter,
   figma: stubAdapter,
   jira: stubAdapter,
   firecrawl: stubAdapter,

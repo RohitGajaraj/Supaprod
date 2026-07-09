@@ -116,6 +116,8 @@ const PROVIDER_CATEGORY: Record<ProviderId, ConnectorCategory | null> = {
   google_docs: "docs",
   google_calendar: "calendar",
   microsoft_outlook: "calendar",
+  gmail: "support",
+  microsoft_mail: "support",
   figma: "design",
   firecrawl: null, // platform infra, not user-facing
 };

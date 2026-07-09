@@ -17,7 +17,9 @@ export type ProviderId =
   | "notion"
   | "google_docs"
   | "google_calendar"
+  | "gmail"
   | "microsoft_outlook"
+  | "microsoft_mail"
   | "figma"
   | "jira"
   | "firecrawl"
@@ -422,8 +424,10 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     authMethods: [
       {
         kind: "oauth_native",
-        clientIdEnv: "GOOGLE_DOCS_CLIENT_ID",
-        clientSecretEnv: "GOOGLE_DOCS_CLIENT_SECRET",
+        // Shared with google_calendar/gmail: one Google Cloud OAuth app
+        // covers the whole suite, so the founder registers it once.
+        clientIdEnv: "GOOGLE_CLIENT_ID",
+        clientSecretEnv: "GOOGLE_CLIENT_SECRET",
         authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
         tokenUrl: "https://oauth2.googleapis.com/token",
         scopes: [
@@ -441,37 +445,105 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     capabilities: { inflow: true, outflow: false, sync: false },
     envFallback: { tokenEnv: "GOOGLE_DOCS_API_KEY" },
     setupHint:
-      "Register a Google Docs OAuth app: Client ID/Secret go in GOOGLE_DOCS_CLIENT_ID/GOOGLE_DOCS_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+      "Register a Google OAuth app (shared with Calendar and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
+  // SW-7 (founder goal, 2026-07-09): converted off the Lovable connector
+  // gateway onto native OAuth, same as every other provider. This one and
+  // gmail are handled by the multi-account calendar-connections system
+  // (src/lib/calendar-connections.functions.ts + user_calendar_connections),
+  // not the single-connection-per-provider startNativeOAuthConnect path -
+  // this registry entry still carries the real OAuth metadata (client env,
+  // endpoints, scopes, refresh support) so oauth-refresh.server.ts's
+  // proactive refresh works identically for both connection systems.
   google_calendar: {
     id: "google_calendar",
     label: "Google Calendar",
-    description: "Two-way calendar sync through the Lovable connector gateway.",
+    description: "Two-way calendar sync: read events, create meetings from decisions.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "google_calendar",
-        clientIdEnv: "GOOGLE_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "GOOGLE_CLIENT_ID",
+        clientSecretEnv: "GOOGLE_CLIENT_SECRET",
+        authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        extraAuthorizeParams: { response_type: "code", access_type: "offline", prompt: "consent" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [{ kind: "calendar", label: "Calendar" }],
     capabilities: { inflow: true, outflow: true, sync: true },
-    setupHint: "Register an OAuth client in the Google Cloud Console.",
+    setupHint:
+      "Register a Google OAuth app (shared with Docs and Gmail): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
   },
+  // New (SW-7): lead/customer insight sitting in email. Multi-account, same
+  // calendar-connections system, its own scope (readonly - inflow only).
+  gmail: {
+    id: "gmail",
+    label: "Gmail",
+    description: "Pull recent inbox messages as customer-voice and lead signals.",
+    authMethods: [
+      {
+        kind: "oauth_native",
+        clientIdEnv: "GOOGLE_CLIENT_ID",
+        clientSecretEnv: "GOOGLE_CLIENT_SECRET",
+        authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+        scopes: ["https://www.googleapis.com/auth/gmail.readonly"],
+        extraAuthorizeParams: { response_type: "code", access_type: "offline", prompt: "consent" },
+        supportsRefresh: true,
+      },
+    ],
+    resourceTypes: [{ kind: "inbox", label: "Inbox" }],
+    capabilities: { inflow: true, outflow: false, sync: false },
+    setupHint:
+      "Register a Google OAuth app (shared with Docs and Calendar): Client ID/Secret go in GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET; add the Cadence redirect URL under that app's OAuth settings.",
+  },
+  // SW-7: same conversion as google_calendar - native OAuth, multi-account
+  // calendar-connections system, registry entry carries OAuth metadata only.
   microsoft_outlook: {
     id: "microsoft_outlook",
     label: "Microsoft Outlook",
-    description: "Two-way calendar sync through the Lovable connector gateway.",
+    description: "Two-way calendar sync: read events, create meetings from decisions.",
     authMethods: [
       {
-        kind: "oauth_gateway",
-        connectorId: "microsoft_outlook",
-        clientIdEnv: "MICROSOFT_APP_USER_CONNECTOR_CLIENT_ID",
+        kind: "oauth_native",
+        clientIdEnv: "MICROSOFT_CLIENT_ID",
+        clientSecretEnv: "MICROSOFT_CLIENT_SECRET",
+        authorizeUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        scopes: ["Calendars.ReadWrite", "User.Read", "offline_access"],
+        extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
       },
     ],
     resourceTypes: [{ kind: "calendar", label: "Calendar" }],
     capabilities: { inflow: true, outflow: true, sync: true },
-    setupHint: "Register an app in the Microsoft Entra admin center.",
+    setupHint:
+      "Register an app in the Microsoft Entra admin center (shared with Outlook Mail): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Cadence redirect URL under that app's Authentication settings.",
+  },
+  // New (SW-7): lead/customer insight sitting in Outlook mail. Multi-account,
+  // same calendar-connections system, its own read-only scope (inflow only).
+  microsoft_mail: {
+    id: "microsoft_mail",
+    label: "Outlook Mail",
+    description: "Pull recent inbox messages as customer-voice and lead signals.",
+    authMethods: [
+      {
+        kind: "oauth_native",
+        clientIdEnv: "MICROSOFT_CLIENT_ID",
+        clientSecretEnv: "MICROSOFT_CLIENT_SECRET",
+        authorizeUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        scopes: ["Mail.Read", "User.Read", "offline_access"],
+        extraAuthorizeParams: { response_type: "code" },
+        supportsRefresh: true,
+      },
+    ],
+    resourceTypes: [{ kind: "inbox", label: "Inbox" }],
+    capabilities: { inflow: true, outflow: false, sync: false },
+    setupHint:
+      "Register an app in the Microsoft Entra admin center (shared with Outlook Calendar): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Cadence redirect URL under that app's Authentication settings.",
   },
   figma: {
     id: "figma",
