@@ -293,8 +293,12 @@ describe("SketchLine", () => {
   it.todo("includes a circle element for the end-point dot — requires React DOM test env");
   it.todo("respects custom color prop — requires React DOM test env");
   it.todo("respects custom width and height — requires React DOM test env");
-  it.todo("includes baseline line when baseline is within data range — requires React DOM test env");
-  it.todo("does not include baseline line when baseline is outside data range — requires React DOM test env");
+  it.todo(
+    "includes baseline line when baseline is within data range — requires React DOM test env",
+  );
+  it.todo(
+    "does not include baseline line when baseline is outside data range — requires React DOM test env",
+  );
   it.todo("applies animate class when animate prop is true — requires React DOM test env");
   it.todo("handles flat data (all same values) — requires React DOM test env");
   it.todo("has aria-hidden for semantic compliance — requires React DOM test env");
@@ -326,7 +330,9 @@ describe("SketchBarChart", () => {
   it.todo("does not include insight when showInsight=false — requires React DOM test env");
   it.todo("respects custom formatValue — requires React DOM test env");
   it.todo("includes baseline line when baseline is provided — requires React DOM test env");
-  it.todo("does not include baseline when baseline is 0 or undefined — requires React DOM test env");
+  it.todo(
+    "does not include baseline when baseline is 0 or undefined — requires React DOM test env",
+  );
   it.todo("renders a button for each data point — requires React DOM test env");
   it.todo("includes peak and floor labels — requires React DOM test env");
   it.todo("respects custom color — requires React DOM test env");
