@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -251,6 +252,13 @@ export const startGithubAppConnect = createServerFn({ method: "POST" })
  * the GitHub App install: no popup/postMessage machinery). SW-7: this is the
  * generalized pattern every non-GitHub provider uses once its OAuth app is
  * registered directly with the provider (no Lovable gateway dependency).
+ *
+ * Security: redirect_uri is built from the request's own Origin header, never
+ * from client-supplied data. A forged origin in the request body would
+ * otherwise let a caller mint a validly-signed authorize URL whose
+ * redirect_uri points at a domain they control (the provider's own exact-match
+ * redirect_uri check is a backstop, not something this endpoint should rely
+ * on alone).
  */
 export const startNativeOAuthConnect = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -258,7 +266,6 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
     z
       .object({
         provider: z.enum(NATIVE_OAUTH_PROVIDER_IDS),
-        targetOrigin: z.string().url(),
         returnTo: z.enum(["onboarding"]).optional(),
       })
       .parse(i),
@@ -273,8 +280,12 @@ export const startNativeOAuthConnect = createServerFn({ method: "POST" })
           (spec.setupHint ? ` ${spec.setupHint}` : ""),
       );
     }
+    const origin = getRequestHeader("origin");
+    if (!origin) {
+      throw new Error("Missing Origin header. Cannot start OAuth connect.");
+    }
     const state = await makeConnectState(context.userId, data.returnTo);
-    const redirectUri = `${data.targetOrigin}/api/public/connect/${data.provider}/callback`;
+    const redirectUri = `${origin}/api/public/connect/${data.provider}/callback`;
     const url = new URL(method.authorizeUrl);
     url.searchParams.set("client_id", clientId);
     url.searchParams.set("scope", method.scopes.join(","));

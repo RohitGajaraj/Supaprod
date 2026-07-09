@@ -122,7 +122,7 @@ function useConnectorActions(qc: QueryClient) {
   const fCalStart = useServerFn(startCalendarConnect);
   const fCalSave = useServerFn(saveCalendarConnection);
 
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   // Clean up polling interval on unmount to prevent lingering queries after navigation.
   useEffect(() => {
@@ -150,14 +150,13 @@ function useConnectorActions(qc: QueryClient) {
   // close-tab page actually closes something and the Settings tab keeps
   // polling for the new connection instead of being navigated away.
   const mNative = useMutation({
-    mutationFn: (spec: ProviderSpec) =>
-      fStartNative({ data: { provider: spec.id, targetOrigin: window.location.origin } }),
+    mutationFn: (spec: ProviderSpec) => fStartNative({ data: { provider: spec.id } }),
     onSuccess: ({ authorizeUrl }) => {
       window.open(authorizeUrl, "_blank", "noopener");
       const deadline = Date.now() + 5 * 60 * 1000;
-      const iv = setInterval(() => {
+      pollRef.current = setInterval(() => {
         qc.invalidateQueries({ queryKey: ["connections"] });
-        if (Date.now() > deadline) clearInterval(iv);
+        if (Date.now() > deadline) clearInterval(pollRef.current);
       }, 3_000);
     },
     onError: (e: Error) => toast.error(e.message),
