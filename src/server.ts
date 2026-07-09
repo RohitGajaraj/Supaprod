@@ -71,7 +71,14 @@ export function withSecurityHeaders(response: Response, nonce?: string): Respons
     // Content-Security-Policy: restrict loading of scripts, styles, and resources
     // TODO: Migrate theme bootstrap script to external file or implement nonce-based CSP
     // to eliminate 'unsafe-inline' for scripts (currently needed for theme FOUC prevention)
-    const csp = `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; default-src 'self'`;
+    // 2026-07-10 hotfix: the first cut of this policy shipped without the app's
+    // real third-party origins and broke production visibly - Google Fonts
+    // stylesheets blocked on every page (style-src had no fonts.googleapis.com,
+    // font-src no fonts.gstatic.com) and Stripe.js refused to load (script-src),
+    // which kills checkout; Stripe Elements/metrics also render via js.stripe.com
+    // iframes (frame-src, which otherwise falls back to default-src 'self').
+    // wss: keeps Supabase realtime channels working (https: does not cover them).
+    const csp = `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; default-src 'self'`;
     headers.set("Content-Security-Policy", csp);
 
     // X-Frame-Options: prevent clickjacking (deny framing from any origin)
@@ -86,8 +93,14 @@ export function withSecurityHeaders(response: Response, nonce?: string): Respons
     // Referrer-Policy: limit referrer leakage
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-    // Permissions-Policy: disable legacy permissions
-    headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
+    // Permissions-Policy: disable unused device permissions. `payment` stays
+    // enabled for self + Stripe (Payment Request API inside Stripe Elements,
+    // e.g. Apple Pay / Google Pay) - blanket payment=() while running Stripe
+    // was part of the same 2026-07-10 CSP hotfix.
+    headers.set(
+      "Permissions-Policy",
+      'geolocation=(), microphone=(), camera=(), payment=(self "https://js.stripe.com")',
+    );
   }
 
   return new Response(response.body, {
