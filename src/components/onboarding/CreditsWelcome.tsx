@@ -21,6 +21,16 @@ export function creditsWelcomeDismissed(): boolean {
   return window.localStorage.getItem(DISMISSED_KEY) === "1";
 }
 
+/**
+ * Pure decision, extracted so the honesty rules are testable without a
+ * DOM/query shim: the card exists only while metering is actually on AND the
+ * account holds a real positive grant. Anything else renders nothing at all -
+ * never a hardcoded promise.
+ */
+export function creditsWelcomeVisible(enabled: boolean, monthlyGrantCredits: number): boolean {
+  return enabled && monthlyGrantCredits > 0;
+}
+
 export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
   const fGetCredits = useServerFn(getMyCreditsView);
 
@@ -40,7 +50,7 @@ export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
   });
 
   const grant = credits.data?.monthlyGrantCredits ?? 0;
-  const show = !!credits.data?.enabled && grant > 0;
+  const show = creditsWelcomeVisible(!!credits.data?.enabled, grant);
 
   function dismiss() {
     window.localStorage.setItem(DISMISSED_KEY, "1");

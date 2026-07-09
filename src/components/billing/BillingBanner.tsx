@@ -22,6 +22,21 @@ import { LOW_CREDITS_WARN } from "@/lib/entitlements";
 
 const LOW_DISMISS_KEY = "cadence.credits.low-dismissed";
 
+/**
+ * Pure decision, extracted so the threshold behavior is testable without a
+ * DOM/query shim (the TodayCoachMark precedent): warn only while the credits
+ * engine is actually on, the balance is a real number at or under the
+ * threshold, and the user has not dismissed it this session.
+ */
+export function shouldWarnLowCredits(
+  enabled: boolean,
+  balance: number | null,
+  dismissed: boolean,
+  threshold: number = LOW_CREDITS_WARN,
+): boolean {
+  return enabled && balance !== null && balance <= threshold && !dismissed;
+}
+
 export function BillingBanner() {
   const [pastDue, setPastDue] = useState(false);
   const [opening, setOpening] = useState(false);
@@ -46,8 +61,7 @@ export function BillingBanner() {
     () => typeof window !== "undefined" && window.sessionStorage.getItem(LOW_DISMISS_KEY) === "1",
   );
   const balance = credits.data?.balanceCredits ?? null;
-  const runningLow =
-    !!credits.data?.enabled && balance !== null && balance <= LOW_CREDITS_WARN && !lowDismissed;
+  const runningLow = shouldWarnLowCredits(!!credits.data?.enabled, balance, lowDismissed);
 
   useEffect(() => {
     // Dormant payments = no subscriptions to dun. Skip entirely rather than

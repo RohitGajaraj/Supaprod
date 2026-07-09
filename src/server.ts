@@ -58,7 +58,9 @@ export function withAgentDiscoveryLink(response: Response): Response {
 function generateNonce(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export function withSecurityHeaders(response: Response, nonce?: string): Response {
