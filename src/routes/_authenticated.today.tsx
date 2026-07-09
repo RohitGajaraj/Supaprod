@@ -28,6 +28,7 @@ import { QuickCapture } from "@/components/today/QuickCapture";
 import { sortWithinGroup, expiryLabel, expiredAgo, gateHeadline } from "@/components/today/triage";
 import { CallDetailSheet, type CallDetail } from "@/components/today/CallDetailSheet";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { stripAutoPrefix } from "@/components/plan/format";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
@@ -968,7 +969,7 @@ function Dashboard() {
           : r.verdict === "missed"
             ? "var(--madder)"
             : "var(--glacier)",
-      text: `A ${r.verdict} outcome moved ${r.opportunity_title ?? "a priority"}: priority score ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
+      text: `A ${r.verdict} outcome moved ${stripAutoPrefix(r.opportunity_title ?? "a priority")}: priority score ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
       cause: "LEARNING · RE-RANKED",
       traceRef: `LRN·${traceRef(r.id)}`,
       time: relTimeCaps(r.created_at),

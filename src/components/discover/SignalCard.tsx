@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { traceRef } from "./format";
+import { signalPreview, traceRef } from "./format";
 
 export interface SignalCardProps {
   src: string;
@@ -93,6 +93,7 @@ export function SignalCard({
       style={{
         display: "grid",
         gap: "5px",
+        minWidth: 0,
         padding: clickable ? "10px" : undefined,
         margin: clickable ? "0 -10px" : undefined,
         borderRadius: clickable ? "var(--radius-control)" : undefined,
@@ -195,9 +196,16 @@ export function SignalCard({
           lineHeight: 1.55,
           color: "var(--text-body)",
           margin: 0,
+          minWidth: 0,
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
         }}
       >
-        {quote}
+        {signalPreview(quote)}
       </p>
       {theme ? (
         <span

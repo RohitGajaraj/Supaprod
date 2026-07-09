@@ -518,7 +518,7 @@ function MissionChainPanel() {
           >
             {missions.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.title}
+                {stripAutoPrefix(m.title)}
               </option>
             ))}
           </select>

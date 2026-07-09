@@ -11,6 +11,7 @@ import { getPublicTeardown, type PublicTeardown } from "@/lib/opportunities-shar
 import { CadenceMark } from "@/components/cadence/Primitives";
 import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 const OG_IMAGE =
   "https://cadence-flow-beta.lovable.app/og-cadence.png";
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/t/$slug")({
   head: ({ loaderData }) => {
     const t = loaderData?.teardown;
     const verdict = t ? VERDICT[t.verdict].label : null;
-    const title = t ? `${t.title} · Cadence` : "Teardown · Cadence";
+    const title = t ? `${stripAutoPrefix(t.title)} · Cadence` : "Teardown · Cadence";
     const desc = (
       t
         ? `Critic verdict: ${verdict}. ${t.summary || "An evidence-backed teardown, shared from Cadence."}`
@@ -54,12 +55,12 @@ export const Route = createFileRoute("/t/$slug")({
       meta: [
         { title },
         { name: "description", content: desc },
-        { property: "og:title", content: t ? `${verdict}: ${t.title}` : "A teardown" },
+        { property: "og:title", content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown" },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:image", content: OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: t ? `${verdict}: ${t.title}` : "A teardown" },
+        { name: "twitter:title", content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown" },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: OG_IMAGE },
       ],
@@ -200,7 +201,7 @@ function PublicTeardownPage() {
         Critic teardown · {date}
       </div>
       <h1 className="font-display" style={{ fontSize: 30, lineHeight: 1.2, margin: "0 0 14px" }}>
-        {teardown.title}
+        {stripAutoPrefix(teardown.title)}
       </h1>
 
       <div

@@ -9,6 +9,7 @@ import { getPublicDecision } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { CadenceMark } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 const OG_IMAGE =
   "https://cadence-flow-beta.lovable.app/og-cadence.png";
@@ -20,18 +21,18 @@ export const Route = createFileRoute("/d/$slug")({
   }),
   head: ({ loaderData }) => {
     const d = loaderData?.decision;
-    const title = d ? `${d.title} · Cadence` : "Decision · Cadence";
+    const title = d ? `${stripAutoPrefix(d.title)} · Cadence` : "Decision · Cadence";
     const desc = (d?.rationale?.trim() || "A product decision, shared from Cadence.").slice(0, 180);
     return {
       meta: [
         { title },
         { name: "description", content: desc },
-        { property: "og:title", content: d?.title ?? "A decision" },
+        { property: "og:title", content: d ? stripAutoPrefix(d.title) : "A decision" },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:image", content: OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: d?.title ?? "A decision" },
+        { name: "twitter:title", content: d ? stripAutoPrefix(d.title) : "A decision" },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: OG_IMAGE },
       ],
@@ -150,7 +151,7 @@ function PublicDecisionPage() {
         Decision · {who} · {date}
       </div>
       <h1 className="font-display" style={{ fontSize: 30, lineHeight: 1.2, margin: "0 0 14px" }}>
-        {decision.title}
+        {stripAutoPrefix(decision.title)}
       </h1>
       <div
         style={{

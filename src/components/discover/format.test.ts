@@ -1,5 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { latestIso, relTimeCaps, sourceCaps, verdictFor, traceRef, withTimeout } from "./format";
+import {
+  latestIso,
+  relTimeCaps,
+  sourceCaps,
+  verdictFor,
+  traceRef,
+  withTimeout,
+  signalPreview,
+  signalCleanBody,
+  signalHasRaw,
+} from "./format";
 
 describe("relTimeCaps", () => {
   const now = Date.now();
@@ -148,5 +158,107 @@ describe("withTimeout", () => {
     await expect(withTimeout(neverSettles, 10)).rejects.toThrow(
       "The server took too long to answer. Retry in a moment.",
     );
+  });
+});
+
+describe("signalPreview", () => {
+  test("returns plain text as-is when short", () => {
+    expect(signalPreview("A simple message")).toBe("A simple message");
+  });
+
+  test("collapses whitespace and removes line breaks", () => {
+    expect(signalPreview("Line one\nLine two")).toBe("Line one Line two");
+  });
+
+  test("strips markdown image syntax", () => {
+    expect(signalPreview("Check this ![alt](https://example.com/image.png)")).toBe("Check this");
+  });
+
+  test("strips markdown links but keeps the text", () => {
+    expect(signalPreview("Read [this article](https://example.com)")).toBe("Read this article");
+  });
+
+  test("strips bare URLs", () => {
+    expect(signalPreview("See https://example.com for details")).toBe("See for details");
+  });
+
+  test("extracts readable gist from JSON object", () => {
+    const json = JSON.stringify({ title: "Issue", description: "A problem occurred" });
+    expect(signalPreview(json)).toBe("Issue: A problem occurred");
+  });
+
+  test("truncates on word boundary when exceeding max length", () => {
+    const longText = "This is a very long signal that should be truncated at a word boundary";
+    const preview = signalPreview(longText, 30);
+    expect(preview.length).toBeLessThanOrEqual(32); // 30 chars + ellipsis allowance
+    expect(preview).toContain("…");
+  });
+
+  test("handles pure JSON array by summarizing items", () => {
+    const json = JSON.stringify(["Item one", "Item two", "Item three"]);
+    expect(signalPreview(json)).toContain("Item");
+  });
+});
+
+describe("signalCleanBody", () => {
+  test("returns plain text as-is", () => {
+    expect(signalCleanBody("A simple message")).toBe("A simple message");
+  });
+
+  test("preserves paragraph breaks in the body view", () => {
+    const text = "First paragraph\n\nSecond paragraph";
+    const result = signalCleanBody(text);
+    expect(result).toContain("First paragraph");
+    expect(result).toContain("Second paragraph");
+    expect(result).toContain("\n");
+  });
+
+  test("strips markdown image syntax", () => {
+    expect(signalCleanBody("See ![alt](image.png) below")).toContain("See");
+    expect(signalCleanBody("See ![alt](image.png) below")).not.toContain("![");
+  });
+
+  test("strips markdown link syntax but preserves text", () => {
+    expect(signalCleanBody("[read this](https://example.com)")).toContain("read this");
+    expect(signalCleanBody("[read this](https://example.com)")).not.toContain("http");
+  });
+
+  test("strips bare URLs", () => {
+    const text = "Visit https://example.com for more";
+    expect(signalCleanBody(text)).not.toContain("https://");
+  });
+
+  test("extracts gist from JSON", () => {
+    const json = JSON.stringify({
+      title: "Error",
+      description: "Something went wrong",
+      details: "More context here",
+    });
+    const result = signalCleanBody(json);
+    expect(result).toContain("Error");
+  });
+});
+
+describe("signalHasRaw", () => {
+  test("returns false when cleaned body matches raw (plain text)", () => {
+    const plainText = "Just plain text";
+    expect(signalHasRaw(plainText)).toBe(false);
+  });
+
+  test("returns true when cleaned body differs from raw (markdown present)", () => {
+    expect(signalHasRaw("See ![image](url) for details")).toBe(true);
+  });
+
+  test("returns true when cleaned body differs from raw (URLs present)", () => {
+    expect(signalHasRaw("Visit https://example.com here")).toBe(true);
+  });
+
+  test("returns true when cleaned body differs from raw (JSON present)", () => {
+    const json = JSON.stringify({ title: "Test", extra: "noise" });
+    expect(signalHasRaw(json)).toBe(true);
+  });
+
+  test("returns false for empty string", () => {
+    expect(signalHasRaw("")).toBe(false);
   });
 });
