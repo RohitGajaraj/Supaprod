@@ -37,6 +37,10 @@ describe("incidentTone — severity roles", () => {
     expect(incidentTone("cost")).toBe("marigold");
     expect(incidentTone("manual")).toBe("muted");
   });
+  test("unknown incident kinds fall back to the muted tone (defensive default)", () => {
+    // This tests the fallback `KIND_TONE[kind] ?? "muted"` for unknown kinds
+    expect(incidentTone("unknown" as never)).toBe("muted");
+  });
 });
 
 describe("INCIDENT_TONE_VAR — CSS variable mapping", () => {
