@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { timingSafeEqual } from "node:crypto";
 
 /**
  * Shared scheduled-hook caller-auth guard for /api/public/hooks/*.
@@ -17,7 +18,7 @@ export async function requireHookCaller(request: Request): Promise<Response | nu
   }
 
   const provided = getProvidedHookSecret(request);
-  if (!provided || !expected.includes(provided)) {
+  if (!provided || !isSecretValid(provided, expected)) {
     return json({ ok: false, error: "Unauthorized" }, 401);
   }
 
@@ -27,6 +28,24 @@ export async function requireHookCaller(request: Request): Promise<Response | nu
 function getProvidedHookSecret(request: Request): string | null {
   const bearer = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   return request.headers.get("x-cron-key")?.trim() || bearer || null;
+}
+
+/**
+ * Constant-time comparison of a provided secret against a list of expected secrets.
+ * Uses timingSafeEqual to prevent timing-attack vulnerabilities.
+ */
+function isSecretValid(provided: string, expected: string[]): boolean {
+  for (const secret of expected) {
+    try {
+      if (timingSafeEqual(Buffer.from(provided), Buffer.from(secret))) {
+        return true;
+      }
+    } catch {
+      // timingSafeEqual throws if buffers are different lengths; continue to next secret
+      continue;
+    }
+  }
+  return false;
 }
 
 async function getExpectedHookSecrets(): Promise<string[]> {
