@@ -140,6 +140,9 @@ export function CommandPalette() {
     if (row.section === "ACT" && row.event) {
       window.dispatchEvent(new CustomEvent(row.event, { detail: {} }));
       if (row.event === "cadence:open-ask") return;
+      // PM Desk: the focus composer opens in place on any page — the dock
+      // listens for this event; navigating away would defeat it.
+      if (row.event === "cadence:focus-compose") return;
     }
     navigate({ to: row.to, search: row.search as never });
   };

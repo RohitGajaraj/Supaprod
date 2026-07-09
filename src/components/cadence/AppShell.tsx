@@ -8,6 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { FlowWidget } from "./FlowWidget";
+import { useFlowMode } from "@/hooks/use-flow-mode";
+import { readFocusHistory, todaysFocusTally } from "@/lib/flow/session";
+import { listTasks } from "@/lib/tasks.functions";
+import { dueRowsOf, openDueCountOf, todayStr, type TaskRow } from "@/components/today/desk/task-filters";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getWorkspacePauseState } from "@/lib/governance.functions";
@@ -265,7 +269,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const activeProduct = products.find((p) => p.id === activeProductId) ?? null;
   const { isMachineView } = useMachineView();
-  void isMachineView;
+
+  // PM Desk, agent visibility: machine view exposes the desk's live state —
+  // the running focus block (client-side session), tasks due today, and the
+  // day's focus tally. The tasks fetch only happens while machine view is on.
+  const flow = useFlowMode();
+  const tasksFn = useServerFn(listTasks);
+  const machineTasks = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => tasksFn(),
+    enabled: isMachineView,
+  });
+
+  function buildDeskSection(): string[] {
+    const lines: string[] = [`## Your desk`, ``];
+    if (flow.isFlowMode) {
+      const what = flow.intent ? `"${flow.intent}"` : "an open block";
+      const left = flow.remainingMs === null ? "open-ended" : `${flow.remainingLabel} left`;
+      lines.push(
+        `- Focus block running on ${what} · ${left}${flow.phase ? ` · phase: ${flow.phase}` : ""}${
+          flow.heldCount > 0 ? ` · ${flow.heldCount} notifications held` : ""
+        }`,
+      );
+    } else {
+      lines.push(`- No focus block running.`);
+    }
+    const tally = todaysFocusTally(
+      readFocusHistory(typeof window === "undefined" ? null : window.localStorage),
+      Date.now(),
+    );
+    if (tally.blocks > 0) lines.push(`- Focus today: ${tally.blocks} blocks · ${tally.minutes} min`);
+    const rows = dueRowsOf(((machineTasks.data?.tasks ?? []) as TaskRow[]), todayStr());
+    const open = rows.filter((t) => t.status !== "done");
+    lines.push(`- Tasks due today: ${openDueCountOf(rows)} open`);
+    for (const t of open.slice(0, 10)) lines.push(`  - [ ] ${t.title}`);
+    lines.push(
+      ``,
+      `Agents may read and create tasks via the registered tools ` +
+        `\`workspace.list_tasks\` and \`tasks.create\`. The focus block is ` +
+        `client-side session state, visible here only.`,
+    );
+    return lines;
+  }
 
   const PAGE_DESCRIPTIONS: Record<string, string> = {
     "/today":
@@ -304,6 +349,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `## This page`,
       ``,
       pageDesc,
+      ``,
+      ...buildDeskSection(),
       ``,
       `## Authenticated workspace surfaces`,
       ``,

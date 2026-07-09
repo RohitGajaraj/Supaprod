@@ -23,8 +23,7 @@ import {
   type QueueCall,
   type QueueGroup,
 } from "@/components/today/TriageQueue";
-import { MyDayStrip } from "@/components/today/MyDayStrip";
-import { QuickCapture } from "@/components/today/QuickCapture";
+import { DeskRail } from "@/components/today/desk/DeskRail";
 import { sortWithinGroup, expiryLabel, expiredAgo, gateHeadline } from "@/components/today/triage";
 import { CallDetailSheet, type CallDetail } from "@/components/today/CallDetailSheet";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
@@ -1074,8 +1073,9 @@ function Dashboard() {
             onOpenCall={featured ? () => setActiveCallId(featured.id) : undefined}
           />
         ) : null}
-        <MyDayStrip />
-        <QuickCapture />
+        {/* PM Desk (2026-07-09): the My-day strip + collapsed capture are
+            retired — their tools live in the Desk on the right rail, with
+            real card affordances instead of text rows. The queue rises. */}
         <LoopStrip
           counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
           pendingCalls={callCount}
@@ -1283,6 +1283,9 @@ function Dashboard() {
             {/* Lane 3 — At risk / watch */}
             {lanesData ? <WatchLane lane={lanesData.lane3} /> : null}
             <LoopHealthCard label="Runs itself" value={loopValue} note={loopNote} hue={loopHue} />
+            {/* PM Desk (founder goal 2026-07-09): the PM's daily tools as an
+                evident card zone, exactly below the aurora card. */}
+            <DeskRail />
             <StrategicBriefCard />
           </div>
         </div>

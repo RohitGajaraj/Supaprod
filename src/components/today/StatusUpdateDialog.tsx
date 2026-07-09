@@ -33,7 +33,9 @@ export function ShareStatusButton({ workspaceName }: { workspaceName: string | n
   );
 }
 
-function StatusUpdateDialog({
+// Exported for the Desk's Stakeholders row (PM Desk, 2026-07-09) — this tool
+// was fully built but orphaned (zero references); the Desk is its home now.
+export function StatusUpdateDialog({
   open,
   onOpenChange,
   workspaceName,

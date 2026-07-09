@@ -8,14 +8,17 @@ import {
   type ReactNode,
 } from "react";
 import { toast, setFlowActive, drainHeldNotifications, heldCount } from "@/lib/notify";
-import { playChime } from "@/lib/flow/chime";
+import { playChime, playCue } from "@/lib/flow/chime";
 import * as soundscape from "@/lib/flow/soundscape";
 import {
+  appendFocusHistory,
   endsAtFor,
   formatRemaining,
   isResumable,
+  phaseOf,
   remainingMs,
   type FlowSession,
+  type FocusPhase,
   type SoundPreset,
 } from "@/lib/flow/session";
 
@@ -24,6 +27,12 @@ import {
 // summarized on exit. State mirrors use-theme.tsx (context + localStorage + a
 // documentElement class); the audio + toast machinery lives in lib/flow/* and
 // lib/notify.ts (Engine-Room: hidden behind this one control).
+//
+// PM Desk (founder goal 2026-07-09): the session now carries the PM's one-line
+// intent and its phase. Past the halfway mark the countdown brightens; the
+// closing stretch (last 10%, 30s floor) goes ember and fires ONE soft cue; the
+// tab title carries the countdown so a block stays visible from any tab. Every
+// finished block lands in a small local history ledger.
 
 export type FlowConfig = {
   preset: SoundPreset;
@@ -38,10 +47,18 @@ type FlowContextValue = {
   heldCount: number;
   soundResumable: boolean; // true after a reload-resume, until the next gesture
   soundUnavailable: boolean; // the chosen track has no file yet (see README)
+  /** The PM's one-line goal for the running block, when one was given. */
+  intent: string | null;
+  /** Epoch ms the running block started, for elapsed display on open blocks. */
+  startedAt: number | null;
+  /** Where the block stands: early · past-half · closing (null = open-ended). */
+  phase: FocusPhase | null;
   config: FlowConfig;
   setConfig: (patch: Partial<FlowConfig>) => void;
-  enterFlow: (patch?: Partial<FlowConfig>) => void;
+  enterFlow: (patch?: Partial<FlowConfig> & { intent?: string }) => void;
   exitFlow: () => void;
+  /** Push the running block's deadline out by N minutes. */
+  extendSession: (minutes: number) => void;
   resumeSound: () => void;
 };
 
@@ -107,16 +124,33 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
   const [held, setHeld] = useState(0);
   const [soundResumable, setSoundResumable] = useState(false);
   const [soundUnavailable, setSoundUnavailable] = useState(false);
+  const [intent, setIntent] = useState<string | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [phase, setPhase] = useState<FocusPhase | null>(null);
   const [config, setConfigState] = useState<FlowConfig>(DEFAULT_CONFIG);
 
   // Latest values for the interval + completion path without resubscribing.
   const configRef = useRef(config);
   configRef.current = config;
   const exitRef = useRef<(reason: "manual" | "completed") => void>(() => {});
+  // Session shape the interval + exit paths need without re-subscribing:
+  // intent/startedAt/plannedMin feed the history entry; cued gates the one
+  // soft closing cue; preTitle restores the tab title after the block.
+  const intentRef = useRef<string | null>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const plannedMinRef = useRef(0);
+  const cuedRef = useRef(false);
+  const preTitleRef = useRef<string | null>(null);
 
   // Hydrate config + resume an in-flight session after a reload.
   useEffect(() => {
     setConfigState(readConfig());
+    // The pre-Desk strip timer is retired; clear its stray key once.
+    try {
+      window.localStorage.removeItem("cadence.focus.timer");
+    } catch {
+      /* noop */
+    }
     const session = readSession();
     const now = Date.now();
     if (isResumable(session, now) && session) {
@@ -125,6 +159,14 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
       setFlowActive(true);
       setEndsAt(session.endsAt);
       setRemaining(remainingMs(session.endsAt, now));
+      setIntent(session.intent ?? null);
+      setStartedAt(session.startedAt ?? null);
+      setPhase(phaseOf(session, now));
+      intentRef.current = session.intent ?? null;
+      startedAtRef.current = session.startedAt ?? null;
+      plannedMinRef.current = session.plannedMin ?? 0;
+      cuedRef.current = session.cued === true;
+      preTitleRef.current = document.title;
       // Audio can't auto-start without a gesture; offer a resume tap instead.
       setSoundResumable(session.preset !== "off");
     } else if (session) {
@@ -142,33 +184,78 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     setSoundResumable(false);
     writeSession(null);
 
+    // The finished block lands in the local ledger (the Desk's daily tally).
+    if (startedAtRef.current !== null) {
+      appendFocusHistory(typeof window === "undefined" ? null : window.localStorage, {
+        intent: intentRef.current,
+        startedAt: startedAtRef.current,
+        endedAt: Date.now(),
+        plannedMin: plannedMinRef.current,
+        completed: reason === "completed",
+      });
+    }
+    const endedIntent = intentRef.current;
+    setIntent(null);
+    setStartedAt(null);
+    setPhase(null);
+    intentRef.current = null;
+    startedAtRef.current = null;
+    plannedMinRef.current = 0;
+    cuedRef.current = false;
+    if (preTitleRef.current !== null && typeof document !== "undefined") {
+      document.title = preTitleRef.current;
+      preTitleRef.current = null;
+    }
+
     const { count } = drainHeldNotifications();
     if (reason === "completed") {
       const tail = count > 0 ? ` ${count} update${plural(count)} while you were focused.` : "";
-      toast.success(`Focus block done.${tail}`);
+      if (endedIntent) toast.success(`Time called on "${endedIntent}".${tail}`);
+      else toast.success(`Focus block done.${tail}`);
     } else if (count > 0) {
       toast(`While you were focused · ${count} update${plural(count)}`);
     }
   }, []);
   exitRef.current = exitFlow;
 
-  const enterFlow = useCallback((patch?: Partial<FlowConfig>) => {
-    const next = { ...configRef.current, ...patch };
-    if (patch) {
+  const enterFlow = useCallback((patch?: Partial<FlowConfig> & { intent?: string }) => {
+    const { intent: rawIntent, ...configPatch } = patch ?? {};
+    const next = { ...configRef.current, ...configPatch };
+    if (Object.keys(configPatch).length > 0) {
       setConfigState(next);
       writeConfig(next);
     }
     const now = Date.now();
     const deadline = endsAtFor(next.timerMin, now);
+    const blockIntent = rawIntent?.trim().slice(0, 120) || undefined;
 
     setIsFlowMode(true);
     applyFlowClass(true);
     setFlowActive(true);
     setEndsAt(deadline);
     setRemaining(remainingMs(deadline, now));
+    setIntent(blockIntent ?? null);
+    setStartedAt(now);
     setSoundResumable(false);
     setSoundUnavailable(false);
-    writeSession({ endsAt: deadline, preset: next.preset, soundOn: next.preset !== "off" });
+    intentRef.current = blockIntent ?? null;
+    startedAtRef.current = now;
+    plannedMinRef.current = next.timerMin;
+    cuedRef.current = false;
+    if (typeof document !== "undefined" && preTitleRef.current === null) {
+      preTitleRef.current = document.title;
+    }
+    const session: FlowSession = {
+      endsAt: deadline,
+      preset: next.preset,
+      soundOn: next.preset !== "off",
+      intent: blockIntent,
+      startedAt: now,
+      plannedMin: next.timerMin,
+      cued: false,
+    };
+    setPhase(phaseOf(session, now));
+    writeSession(session);
 
     if (next.preset !== "off") {
       void soundscape.start(next.preset, next.volume).then((ok) => {
@@ -176,6 +263,37 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
       });
     }
   }, []);
+
+  // Push the deadline out. Leaving the closing stretch re-arms the soft cue,
+  // so a genuinely extended block gets its wrap-up nudge again.
+  const extendSession = useCallback(
+    (minutes: number) => {
+      if (!isFlowMode || endsAt === null || minutes <= 0) return;
+      const now = Date.now();
+      const nextEnds = endsAt + minutes * 60_000;
+      setEndsAt(nextEnds);
+      setRemaining(remainingMs(nextEnds, now));
+      const stored = readSession();
+      const session: FlowSession = {
+        endsAt: nextEnds,
+        preset: stored?.preset ?? configRef.current.preset,
+        soundOn: stored?.soundOn ?? configRef.current.preset !== "off",
+        intent: intentRef.current ?? undefined,
+        startedAt: startedAtRef.current ?? undefined,
+        plannedMin: plannedMinRef.current + minutes,
+        cued: cuedRef.current,
+      };
+      plannedMinRef.current = session.plannedMin ?? 0;
+      const nextPhase = phaseOf(session, now);
+      if (nextPhase !== "closing" && cuedRef.current) {
+        cuedRef.current = false;
+        session.cued = false;
+      }
+      setPhase(nextPhase);
+      writeSession(session);
+    },
+    [isFlowMode, endsAt],
+  );
 
   const setConfig = useCallback(
     (patch: Partial<FlowConfig>) => {
@@ -208,14 +326,34 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // One light tick while flow is on: refresh the countdown + held-toast count,
-  // and finish the session when the timer reaches zero.
+  // track the block's phase (firing the one soft closing cue), keep the tab
+  // title carrying the countdown, and finish the session at zero.
   useEffect(() => {
     if (!isFlowMode) return;
     const id = window.setInterval(() => {
       setHeld(heldCount());
+      const now = Date.now();
       if (endsAt !== null) {
-        const left = remainingMs(endsAt, Date.now());
+        const left = remainingMs(endsAt, now);
         setRemaining(left);
+        const liveSession: FlowSession = {
+          endsAt,
+          preset: configRef.current.preset,
+          soundOn: configRef.current.preset !== "off",
+          startedAt: startedAtRef.current ?? undefined,
+          plannedMin: plannedMinRef.current,
+        };
+        const nextPhase = phaseOf(liveSession, now);
+        setPhase(nextPhase);
+        if (nextPhase === "closing" && !cuedRef.current) {
+          cuedRef.current = true;
+          playCue();
+          const stored = readSession();
+          if (stored) writeSession({ ...stored, cued: true });
+        }
+        // The countdown rides the tab title so a block stays visible from any
+        // tab; navigation may rewrite it, the next tick reclaims it.
+        document.title = `${formatRemaining(left)} · ${intentRef.current ?? "Focus"} · Cadence`;
         if (left !== null && left <= 0) {
           playChime();
           exitRef.current("completed");
@@ -232,10 +370,14 @@ export function FlowModeProvider({ children }: { children: ReactNode }) {
     heldCount: held,
     soundResumable,
     soundUnavailable,
+    intent,
+    startedAt,
+    phase,
     config,
     setConfig,
     enterFlow,
     exitFlow: () => exitFlow("manual"),
+    extendSession,
     resumeSound,
   };
 
@@ -253,10 +395,14 @@ export function useFlowMode(): FlowContextValue {
       heldCount: 0,
       soundResumable: false,
       soundUnavailable: false,
+      intent: null,
+      startedAt: null,
+      phase: null,
       config: DEFAULT_CONFIG,
       setConfig: () => {},
       enterFlow: () => {},
       exitFlow: () => {},
+      extendSession: () => {},
       resumeSound: () => {},
     };
   }

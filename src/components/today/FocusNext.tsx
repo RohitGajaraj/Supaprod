@@ -13,10 +13,13 @@ export function FocusNext({
   insight,
   onStart,
   isStarting,
+  onFocusThis,
 }: {
   insight: FocusInsight | null;
   onStart: (goal: string) => void;
   isStarting: boolean;
+  /** PM Desk: adopt the suggestion as a focus-block intent (prefills the composer). */
+  onFocusThis?: (headline: string) => void;
 }) {
   const [showWhy, setShowWhy] = useState(false);
   if (!insight) return null;
@@ -24,7 +27,7 @@ export function FocusNext({
   const ev = insight.evidence;
   return (
     <section>
-      <MonoLabel style={{ fontSize: 9.5 }}>Focus on this next</MonoLabel>
+      <MonoLabel style={{ fontSize: 9.5 }}>Cadence suggests</MonoLabel>
       <h3
         style={{
           fontFamily: "var(--font-serif)",
@@ -51,33 +54,34 @@ export function FocusNext({
       ) : null}
 
       <div className="flex flex-wrap items-center" style={{ gap: 10, marginTop: 10 }}>
+        {onFocusThis ? (
+          <Button
+            variant="tertiary"
+            onClick={() => onFocusThis(insight.headline)}
+            style={{ fontSize: 12, padding: "6px 14px" }}
+          >
+            Focus on this
+          </Button>
+        ) : null}
         {insight.recommendedAction ? (
           <Button
-            variant="secondary"
+            variant={onFocusThis ? "tertiary" : "secondary"}
             loading={isStarting}
             onClick={() => onStart(insight.recommendedAction!.goal)}
             style={{ fontSize: 12, padding: "6px 14px" }}
           >
-            {isStarting ? "Starting" : "Start it"}
+            {isStarting ? "Starting" : "Send to an agent"}
           </Button>
         ) : null}
-        <button
-          type="button"
+        {/* Loom §0.1.1 correction on sight: the Why toggle was a banned bare
+            text-button; it is now a real tertiary control. */}
+        <Button
+          variant="tertiary"
           onClick={() => setShowWhy((v) => !v)}
-          className="loom-press outline-none transition-colors hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 10.5,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--glacier)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-          }}
+          style={{ fontSize: 12, padding: "6px 14px" }}
         >
           {showWhy ? "Hide why" : "Why"}
-        </button>
+        </Button>
       </div>
 
       {showWhy ? (

@@ -23,4 +23,11 @@ export const ACT_VERBS: readonly ActVerb[] = [
   { label: "Connect a source", run: { to: "/settings", search: { section: "connections" } } },
   { label: "Answer the current Call", run: { to: "/today" } },
   { label: "Ask about this screen", run: { to: "/today", event: "cadence:open-ask" } },
+  // PM Desk (2026-07-09): the desk tools, reachable from anywhere. The focus
+  // composer opens in place (the dock listens; no navigation); the rest land
+  // on the Desk zone on Today.
+  { label: "Start a focus block", run: { to: "/today", event: "cadence:focus-compose" } },
+  { label: "Add a task", run: { to: "/today" } },
+  { label: "Capture a signal", run: { to: "/today" } },
+  { label: "Share status", run: { to: "/today" } },
 ];

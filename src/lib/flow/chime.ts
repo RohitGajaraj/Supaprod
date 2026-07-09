@@ -3,6 +3,31 @@
 
 import { hasAudio } from "./soundscape";
 
+// One soft single note for the block's closing stretch (the last-10% cue,
+// PM Desk). Deliberately quieter and shorter than the completion chime: a
+// nudge, not an alarm. Same throwaway-context pattern as playChime.
+export function playCue(volume = 0.18): void {
+  if (!hasAudio()) return;
+  const Ctx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const ctx = new Ctx();
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = 659.25; // E5: sits above the ambient beds, below the chime
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.45);
+  window.setTimeout(() => {
+    void ctx.close().catch(() => {});
+  }, 900);
+}
+
 export function playChime(volume = 0.25): void {
   if (!hasAudio()) return;
   const Ctx =

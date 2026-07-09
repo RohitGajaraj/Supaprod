@@ -11,6 +11,7 @@ import { BillingBanner } from "@/components/billing/BillingBanner";
 import { ToastProvider } from "@/components/obsidian/toast";
 import { AskProvider } from "@/lib/ask-context";
 import { AskPanel } from "@/components/obsidian/AskPanel";
+import { FocusDock } from "@/components/cadence/FocusDock";
 
 export const Route = createFileRoute("/_authenticated")({
   // Disable SSR/prerender for the entire authenticated subtree. Without a
@@ -165,6 +166,9 @@ function AuthedLayout() {
               {/* OBS-12: Ask (Cmd+J) is a summonable panel over any surface, not a
                   rail destination - mounted once, floats over the whole shell. */}
               {!isOnboarding && <AskPanel />}
+              {/* PM Desk: the Wispr-style focus dock — an idle sliver on every
+                  page, the cross-surface countdown while a block runs (Option F). */}
+              {!isOnboarding && <FocusDock />}
             </AskProvider>
           </ToastProvider>
         </FlowModeProvider>
