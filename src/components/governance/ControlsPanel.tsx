@@ -10,7 +10,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Clock, Gauge, Zap } from "lucide-react";
+import { Clock, Gauge, ShieldCheck, Zap } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -18,6 +18,8 @@ import {
   setWorkspacePause,
   MISSION_CONCURRENCY_CAP,
 } from "@/lib/governance.functions";
+import { listTools, updateToolMode } from "@/lib/agent_loop.functions";
+import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import {
   listEventSubscriptions,
   upsertEventSubscription,
@@ -91,6 +93,75 @@ function PillSwitch({
   );
 }
 
+type OversightMode = "auto" | "confirm" | "review";
+
+const OVERSIGHT_STOPS: Array<{ mode: OversightMode; label: string; hint: string }> = [
+  { mode: "auto", label: "Auto", hint: "Runs on its own" },
+  { mode: "confirm", label: "Ask first", hint: "Asks you before each run" },
+  { mode: "review", label: "Review", hint: "Waits for your full review" },
+];
+
+/* Three-stop oversight control for one tool. The safety floors are honest
+   here, not decorative: force-review tools render pinned (no control at
+   all), and min-confirm tools grey out the Auto stop. */
+function ModeSegment({
+  value,
+  disabled,
+  onSelect,
+  autoBlocked,
+}: {
+  value: OversightMode;
+  disabled?: boolean;
+  onSelect: (m: OversightMode) => void;
+  autoBlocked?: boolean;
+}) {
+  return (
+    <span
+      role="radiogroup"
+      aria-label="Oversight mode"
+      style={{
+        display: "inline-flex",
+        border: "1px solid var(--hairline)",
+        borderRadius: 99,
+        overflow: "hidden",
+        flexShrink: 0,
+      }}
+    >
+      {OVERSIGHT_STOPS.map((s) => {
+        const active = s.mode === value;
+        const blocked = s.mode === "auto" && autoBlocked;
+        return (
+          <button
+            key={s.mode}
+            role="radio"
+            aria-checked={active}
+            title={blocked ? "This tool never runs unattended. Safety floor." : s.hint}
+            disabled={disabled || blocked || active}
+            onClick={() => onSelect(s.mode)}
+            style={{
+              fontSize: 10.5,
+              padding: "4px 10px",
+              background: active ? "var(--surface-2)" : "transparent",
+              color: blocked
+                ? "var(--text-subtle)"
+                : active
+                  ? "var(--text-body)"
+                  : "var(--ink-subtle)",
+              fontWeight: active ? 600 : 400,
+              cursor: disabled || blocked || active ? "default" : "pointer",
+              opacity: blocked ? 0.45 : 1,
+              border: "none",
+              transition: "background var(--dur-base)",
+            }}
+          >
+            {s.label}
+          </button>
+        );
+      })}
+    </span>
+  );
+}
+
 const RUNS_GRID = "1fr 100px 130px 140px 70px";
 
 // LOOM v4 (§2): cards catch the light from above and cast ambient depth.
@@ -111,6 +182,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const deleteSubFn = useServerFn(deleteEventSubscription);
   const listQueueFn = useServerFn(listEventQueue);
   const decideEvtFn = useServerFn(decideEventDispatch);
+  const listToolsFn = useServerFn(listTools);
+  const updateToolModeFn = useServerFn(updateToolMode);
 
   const overview = useQuery({
     queryKey: ["governance", "overview", activeWorkspaceId],
@@ -124,6 +197,26 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     queryKey: ["reactor", "queue", activeWorkspaceId],
     queryFn: () => listQueueFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
     refetchInterval: 5000,
+  });
+  const toolsQ = useQuery({
+    queryKey: ["agent-tools", "oversight"],
+    queryFn: () => listToolsFn(),
+  });
+
+  const toolModeMut = useMutation({
+    mutationFn: (v: { toolId: string; mode: OversightMode; name: string }) =>
+      updateToolModeFn({ data: { toolId: v.toolId, mode: v.mode } }),
+    onSuccess: (_d, v) => {
+      toast.success(
+        v.mode === "auto"
+          ? `${v.name} runs on its own again.`
+          : v.mode === "confirm"
+            ? `${v.name} will ask before each run.`
+            : `${v.name} now waits for your review.`,
+      );
+      qc.invalidateQueries({ queryKey: ["agent-tools"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const [reason, setReason] = useState("");
@@ -206,6 +299,16 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const subs = subsQ.data?.subscriptions ?? [];
   const runs = data?.runs ?? [];
   const events = queueQ.data?.events ?? [];
+  const tools = (toolsQ.data?.tools ?? []).filter(
+    (t) => t.enabled !== false && t.mode !== "off",
+  ) as Array<{
+    id: string;
+    tool_name: string;
+    display_name: string | null;
+    description: string | null;
+    category: string | null;
+    mode: string;
+  }>;
 
   if (overview.error) {
     return (
@@ -482,6 +585,100 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         </div>
       </div>
 
+      {/* Tool oversight: the human end of the trust ramp, span 2. This is
+          the ONLY place a person can tighten a tool's stored mode; the ramp
+          (reflection.server.ts) can then propose loosening it back after
+          TRUST_RAMP_CLEAN_N clean runs, surfaced in Record → Approvals. */}
+      <div style={{ ...V4_CARD, gridColumn: "span 2", padding: "18px 20px" }}>
+        <MonoLabel icon={ShieldCheck} style={{ marginBottom: 4 }}>
+          Tool oversight
+        </MonoLabel>
+        <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 10 }}>
+          Tighten a tool and the agent asks before every run. After five clean runs in a row,
+          Cadence proposes handing it back. You decide, in the approvals queue.
+        </div>
+        {toolsQ.isLoading ? (
+          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+            Loading tools…
+          </div>
+        ) : toolsQ.error ? (
+          <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "8px 0" }}>
+            {(toolsQ.error as Error).message}
+          </div>
+        ) : tools.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+            No tools enabled yet.
+          </div>
+        ) : (
+          <div
+            style={{ maxHeight: 380, overflowY: "auto", display: "flex", flexDirection: "column" }}
+          >
+            {tools.map((t, i) => {
+              const pinned = HIGH_RISK_FORCE_REVIEW.has(t.tool_name);
+              const mode: OversightMode =
+                t.mode === "review" ? "review" : t.mode === "confirm" ? "confirm" : "auto";
+              const cat = t.category ?? "general";
+              const showCategory = i === 0 || cat !== (tools[i - 1].category ?? "general");
+              return (
+                <div key={t.id}>
+                  {showCategory ? (
+                    <div
+                      className="mono-label"
+                      style={{ padding: "10px 0 4px", color: "var(--text-subtle)" }}
+                    >
+                      {cat}
+                    </div>
+                  ) : null}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "8px 0",
+                      borderBottom: i < tools.length - 1 ? "1px solid var(--hairline)" : "none",
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }} title={t.description ?? undefined}>
+                      <div style={{ fontSize: 13, fontWeight: 500 }}>
+                        {t.display_name || t.tool_name}
+                      </div>
+                      <div
+                        className="mono-label"
+                        style={{ fontSize: 10, color: "var(--text-subtle)" }}
+                      >
+                        {t.tool_name}
+                      </div>
+                    </div>
+                    {pinned ? (
+                      <span
+                        className="mono-label"
+                        style={{ color: "var(--text-subtle)" }}
+                        title="This gate never loosens. Safety floor."
+                      >
+                        review · pinned
+                      </span>
+                    ) : (
+                      <ModeSegment
+                        value={mode}
+                        autoBlocked={HIGH_RISK_MIN_CONFIRM.has(t.tool_name)}
+                        disabled={toolModeMut.isPending && toolModeMut.variables?.toolId === t.id}
+                        onSelect={(m) =>
+                          toolModeMut.mutate({
+                            toolId: t.id,
+                            mode: m,
+                            name: t.display_name || t.tool_name,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Recent runs — production usage-vs-caps table (the reference has no
           equivalent); kept and restyled quiet. Halted runs carry the reason. */}
       <div style={{ ...V4_CARD, gridColumn: "span 2", padding: 0, overflow: "hidden" }}>
@@ -544,7 +741,9 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 <span style={{ minWidth: 0 }}>
                   <span style={{ fontWeight: 500 }}>{r.agent_name}</span>
                   {halted && r.halted_reason ? (
-                    <span style={{ display: "block", fontSize: 11.5, color: "var(--madder-bright)" }}>
+                    <span
+                      style={{ display: "block", fontSize: 11.5, color: "var(--madder-bright)" }}
+                    >
                       {r.halted_reason}
                     </span>
                   ) : null}
