@@ -269,6 +269,7 @@ export function AskPanel() {
   const [streaming, setStreaming] = React.useState(false);
   const [liveStatus, setLiveStatus] = React.useState<ResearchStatus | null>(null);
   const conversationIdRef = React.useRef<string | null>(null);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const fCreate = useServerFn(createConversation);
 
   const ensureConversation = React.useCallback(async (): Promise<string> => {
@@ -297,6 +298,10 @@ export function AskPanel() {
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        // Create a new AbortController for this request so we can cancel if panel closes
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: {
@@ -304,6 +309,7 @@ export function AskPanel() {
             ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
           },
           body: JSON.stringify({ conversationId: convId, content }),
+          signal: controller.signal,
         });
         if (res.status === 401)
           throw new AskUiError("Your session needs a refresh. Reload and try again.");
@@ -369,12 +375,23 @@ export function AskPanel() {
           return next;
         });
       } finally {
+        abortControllerRef.current = null;
         setStreaming(false);
         setLiveStatus(null);
       }
     },
     [streaming, ensureConversation],
   );
+
+  // Cancel any in-flight stream if the panel closes or when pendingIntent changes
+  React.useEffect(() => {
+    if (isOpen) return; // Only cleanup when closing
+    // Panel is closing: abort any active stream request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen || !pendingIntent) return;
