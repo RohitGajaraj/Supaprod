@@ -2,6 +2,7 @@ import { Copy, GitBranch } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
+import { PulsePrompt } from "@/components/cadence/PulsePrompt";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
 import {
   DropdownMenu,
@@ -527,16 +528,19 @@ export function OpportunityDetailSheet({
               <div style={{ display: "grid", gap: "9px" }}>
                 <VerdictChip tone={verdict} style={{ justifySelf: "start" }} />
                 {opportunity.critic_review?.summary ? (
-                  <p
-                    style={{
-                      fontSize: "12.5px",
-                      lineHeight: 1.6,
-                      color: "var(--text-body)",
-                      margin: 0,
-                    }}
-                  >
-                    {opportunity.critic_review.summary}
-                  </p>
+                  <>
+                    <p
+                      style={{
+                        fontSize: "12.5px",
+                        lineHeight: 1.6,
+                        color: "var(--text-body)",
+                        margin: 0,
+                      }}
+                    >
+                      {opportunity.critic_review.summary}
+                    </p>
+                    <PulsePrompt surface="teardown" targetId={opportunity.id} />
+                  </>
                 ) : (
                   <p
                     style={{

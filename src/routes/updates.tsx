@@ -22,7 +22,7 @@ export const Route = createFileRoute("/updates")({
   component: UpdatesPage,
 });
 
-const ENTRIES: { date: string; title: string; body: string }[] = [
+const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean }[] = [
   {
     date: "2026-07-10",
     title: "The first ten minutes now prove the value",
@@ -86,6 +86,33 @@ function UpdatesPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* PC-15: fed by shipped rows tagged fromPulse above. Honest empty
+          state until a real one exists post-beta, never a fabricated one. */}
+      <div style={{ marginTop: 48, paddingTop: 28, borderTop: "1px solid #1c1c22" }}>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: "#f8fafc", margin: "0 0 6px" }}>
+          You said, we changed
+        </h2>
+        {ENTRIES.some((e) => e.fromPulse) ? (
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+            {ENTRIES.filter((e) => e.fromPulse).map((e) => (
+              <div key={e.title}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "#f8fafc", margin: "0 0 4px" }}>
+                  {e.title}
+                </h3>
+                <p style={{ fontSize: 13, color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
+                  {e.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>
+            Nothing here yet. Every thumbs-up or thumbs-down in the product becomes a real signal,
+            and this section fills in with real shipped changes once one drives a decision.
+          </p>
+        )}
       </div>
     </LegalPageShell>
   );

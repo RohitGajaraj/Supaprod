@@ -37,6 +37,7 @@ import { recordRitualSession } from "@/lib/gauntlet.functions";
 import { getProductContext } from "@/lib/briefs.functions";
 import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
+import { PulsePrompt } from "@/components/cadence/PulsePrompt";
 import { generateDailyBrief } from "@/lib/copilot.functions";
 import { savePrd, updateOpportunity } from "@/lib/discovery.functions";
 import { decideDesignGate } from "@/lib/design-scaffold.functions";
@@ -291,17 +292,25 @@ function TodaySpotlight({
         </div>
         {fullOpen ? (
           briefSummary ? (
-            <p
-              style={{
-                fontSize: 13,
-                lineHeight: 1.6,
-                color: "var(--text-body)",
-                margin: "2px 0 0",
-                maxWidth: "68ch",
-              }}
-            >
-              {briefSummary}
-            </p>
+            <>
+              <p
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: "var(--text-body)",
+                  margin: "2px 0 0",
+                  maxWidth: "68ch",
+                }}
+              >
+                {briefSummary}
+              </p>
+              <div style={{ marginTop: 8 }}>
+                <PulsePrompt
+                  surface="morning_brief"
+                  targetId={new Date().toISOString().slice(0, 10)}
+                />
+              </div>
+            </>
           ) : (
             <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "2px 0 0" }}>
               No written brief yet today. Refresh drafts one from this workspace.
