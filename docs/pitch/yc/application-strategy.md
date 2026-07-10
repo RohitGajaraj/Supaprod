@@ -1,6 +1,6 @@
 # The YC application strategy — positioning, partner psychology, prep
 
-> _Created: 2026-07-10. Target: **Winter 2027 batch (deadline ~November 2026)** — apply AFTER launch, consuming 12–14 weeks of real traction (the validated ruling; YC's own guidance favors 8–10 weeks of clean week-over-week data). Evidence base: [`../../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md) (YC RFS verbatim, partner quotes) + research §17. Companion: [`video-scripts.md`](./video-scripts.md)._
+> _Created: 2026-07-10 (originally targeting W27). **SUPERSEDED same day by founder ruling: applying to FALL 2026, deadline July 27, 2026, 8pm PT** — the previous batch's late application rolled forward and is editable, and YC's own FAQ says progress since a prior application "is a strong signal." The full working set now lives beside this file: [`application.md`](./application.md) (field-by-field previous→new, copy-paste ready), [`research-findings.md`](./research-findings.md) (all sources), [`interview-prep.md`](./interview-prep.md) (spoken answers + drills), [`video-scripts.md`](./video-scripts.md) (1:00 founder bullet card + ~2:10 demo shot list). This file remains the strategy layer: partner psychology, positioning ladder, do/don't. Evidence base: [`../../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md) + research §17. If W27 becomes the batch (rejection or deferral), §1–§6 apply unchanged with 12–14 weeks of traction folded in._
 
 ## 1. How a YC partner actually reads your application (the psychology)
 

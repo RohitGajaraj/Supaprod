@@ -24,6 +24,12 @@
 
 **"What's defensible in the AI stack?"** — Nothing, per Casado ("no endemic tech moat") — which is our argument: the moat is the receipted, outcome-labeled record and the trust ramp, not the model calls. Method is commodity; method bound to your accumulated judgment is not. [investor corpus; v11 §8]
 
+**"ChatPRD already has 100k+ PMs. What do you know that Claire Vo doesn't?"** — She proved the demand, bootstrapped, and we say so with respect. A PRD is where her loop ends and ours starts: the decision behind the document, the build after it, the outcome after that. Documents don't compound; the decision record does. And if her own "PM is dead" thesis plays out, the collapsed builder-PM who remains needs receipts more, not less. [research-findings §3.2; interview-prep §4]
+
+**"You had a working product for weeks with zero users. Why hadn't you launched?"** — Fair hit, and we own it: we over-built before opening the doors, caught it on 2026-07-10, and reorganized the whole company around launch (beta within days, public listing inside the month). The honest posture is self-aware correction, not justification — partners respect "I was wrong and here's the fix date" far more than a rationale. [v13 campaign; interview-prep §4.1]
+
+**"Linear assigns issues to Cursor and Devin today. Why a second system?"** — Linear dispatches the build; it doesn't decide what's worth building or record whether the decision paid off. We sit above the tracker and dispatch to those same agents — a Linear customer is a Cadence customer. [BuildDriver seam; research-findings §3.2]
+
 ## Customers (the skeptical senior PM)
 
 **"Who's accountable when the AI is wrong?"** — You are — that's the design. Cadence never hides that; it gives you the instruments: every act has a receipt, every artifact has one-key rewind, autonomy is earned per-agent by track record and you can tighten it anytime (hard floors: merge/revert always ask). Watch the demo's failure path: we rehearse being wrong on purpose. [demo-script.md]

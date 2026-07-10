@@ -9,8 +9,11 @@
 | [**one-pager.md**](./one-pager.md) | You need the story: what Cadence is, how we're different, the controversial moves, what we can PROVE today vs what stays claim-on-wiring, the one-liners, the honest numbers. |
 | [**qa-bank.md**](./qa-bank.md) | You're prepping for hostile questions — investors, skeptical PMs/customers, engineers — each with the honest answer and its evidence pointer. |
 | [**demo-script.md**](./demo-script.md) | You're about to demo — the doctrine (receipts ON SCREEN, the loop closing live, the failure path shown on purpose) and the concrete walkthrough. |
-| [**yc/application-strategy.md**](./yc/application-strategy.md) | You're working on the YC application — partner psychology, the positioning ladder, field-by-field patterns/anti-patterns, interview prep, and the additive narrative candidates ("What Cursor did for writing code, Cadence does for deciding what to build"). |
-| [**yc/video-scripts.md**](./yc/video-scripts.md) | You're recording — the founder video (≤1 min, one take) and the product narrative video (≤3 min, the day-in-the-life arc with the rewind/miss-record beat that nobody else can film). |
+| [**yc/application.md**](./yc/application.md) | **THE LIVE ONE — Fall 2026 application, deadline July 27, 2026, 8pm PT.** Field-by-field previous→new with copy-paste blocks, `[bracketed]` submit-day slots, the pre-submit checklist, and the banned-words list. |
+| [**yc/research-findings.md**](./yc/research-findings.md) | You want the evidence behind any application/interview choice — YC's own rules, the seven deadly sins, the batch landscape and funded neighbors, the pre-traction playbook, and the language forensics, every claim with its source URL. |
+| [**yc/interview-prep.md**](./yc/interview-prep.md) | The interview lands (Aug–Sep, 10 min, rapid fire) — the numbers card, spoken one-breath answers to the top 25 + the 12 brutal ones, the 90-second screen-share path, and the drill plan. |
+| [**yc/application-strategy.md**](./yc/application-strategy.md) | You're thinking about YC positioning — partner psychology, the positioning ladder, do/don't, and the additive narrative candidates ("What Cursor did for writing code, Cadence does for deciding what to build"). |
+| [**yc/video-scripts.md**](./yc/video-scripts.md) | You're recording — the founder video (1:00, bullet card per YC's no-script rule) and the demo video (~2:10, exact ON-SCREEN / YOU-SAY shot list with the rewind/miss-record beat that nobody else can film). |
 
 ## The routing doctrine (standing rule, founder 2026-07-10 — wired into CLAUDE.md + AGENTS.md)
 
