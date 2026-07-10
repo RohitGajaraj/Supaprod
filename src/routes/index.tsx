@@ -1653,7 +1653,7 @@ function HeroSection() {
             </p>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/signup" className="btn btn-primary" style={{ textDecoration: "none" }}>
+              <a href="/demo" className="btn btn-primary" style={{ textDecoration: "none" }}>
                 Tear down your pet feature (free)
               </a>
             </div>
@@ -3564,6 +3564,13 @@ function LandingPage() {
               </span>
             </Link>
             <nav style={{ display: "flex", alignItems: "center", gap: 18 }}>
+              <a
+                href="/demo"
+                className="lp-nav"
+                style={{ fontSize: 13, color: C.faint, textDecoration: "none" }}
+              >
+                Try the demo
+              </a>
               <Link
                 to="/pricing"
                 className="lp-nav"
