@@ -69,7 +69,10 @@ export function authErrorMessage(error: unknown, context: AuthContext = "signin"
       "user already exists",
     ])
   ) {
-    return "An account already uses this email. Sign in instead.";
+    // Return generic message to prevent account enumeration: never reveal
+    // whether an email exists in signup flow. This falls back to the
+    // context-specific default, which in signup is "Couldn't create your account..."
+    return defaultFor(context);
   }
 
   if (has(raw, ["password should be at least", "password is too short", "at least 6"])) {

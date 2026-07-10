@@ -14,7 +14,14 @@
     const makeId =
       idFactory ||
       function () {
-        return Math.random().toString(16).slice(2, 10);
+        // Use cryptographically secure random ID if available (browser/Node.js 16+),
+        // fallback to timestamp-based ID. Never rely on Math.random() for security tokens.
+        try {
+          return crypto.randomUUID();
+        } catch {
+          // Fallback: use Date.now() + random suffix for environments without crypto
+          return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        }
       };
     const sessionKey = prefix + "-session";
     const handledKey = sessionKey + "-handled";
