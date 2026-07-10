@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-10 late. Companion to [`coherence-cluster-specs.md`](./coherence-cluster-specs.md) (PC-28..33). **Purpose: the thinking is done HERE (Fable, once) so execution runs on Sonnet sessions** — each spec is decision-complete with a verify-first step where the authoring session lacked file-level certainty. Lane prompts: [`research-sprint-lane-briefs.md`](./research-sprint-lane-briefs.md). Shared laws: BUILD-ONLY gates · Love Gate · claim-never-outruns-wiring · humanized UI strings · LOOM visuals untouched._
 >
-> **The model doctrine (founder economics, 2026-07-10):** 1 Fable + 3 Sonnet. The Fable lane builds ONLY the two danger rows (PC-05 billing, PC-07 chokepoint) and runs the review gate on every other lane's risky ships (chokepoint-adjacent diffs, each surface's Love-Gate walkthrough). Everything else executes on Sonnet against these specs. If a Sonnet lane hits a genuine judgment fork the spec doesn't answer: write the question + your recommendation on the row, pick the reversible option, continue — never block.
+> **The model doctrine (founder economics, 2026-07-10):** 1 Fable + 3 Sonnet. The Fable lane builds ONLY the two danger rows (PC-05 billing, PC-07 chokepoint) and runs the review gate on every other lane's risky ships (chokepoint-adjacent diffs, each surface's Love-Gate walkthrough). Everything else executes on Sonnet against these specs. If a Sonnet lane hits a genuine judgment fork the spec doesn't answer: **spawn ONE Fable subagent for that single decision** (model `fable`; the fork in 3 lines + the spec section + your recommendation; take the ruling, log it on the row) — max 3/lane/day; beyond that the spec is wrong, note it and take the reversible option. Never block.
 
 ---
 
