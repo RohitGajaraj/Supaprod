@@ -168,9 +168,31 @@ Read alongside [`../strategy/moat.md`](../strategy/moat.md), [`../strategy/v11-g
 
 ---
 
+## 11. Thought-leader signal sweep (added 2026-07-10, per founder ask: "gather insights from such feeds — Aakash Gupta, Lenny's podcast, and other great minds in product")
+
+> **Access note first:** LinkedIn feeds are auth-walled to agents (same class as Reddit, §0) — the same one-minute Chrome-extension permission grant unlocks BOTH (`linkedin.com` + `reddit.com`), after which the agent can scroll Aakash's/Lenny's actual LinkedIn posts and images. Until then: these creators' newsletters/Substacks are their primary long-form home and are fully reachable — that is what this sweep used. **Also: the repo already holds a full 225-thread Aakash Gupta content audit** ([`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md), window Jun 2025-May 2026: his 12 topic clusters, the five-move thesis, the whitespace analysis). This section extends that with the wider circle, it does not repeat it.
+
+**The voices, dated and sourced:**
+
+- **Lenny Rachitsky** ("How AI will impact product management," lennysnewsletter.com, 2024-04-09 — pre-window but still the reference ranking everyone cites): counterintuitively, AI most disrupts the HIGH-level PM skills — product strategy/vision and goal/OKR setting score highest on his disruption scale — while specs/PRDs and discovery are "considerably facilitated." The surviving PM is the "conductor/quarterback/glue of the team who pulls all the disparate pieces together." His 2025 output doubled down operationally: the AI-agents-for-PM guide (workshop with 5,000+ PMs) and the "How I AI" podcast launch.
+- **Aakash Gupta** ("The AI PM's Playbook," news.aakashg.com, 2025-01-22, plus the standing audit doc): "All PMs need to become AI PMs"; "AI should amplify your thinking, not replace it." Pain points he names: PRD-by-tomorrow deadline pressure, unedited AI output carrying stale info and missing context, competitive research and meeting notes as the time sinks, and constant tool-landscape churn. His five-move thesis (from the sibling audit): evals are the new PRD; the spec moved (prototype-first); taste at speed is the moat; PMs build in the codebase; agents are a distribution channel.
+- **Shreyas Doshi** ("Why Product Sense is the only product skill that will matter in the AI age," shreyasdoshi.substack.com, **2026-03-05**): the sharpest version of the judgment thesis. Verbatim: "Tools have never been a significant source of alpha in product success and that is not changing with AI tools." And: "The only real long-term career moat for product people is how you can improve on the already-brilliant inputs and outputs that AI will provide." AI commoditizes execution (discovery, design, coding, analytics); what stays scarce is judgment/empathy/taste applied ON TOP of AI output.
+- **Marty Cagan / SVPG** ("AI Product Management 2 Years In," svpg.com, late 2024/early 2025, plus a Feb-2026 follow-up SVPG itself flags as "a significant change to what SVPG has been advocating for the past two decades"; svpg.com 403s fetchers, so quotes are via airfocus/SVPG-tag secondary summaries — flagged): "Product owner is a role in the delivery process, and that is a very easy kind of thing for an assistant to make a big dent into" — i.e., prepare for job loss at the delivery-shaped end of the role; and AI "is simply exposing the theater" where a PM's contribution was process, not judgment.
+- **Claire Vo** (ChatPRD founder, CPO, host of Lenny's "How I AI" podcast): declared "PM is dead" at Lenny's Summit; advises PMs they have "the next 18 months" to adapt; publicly demos idea-to-product in ~30 minutes with AI agents and runs her company AI-native ("No Lanes"). She is simultaneously a leading voice AND a competitor datapoint (ChatPRD: bootstrapped, $15-29/seat, claims 100K+ PMs).
+
+**The convergence read (what all five agree on, triangulated against §§1-6 community evidence):**
+1. **Execution/artifact work commoditizes.** PRDs, prototypes, analysis — every leader puts these on AI's side of the line, and the community's grunt-work ranking (§3) agrees from below.
+2. **Judgment is the declared scarce asset.** Every single voice lands on the same word cluster — product sense, taste, "improve on AI's outputs," "amplify your thinking, not replace it." Nobody defends process work.
+3. **The role bifurcates.** Delivery-shaped PM work (Cagan's product owner; junior spec/triage tasks per §5) automates away; senior judgment work concentrates and gains leverage. The "one person runs the entire product" operator is this trend's end state.
+4. **The empty productized cell:** all five sell the judgment thesis as content, courses, frameworks, or practice — none has productized judgment that COMPOUNDS. The mechanism that would (decision → recorded outcome → re-ranked next decision, with receipts) is exactly the moat.md/v12 thesis. Five independent authorities are, in effect, describing the product without building it. This is the strongest external triangulation of Cadence's core bet found in this research pass — and also its bar: the product must demonstrably do the thing they say cannot be a tool ("improve on AI's outputs" via the user's own outcome history), not just claim it.
+
+**Follow-up once the browser lane is granted:** scroll Aakash's + Lenny's LinkedIn feeds for the image-form insights the founder mentioned (charts/frameworks posted as images never reach newsletters or search indexes), plus Shreyas's X threads; append findings here with dates.
+
+---
+
 ## Related
 
-- [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) — single-creator PM content audit (sibling reference, narrower aperture)
+- [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) — single-creator PM content audit (sibling reference; §11 above extends it with the wider thought-leader circle)
 - [`competitive-landscape.md`](./competitive-landscape.md) — June-2026 market scan (AI-PM tools, suite agents, MCP/A2A)
 - [`../strategy/moat.md`](../strategy/moat.md) — moat/competition canon this research corroborates
 - [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) — 2026-07-10 entry pointing back to this doc

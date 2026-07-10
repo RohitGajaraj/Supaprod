@@ -1,6 +1,6 @@
 # Build-in-public insight feed (one way → the build-in-public repo)
 
-> _Created: 2026-06-15 · Last updated: 2026-06-18_
+> _Created: 2026-06-15 · Last updated: 2026-07-10_
 
 This is the single capture point for postable insights from building Cadence. As we build (any tool, any session), real, non-obvious, public-safe moments get appended here: a decision, a mechanism, a real number, a lesson, a launch reaction, a screenshot worth grabbing. The private **build-in-public** repo's weekly engine and real-time watch read this file first, before scouting, so the posts are grounded in what actually happened.
 
@@ -48,6 +48,36 @@ These entries become posts in the founder's private **build-in-public** system, 
 Keep entries comprehensive and close to ready-to-post (full context + exact facts), and attach the real artifact (saved under `docs/screenshots/brand-feed/`, referenced by path), not just a description of what to grab.
 
 ## Feed (newest first)
+
+## 2026-07-10 - A PM spent $28K testing 47 AI tools and kept 9; the same quarter, one of the best-known AI-PM startups got absorbed into Jira
+
+- Pillar: market
+- Context (the full story, so the engine has everything): I spent a day pulling real user voices on AI product-management tooling (Hacker News, G2, Capterra, Product Hunt, PM newsletters) to check my own assumptions about the category I build in. Two hard, dated facts stood above everything else, and together they read like the category delivering a verdict on itself.
+- What actually happened: Aakash Gupta (ex-PM leader, runs the ~215K-subscriber Product Growth newsletter) published on 2025-12-20 that he tested 47 AI tools for PMs, spent $28,336 of his own money, and kept only 9. None of the flagship "AI PM copilot" products made his cut — the survivors were narrow, evidence-grounded tools, and the standout survivor's whole pitch is "ask questions in plain English, get answers backed by actual quotes." His stated rejection reasons: overcomplicated setup, overhyped demos that underperform on real work, overpricing, redundancy. In the same stretch, Cycle — one of the best-regarded AI feedback-to-PRD startups — was acquired by Atlassian (announced 2025-09-03) and the standalone product was sunset by 2025-10-31, folded into Jira Product Discovery as a feature.
+- Angle: the AI-PM category currently has exactly two endings: get absorbed by the incumbent you tried to unseat, or get dismissed as a wrapper by the people you tried to serve. The only tools earning durable trust are the ones whose every answer carries checkable receipts. Confidence is a commodity now; verifiability is the product.
+- Facts to keep exact: $28,336 spent; 47 tools tested; 9 kept; publish date 2025-12-20; Cycle acquisition announced 2025-09-03, standalone sunset 2025-10-31, folded into Jira Product Discovery; the survivor pitch quote "backed by actual quotes." Do NOT name my product or connect me to the category beyond "I build in this space."
+- Capture cue (ATTACHED): none saved — market post; the strongest visual is the two headlines side by side (the "$28K / only 9 were worth it" Medium title and Atlassian's "Cycle is joining Atlassian" announcement), grabbable in Buffer. Links: aakashgupta.medium.com/i-spent-28k-testing-every-ai-tool-for-product-managers-only-9-were-worth-it and atlassian.com/blog/announcements/cycle-joining-atlassian. Tag cue: @aakashg.
+- Status: ready
+
+## 2026-07-10 - The AI-PM market is busy automating the 4th-worst pain and ignoring the top three
+
+- Pillar: market / PM-craft
+- Context (the full story, so the engine has everything): same research day — I ranked the grunt work product managers complain about most, by frequency across communities and verified review sites, then compared that ranking against what the AI-PM market actually sells. The mismatch is the story.
+- What actually happened: the complaint ranking came out: (1) status updates and stakeholder comms, (2) feedback triage — the average PM reads maybe 10% of customer feedback while the rest rots in tickets and spreadsheets, (3) roadmap upkeep — PMs literally maintain "three versions of the same roadmap" (one for engineering, one for stakeholders, one that is true), and only then (4) writing PRDs and specs. Yet nearly every AI-PM product leads with PRD generation — pain #4. The tell hides in the tools' own marketing caveat: the 15-minute AI PRD works "provided they already have all the necessary details." The gathering was always the job; the writing was never the bottleneck. The wider numbers agree: the State of Product Ops 2025 found only 7% of product-ops teams report high automation while 43% call AI/automation their top three-year focus. And PostHog's founders published the sharpest diagnosis of the underlying disease (2024-12-03): "PMs become the bottleneck and gatekeeper for all decisions, and engineers feel frustrated."
+- Angle: markets chase the demo-able pain, not the ranked pain. PRD-writing demos beautifully in two minutes; trustworthy status and feedback triage do not, so the whole category clustered on the wrong problem. If you want to know what to build, rank the complaints by frequency — and get suspicious precisely when every competitor is standing on the same one.
+- Facts to keep exact: the ranking order (status/stakeholder comms, feedback triage, roadmap upkeep, then PRDs); ~10% of feedback actually read; "three versions of the same roadmap"; 7% vs 43% (State of Product Ops 2025); the PostHog quote and its date 2024-12-03; the "provided they already have all the necessary details" caveat. Do NOT name my product.
+- Capture cue (ATTACHED): none saved — market post; Buffer links: posthog.com/newsletter/product-management-is-broken and productboard.com/blog/the-state-of-product-ops-in-2025. A simple two-column graphic (complaints ranked vs what the market builds) would be the strongest visual if wanted.
+- Status: ready
+
+## 2026-07-10 - My research agent could read the whole web except the one place users actually talk
+
+- Pillar: honest-observation / build-detail
+- Context (the full story, so the engine has everything): I sent an AI research agent to gather verbatim user complaints about a product category — one afternoon, roughly 35 search and fetch calls across the open web. What it could and could not reach turned out to be its own finding about building with agents in 2026.
+- What actually happened: Hacker News threads, G2 and Capterra verified reviews, Product Hunt comments, industry newsletters — all readable, all quotable. Reddit: zero. Search-engine site-restricted queries returned nothing indexed; the agent's fetch tool is blocked from reddit.com outright; and when I tried curl from my own residential IP with a full Chrome user-agent string, Reddit still returned HTTP 403 — a ~190KB network-security block page, twice (old.reddit.com and www.reddit.com). The mechanism: Reddit fingerprints the TLS handshake itself, so no amount of header spoofing passes — only a real browser or the official paid API gets in. The remaining unlock paths: hand the agent your actual logged-in browser (an extension that drives it), or register an official API app and live inside its rate limits.
+- Angle: the richest verbatim user-voice corpus on the internet is now effectively agent-proof by default. If you build research agents, a real-browser lane and official API keys are first-class capabilities, not fallbacks — "just scrape it" died with the 2023 API lockdown and the walls have only grown since. The open web is quietly re-segmenting into agent-readable and human-only, and user research lives disproportionately on the human-only side.
+- Facts to keep exact: ~35 calls in one afternoon; HN, G2, Capterra, Product Hunt all readable; site-restricted search queries returned zero indexed hits; the fetch tool is blocked at the tool layer; curl with a Chrome UA from a residential IP returned HTTP 403 with a ~190KB block page on both old. and www. subdomains; TLS fingerprinting is the mechanism; the 2023 Reddit API lockdown as the turning point. Do NOT name my product or the specific agent tooling beyond "an AI research agent."
+- Capture cue (ATTACHED): none saved — optional visual: a redacted terminal screenshot showing the two HTTP 403 lines next to a successful Hacker News fetch. REDACT before posting: any local paths, project names, or session identifiers visible in the terminal.
+- Status: ready
 
 ## 2026-07-02 - I paid an adversarial audit to attack my own "the AI learns" claim; it found the learning was write-only
 

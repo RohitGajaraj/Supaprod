@@ -4,7 +4,7 @@
 >
 > **How this layers:** v11 still wins *direction* (the decision-and-outcome OS; own the loop / sense continuously / keep the receipts). v12 still wins the *learning-depth* build plans (now shipped). **v13 wins on what the work is now FOR: users, proof, and love.** When v13 and an older doc disagree about what to do next, v13 wins. Execution lives in [`../planning/v13-proof-campaign-plan.md`](../planning/v13-proof-campaign-plan.md) (the Launch Month, the post-launch gates, work packages PC-01..27, the parallel-lane protocol with Fable/Sonnet model assignments; board group **G17**).
 >
-> **HORIZON RULING (founder, 2026-07-10, binding — [`session-decisions.md`](./session-decisions.md)):** **no six-month execution planning anywhere. Launch is ~one month out** — demos, showcasing, beta rollout, and the **YC application** all inside the Launch Month; the product presents **enterprise-grade AND consumer-grade simultaneously** ("everything built now — an explicit command"). Everything beyond the Launch Month is a ranked backlog picked by **gates, not dates**. This doc is written to that horizon.
+> **HORIZON RULING (founder, 2026-07-10, binding, sharpened same day — [`session-decisions.md`](./session-decisions.md) decisions 5–6):** **no six-month execution planning anywhere. Ship publicly in UNDER 25 DAYS**: a **3–4 day build sprint** closes the launch-gating gaps, then beta, then the listing (**beta stories → Show HN → Product Hunt the same week**), and **startup applications (YC first) come AFTER the launch, consuming its traction** — never before. The product presents **enterprise-grade AND consumer-grade simultaneously** ("everything built now — an explicit command"); the founder's own overwhelm read ("too much… partially cooked") sets the Love-Gate bar, so **subtraction is sprint work**. Everything beyond launch is a ranked backlog picked by **gates, not dates**, under the standing **ground-truth mandate** (every major claim carries user evidence or a named assumption; beta first sessions double as discovery interviews). This doc is written to that horizon.
 
 ---
 
@@ -21,7 +21,7 @@
 
 ## 2. The thesis: the Proof Campaign
 
-**Mission:** convert a finished agentic engine into a loved product with real users — **launching publicly, with beta users and the YC application in, within the Launch Month (~2026-08-10)** — then earn revenue, team expansion, and raise-ready evidence gate by gate.
+**Mission:** convert a finished agentic engine into a loved product with real users — **a 3–4 day build sprint, a beta wave, and a public listing in under 25 days (< ~Aug 4), with the YC application following the launch and consuming its traction** — then earn revenue, team expansion, and raise-ready evidence gate by gate.
 
 **The single ranking question for everything:** *does this put Cadence in front of real product people and make them love it?* Features that deepen the engine but not the proof are deferred by default — the engine is ahead of the market's ability to see it.
 
@@ -121,13 +121,14 @@ The survival playbook from precedent (Cursor beside Copilot, Perplexity beside G
 ## 10. What I decided (the founder calls made in this doc)
 
 1. The **Proof Campaign** is the front — users/proof/love outrank engine depth; G17 is the register.
-2. **The Launch Month is the only calendar** (founder horizon ruling): public launch + beta users + the YC application within ~a month; everything after is gates, not dates.
+2. **The 25-day ship is the only calendar** (founder horizon ruling, sharpened): a 3–4 day build sprint → beta → listing (Show HN → Product Hunt) in under 25 days; applications AFTER launch; everything after is gates, not dates.
 3. Scope widens to the product ORG (PM + eng handoff + design + GTM), wedge audience stays the individual PM/founding PM.
 4. The one-liner and story in §8; "AI PM tool" is banned vocabulary.
 5. Billing goes live via MoR (pending founder's account pick); revenue is the first post-launch gate, not a someday.
 6. HyperAgent = arm's-length GTM compute only (Airtable is now a category competitor).
 7. The Love Gate with the dual bar: enterprise-credible AND consumer-grade simultaneously; no gate closes on green tests alone — a fresh account must *feel* it.
 8. Parallel-lane execution with explicit model split (Fable = judgment lane; Sonnet = build/GTM lanes) — the plan's §3 protocol is the standing way we build from today.
-9. The YC application (PC-27) is a first-class work package: drafted from this corpus, every claim wired-true, demo script shows the loop closing live (never narrated).
+9. The YC application (PC-27) is a first-class work package that runs AFTER the listing (it consumes launch traction as evidence — founder ruling): drafted from this corpus + real usage numbers, every claim wired-true, demo script shows the loop closing live (never narrated).
+10. The ground-truth mandate is standing law (decision 6): every major build/positioning claim carries a user-evidence pointer or an explicitly named assumption; the beta cohort is the primary research instrument. Five independent authorities (Lenny, Aakash, Shreyas Doshi, Cagan, Claire Vo — research §11) converge on the thesis without having built it: execution commoditizes, judgment is the scarce asset, and nobody has productized judgment that compounds.
 
 _Cascade executed this session: strategy README role map, SSOT §0, dashboard G17, CLAUDE.md 1.45, moat ripple check, inputs-log + decisions-log entries. Research evidence: [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) + the agent briefs distilled into this doc's sections._

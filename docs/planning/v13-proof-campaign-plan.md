@@ -3,7 +3,7 @@
 > _Created: 2026-07-10 · Status: **ACTIVE — the current build front.** Strategy canon: [`../strategy/v13-proof-campaign.md`](../strategy/v13-proof-campaign.md) (the why). This doc is the what/when/who: **the Launch Month** (the only calendar that exists), the post-launch gates, the PC-01..27 work packages, and the **parallel-lane protocol with explicit model assignments (Fable vs Sonnet)** so the founder can spin up parallel sessions and the work self-orchestrates. Board rows: group **G17** in [`feature-dashboard.md`](./feature-dashboard.md)._
 
 > [!IMPORTANT]
-> **HORIZON RULING (founder, 2026-07-10, binding — [`session-decisions.md`](../strategy/session-decisions.md)):** **no six-month execution planning, anywhere. We launch in the next ~one month** — product demos, showcasing, beta rollout, and the **Y Combinator application** all inside the launch month. The product presents **enterprise-grade AND consumer-grade simultaneously** ("we want everything to be built now — an explicit command"). Everything after the Launch Month is a ranked, gate-picked backlog — **gates, not dates**. Anything in any doc framed as a multi-month calendar is mis-framed by construction.
+> **HORIZON RULING (founder, 2026-07-10, binding, sharpened same day — [`session-decisions.md`](../strategy/session-decisions.md) decisions 5–6):** **no six-month execution planning, anywhere. Ship publicly in UNDER 25 DAYS** (< ~Aug 4): a **3–4 day total build sprint** closes the launch-gating gaps (founder committing 24-hour days), then beta rollout, then the listing — **beta first → Show HN → Product Hunt the same week** — and **startup applications (YC first) come AFTER the launch, consuming its traction as evidence**, not before. The product presents **enterprise-grade AND consumer-grade simultaneously** ("we want everything to be built now — an explicit command"). Everything after launch is a ranked, gate-picked backlog — **gates, not dates**. Two standing companions: the **ground-truth mandate** (every major build/positioning claim carries a user-evidence pointer or a named assumption; the beta cohort doubles as the research instrument) and the **overwhelm bar** (the founder's own read: "most of the things are there, but it's too much overwhelming… partially cooked" — subtraction and a first-session receipted value moment are sprint work, mirroring the incumbents' #1 death pattern).
 
 > **The one-sentence mission (from v13):** the engine is finished and the board was dry — the scarce thing is no longer engineering, it is **users, proof, and love**. Launch within the month; let the gates after it be earned by evidence, not scheduled by hope.
 
@@ -16,17 +16,17 @@
 - **The Love Gate (standing — founder 2026-07-10, "world class product people love"):** no gate closes without a fresh-account walkthrough on production (the SW-7 oracle pattern) passing the felt-experience checklist: zero dead ends, warm first-run, honest claims (claim-never-outruns-wiring), one genuine delight moment per surface touched. Green tests with a cold first-run is NOT done. The dual bar applies: enterprise-credible (security answers, receipts, audit) and consumer-grade (10-minute wow) at the same time — and it is a bar, not a license to gold-plate; correctness gates stay as-is (AGENTS.md §3).
 - **Every insight ships to a consumer (founder ruling #3):** anything this campaign learns lands in the YC application, the demo script, or the beta trust surface — in the same session it surfaces (see the consumer mapping in [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §8–9).
 
-## 1. The Launch Month (the only calendar) and the gates after it
+## 1. The 25-day ship (the only calendar) and the gates after it
 
-**Launch Month: 2026-07-10 → ~2026-08-10.** Four weekly pushes, each closed by a gate fact, ending in public launch + the YC application submitted.
+**Ship window: 2026-07-10 → public listing in under 25 days (< ~Aug 4).** A 3–4 day build sprint, then beta, then the listing; applications follow the launch.
 
-| Week | Push | Rows | Gate that closes the week |
+| Phase | Push | Rows | Gate that closes the phase |
 | --- | --- | --- | --- |
-| **W1 (Jul 10–17)** | **Foundation.** LOOM publish + 3 migrations applied (founder); surface truth pass; onboarding = the wedge; public homepage up; Google verification submitted; funnel instrumented | PC-01, PC-02, PC-03, PC-04, PC-06 | **G-W1:** a stranger signs up on production, connects a source (or pastes notes), gets a Critic teardown of their own bet, and sees a warm brain — unassisted, under 10 minutes |
-| **W2 (Jul 17–24)** | **Trust + delegation UX.** Billing path wired (MoR — founder pick); goal-until-verified missions; Routines visible; rewind + confidence gates | PC-05, PC-07, PC-08, PC-10, PC-11 (+PC-09 when ungated) | **G-W2:** a real card buys credits on production; a mission runs to its oracle passing; every AI-touched artifact can be reverted in one action |
-| **W3 (Jul 24–31)** | **Beta wave.** 25 design partners contacted, ≥10 onboarded; feedback→signals loop; fan-out review queue; demo script rehearsed from the research §8 map; YC application drafted | PC-13, PC-15, PC-12, PC-27 (draft) | **G-W3:** 10+ external beta workspaces active; the demo runs end-to-end on a live account showing the loop close (signal→decision→PRD→PR→receipt), never narrated |
-| **W4 (Aug 1–~10)** | **PUBLIC LAUNCH + YC.** PH/HN/communities; build-in-public arc; first judgment-memory moments on beta data; YC application submitted | PC-14, PC-16, PC-27 (submit) | **G-LAUNCH:** launched publicly; ≥50 external workspaces; ≥20 weekly-active externals; YC application in |
-| *(standing, all month)* | HyperAgent GTM rig runs the research/outreach ops | PC-26 | — |
+| **Days 1–4: THE BUILD SPRINT** | Close every launch-gating gap. LOOM publish + 3 migrations applied (founder, day 1); surface truth + **subtraction pass** (the overwhelm bar: recess/kill until the first session delivers one receipted value moment); onboarding = the wedge; public homepage up (Google verification fast-tracked same day); no-signup demo; funnel instrumented; rewind + confidence gates if they fit | PC-01, PC-02, PC-03, PC-04, PC-06 (+PC-10, PC-11 if sprint capacity allows) | **G-SPRINT:** a stranger signs up on production, connects a source (or pastes notes), gets a Critic teardown of their own bet, and sees a warm brain — unassisted, under 10 minutes, with nothing on screen they don't understand |
+| **Days 5–14: BETA WAVE** | 25 design partners contacted, ≥10 onboarded; **beta first sessions double as discovery interviews (the ground-truth mandate)**; feedback→signals loop; billing path wired (MoR — founder pick); goal-until-verified missions; Routines visible | PC-13, PC-15, PC-05, PC-07, PC-08, PC-12 (+PC-09 when ungated) | **G-BETA:** 10+ external beta workspaces active; the demo runs end-to-end live showing the loop close (signal→decision→PRD→PR→receipt), never narrated; a real card buys credits |
+| **Days 14–25: THE LISTING** | **Beta stories → Show HN** (no-signup demo path, founder in the comments, honest-limitations list, the failure path shown — revert on screen) **→ Product Hunt the same week**; build-in-public arc; Google-OAuth tiles gated "request access" if verification hasn't cleared; first judgment-memory moments on beta data | PC-14, PC-16 | **G-LAUNCH:** listed publicly in under 25 days; ≥50 external workspaces; ≥20 weekly-active externals; day-1/week-1 funnel reviewed |
+| **AFTER LAUNCH: APPLICATIONS** | **YC first, then other accelerators — the application consumes launch traction as evidence** (founder ruling: applications follow the listing, never precede it) | PC-27 | **G-APPLY:** YC application submitted with real usage numbers; demo rehearsed twice on a fresh production account |
+| *(standing, throughout)* | HyperAgent GTM rig runs the research/outreach ops | PC-26 | — |
 
 **After the Launch Month — gates, not dates.** Nothing below is calendar-scheduled; `lane.sh next` + evidence decide the pick. Each gate is a fact, earned when it's earned:
 
@@ -44,7 +44,7 @@
 
 Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setting (run in a Fable/Opus-class session). `Sonnet` = well-specified build with crisp acceptance (a Sonnet-class session executes it cold). **Lane**: A/B/C per §3. **Gated** rows need a founder input first (§4).
 
-### Launch Month — W1 Foundation
+### Phase 1 — the build sprint (days 1–4)
 
 | ID | What / Why / Acceptance | Model | Lane |
 | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setti
 | **PC-04** | **Try-without-signup demo.** Zero-auth read-only warm demo workspace from the homepage: real teardown, real ledger, real mission trace. *Accept:* demo route live; every panel warm; demo→signup conversion instrumented. | Sonnet | B |
 | **PC-06** | **Activation funnel instrumentation.** signup→connect→first-teardown→first-mission→week-2-return into `product_analytics`; founder funnel view in Engine Room; weekly snapshot in the digest. *Accept:* funnel renders on live data. | Sonnet | B |
 
-### Launch Month — W2 Trust + delegation UX
+### Phase 2 — beta wave (days 5–14): trust + delegation
 
 | ID | What / Why / Acceptance | Model | Lane |
 | --- | --- | --- | --- |
@@ -65,20 +65,20 @@ Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setti
 | **PC-11** | **Confidence-gated execution, generalized.** Every agent-drafted artifact carries a confidence tier; low confidence auto-routes to the review queue instead of landing silently. *Accept:* confidence visible on drafts; auto-queue verified. | Sonnet | B |
 | **PC-09** | **@cadence in Slack.** Mention → evidence pull / spec draft / gated mission launch from the channel; inbound bridge over the JNY-05 outflow leg. *Accept:* @cadence in a connected workspace answers with evidence and can launch a gated mission. | Fable | A (Gated: Slack app registration) |
 
-### Launch Month — W3 Beta wave
+### Phase 2 — beta wave (days 5–14): partners + ground truth
 
 | ID | What / Why / Acceptance | Model | Lane |
 | --- | --- | --- | --- |
 | **PC-13** | **Design-partner program.** Target list of 25 (founding/solo PMs at AI-native startups); outreach kit; weekly feedback ritual; partner feedback flows INTO Cadence as signals (dogfood). HyperAgent runs the research/CRM rig (§6). *Accept:* 25 contacted, ≥10 onboarded, feedback→signals live. | Sonnet | C (Founder: sends) |
 | **PC-15** | **In-product feedback loop.** Pulse on teardowns/briefs ("was this call useful?") landing as signals + a "you said → we changed" changelog surface. *Accept:* pulse→signals verified; changelog live. | Sonnet | B |
 | **PC-12** | **Parallel fan-out → one review queue.** One ask fans out to parallel subagent drafts (PRD + eval + risks) reconciled into a single review item, not N notifications. *Accept:* fan-out mission produces one reconciled review. | Fable | A |
-| **PC-27** | **The YC application.** Drafted from the strategy corpus (v13 §1 honest state, §3 USP, §7 competition/moat incl. the Cycle→Atlassian absorption + the $28k bakeoff evidence, §6 market) + the demo script (research §8 mapping: receipts ON SCREEN, the loop closing live, never narrated) + hostile-question prep (research §9). Founder reviews and submits in W4. *Accept:* application complete with every claim wired-true; demo rehearsed twice on a fresh production account. | Fable | A (Founder: final voice + submit) |
+| **PC-27** | **The YC application (POST-LAUNCH — founder ruling: applications consume launch traction, never precede the listing).** Drafted from the strategy corpus (v13 §1 honest state, §3 USP, §7 competition/moat incl. the Cycle→Atlassian absorption + the $28k bakeoff evidence, §6 market, the research §11 thought-leader triangulation) + the demo script (research §8 mapping: receipts ON SCREEN, the loop closing live, never narrated) + hostile-question prep (research §9) + **real usage numbers from the listing**. *Accept:* application submitted with launch traction cited; every claim wired-true; demo rehearsed twice on a fresh production account. | Fable | A (Founder: final voice + submit) |
 
-### Launch Month — W4 Public launch
+### Phase 3 — the listing (days 14–25), then the applications
 
 | ID | What / Why / Acceptance | Model | Lane |
 | --- | --- | --- | --- |
-| **PC-14** | **Public launch execution.** PH + HN Show + Lenny-ecosystem + PM communities; 90-sec demo video; teardown share links; build-in-public arc via the brand repo (founder approves every post); every claim wired-true. *Accept:* launched; day-1/week-1 funnel reviewed. | Sonnet | C (Founder: publishes) |
+| **PC-14** | **The listing (first-class work item, founder ruling).** Sequence: beta usage stories first → **Show HN** (no-signup demo path, founder live in the comments, an honest-limitations list, the failure path shown on screen — a revert, not just a win) → **Product Hunt the same week** → Lenny-ecosystem + PM communities; 90-sec demo video; teardown share links; build-in-public arc via the brand repo (founder approves every post); every claim wired-true. **Launch trap guarded:** Google-OAuth connector tiles gated behind "request access" if verification hasn't cleared by listing day. *Accept:* listed in under 25 days; day-1/week-1 funnel reviewed. | Sonnet | C (Founder: publishes) |
 | **PC-16** | **Judgment-memory hero moments.** At decision time Cadence cites the user's own record ("your last 3 checkout bets under-performed; this mirrors #2") — the RF wiring made FELT on beta data; weekly "what Cadence learned" digest section. *Accept:* memory citation visible on ranked bets for accounts with ≥3 outcomes. | Fable | A |
 
 ### Post-launch (gate-picked, no dates)
@@ -125,7 +125,7 @@ Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setti
 | LOOM publish + 3 migrations | W1 floor (warm prod) | Publish pending build + apply migrations via Lovable | **Do first — today** |
 | Merchant of record | PC-05, G-W2, revenue | Choose Paddle/LemonSqueezy MoR vs Stripe entity; create the account | **Paddle as MoR** — days not months; revisit Stripe at scale |
 | Slack app registration | PC-09 | Register the Cadence Slack app (mentions + chat:write) | 30 minutes, do with PC-03 live |
-| Google verification | Connector depth for beta | Submit once PC-03 is live (homepage + privacy policy + domain verification); CASA only when a partner needs Gmail | Submit in W1; defer CASA |
+| Google verification | Connector depth for beta + the listing | Submit once PC-03 is live (homepage + privacy policy + domain verification); CASA only when a partner needs Gmail | Fast-track the day the homepage ships (sprint day 2–3); if not cleared by listing day, gate the Google tiles behind "request access" (the documented launch trap) |
 | 9 provider OAuth registrations | Connector breadth (Linear, Notion, Figma, Jira, Intercom, Stripe, Zendesk, Productboard, Microsoft) | Register apps (flows built) | Linear + Notion first (wedge users live there); 2/week |
 | BuildDriver spend | PC-21 | Approve provider + per-task cap | Claude Agent SDK adapter, capped |
 | Outreach/publish approvals | PC-13/14/27, all Lane C sends | Approve target list + every outward post + the YC submit | Standing rule: nothing sends without you |
@@ -150,10 +150,10 @@ Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setti
 3. **Raise/ops pipeline (secondary):** post-launch.
 4. **Never:** core orchestration, decision data, anything ProductCentral could learn from. **Verify the grant's expiry on the account and front-load use** (public terms unverified; treat as time-bound).
 
-## 7. Weekly rhythm (Launch Month)
+## 7. Rhythm (the 25-day ship)
 
-- **Monday:** gate check (last week's gate fact true or not — no partial credit); funnel + north-star review; unblock §4 gates.
-- **Daily (async):** lanes ship; the dashboard is the coordination surface; the morning digest carries receipts.
-- **Week close:** Love-Gate walkthrough on a fresh production account; gate fact recorded; next week opens.
+- **Daily during the sprint (days 1–4):** lanes ship continuously; the dashboard is the coordination surface; end-of-day fresh-account walkthrough — the sprint is done when G-SPRINT holds, not when the days run out.
+- **Phase close:** Love-Gate walkthrough on a fresh production account (the overwhelm bar: nothing on screen the user doesn't understand, one receipted value moment in the first session); gate fact recorded — no partial credit; next phase opens.
+- **Beta sessions ARE research** (the ground-truth mandate): every first session is a discovery interview; findings land as signals + evidence pointers on the claims they touch.
 
 > Full strategic rationale, market evidence, positioning, pricing, and the pressure-test verdicts: [`../strategy/v13-proof-campaign.md`](../strategy/v13-proof-campaign.md).
