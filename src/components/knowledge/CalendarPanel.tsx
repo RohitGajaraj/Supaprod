@@ -16,7 +16,7 @@ import {
   Link2,
   Plus,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import {
   listCalendarEvents,
@@ -103,7 +103,17 @@ export function CalendarPanel({
   onMeetingChange: (id: string | undefined) => void;
 }) {
   const qc = useQueryClient();
-  const oauthIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const oauthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // The OAuth poll dies with the panel: without this, navigating away mid
+  // consent leaves a 3s invalidation loop running for up to 5 minutes.
+  useEffect(() => {
+    return () => {
+      if (oauthIntervalRef.current) {
+        clearInterval(oauthIntervalRef.current);
+        oauthIntervalRef.current = null;
+      }
+    };
+  }, []);
   const confirm = useConfirm();
   // WM-F9b: scope the meetings read to the active workspace (and key the query
   // by it so it refetches on a workspace switch — the WM-F8b refetch-on-switch
@@ -214,12 +224,17 @@ export function CalendarPanel({
       fStartConnect({ data: { provider, product: "calendar" } }),
     onSuccess: ({ authorizeUrl }) => {
       window.open(authorizeUrl, "_blank", "noopener");
+      // A second connect attempt replaces the previous poll, never stacks it.
+      if (oauthIntervalRef.current) clearInterval(oauthIntervalRef.current);
       const deadline = Date.now() + 5 * 60 * 1000;
       const iv = setInterval(() => {
         qc.invalidateQueries({ queryKey: ["calendar-connections"] });
-        if (Date.now() > deadline) { clearInterval(iv); oauthIntervalRef.current = null; }
+        if (Date.now() > deadline) {
+          clearInterval(iv);
+          oauthIntervalRef.current = null;
+        }
       }, 3_000);
-      oauthIntervalRef.current = iv;  // Track for cleanup
+      oauthIntervalRef.current = iv; // Track for cleanup
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1575,16 +1590,6 @@ function ConnectButton({
   const hasGoogle = connections.some((c) => c.provider === "google");
   const hasMicrosoft = connections.some((c) => c.provider === "microsoft");
   const any = connections.length > 0;
-
-  // Cleanup: abort any pending OAuth polling if component unmounts
-  React.useEffect(() => {
-    return () => {
-      if (oauthIntervalRef.current) {
-        clearInterval(oauthIntervalRef.current);
-        oauthIntervalRef.current = null;
-      }
-    };
-  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
