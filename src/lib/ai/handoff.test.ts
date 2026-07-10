@@ -317,6 +317,7 @@ function buildMissionCloseClient(opts: {
   function chain(result: unknown) {
     const node: Record<string, unknown> = {
       eq: () => node,
+      neq: () => node,
       is: () => node,
       in: () => node,
       order: () => node,

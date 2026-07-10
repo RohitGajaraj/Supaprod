@@ -96,7 +96,9 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
     },
     {
       id: "funnel",
-      label: "Funnel",
+      // Naming law: the plain label is a real outcome rename, never the raw
+      // id echoed back ("Funnel" failed the glance test's own rule).
+      label: "First steps",
       technical: "Activation funnel",
       descriptor: "How far new signups get, and where they drop off.",
     },

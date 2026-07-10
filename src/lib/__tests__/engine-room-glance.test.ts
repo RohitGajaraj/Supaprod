@@ -169,7 +169,13 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
   });
 
   it("keeps the exact ?view= ids the room bodies switch on", () => {
-    expect(ROOM_TAB_META.spend.map((t) => t.id)).toEqual(["trend", "by-agent", "caps", "usage"]);
+    expect(ROOM_TAB_META.spend.map((t) => t.id)).toEqual([
+      "trend",
+      "by-agent",
+      "caps",
+      "usage",
+      "funnel",
+    ]);
     expect(ROOM_TAB_META.quality.map((t) => t.id)).toEqual([
       "score",
       "suites",

@@ -597,6 +597,28 @@ export async function maybeCompleteMission(
     finalStatus = runs[0]?.status === "completed" ? "completed" : "failed";
   }
 
+  // PC-07 (goal-until-verified): a CLEAN completion must pass the outcome
+  // contract's oracle checklist first. The verifier either agrees (green),
+  // dispatches one corrective cycle (mission keeps running — return), or
+  // reports the caps exhausted (honest completed_with_failures). Missions
+  // without a compiled contract are untouched. Dynamic import avoids a
+  // module cycle (verify-green uses enqueueHandoff/resolveAgent from here).
+  if (finalStatus === "completed") {
+    try {
+      const { runVerifyCycleIfNeeded } = await import("./verify-green.server");
+      const verify = await runVerifyCycleIfNeeded(supabase, missionId);
+      if (verify === "cycle_dispatched") return;
+      // Both cap exhaustion AND a failed corrective dispatch complete with
+      // failures — an unmet contract may never read as a clean success.
+      if (verify === "caps_exhausted" || verify === "dispatch_failed") {
+        finalStatus = "completed_with_failures";
+      }
+    } catch (e) {
+      // The verifier must never strand a finished mission.
+      console.error("verify-green pass failed (completing normally):", e);
+    }
+  }
+
   // SEAM-1: capture the prior stage before the guarded update (RETURNING only
   // yields the new values).
   const { data: prior } = await supabase
@@ -625,6 +647,10 @@ export async function maybeCompleteMission(
       .select("output,agent_slug")
       .eq("mission_id", updated.id)
       .eq("status", "completed")
+      // PC-07: the verifier's run always finishes last on contract-bearing
+      // missions; excluding it keeps the decision rationale and the actor
+      // pointing at the agent that did the WORK, not the checker.
+      .neq("agent_slug", "verifier")
       .order("last_checkpoint_at", { ascending: false, nullsFirst: false })
       .limit(1)
       .maybeSingle();

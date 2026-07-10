@@ -98,7 +98,10 @@ async function resolveMissionPrdId(
   return (data?.prd_id as string | undefined) ?? null;
 }
 
-async function loadMissionTestPlan(
+/** Exported for PC-07's verifier pass (verify-green.server.ts): the oracle
+ * checklist is ONE evaluator, whether a human reads it on the test station
+ * or the verifier consults it before letting a mission complete. */
+export async function loadMissionTestPlan(
   supabase: SupabaseClient,
   missionId: string,
 ): Promise<MissionTestPlan> {
