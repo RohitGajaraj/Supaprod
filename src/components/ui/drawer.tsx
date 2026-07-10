@@ -23,7 +23,10 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-ink/80 dark:bg-canvas/80", className)}
+    className={cn(
+      "fixed inset-0 z-(--ds-z-drawer) bg-(--ds-overlay-backdrop-color)/80 duration-300 ease-(--ds-motion-timing-swift) motion-reduce:duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className,
+    )}
     {...props}
   />
 ));
@@ -38,12 +41,12 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-(--ds-z-drawer) mt-24 flex h-auto flex-col rounded-t-(--ds-radius-medium) bg-(--ds-background-100) shadow-(--ds-shadow-border-large) ease-(--ds-motion-timing-swift) duration-300 motion-reduce:duration-150",
         className,
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-(--ds-gray-400)" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -64,11 +67,7 @@ const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <DrawerPrimitive.Title
-    ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
-    {...props}
-  />
+  <DrawerPrimitive.Title ref={ref} className={cn("text-heading-16", className)} {...props} />
 ));
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
@@ -78,7 +77,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-copy-14 text-(--ds-gray-900)", className)}
     {...props}
   />
 ));

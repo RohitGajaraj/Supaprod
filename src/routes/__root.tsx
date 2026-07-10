@@ -156,20 +156,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // without needing to guess well-known paths. See docs/features/agent-native-layer.md.
       { rel: "llms.txt", href: "/llms.txt" },
       { rel: "agents.txt", href: "/agents.txt" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // Tempo v5 type stack (DESIGN-TEMPO.md §3): Geist Sans/Mono variable +
+      // Geist Pixel, self-hosted from /public/fonts/geist (SIL OFL 1.1).
+      // @font-face lives in src/styles.css; no external font hosts.
       {
-        // Ember Editorial type stack — Newsreader (display serif, optical
-        // sizing), Schibsted Grotesk (UI), JetBrains Mono (metadata).
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap",
+        rel: "preload",
+        href: "/fonts/geist/Geist-Variable.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
       {
-        // Obsidian v3 special inks (OBS-01): Codystar (aurora numerals
-        // ONLY) + Caveat (pencil annotations ONLY). The three shared
-        // families load above; self-host later per implementation-notes.
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Codystar:wght@300;400&family=Caveat:wght@500;600;700&display=swap",
+        rel: "preload",
+        href: "/fonts/geist/GeistMono-Variable.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
     ],
   }),

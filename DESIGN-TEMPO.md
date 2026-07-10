@@ -65,6 +65,12 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
   only with meaning.
 - **Ember = the brand.** Primary CTAs, active/selected states, focus ring, brand moments.
   One primary CTA per view. Ember takes every place Geist's own docs use blue *as brand*.
+- **Ember-on-forms ruling (founder-delegated decision, 2026-07-11):** ordinary form
+  actions (Save, Apply, Update, submit rows) use the neutral `default` button variant —
+  the high-contrast invert fill (gray-1000 on background), the Geist/Linear premium
+  read. Ember fills are reserved for the view's ONE true primary CTA (Deploy, Upgrade,
+  Start teardown, hero actions) and brand moments. A settings page full of ember Saves
+  fails the restraint budget by definition.
 - **Blue = informational** (links, info notes). **Red = danger/error. Amber = warning.
   Green = success. Teal/Purple/Pink = data-viz and Geist-specified component states
   only.** Status color goes on actual status, never decoration.
@@ -193,8 +199,11 @@ These Cadence operating laws are **orthogonal to the visual system and remain in
   consequence stated in helper text; outcome-first naming; mechanism names stay off
   controls. Empty states are instructions, not apologies.
 - **Engine-Room doctrine** (`docs/conventions/engine-room-doctrine.md`): calm front, deep
-  engine; machinery behind one door; the IA (Today, Discover, Plan, Build, Brain + Ask +
-  one Engine Room door) and the surface-placement algorithm.
+  engine; machinery behind one door; the surface-placement algorithm. **IA amendment
+  (founder ruling 2026-07-11): the LIVE IA is canonical — the rail as `src/lib/nav-model.ts`
+  ships it today (six destinations including Decide, plus the visible Engine Room and
+  Trust Ledger rows per the 2026-07-04 ruling). Future IA changes amend this contract,
+  not the other way around.**
 - **Affordance ≠ emphasis** and one-primary-CTA-per-screen (now expressed through the
   button variants: default=primary, secondary, tertiary, error, warning).
 - **Restraint budget, restated for v5**: ≥90% of any screen neutral; chromatic color only

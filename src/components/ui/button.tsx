@@ -1,30 +1,43 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+// Neutral/tertiary interaction ramp: transparent at rest, tinted on hover/active
+// (contract §2 role model: 100-300 = component background default/hover/active).
+const neutralInteractive =
+  "bg-transparent text-foreground hover:bg-[var(--ds-gray-100)] active:bg-[var(--ds-gray-200)]";
+
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-[transform,background-color,color,border-color,opacity,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md cursor-pointer select-none transition-[background-color,color,border-color,opacity,box-shadow,transform] duration-150 ease-[var(--ds-motion-timing-swift)] active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-[var(--ds-focus-ring)] disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:shadow-md",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md",
+        // default = neutral high-contrast invert (contract §2 ember-on-forms ruling):
+        // --primary/--primary-foreground are already re-pointed to gray-1000/background-100.
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-[var(--ds-gray-200)] active:bg-[var(--ds-gray-300)]",
+        // tertiary is the spec name (button.md); ghost is the existing API name for the
+        // same treatment — kept as an alias so call sites using either keep working.
+        tertiary: neutralInteractive,
+        ghost: neutralInteractive,
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        neural:
-          "relative text-primary-foreground bg-primary shadow-[0_8px_30px_-12px_color-mix(in_oklab,var(--violet)_55%,transparent)] hover:shadow-[0_12px_40px_-10px_color-mix(in_oklab,var(--violet)_70%,transparent)] before:absolute before:inset-0 before:rounded-[inherit] before:bg-[linear-gradient(120deg,var(--violet),var(--cyan)_55%,var(--emerald))] before:opacity-90 before:-z-0 [&>*]:relative",
+          "border border-[var(--ds-gray-400)] bg-transparent text-foreground hover:border-[var(--ds-gray-500)] hover:bg-[var(--ds-gray-100)] active:bg-[var(--ds-gray-200)]",
+        // error, per spec naming, exposed under the existing `destructive` key
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80",
+        warning:
+          "bg-[var(--ds-amber-700)] text-[var(--ds-black)] hover:bg-[var(--ds-amber-600)] active:bg-[var(--ds-amber-800)]",
+        link: "bg-transparent text-[var(--ds-blue-700)] underline-offset-4 hover:underline hover:text-[var(--ds-blue-800)]",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-[var(--ds-size-medium)] px-4 text-button-14",
+        sm: "h-[var(--ds-size-small)] px-3 text-button-12",
+        lg: "h-[var(--ds-size-large)] px-5 text-button-16",
+        icon: "h-[var(--ds-size-medium)] w-[var(--ds-size-medium)] text-button-14",
       },
     },
     defaultVariants: {
@@ -37,13 +50,60 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Shows a spinner and marks the button busy while keeping it focusable and labeled. */
+  loading?: boolean;
+  /** Icon-only rendering (square hit target, no label). Requires `aria-label`. */
+  svgOnly?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      svgOnly = false,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    if (import.meta.env.DEV && svgOnly && !props["aria-label"]) {
+      console.warn(
+        'Button: svgOnly requires an aria-label naming the action and its target (e.g. "Copy deployment URL", not "Copy").',
+      );
+    }
+
     const Comp = asChild ? Slot : "button";
+    const content = asChild ? (
+      children
+    ) : (
+      <>
+        {loading ? (
+          <Loader2
+            aria-hidden="true"
+            className="size-4 shrink-0 animate-spin motion-reduce:animate-none"
+          />
+        ) : null}
+        {children}
+      </>
+    );
+
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          svgOnly && !asChild && "aspect-square px-0",
+          loading && !asChild && "pointer-events-none",
+        )}
+        ref={ref}
+        aria-busy={!asChild && loading ? true : undefined}
+        {...props}
+      >
+        {content}
+      </Comp>
     );
   },
 );

@@ -9,13 +9,24 @@ const Slider = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
-    className={cn("relative flex w-full touch-none select-none items-center", className)}
+    className={cn(
+      "group relative flex w-full touch-none select-none items-center data-[disabled]:cursor-not-allowed",
+      className,
+    )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20">
-      <SliderPrimitive.Range className="absolute h-full bg-primary" />
+    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-[var(--ds-gray-300)] group-data-[disabled]:opacity-50">
+      <SliderPrimitive.Range className="absolute h-full bg-[var(--ds-gray-1000)]" />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb
+      className={cn(
+        "block size-4 rounded-full border border-[var(--ds-gray-700)] bg-[var(--ds-background-100)] shadow-[var(--ds-shadow-small)]",
+        "transition-colors duration-150 motion-reduce:transition-none",
+        "hover:border-[var(--ds-gray-900)] active:border-[var(--ds-gray-1000)]",
+        "focus-visible:outline-none focus-visible:shadow-[var(--ds-focus-ring)]",
+        "disabled:pointer-events-none group-data-[disabled]:pointer-events-none group-data-[disabled]:opacity-50",
+      )}
+    />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;
