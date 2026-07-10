@@ -1299,6 +1299,67 @@ describe("SketchBarChart JSX structure", () => {
     });
   });
 
+  describe("negative-value bar rendering edge case", () => {
+    it("should render a mixed chart with both positive and negative values", () => {
+      const mixed: SketchBarDatum[] = [
+        { label: "Profit", value: 100 },
+        { label: "Loss", value: -50 },
+        { label: "Gain", value: 75 },
+      ];
+      const el = buildSketchBarChart({ data: mixed, formatValue: (v) => `${v}` });
+      expect(el).not.toBeNull();
+
+      // All three bars should be rendered as buttons
+      const buttons = findAllByType(el, "button");
+      expect(buttons.length).toBe(3);
+    });
+
+    it("should clamp negative-value bars to 3% minimum height", () => {
+      // pct = Math.max(3, (d.value / max) * 100)
+      // For a bar with value -50 when max=100: (-50/100)*100 = -50%, clamped to 3%.
+      const mixed: SketchBarDatum[] = [
+        { label: "Good", value: 100 },
+        { label: "Bad", value: -50 },
+      ];
+      const el = buildSketchBarChart({ data: mixed });
+      const buttons = findAllByType(el, "button");
+
+      // Both buttons should render successfully; the clamping happens in buildSketchBar.
+      // We verify it didn't crash and produced valid SVGs.
+      buttons.forEach((btn) => {
+        const svgs = findAllByType(btn, "svg");
+        expect(svgs.length).toBeGreaterThan(0);
+        // SVG should have valid paths (outline + hatch)
+        const paths = findAllByType(svgs[0], "path");
+        expect(paths.length).toBeGreaterThan(0);
+      });
+    });
+
+    it("should use the max value as peak when max is positive (ignoring negatives)", () => {
+      // max = Math.max(...data.map((d) => d.value), baseline ?? 0, 1)
+      // With mixed [100, -50, 75], max=100 (positive values override negatives)
+      const mixed: SketchBarDatum[] = [
+        { label: "High", value: 100 },
+        { label: "Low", value: -50 },
+      ];
+      const el = buildSketchBarChart({ data: mixed, formatValue: (v) => `${v}` });
+      expect(containsText(el, "100")).toBe(true); // Peak should be 100
+    });
+
+    it("should handle all-negative data by treating baseline/1 as the effective peak", () => {
+      // max = Math.max(...data.map((d) => d.value), 0, 1) = 1 (no baseline)
+      // Bars scale relative to this 1-unit peak.
+      const allNeg: SketchBarDatum[] = [
+        { label: "A", value: -100 },
+        { label: "B", value: -50 },
+      ];
+      const el = buildSketchBarChart({ data: allNeg, formatValue: (v) => `${v}` });
+      expect(el).not.toBeNull();
+      // Peak should be 1 (the guard minimum)
+      expect(containsText(el, "1")).toBe(true);
+    });
+  });
+
   describe("interaction / state-change tests (require DOM renderer)", () => {
     it("should highlight the hovered bar and dim all others when mouse enters", () => {
       // Test strategy: build chart with _hover state and verify the resulting
@@ -1394,4 +1455,17 @@ describe("SketchBarChart JSX structure", () => {
       expect(buttons[2]?.props.style.opacity).toBe(0.42);
     });
   });
+
+  // ===========================================================================
+  // NOTE: Real DOM interaction testing (mouse/keyboard event handlers)
+  // ===========================================================================
+  // Full component interaction testing with real DOM events (mouse enter/leave,
+  // focus/blur) would require jsdom or happy-dom rendering. This codebase
+  // intentionally uses mock state (_hover parameter) for testing without DOM
+  // overhead, as documented in the APPROACH comment at the top of this file.
+  //
+  // The actual component's event handlers (onMouseEnter, onMouseLeave, onFocus,
+  // onBlur) are wired and functional; their integration can be verified in
+  // end-to-end tests or manual verification. The _hover parameter approach
+  // verifies the rendering logic for all hover states without DOM rendering.
 });

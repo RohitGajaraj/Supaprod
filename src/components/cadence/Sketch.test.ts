@@ -283,4 +283,31 @@ describe("barInsight", () => {
     expect(insight).toContain("30");
     expect(insight).toContain("Mar");
   });
+
+  it("picks the first bar when two bars share the peak value (strict > tie-break)", () => {
+    // The tie-break logic uses b.value > a.value (strict >), so on a tie it keeps 'a'.
+    // This means the FIRST occurrence of the peak value is selected.
+    const data: SketchBarDatum[] = [
+      { label: "Jan", value: 50 },
+      { label: "Feb", value: 100 }, // First peak
+      { label: "Mar", value: 100 }, // Second peak (same value, should not be selected)
+      { label: "Apr", value: 75 },
+    ];
+    const insight = barInsight(data, (v) => String(v));
+    expect(insight).toContain("100");
+    expect(insight).toContain("Feb"); // Should pick Feb, not Mar
+    expect(insight).not.toContain("Mar at 100"); // Mar should not be mentioned as peak
+  });
+
+  it("handles all equal values: peak is the first bar", () => {
+    // When all values are identical, the first bar is selected as peak.
+    const data: SketchBarDatum[] = [
+      { label: "A", value: 50 },
+      { label: "B", value: 50 },
+      { label: "C", value: 50 },
+    ];
+    const insight = barInsight(data, (v) => String(v));
+    expect(insight).toContain("50");
+    expect(insight).toContain("A");
+  });
 });
