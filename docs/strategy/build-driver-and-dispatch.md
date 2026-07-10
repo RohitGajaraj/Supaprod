@@ -270,3 +270,37 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 - Feature rows: group G13 (BD-1..BD-6) in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md); founder pickup in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 4.
 - Spend implications: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
 - Strategy folder role map (which doc to pick for what): [`README.md`](./README.md).
+
+---
+
+## The 2026-07-10 re-decision: the driver ladder, and the full reasoning why Cadence never builds the code generator
+
+> _Appended 2026-07-10 (the v13 goal session's build-strategy question). This is the complete argument — for any agent touching the build layer, and for the founder facing "why aren't you building codegen?" from an investor. The one-breath version lives in [`../pitch/qa-bank.md`](../pitch/qa-bank.md); the launch execution lives in [`../planning/launch-sprint-specs.md`](../planning/launch-sprint-specs.md) §PC-35._
+
+### The question
+
+"For one single platform to take care of everything, shouldn't Cadence own code generation end to end?" — asked by the founder 2026-07-10; asked by every investor eventually.
+
+### The answer: we own the EXPERIENCE end to end; we never own the generator. Five arguments, each sufficient alone.
+
+**1. The capital asymmetry (the bonfire).** The build layer is the single most capital-flooded race in software, sourced 2026-07-10: **Devin/Cognition $37M → $492M ARR in twelve months at a $26B valuation; Cursor $2B ARR with 1M+ paying users; GitHub Copilot's coding agent GA on the world's largest developer distribution; Lovable $400M+ ARR, Replit $525M, Factory $1.5B valuation** (citations: [`../references/2026-07-10-launch-research-briefs.md`](../references/2026-07-10-launch-research-briefs.md) Brief 1). Entering that race means out-executing the best-funded teams on earth at their core competency, from zero, with one founder. Every dollar spent there is a dollar not spent on the layer nobody owns.
+
+**2. The commoditization clock (the precondition, from the source).** Dario Amodei, 2026-02: models "may get to the point in a year or two where they can just do **SWE end-to-end**… we have engineers at Anthropic who don't write any code." The strongest possible authority is telling the market the generator becomes model capability. You do not build a business on a layer the frontier labs are absorbing into the model itself — **you build the layer that becomes MORE valuable as they do**: as execution goes to zero, the volume of decisions a human must answer for explodes, and the PM:eng ratio is already inverting toward ~1:20 (research §14/§17). Build commoditizing is not our threat; it is our precondition.
+
+**3. The no-fast-oracle asymmetry (why their layer commoditizes and ours doesn't).** Code has a compiler: feedback in seconds, at zero cost — which is exactly why codegen exploded and why it races to zero margin. "What to build, and was it right" has NO fast oracle: feedback arrives in weeks, confounded, expensive. You cannot commoditize what you cannot instantly verify — so the decision-and-outcome layer defends structurally, and the outcome ledger (accrued per-workspace over calendar time) cannot be backfilled by any competitor at any funding level (moat.md §2). We chose the side of the asymmetry that compounds.
+
+**4. Every frontier release strengthens us (the seam economics).** Because the generator sits behind our `BuildDriver` seam, a better Claude/GPT/Devin makes Cadence better the day it ships, at zero engineering cost to us — while it makes the codegen vendors' differentiation SMALLER. Model-agnostic + BYO keys means an enterprise's heaviest compute can bill to their own contracts (their Devin, their Cursor), removing our COGS on the spikiest workload while we price the judgment, governance, and receipts at software margins (§13 above). The precedent for surviving beside giants is specific: **Cursor thrived beside Copilot on workflow depth; Jasper died as a thin layer with no data gravity.** We have the workflow depth and the un-backfillable data; the generator is where we would have neither.
+
+**5. The trust position requires neutrality.** The layer that decides what's worth building and judges whether it worked must be neutral across builders — the moment we own a generator competitively, our "dispatch to the best driver" claim and our benchmark honesty are conflicted. The judge doesn't enter the race.
+
+### What we DO own, forever (the line agents must never cross in reverse)
+
+The decision ontology, the Critic, the compiled Outcome Contracts/oracles, the dispatch + governance (PR-only, review-pinned merge, trust ramp), the receipts, and the outcome record. These are BUILD-in-house-forever per the sourcing map; the generator is INTEGRATE-behind-a-seam, permanently.
+
+### The ladder as decided (2026-07-10)
+
+**Native spine** (proven live: spec→PR→CI→gated merge→promote) = the launch floor, honestly scoped to bounded changes → **BD-1, the Claude Agent SDK driver** (PC-35, the beta wave): owned, headless, zero user infra, credits-metered with per-task budget holds, same gate → **BD-2+BYO at G-TEAM** (PC-21 rescoped): OpenHands productized as the $0/self-host enterprise driver (per-customer infra is an enterprise posture — deliberately NOT the launch path) + BYO Devin/Codex/Cursor keys. Driver selection is automatic and NAMED on every mission receipt — honesty down to the plumbing.
+
+### The investor answer, one breath
+
+*"Codegen is a $500M-ARR-in-a-year knife fight between the best-funded teams on earth, racing toward a capability Amodei says the models absorb within two years. We're the layer that gets stronger every time they win: we decide what's worth building, dispatch to whichever generator is best that month — including yours — and keep the one dataset none of them can backfill: what you decided, and whether it was right. They sell the hands. We sell the judgment and the receipts."*

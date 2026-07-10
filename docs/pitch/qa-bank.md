@@ -20,6 +20,8 @@
 
 **"Why won't Atlassian/Airtable just do this?"** — They buy the pieces (Cycle absorbed 2025; Kraftful → Amplitude) but a suite can't be the neutral judge across its competitors' tools, and none of them will publish their misses. Our two controversial moves — artifacts-as-projections and published calibration — are organizationally impossible for an incumbent whose revenue is the artifact tooling. [moat.md §4; v13 §7]
 
+**"Why aren't you building the code generator yourselves?"** — Because it's a knife fight we'd lose and don't need: Devin went $37M→$492M ARR in twelve months at a $26B valuation, Cursor is at $2B ARR, Copilot's agent is GA on GitHub's distribution — and Amodei says models absorb SWE end-to-end within two years. We own the layer that strengthens every time they improve: the decision, the dispatch, the gate, and the receipts. A better generator makes Cadence better the same day, behind the same seam — and an enterprise can bring its own Devin contract, moving the spikiest compute cost to their bill. The judge doesn't enter the race. [full argument: build-driver-and-dispatch.md, the 2026-07-10 section]
+
 **"What's defensible in the AI stack?"** — Nothing, per Casado ("no endemic tech moat") — which is our argument: the moat is the receipted, outcome-labeled record and the trust ramp, not the model calls. Method is commodity; method bound to your accumulated judgment is not. [investor corpus; v11 §8]
 
 ## Customers (the skeptical senior PM)

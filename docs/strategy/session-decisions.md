@@ -10,6 +10,16 @@
 
 ---
 
+## 2026-07-10 (late) - The build-driver ladder: own the experience, never the generator (PC-35 into the beta wave; PC-21 rescoped)
+
+**Context.** The founder's end-to-end question: "the OpenHands handoff isn't fully done - are we building codegen ourselves so one platform covers everything?" Answered at full depth with the day's research evidence; the complete argument (five sufficient reasons: the capital bonfire with 2026 numbers, Amodei's commoditization clock, the no-fast-oracle asymmetry, the seam economics where every frontier release strengthens us, the judge-neutrality position) is documented in [`build-driver-and-dispatch.md`](./build-driver-and-dispatch.md) "The 2026-07-10 re-decision"; the investor one-breath answer in [`../pitch/qa-bank.md`](../pitch/qa-bank.md).
+
+**Decisions (binding).** (1) Cadence owns the EXPERIENCE end to end (spec in → PR out → gate → receipts → outcome, never leaving the platform) and never the generator - BUILD-forever list unchanged (ontology/Critic/oracles/governance/receipts); the generator is INTEGRATE-behind-the-seam permanently. (2) The ladder: native spine = launch floor (proven; honestly scoped to bounded changes) → **PC-35 (NEW, Tier 1, beta wave): the Claude Agent SDK driver** - owned, headless, zero user infra, credits-metered with per-task budget holds, PR-only behind the untouched review-pinned merge gate, driver named on every receipt → **PC-21 RESCOPED to post-launch G-TEAM**: OpenHands productized ($0/self-host, an enterprise posture requiring per-customer infra - deliberately not the launch path) + BYO Devin/Codex/Cursor keys. (3) Driver selection automatic (native for small bounded diffs, SDK for the rest), always visible on the mission.
+
+**Why it matters.** Closes the last soft middle in the end-to-end story before beta users connect real repos (days 5-14); converts "the handoff isn't done" from a gap into a sequenced ladder with the launch-grade rung Sonnet-executable ([`../planning/launch-sprint-specs.md`](../planning/launch-sprint-specs.md) §PC-35).
+
+---
+
 ## 2026-07-10 - v13 "Proof Campaign" adopted as the campaign canon (group G17); the parallel-lane protocol with model split; the HyperAgent ruling; the one-liner
 
 **Context.** The founder's goal session ("act as the founder: design and build a future-proof, billion-dollar, agentic-first product OS"). Evidence: a 7-agent sweep (live DB, outside codebase audit, PM voices, competitors, frontier UX, market, HyperAgent) - persisted in [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) + [`../references/2026-07-10-launch-research-briefs.md`](../references/2026-07-10-launch-research-briefs.md); raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) (2026-07-10 v13 entry). The same-day launch-horizon reset (next entry below) is folded in: the campaign is written to the Launch-Month + gates-not-dates horizon.
