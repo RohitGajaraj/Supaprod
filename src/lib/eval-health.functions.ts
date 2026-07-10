@@ -8,6 +8,7 @@
  * `evals/health.ts` so it is unit-tested and cannot drift. No migration, no AI/chokepoint.
  */
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   computeEvalHealth,
   summarizeEvalHealth,
@@ -19,33 +20,42 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type EvalHealthResult = { health: EvalHealth; summary: string };
 
+/**
+ * Extracted logic for getEvalHealth - testable without TanStack wrappers.
+ */
+export async function getEvalHealthImpl(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<EvalHealthResult> {
+  const { data: suites, error: sErr } = await supabase
+    .from("eval_suites")
+    .select("id,name")
+    .eq("user_id", userId);
+  if (sErr) throw new Error(sErr.message);
+
+  const ids = (suites ?? []).map((s) => s.id);
+  const titles: Record<string, string | null> = {};
+  for (const s of suites ?? []) titles[s.id] = (s as { name?: string | null }).name ?? null;
+
+  let runs: EvalRunRow[] = [];
+  if (ids.length) {
+    const { data, error: rErr } = await supabase
+      .from("eval_runs")
+      .select("suite_id,status,pass_count,fail_count,errored,total_cases,avg_score,created_at")
+      .in("suite_id", ids)
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    if (rErr) throw new Error(rErr.message);
+    runs = (data ?? []) as unknown as EvalRunRow[];
+  }
+
+  const health = computeEvalHealth(runs, titles as SuiteTitles);
+  return { health, summary: summarizeEvalHealth(health) };
+}
+
 export const getEvalHealth = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<EvalHealthResult> => {
     const { supabase, userId } = context;
-
-    const { data: suites, error: sErr } = await supabase
-      .from("eval_suites")
-      .select("id,name")
-      .eq("user_id", userId);
-    if (sErr) throw new Error(sErr.message);
-
-    const ids = (suites ?? []).map((s) => s.id);
-    const titles: Record<string, string | null> = {};
-    for (const s of suites ?? []) titles[s.id] = (s as { name?: string | null }).name ?? null;
-
-    let runs: EvalRunRow[] = [];
-    if (ids.length) {
-      const { data, error: rErr } = await supabase
-        .from("eval_runs")
-        .select("suite_id,status,pass_count,fail_count,errored,total_cases,avg_score,created_at")
-        .in("suite_id", ids)
-        .order("created_at", { ascending: false })
-        .limit(2000);
-      if (rErr) throw new Error(rErr.message);
-      runs = (data ?? []) as unknown as EvalRunRow[];
-    }
-
-    const health = computeEvalHealth(runs, titles as SuiteTitles);
-    return { health, summary: summarizeEvalHealth(health) };
+    return getEvalHealthImpl(supabase, userId);
   });

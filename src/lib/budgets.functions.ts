@@ -7,30 +7,38 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+/**
+ * Extracted logic for getBudgetOverview - testable without TanStack wrappers.
+ */
+export async function getBudgetOverviewImpl(supabase: SupabaseClient, userId: string) {
+  const [g, s, a] = await Promise.all([
+    supabase.from("ai_budgets").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("ai_surface_budgets").select("*").eq("user_id", userId).order("surface"),
+    supabase
+      .from("ai_budget_alerts")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+  return {
+    global: g.data ?? null,
+    surfaces: s.data ?? [],
+    alerts: a.data ?? [],
+  };
+}
 
 export const getBudgetOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const [g, s, a] = await Promise.all([
-      supabase.from("ai_budgets").select("*").eq("user_id", userId).maybeSingle(),
-      supabase.from("ai_surface_budgets").select("*").eq("user_id", userId).order("surface"),
-      supabase
-        .from("ai_budget_alerts")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
-    return {
-      global: g.data ?? null,
-      surfaces: s.data ?? [],
-      alerts: a.data ?? [],
-    };
+    return getBudgetOverviewImpl(supabase, userId);
   });
 
-const GlobalSchema = z.object({
+export const GlobalSchema = z.object({
   daily_usd_cap: z.number().min(0).nullable(),
   monthly_usd_cap: z.number().min(0).nullable(),
   daily_token_cap: z.number().int().min(0).nullable(),
@@ -38,84 +46,135 @@ const GlobalSchema = z.object({
   alert_at_pct: z.number().int().min(1).max(100),
 });
 
+/**
+ * Extracted logic for updateGlobalBudget - testable without TanStack wrappers.
+ */
+export async function updateGlobalBudgetImpl(
+  supabase: SupabaseClient,
+  userId: string,
+  data: z.infer<typeof GlobalSchema>,
+) {
+  const { data: existing } = await supabase
+    .from("ai_budgets")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (existing) {
+    const { error } = await supabase.from("ai_budgets").update(data).eq("id", existing.id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase.from("ai_budgets").insert({ user_id: userId, ...data });
+    if (error) throw new Error(error.message);
+  }
+  return { ok: true };
+}
+
 export const updateGlobalBudget = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof GlobalSchema>) => GlobalSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { data: existing } = await supabase
-      .from("ai_budgets")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (existing) {
-      const { error } = await supabase.from("ai_budgets").update(data).eq("id", existing.id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await supabase.from("ai_budgets").insert({ user_id: userId, ...data });
-      if (error) throw new Error(error.message);
-    }
-    return { ok: true };
+    return updateGlobalBudgetImpl(supabase, userId, data);
   });
 
-const SurfaceSchema = z.object({
+export const SurfaceSchema = z.object({
   surface: z.string().min(1).max(40),
   daily_usd_cap: z.number().min(0).nullable(),
   monthly_usd_cap: z.number().min(0).nullable(),
   enabled: z.boolean(),
 });
 
+/**
+ * Extracted logic for upsertSurfaceBudget - testable without TanStack wrappers.
+ */
+export async function upsertSurfaceBudgetImpl(
+  supabase: SupabaseClient,
+  userId: string,
+  data: z.infer<typeof SurfaceSchema>,
+) {
+  const { error } = await supabase
+    .from("ai_surface_budgets")
+    .upsert({ user_id: userId, ...data }, { onConflict: "user_id,surface" });
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}
+
 export const upsertSurfaceBudget = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof SurfaceSchema>) => SurfaceSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("ai_surface_budgets")
-      .upsert({ user_id: userId, ...data }, { onConflict: "user_id,surface" });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return upsertSurfaceBudgetImpl(supabase, userId, data);
   });
+
+/**
+ * Extracted logic for deleteSurfaceBudget - testable without TanStack wrappers.
+ */
+export async function deleteSurfaceBudgetImpl(
+  supabase: SupabaseClient,
+  userId: string,
+  surface: string,
+) {
+  const { error } = await supabase
+    .from("ai_surface_budgets")
+    .delete()
+    .eq("user_id", userId)
+    .eq("surface", surface);
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}
 
 export const deleteSurfaceBudget = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { surface: string }) => z.object({ surface: z.string().min(1) }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("ai_surface_budgets")
-      .delete()
-      .eq("user_id", userId)
-      .eq("surface", data.surface);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return deleteSurfaceBudgetImpl(supabase, userId, data.surface);
   });
+
+/**
+ * Extracted logic for acknowledgeAlert - testable without TanStack wrappers.
+ */
+export async function acknowledgeAlertImpl(
+  supabase: SupabaseClient,
+  userId: string,
+  alertId: string,
+) {
+  const { error } = await supabase
+    .from("ai_budget_alerts")
+    .update({ acknowledged: true })
+    .eq("id", alertId)
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}
 
 export const acknowledgeAlert = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("ai_budget_alerts")
-      .update({ acknowledged: true })
-      .eq("id", data.id)
-      .eq("user_id", userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    return acknowledgeAlertImpl(supabase, userId, data.id);
   });
 
-/** Lightweight summary for header badge — just the global daily/monthly usage vs cap. */
+/**
+ * Extracted logic for getBudgetSummary - testable without TanStack wrappers.
+ * Lightweight summary for header badge — just the global daily/monthly usage vs cap.
+ */
+export async function getBudgetSummaryImpl(supabase: SupabaseClient, userId: string) {
+  const { data } = await supabase
+    .from("ai_budgets")
+    .select(
+      "daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used,day_window,month_window,alert_at_pct",
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data ?? null;
+}
+
 export const getBudgetSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data } = await supabase
-      .from("ai_budgets")
-      .select(
-        "daily_usd_cap,monthly_usd_cap,daily_usd_used,monthly_usd_used,day_window,month_window,alert_at_pct",
-      )
-      .eq("user_id", userId)
-      .maybeSingle();
-    return data ?? null;
+    return getBudgetSummaryImpl(supabase, userId);
   });
