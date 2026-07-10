@@ -288,57 +288,67 @@ const WATCH_LABEL: Record<WatchItem["type"], string> = {
   assumption_challenge: "Challenged",
 };
 
-export function WatchLane({ lane }: { lane: TodayLane3 }) {
+function WatchLaneBody({ lane }: { lane: TodayLane3 }) {
+  if (lane.items.length === 0) {
+    return (
+      <LaneEmpty text="Nothing flagged. No open predictions, misses, or challenged assumptions." />
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {lane.items.map((it) => (
+        <div key={it.id} style={card}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 3 }}>
+            <span
+              style={{
+                ...monoLabel,
+                color: it.type === "calibration_miss" ? "var(--madder)" : "var(--text-subtle)",
+              }}
+            >
+              {WATCH_LABEL[it.type]}
+            </span>
+            <span
+              className="min-w-0 flex-1 truncate"
+              style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
+            >
+              {it.title}
+            </span>
+            {it.confidence != null ? (
+              <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
+                {Math.round(it.confidence * 100)}%
+              </span>
+            ) : null}
+          </div>
+          {it.description ? (
+            <p
+              style={{
+                fontSize: 12.5,
+                color: "var(--text-body)",
+                margin: "0 0 4px",
+                lineHeight: 1.5,
+              }}
+            >
+              {it.description}
+            </p>
+          ) : null}
+          {it.recommendation ? (
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+              → {it.recommendation}
+            </p>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function WatchLane({ lane, bare }: { lane: TodayLane3; bare?: boolean }) {
+  // PC-32 block 5: `bare` renders just the list — the Watch slide-over's
+  // header already names the zone, so the section frame would duplicate it.
+  if (bare) return <WatchLaneBody lane={lane} />;
   return (
     <LaneSection title="At risk / watch" count={lane.count || undefined}>
-      {lane.items.length === 0 ? (
-        <LaneEmpty text="Nothing flagged. No open predictions, misses, or challenged assumptions." />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {lane.items.map((it) => (
-            <div key={it.id} style={card}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 3 }}>
-                <span
-                  style={{
-                    ...monoLabel,
-                    color: it.type === "calibration_miss" ? "var(--madder)" : "var(--text-subtle)",
-                  }}
-                >
-                  {WATCH_LABEL[it.type]}
-                </span>
-                <span
-                  className="min-w-0 flex-1 truncate"
-                  style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 460 }}
-                >
-                  {it.title}
-                </span>
-                {it.confidence != null ? (
-                  <span style={{ ...monoLabel, fontSize: 10, color: "var(--text-faint)" }}>
-                    {Math.round(it.confidence * 100)}%
-                  </span>
-                ) : null}
-              </div>
-              {it.description ? (
-                <p
-                  style={{
-                    fontSize: 12.5,
-                    color: "var(--text-body)",
-                    margin: "0 0 4px",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {it.description}
-                </p>
-              ) : null}
-              {it.recommendation ? (
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-                  → {it.recommendation}
-                </p>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      )}
+      <WatchLaneBody lane={lane} />
     </LaneSection>
   );
 }

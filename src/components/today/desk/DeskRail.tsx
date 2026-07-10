@@ -12,24 +12,28 @@ import { NotepadCard } from "./NotepadCard";
 import { MeetingsRow } from "./MeetingsRow";
 import { StatusRow } from "./StatusRow";
 
-export function DeskRail() {
+export function DeskRail({ bare }: { bare?: boolean }) {
   return (
     <section aria-label="Your desk" className="flex flex-col" style={{ gap: 12 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <h2
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--text-subtle)",
-            margin: 0,
-          }}
-        >
-          Your desk
-        </h2>
-        <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
-      </div>
+      {/* PC-32 block 5: inside the Desk slide-over the SlideOver header already
+          names the zone, so `bare` skips the duplicate section header. */}
+      {!bare ? (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--text-subtle)",
+              margin: 0,
+            }}
+          >
+            Your desk
+          </h2>
+          <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
+        </div>
+      ) : null}
       <FocusCard />
       <TasksCard />
       <CaptureCard />

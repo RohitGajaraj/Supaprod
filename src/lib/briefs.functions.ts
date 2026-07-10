@@ -150,8 +150,69 @@ export const listBriefItems = createServerFn({ method: "GET" })
       .eq("workspace_id", workspaceId)
       .eq("status", "standing")
       .order("kind", { ascending: true })
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })
+      // PC-32 density budget: three singleton kinds + the top_bet portfolio.
+      // 40 is far above any sane portfolio; the cap exists so a runaway
+      // writer can never make this list unbounded.
+      .limit(40);
     return (rows ?? []) as BriefItem[];
+  });
+
+// ---------------------------------------------------------------------------
+// PC-33 (minimal, PC-32 block 2): the product identity object — what the
+// masthead line renders. Composes existing rows only; no new tables.
+// ---------------------------------------------------------------------------
+
+export type ProductContext = {
+  productName: string;
+  /** The Brief's positioning one-liner (falls back to the legacy mission). */
+  oneLiner: string | null;
+  /** The current top bet (falls back to the legacy current_focus). */
+  topBet: string | null;
+};
+
+export const getProductContext = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { workspaceId?: string | null } | undefined) =>
+    z.object({ workspaceId: z.string().uuid().nullable().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<ProductContext | null> => {
+    const { supabase } = context;
+    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId ?? null);
+    if (!workspaceId) return null;
+
+    const [wsRes, itemsRes, legacyRes] = await Promise.all([
+      supabase.from("workspaces").select("name").eq("id", workspaceId).maybeSingle(),
+      supabase
+        .from("brief_items")
+        .select("kind,title,body,created_at")
+        .eq("workspace_id", workspaceId)
+        .eq("status", "standing")
+        .in("kind", ["positioning", "top_bet"])
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("workspace_briefs")
+        .select("mission,current_focus")
+        .eq("workspace_id", workspaceId)
+        .maybeSingle(),
+    ]);
+
+    const items = (itemsRes.data ?? []) as Pick<BriefItem, "kind" | "title" | "body">[];
+    const positioning = items.find((i) => i.kind === "positioning");
+    const bet = items.find((i) => i.kind === "top_bet");
+    const legacy = legacyRes.data as {
+      mission: string | null;
+      current_focus: string | null;
+    } | null;
+
+    const oneLiner = positioning?.body?.trim() || legacy?.mission?.trim() || null;
+    const topBet = bet?.title?.trim() || legacy?.current_focus?.trim() || null;
+    return {
+      productName: (wsRes.data?.name as string | undefined)?.trim() || "Your product",
+      oneLiner: oneLiner ? oneLiner.slice(0, 200) : null,
+      topBet: topBet ? topBet.slice(0, 140) : null,
+    };
   });
 
 const UpsertBriefItemSchema = z.object({

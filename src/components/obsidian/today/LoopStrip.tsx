@@ -26,12 +26,14 @@ function Pill({
   tone,
   pulse,
   title,
+  compact,
   onGo,
 }: {
   label: string;
   tone: PillTone;
   pulse?: boolean;
   title?: string;
+  compact?: boolean;
   onGo: () => void;
 }) {
   const s = TONE_STYLE[tone];
@@ -45,11 +47,11 @@ function Pill({
         gap: 7,
         border: `1px solid ${s.border}`,
         borderRadius: "var(--radius-pill)",
-        padding: "6px 13px",
+        padding: compact ? "4px 10px" : "6px 13px",
         background: "transparent",
         color: s.color,
         fontFamily: "var(--font-mono)",
-        fontSize: 9.5,
+        fontSize: compact ? 9 : 9.5,
         letterSpacing: "0.10em",
         boxShadow: s.shadow,
         transitionDuration: "140ms",
@@ -77,12 +79,14 @@ export interface LoopStripProps {
   pendingCalls: number;
   workingCount: number;
   onGo: (surface: LoopSurface) => void;
+  /** PC-32 block 6: folded into the hero row — smaller pills, no caption. */
+  compact?: boolean;
 }
 
 /** The five-pill loop strip: SENSE -> DECIDE -> DEFINE -> BUILD -> LEARN,
  * each a jump to its surface. DECIDE and BUILD read live state (pending
  * calls / working agents); SENSE, DEFINE, LEARN read the 24h loop pulse. */
-export function LoopStrip({ counts, pendingCalls, workingCount, onGo }: LoopStripProps) {
+export function LoopStrip({ counts, pendingCalls, workingCount, onGo, compact }: LoopStripProps) {
   const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
   const pills: {
     key: LoopSurface;
@@ -130,12 +134,15 @@ export function LoopStrip({ counts, pendingCalls, workingCount, onGo }: LoopStri
     },
   ];
   return (
-    <div style={{ marginBottom: 28 }}>
-      <div className="flex flex-wrap items-center" style={{ gap: 8 }}>
+    <div style={{ marginBottom: compact ? 18 : 28 }}>
+      <div className="flex flex-wrap items-center" style={{ gap: compact ? 6 : 8 }}>
         {pills.map((p, i) => (
           <React.Fragment key={p.key}>
             {i > 0 && (
-              <span aria-hidden="true" style={{ color: "var(--text-faint)", fontSize: 11 }}>
+              <span
+                aria-hidden="true"
+                style={{ color: "var(--text-faint)", fontSize: compact ? 10 : 11 }}
+              >
                 →
               </span>
             )}
@@ -144,14 +151,17 @@ export function LoopStrip({ counts, pendingCalls, workingCount, onGo }: LoopStri
               tone={p.tone}
               pulse={p.pulse}
               title={p.title}
+              compact={compact}
               onGo={() => onGo(p.key)}
             />
           </React.Fragment>
         ))}
       </div>
-      <p style={{ margin: "9px 0 0", fontSize: 11, lineHeight: 1.4, color: "var(--text-faint)" }}>
-        Sensed, defined, and learned in the last 24 hours. Calls and builds are live now.
-      </p>
+      {!compact ? (
+        <p style={{ margin: "9px 0 0", fontSize: 11, lineHeight: 1.4, color: "var(--text-faint)" }}>
+          Sensed, defined, and learned in the last 24 hours. Calls and builds are live now.
+        </p>
+      ) : null}
     </div>
   );
 }

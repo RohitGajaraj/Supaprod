@@ -64,6 +64,9 @@ export type SwarmActivityItem = {
   label: string;
   stage: string;
   at: string;
+  /** stage_events.actor: 'human', an agent slug, or 'system'. Carried so the
+   * receipts strip can byline WHO moved the thing (PC-32 block 4). */
+  actor: string | null;
 };
 export type SwarmActivityGroup = {
   /** mission id, or "unassigned" for non-mission transitions. */
@@ -75,7 +78,13 @@ export type SwarmActivityGroup = {
   items: SwarmActivityItem[];
 };
 export type TodayLane2 = {
+  /** Hard-capped server-side (PC-32): top missions by recency, never the
+   * full 24h group list. */
   groups: SwarmActivityGroup[];
+  /** True group count before the cap, so the fold line never understates. */
+  groups_total: number;
+  /** Total transitions in the window (bounded by the event fetch cap). */
+  acts_total: number;
   since_iso: string;
   total_cost_usd: number;
 };
@@ -118,7 +127,13 @@ export type TodayLanes = {
 
 export const EMPTY_TODAY_LANES: TodayLanes = {
   lane1: { insights: [], count: 0 },
-  lane2: { groups: [], since_iso: new Date(0).toISOString(), total_cost_usd: 0 },
+  lane2: {
+    groups: [],
+    groups_total: 0,
+    acts_total: 0,
+    since_iso: new Date(0).toISOString(),
+    total_cost_usd: 0,
+  },
   lane3: { items: [], count: 0 },
   lane4: { items: [], shipped_count: 0, avg_cost_per_outcome_usd: 0, week_spend_usd: 0 },
 };
@@ -171,6 +186,7 @@ type StageEventRow = {
   entity_id: string;
   to_stage: string;
   at: string;
+  actor?: string | null;
 };
 
 /** Group mission transitions under the mission that moved, folding every
@@ -207,6 +223,7 @@ export function groupMissionEvents(
         label: isMission ? (meta?.title ?? "mission") : e.entity_type,
         stage: e.to_stage,
         at: e.at,
+        actor: e.actor ?? null,
       });
     }
   }
@@ -377,7 +394,7 @@ async function queryLane2(
 ): Promise<TodayLane2> {
   const { data } = await db
     .from("stage_events")
-    .select("entity_type, entity_id, to_stage, at")
+    .select("entity_type, entity_id, to_stage, at, actor")
     .eq("workspace_id", workspaceId)
     .gte("at", sinceIso)
     .order("at", { ascending: false })
@@ -402,9 +419,21 @@ async function queryLane2(
     }
   }
   const missionCost = await loadMissionCost(db, workspaceId, missionIds);
-  const groups = groupMissionEvents(events, missionMeta, missionCost);
+  const allGroups = groupMissionEvents(events, missionMeta, missionCost);
+  // PC-32: the group list is hard-capped server-side — top missions by
+  // recency (groupMissionEvents already sorts that way). The audit's
+  // unbounded path was the GROUP count, not the event fetch: 120 events
+  // across 40 missions rendered 40 cards. The receipts strip shows 5;
+  // one spare group keeps the fold honest without over-fetching.
+  const groups = allGroups.slice(0, 6);
   const total = Array.from(missionCost.values()).reduce((s, c) => s + c, 0);
-  return { groups, since_iso: sinceIso, total_cost_usd: Math.round(total * 100) / 100 };
+  return {
+    groups,
+    groups_total: allGroups.length,
+    acts_total: events.length,
+    since_iso: sinceIso,
+    total_cost_usd: Math.round(total * 100) / 100,
+  };
 }
 
 /** Lane 3 — foresight (open predictions/risks), calibration misses, and live

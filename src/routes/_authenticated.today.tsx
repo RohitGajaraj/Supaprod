@@ -4,25 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
-import { Button } from "@/components/obsidian";
+import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { Hero } from "@/components/obsidian/today/Hero";
 import { LoopStrip, type LoopSurface } from "@/components/obsidian/today/LoopStrip";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
-import {
-  SwarmActivityLane,
-  WatchLane,
-  ShippedLane,
-  PushedInsights,
-} from "@/components/today/TodayLanes";
-import { LoopHealthCard } from "@/components/obsidian/today/LoopHealthCard";
-import { StrategicBriefCard } from "@/components/obsidian/today/StrategicBriefCard";
-import {
-  TriageQueue,
-  type ExpiredCall,
-  type QueueCall,
-  type QueueGroup,
-} from "@/components/today/TriageQueue";
+import { WatchLane } from "@/components/today/TodayLanes";
+import { JudgmentLane } from "@/components/today/JudgmentLane";
+import { ReceiptsStrip } from "@/components/today/ReceiptsStrip";
+import { ProductMasthead } from "@/components/today/ProductMasthead";
+import { type ExpiredCall, type QueueCall } from "@/components/today/TriageQueue";
 import { DeskRail } from "@/components/today/desk/DeskRail";
 import { sortWithinGroup, expiryLabel, expiredAgo, gateHeadline } from "@/components/today/triage";
 import { CallDetailSheet, type CallDetail } from "@/components/today/CallDetailSheet";
@@ -42,7 +33,8 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { listLearnings } from "@/lib/outcome.functions";
 import { rescoresOf } from "@/lib/moat-vis";
 import { listAgentRuns } from "@/lib/agents.functions";
-import { recordRitualSession, getAcceptanceRate, getAutonomyRatio } from "@/lib/gauntlet.functions";
+import { recordRitualSession } from "@/lib/gauntlet.functions";
+import { getProductContext } from "@/lib/briefs.functions";
 import { listProjects } from "@/lib/projects.functions";
 import { getDashboard } from "@/lib/dashboard.functions";
 import { generateDailyBrief } from "@/lib/copilot.functions";
@@ -167,17 +159,15 @@ function TodaySpotlight({
     minWidth: 0,
   };
   return (
-    <section
+    // Loom §0.1.2 (prominence): the brief is the screen's one hero insight,
+    // so it rides the SpotlightCard primitive — ember light while a call
+    // pends, moss when the loop runs itself.
+    <SpotlightCard
       aria-label="Today's brief"
-      className="loom-hairline-fade"
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        padding: "14px 18px",
-        marginBottom: 12,
-        boxShadow: "var(--top-light)",
-      }}
+      role="region"
+      tone={callTitle ? "ember" : "moss"}
+      compact
+      style={{ marginBottom: 12 }}
     >
       <div className="flex flex-col" style={{ gap: 7 }}>
         {callTitle ? (
@@ -302,7 +292,7 @@ function TodaySpotlight({
           )
         ) : null}
       </div>
-    </section>
+    </SpotlightCard>
   );
 }
 
@@ -333,6 +323,58 @@ function ConstellationMotif() {
   );
 }
 
+/** PC-32 block 5 — one quiet text door (link tier, sentence case): a real
+ * destination with a count where one exists. Never a card, never a banner. */
+function DoorLink({
+  label,
+  count,
+  hint,
+  onClick,
+}: {
+  label: string;
+  count?: number;
+  hint: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={hint}
+      className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      style={{
+        gap: 6,
+        fontFamily: "var(--font-ui)",
+        fontSize: 12.5,
+        fontWeight: 500,
+        color: "var(--glacier)",
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        transitionDuration: "140ms",
+      }}
+    >
+      {label}
+      {typeof count === "number" ? (
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+            letterSpacing: "0.08em",
+            color: "var(--text-faint)",
+          }}
+        >
+          {count}
+        </span>
+      ) : null}
+      <span aria-hidden="true" style={{ color: "var(--text-faint)", fontSize: 11 }}>
+        →
+      </span>
+    </button>
+  );
+}
+
 function Dashboard() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -360,10 +402,9 @@ function Dashboard() {
   const fetchLoopPulse = useServerFn(getLoopPulse);
   const fetchLearnings = useServerFn(listLearnings);
   const fetchRuns = useServerFn(listAgentRuns);
-  const fetchAcceptance = useServerFn(getAcceptanceRate);
-  const fetchAutonomy = useServerFn(getAutonomyRatio);
   const fetchDashboard = useServerFn(getDashboard);
   const fetchLanes = useServerFn(getTodayLanes);
+  const fetchProductContext = useServerFn(getProductContext);
   const mMarkInsight = useServerFn(markInsightActioned);
   const mResolveApproval = useServerFn(resolveApproval);
   const mSnoozeApproval = useServerFn(snoozeApproval);
@@ -384,13 +425,11 @@ function Dashboard() {
   // SW-5: the four-lane content model (Needs your judgment · What the swarm did ·
   // At risk/watch · Shipped and what it cost), each computed from real rows.
   const lanes = useQuery({ queryKey: ["today-lanes"], queryFn: () => fetchLanes() });
-  const acceptance = useQuery({
-    queryKey: ["acceptance", 14],
-    queryFn: () => fetchAcceptance({ data: { days: 14 } }),
-  });
-  const autonomy = useQuery({
-    queryKey: ["autonomy", 14],
-    queryFn: () => fetchAutonomy({ data: { days: 14 } }),
+  // PC-32 block 2 (PC-33): the product masthead's identity object.
+  const productContext = useQuery({
+    queryKey: ["product-context"],
+    queryFn: () => fetchProductContext({ data: {} }),
+    staleTime: 5 * 60 * 1000,
   });
   const regenBrief = useMutation({
     mutationFn: () => mBrief(),
@@ -792,21 +831,10 @@ function Dashboard() {
     })),
   ]);
 
-  // Group chips read the server counts, so a display cap can never make a
-  // chip understate (R2-ATTENTION #1).
-  const groups: QueueGroup[] = [
-    { family: "ship", calls: shipCalls, total: ny?.counts.approvals },
-    {
-      family: "build",
-      calls: buildCalls,
-      total: ny ? ny.counts.specs + ny.counts.opportunities + ny.counts.designGates : undefined,
-    },
-    {
-      family: "reexamine",
-      calls: reexamineCalls,
-      total: ny ? ny.counts.assumptions + ny.counts.playbooks : undefined,
-    },
-  ];
+  // PC-32 block 3: ONE flat judgment lane, consequence-ordered — expiring
+  // ship gates first (needs-human-now with a closing window), then build
+  // calls, then re-examinations. The lane shows 3; the rest fold.
+  const allCalls: QueueCall[] = [...shipCalls, ...buildCalls, ...reexamineCalls];
 
   // R2-ATTENTION #2: expired gates, out of the live queue. resolveApproval
   // accepts an expired row (approve executes the tool now, reject closes it),
@@ -924,7 +952,7 @@ function Dashboard() {
   // first card of the first non-empty group). The handler reads refs so the
   // effect never closes over a stale queue (register D-47), and stays quiet
   // while a decision is in flight.
-  const featured = shipCalls[0] ?? buildCalls[0] ?? reexamineCalls[0] ?? null;
+  const featured = allCalls[0] ?? null;
   const featuredRef = useRef<QueueCall | null>(featured);
   featuredRef.current = featured;
   const decidingRef = useRef(anyDeciding);
@@ -965,9 +993,10 @@ function Dashboard() {
   ).length;
 
   const learningRows = learnings.data?.learnings ?? [];
-  // Capped at 5 visible lines inside WhatChanged; 12 total bounds the fold.
+  // PC-32: only the newest rescore feeds the Spotlight's "Proved out" line;
+  // the full what-changed feed lives in Brain (learnings tab).
   const whatChangedItems: WhatChangedItem[] = rescoresOf(learningRows)
-    .slice(0, 12)
+    .slice(0, 1)
     .map((r) => ({
       dot:
         r.verdict === "validated"
@@ -987,33 +1016,11 @@ function Dashboard() {
   // stage_events grouped by mission — the running-agents strip it replaces.
   const lanesData = lanes.data;
 
-  const acceptPct = acceptance.data?.rate != null ? Math.round(acceptance.data.rate * 100) : null;
-  const autonomyPct = autonomy.data?.ratio != null ? Math.round(autonomy.data.ratio * 100) : null;
-  // One interpretable metric, not a blended score: how much of the work ran
-  // without a human (the product's whole promise), read straight off the
-  // autonomy ratio. The approval rate rides along as the caption so the card
-  // carries two real numbers, each meaning one clear thing.
-  const loopValue = autonomyPct != null ? `${autonomyPct}%` : "-";
-  const loopHue =
-    autonomyPct == null
-      ? "healthy"
-      : autonomyPct >= 60
-        ? "healthy"
-        : autonomyPct >= 35
-          ? "attention"
-          : "failing";
-  const loopTrend =
-    acceptance.data?.trend === "up" || autonomy.data?.trend === "up"
-      ? "trending up"
-      : acceptance.data?.trend === "down" || autonomy.data?.trend === "down"
-        ? "needs attention"
-        : "last 14 days";
-  const loopNote =
-    autonomyPct == null
-      ? "Not enough data yet · keep the loop running"
-      : acceptPct != null
-        ? `${acceptPct}% approved · ${loopTrend}`
-        : `Ran without you · ${loopTrend}`;
+  // PC-32 block 5: the doors row's two slide-overs (Desk = personal tools,
+  // Watch = the reference lane; its consequential items already surface as
+  // judgment calls). LoopHealthCard left Today — Engine Room owns loop health.
+  const [deskOpen, setDeskOpen] = useState(false);
+  const [watchOpen, setWatchOpen] = useState(false);
 
   // Never assert "All clear" before the true call count has actually
   // arrived — OBS-04.md §7 "Loading" state: skeleton, no spinner, and the
@@ -1052,11 +1059,22 @@ function Dashboard() {
           />
         ) : null}
         {needsYouLoaded ? (
-          <Hero
-            greeting={greeting.data?.greeting ?? "Hello"}
-            userName={userName}
-            pendingCalls={callCount}
-          />
+          <>
+            <Hero
+              greeting={greeting.data?.greeting ?? "Hello"}
+              userName={userName}
+              pendingCalls={callCount}
+            />
+            {/* PC-32 block 6: the loop pulse folds into the hero zone as
+                compact pills — kept, shrunk, caption dropped. */}
+            <LoopStrip
+              compact
+              counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
+              pendingCalls={callCount}
+              workingCount={workingCount}
+              onGo={goSurface}
+            />
+          </>
         ) : (
           <>
             <h1 className="sr-only">Today</h1>
@@ -1072,6 +1090,12 @@ function Dashboard() {
             />
           </>
         )}
+        {/* PC-32 block 2 (PC-33): the product masthead — one quiet line
+            grounding the ritual in the product's story. */}
+        <ProductMasthead
+          ctx={productContext.data}
+          onOpen={() => navigate({ to: "/settings", search: { section: "workspace" } as never })}
+        />
         {/* Founder ruling (2026-07-04): the brief LEADS the ritual — a
             spotlight composed from live objects (the call that matters, what
             proved out), never a paragraph dump; the AI prose is one
@@ -1087,223 +1111,260 @@ function Dashboard() {
             onOpenCall={featured ? () => setActiveCallId(featured.id) : undefined}
           />
         ) : null}
-        {/* PM Desk (2026-07-09): the My-day strip + collapsed capture are
-            retired — their tools live in the Desk on the right rail, with
-            real card affordances instead of text rows. The queue rises. */}
-        <LoopStrip
-          counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
-          pendingCalls={callCount}
-          workingCount={workingCount}
-          onGo={goSurface}
-        />
-        {/* SW-5 (mission 3.11): Today's four segregated lanes. Lane 1 (Needs
-            your judgment) is the ONLY ember lane; lanes 2-4 speak the calm
-            machine voice. Left column carries the judgment + activity + shipped
-            lanes; the right rail carries the watch lane + loop health + brief. */}
-        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-          <div className="flex flex-col" style={{ gap: 24 }}>
-            {/* Lane 1 — Needs your judgment */}
-            <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                <h2
+        {/* PC-32: ONE column, one question. The judgment lane leads; the
+            receipts strip narrates the night; four quiet doors hold the rest.
+            The old two-column grid (8 sections, 8 questions) is retired. */}
+        <div className="flex flex-col" style={{ gap: 26 }}>
+          <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+              <h2
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--ember-text)",
+                  margin: 0,
+                }}
+              >
+                Needs your judgment
+              </h2>
+              {needsYouLoaded ? (
+                <span
                   style={{
                     fontFamily: "var(--font-mono)",
-                    fontSize: 11,
+                    fontSize: 10.5,
                     letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: "var(--ember-text)",
-                    margin: 0,
+                    color: "var(--text-faint)",
                   }}
                 >
-                  Needs your judgment
-                </h2>
-                {needsYouLoaded ? (
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 10.5,
-                      letterSpacing: "0.12em",
-                      color: "var(--text-faint)",
-                    }}
-                  >
-                    {callCount + (lanesData?.lane1.count ?? 0)}
-                  </span>
-                ) : null}
+                  {callCount + (lanesData?.lane1.count ?? 0)}
+                </span>
+              ) : null}
+              <div
+                style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
+              />
+            </div>
+            {needsYou.isError ? (
+              <div
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "24px 26px",
+                  boxShadow: "var(--top-light)",
+                }}
+              >
+                <h3
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 19,
+                    fontWeight: 460,
+                    color: "var(--text-primary)",
+                    margin: "0 0 6px",
+                  }}
+                >
+                  Your calls didn't load.
+                </h3>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
+                  {needsYou.error instanceof Error
+                    ? needsYou.error.message
+                    : "The queue request failed."}
+                </p>
+                <Button variant="secondary" onClick={() => void needsYou.refetch()}>
+                  Try again
+                </Button>
+              </div>
+            ) : !needsYouLoaded ? (
+              <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
                 <div
-                  style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
+                  style={{
+                    height: 12,
+                    width: 130,
+                    borderRadius: 4,
+                    background: "var(--surface-card-deep)",
+                  }}
+                />
+                <div
+                  style={{
+                    height: 190,
+                    borderRadius: "var(--radius-card)",
+                    background: "var(--surface-card-deep)",
+                    boxShadow: "var(--top-light)",
+                  }}
                 />
               </div>
-              {needsYou.isError ? (
-                <div
+            ) : callCount === 0 &&
+              expiredTotal === 0 &&
+              !lanes.isPending &&
+              (lanesData?.lane1.count ?? 0) === 0 ? (
+              <div
+                style={{
+                  background: "var(--card)",
+                  border: "1px solid rgba(127,191,142,0.3)",
+                  borderRadius: "var(--radius-card)",
+                  padding: "28px 26px",
+                  boxShadow: "var(--top-light)",
+                }}
+              >
+                <ConstellationMotif />
+                <h3
                   style={{
-                    background: "var(--card)",
-                    border: "1px solid var(--hairline-strong)",
-                    borderRadius: "var(--radius-card)",
-                    padding: "24px 26px",
-                    boxShadow: "var(--top-light)",
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 21,
+                    fontWeight: 450,
+                    color: "var(--text-primary)",
+                    margin: "0 0 6px",
                   }}
                 >
-                  <h3
-                    style={{
-                      fontFamily: "var(--font-serif)",
-                      fontSize: 19,
-                      fontWeight: 460,
-                      color: "var(--text-primary)",
-                      margin: "0 0 6px",
-                    }}
-                  >
-                    Your calls didn't load.
-                  </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 14px" }}>
-                    {needsYou.error instanceof Error
-                      ? needsYou.error.message
-                      : "The queue request failed."}
-                  </p>
-                  <Button variant="secondary" onClick={() => void needsYou.refetch()}>
-                    Try again
-                  </Button>
-                </div>
-              ) : !needsYouLoaded ? (
-                <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
-                  <div
-                    style={{
-                      height: 12,
-                      width: 130,
-                      borderRadius: 4,
-                      background: "var(--surface-card-deep)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: 190,
-                      borderRadius: "var(--radius-card)",
-                      background: "var(--surface-card-deep)",
-                      boxShadow: "var(--top-light)",
-                    }}
-                  />
-                </div>
-              ) : callCount === 0 && expiredTotal === 0 && (lanesData?.lane1.count ?? 0) === 0 ? (
+                  Your queue is{" "}
+                  <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
+                </h3>
+                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                  New calls surface here first. Cadence keeps sensing in the background.
+                </p>
+              </div>
+            ) : (
+              <JudgmentLane
+                calls={allCalls}
+                insights={lanesData?.lane1.insights ?? []}
+                onInsightOpen={() =>
+                  navigate({ to: "/brain", search: { tab: "insights" } as never })
+                }
+                onInsightAct={(ins) => {
+                  // SEAM-3 one-click: settle the push, then take the
+                  // user to the action's surface. Fail-soft: the
+                  // navigation happens regardless of the write.
+                  void mMarkInsight({ data: { id: ins.id, outcome: "acted" } })
+                    .catch(() => undefined)
+                    .finally(() => {
+                      void qc.invalidateQueries({ queryKey: ["today-lanes"] });
+                    });
+                  const kind = ins.action?.kind;
+                  if (kind === "rerank_bets") {
+                    navigate({ to: "/decide" });
+                  } else if (kind === "open_decision") {
+                    navigate({ to: "/brain", search: { tab: "decisions" } as never });
+                  } else {
+                    navigate({ to: "/brain", search: { tab: "insights" } as never });
+                  }
+                }}
+                expired={{ total: expiredTotal, calls: expiredCalls }}
+              />
+            )}
+            {totalCalls > 0 && needsYouLoaded && (
+              <div>
                 <div
                   style={{
-                    background: "var(--card)",
-                    border: "1px solid rgba(127,191,142,0.3)",
-                    borderRadius: "var(--radius-card)",
-                    padding: "28px 26px",
-                    boxShadow: "var(--top-light)",
+                    height: 3,
+                    background: "var(--hairline)",
+                    borderRadius: 99,
+                    overflow: "hidden",
                   }}
                 >
-                  <ConstellationMotif />
-                  <h3
+                  <div
                     style={{
-                      fontFamily: "var(--font-serif)",
-                      fontSize: 21,
-                      fontWeight: 450,
-                      color: "var(--text-primary)",
-                      margin: "0 0 6px",
+                      height: "100%",
+                      width: `${clearedPct}%`,
+                      background: "var(--ember)",
+                      transition: "width 280ms var(--ease)",
                     }}
-                  >
-                    Your queue is{" "}
-                    <em style={{ fontStyle: "italic", color: "var(--moss)" }}>clear.</em>
-                  </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                    New calls surface here first. Cadence keeps sensing in the background.
-                  </p>
+                  />
                 </div>
-              ) : (
-                <>
-                  {callCount > 0 || expiredTotal > 0 ? (
-                    <TriageQueue
-                      groups={groups}
-                      expired={{ total: expiredTotal, calls: expiredCalls }}
-                    />
-                  ) : null}
-                  {lanesData ? (
-                    <PushedInsights
-                      lane={lanesData.lane1}
-                      onOpen={() =>
-                        navigate({ to: "/brain", search: { tab: "insights" } as never })
-                      }
-                      onAct={(ins) => {
-                        // SEAM-3 one-click: settle the push, then take the
-                        // user to the action's surface. Fail-soft: the
-                        // navigation happens regardless of the write.
-                        void mMarkInsight({ data: { id: ins.id, outcome: "acted" } })
-                          .catch(() => undefined)
-                          .finally(() => {
-                            void qc.invalidateQueries({ queryKey: ["today-lanes"] });
-                          });
-                        const kind = ins.action?.kind;
-                        if (kind === "rerank_bets") {
-                          navigate({ to: "/decide" });
-                        } else if (kind === "open_decision") {
-                          navigate({ to: "/brain", search: { tab: "decisions" } as never });
-                        } else {
-                          navigate({ to: "/brain", search: { tab: "insights" } as never });
-                        }
-                      }}
-                    />
-                  ) : null}
-                </>
-              )}
-              {totalCalls > 0 && needsYouLoaded && (
-                <div>
-                  <div
-                    style={{
-                      height: 3,
-                      background: "var(--hairline)",
-                      borderRadius: 99,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${clearedPct}%`,
-                        background: "var(--ember)",
-                        transition: "width 280ms var(--ease)",
-                      }}
-                    />
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 10.5,
-                      color: "var(--text-subtle)",
-                      marginTop: 6,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {/* LOOM W4 honesty: the old "N of M answered" denominator
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10.5,
+                    color: "var(--text-subtle)",
+                    marginTop: 6,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {/* LOOM W4 honesty: the old "N of M answered" denominator
                         shifted as new calls arrived mid-session. State the two
                         real numbers instead. */}
-                    {clearedSession} answered · {callCount} open
-                  </div>
+                  {clearedSession} answered · {callCount} open
                 </div>
-              )}
-            </section>
-            {/* Lane 2 — What the swarm did */}
-            {lanesData ? (
-              <SwarmActivityLane
-                lane={lanesData.lane2}
-                onOpenMission={(id) =>
-                  navigate({ to: "/build/$missionId", params: { missionId: id } })
-                }
-              />
-            ) : null}
-            {/* Lane 4 — Shipped and what it cost */}
-            {lanesData ? <ShippedLane lane={lanesData.lane4} /> : null}
-          </div>
-          <div className="flex flex-col" style={{ gap: 14 }}>
-            {/* Lane 3 — At risk / watch */}
-            {lanesData ? <WatchLane lane={lanesData.lane3} /> : null}
-            <LoopHealthCard label="Runs itself" value={loopValue} note={loopNote} hue={loopHue} />
-            {/* PM Desk (founder goal 2026-07-09): the PM's daily tools as an
-                evident card zone, exactly below the aurora card. */}
-            <DeskRail />
-            <StrategicBriefCard />
-          </div>
+              </div>
+            )}
+          </section>
+
+          {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
+              one-line acts with real actor bylines, replacing the swarm
+              card grid. */}
+          {lanesData ? (
+            <ReceiptsStrip
+              lane={lanesData.lane2}
+              onOpenMission={(id) =>
+                navigate({ to: "/build/$missionId", params: { missionId: id } })
+              }
+              onOpenActivity={() => navigate({ to: "/build" })}
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              style={{
+                height: 140,
+                borderRadius: "var(--radius-card)",
+                background: "var(--surface-card-deep)",
+                boxShadow: "var(--top-light)",
+              }}
+            />
+          )}
+
+          {/* PC-32 block 5: the doors row. Desk and Watch open in place;
+              Activity's full history lives on Build; Shipped is the record,
+              so it lives in Brain. Nothing removed, everything one door away. */}
+          <nav
+            aria-label="More on Today"
+            className="flex flex-wrap items-baseline"
+            style={{ gap: 22, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}
+          >
+            <DoorLink
+              label="Desk"
+              hint="focus, tasks, capture, notes"
+              onClick={() => setDeskOpen(true)}
+            />
+            <DoorLink
+              label="Activity"
+              hint="the full swarm history"
+              onClick={() => navigate({ to: "/build" })}
+            />
+            <DoorLink
+              label="Shipped"
+              count={lanesData?.lane4.shipped_count || undefined}
+              hint="outcomes and what they cost"
+              onClick={() => navigate({ to: "/brain", search: { tab: "learnings" } as never })}
+            />
+            <DoorLink
+              label="Watch"
+              count={lanesData?.lane3.count || undefined}
+              hint="open risks and challenged assumptions"
+              onClick={() => setWatchOpen(true)}
+            />
+          </nav>
         </div>
       </div>
+      {/* PC-32 block 5: the Desk slide-over — personal tools are not
+          judgment, so they live one door away, not on the canvas. */}
+      <SlideOver open={deskOpen} onClose={() => setDeskOpen(false)} title="Your desk">
+        <DeskRail bare />
+      </SlideOver>
+      <SlideOver open={watchOpen} onClose={() => setWatchOpen(false)} title="At risk / watch">
+        {lanesData ? (
+          <WatchLane lane={lanesData.lane3} bare />
+        ) : (
+          <div
+            aria-hidden="true"
+            style={{
+              height: 120,
+              borderRadius: "var(--radius-card)",
+              background: "var(--surface-card-deep)",
+              boxShadow: "var(--top-light)",
+            }}
+          />
+        )}
+      </SlideOver>
       <CallDetailSheet
         open={activeDetail !== null}
         onOpenChange={(next) => {
