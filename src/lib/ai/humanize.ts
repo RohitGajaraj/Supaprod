@@ -43,6 +43,14 @@ const STRIP_RE = new RegExp(
  */
 const EXOTIC_SPACE_RE = new RegExp("[\\u00a0\\u202f\\u2002-\\u200a]", "g");
 
+// Regex patterns for dash normalization (hoisted to avoid recompilation in the hot path).
+const NUMERIC_RANGE_RE = new RegExp(
+  `(\\d)[ \\t]*[${DASH_CLASS}][ \\t]*(\\d)`,
+  "g",
+);
+const SPACED_DASH_RE = new RegExp(`[ \\t]+[${DASH_CLASS}][ \\t]+`, "g");
+const ANY_DASH_RE = new RegExp(`[${DASH_CLASS}]`, "g");
+
 /**
  * Normalize an em/en dash inside a prose segment to honest ASCII punctuation by
  * context. A numeric range like "1-6" becomes "1 to 6"; a spaced or unspaced
@@ -55,11 +63,11 @@ function normalizeDashes(segment: string): string {
   // line break, and keeping it intra-line makes streaming line-by-line identical
   // to whole-text humanizing.
   // Numeric range: 1-6 / 1 - 6 → "1 to 6".
-  out = out.replace(new RegExp(`(\\d)[ \\t]*[${DASH_CLASS}][ \\t]*(\\d)`, "g"), "$1 to $2");
+  out = out.replace(NUMERIC_RANGE_RE, "$1 to $2");
   // Spaced separator dash ( word - word ) → ", ".
-  out = out.replace(new RegExp(`[ \\t]+[${DASH_CLASS}][ \\t]+`, "g"), ", ");
+  out = out.replace(SPACED_DASH_RE, ", ");
   // Any remaining dash (unspaced or edge) → comma.
-  out = out.replace(new RegExp(`[${DASH_CLASS}]`, "g"), ", ");
+  out = out.replace(ANY_DASH_RE, ", ");
   return out;
 }
 

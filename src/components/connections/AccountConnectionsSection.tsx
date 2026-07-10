@@ -145,17 +145,26 @@ function useConnectorActions(qc: QueryClient) {
     };
   }, []);
 
+  // Helper: clear prior interval before starting a new one to prevent orphaned timers.
+  const startPolling = (queryKey: string[], durationMs: number = 5 * 60 * 1000) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    const deadline = Date.now() + durationMs;
+    pollRef.current = setInterval(() => {
+      qc.invalidateQueries({ queryKey });
+      if (Date.now() > deadline) {
+        clearInterval(pollRef.current);
+        pollRef.current = undefined;
+      }
+    }, 3_000);
+  };
+
   const mGithub = useMutation({
     mutationFn: () => fStartGithub(),
     onSuccess: ({ installUrl }) => {
       // Open GitHub in a new tab so the user keeps their place in the app.
       // The callback writes to the DB; the parent tab detects it via polling.
       window.open(installUrl, "_blank", "noopener");
-      const deadline = Date.now() + 5 * 60 * 1000;
-      pollRef.current = setInterval(() => {
-        qc.invalidateQueries({ queryKey: ["connections"] });
-        if (Date.now() > deadline) clearInterval(pollRef.current);
-      }, 3_000);
+      startPolling(["connections"]);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -167,11 +176,7 @@ function useConnectorActions(qc: QueryClient) {
     mutationFn: (spec: ProviderSpec) => fStartNative({ data: { provider: spec.id } }),
     onSuccess: ({ authorizeUrl }) => {
       window.open(authorizeUrl, "_blank", "noopener");
-      const deadline = Date.now() + 5 * 60 * 1000;
-      pollRef.current = setInterval(() => {
-        qc.invalidateQueries({ queryKey: ["connections"] });
-        if (Date.now() > deadline) clearInterval(pollRef.current);
-      }, 3_000);
+      startPolling(["connections"]);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -211,11 +216,7 @@ function useConnectorActions(qc: QueryClient) {
       fStartSuite({ data: args }),
     onSuccess: ({ authorizeUrl }) => {
       window.open(authorizeUrl, "_blank", "noopener");
-      const deadline = Date.now() + 5 * 60 * 1000;
-      pollRef.current = setInterval(() => {
-        qc.invalidateQueries({ queryKey: ["calendar-connections"] });
-        if (Date.now() > deadline) clearInterval(pollRef.current);
-      }, 3_000);
+      startPolling(["calendar-connections"]);
     },
     onError: (e: Error) => toast.error(e.message),
   });

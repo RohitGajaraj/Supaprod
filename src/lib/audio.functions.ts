@@ -370,19 +370,22 @@ Only include real commitments, not vague discussion points.`;
 
       // Insert a signal per action item so the ambient engine surfaces them
       let signalsInserted = 0;
-      for (const item of actionItems.slice(0, 10)) {
-        const { error: sigErr } = await supabaseAdmin.from("signals").insert({
-          user_id: userId,
-          workspace_id: transcript.workspace_id,
-          source: "transcript_action",
-          title: item.title.slice(0, 200),
-          content:
-            `From meeting transcript "${transcript.file_name}"` +
-            (item.owner ? ` · owner: ${item.owner}` : "") +
-            (item.due_date ? ` · due: ${item.due_date}` : "") +
-            `\n\n"${item.raw_text}"`,
-        });
-        if (!sigErr) signalsInserted++;
+      // Batch insert all action item signals at once (1 round trip instead of N)
+      const signalInserts = actionItems.slice(0, 10).map((item) => ({
+        user_id: userId,
+        workspace_id: transcript.workspace_id,
+        source: "transcript_action",
+        title: item.title.slice(0, 200),
+        content:
+          `From meeting transcript "${transcript.file_name}"` +
+          (item.owner ? ` · owner: ${item.owner}` : "") +
+          (item.due_date ? ` · due: ${item.due_date}` : "") +
+          `\n\n"${item.raw_text}"`,
+      }));
+
+      if (signalInserts.length > 0) {
+        const { error: sigErr } = await supabaseAdmin.from("signals").insert(signalInserts);
+        if (!sigErr) signalsInserted = signalInserts.length;
       }
 
       return { actionItems, signalsInserted };

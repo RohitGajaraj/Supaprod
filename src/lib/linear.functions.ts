@@ -224,38 +224,76 @@ export const createLinearIssuesFromTasks = createServerFn({ method: "POST" })
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
     const created: { taskId: string; issueId: string; url: string }[] = [];
-    for (const t of tasks ?? []) {
-      const r = await gql<{
-        issueCreate: { success: boolean; issue: { id: string; url: string } };
-      }>(
-        `mutation($input: IssueCreateInput!) {
-          issueCreate(input: $input) { success issue { id url } }
-        }`,
-        {
-          input: {
-            teamId: data.teamId,
-            title: t.title,
-            priority: LOCAL_TO_PRIORITY[t.priority ?? "medium"],
-          },
-        },
+    // Phase 1: Parallelize GraphQL issue creation (concurrency-capped at 5)
+    const CONCURRENT_MUTATIONS = 5;
+    const mutationPromises: Promise<
+      | { taskId: string; issueId: string; url: string }
+      | null
+    >[] = [];
+    const syncMappingsToInsert: Array<{
+      user_id: string;
+      provider: string;
+      local_kind: string;
+      local_id: string;
+      external_id: string;
+      external_url: string;
+      last_pushed_at: string;
+      version_local: number;
+    }> = [];
+
+    // Batch mutations into groups of CONCURRENT_MUTATIONS to maintain stable concurrency
+    for (let i = 0; i < (tasks ?? []).length; i += CONCURRENT_MUTATIONS) {
+      const batch = (tasks ?? []).slice(i, i + CONCURRENT_MUTATIONS);
+      const batchPromises = batch.map((t) =>
+        (async () => {
+          const r = await gql<{
+            issueCreate: { success: boolean; issue: { id: string; url: string } };
+          }>(
+            `mutation($input: IssueCreateInput!) {
+            issueCreate(input: $input) { success issue { id url } }
+          }`,
+            {
+              input: {
+                teamId: data.teamId,
+                title: t.title,
+                priority: LOCAL_TO_PRIORITY[t.priority ?? "medium"],
+              },
+            },
+          );
+
+          if (r.issueCreate.success) {
+            const result = {
+              taskId: t.id,
+              issueId: r.issueCreate.issue.id,
+              url: r.issueCreate.issue.url,
+            };
+            syncMappingsToInsert.push({
+              user_id: userId,
+              provider: "linear",
+              local_kind: "task",
+              local_id: t.id,
+              external_id: r.issueCreate.issue.id,
+              external_url: r.issueCreate.issue.url,
+              last_pushed_at: new Date().toISOString(),
+              version_local: 1,
+            });
+            return result;
+          }
+          return null;
+        })(),
       );
-      if (r.issueCreate.success) {
-        created.push({
-          taskId: t.id,
-          issueId: r.issueCreate.issue.id,
-          url: r.issueCreate.issue.url,
-        });
-        await supabase.from("sync_mappings").insert({
-          user_id: userId,
-          provider: "linear",
-          local_kind: "task",
-          local_id: t.id,
-          external_id: r.issueCreate.issue.id,
-          external_url: r.issueCreate.issue.url,
-          last_pushed_at: new Date().toISOString(),
-          version_local: 1,
-        } as never);
+
+      const batchResults = await Promise.all(batchPromises);
+      for (const result of batchResults) {
+        if (result) created.push(result);
       }
     }
+
+    // Phase 3: Batch insert all sync_mappings (1 round trip instead of N)
+    if (syncMappingsToInsert.length > 0) {
+      const { error } = await supabase.from("sync_mappings").insert(syncMappingsToInsert as never);
+      if (error) throw new Error(error.message);
+    }
+
     return { created };
   });

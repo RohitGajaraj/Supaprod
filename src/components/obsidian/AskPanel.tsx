@@ -97,6 +97,9 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
   }
 
   const meta = msg.meta;
+  // Memoize citations array to prevent ChatMarkdown from re-parsing on every parent render.
+  const citations = React.useMemo(() => meta?.sources.map((s) => s.n), [meta?.sources]);
+
   return (
     <div>
       <div
@@ -107,7 +110,7 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
           color: "var(--text-body)",
         }}
       >
-        <ChatMarkdown content={msg.content} citations={meta?.sources.map((s) => s.n)} />
+        <ChatMarkdown content={msg.content} citations={citations} />
       </div>
       {msg.mission_id ? (
         <>
