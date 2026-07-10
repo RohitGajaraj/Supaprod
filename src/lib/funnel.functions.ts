@@ -85,6 +85,7 @@ export type FunnelSnapshot = {
 };
 
 export const getFunnelSnapshot = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z.object({ windowDays: z.union([z.literal(7), z.literal(30)]) }).parse(d),
   )
