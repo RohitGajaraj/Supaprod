@@ -3,8 +3,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import { computeCreditAttribution } from "@/lib/credits.functions";
 import { topUpCycleCap } from "@/lib/billing-tier";
+import { activePaymentsProviderId, paymentsProvider } from "@/lib/payments/provider.server";
 
-type CheckoutResult = { clientSecret: string } | { error: string };
+/** PC-05: embedded (Stripe secret) or hosted (Paddle URL) — the UI handles both. */
+type CheckoutResult = { clientSecret: string } | { checkoutUrl: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
 type MySubscription = {
   hasSubscription: boolean;
@@ -15,39 +17,6 @@ type MySubscription = {
   cancelAtPeriodEnd?: boolean;
 };
 type MutateResult = { ok: true; cancelAtPeriodEnd: boolean } | { error: string };
-
-async function resolveOrCreateCustomer(
-  stripe: ReturnType<typeof createStripeClient>,
-  options: { email?: string; userId?: string },
-): Promise<string> {
-  if (options.userId && !/^[a-zA-Z0-9_-]+$/.test(options.userId)) {
-    throw new Error("Invalid userId");
-  }
-  if (options.userId) {
-    const found = await stripe.customers.search({
-      query: `metadata['userId']:'${options.userId}'`,
-      limit: 1,
-    });
-    if (found.data.length) return found.data[0].id;
-  }
-  if (options.email) {
-    const existing = await stripe.customers.list({ email: options.email, limit: 1 });
-    if (existing.data.length) {
-      const customer = existing.data[0];
-      if (options.userId && customer.metadata?.userId !== options.userId) {
-        await stripe.customers.update(customer.id, {
-          metadata: { ...customer.metadata, userId: options.userId },
-        });
-      }
-      return customer.id;
-    }
-  }
-  const created = await stripe.customers.create({
-    ...(options.email && { email: options.email }),
-    ...(options.userId && { metadata: { userId: options.userId } }),
-  });
-  return created.id;
-}
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -61,47 +30,33 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     try {
       const { userId, claims } = context;
       const email = (claims as { email?: string })?.email;
-      const stripe = createStripeClient(data.environment);
-
-      const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
-      if (!prices.data.length) throw new Error(`Price not found: ${data.priceId}`);
-      const stripePrice = prices.data[0];
-      const isRecurring = stripePrice.type === "recurring";
-      const isTopup = data.priceId.startsWith("topup_");
 
       // Credit top-ups MUST go through createTopUpCheckout, which enforces the
       // per-cycle ceiling. Refusing a top-up price here closes the bypass where a
-      // caller hits the generic checkout directly with a topup_* key (no cap). The
-      // UI already routes top-ups to createTopUpCheckout (StripeEmbeddedCheckout
-      // mode="topup"), so this only blocks a direct-API end-run.
-      if (isTopup) {
+      // caller hits the generic checkout directly with a topup_* key (no cap).
+      if (data.priceId.startsWith("topup_")) {
         return { error: "Credit top-ups must use the top-up flow." };
       }
 
-      const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
-
-      let productDescription: string | undefined;
-      if (!isRecurring) {
-        const productId =
-          typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
-        const product = await stripe.products.retrieve(productId);
-        productDescription = product.name;
+      // PC-05: the PaymentsProvider seam. Stripe today; Paddle activates by
+      // env flip once the merchant-of-record account exists [awaiting MoR account].
+      const providerId = activePaymentsProviderId();
+      const provider = await paymentsProvider(providerId);
+      if (!provider.configured(data.environment)) {
+        return { error: "Payments are not configured for this environment yet." };
       }
-
-      const session = await stripe.checkout.sessions.create({
-        line_items: [{ price: stripePrice.id, quantity: data.quantity || 1 }],
-        mode: isRecurring ? "subscription" : "payment",
-        ui_mode: "embedded_page",
-        return_url: data.returnUrl,
-        customer: customerId,
-        ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
-        metadata: { userId, kind: isTopup ? "topup" : isRecurring ? "subscription" : "one_time" },
-        ...(isRecurring && {
-          subscription_data: { metadata: { userId, price_lookup_key: data.priceId } },
-        }),
-      } as Parameters<typeof stripe.checkout.sessions.create>[0]);
-
-      return { clientSecret: session.client_secret ?? "" };
+      const session = await provider.createCheckout({
+        userId,
+        email,
+        lookupKey: data.priceId,
+        quantity: data.quantity,
+        returnUrl: data.returnUrl,
+        env: data.environment,
+        kind: "subscription",
+      });
+      return session.mode === "embedded_secret"
+        ? { clientSecret: session.clientSecret }
+        : { checkoutUrl: session.url };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }
@@ -443,28 +398,27 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
       };
     }
 
-    // Delegate to the canonical session creator (resolves customer, sets
-    // metadata.kind='topup', etc.). Re-implementing here would drift.
+    // Delegate to the provider seam's canonical session creator (resolves
+    // customer, sets metadata.kind='topup'). Re-implementing here would drift.
     try {
-      const stripe = createStripeClient(data.environment);
-      const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
-      if (!prices.data.length) return { error: `Price not found: ${data.priceId}` };
-      const stripePrice = prices.data[0];
       const email = (claims as { email?: string })?.email;
-      const customerId = await resolveOrCreateCustomer(stripe, { email, userId });
-      const productId =
-        typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
-      const product = await stripe.products.retrieve(productId);
-      const session = await stripe.checkout.sessions.create({
-        line_items: [{ price: stripePrice.id, quantity: 1 }],
-        mode: "payment",
-        ui_mode: "embedded_page",
-        return_url: data.returnUrl,
-        customer: customerId,
-        payment_intent_data: { description: product.name },
-        metadata: { userId, kind: "topup" },
-      } as Parameters<typeof stripe.checkout.sessions.create>[0]);
-      return { clientSecret: session.client_secret ?? "" };
+      const providerId = activePaymentsProviderId();
+      const provider = await paymentsProvider(providerId);
+      if (!provider.configured(data.environment)) {
+        return { error: "Payments are not configured for this environment yet." };
+      }
+      const session = await provider.createCheckout({
+        userId,
+        email,
+        lookupKey: data.priceId,
+        quantity: 1,
+        returnUrl: data.returnUrl,
+        env: data.environment,
+        kind: "topup",
+      });
+      return session.mode === "embedded_secret"
+        ? { clientSecret: session.clientSecret }
+        : { checkoutUrl: session.url };
     } catch (error) {
       return { error: getStripeErrorMessage(error) };
     }

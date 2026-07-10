@@ -385,6 +385,10 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         highlights: [
           "The full daily loop and rituals",
           "50 monthly credits",
+          // G18 canon edit (pricing-strategy.md §3.1, 2026-07-10): the Critic
+          // teardown IS the wedge and lives in Free, capped by the allowance.
+          // Pro's line stays the depth claim (Critic on EVERY spec and bet).
+          "Critic teardown of your bets, within your credits",
           "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
           "2 products, 1 workspace",
           "Shareable decision links",

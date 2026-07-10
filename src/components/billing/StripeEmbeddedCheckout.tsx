@@ -57,6 +57,13 @@ export function StripeEmbeddedCheckout({
             },
           });
     if ("error" in result) throw new Error(result.error);
+    // PC-05: a hosted rail (Paddle, once the merchant-of-record account is
+    // live) returns a URL instead of an embeddable secret — hand the browser
+    // over; the promise never settles because the page is navigating away.
+    if ("checkoutUrl" in result) {
+      window.location.assign(result.checkoutUrl);
+      return await new Promise<string>(() => {});
+    }
     if (!result.clientSecret) throw new Error("Checkout did not return a client secret");
     return result.clientSecret;
   }, [fCheckout, fTopUp, mode, priceLookupKey, quantity, returnUrl]);

@@ -23,6 +23,7 @@ import {
   adminAddAdminByEmail,
   adminRemoveAdmin,
 } from "@/lib/pricing.functions";
+import { getBillingGoLiveReadiness } from "@/lib/payments/go-live.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
@@ -63,6 +64,12 @@ function AdminOverview() {
 
   const catalog = useQuery({ queryKey: ["pricing-catalog"], queryFn: () => fGetCatalog() });
   const admins = useQuery({ queryKey: ["admin-list"], queryFn: () => fListAdmins() });
+  // PC-05: the runbook's manual checks as one read; report-only (the dry run).
+  const fReadiness = useServerFn(getBillingGoLiveReadiness);
+  const readiness = useQuery({
+    queryKey: ["billing-go-live-readiness"],
+    queryFn: () => fReadiness(),
+  });
 
   const setFlag = useMutation({
     mutationFn: (enabled: boolean) => fSetFlag({ data: { enabled } }),
@@ -182,6 +189,76 @@ function AdminOverview() {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* PC-05: the go-live runbook's checks, automated and report-only.
+          The flip itself stays the guarded toggle above. */}
+      <div style={cardStyle()}>
+        <MonoLabel>Billing go-live checklist</MonoLabel>
+        {readiness.isLoading ? (
+          <AdminSkeleton rows={4} height={20} />
+        ) : readiness.isError || (readiness.data && "error" in readiness.data) ? (
+          <AdminErrorCard
+            what="the go-live checklist"
+            message={
+              readiness.data && "error" in readiness.data
+                ? readiness.data.error
+                : readiness.error instanceof Error
+                  ? readiness.error.message
+                  : undefined
+            }
+            onRetry={() => readiness.refetch()}
+          />
+        ) : readiness.data ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            <div style={sectionTitleStyle()}>
+              {readiness.data.readyToFlip
+                ? "Every gate is green. The flip is safe."
+                : "Not ready to flip yet."}
+            </div>
+            {readiness.data.checks.map((c) => (
+              <div key={c.id} style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 99,
+                    flexShrink: 0,
+                    alignSelf: "center",
+                    background:
+                      c.status === "pass"
+                        ? "var(--moss)"
+                        : c.status === "warn"
+                          ? "var(--glacier)"
+                          : "var(--madder)",
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-primary)",
+                    fontWeight: 500,
+                    flexShrink: 0,
+                  }}
+                >
+                  {c.label}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: "var(--text-sm)",
+                    color: "var(--text-muted)",
+                    minWidth: 0,
+                  }}
+                >
+                  {c.detail}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div style={cardStyle()}>

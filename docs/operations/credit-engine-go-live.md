@@ -77,6 +77,13 @@ update public.app_settings set value='false'::jsonb, updated_at=now() where key=
 
 Balances are preserved; only the debit path stops. The in-process flag cache refreshes within 5 minutes (cold-starts immediately).
 
+## PC-05 additions (2026-07-10): the provider seam, the refund path, the automated checklist
+
+- **PaymentsProvider seam** (`src/lib/payments/provider.server.ts`): one interface (`createCheckout` / `verifyWebhook` / `grantFromEvent`), Stripe refactored into it (`stripe-provider.server.ts`), Paddle beside it (`paddle-provider.server.ts`). The grant/tier/top-up/refund money paths live once in `grant-core.server.ts` — adapters only translate events. The webhook URL gains `&provider=paddle` for the Paddle destination; Stripe registrations are unchanged.
+- **Paddle activation [awaiting MoR account]** — zero code changes at go-live: (1) set `PADDLE_API_KEY` + `PADDLE_WEBHOOK_SECRET` (wrangler secrets), (2) register `/api/public/payments/webhook?env=live&provider=paddle` as the Paddle notification destination, (3) mirror the catalog in Paddle with each price carrying `custom_data.lookup_key` = our existing lookup keys (`cluster_*` / `constellation_*` / `galaxy_*` / `topup_*`), (4) set `PAYMENTS_PROVIDER=paddle` to make hosted Paddle checkout the active rail (the checkout dialog redirects to the hosted page automatically).
+- **Refund path (both rails):** a provider refund on a top-up purchase claws the credits back via `apply_refund_clawback` (migration `20260710233000`) — floored at zero, never negative-locks a workspace, one `credit_ledger` row per clawback, idempotent per provider refund id, and the purchase row flips to `refunded`. Subscription-fee refunds deliberately do not claw the monthly allowance (the subscription lifecycle governs that).
+- **The checklist, automated:** Settings → Admin → Overview now renders a "Billing go-live checklist" card (`getBillingGoLiveReadiness`): provider keys present, every active catalog key parses to credits, the runbook's unfunded-account query, webhook liveness, and the meter state. It is report-only (the dry run); the flip stays the guarded toggle above it. Steps 2-5 in this runbook remain the authoritative sequence — the card tells you when they are genuinely done.
+
 ## Related
 
 - [`../features/billing.md`](../features/billing.md) · [`../features/credits.md`](../features/credits.md) · [`../features/pricing.md`](../features/pricing.md)
