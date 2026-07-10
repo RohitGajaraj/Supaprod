@@ -18,7 +18,7 @@
 ## TL;DR
 
 We are **not** on a proprietary "Lovable auth engine." We are already on **Supabase Auth**. Lovable
-Cloud is a *managed Supabase project* that Lovable provisions for us, plus a hosted OAuth broker
+Cloud is a _managed Supabase project_ that Lovable provisions for us, plus a hosted OAuth broker
 (`@lovable.dev/cloud-auth-js`) that runs the Google sign-in redirect and hands back a standard
 Supabase session. Owning auth therefore means two small, independent moves, and it is **free** to
 start.
@@ -37,13 +37,13 @@ start.
 
 ## What is actually wired today (repo facts, verified 2026-06-17)
 
-| File | Role | Lovable-specific? |
-| --- | --- | --- |
-| `src/integrations/supabase/client.ts` | Browser Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` | No (plain supabase-js) |
-| `src/integrations/supabase/auth-middleware.ts` (`requireSupabaseAuth`) | Server verifies Bearer token via `supabase.auth.getClaims` | No |
-| `src/integrations/supabase/auth-attacher.ts` (`attachSupabaseAuth`) | Attaches `supabase.auth.getSession()` token to server RPCs | No |
-| `src/integrations/lovable/index.ts` | `createLovableAuth().signInWithOAuth('google')` then `supabase.auth.setSession(tokens)` | **Yes (the only piece)** |
-| `src/routes/login.tsx:47`, `src/routes/signup.tsx:70` | Call `lovable.auth.signInWithOAuth('google')` | Import sites of the shim |
+| File                                                                   | Role                                                                                    | Lovable-specific?        |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
+| `src/integrations/supabase/client.ts`                                  | Browser Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`      | No (plain supabase-js)   |
+| `src/integrations/supabase/auth-middleware.ts` (`requireSupabaseAuth`) | Server verifies Bearer token via `supabase.auth.getClaims`                              | No                       |
+| `src/integrations/supabase/auth-attacher.ts` (`attachSupabaseAuth`)    | Attaches `supabase.auth.getSession()` token to server RPCs                              | No                       |
+| `src/integrations/lovable/index.ts`                                    | `createLovableAuth().signInWithOAuth('google')` then `supabase.auth.setSession(tokens)` | **Yes (the only piece)** |
+| `src/routes/login.tsx:47`, `src/routes/signup.tsx:70`                  | Call `lovable.auth.signInWithOAuth('google')`                                           | Import sites of the shim |
 
 So the migration replaces the **broker** and repoints the **project**. Everything else is already
 Supabase.
@@ -51,12 +51,14 @@ Supabase.
 ## The two moves
 
 ### Move 1 — Own the Supabase project (the backend)
+
 Create our own Supabase project, run the existing `supabase/migrations/*.sql` against it (the schema
 is fully reproducible from those migrations, RLS included), and repoint five env vars:
 `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`,
 `SUPABASE_SERVICE_ROLE_KEY`.
 
 ### Move 2 — Own the Google sign-in (the OAuth broker)
+
 Replace `lovable.auth.signInWithOAuth('google')` with native
 `supabase.auth.signInWithOAuth({ provider: 'google' })` in `login.tsx` and `signup.tsx`, and retire
 `src/integrations/lovable/`. This needs our **own Google OAuth credentials** (Client ID + Secret)
@@ -86,6 +88,7 @@ configured in Supabase Auth.
 ## Execution checklist
 
 ### Phase 0 — Decision + accounts ([YOU], ~30 min, no code)
+
 - [ ] Confirm go / timing.
 - [ ] Create a Supabase project at supabase.com (free tier). Capture: Project URL, publishable/anon
       key, service_role key.
@@ -97,10 +100,12 @@ configured in Supabase Auth.
       (Lovable preview URL, `http://localhost:5173`, future prod URL).
 
 ### Phase 1 — Backend stand-up ([ME])
+
 - [ ] Run `supabase/migrations/*.sql` against the new project; confirm schema + RLS applied.
 - [ ] Seed demo accounts if needed (see `demo-credentials.md`).
 
 ### Phase 2 — Code swap ([ME])
+
 - [ ] Replace `lovable.auth.signInWithOAuth` with native `supabase.auth.signInWithOAuth` in
       `login.tsx` and `signup.tsx`.
 - [ ] Remove `src/integrations/lovable/` shim and the `@lovable.dev/cloud-auth-js` dependency.
@@ -108,16 +113,19 @@ configured in Supabase Auth.
       Lovable Integrations panel).
 
 ### Phase 3 — Verify ([ME], then [YOU] eyeball)
+
 - [ ] Google sign-in → Supabase session created.
 - [ ] User row exists; an authenticated server function (`requireSupabaseAuth`) succeeds.
 - [ ] The "founder registers, votes first" demo step runs end to end on the new backend.
 - [ ] `bun run lint` + `bun run build` green.
 
 ## Rollback
+
 Until the old Lovable Cloud project is deleted, rollback = revert the env vars + the `login/signup`
 diff. Keep the Lovable Cloud project alive (do not delete) until Phase 3 passes on the new backend.
 
 ## Sources
+
 - Lovable: Connect to Supabase — https://docs.lovable.dev/integrations/supabase
 - Lovable Cloud — https://docs.lovable.dev/integrations/cloud
 - Supabase: Identifying a Lovable backend (Cloud vs Supabase) — https://supabase.com/docs/guides/troubleshooting/identify-lovable-cloud-or-supabase-backend

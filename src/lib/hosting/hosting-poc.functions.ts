@@ -32,8 +32,7 @@ import { deployHostingPoc, type HostingPocOutcome } from "@/lib/hosting/hosting-
 import type { AppRuntimeRef } from "@/lib/hosting/provider";
 
 export type ProvisionHostingPocResult =
-  | HostingPocOutcome
-  | { ok: false; reason: "forbidden" | "not_found"; message: string };
+  HostingPocOutcome | { ok: false; reason: "forbidden" | "not_found"; message: string };
 
 export const provisionHostingPoc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -26,6 +26,7 @@ callModel({ surface, traceId, parentEventId, model, messages, tools?, retrieval?
 4. **Retrieval (optional)** — if `retrieval=true`, embed the prompt, fetch top-k `rag_chunks` for the user, inject as a `CONTEXT:` block. See [`data.md`](./data.md).
 
    **PRD generation (Scribe) bypasses this flag** and calls `retrieve()` directly so it can persist the citation list onto `prds.citations` (caller-side retrieval, model still cites inline as `[n]`). See [`../docs/features/prd-rag-citations.md`](../docs/features/prd-rag-citations.md).
+
 5. **Provider call** — gateway by default; BYO key if the user has a matching one AND is on the enterprise tier (WM-M9: every other tier is credits-only self-serve, routed through the platform's own keys). Capture tokens, latency, ttft. Provider adapters normalize to the uniform return shape.
 6. **Post-guardrails** — toxicity / leaked-system-prompt / output PII. Groundedness-below-threshold flags a contradiction with retrieved context.
 7. **Persist + usage** — write `ai_events` (+ `tool_calls`), link into the `ai_traces` span tree via `trace_id` / `parent_event_id`. On a successful, non-blocked call, increment per-user/per-surface budgets **and** call `record_mission_usage(runId, tokens, cost_usd)` to atomically bump `agent_runs.tokens_used` and `spend_used_usd`. The next call in the same mission sees the bump and can be halted by the cap check above.

@@ -10,19 +10,19 @@ This is the complete, self-contained build package for OBS-01. It embeds every t
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-01 |
-| Rank | #2 |
-| Tier | 1 (foundation) |
-| Status | In dev (claimed on lane1; this worktree has no Obsidian layer yet, see §4) |
-| Category | Cockpit |
-| Depends on | none (this is the root of the graph) |
-| Blocks | OBS-02 (shell consumes the tokens/fonts), and transitively every OBS-03..15 |
+| Field         | Value                                                                                                                                                                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-01                                                                                                                                                                                                                                                |
+| Rank          | #2                                                                                                                                                                                                                                                    |
+| Tier          | 1 (foundation)                                                                                                                                                                                                                                        |
+| Status        | In dev (claimed on lane1; this worktree has no Obsidian layer yet, see §4)                                                                                                                                                                            |
+| Category      | Cockpit                                                                                                                                                                                                                                               |
+| Depends on    | none (this is the root of the graph)                                                                                                                                                                                                                  |
+| Blocks        | OBS-02 (shell consumes the tokens/fonts), and transitively every OBS-03..15                                                                                                                                                                           |
 | One-line what | Port the 5 obsidian-v3 token files verbatim as app-scoped `[data-obsidian]` CSS custom properties, load the 2 new fonts, port the 8 `cad*` keyframes + the reduced-motion gate + the `data-density` attribute; the landing page stays byte-untouched. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-01 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
-| Hub | [`./README.md`](./README.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-01                                                                                                                                                                            |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                |
+| Hub           | [`./README.md`](./README.md)                                                                                                                                                                                                                          |
 
 ---
 
@@ -39,6 +39,7 @@ The reason it is ranked at the very front: the v11 capability front is done and 
 ## 3. What we are building
 
 **Scope IN**
+
 - Append one app-scoped token layer to `src/styles.css` under the `[data-obsidian]` selector, porting all five obsidian-v3 token files verbatim: surfaces + ink + role colors + working palette + pencil inks + semantic aliases (`colors.css`), the three type stacks + scale (`typography.css`), the 4px grid + radii (`geometry.css`), the one easing + three durations + shimmer gradient (`motion.css`).
 - Port the eight `cad*` keyframes globally (keyframes cannot be attribute-scoped) with the `cad` prefix that keeps them collision-free.
 - Port the `prefers-reduced-motion` gate, scoped to `[data-obsidian]` (the one intentional delta from the verbatim `*` selector, see §5 step 6 and §13).
@@ -47,6 +48,7 @@ The reason it is ranked at the very front: the v11 capability front is done and 
 - Add the focus-visible ring and the ember selection scoped to `[data-obsidian]`.
 
 **Scope OUT (does not ride along)**
+
 - Mounting `data-obsidian` onto a live DOM node. That is deferred to OBS-02 for a hard technical reason (§4, §13): parchment defines `--card`, `--canvas`, `--ember` and Tailwind maps them to utilities, so setting the attribute before the shell is Obsidian would re-resolve those utilities on still-parchment pages and break them. OBS-01 ships the layer dormant.
 - Any component, rail, primitive, or surface (OBS-02+).
 - Any change to the parchment "Ember Editorial" tokens, the `@theme inline` block, or the landing page. Those stay byte-for-byte identical.
@@ -98,6 +100,7 @@ src/
 ```
 
 **New file:** `src/styles.obsidian.test.ts`. A `bun test` reading the raw source of `src/styles.css` and `src/routes/__root.tsx` and asserting on strings (no DOM, no build). Named assertions:
+
 - `styles.css` contains `[data-obsidian]` and the sentinels `--canvas: #0A0A0B`, `--ember: #FF6B2C`, `--glacier: #7FD1DC`, `--font-serif`, `--radius-card: 12px`, `--ease: cubic-bezier(0.23, 1, 0.32, 1)`, `--shimmer-gradient`.
 - `styles.css` contains all eight keyframe names: `cadPulse`, `cadGlow`, `cadShimmer`, `cadFlutter`, `cadDriftA`, `cadDriftB`, `cadRise`, `cadSlideIn`.
 - `styles.css` contains `[data-obsidian][data-density="compact"]` and the reduced-motion block is scoped to `[data-obsidian]` (assert the string `[data-obsidian] *` appears inside a `prefers-reduced-motion` block, and that no new unscoped global `* {` reduced-motion block was added).
@@ -193,6 +196,7 @@ Density is a spacing decision, never a font size decision. Comfortable is the de
 ### 7.7 Interaction states this item establishes (consumed downstream)
 
 OBS-01 renders nothing, so it designs no per-component hover/empty/error. It establishes the two global affordances every later control inherits:
+
 - **Focus:** `:focus-visible` inside `[data-obsidian]` gets a 2px `--glacier` outline, offset 2px. Never a browser default, never a glow-only focus.
 - **Selection:** text selection inside `[data-obsidian]` is `--selection` (ember at 28%).
 
@@ -246,6 +250,7 @@ There is no empty state to author (nothing renders). The empty-state instruction
 ## 11. Prototype-parity checklist (tailored)
 
 OBS-01 renders no surface, so the eight-point visual parity walk against `design-reference/obsidian-v3/design-reference/cadence-app.html` does not apply to a screen here. The equivalent foundation gate is a **token-fidelity diff**: open each of the five `tokens/*.css` files beside the appended `[data-obsidian]` block and confirm, name by name, that every custom property and every keyframe matches (value, unit, spelling). The parity that matters for this item is that a later surface built on these tokens can be pixel-indistinguishable from the prototype; if any token value differs from source, that guarantee is void. Specifically re-verify against the prototype's own token usage:
+
 1. Surface ramp hexes exact (`#0A0A0B` / `#0D0D0F` / `#111113` / `#17171A` / `#1D1D21`).
 2. Ember exactly `#FF6B2C`, deep `#C2571F`, glacier `#7FD1DC`.
 3. Type scale exact (hero 34 / card-title 20 / base 13 / mono-label 9.5).

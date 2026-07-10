@@ -247,6 +247,7 @@ The founder lifted the Q2 scopes/audit gate. This is the outward GOVERNED WRITE 
 **Why it can't repeat the `append_decision` drift bug:** the single write tool reuses the SAME `signals` insert shape the live F-V5-INGEST-WEBHOOK door uses (verified against the prod schema 2026-06-25), and the SAME injection screen (`screenIngestText`): a structural prompt-injection is **rejected, never stored**; a borderline lexical override is stored **flagged** (`needs-review`). The row is stamped with the **token's** `workspace_id` + `user_id` — never caller-supplied input — so the tenant boundary can't be spoofed (zod strips any extra args).
 
 **Defence in depth:**
+
 - `tools/list` is **scope-filtered** (`toolsForScopes`): a read-only token never even discovers `ingest_signal`.
 - `tools/call` **re-checks** authorization (`canCallWriteTool`: gate first, then scope) so a token that guesses the name is still refused.
 - The legacy flat-method transport **cannot write** (the read dispatcher has no write case → "Unknown method"), so writes exist only via standard `tools/call`.

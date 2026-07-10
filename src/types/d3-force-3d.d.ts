@@ -29,8 +29,10 @@ declare module "d3-force-3d" {
     initialize?(nodes: NodeDatum[], random?: () => number): void;
   }
 
-  export interface ForceLink<NodeDatum extends SimulationNodeDatum, LinkDatum extends SimulationLinkDatum<NodeDatum>>
-    extends Force<NodeDatum, LinkDatum> {
+  export interface ForceLink<
+    NodeDatum extends SimulationNodeDatum,
+    LinkDatum extends SimulationLinkDatum<NodeDatum>,
+  > extends Force<NodeDatum, LinkDatum> {
     links(): LinkDatum[];
     links(links: LinkDatum[]): this;
     id(id: (node: NodeDatum, i: number, nodes: NodeDatum[]) => string | number): this;
@@ -41,21 +43,30 @@ declare module "d3-force-3d" {
     iterations(iterations: number): this;
   }
 
-  export interface ForceManyBody<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, undefined> {
+  export interface ForceManyBody<NodeDatum extends SimulationNodeDatum> extends Force<
+    NodeDatum,
+    undefined
+  > {
     strength(strength: number | ((node: NodeDatum, i: number, nodes: NodeDatum[]) => number)): this;
     theta(theta: number): this;
     distanceMin(distance: number): this;
     distanceMax(distance: number): this;
   }
 
-  export interface ForceCenter<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, undefined> {
+  export interface ForceCenter<NodeDatum extends SimulationNodeDatum> extends Force<
+    NodeDatum,
+    undefined
+  > {
     x(x: number): this;
     y(y: number): this;
     z(z: number): this;
     strength(strength: number): this;
   }
 
-  export interface ForceCollide<NodeDatum extends SimulationNodeDatum> extends Force<NodeDatum, undefined> {
+  export interface ForceCollide<NodeDatum extends SimulationNodeDatum> extends Force<
+    NodeDatum,
+    undefined
+  > {
     radius(radius: number | ((node: NodeDatum, i: number, nodes: NodeDatum[]) => number)): this;
     strength(strength: number): this;
     iterations(iterations: number): this;
@@ -83,7 +94,10 @@ declare module "d3-force-3d" {
     force(name: string): Force<NodeDatum, LinkDatum> | undefined;
     force(name: string, force: Force<NodeDatum, LinkDatum> | null): this;
     find(x: number, y: number, z: number, radius?: number): NodeDatum | undefined;
-    on(typenames: string, listener: ((this: Simulation<NodeDatum, LinkDatum>) => void) | null): this;
+    on(
+      typenames: string,
+      listener: ((this: Simulation<NodeDatum, LinkDatum>) => void) | null,
+    ): this;
     on(typenames: string): ((this: Simulation<NodeDatum, LinkDatum>) => void) | undefined;
   }
 
@@ -109,7 +123,13 @@ declare module "d3-force-3d" {
     radius?: number | ((node: NodeDatum, i: number, nodes: NodeDatum[]) => number),
   ): ForceCollide<NodeDatum>;
 
-  export function forceX<NodeDatum extends SimulationNodeDatum>(x?: number): Force<NodeDatum, undefined>;
-  export function forceY<NodeDatum extends SimulationNodeDatum>(y?: number): Force<NodeDatum, undefined>;
-  export function forceZ<NodeDatum extends SimulationNodeDatum>(z?: number): Force<NodeDatum, undefined>;
+  export function forceX<NodeDatum extends SimulationNodeDatum>(
+    x?: number,
+  ): Force<NodeDatum, undefined>;
+  export function forceY<NodeDatum extends SimulationNodeDatum>(
+    y?: number,
+  ): Force<NodeDatum, undefined>;
+  export function forceZ<NodeDatum extends SimulationNodeDatum>(
+    z?: number,
+  ): Force<NodeDatum, undefined>;
 }

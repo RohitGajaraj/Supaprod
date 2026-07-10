@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-18 · Last updated: 2026-06-18_
 
-**Status:** ◐ Partial (drafting shipped 2026-06-18; a full launch *mission* template + governed outbound send remain). **Lane:** G4 Launch & Learn.
+**Status:** ◐ Partial (drafting shipped 2026-06-18; a full launch _mission_ template + governed outbound send remain). **Lane:** G4 Launch & Learn.
 
 ## What it delivers
 
@@ -19,6 +19,7 @@ Each is shown with a **copy** button. It is **draft-only**: nothing is sent. Out
 ## How it works
 
 `generateLaunchKit({ changesetId })` in `src/lib/studio.functions.ts`:
+
 - Reads the changeset (`title`, `summary`, `release_notes`), its changed files, and the linked mission's goal as grounding.
 - One `callModel` pass (`surface: "studio"`, JSON mode) drafts all five artifacts, instructed to ground every claim only in the provided material (no invented features/numbers).
 - Runs each artifact through `humanizeText` so the JSON-mode output (which the runtime humanizer skips for structured values) still clears the no-AI-fingerprint gate.
@@ -38,5 +39,5 @@ UI: `ChangesPanel.tsx` holds the result in local state and renders the copyable 
 
 ## Not built (LCH-01 remainder)
 
-- A launch *mission* template (one mission orchestrates the whole launch end to end).
+- A launch _mission_ template (one mission orchestrates the whole launch end to end).
 - Governed outbound send (publish changelog / send email / post social) behind approval gates - founder-gated (accounts + spend + outward-facing).

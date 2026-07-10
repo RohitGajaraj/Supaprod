@@ -31,12 +31,7 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
  * `null` means the bet earns no designation (a plain ranked bet). More PM terms
  * (sure thing, long shot, table stakes) are available spares if the set grows. */
 export type Designation =
-  | "best bet"
-  | "needs validation"
-  | "quick win"
-  | "heavy lift"
-  | "watch this week"
-  | null;
+  "best bet" | "needs validation" | "quick win" | "heavy lift" | "watch this week" | null;
 
 /** One ranked bet: the source opportunity, its 1-based position, the single
  * best-bet flag, its system-derived designation, and the human-and-agent

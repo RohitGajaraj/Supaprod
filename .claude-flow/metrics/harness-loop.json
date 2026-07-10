@@ -19,9 +19,7 @@
       "lineageIntact": false,
       "allReplayable": true,
       "nodes": [],
-      "problems": [
-        "expected exactly one immutable root, found 0"
-      ]
+      "problems": ["expected exactly one immutable root, found 0"]
     },
     "plateau": {
       "status": "insufficient-data",

@@ -158,12 +158,12 @@ The Agent Trust Score and Autonomy Dial (feature C6 in `docs/feature-backlog.md`
 
 **The four stages (UX reference, not a development schedule; progression is driven by earned trust, not elapsed time):**
 
-| Stage     | Agent behavior                                                                   | Operator experience                                     |
-| --------- | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Observing | All actions require approval; agents propose, operator reviews everything        | Close contact, frequent approvals, watching closely     |
-| Proving   | Routine low-risk actions auto-execute; high-stakes still require approval        | Governs exceptions, not routine work                    |
+| Stage     | Agent behavior                                                                   | Operator experience                                    |
+| --------- | -------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Observing | All actions require approval; agents propose, operator reviews everything        | Close contact, frequent approvals, watching closely    |
+| Proving   | Routine low-risk actions auto-execute; high-stakes still require approval        | Governs exceptions, not routine work                   |
 | Trusted   | Agents run autonomously across most tasks; operator sees outcomes and exceptions | Sets intent, reviews summaries, not individual actions |
-| Ambient   | Agents run the product org continuously; operator provides strategic direction   | Approves major decisions, reviews periodic briefs       |
+| Ambient   | Agents run the product org continuously; operator provides strategic direction   | Approves major decisions, reviews periodic briefs      |
 
 Full UX design requirements for surfacing this arc (Trust Score, Autonomy Dial, Loop Health Monitor): [`../../design.md`](../../DESIGN.md), "The trust arc" section.
 

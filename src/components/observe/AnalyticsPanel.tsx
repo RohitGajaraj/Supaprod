@@ -205,7 +205,13 @@ export function AnalyticsPanel() {
                   what each outcome cost
                 </span>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 12,
+                }}
+              >
                 <div>
                   <MonoLabel style={{ marginBottom: 6 }}>Agent spend</MonoLabel>
                   <div className="font-display tabular-nums" style={{ fontSize: 22 }}>
@@ -686,7 +692,9 @@ function EventDetail({ data }: { data: EventDetailData }) {
       {ev && (
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>Judge scores</MonoLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}
+          >
             {(
               [
                 ["Hallucination", ev.hallucination_score],

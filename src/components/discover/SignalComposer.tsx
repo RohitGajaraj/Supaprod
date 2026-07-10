@@ -4,11 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
-import {
-  createSignal,
-  bulkImportSignals,
-  clusterSignals,
-} from "@/lib/discovery.functions";
+import { createSignal, bulkImportSignals, clusterSignals } from "@/lib/discovery.functions";
 
 const rowStyle = { display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" } as const;
 

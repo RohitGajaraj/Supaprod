@@ -329,9 +329,7 @@ Each title must be a concrete verb-led action under 80 chars. Order by build seq
         user_id: userId,
         title: t.title.trim().slice(0, 280),
         priority: (t.priority === "low" || t.priority === "high" ? t.priority : "medium") as
-          | "low"
-          | "medium"
-          | "high",
+          "low" | "medium" | "high",
         is_deep_work: Boolean(t.is_deep_work),
         project_id: prd.project_id ?? null,
       }));

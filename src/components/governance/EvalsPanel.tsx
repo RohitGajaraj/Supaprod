@@ -403,10 +403,7 @@ export function EvalsPanel() {
                     </>
                   )}
                   <span style={{ flex: 1 }}></span>
-                  <span
-                    className="mono-label"
-                    style={{ fontSize: 10.5, color: "var(--glacier)" }}
-                  >
+                  <span className="mono-label" style={{ fontSize: 10.5, color: "var(--glacier)" }}>
                     runs · cases · config →
                   </span>
                 </div>
@@ -505,10 +502,7 @@ function CreateSuiteForm({
           <div className="mono-label" style={{ fontSize: 8.5, marginBottom: 4 }}>
             Target prompt
           </div>
-          <Select
-            value={form.target}
-            onValueChange={(v) => setForm({ ...form, target: v })}
-          >
+          <Select value={form.target} onValueChange={(v) => setForm({ ...form, target: v })}>
             <SelectTrigger aria-label="Target prompt" style={{ borderRadius: 8, height: 35 }}>
               <SelectValue placeholder="Pick a surface" />
             </SelectTrigger>

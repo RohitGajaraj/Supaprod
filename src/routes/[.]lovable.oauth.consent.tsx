@@ -49,9 +49,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   errorComponent: ({ error }) => (
     <main className="mx-auto max-w-md p-8">
       <h1 className="mb-2 text-lg font-semibold">Could not load this authorization request</h1>
-      <p className="text-sm text-muted-foreground">
-        {String((error as Error)?.message ?? error)}
-      </p>
+      <p className="text-sm text-muted-foreground">{String((error as Error)?.message ?? error)}</p>
     </main>
   ),
 });

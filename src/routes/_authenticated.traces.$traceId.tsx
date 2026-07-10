@@ -60,8 +60,7 @@ type ToolCallRow = {
   created_at: string;
 };
 type HopRow =
-  | { kind: "event"; at: number; span: Span }
-  | { kind: "tool"; at: number; tool: ToolCallRow };
+  { kind: "event"; at: number; span: Span } | { kind: "tool"; at: number; tool: ToolCallRow };
 type GuardrailHit = { rule_name: string; action: string; side: string; matched: string | null };
 type EvalRow = {
   relevance: number | null;
@@ -264,7 +263,9 @@ function SpanInspector({
       {evalCells.some(([, v]) => v != null) && (
         <div style={{ marginTop: 14 }}>
           <MonoLabel style={{ marginBottom: 6 }}>Eval scores</MonoLabel>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}
+          >
             {evalCells.map(([k, v]) =>
               v == null ? null : (
                 <div
@@ -552,7 +553,9 @@ export function TraceDetail({ id }: { id: string }) {
             )}
           </>
         }
-        title={mission ? stripAutoPrefix(mission.title) : `${rootSurface ?? "trace"} · ${id.slice(0, 8)}`}
+        title={
+          mission ? stripAutoPrefix(mission.title) : `${rootSurface ?? "trace"} · ${id.slice(0, 8)}`
+        }
         right={
           mission ? (
             <Link

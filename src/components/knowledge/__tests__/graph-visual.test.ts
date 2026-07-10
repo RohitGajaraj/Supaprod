@@ -210,8 +210,9 @@ describe("resolveKindColors", () => {
     });
 
     const result = resolveKindColors({} as HTMLElement);
-    // At least signal (--blossom) should be in the map
+    // signal (--blossom) should be in the map with the trimmed hex value
     expect(result.get("signal")).toBeDefined();
+    expect(result.get("signal")).toBe("#e5bddf"); // Verify whitespace is trimmed
   });
 });
 

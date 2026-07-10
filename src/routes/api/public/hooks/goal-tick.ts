@@ -29,24 +29,40 @@ export const Route = createFileRoute("/api/public/hooks/goal-tick")({
         return withJobRun("goals.goal-tick", async () => {
           const { data: goals, error } = await supabaseAdmin
             .from("goals" as never)
-            .select("id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at")
+            .select(
+              "id, user_id, workspace_id, title, description, target_metric, target_date, status, last_worked_at",
+            )
             .eq("status", "active")
             .order("last_worked_at", { ascending: true, nullsFirst: true })
             .limit(MAX_GOALS_PER_TICK);
 
           if (error) {
             const code = (error as { code?: string }).code;
-            if (code === "42P01" || code === "PGRST205" || code === "42703" || code === "PGRST204") {
+            if (
+              code === "42P01" ||
+              code === "PGRST205" ||
+              code === "42703" ||
+              code === "PGRST204"
+            ) {
               return json({ ok: true, processed: 0, note: "goals not migrated yet" });
             }
             return json({ ok: false, error: error.message }, 500);
           }
 
-          const results: Array<{ goal_id: string; proposed?: number; skipped?: string; error?: string }> = [];
+          const results: Array<{
+            goal_id: string;
+            proposed?: number;
+            skipped?: string;
+            error?: string;
+          }> = [];
           for (const g of (goals ?? []) as unknown as GoalRow[]) {
             try {
               const res = await runGoalWorkPass(supabaseAdmin as never, g);
-              results.push({ goal_id: g.id, proposed: res.proposed, ...(res.proposed === 0 ? { skipped: res.skipped } : {}) });
+              results.push({
+                goal_id: g.id,
+                proposed: res.proposed,
+                ...(res.proposed === 0 ? { skipped: res.skipped } : {}),
+              });
             } catch (e) {
               results.push({ goal_id: g.id, error: e instanceof Error ? e.message : String(e) });
             }

@@ -2131,8 +2131,7 @@ html[data-motion="off"] .flow-pulse {
   --shadow-ambient: 0 8px 24px -12px rgba(0, 0, 0, 0.55);
   --shadow-overlay: 0 24px 64px -16px rgba(0, 0, 0, 0.65);
   --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --shadow-elevated:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-elevated: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px -12px rgba(0, 0, 0, 0.55);
 
   /* §5 motion doctrine tokens (Kowalski/Freiberg school) */
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -2203,7 +2202,11 @@ html[data-motion="off"] .flow-pulse {
   height: 520px;
   top: -140px;
   left: -120px;
-  background: radial-gradient(ellipse closest-side, var(--glow-field-color, rgba(132, 179, 236, 0.04)), transparent 70%);
+  background: radial-gradient(
+    ellipse closest-side,
+    var(--glow-field-color, rgba(132, 179, 236, 0.04)),
+    transparent 70%
+  );
 }
 [data-obsidian] .loom-glow-field[data-tone="ember"] {
   --glow-field-color: rgba(255, 107, 44, 0.035);
@@ -2226,7 +2229,12 @@ html[data-motion="off"] .flow-pulse {
   right: 0;
   height: 1px;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 60%, transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.02) 60%,
+    transparent
+  );
 }
 
 /* Collapsible disclosure (Loom §0.1 anti-scroll): a real control, chevron
@@ -2341,12 +2349,21 @@ html[data-obsidian] {
  * text AND the butterfly (masked by the same moving gradient), with a warm
  * glow. The wings breathe. Palette stays tight - ember only. */
 @keyframes ai-pulse-sheen {
-  0% { background-position: 180% 0; }
-  100% { background-position: -80% 0; }
+  0% {
+    background-position: 180% 0;
+  }
+  100% {
+    background-position: -80% 0;
+  }
 }
 @keyframes ai-pulse-flutter {
-  0%, 100% { transform: scaleX(1) rotate(-1.5deg); }
-  50% { transform: scaleX(0.88) rotate(1.5deg); }
+  0%,
+  100% {
+    transform: scaleX(1) rotate(-1.5deg);
+  }
+  50% {
+    transform: scaleX(0.88) rotate(1.5deg);
+  }
 }
 /* A GLOSSY spotlight sweep: clearly ember-orange overall, with a NARROW
  * near-white-hot glint at the centre that reads as a moving gloss (not a pale
@@ -2399,8 +2416,13 @@ html[data-obsidian] {
  * a cool hue instead of ember. The butterfly keeps a gentle attention pulse
  * on top so it draws the eye. Palette stays tight: ember + glacier only. */
 @keyframes ai-pulse-attention {
-  0%, 100% { transform: scale(0.94); }
-  50% { transform: scale(1.06); }
+  0%,
+  100% {
+    transform: scale(0.94);
+  }
+  50% {
+    transform: scale(1.06);
+  }
 }
 .ai-pulse-text.waiting {
   background: linear-gradient(

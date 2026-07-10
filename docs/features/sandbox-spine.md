@@ -22,11 +22,11 @@ The Build/execution cluster is **HYBRID**: integrate a provider behind a swappab
 - **`githubActionsProvider`** — `label: "GitHub Actions"`, `available: true`; delegates the "what is green" decision to `studio-ci.ts` (no logic re-implemented, so the two readers cannot drift).
 - **`RESERVED_PROVIDER_IDS`** = `cloudflare-sandbox | e2b | vercel` — named, reserved, **not yet wired**.
 - **`resolveExecProvider(preferred?)`** — returns the floor by default; a reserved / unknown / absent preference falls back to the floor and **never strands a build**. When a paid adapter is added to the wired registry (with its `available` gated on the founder flag), the resolver picks it up with no call-site change.
-- **`execGateFromChecks(checks, preferred?)` → `ExecGate { provider, providerLabel, mayProceed, reason }`** — the point-of-decision merge gate, derived *through* the seam. Pure (no I/O), so the same verdict is computed wherever the checks are already in hand. This is the function the live consumer calls.
+- **`execGateFromChecks(checks, preferred?)` → `ExecGate { provider, providerLabel, mayProceed, reason }`** — the point-of-decision merge gate, derived _through_ the seam. Pure (no I/O), so the same verdict is computed wherever the checks are already in hand. This is the function the live consumer calls.
 
 ### The CI floor's exclusions (deliberate)
 
-`build` and the full `lint` are **not** run in CI: both carry pre-existing red baselines — the Lovable vite-config ESM-require cycle that fails `vite build` at config-load, and ~4k legacy eslint findings in untouched files. Including them would make the floor red on day one and drown out real regressions. `tsc --noEmit` + `bun test` are the gates the repo already keeps green every cycle, so they are the floor's true signal. The workflow uses `permissions: contents: read`, a concurrency-cancel group, and `bun install --frozen-lockfile` (installs the locked versions, so the `bunfig.toml` `minimumReleaseAge` supply-chain guard — which gates new *resolutions* — does not block it).
+`build` and the full `lint` are **not** run in CI: both carry pre-existing red baselines — the Lovable vite-config ESM-require cycle that fails `vite build` at config-load, and ~4k legacy eslint findings in untouched files. Including them would make the floor red on day one and drown out real regressions. `tsc --noEmit` + `bun test` are the gates the repo already keeps green every cycle, so they are the floor's true signal. The workflow uses `permissions: contents: read`, a concurrency-cancel group, and `bun install --frozen-lockfile` (installs the locked versions, so the `bunfig.toml` `minimumReleaseAge` supply-chain guard — which gates new _resolutions_ — does not block it).
 
 ## The live consumer (2026-06-25, lane 3)
 
@@ -47,7 +47,7 @@ A second seam consumer: a **Preview** tab on the Build session that previews the
 
 ## Deferred (founder- / chokepoint-gated)
 
-- **The Cloudflare Sandbox SDK adapter** — a real `ExecProvider` that runs untrusted code / build previews in a microVM. Needs the founder's compute-spend confirmation (sourcing-map call #4) before its `available` flag can flip on. (The SDK shape is best fixed *with* that account/binding, so a dormant stub is deliberately not shipped here.)
+- **The Cloudflare Sandbox SDK adapter** — a real `ExecProvider` that runs untrusted code / build previews in a microVM. Needs the founder's compute-spend confirmation (sourcing-map call #4) before its `available` flag can flip on. (The SDK shape is best fixed _with_ that account/binding, so a dormant stub is deliberately not shipped here.)
 - **Routing the `studio.pr.merge` gate itself through the seam** — `registry.server.ts` is **chokepoint-pinned** (the `ai/*` runtime is reserved to the core lane), so the gate's own `mergeReadinessFromCi(overallFromChecks(...))` call is unchanged. Behaviour-identical today (both read `studio-ci.ts`); fold this when the chokepoint is touched for the paid adapter.
 - **The A2A delegate-out posture** (`BLD-04`) — separate, founder-gated.
 

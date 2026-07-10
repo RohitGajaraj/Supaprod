@@ -14,7 +14,7 @@ A three-agent reality audit (2026-06-29) found the signal **pipeline** is mature
 - The Scout (`researcher-tick.ts`, shipped as `SEN-04`) **re-summarizes** competitor search results but does **not diff**, so it cannot say "what changed."
 - No live customer-voice connectors (support, chat, CRM, churn, feedback portals).
 - Nothing ranks signals by novelty-vs-memory into a proactive "build this next."
-- Cadence only *exposes* MCP; it has no MCP **client** to consume external MCP servers as inbound data.
+- Cadence only _exposes_ MCP; it has no MCP **client** to consume external MCP servers as inbound data.
 
 ## SW-5: GitHub connector to the credential boundary (2026-07-07, mission 3.1)
 
@@ -88,7 +88,7 @@ Gate: `tsc --noEmit` 0, `bun test` 2040 pass, lint clean, migration linter 0 app
 
 ## Reconciliations with the live board (must respect)
 
-- **`SEN-04` / `SEN-05` are already ✅.** The Scout is an *enhancement* of the shallow v0 (`researcher-tick` re-summarizes; the new engine diffs), not an un-cut.
+- **`SEN-04` / `SEN-05` are already ✅.** The Scout is an _enhancement_ of the shallow v0 (`researcher-tick` re-summarizes; the new engine diffs), not an un-cut.
 - **Analytics inbound is Lovable-owned.** `SEN-05` / `F-ANALYTICS-*` (PostHog) carry a "no autonomous lane may touch these" guard. The analytics connectors (Amplitude/Mixpanel/Segment) overlap Lovable's territory — **coordinate, do not build autonomously.** Customer-voice connectors (Intercom/Stripe/Slack) are clear.
 - **Chokepoint pin.** Phase 1's `CallSurface += "brain"|"sense"|"scout"` (`runtime.server.ts`) and Phase 2's agent tools (`registry.server.ts`) live inside the pinned `CHOKEPOINT` claim — coordinate with the owning lane before editing.
 

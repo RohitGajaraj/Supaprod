@@ -236,7 +236,9 @@ export function applyPushThrottle<T>(
   alreadyPushedToday: number,
   cap: number = DAILY_PUSH_CAP,
 ): { push: T[]; digest: T[] } {
-  const used = Number.isFinite(alreadyPushedToday) ? Math.max(0, Math.floor(alreadyPushedToday)) : 0;
+  const used = Number.isFinite(alreadyPushedToday)
+    ? Math.max(0, Math.floor(alreadyPushedToday))
+    : 0;
   const slots = Math.max(0, cap - used);
   const list = Array.isArray(candidates) ? candidates : [];
   return { push: list.slice(0, slots), digest: list.slice(slots) };

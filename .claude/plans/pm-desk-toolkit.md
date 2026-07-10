@@ -31,18 +31,18 @@ The founder's ruling (2026-07-09, session "PM tools"):
 **The engine already exists — the product just never shows it.** Recon found the
 founder's asks are ~70% built, but scattered and invisible:
 
-| Capability | Where it lives today | Gap |
-|---|---|---|
-| Focus timer w/ absolute deadline, reload resume | `FlowModeProvider` (`src/hooks/use-flow-mode.tsx`) | No intent line, invisible outside sidebar footer |
-| Ambient sound (6 real recorded soundscapes) | `src/lib/flow/soundscape.ts` + `public/soundscape/*.mp3` | Buried in a sidebar popover |
-| **Notification quieting during focus** | `src/lib/notify.ts` (hold buffer + `critical` passthrough) | Already exactly the founder's ask; nobody knows |
-| Completion chime (C5→G5 soft two-note) | `src/lib/flow/chime.ts` | No threshold cues (50% / last 10%) |
-| A SECOND, parallel timer (25/50 presets) | `src/components/today/FocusTimer.tsx`, localStorage `cadence.focus.timer` | Duplicate of FlowMode; a "one home per object" violation |
-| Tasks (DB: priority, is_deep_work, due_date, **assignee_kind human/agent**) | `src/lib/tasks.functions.ts`; agent tools `workspace.list_tasks` + `tasks.create` already registered | UI is a hidden toggle inside the strip |
-| Quick capture → signal | `src/components/today/QuickCapture.tsx` | A bare collapsed strip |
-| Stakeholder update, server-composed, copy-ready | `src/components/today/StatusUpdateDialog.tsx` (`ShareStatusButton`) | **ORPHANED — zero references anywhere.** Loom §0.1.5 violation |
-| Focus-next suggestion + dispatch-to-agent | `src/components/today/FocusNext.tsx` | Hidden behind a strip toggle |
-| Shared feedback module | `src/lib/interaction-feedback.ts` (`fireFeedback`) | fine, reuse |
+| Capability                                                                  | Where it lives today                                                                                 | Gap                                                            |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Focus timer w/ absolute deadline, reload resume                             | `FlowModeProvider` (`src/hooks/use-flow-mode.tsx`)                                                   | No intent line, invisible outside sidebar footer               |
+| Ambient sound (6 real recorded soundscapes)                                 | `src/lib/flow/soundscape.ts` + `public/soundscape/*.mp3`                                             | Buried in a sidebar popover                                    |
+| **Notification quieting during focus**                                      | `src/lib/notify.ts` (hold buffer + `critical` passthrough)                                           | Already exactly the founder's ask; nobody knows                |
+| Completion chime (C5→G5 soft two-note)                                      | `src/lib/flow/chime.ts`                                                                              | No threshold cues (50% / last 10%)                             |
+| A SECOND, parallel timer (25/50 presets)                                    | `src/components/today/FocusTimer.tsx`, localStorage `cadence.focus.timer`                            | Duplicate of FlowMode; a "one home per object" violation       |
+| Tasks (DB: priority, is_deep_work, due_date, **assignee_kind human/agent**) | `src/lib/tasks.functions.ts`; agent tools `workspace.list_tasks` + `tasks.create` already registered | UI is a hidden toggle inside the strip                         |
+| Quick capture → signal                                                      | `src/components/today/QuickCapture.tsx`                                                              | A bare collapsed strip                                         |
+| Stakeholder update, server-composed, copy-ready                             | `src/components/today/StatusUpdateDialog.tsx` (`ShareStatusButton`)                                  | **ORPHANED — zero references anywhere.** Loom §0.1.5 violation |
+| Focus-next suggestion + dispatch-to-agent                                   | `src/components/today/FocusNext.tsx`                                                                 | Hidden behind a strip toggle                                   |
+| Shared feedback module                                                      | `src/lib/interaction-feedback.ts` (`fireFeedback`)                                                   | fine, reuse                                                    |
 
 **Therefore: UNIFY, don't build new machinery.** One focus engine (FlowMode, extended
 with intent + thresholds + history), one floating dock that makes it omnipresent, and
@@ -69,13 +69,13 @@ stance control — all three drive ONE provider, so state is always consistent.
 
 ```ts
 export type FlowSession = {
-  endsAt: number | null;      // existing; null = open-ended
-  preset: SoundPreset;        // existing
-  soundOn: boolean;           // existing
-  intent?: string;            // NEW · the PM's one-line goal, max 120 chars
-  startedAt?: number;         // NEW · epoch ms (needed for phase math + open-ended elapsed)
-  plannedMin?: number;        // NEW · the chosen block length
-  cued?: boolean;             // NEW · last-10% sound already fired (survives reload)
+  endsAt: number | null; // existing; null = open-ended
+  preset: SoundPreset; // existing
+  soundOn: boolean; // existing
+  intent?: string; // NEW · the PM's one-line goal, max 120 chars
+  startedAt?: number; // NEW · epoch ms (needed for phase math + open-ended elapsed)
+  plannedMin?: number; // NEW · the chosen block length
+  cued?: boolean; // NEW · last-10% sound already fired (survives reload)
 };
 ```
 
@@ -89,7 +89,7 @@ export type FocusPhase = "early" | "past-half" | "closing";
 // short blocks, "closing" begins at max(10% of planned, 30s) remaining, so a
 // 5-minute block still gets a meaningful wrap-up window.
 // Returns null for open-ended sessions or missing startedAt.
-export function phaseOf(session: FlowSession | null, now: number): FocusPhase | null
+export function phaseOf(session: FlowSession | null, now: number): FocusPhase | null;
 ```
 
 Tolerate old stored sessions (missing new fields): `phaseOf` returns null, everything
@@ -101,7 +101,7 @@ provider hydrate (one `localStorage.removeItem`, wrapped in try/catch).
 ```ts
 // One soft single note (E5 ~659.25Hz, sine, vol 0.18, ~0.4s decay) — quieter and
 // shorter than the completion chime. Same throwaway-AudioContext pattern.
-export function playCue(volume = 0.18): void
+export function playCue(volume = 0.18): void;
 ```
 
 **A3. Provider** (`src/hooks/use-flow-mode.tsx`). Changes:
@@ -152,7 +152,7 @@ NEW `src/components/cadence/FocusDock.tsx`. Mounted once in
    opens the composer. `aria-label="Start a focus block (Option F)"`.
 2. **Composer** (expanded from the sliver, 200ms scale 0.96 + opacity, from
    bottom): intent input (autofocused, placeholder `What are you closing in
-   this block?`, maxLength 120) + duration chips `25` `50` `90` (bordered
+this block?`, maxLength 120) + duration chips `25` `50` `90` (bordered
    chips; selected drives `config.timerMin`) + secondary `Start the block`.
    Enter starts; Escape collapses back to the sliver. Panel skin: overlay
    depth + glass hairline, `--radius-card`, width ~340px.
@@ -346,7 +346,7 @@ Pass `workspaceName={activeWorkspace?.name ?? null}` from `useWorkspace()`.
 
 In `src/routes/_authenticated.today.tsx`:
 
-1. REMOVE `<MyDayStrip />` (L~1077) and `<QuickCapture />` (L~1078) and their imports.
+1. REMOVE `<MyDayStrip />` (L~~1077) and `<QuickCapture />` (L~~1078) and their imports.
    The page flow becomes: Hero → TodaySpotlight → LoopStrip → the two-column grid.
    (Everything the strips carried now lives in the Desk — "relocate and curate, never
    delete": meetings → MeetingsRow, tasks → TasksCard, focus-next + timer → FocusCard,
@@ -390,28 +390,28 @@ In `src/routes/_authenticated.today.tsx`:
 
 ## 3. Copy table (humanized-output law: no em/en dashes, no emoji, no exclamation marks, sentence case)
 
-| Where | String |
-|---|---|
-| Desk header | `Your desk` |
-| Focus kicker | `Focus block` |
-| Intent placeholder | `What are you closing in this block?` |
-| Start | `Start the block` |
-| Suggestion kicker | `Cadence suggests` |
-| Suggestion actions | `Focus on this` · `Send to an agent` |
-| Running fallback title | `Focus block` / `Open block` |
-| Extend / end | `Add 5 minutes` · `End the block` |
-| Held line | `3 updates waiting quietly` (pluralize) |
-| Completion toast (with intent) | `Time called on "<intent>". 2 updates while you were focused.` |
-| History line | `2 blocks · 75 min today` |
-| Tasks kicker / count | `Tasks today` · `3 open` |
-| Tasks empty | `Nothing due today. Add what matters.` |
-| Task add placeholder / button | `Add a task for today` · `Add` |
-| Task tags | `OVERDUE` `HIGH` `DEEP` `AGENT` |
-| Expander | `4 more` |
-| Meetings kicker / line | `Meetings` · `3 today · next 2:30 PM Standup` |
-| Capture placeholder / button | `What did you hear, and from where?` · `Capture` |
+| Where                            | String                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| Desk header                      | `Your desk`                                                                |
+| Focus kicker                     | `Focus block`                                                              |
+| Intent placeholder               | `What are you closing in this block?`                                      |
+| Start                            | `Start the block`                                                          |
+| Suggestion kicker                | `Cadence suggests`                                                         |
+| Suggestion actions               | `Focus on this` · `Send to an agent`                                       |
+| Running fallback title           | `Focus block` / `Open block`                                               |
+| Extend / end                     | `Add 5 minutes` · `End the block`                                          |
+| Held line                        | `3 updates waiting quietly` (pluralize)                                    |
+| Completion toast (with intent)   | `Time called on "<intent>". 2 updates while you were focused.`             |
+| History line                     | `2 blocks · 75 min today`                                                  |
+| Tasks kicker / count             | `Tasks today` · `3 open`                                                   |
+| Tasks empty                      | `Nothing due today. Add what matters.`                                     |
+| Task add placeholder / button    | `Add a task for today` · `Add`                                             |
+| Task tags                        | `OVERDUE` `HIGH` `DEEP` `AGENT`                                            |
+| Expander                         | `4 more`                                                                   |
+| Meetings kicker / line           | `Meetings` · `3 today · next 2:30 PM Standup`                              |
+| Capture placeholder / button     | `What did you hear, and from where?` · `Capture`                           |
 | Status kicker / caption / button | `Stakeholders` · `A ready-to-send update from live state` · `Share status` |
-| SR phase announcements | `Half the block left.` · `Closing minutes.` |
+| SR phase announcements           | `Half the block left.` · `Closing minutes.`                                |
 
 ## 4. Design-law compliance (verify each before commit)
 
@@ -448,6 +448,7 @@ bun run design:slop        # no NEW findings in touched files
 ```
 
 Then a manual dev-server pass (`bun run dev`):
+
 1. Today renders: strips gone, Desk present below the aurora card, rail order correct.
 2. Start a block with an intent → dock appears bottom-right; navigate to /discover,
    /plan, /build, /brain → dock persists with countdown ticking.

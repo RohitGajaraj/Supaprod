@@ -154,8 +154,7 @@ export async function runOutcomeReviews(
       const missionId = (dec as { mission_id?: string | null } | null)?.mission_id ?? null;
 
       const suggestion = (prd.outcome_suggestion ?? null) as
-        | ({ verdict?: unknown; summary?: unknown; confidence_tier?: unknown } & MetricFields)
-        | null;
+        ({ verdict?: unknown; summary?: unknown; confidence_tier?: unknown } & MetricFields) | null;
       const skeleton = buildSkeletonReview({
         shippedAt: prd.shipped_at,
         checkBy: plan.check_by,

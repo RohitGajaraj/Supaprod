@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-23 · Status: **CURRENT standing canon (the guiding star).** This is the single document to read first for direction. It consolidates the whole strategy stack (v7 positioning, v8 structure, v9 wedge, v10 blueprint, moat.md) with a fresh, code-and-live-database-verified ground-truth audit, an outsider pressure-test, the core-user lens, the agent operating model, the consumer-grade design layer, the orchestration economics, and the full reasoning behind every decision in the 2026-06-23 strategy session. **When this doc and an older strategy doc disagree on direction, v11 wins.** The older docs remain valid for their detailed reference role._
 
-> **For agents and future sessions:** the build items live in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the *why*; the dashboard carries the *what/when*. The doc map is §0.3.
+> **For agents and future sessions:** the build items live in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the _why_; the dashboard carries the _what/when_. The doc map is §0.3.
 >
 > **2026-07-02 forward pointer:** the v11 front is COMPLETE (all 21 shipped 2026-06-25). The next depth layer under this star is **[v12: The Self-Improving OS](./v12-self-improving-os.md)** (the learning loop, foresight, the memory OS, the design leg, the Outcome Contract / ARD conventions, the journey's two ends; dashboard group G15). v12 wins on those build plans; this doc still wins direction.
 
@@ -11,31 +11,35 @@
 ## 0. How to use this document
 
 ### 0.1 What this is and why it exists
+
 On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardown of Cadence (market and product), grounded in what is actually wired versus what the docs claim, and a single standing document that captures the whole conversation: every input, every decision, and the reasoning. This is that document. It is the guiding star for direction; it is meant to be re-read and to answer "why did we decide this" without re-deriving.
 
 ### 0.2 The reading order
+
 1. The executive summary (§1) for the thesis in one page.
 2. The ground truth (§2) for what is actually built.
 3. Then any section you need; the table of contents is below.
-4. For *what to build next*, read the [feature dashboard](../planning/feature-dashboard.md) (v11 front is #1-18). For *why each item*, the dashboard now carries a one-line **Why** per row plus a link back here.
+4. For _what to build next_, read the [feature dashboard](../planning/feature-dashboard.md) (v11 front is #1-18). For _why each item_, the dashboard now carries a one-line **Why** per row plus a link back here.
 
 ### 0.3 The doc map (so any agent knows where everything lives, even if the founder does not open them)
-| Need | Doc |
-| --- | --- |
-| Direction, moat, defense, the reasoning (THIS) | [v11-guiding-star.md](./v11-guiding-star.md) |
-| What to build next, ranked, with a Why per row | [feature-dashboard.md](../planning/feature-dashboard.md) |
-| The live cursor / front door | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md) |
-| Why a past decision was made (the log) | [session-decisions.md](./session-decisions.md) |
-| The moat stack + competition + YC Q&A (detail) | [moat.md](./moat.md) |
-| Build vs buy vs integrate (the gate) | [build-buy-integrate.md](./build-buy-integrate.md) + [sourcing-map.md](./sourcing-map.md) |
-| Positioning argument + course-corrections (detail) | [v7](./v7-agentic-product-os.md) |
-| IA / structure / Engine-Room doctrine | [v8](./v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
-| The Critic-teardown wedge + competitor posture | [v9](./v9-decision-wedge-and-build-next.md) |
-| The file-grounded blueprint (detail) | [v10](./v10-master-blueprint.md) |
-| The role map (arbiter of which doc to pick) | [strategy/README.md](./README.md) |
-| Operating rules for all tools | [../../AGENTS.md](../../AGENTS.md) |
+
+| Need                                               | Doc                                                                                                                     |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Direction, moat, defense, the reasoning (THIS)     | [v11-guiding-star.md](./v11-guiding-star.md)                                                                            |
+| What to build next, ranked, with a Why per row     | [feature-dashboard.md](../planning/feature-dashboard.md)                                                                |
+| The live cursor / front door                       | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md)                                                                    |
+| Why a past decision was made (the log)             | [session-decisions.md](./session-decisions.md)                                                                          |
+| The moat stack + competition + YC Q&A (detail)     | [moat.md](./moat.md)                                                                                                    |
+| Build vs buy vs integrate (the gate)               | [build-buy-integrate.md](./build-buy-integrate.md) + [sourcing-map.md](./sourcing-map.md)                               |
+| Positioning argument + course-corrections (detail) | [v7](./v7-agentic-product-os.md)                                                                                        |
+| IA / structure / Engine-Room doctrine              | [v8](./v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
+| The Critic-teardown wedge + competitor posture     | [v9](./v9-decision-wedge-and-build-next.md)                                                                             |
+| The file-grounded blueprint (detail)               | [v10](./v10-master-blueprint.md)                                                                                        |
+| The role map (arbiter of which doc to pick)        | [strategy/README.md](./README.md)                                                                                       |
+| Operating rules for all tools                      | [../../AGENTS.md](../../AGENTS.md)                                                                                      |
 
 ### 0.4 Table of contents
+
 1. Executive summary · **1A. The canonical answer (what is Cadence + the moat, use verbatim)** · 2. Ground truth · 3. The corrected North Star (ambient self-initiation) · 4. The agent operating model · 5. Positioning · 6. The core user (felt experience, pains, the future) · 7. The Brain · 8. The moat · 9. The villain and the defense · 10. Market · 11. Business model and pricing · 12. The Playbook Registry (embed-skills verdict) · 13. Orchestrate the builders (mechanics + BBI + economics) · 14. Consumer-grade: IA, the design layer, the landing page, connectors · 15. Scope: reuse, reposition, club, flag · 16. Missing capabilities and adjacent markets · 17. Extended stakeholders · 18. PMF and founder-market fit · 19. Risk register · 20. The agentic doctrine · 21. The build plan (to consumer-ready) · 22. The pitch · 23. Metrics and gates · 24. Session inputs and decisions (2026-06-23) · 25. Provenance · **26. Appendix: the full research record (the groundwork)**.
 
 > **If any section above feels too brief, its full-depth version is in the Appendix (§26):** A1 the complete villain/defense, A2-A6 the five ground-truth probes (strategy-doc, build-state, technical, live-app, market), A7-A8 the core-user research (felt experience + pains + future of PM), A9 the Playbook Registry, A10 market/pricing, A11 orchestration economics, A12 the IA audit, A13 the reference images, A14 the raw artifacts, **A15 the full session narrative** (every founder steer and how it shaped the work), and **A16 the decision rationale** (the how-we-decided behind every call). Agents: read the appendix for full context before building a v11 item.
@@ -50,13 +54,14 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 - **What is the real problem:** the moat is wired but **cold**. Zero outcome memories, zero supersession edges, one learning. The supersession flag is ON in production but the flywheel has never turned (only about two outcomes ever recorded). The loop does not close on real data (Sense is webhook-only with zero connectors bound; Learn's outcome reviews barely exercised). And the demo seed writes no lineage edges, so the provenance, memory, and trust panels **render empty** in any demo. That empty render is the single thing most likely to make an investor conclude "bits and pieces" while sitting in front of a built engine. The core-user research confirms it: **not a design problem, a proof and trust-timing problem.**
 
 **The three-pillar moat (each corroborated by the founder's reference images and the independent PM-AI literature):**
+
 1. **Own the loop** (an AI operating system that collects context, decides, acts, keeps the log; not an AI feature, not a chatbot). Verified real.
 2. **Sense continuously** (self-initiating autonomy at every phase, from live signals; the dormant push-half of the engine). Scaffolded, must be lit.
 3. **Keep the receipts** (the Trust Ledger: what changed, why, on what evidence, who approved, and was it later proven right or superseded; trust is the thing people pay for). Built in schema, must become the hero.
 
-**The build doctrine for the pitch window (15 to 20 days):** do not add surface area (that is what makes it *feel* fragmented). **Light up and fuel the engine you already built, then make the Trust Ledger the hero, then stitch and design it to consumer-grade.** The journey is build → stitch → wire → design → ship, and the rich showcase content comes last (founder ruling). The v11 build front is ranked #1-18 in the dashboard, capabilities-first.
+**The build doctrine for the pitch window (15 to 20 days):** do not add surface area (that is what makes it _feel_ fragmented). **Light up and fuel the engine you already built, then make the Trust Ledger the hero, then stitch and design it to consumer-grade.** The journey is build → stitch → wire → design → ship, and the rich showcase content comes last (founder ruling). The v11 build front is ranked #1-18 in the dashboard, capabilities-first.
 
-**One sentence for the pitch:** *Cadence is the decision and outcome operating system for product teams: it senses what is happening, decides what is worth building, executes the work autonomously, keeps a trustworthy record of every call and whether it was right, and gets smarter about your product with every outcome, in the one layer frontier models and single-suite incumbents structurally will not own.*
+**One sentence for the pitch:** _Cadence is the decision and outcome operating system for product teams: it senses what is happening, decides what is worth building, executes the work autonomously, keeps a trustworthy record of every call and whether it was right, and gets smarter about your product with every outcome, in the one layer frontier models and single-suite incumbents structurally will not own._
 
 ---
 
@@ -71,6 +76,7 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 **If someone asks "but what IS it," in plain terms:** most "AI for product" tools are an AI feature bolted onto an app (it drafts, it suggests, it waits) or a chatbot (it hands you a paragraph and the work is still yours). Cadence is the other thing: an **AI operating system that owns the loop**, and an **action system where the work is actually done.** You give it intent, and a swarm of governed agents carries it end to end across the whole product lifecycle (sense, decide, define, build, ship, learn), pausing only for the few calls that genuinely need a human. Agents execute; you decide and stay accountable.
 
 **What it is NOT (this is half the clarity):**
+
 - Not a PM tool with AI sprinkled on top.
 - Not a chatbot or a copilot that drafts and waits.
 - Not a codegen tool. It does not compete with Cursor or Lovable or Devin; it sits one layer above them, decides what deserves to be built, and orchestrates them.
@@ -79,13 +85,14 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 
 ### What is the moat?
 
-The moat is the **decision-and-outcome layer**, and it stands on three pillars (each is a thing the product *does*, not a slogan):
+The moat is the **decision-and-outcome layer**, and it stands on three pillars (each is a thing the product _does_, not a slogan):
 
 1. **Own the loop:** a governed, autonomous engine that runs the lifecycle end to end. (Verified real in the code: missions self-advance via cron, agents hand off, the work completes.)
 2. **Sense continuously:** it self-initiates from live signals at every phase, not only when a human presses go.
 3. **Keep the receipts:** the Trust Ledger (what changed, why, on what evidence, who approved it, and was the call later proven right or superseded). Trust is not a feature; it is the thing serious buyers pay for.
 
 **Why that moat actually holds (the deeper "why," not the pillars):**
+
 - **There is no fast oracle for "what to build."** Code commoditized because it compiles in seconds. Deciding what to build gets feedback in weeks to quarters, so it does not commoditize the way codegen did. The thing the frontier labs are best at is the thing this domain has least of.
 - **The labs decline this vertical.** They ship the substrate (personal memory, search, connectors). Team-shared, permissioned, auditable product-decision memory is a different data model they show no intent to build. OpenAI is actively removing its memory audit trail; you would be adding one.
 - **Single-suite incumbents cannot be neutral.** Atlassian will never read Linear and Figma and decide against keeping you in Jira. The neutral, cross-tool decision brain is a seat only an independent can hold.
@@ -106,12 +113,14 @@ The moat is the **decision-and-outcome layer**, and it stands on three pillars (
 Every claim here is grounded in a read of the code and the live Supabase database, not the documentation's self-report.
 
 ### 2.1 Genuinely real (verified)
+
 - **The autonomous engine is wired end-to-end.** The `pg_cron` `resume-runs` job (every minute) drives `advanceMissionCore` (a deterministic, model-free DAG reflector: reflect child status, dispatch ready steps cap 10/tick, skip-cascade failures, finalize). Stations are real and ordered (`agent-vocabulary.ts`: Sense/Decide/Define/Build/Ship/Learn + crew). A2A handoff is a typed payload (task/context/artifacts/memory_refs/evidence), claimed compare-and-set, injected into the receiver's prompt. The loop runs from Ask, Today/Missions buttons, and the cron. Approval modes (`auto`/`confirm`/`review`) compose with an earned autonomy arc under non-overridable safety floors (merge always `review`).
 - **The live app** is at `cadence-flow-beta.lovable.app`, branded ("AGENTS EXECUTE · YOU GOVERN"), with real seed/founder usage (about 90 to 103 visitors/month, mostly direct, India + US), 490K tokens logged, missions completing end-to-end.
 - **The decision-graph IP** (`supersession.ts`, `governing-decision.ts`, `artifact_lineage`) is bi-temporal, invalidate-don't-delete, multi-hop to the current governing decision (16-hop cap, cycle-guarded, confidence-tiered); the headline query "given this precedent, what is the current belief, not the similar old one" is something flat RAG cannot answer, and the code answers it correctly. 25 test files in `src/lib/ai/`. The four-lens Critic fuses precedent + contradiction + governing-decision + shared-premise.
 - **Security** is strong: RLS on all 111 tables, service-role-only secret vaults, `<untrusted_tool_output>` injection hardening, a cross-tenant credential guard.
 
 ### 2.2 Cold, empty, or missing (the real problem)
+
 - **The moat is empty.** `agent_memory` 23 rows all reflections, zero outcome; `artifact_lineage` 20 rows all derivation, zero supersedes/contradicts; `learnings` 1. The supersession flag is ON in prod but produced zero edges (only about two outcomes ever recorded). The whole Decision-Brain layer was committed 2026-06-20 to 22: new, tested, armed, unproven.
 - **The loop does not close on real data.** Sense is webhook-only, `connections` = 0. Learn's outcome reviews barely exercised.
 - **The ambient path is cold.** `event_queue` = 1 row.
@@ -119,17 +128,19 @@ Every claim here is grounded in a read of the code and the live Supabase databas
 - **Most agentic plumbing is commoditizing.** The loop shape, registry, chokepoint, approval queue, even the Critic prompt (minus graph retrieval) are weekend-replicable with a frontier model.
 
 ### 2.3 Strategy-doc drift (the `POS-V11` reconciliation)
+
 The role map names v7 as the positioning arbiter, but newer docs rewrote the thesis without updating it. v11 resolves: **the moat is the decision-and-outcome layer (own the loop, sense, keep the receipts); memory is one component, not the headline.** Persona drift (7 vs 2 vs 1) resolves to one front-of-funnel persona (§5). v7's "ambient + governed, NOT autonomous" vs v9's "say the autonomous loop out loud" resolves via §3 (autonomy is real and self-initiating, governed by reversibility). Dated specifics (Claude 3.5, GPT-4o, Gemini 1.5, `pgsodium`) get refreshed. The cascade (README, AGENTS §0, moat.md) is part of `POS-V11`.
 
 ---
 
 ## 3. The corrected North Star: ambient, self-initiating autonomy at every phase
 
-**Founder steer (2026-06-23):** the system should not need a PM to *initiate*. In an agentic world it should sense the market and signals from many channels and **self-originate work at every phase**, running autonomously, with humans only where genuinely needed.
+**Founder steer (2026-06-23):** the system should not need a PM to _initiate_. In an agentic world it should sense the market and signals from many channels and **self-originate work at every phase**, running autonomously, with humans only where genuinely needed.
 
-This upgrades the North Star from *pull-based* autonomy (a human pulls the trigger) to *push-based / ambient* autonomy (signals push work in, agents triage and act, at every station). The good news: the ambient layer is the **dormant half of the engine that is already scaffolded** (the `event_subscriptions` / `event_queue` reactor, the Sense station, a Reactor crew agent), simply un-fed and un-lit.
+This upgrades the North Star from _pull-based_ autonomy (a human pulls the trigger) to _push-based / ambient_ autonomy (signals push work in, agents triage and act, at every station). The good news: the ambient layer is the **dormant half of the engine that is already scaffolded** (the `event_subscriptions` / `event_queue` reactor, the Sense station, a Reactor crew agent), simply un-fed and un-lit.
 
 **The target: the self-driving product organization.**
+
 ```
 CONTINUOUS SENSING        SELF-INITIATION              GOVERNED EXECUTION        ACCOUNTABILITY
 (push, always on)         (policy-triggered)           (autonomous, reversible)  (the receipts)
@@ -140,7 +151,8 @@ reviews / market          competitor move -> CRITIC      (cron) -> finalize     
                                                          HITL only at irreversible
                                                          boundaries (merge/deploy/spend/publish)
 ```
-Every station can be triggered by an upstream event, not only a human handoff. Governed by reversibility: act autonomously on reversible work; gate only at irreversible boundaries. The elegant synthesis: the more autonomous the system becomes, the more the Trust Ledger matters; accountability is what makes ambient autonomy *sellable*. Build items: `EVENT-REACTOR-LIVE`, `AMBIENT-SENSE`, `AMBIENT-TRIGGER` (#2-4).
+
+Every station can be triggered by an upstream event, not only a human handoff. Governed by reversibility: act autonomously on reversible work; gate only at irreversible boundaries. The elegant synthesis: the more autonomous the system becomes, the more the Trust Ledger matters; accountability is what makes ambient autonomy _sellable_. Build items: `EVENT-REACTOR-LIVE`, `AMBIENT-SENSE`, `AMBIENT-TRIGGER` (#2-4).
 
 ---
 
@@ -153,11 +165,12 @@ The founder's question: "we say a native AI agent ecosystem that acts autonomous
 **Where each is utilized (the surface).** Today (the approval queue + brief), Ask (type a goal -> a mission), Product (signals -> opportunities -> roadmap), PRD (Critic + AI assist), Build/Missions (the DAG executing), Brain (the memory + decisions the agents read/write), Engine Room (the governance the operator uses to watch and tune them).
 
 **How each is triggered (three modes):**
+
 1. **Human-initiated (pull):** a goal in Ask, a button on Today/Missions, a "request AI assist" in a PRD. Wired today.
 2. **System-continued (auto):** the `resume-runs` cron advances any running mission every minute with no human. Wired today.
 3. **Ambient (push, self-initiated):** a signal cluster, a recorded outcome, a competitor move, or a brain-derived insight crosses a threshold and self-originates a mission at the right station. Scaffolded, lit by `EVENT-REACTOR-LIVE` + `AMBIENT-SENSE` + `AMBIENT-TRIGGER`. This is the North Star (§3).
 
-**How agents and platforms reach Cadence (inbound interop, `INTEROP-V11`).** An agentic platform must be reachable *by* others, not just reach out. Three doors, all scope-gated and audited: (a) a **read-only MCP server** so external agents (Claude, ChatGPT, Cursor) can query the decision brain, specs, and roadmap (buildable now, on the `mcp_tokens` infra + A2A card); (b) **A2A Agent Cards + scoped tokens** so peer agents can call governed actions; (c) a **scoped API** for platforms. The outward *write* surface (`Q2`) is founder-gated on the scopes/audit posture. This is also a platform/moat play: Cadence as the governed layer other agents plug into.
+**How agents and platforms reach Cadence (inbound interop, `INTEROP-V11`).** An agentic platform must be reachable _by_ others, not just reach out. Three doors, all scope-gated and audited: (a) a **read-only MCP server** so external agents (Claude, ChatGPT, Cursor) can query the decision brain, specs, and roadmap (buildable now, on the `mcp_tokens` infra + A2A card); (b) **A2A Agent Cards + scoped tokens** so peer agents can call governed actions; (c) a **scoped API** for platforms. The outward _write_ surface (`Q2`) is founder-gated on the scopes/audit posture. This is also a platform/moat play: Cadence as the governed layer other agents plug into.
 
 **How Cadence reaches the world (outbound).** Inbound signal via connectors (`CONNECTORS-V11`, §14); execution via orchestrate-the-builders (§13). Two directions, one governed system.
 
@@ -168,13 +181,14 @@ The founder's question: "we say a native AI agent ecosystem that acts autonomous
 **The headline (the YC / investor one-liner):** Cadence is the **AI operating system for product teams**: the **decision and outcome layer** that owns the entire product loop and remembers whether every call was right.
 
 **Drilled down (the one and two-liners behind the headline, the version to use when an investor asks a follow-up):**
-- **An AI operating system, not an AI feature.** An AI *feature* drafts, suggests, and waits, and is easy to copy. An AI *operating system* owns the loop: it collects context, decides, acts, updates the system, and keeps the log. Cadence is the operating system, across the whole product lifecycle.
+
+- **An AI operating system, not an AI feature.** An AI _feature_ drafts, suggests, and waits, and is easy to copy. An AI _operating system_ owns the loop: it collects context, decides, acts, updates the system, and keeps the log. Cadence is the operating system, across the whole product lifecycle.
 - **It owns the loop, end to end.** It runs sense, decide, define, build, ship, and learn as one continuous governed loop, not a dozen disconnected tools held together by a human doing manual glue work.
 - **It senses on its own.** It pulls signal from the tools you already live in and self-initiates work; you do not have to press go on every step.
 - **It decides with judgment, and with receipts.** It red-teams the call, grounds it in your own past outcomes, and hands you a decision you can defend, not just a draft.
 - **It executes the work.** Agents carry the work to done (the action system: the work is done), pausing only at the few irreversible gates where a human must sign off.
 - **It keeps the receipts.** Every decision and outcome is recorded: what changed, why, on what evidence, who approved, and whether it was later proven right or superseded. Trust is the thing serious buyers pay for.
-- **It remembers and compounds.** It learns whether each call worked and gets smarter about *your* product with every outcome, the part no competitor can backfill.
+- **It remembers and compounds.** It learns whether each call worked and gets smarter about _your_ product with every outcome, the part no competitor can backfill.
 
 **Category:** the decision and outcome operating system for product teams (internally the "Agentic Product OS"; publicly lead with the felt outcome). The simpler three-layer restatement and the alternate one-liner ("Cadence runs your product end to end as one autonomous loop, you set intent and own the calls that matter") are in **Appendix A17**; the ideas validated 2026-06-24 are in **Appendix A18**.
 
@@ -191,27 +205,33 @@ The founder's question: "we say a native AI agent ecosystem that acts autonomous
 The founder's correction: the most important stakeholder is the **daily power user** of the platform, the one every other stakeholder depends on. Two parallel research passes (felt experience; pains + the future of the role) ground this section.
 
 ### 6.1 The felt experience (the trust-timing problem)
+
 **Cadence does not have a design problem; it has a PROOF problem and a TRUST-TIMING problem.** The bones are genuinely better than most PM tools ship (the DecisionCard, the Critic teardown, the consequence-first gates, the calm shell). But the product asks the PM to govern a machine before showing them anything worth trusting, and its most differentiated surfaces render empty on the accounts a new PM judges it on. It would win a 10-minute demo and quietly lose the PM by week two.
+
 - **First-run aha is real** (the Critic teardown, under 10 minutes, zero setup), but the path immediately after is downhill: data plumbing, then a jargon wall (missions/stations/Engine Room), then empty proof-panels.
 - **The daily loop's risk is the babysitting tax:** the approval queue fills with low-level tool-call gates ("Scout wants web_fetch"), which is intern-supervision, not leverage. The cost curve is backwards: governance work front-loaded, trust payoff deferred.
 - **The dominant negative emotion is deflation:** "What changed", memory, provenance, mission compounding all render empty on cold/seeded accounts. The product keeps gesturing at an intelligence the user cannot see.
 - **The fixes** (build items `CORE-UX-TRUST`, `CORE-UX-FELT`, `STITCH-LOOP`, plus the seed): per-agent track record on the decision itself, auto-clear reversible gates (only ever ask about consequential ones), visible rejection-learning, a chief-of-staff brief with stakes (not counts), de-jargon the front for the non-founder PM, harden the teardown's cold path, and stitch the surfaces into one continuous loop.
 
 ### 6.2 The pains (what PMs most wish were autonomous)
+
 Grounded in the 2025 State of B2B PM survey and the Productboard AI report. PMs are buried in the low-judgment half of the job and starved of the high-judgment half. Top pains: writing PRDs/tickets (the documentation tax), status updates scattered across tools, deck-building for leadership, chasing/synthesizing data across 15+ tools, context-switching, stakeholder alignment, prioritization debates, meeting overload, pseudo-PM work.
-- **Autonomously solvable now:** status updates, first-draft PRDs, feedback triage/clustering, task breakdown, deck assembly. **Soon:** continuous discovery, autonomous build (has a fast oracle), roadmap re-ranking, decision defense. **Human judgment (the moat):** the prioritization *call* / saying no, taste, stakeholder politics, owning the consequence.
+
+- **Autonomously solvable now:** status updates, first-draft PRDs, feedback triage/clustering, task breakdown, deck assembly. **Soon:** continuous discovery, autonomous build (has a fast oracle), roadmap re-ranking, decision defense. **Human judgment (the moat):** the prioritization _call_ / saying no, taste, stakeholder politics, owning the consequence.
 - **The asymmetry the market confirms:** autonomy where truth is checkable (build/QA/ship), governance where it is not (decide).
 - **The emotional/career pains, under-served and high-leverage:** fear of the wrong call with no evidence to defend it; being seen as a "ticket writer" not a strategist (the survey's #1 org problem: delivery over strategy, 49%); the anxiety of outcomes they cannot prove (only 40% measure outcomes); and **decision amnesia** (the org forgets why it decided things) which validates the receipts pillar more directly than anything else found.
 
 ### 6.3 The future of the role (build for 2028, not 2026)
+
 The 2026 PM-AI literature converges with unusual precision on Cadence's exact thesis: execution commoditizes, judgment becomes the whole job, the PM becomes an orchestrator of agent fleets, smaller teams ship more, the eng/PM/design boundary blurs, discovery and delivery run continuously in one loop, and the durable moat is the org-specific, compounding record of decisions, evidence, and outcomes. The threat is not extinction but polarization: the translator/ticket-writer PM is at risk, the judgment/taste/domain PM is more valuable. **Build for the PM who survives, not the one who is automated:** elevate them into orchestrator and judge work; a tool that just does grunt work faster accelerates the user's own obsolescence.
 
 ### 6.4 The new opportunities this surfaced (now on the board)
+
 - **`PM-IMPACT-LEDGER`** (the strongest un-named opportunity): the individual PM's portable record of the calls they made and the outcomes they drove, for performance reviews and their next role. Turns the receipts pillar into a career asset, a retention and virality hook, and salves the top career pain.
 - **`STAKEHOLDER-PACK`:** audience-tuned alignment/persuasion artifacts from a decision + its receipts (attacks the deck-building pain and the influence gap at once). Cadence produces evidence; this helps the PM win the room.
 - **`EVALS-PRIMITIVE`** (future-of-PM, post-pitch): evaluations as a first-class PM primitive, "the defining skill" of the 2028 PM; elevate the existing eval surface.
 - **`AGENT-FLEET-VIEW`** (future-of-PM, post-pitch): the air-traffic-control surface where the PM defines intent, dispatches a fleet, and supervises by exception.
-- **Survival warning the market flags:** hollow autonomy is *the* way agentic products die in this exact market. Claim-never-outruns-wiring is not internal discipline; it is survival.
+- **Survival warning the market flags:** hollow autonomy is _the_ way agentic products die in this exact market. Claim-never-outruns-wiring is not internal discipline; it is survival.
 
 ---
 
@@ -220,14 +240,17 @@ The 2026 PM-AI literature converges with unusual precision on Cadence's exact th
 The founder asked: how is all this information shown graphically, what useful decisions are derived, how is it useful to me ("how it was done the past three months"), do we build the memory/graph/vector layer or integrate one. Three parts.
 
 ### 7.1 The Brain UX: the four lenses are the floor, not the ceiling (`BRAIN-UX-V11`)
-A raw node graph is how the *agent* sees it, not how a PM derives value. The floor is four human lenses on the same data: a **temporal/narrative** view ("how your decisions evolved the past 3 months, what superseded what, what landed"), **proactive insight + patterns**, a **plain-language** answer ("why did we decide X / what is the current belief / what is unresolved"), and the **compounding story** ("what Cadence has learned about your product since you started").
 
-But the founder's steer (2026-06-23) is to keep horizons wide: the lenses are the floor; the **open ceiling** is the agent *volunteering whatever useful intelligence the data supports*, flagged proactively, because that is the whole point of putting intelligence on the graph. Examples: predictions ("this bet is likely to miss based on your patterns"), contradiction/risk alerts ("this contradicts a still-governing precedent"), next-best-action ("three unresolved decisions block the roadmap; resolve X first"), self-knowledge ("your team underestimates infra work"), cost-of-inaction ("you deferred this twice; here is the cost"), and hidden connections ("these three features share a premise that already failed"). The Brain is an analyst that volunteers insight, not a set of static views.
+A raw node graph is how the _agent_ sees it, not how a PM derives value. The floor is four human lenses on the same data: a **temporal/narrative** view ("how your decisions evolved the past 3 months, what superseded what, what landed"), **proactive insight + patterns**, a **plain-language** answer ("why did we decide X / what is the current belief / what is unresolved"), and the **compounding story** ("what Cadence has learned about your product since you started").
+
+But the founder's steer (2026-06-23) is to keep horizons wide: the lenses are the floor; the **open ceiling** is the agent _volunteering whatever useful intelligence the data supports_, flagged proactively, because that is the whole point of putting intelligence on the graph. Examples: predictions ("this bet is likely to miss based on your patterns"), contradiction/risk alerts ("this contradicts a still-governing precedent"), next-best-action ("three unresolved decisions block the roadmap; resolve X first"), self-knowledge ("your team underestimates infra work"), cost-of-inaction ("you deferred this twice; here is the cost"), and hidden connections ("these three features share a premise that already failed"). The Brain is an analyst that volunteers insight, not a set of static views.
 
 ### 7.2 The Brain must drive action, not just be read (the discover -> derive -> act loop)
-The second founder steer (2026-06-23): the Brain should not be only useful content for the human and the agent to *read*; the agent must **take action** out of what it discovers. The Brain is a closed loop: **discover** (a pattern, contradiction, or signal in the graph) -> **derive** (what it means) -> **act** (re-open a decision, propose a step, self-initiate a mission). So `BRAIN-UX-V11` (discover/derive) and `AMBIENT-TRIGGER` (act) are one loop, and the Brain's derived intelligence is itself a trigger source. This is the platform capability, not a read surface.
+
+The second founder steer (2026-06-23): the Brain should not be only useful content for the human and the agent to _read_; the agent must **take action** out of what it discovers. The Brain is a closed loop: **discover** (a pattern, contradiction, or signal in the graph) -> **derive** (what it means) -> **act** (re-open a decision, propose a step, self-initiate a mission). So `BRAIN-UX-V11` (discover/derive) and `AMBIENT-TRIGGER` (act) are one loop, and the Brain's derived intelligence is itself a trigger source. This is the platform capability, not a read surface.
 
 ### 7.3 The infrastructure verdict (build the intelligence, self-host the substrate, integrate only the viz)
+
 - **BUILD in-house, forever:** the ontology, the supersession engine, the Critic, the salience ranker. This is the moat. Never rent the brain's reasoning to a memory-as-a-service (Mem0/Zep); that turns the moat into a wrapper around someone else's product.
 - **SELF-HOST the substrate:** Postgres + pgvector (you own the data, no per-token graph bill). The founder's instinct ("build it ourselves like Obsidian") is right for the substrate and the local-graph metaphor.
 - **INTEGRATE only:** a visualization library for the Obsidian-style view (do not build a render engine); and, much later, a graph engine (Graphiti/Neo4j) behind a `GraphStore` seam **only if** traversal at scale outgrows Postgres recursive CTEs (it has not). Embeddings and inference are BUY via the chokepoint. This matches the existing [build-buy-integrate.md](./build-buy-integrate.md) canon.
@@ -237,13 +260,14 @@ The second founder steer (2026-06-23): the Brain should not be only useful conte
 ## 8. The moat: three pillars and the deeper asymmetries
 
 The three pillars (§1) over a set of structural asymmetries:
+
 1. **No fast oracle.** Code commoditized because it has a fast oracle (compiles/passes in seconds). "What to build" has none (feedback takes weeks to quarters). The thing the labs are best at is the thing this domain has least of; the decision layer does not commoditize like codegen.
 2. **The labs decline the vertical.** They ship the substrate (personal memory, search, connectors, computer-use) and are walking away from accountability (OpenAI is removing its memory audit trail; Google killed Project Mariner; OpenAI retired Operator). Team-shared, permissioned, auditable product-decision state is a different data model they show no intent to build.
-3. **Single-suite incumbents cannot be neutral.** Atlassian will never read Linear and Figma and decide *against* Jira. The neutral cross-tool decision layer is a seat only an independent can hold. Their 150B-object graph answers "what is connected," not "what did we decide and was it right."
+3. **Single-suite incumbents cannot be neutral.** Atlassian will never read Linear and Figma and decide _against_ Jira. The neutral cross-tool decision layer is a seat only an independent can hold. Their 150B-object graph answers "what is connected," not "what did we decide and was it right."
 4. **The outcome ledger cannot be backfilled.** A competitor with all your raw data cannot reconstruct decision-to-evidence-to-outcome-to-was-it-right accrued over calendar time.
 5. **It is an NRR-expansion engine.** Compounding memory, rising switching cost, seats-plus-credits expansion separate 120%+ system-of-record retention from the roughly 48% median of AI wrappers; that retention spread is the valuation case.
 
-**The honest caveat:** the asymmetries are structural, but the *accrued* moat is empty today and compounds over calendar time. The investment is in the mechanism and the team's execution, plus a credible plan to fill the ledger. That honesty is an asset in diligence.
+**The honest caveat:** the asymmetries are structural, but the _accrued_ moat is empty today and compounds over calendar time. The investment is in the mechanism and the team's execution, plus a credible plan to fill the ledger. That honesty is an asset in diligence.
 
 ---
 
@@ -253,9 +277,9 @@ The founder asked to play the villain who wants to kill Cadence, then mount the 
 
 **The villains (five masks, real numbers).** (1) The Frontier Lab CTO: "you are a `{thought,action}` JSON loop with a 6-step cap; your moat is 23 memory rows; the rising tide reaches your floor." (2) The Incumbent: "we own the workspace, the data, the distribution, and bundle AI free; you have 8 workspaces and 90 visitors; we ship 'decision tracking' next quarter." (3) The Seed Investor: "AI-PM is a graveyard (Kraftful, Cycle, Zeda, Reforge in 18 months); your moat is a promise about data that does not exist; your docs contradict each other; acqui-hire at best." (4) The churned Head of Product: "it generated a PRD I rewrote, ran busywork I did not trust, the memory panel was empty, and 'you govern' means I babysit an intern and do my own job." (5) The Build Realist: "ticket-to-PR is Lovable's/Cursor's slide, not yours."
 
-**The defense doctrine (one sentence):** Cadence is not selling the current *size* of the moat; it is selling the only architecture that can *accrue* it, a wired action system that owns the product-decision loop, and a trust ledger that makes every autonomous act accountable, in the one vertical the labs decline and single-suite incumbents cannot neutrally own.
+**The defense doctrine (one sentence):** Cadence is not selling the current _size_ of the moat; it is selling the only architecture that can _accrue_ it, a wired action system that owns the product-decision loop, and a trust ledger that makes every autonomous act accountable, in the one vertical the labs decline and single-suite incumbents cannot neutrally own.
 
-**Per villain (with the action that makes it true):** (1) the model is the engine, nobody sells the engine as the car; the product is the governed, accountable system, and the labs are walking *away* from accountability; stay model-agnostic and make the Trust Ledger the hero. (2) their graph is *context* not *decision*; a single suite cannot be neutral; win beside Jira via the wedge, not by ripping it out. (3) the graveyard is the proof (the casualties were narrow slices; the full-lifecycle SoR slot is empty); pitch the flywheel turning on real data and the NRR contrast; reconcile the doc drift. (4) reframe: the agent does the 214-job-posts of PM work and hands you a *decision* pre-loaded with evidence and precedent; the churn was the empty demo, fixable with the seed and the Trust Ledger. (5) conceded; orchestrate the builders, do not become one.
+**Per villain (with the action that makes it true):** (1) the model is the engine, nobody sells the engine as the car; the product is the governed, accountable system, and the labs are walking _away_ from accountability; stay model-agnostic and make the Trust Ledger the hero. (2) their graph is _context_ not _decision_; a single suite cannot be neutral; win beside Jira via the wedge, not by ripping it out. (3) the graveyard is the proof (the casualties were narrow slices; the full-lifecycle SoR slot is empty); pitch the flywheel turning on real data and the NRR contrast; reconcile the doc drift. (4) reframe: the agent does the 214-job-posts of PM work and hands you a _decision_ pre-loaded with evidence and precedent; the churn was the empty demo, fixable with the seed and the Trust Ledger. (5) conceded; orchestrate the builders, do not become one.
 
 **The defense gap is the build plan.** Three of five defenses are true only if something is built, and four of those are activation and visibility, not new construction. That gap is the 15-to-20-day plan (§21). **Full version (each villain's complete attack + the complete defense + the build item that earns it): Appendix A1.**
 
@@ -269,7 +293,7 @@ Flags: [V] verified, [E] estimated, [A] assumption. **Bottom-up TAM:** about 1.8
 
 ## 11. Business model, pricing, margin, comparables
 
-**Pricing (price the layer, meter the throughput).** Free (the wedge + limited decaying memory) -> **Pro about $39-49/seat/month** (persistent + cross-workspace memory, Critic everywhere, the outcome loop) -> **Team lands above $150/team/month** (about $45-59/seat x 4-5 seats; org-scoped SoR, governance/audit, shared compounding memory; account-level credit pooling, not per-workspace) -> Enterprise (negotiated; SSO/audit/residency; BYOK and BYO-coding-agent-key as negotiated options; outcome-based pricing pilots). Do **not** price autonomy per seat (you shrink as PMs are automated); price decision *work* (credits) so revenue grows as decisioning gets cheaper and volume expands. Beat "Jira already includes AI": different layer not a better feature; no fast oracle so it does not commoditize; the outcome ledger cannot be backfilled; reframe the buyer's question ("what does it cost to make the wrong bet for a quarter?").
+**Pricing (price the layer, meter the throughput).** Free (the wedge + limited decaying memory) -> **Pro about $39-49/seat/month** (persistent + cross-workspace memory, Critic everywhere, the outcome loop) -> **Team lands above $150/team/month** (about $45-59/seat x 4-5 seats; org-scoped SoR, governance/audit, shared compounding memory; account-level credit pooling, not per-workspace) -> Enterprise (negotiated; SSO/audit/residency; BYOK and BYO-coding-agent-key as negotiated options; outcome-based pricing pilots). Do **not** price autonomy per seat (you shrink as PMs are automated); price decision _work_ (credits) so revenue grows as decisioning gets cheaper and volume expands. Beat "Jira already includes AI": different layer not a better feature; no fast oracle so it does not commoditize; the outcome ledger cannot be backfilled; reframe the buyer's question ("what does it cost to make the wrong bet for a quarter?").
 
 **Margin.** Agentic workloads are 5-30x more token-intensive than chat, so model **45-60% blended gross margin** [V-anchored], not 75%+. Levers: small-model routing (the patterned 80% cheap, frontier for the novel 20%), aggressive caching, grant-sizing, capped top-ups. BYOK is an **enterprise-only** escape valve, not a self-serve margin strategy (keep model-agnostic routing on your keys as the real lever).
 
@@ -281,9 +305,9 @@ Flags: [V] verified, [E] estimated, [A] assumption. **Bottom-up TAM:** about 1.8
 
 ## 12. The Playbook Registry (the embed-skills verdict)
 
-**The founder's hypothesis:** embed the large Claude-Code library of PM-specific skills/agents/MCP/prompts into the product for built-in intelligence. **Verdict: strong YES on the idea, NO on the literal framing.** Embedding skill markdown verbatim is cosmetic (any frontier model recites generic PM method). The defensible version is a **Cadence Playbook Registry** that does for *every* station what the Critic already does: bind opinionated PM method to live workspace decision-memory and per-outcome learning.
+**The founder's hypothesis:** embed the large Claude-Code library of PM-specific skills/agents/MCP/prompts into the product for built-in intelligence. **Verdict: strong YES on the idea, NO on the literal framing.** Embedding skill markdown verbatim is cosmetic (any frontier model recites generic PM method). The defensible version is a **Cadence Playbook Registry** that does for _every_ station what the Critic already does: bind opinionated PM method to live workspace decision-memory and per-outcome learning.
 
-**The exact line:** method text is commodity; **method x (decision graph + outcome memory + approval history + per-workspace playbook-performance ranking) is the moat.** A playbook the system has run 40 times in *your* workspace, learned which variant correlates with validated outcomes, and applies with your precedents pre-loaded, is institutional judgment as software.
+**The exact line:** method text is commodity; **method x (decision graph + outcome memory + approval history + per-workspace playbook-performance ranking) is the moat.** A playbook the system has run 40 times in _your_ workspace, learned which variant correlates with validated outcomes, and applies with your precedents pre-loaded, is institutional judgment as software.
 
 **The pitch line:** "Cadence ships with institutional product judgment as software, a library of expert PM playbooks the agents apply autonomously, and it compounds twice: smarter per workspace as it learns your decisions, and smarter per outcome as it learns which judgment worked." **Architecture:** a versioned `Playbook { slug, station, version, method, rubric, requiredInputs, outputContract, bindMemory }` in `src/lib/ai/playbooks/registry.server.ts`; `bindMemory` reuses the Critic's four memory loaders generalized into `bindWorkspaceContext(station, focusIds)`; a `playbook_runs` table ranks playbooks by validated-outcome rate. **Timing:** pitch-narrative pillar now (the Critic is the live proof), thin slice post-pitch, library grown slowly. Build item `PLAYBOOK-REGISTRY`.
 
@@ -293,11 +317,11 @@ Flags: [V] verified, [E] estimated, [A] assumption. **Bottom-up TAM:** about 1.8
 
 The founder's questions: if we do not build codegen, how do we pass work to Cursor or an equivalent, what does it cost and license at B2B scale, what is the cost-efficiency model, and how does it consolidate into our credits. This is build/buy/integrate beyond just coding agents.
 
-**The mechanics (verified).** Four of six candidates expose a genuine programmatic/headless dispatch path: **Devin** (REST `POST /v3/.../sessions` with a built-in `max_acu_limit` cap and PR-as-result), **Claude Agent SDK / Codex SDK** (headless/CLI, API-key-metered, you drive the loop), **Cursor Cloud Agents API** (service-account keys exist, so it *does* fit programmatic dispatch, but the ToS for third-party orchestration is unverified), and **OpenHands** (self-host, $0 external license, BYO-LLM). v0 is niche (text-to-UI). The seat-license trap dissolves if you dispatch through the cloud/SDK/self-host surface, not the editor. Cadence already has the exact seams: `DelegateProvider` (BLD-04, dormant) and `ExecProvider` (SANDBOX, the $0 GitHub-Actions CI floor that decides if the result may merge).
+**The mechanics (verified).** Four of six candidates expose a genuine programmatic/headless dispatch path: **Devin** (REST `POST /v3/.../sessions` with a built-in `max_acu_limit` cap and PR-as-result), **Claude Agent SDK / Codex SDK** (headless/CLI, API-key-metered, you drive the loop), **Cursor Cloud Agents API** (service-account keys exist, so it _does_ fit programmatic dispatch, but the ToS for third-party orchestration is unverified), and **OpenHands** (self-host, $0 external license, BYO-LLM). v0 is niche (text-to-UI). The seat-license trap dissolves if you dispatch through the cloud/SDK/self-host surface, not the editor. Cadence already has the exact seams: `DelegateProvider` (BLD-04, dormant) and `ExecProvider` (SANDBOX, the $0 GitHub-Actions CI floor that decides if the result may merge).
 
 **The recommended architecture.** OpenHands self-host as the **$0 floor** (cost flows through your existing AI-credit chokepoint) -> **Devin** and **Claude Agent SDK** as the two premium adapters behind the same interface -> Codex -> Cursor (BYO-key only until ToS cleared) -> v0 (niche). Governance is where the moat lives: **human-approves-before-dispatch** (a `review`-mode tool), the external agent returns a **PR that cannot bypass your merge gate**, and the result folds back as a mission step with full trace.
 
-**Credit consolidation and economics.** Meter external compute as Cadence credits, two postures: **(A) passthrough + markup** (a credit pre-authorization holds, then debits actual cost; OpenHands floor is highest-margin since it is just your marked-up LLM/compute; premium providers convert ACU/token cost at a 1.3-1.6x markup [E], always capped per task via `max_acu_limit` or a token budget). **(B) enterprise BYO-coding-agent-key** (mirrors BYOK; the customer binds their own Devin/Cursor/Codex contract via the existing `resolveProviderAuth` chain; the heaviest, spikiest compute is billed to *their* account, removing your COGS and resolving the Cursor ToS and data-residency objections at once). **Net business model: price the orchestration + governance + decision-memory (near-software margins), meter the compute, cap every task, BYO-key to enterprise.** The expensive variable thing is either capped-and-marked-up or pushed to the customer's key; the thing Cadence sells has software margins.
+**Credit consolidation and economics.** Meter external compute as Cadence credits, two postures: **(A) passthrough + markup** (a credit pre-authorization holds, then debits actual cost; OpenHands floor is highest-margin since it is just your marked-up LLM/compute; premium providers convert ACU/token cost at a 1.3-1.6x markup [E], always capped per task via `max_acu_limit` or a token budget). **(B) enterprise BYO-coding-agent-key** (mirrors BYOK; the customer binds their own Devin/Cursor/Codex contract via the existing `resolveProviderAuth` chain; the heaviest, spikiest compute is billed to _their_ account, removing your COGS and resolving the Cursor ToS and data-residency objections at once). **Net business model: price the orchestration + governance + decision-memory (near-software margins), meter the compute, cap every task, BYO-key to enterprise.** The expensive variable thing is either capped-and-marked-up or pushed to the customer's key; the thing Cadence sells has software margins.
 
 ---
 
@@ -306,36 +330,43 @@ The founder's questions: if we do not build codegen, how do we pass work to Curs
 **Consumer-grade defined (founder, 2026-06-23):** not just look and feel, but the features, the capability, the solution, and the pain point it solves. The whole platform must clear this bar.
 
 ### 14.1 The IA reality and my recommendation
+
 The route layer is already consolidated (about 24 redirect stubs fold into 6 real surfaces). The "too complicated" feeling is **felt density and four competing nav metaphors at once**, a 13-tab Engine Room, and an 11-tab Settings with no grouping. The app violates its own engine-room doctrine in fixable ways. This is a tightening job, not a rebuild.
 
 **My recommended IA (not just relaying the audit; this is the call).** Left nav = **five calm, outcome-named destinations + one recessed Engine Room door**:
-- **Today** (what needs me), **Ask** (ask the brain anything), **Product** (signals to specs to roadmap to releases), **Build** (autonomous build sessions; Missions folds in here), **Brain** (memory, decisions, the analyst, docs). Then **Engine Room** recessed at the bottom (one door, the approvals badge on it). Kill the "Loop" and "Trust" mechanism-labels, delete the floating Calendar dock (Calendar lives in Brain), demote the Products list into the workspace switcher (a product is a *filter*, not a destination), and lean on the ⌘K palette (already built, already indexes the deep surfaces) for everything else. Engine Room's 13 tabs group into three bands: **Needs you** (Approvals, Spend), **Trust and safety** (Controls, Safety, Team, Incidents, Attention), **Quality and insight** (Quality checks, Prompts, Analytics, Activity, Trends, Loop health). Build items `IA-NAV-V11` (#11), `IA-DEPTH-V11`.
+
+- **Today** (what needs me), **Ask** (ask the brain anything), **Product** (signals to specs to roadmap to releases), **Build** (autonomous build sessions; Missions folds in here), **Brain** (memory, decisions, the analyst, docs). Then **Engine Room** recessed at the bottom (one door, the approvals badge on it). Kill the "Loop" and "Trust" mechanism-labels, delete the floating Calendar dock (Calendar lives in Brain), demote the Products list into the workspace switcher (a product is a _filter_, not a destination), and lean on the ⌘K palette (already built, already indexes the deep surfaces) for everything else. Engine Room's 13 tabs group into three bands: **Needs you** (Approvals, Spend), **Trust and safety** (Controls, Safety, Team, Incidents, Attention), **Quality and insight** (Quality checks, Prompts, Analytics, Activity, Trends, Loop health). Build items `IA-NAV-V11` (#11), `IA-DEPTH-V11`.
 - **One home per artifact.** The same content rendering in several forms across the platform (Calendar, Approvals/Spend in multiple places) is the duplicate-homes violation; one canonical home each, the rest reach via ⌘K.
 
 ### 14.2 Settings (the most overloaded surface) -> five groups (`SETTINGS-SEGREGATE`, #12)
+
 From 11 flat tabs to **Account** (Profile, Notifications) · **Workspace** (the Strategic Brief, Voice Anchor, Members, the agent roster) · **Connections** (one home for Accounts/Integrations/`/sync`, killing the three-places confusion) · **AI and keys** (default model + BYO keys) · **Billing** (Plan + Credits), with **Advanced** (Health, Data/compliance) recessed. **Promote the Strategic Brief out of Settings**: it is injected into every agent's prompt (a steering wheel), yet buried as tab 4; surface it on Today/Brain with Settings holding only the edit form.
 
 ### 14.3 The landing page (`LANDING-PAGE-V11`)
+
 The founder's verdict: the current landing page is cluttered and does not communicate what Cadence is. The refinement: **not a dump of whatever we build; only what a visiting PM actually wants to see**, researched against how the best platforms do it, designed from the user's lens. My recommended content, in order:
+
 1. **Hero = the outcome, one line:** "Cadence senses what is happening, decides what is worth building, runs the work autonomously, and keeps the receipts." A single calm visual of the loop running (not a feature grid).
 2. **The one contrast that lands:** AI feature/chatbot (drafts, waits) vs AI operating system/action system (owns the loop, the work is done). This is the founder's reference-image insight and it is the clearest way to say what Cadence is.
 3. **Proof, not claims:** the live loop, the Trust Ledger (what changed/why/evidence/who/was-it-right), one believable artifact. Trust is the thing people pay for, so show it.
 4. **One CTA:** the Critic teardown ("point Cadence at your pet feature, see why it might be wrong, in 10 minutes"). One door, not five.
 5. **Who it is for + the durable promise:** the PM who wants to be a judge and orchestrator, not a ticket-writer; the platform that compounds your decisions into a moat no model can backfill.
-Strip everything else. The landing page is **sequenced after the capabilities it showcases** (it is #18-ish, after the v11 build front), per the logical-sequencing principle (§21).
+   Strip everything else. The landing page is **sequenced after the capabilities it showcases** (it is #18-ish, after the v11 build front), per the logical-sequencing principle (§21).
 
 ### 14.4 Connectors (`CONNECTORS-V11`)
-The loop needs real input from **day one** or it works in a silo. Today connectors are scattered across three places and presented repetitively (the duplicate-homes problem again). Consolidate into one Connections home, present the available sources cleanly (de-dup the repetitive lists, and audit *why* each of the six-plus is really required against the product's scope), and make at least one source bind-able on day one. The connector *platform* (`F-CONN`) and a second live source (`SEN-01`) are founder-gated on an OAuth registration; the consolidation and day-one-readiness layer is ours.
+
+The loop needs real input from **day one** or it works in a silo. Today connectors are scattered across three places and presented repetitively (the duplicate-homes problem again). Consolidate into one Connections home, present the available sources cleanly (de-dup the repetitive lists, and audit _why_ each of the six-plus is really required against the product's scope), and make at least one source bind-able on day one. The connector _platform_ (`F-CONN`) and a second live source (`SEN-01`) are founder-gated on an OAuth registration; the consolidation and day-one-readiness layer is ours.
 
 ---
 
 ## 15. Scope: reuse, reposition, club, flag (the honest opinion)
 
 The founder's instruction: do not trim blindly; give an honest outsider opinion on what is built but mis-placed, where we can re-use it, where it should be re-positioned or clubbed, and flag only what genuinely is not earning its place, with reasoning, for the founder's call.
+
 - **Reuse (built, valuable, just under-surfaced):** the Strategic Brief (steering wheel buried in Settings -> promote to Today/Brain); the ⌘K palette (the correct progressive-disclosure escape hatch -> lean on it instead of duplicating nav); the DecisionCard and consequence-first gates (the best-designed components -> extend with track record); the credit/billing engine (built + gate-green, dormant -> the founder's go-live config only).
 - **Reposition:** Missions (its own top-level item -> fold into Build, it is the same felt thing); the connectors (three places -> one home); the public-share routes (`d.$slug`/`t.$slug` -> reuse as the Trust Ledger share).
 - **Club / merge:** the 13 Engine Room tabs -> three bands; Plan + Credits -> one Billing parent; Accounts/Integrations/sync -> one Connections.
-- **Flag for the founder's call (built but barely earning its place today):** the drift surface (`drift_incidents` = 0 live), prototypes (`prototypes` = 0), studio_changesets (= 0) and the lightly-used evals are present in schema but unexercised; the Command Canvas (H2) is parked; the BYO repo lane is gated and early; audio features and the showcase/onboarding-concierge are deferred. My honest read: none of these should be *deleted* (they are cheap to keep and several are future bets), but they should be **recessed** (out of the front, into the Engine Room or behind ⌘K) and **not invested in** until the core loop is proven, so they stop adding to the felt density. The one genuine "do not build now" is anything that adds front-of-house surface area before the loop closes on real data.
+- **Flag for the founder's call (built but barely earning its place today):** the drift surface (`drift_incidents` = 0 live), prototypes (`prototypes` = 0), studio_changesets (= 0) and the lightly-used evals are present in schema but unexercised; the Command Canvas (H2) is parked; the BYO repo lane is gated and early; audio features and the showcase/onboarding-concierge are deferred. My honest read: none of these should be _deleted_ (they are cheap to keep and several are future bets), but they should be **recessed** (out of the front, into the Engine Room or behind ⌘K) and **not invested in** until the core loop is proven, so they stop adding to the felt density. The one genuine "do not build now" is anything that adds front-of-house surface area before the loop closes on real data.
 
 ---
 
@@ -348,32 +379,36 @@ The founder's instruction: do not trim blindly; give an honest outsider opinion 
 ---
 
 ## 17. Extended stakeholders
-The decision and outcome record is naturally consumed beyond the PM: sales/marketing/GTM get the "why we are building this" narrative and launch kits; leadership gets a portfolio-of-decisions-and-outcomes view (a second buyer and the enterprise expansion). The principle: do not build new systems for them; *project* the existing decision and outcome record into their language (`STAKEHOLDER-VIEWS`, post-pitch).
+
+The decision and outcome record is naturally consumed beyond the PM: sales/marketing/GTM get the "why we are building this" narrative and launch kits; leadership gets a portfolio-of-decisions-and-outcomes view (a second buyer and the enterprise expansion). The principle: do not build new systems for them; _project_ the existing decision and outcome record into their language (`STAKEHOLDER-VIEWS`, post-pitch).
 
 ---
 
 ## 18. PMF and founder-market fit
+
 **PMF: pre-PMF, honestly.** Founder-and-seed usage, an unproven wedge, a moat that has not begun to compound. The Critic teardown is the PMF probe; the metric is single-player retention and the teardown share rate. **FMF: genuinely strong.** An AI-native founder building a sophisticated governed multi-agent system largely solo, dogfooding the autonomous build process (the product is built the way the product says product should be built), with build-in-public as live evidence. The founder is both the target user and the proof case.
 
 ---
 
 ## 19. Risk register
-| Risk | Severity | Mitigation / build item |
-| --- | --- | --- |
-| No distribution | High | The viral wedge (`WEDGE`, `TRUST-SHARE`); cross-tool neutrality; adopt beside incumbents |
-| The moat is empty | High | Close the loop + seed it (`LOOP-PROVE`, `TEST-SEED`, then the built `LRN-02`/`W1-AUTO`/`MOAT-METRIC`) |
-| Frontier-model encroachment | High | Own the vertical schema + cross-tool write-back; make the Trust Ledger the hero; stay model-agnostic |
-| Build commoditized | Medium | Orchestrate, do not compete (`ORCH-DELEGATE`, §13) |
-| Margin under agentic load | Medium | Routing, caching, grant-sizing, capped top-ups, enterprise BYO-keys |
-| Doc drift / narrative | Medium | `POS-V11` reconciliation + the cascade |
-| Single-backend + embedder lock-in | Medium | Keep the `GraphStore` + embedder behind seams; Tier-3 |
-| Trust / adoption friction | Medium | Beside-not-instead adoption; the Trust Ledger as the PM's own defensibility artifact |
-| Consumer-grade not ready | Medium | The IA + design + landing + connectors layer (§14) |
-| Hollow-autonomy death (market punishes it) | High | Claim-never-outruns-wiring; fuel the moat before claiming it |
+
+| Risk                                       | Severity | Mitigation / build item                                                                               |
+| ------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------- |
+| No distribution                            | High     | The viral wedge (`WEDGE`, `TRUST-SHARE`); cross-tool neutrality; adopt beside incumbents              |
+| The moat is empty                          | High     | Close the loop + seed it (`LOOP-PROVE`, `TEST-SEED`, then the built `LRN-02`/`W1-AUTO`/`MOAT-METRIC`) |
+| Frontier-model encroachment                | High     | Own the vertical schema + cross-tool write-back; make the Trust Ledger the hero; stay model-agnostic  |
+| Build commoditized                         | Medium   | Orchestrate, do not compete (`ORCH-DELEGATE`, §13)                                                    |
+| Margin under agentic load                  | Medium   | Routing, caching, grant-sizing, capped top-ups, enterprise BYO-keys                                   |
+| Doc drift / narrative                      | Medium   | `POS-V11` reconciliation + the cascade                                                                |
+| Single-backend + embedder lock-in          | Medium   | Keep the `GraphStore` + embedder behind seams; Tier-3                                                 |
+| Trust / adoption friction                  | Medium   | Beside-not-instead adoption; the Trust Ledger as the PM's own defensibility artifact                  |
+| Consumer-grade not ready                   | Medium   | The IA + design + landing + connectors layer (§14)                                                    |
+| Hollow-autonomy death (market punishes it) | High     | Claim-never-outruns-wiring; fuel the moat before claiming it                                          |
 
 ---
 
 ## 20. The agentic doctrine (every build deepens autonomy)
+
 1. **Claim never outruns wiring.** Do not say it unless it is wired and demonstrable; this is survival in this market, not just discipline.
 2. **Governed by reversibility.** Act on reversible work; gate only at irreversible boundaries.
 3. **Sense, decide, act, log, at every phase.** Self-initiation is not a phase-one feature; every station can be triggered.
@@ -386,6 +421,7 @@ The decision and outcome record is naturally consumed beyond the PM: sales/marke
 ---
 
 ## 21. The build plan (the journey to consumer-ready)
+
 The plan is not "ship features"; it is **build the capability -> stitch and wire it into one loop -> design it to consumer-grade -> ship it user-ready -> showcase it last.** The ranked items live in the [feature dashboard](../planning/feature-dashboard.md) (each with a Why). The phases:
 
 - **Phase 0, the pitch sprint (Tier 1, #1-18), capabilities-first:** `TEST-SEED` (minimal dev data) -> `EVENT-REACTOR-LIVE` -> `AMBIENT-SENSE` -> `AMBIENT-TRIGGER` (the self-initiating loop) -> `LOOP-PROVE` (the moat fills on real data) -> `TRUST-LEDGER` -> `TRUST-SHARE` -> `BRAIN-UX-V11` (the analyst) -> `STITCH-LOOP` (one continuous loop) -> `CORE-UX-TRUST` -> `CORE-UX-FELT` -> `IA-NAV-V11` -> `SETTINGS-SEGREGATE` -> `CONNECTORS-V11` -> `ORCH-DELEGATE` -> `INTEROP-V11` -> `PLAYBOOK-REGISTRY` -> `PM-IMPACT-LEDGER` -> `STAKEHOLDER-PACK` -> `POS-V11`, then `LANDING-PAGE-V11` (after the capabilities it showcases).
@@ -393,53 +429,57 @@ The plan is not "ship features"; it is **build the capability -> stitch and wire
 - **Phase 2, future bets (Tier 3):** `EVALS-PRIMITIVE`, `AGENT-FLEET-VIEW`, plus `STAKEHOLDER-VIEWS`.
 - **Phase 3, closure (Tier 4, LAST):** `DEMO-SEED-RICH` (the rich external-showcase content) and `SHIP-V11` (QA the full loop, the humanization sweep, performance/accessibility, the go-live config, a final content re-clean before external showcase) + `HUMAN-SWEEP`.
 
-**The rich-seed sequencing (founder ruling).** A minimal `TEST-SEED` early (to build/test the data surfaces); the *rich* showcase seed is **last** (only once the capabilities are built does rich seeding reflect a real product, not a faked one). Showcase/dependent surfaces (landing page, rich seed) sequence after the features they present.
+**The rich-seed sequencing (founder ruling).** A minimal `TEST-SEED` early (to build/test the data surfaces); the _rich_ showcase seed is **last** (only once the capabilities are built does rich seeding reflect a real product, not a faked one). Showcase/dependent surfaces (landing page, rich seed) sequence after the features they present.
 
 The founder-gated items (need an OAuth/secret/spend/taste call) are `SEN-01`/`F-CONN` (connector OAuth), the external-coding-agent half of `ORCH-DELEGATE` (provider + spend), the outward write half of `INTEROP-V11`/`Q2` (scopes/audit), Stripe go-live, and the design/taste calls. These are marked Gated and surfaced in SOURCE-OF-TRUTH §4.
 
 ---
 
 ## 22. The pitch
-**Narrative arc:** (1) product management has not been reinvented in decades, and AI is collapsing the *build* layer, moving all the value and risk to the *decide* layer. (2) Everyone ships AI features and chatbots that draft and wait; Cadence is an AI operating system that owns the loop and an action system where the work is done. (3) It senses, decides, executes, and keeps the receipts (show the engine running). (4) The moat is the one thing no model and no single-suite incumbent can backfill or neutrally own; trust is the thing people pay for. (5) Here is the flywheel turning on real data, the wedge going viral, the market raiding the about $50B work-management envelope, and the NRR-expansion economics.
 
-**The demo (ordered for impact):** (1) self-initiation (a signal arrives, no one presses go, Cadence senses and opens a decision); (2) the action system (the mission plans, dispatches, hands off, advances to a *decision*, pausing at one gate, the work done); (3) the Critic teardown (the wedge); (4) the Trust Ledger (the closer: what changed, why, evidence, who approved, and the moment it was superseded by a real outcome). The demo depends on the build plan: without the seed, the ambient trigger, and the Trust Ledger, steps 1 and 4 render empty.
+**Narrative arc:** (1) product management has not been reinvented in decades, and AI is collapsing the _build_ layer, moving all the value and risk to the _decide_ layer. (2) Everyone ships AI features and chatbots that draft and wait; Cadence is an AI operating system that owns the loop and an action system where the work is done. (3) It senses, decides, executes, and keeps the receipts (show the engine running). (4) The moat is the one thing no model and no single-suite incumbent can backfill or neutrally own; trust is the thing people pay for. (5) Here is the flywheel turning on real data, the wedge going viral, the market raiding the about $50B work-management envelope, and the NRR-expansion economics.
+
+**The demo (ordered for impact):** (1) self-initiation (a signal arrives, no one presses go, Cadence senses and opens a decision); (2) the action system (the mission plans, dispatches, hands off, advances to a _decision_, pausing at one gate, the work done); (3) the Critic teardown (the wedge); (4) the Trust Ledger (the closer: what changed, why, evidence, who approved, and the moment it was superseded by a real outcome). The demo depends on the build plan: without the seed, the ambient trigger, and the Trust Ledger, steps 1 and 4 render empty.
 
 ---
 
 ## 23. Metrics and gates
+
 **Pitch-readiness gate:** the four-step demo runs end-to-end on real (seeded-then-live) data with no empty panels; the decision graph has real supersession edges; one live signal self-initiates a mission; the Trust Ledger renders the full record; the narrative is reconciled. **Leading product metrics:** wedge retention, teardown share rate, outcome-capture rate, supersession-edge growth per workspace, the moat metric (accuracy-lift as memory grows). **Business gates:** first paying team; team-tier NRR toward 120%+; gross margin held 45-60%.
 
 ---
 
 ## 24. Session inputs and decisions (2026-06-23)
+
 This is the documentation the founder asked for: a record of every input given and every decision made this session, so both can re-reference what was discussed and why. Decisions are also logged in [session-decisions.md](./session-decisions.md).
 
-| # | Founder input | Decision / output |
-| --- | --- | --- |
-| 1 | Do an honest outsider teardown (market + product); do not just agree; use the full toolset | Ran 5 ground-truth probes + 2 deep dives + a villain/defense pass + 4 core-user/IA/orchestration researches; produced this doc |
-| 2 | The product feels fragmented, no end-to-end autonomy | Found the opposite at the engine level (it is wired); the real problem is the cold moat + empty demo + felt density (§2, §6) |
-| 3 | Autonomy should not need a human to initiate; self-initiate at every phase | The corrected North Star (§3); `EVENT-REACTOR-LIVE`/`AMBIENT-SENSE`/`AMBIENT-TRIGGER` |
-| 4 | Play villain, then defend strongly | §9, and the defense gap becomes the build plan |
-| 5 | Should we embed the skills/agents into the product? | Yes as the Playbook Registry, not literal skill-text (§12) |
-| 6 | The core user (daily PM) is the most important stakeholder | §6 (felt experience + pains + future); `CORE-UX-*`, `PM-IMPACT-LEDGER`, `STAKEHOLDER-PACK` |
-| 7 | No new implementation-plan doc; put build items in the dashboard with top priority | Deleted the separate plan; the v11 front is ranked #1-18 in the dashboard; this doc carries the why |
-| 8 | The agent ecosystem: where, how triggered, automatic? Plus inbound access (MCP) | §4 the agent operating model; `INTEROP-V11` |
-| 9 | Don't go by my words on IA; form your own opinion; the app is too complex; settings overloaded | §14 (my recommended IA + settings); `IA-NAV-V11`, `SETTINGS-SEGREGATE`, `IA-DEPTH-V11` |
-| 10 | How do we pass work to Cursor/equivalent; cost/license at B2B; credit consolidation; BBI beyond coding | §13 (mechanics + economics + BBI); `ORCH-DELEGATE` |
-| 11 | Scope-trim is reuse/reposition/club/flag, not blind deletion; honest opinion | §15 |
-| 12 | The landing page is bad; think what a visiting PM wants to see, research others | §14.3 (the recommended content); `LANDING-PAGE-V11`, sequenced after the capabilities |
-| 13 | Rich demo seeding is LAST, not first; minimal test seed as needed | `DEMO-SEED-RICH` demoted to Tier 4; `TEST-SEED` added at #1 (§21) |
-| 14 | Add a one-line Why to dashboard rows | Done for all v11 rows; standing convention for new rows |
-| 15 | Logical sequencing: build the feature, then the surface that showcases it | §20.8; landing page + rich seed sequenced last |
-| 16 | Cascade the v11 positioning into README/AGENTS/moat | `POS-V11`; moat.md pointed; README + AGENTS §0 updated |
-| 17 | The Brain: graphical, interconnections, derived decisions, "past 3 months", build vs integrate the layer | §7 (UX + open-horizon intelligence + drive-action + infra verdict); `BRAIN-UX-V11` |
-| 18 | Connectors not fully there; day-one input; de-dup the repetitive presentation | §14.4; `CONNECTORS-V11` |
-| 19 | The Brain's intelligence is open-ended (not 4 static lenses) and must DRIVE agent action | §7.1-7.2 (lenses = floor; discover -> derive -> act) |
-| 20 | Document everything at depth so we both know what we discussed and why | This section + the whole doc + the decisions log |
+| #   | Founder input                                                                                            | Decision / output                                                                                                              |
+| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Do an honest outsider teardown (market + product); do not just agree; use the full toolset               | Ran 5 ground-truth probes + 2 deep dives + a villain/defense pass + 4 core-user/IA/orchestration researches; produced this doc |
+| 2   | The product feels fragmented, no end-to-end autonomy                                                     | Found the opposite at the engine level (it is wired); the real problem is the cold moat + empty demo + felt density (§2, §6)   |
+| 3   | Autonomy should not need a human to initiate; self-initiate at every phase                               | The corrected North Star (§3); `EVENT-REACTOR-LIVE`/`AMBIENT-SENSE`/`AMBIENT-TRIGGER`                                          |
+| 4   | Play villain, then defend strongly                                                                       | §9, and the defense gap becomes the build plan                                                                                 |
+| 5   | Should we embed the skills/agents into the product?                                                      | Yes as the Playbook Registry, not literal skill-text (§12)                                                                     |
+| 6   | The core user (daily PM) is the most important stakeholder                                               | §6 (felt experience + pains + future); `CORE-UX-*`, `PM-IMPACT-LEDGER`, `STAKEHOLDER-PACK`                                     |
+| 7   | No new implementation-plan doc; put build items in the dashboard with top priority                       | Deleted the separate plan; the v11 front is ranked #1-18 in the dashboard; this doc carries the why                            |
+| 8   | The agent ecosystem: where, how triggered, automatic? Plus inbound access (MCP)                          | §4 the agent operating model; `INTEROP-V11`                                                                                    |
+| 9   | Don't go by my words on IA; form your own opinion; the app is too complex; settings overloaded           | §14 (my recommended IA + settings); `IA-NAV-V11`, `SETTINGS-SEGREGATE`, `IA-DEPTH-V11`                                         |
+| 10  | How do we pass work to Cursor/equivalent; cost/license at B2B; credit consolidation; BBI beyond coding   | §13 (mechanics + economics + BBI); `ORCH-DELEGATE`                                                                             |
+| 11  | Scope-trim is reuse/reposition/club/flag, not blind deletion; honest opinion                             | §15                                                                                                                            |
+| 12  | The landing page is bad; think what a visiting PM wants to see, research others                          | §14.3 (the recommended content); `LANDING-PAGE-V11`, sequenced after the capabilities                                          |
+| 13  | Rich demo seeding is LAST, not first; minimal test seed as needed                                        | `DEMO-SEED-RICH` demoted to Tier 4; `TEST-SEED` added at #1 (§21)                                                              |
+| 14  | Add a one-line Why to dashboard rows                                                                     | Done for all v11 rows; standing convention for new rows                                                                        |
+| 15  | Logical sequencing: build the feature, then the surface that showcases it                                | §20.8; landing page + rich seed sequenced last                                                                                 |
+| 16  | Cascade the v11 positioning into README/AGENTS/moat                                                      | `POS-V11`; moat.md pointed; README + AGENTS §0 updated                                                                         |
+| 17  | The Brain: graphical, interconnections, derived decisions, "past 3 months", build vs integrate the layer | §7 (UX + open-horizon intelligence + drive-action + infra verdict); `BRAIN-UX-V11`                                             |
+| 18  | Connectors not fully there; day-one input; de-dup the repetitive presentation                            | §14.4; `CONNECTORS-V11`                                                                                                        |
+| 19  | The Brain's intelligence is open-ended (not 4 static lenses) and must DRIVE agent action                 | §7.1-7.2 (lenses = floor; discover -> derive -> act)                                                                           |
+| 20  | Document everything at depth so we both know what we discussed and why                                   | This section + the whole doc + the decisions log                                                                               |
 
 ---
 
 ## 25. Provenance and sources
+
 Produced 2026-06-23 from: 5 ground-truth probes (strategy-doc audit, build-state audit, technical-defensibility audit on code + live DB, live-app inspection, market/competitor map); 2 deep dives (the embed-skills verdict; market sizing + pricing); a villain/defense pass; 4 further researches (core-user felt experience; PM pains + future of PM; consumer-grade IA/settings; orchestration economics + BBI); and 7 founder reference images that independently corroborated the three-pillar moat (AI operating system that owns the loop; action system where the work is done; the coding pipeline to orchestrate not compete; the useful market questions; opportunity signals tagged across 373 companies; and "regulated buyers want proof, trust is the thing people pay for").
 
 Market/pricing sources (flagged [V]/[E]/[A] in §10-11): PM population (llcbuddy, Retail Logistics); market size (datainsightsmarket $8.4B 2025, growthmarketreports, Fortune Business Insights PLM); pricing (Productboard, Atlassian Rovo, Asana, ClickUp, Notion); margin/NRR (saasmag, TechTimes, ICONIQ State of AI 2026, digitalapplied); comparables (Miro/Reforge, Tracxn $81M, TechCrunch Maze $60M, Sacra Linear $1.25B, getlatka Notion, Lovable $6.6B, Cursor $29.3B, Replit $3B). PM-future sources: 2025 State of B2B PM survey, Productboard AI report, Reforge, Lenny's analysis, The Last Product Manager, Marty Cagan/SVPG, Teresa Torres. Orchestration sources: OpenAI Codex SDK, Devin v3 API, Cursor Cloud Agents API, Claude Agent SDK, v0 Platform API, OpenHands. Full URLs are preserved in the 2026-06-23 research threads and should be reproduced in the deck's appendix.
@@ -476,6 +516,7 @@ The founder asked: play the villain who wants to kill Cadence, give it real teet
 ### A2. Ground-truth probe 1: the strategy-doc audit (the soft spots an investor attacks)
 
 A diligence read of the 7 strategy docs (v7-v10, moat.md, README, the role map), spanning 2026-06-14 to 06-19, found the wedge and the build-state honesty genuinely strong, but real version drift the arbiter does not reconcile:
+
 - **The headline moat thesis flipped, and the canon was not updated.** v7:45 (the named positioning arbiter) says "Memory is the moat, not orchestration." moat.md:7 and README:55 say "the moat is the decision layer; memory is one layer of it." A reader who follows the documented arbiter lands on the RETIRED thesis. (v11 resolves this: the decision-and-outcome layer; memory is one component.)
 - **"Ambient + governed, NOT autonomous" (v7) vs "say the autonomous loop out loud" (v9/CLAUDE.md).** A live tonal contradiction an investor will hear in two different pitch sentences. (v11 resolves via §3: autonomy is real and self-initiating, governed by reversibility.)
 - **Persona count: 7 vs 2 vs 1.** README lists P1-P7 (enterprise-led); v7 narrows to dual-persona (PLG-led); v9 says "collapse the narrative to the individual PM." The README, the first doc an investor reads, is the broadest exactly where the canon says a pre-PMF company must be narrowest.
@@ -487,6 +528,7 @@ A diligence read of the 7 strategy docs (v7-v10, moat.md, README, the role map),
 ### A3. Ground-truth probe 2: the build-state audit (what is actually built)
 
 Code-verified, not doc-trusted. **Bottom line: this is NOT fragmented bits-and-pieces; there is a genuine, code-wired end-to-end autonomous engine, driven by a live cron sweeper.** The fragmentation risk is the opposite of the fear: the surface area is large, and the deepest differentiator (the Decision Brain) is built but dormant behind an un-flipped flag.
+
 - **Inventory:** about 50 routes collapse cleanly into about 8 real data-backed surfaces (Today, Ask, Product loop, PRD/Spec editor, Build/Studio, Missions, Brain/Knowledge, Engine Room/Govern, Settings, Admin, Connectors) via clean redirect stubs (zero "coming soon" placeholders), backed by 84 `*.functions.ts` server modules.
 - **Autonomy is real and code-verified:** migration `20260603215547` schedules a `pg_cron` job `resume-runs` every minute against a real Lovable deployment URL; `advanceMissionCore` advances every running mission with no human; stations are ordered Sense/Decide/Define/Build/Ship/Learn; A2A handoff writes a structured payload and the receiver claims it compare-and-set; the loop runs from Ask, Today, Missions, and the cron.
 - **The single biggest gap:** the autonomous PLUMBING is wired end-to-end, but the SIGNATURE differentiator (the Decision Brain supersession engine) is fully built yet sits behind a flag and has never run on live data, and the demo seed writes no `artifact_lineage` edges, so provenance/lineage/memory render EMPTY in any demo. The gap is activation + proof-on-real-data, not a missing engine.
@@ -494,6 +536,7 @@ Code-verified, not doc-trusted. **Bottom line: this is NOT fragmented bits-and-p
 ### A4. Ground-truth probe 3: the technical-defensibility audit (the CTO read)
 
 "Genuinely engineered agentic system, not a GPT-wrapper demo," but the moat is "wired and armed yet effectively unpopulated."
+
 - **The agent loop:** adaptive step budget (orchestrator base 14, specialists about 6) under a hard ceiling; tools are DB-driven per-user per-agent and risk-capped (a scoped agent cannot even see an out-of-remit tool); approval modes compose the tool's mode with the agent's earned autonomy arc, then non-overridable safety floors force merge/revert/delegate to `review` and any high-blast tool to at least `confirm`; model routing is model-agnostic by contract (default `gemini-2.5-flash` for the loop). Real limit: a single linear plan-act-observe loop, a brittle JSON-string protocol with a regex fallback, 2,000-char tool-output truncation. Prompt-injection hardening is real (`<untrusted_tool_output>`).
 - **Multi-agent orchestration is genuine and wired end-to-end:** typed handoff payloads (not pasted prompt strings), a model-free mid-mission advance engine (a deliberately good design: the orchestrator LLM only does the initial plan), claim-first CAS dispatch, skip-cascade of poisoned dependents. Live-DB evidence: 31 missions (27 completed), 37 agent runs (32 carrying a `mission_id`), 22 agent messages all consumed.
 - **Genuinely defensible:** the bi-temporal typed decision graph (`supersession.ts` + `governing-decision.ts`), workspace/account-scoped compounding memory with tier-gated cross-workspace pooling, the four-lens Critic, the credential chokepoint with a cross-tenant guard. **Weekend-replicable:** the loop shape, the tool registry, the chokepoint logging, RAG retrieval, the approval-queue UI, the Critic prompt minus the graph retrieval.
@@ -507,6 +550,7 @@ Live at `https://cadence-flow-beta.lovable.app`, published, on-brand (the orange
 ### A6. Ground-truth probe 5: the market and competitor map (June 2026)
 
 **The one-paragraph read:** "agentic PM" is inflated industry-wide; almost everything shipping is a human-in-the-loop copilot that stops at a human-approved artifact. The two PM-specific incumbents (Productboard, Aha!) self-brand "co-pilot, not autopilot." Genuine autonomy exists almost only in the adjacent CODING lane (Atlassian Rovo Dev, Cursor, Codex, Devin, Lovable/Replit), which is absorbing the "build" slice decisively, so build is not a defensible moat. The independent full-lifecycle AI-PM startups have mostly been acquired or died in 2025-26 (Kraftful to Amplitude, Cycle to Atlassian and sunset, Zeda dead, Reforge to Miro), leaving the independent, genuinely-autonomous, end-to-end, system-of-record slot effectively OPEN. The frontier labs build the substrate (personal memory, enterprise search, connectors, computer-use), not the vertical (product-decision lineage, cross-stakeholder shared state, PM system-of-record), and OpenAI is actively removing its audit trail.
+
 - **Incumbent AI reality (verified 2025-26):** Productboard Spark (agentic skills, but non-reorderable steps, "co-pilot not autopilot"); Atlassian Rovo (the strongest, real autonomy in CODING via Rovo Dev, PM-ops is supervised triage; the Teamwork Graph is a context graph, explicitly not a decision graph; bundled + credit-metered); Aha! Elle (assistant, no background runs); Linear/Notion/Asana/ClickUp agents (mostly trigger-to-action automations + thin assignable-agent layers, credit-gated). Everyone converged on per-seat base + metered AI credits and is racing the seat price down.
 - **The defensibility table (commoditized vs survives):** generic PRD/story drafting, summarization, personal-assistant memory, generic connector retrieval, single-shot automation are COMMODITIZED. Domain-opinionated lifecycle with stage gates, cross-stakeholder shared state with permissions, structured product-decision lineage/audit (the single most durable piece per every analyst), cross-tool orchestration with write-back, being the PM system-of-record, and compounding proprietary outcome data SURVIVE.
 - **The 3 sharpest investor objections and the only credible answers** are captured in full in A1 (villains 1-3); the honest caveats are that Atlassian is the most dangerous competitor (distribution), and the decision-graph moat compounds slowly so time-to-depth is the vulnerability.
@@ -514,6 +558,7 @@ Live at `https://cadence-flow-beta.lovable.app`, published, on-brand (the orange
 ### A7. Core-user probe 1: the felt daily experience (the proof + trust-timing problem)
 
 Verdict: "Cadence has a genuinely novel, well-built first-value moment (the Critic teardown) and a calm, restrained shell a discerning PM respects on sight. But the daily loop is a trust-asymmetry trap: it asks the PM to govern a machine whose intelligence is invisible because the moat data is cold. It would impress in a 10-minute demo and quietly lose the PM by week two, not because the engine is fake (it is not), but because the surfaces meant to prove the engine is smart render empty."
+
 - **First-run:** the Critic teardown is the strongest moment (an instant Ship/Revise/Kill verdict with risks + kill-criteria, zero setup, under 10 minutes). Then it goes downhill: data-plumbing onramp, then a jargon wall (Loop, missions, stations, Engine Room, Gauntlet, Trust), then empty proof-panels. Highest-stakes fragility: if the gateway is cold, the teardown can dead-end on the very first action.
 - **Emotional truth (surface to feeling):** delight = the teardown; trust = the expanded DecisionCard ("Evidence / If you approve / Undo" with reversibility coloring) and the mission gate panel; control = the mission detail page (cancel/replay/advance, "Executed unattended"); curiosity-then-deflation = "What changed" / Brain memory / spec provenance, all built to show the moat and all empty on cold data; anxiety = the Today approval queue when it has 5+ tool-call gates; alienation = the 13-tab Engine Room (calm in NAMING, overwhelming in BREADTH).
 - **"Agents execute, you govern" leans BURDEN today** because most of the queue is low-level tool gates (intern-supervision) and the rejection-learning is invisible (cold memory), so rejecting feels like correcting a parrot, not training a colleague.
@@ -541,18 +586,20 @@ Verdict: "Cadence has a genuinely novel, well-built first-value moment (the Crit
 ### A11. Orchestrate the builders: mechanics, BBI, and B2B economics (full version of §13)
 
 **The mechanics (verified 2025-26).** Four of six candidates expose a genuine programmatic dispatch path, and the seat-license trap dissolves if you dispatch through the cloud/SDK/self-host surface, not the editor:
+
 - **Devin (best fit):** a REST `POST /v3/.../sessions` async build-and-open-a-PR API with a built-in `max_acu_limit` per-task cost cap; pricing is per-ACU (1 ACU is about 15 min of work; the exact per-ACU rate is mid-revision, treat as estimate), enterprise billed in ACUs.
 - **Claude Agent SDK / Codex SDK:** headless/CLI, API-key-metered (predictable per-token), you drive the loop; as of mid-2026 the Agent SDK + GitHub Actions are metered separately from interactive Claude Code.
 - **Cursor Cloud Agents API:** supports service-account API keys (so it DOES fit programmatic dispatch), but the ToS for embedding it in a third-party product that dispatches on behalf of YOUR customers is the open legal question; keep Cursor BYO-key-only until cleared.
 - **OpenHands (the floor):** self-host, $0 external license, BYO-LLM, so cost flows through your existing AI-credit chokepoint.
 - **v0:** niche (text-to-UI, not a repo-PR agent). The seat-only/no-dispatch surfaces are the Cursor editor itself and the v0 web app.
-Cadence already has the exact seams: `DelegateProvider` (BLD-04, dormant, with the right payload shape) + `ExecProvider` (SANDBOX, the $0 GitHub-Actions CI floor that decides if the result may merge). The two compose: DelegateProvider dispatches, ExecProvider greenlights.
+  Cadence already has the exact seams: `DelegateProvider` (BLD-04, dormant, with the right payload shape) + `ExecProvider` (SANDBOX, the $0 GitHub-Actions CI floor that decides if the result may merge). The two compose: DelegateProvider dispatches, ExecProvider greenlights.
 **The recommended architecture:** OpenHands self-host as the $0 floor -> Devin + Claude Agent SDK as the two premium adapters -> Codex -> Cursor (BYO-key) -> v0. Governance is where the moat lives: human-approves-before-dispatch (a `review`-mode tool), the external agent returns a PR that cannot bypass your merge gate, the result folds back as a mission step with full trace.
-**Credit consolidation:** meter external compute as Cadence credits, two postures. (A) passthrough + markup (a credit pre-authorization holds, then debits actual cost; OpenHands floor is highest-margin; premium providers convert ACU/token cost at a 1.3-1.6x markup [E], always capped per task). (B) enterprise BYO-coding-agent-key (mirrors BYOK; the customer binds their own Devin/Cursor/Codex contract via the existing `resolveProviderAuth` chain; the heaviest, spikiest compute is billed to THEIR account, removing your COGS and resolving the Cursor ToS and data-residency objections at once). **Net business model: price the orchestration + governance + decision-memory (near-software margins), meter the compute, cap every task, BYO-key to enterprise.**
+  **Credit consolidation:** meter external compute as Cadence credits, two postures. (A) passthrough + markup (a credit pre-authorization holds, then debits actual cost; OpenHands floor is highest-margin; premium providers convert ACU/token cost at a 1.3-1.6x markup [E], always capped per task). (B) enterprise BYO-coding-agent-key (mirrors BYOK; the customer binds their own Devin/Cursor/Codex contract via the existing `resolveProviderAuth` chain; the heaviest, spikiest compute is billed to THEIR account, removing your COGS and resolving the Cursor ToS and data-residency objections at once). **Net business model: price the orchestration + governance + decision-memory (near-software margins), meter the compute, cap every task, BYO-key to enterprise.**
 
 ### A12. The consumer-grade IA audit (full version of §14)
 
 **Headline:** the route layer is ALREADY consolidated (about 24 of about 50 routes are redirect stubs into 6 surfaces), so "too complicated" is felt density and competing organizing metaphors, not route sprawl, and the app violates its own engine-room doctrine in fixable ways. This is a tightening job.
+
 - **The left nav stacks four organizing systems at once** (an unlabeled workspace rail, a jargon-labeled "Loop" group whose per-group ids are flattened anyway, a Products LIST that is entity-data-as-navigation, and a "Trust" icon row where three of four icons deep-link into the SAME `/govern` surface) plus a floating dock for one link. A first-time PM meets 6+ competing navigational mechanisms.
 - **The recommended IA:** 5 calm outcome-named destinations (Today, Ask, Product, Build with Missions folded in, Brain) + one recessed Engine Room door (the approvals badge on it); kill the "Loop"/"Trust" labels and the floating dock; demote the Products list into the workspace switcher; lean on the already-built ⌘K palette for the deep surfaces. The 13 Engine Room tabs (already outcome-named) group into three bands: Needs you (Approvals, Spend), Trust and safety (Controls, Safety, Team, Incidents, Attention), Quality and insight (Quality checks, Prompts, Analytics, Activity, Trends, Loop health).
 - **Settings (the most overloaded surface, 11 flat tabs) into 5 groups:** Account (Profile, Notifications) / Workspace (the Strategic Brief, Voice Anchor, Members, the agent roster) / Connections (one home for Accounts/Integrations/`/sync`, killing the three-places confusion) / AI and keys (default model + BYO keys) / Billing (Plan + Credits), with Advanced (Health, Data/compliance) recessed. **Promote the Strategic Brief out of Settings:** it is injected into every agent's prompt (a steering wheel) yet buried as tab 4.
@@ -563,6 +610,7 @@ Cadence already has the exact seams: `DelegateProvider` (BLD-04, dormant, with t
 An external "AI operating system / agentic business" talk the founder surfaced, which independently corroborated the three-pillar moat: (1+2) IMG_2847 "AI feature added to an app (drafts, waits, copyable) vs AI operating system that owns the loop (collects context, decides, acts, keeps the log)" = Cadence's positioning verbatim, and the right column is code-verified real; (3) IMG_2850 "chatbot (the work is still yours) vs action system (the work is done)" = the autonomous action thesis; (4) IMG_2854/2853 "the agent owns the whole pipeline, ticket to PR, an operating system for software teams" = the CODING pipeline, flagged as the commoditized lane to orchestrate not compete; (5) IMG_2844 "the useful questions" (which markets are too crowded, which opportunities about to explode, which to avoid) = the ambient market-sensing frame; (6) IMG_2846 "opportunity signals tagged across 373 companies" (AI agent, MCP/tool-calling, evals/sandbox, CRM and revenue ops, human approval, data ingestion, compliance and audit, browser automation) = signal-intelligence as a product + the tag set Cadence's Sense layer should use; (7) IMG_2852 "regulated buyers want proof: what changed / why / evidence / who approved; trust is not a feature, it is the thing people pay for" = the Trust Ledger, the most durable pillar, the part the labs are removing and the incumbents lack.
 
 ### A14. The raw research artifacts
+
 The full agent reports (each 100K-200K tokens of grounded analysis with file:line citations and source URLs) live in the 2026-06-23 session transcript. This appendix distills them; for a specific claim's primary evidence, the transcript holds the raw probe output. The deck's own appendix should reproduce the source URLs from A6, A8, A10, and A11.
 
 ### A15. The full session narrative (every founder steer and how it shaped the work)
@@ -612,6 +660,7 @@ A chronological record of the 2026-06-23 session, so the PROCESS (the inputs, th
 ### A16. The decision rationale (the "how we decided" behind each major call)
 
 For each major decision: the options, the tradeoff, the call, and why. (The villain/defense rationale is A1; the research findings are A2-A14.)
+
 - **Ambient autonomy (pull vs push).** Pull is built; push is scaffolded but cold. Call: light the push half (it is the differentiated, hard-to-copy part, since it needs your connectors + memory + governance), governed by reversibility so it never acts irreversibly without a human. Why: the labs and incumbents will not own the push-from-your-signals layer.
 - **The Brain (read surface vs action driver; build vs integrate; lenses vs open analyst).** Call: all of the deeper options. It drives action (discover-derive-act), the lenses are a floor with an open intelligence ceiling, and the infra is build-the-intelligence + self-host-the-substrate + integrate-only-the-viz. Why: the intelligence IS the moat (never rent it); the substrate is commodity Postgres (own the data, no per-token graph bill); a viz library is not worth building.
 - **Orchestrate vs build the coding layer.** Call: orchestrate, never build codegen. Floor = OpenHands ($0 license), premium = Devin + Claude Agent SDK, enterprise = BYO-coding-agent-key. Why: build is a draining moat owned by $6-29B players; Cadence's output is their input; price the orchestration + governance, which has software margins.
@@ -625,6 +674,7 @@ For each major decision: the options, the tradeoff, the call, and why. (The vill
 ### A17. Positioning, restated simply (the "what is Cadence" answer, 2026-06-24)
 
 The founder flagged that the messaging felt vague and that "end-to-end lifecycle" seemed to conflict with "orchestrate the builders." Validation: the positioning is NOT incoherent, but it had been stated in tangled, overlapping layers. Stated cleanly in three separate layers:
+
 - **Category (what shelf):** the autonomous decision-and-outcome OS for product teams.
 - **Mechanism (what it does):** runs the whole lifecycle (sense, decide, define, build, ship, learn) as one governed autonomous loop; OWNS the layers with no fast oracle (decide, learn, the memory, the moat) and ORCHESTRATES the layer that is already a commodity (writing code) instead of rebuilding it.
 - **Revolution (why it matters):** product management has been a coordination job for decades; Cadence makes it a judgment job (the human sets direction and judges outcomes; agents run the loop). That is the new operating model and the concrete form of "revolutionize PM."

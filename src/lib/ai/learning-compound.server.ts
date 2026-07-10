@@ -56,7 +56,9 @@ export async function runLearningCompoundPass(
   if (!learnings.length) return result;
 
   // Join the cheap signal keys. Three bounded lookups, no AI.
-  const oppIds = [...new Set(learnings.map((l) => l.opportunity_id).filter((v): v is string => !!v))];
+  const oppIds = [
+    ...new Set(learnings.map((l) => l.opportunity_id).filter((v): v is string => !!v)),
+  ];
   const oppById = new Map<string, { title: string | null; theme_id: string | null }>();
   if (oppIds.length) {
     const { data: opps } = await db
@@ -72,7 +74,9 @@ export async function runLearningCompoundPass(
     }
   }
 
-  const themeIds = [...new Set([...oppById.values()].map((o) => o.theme_id).filter((v): v is string => !!v))];
+  const themeIds = [
+    ...new Set([...oppById.values()].map((o) => o.theme_id).filter((v): v is string => !!v)),
+  ];
   const themeTitleById = new Map<string, string | null>();
   if (themeIds.length) {
     const { data: themes } = await db.from("themes").select("id,title").in("id", themeIds);

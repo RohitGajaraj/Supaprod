@@ -15,6 +15,7 @@ Cadence ships a two-layered observability stack. The **commodity layer** is boug
 ## Where to find it (nav path, route, panels)
 
 When live (post-AFD-12):
+
 - **Admin → AI costs** → `/admin/ai-costs` — cost-per-mission, p95 latency, budget burn.
 - **Admin → Incidents** (existing `IncidentsPanel`, extended) — last 24h Sentry top error_kinds, cron heartbeat status, recent `job_runs` errors.
 - **Admin → Observability** → `/admin/observability` — kill-switch, sample-rate sliders, vendor reachability ping.
@@ -25,6 +26,7 @@ Pre-AFD-12, none of these exist; only the doctrine + plan do.
 ## How it works (server fns, modules)
 
 Will be wired at build time (cold-buildable per the plan):
+
 - `src/lib/observability/analytics.ts` — `track()` / `identify()` / `pageView()` → PostHog.
 - `src/lib/observability/errors.ts` — `captureError()` / `captureMessage()` / `setUser()` / `setTag()` → Sentry.
 - `src/lib/observability/uptime.ts` — `heartbeat(jobName)` → Better Stack URL.

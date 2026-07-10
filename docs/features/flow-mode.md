@@ -34,18 +34,18 @@ This is implemented as a facade, not by intercepting sonner: `src/lib/notify.ts`
 
 ## Files
 
-| Concern | File |
-| --- | --- |
-| Notification facade (hold/summary) | `src/lib/notify.ts` (+ `notify.test.ts`) |
-| Pure session/timer/preset helpers | `src/lib/flow/session.ts` (+ `session.test.ts`) |
-| Real-audio soundscape player (Web Audio buffer loop + crossfade) | `src/lib/flow/soundscape.ts` |
-| Audio files (drop-in) | `public/soundscape/*.mp3` (+ `README.md` for sourcing + license) |
-| Completion chime | `src/lib/flow/chime.ts` |
-| State + persistence (context, localStorage, `html.flow`) | `src/hooks/use-flow-mode.tsx` |
-| The control | `src/components/cadence/FlowWidget.tsx` |
-| Provider wiring | `src/routes/_authenticated.tsx` |
-| Footer placement | `src/components/cadence/AppShell.tsx` |
-| Dim treatment + pulse | `src/styles.css` (`html.flow`, `flowBreathe`) |
+| Concern                                                          | File                                                             |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Notification facade (hold/summary)                               | `src/lib/notify.ts` (+ `notify.test.ts`)                         |
+| Pure session/timer/preset helpers                                | `src/lib/flow/session.ts` (+ `session.test.ts`)                  |
+| Real-audio soundscape player (Web Audio buffer loop + crossfade) | `src/lib/flow/soundscape.ts`                                     |
+| Audio files (drop-in)                                            | `public/soundscape/*.mp3` (+ `README.md` for sourcing + license) |
+| Completion chime                                                 | `src/lib/flow/chime.ts`                                          |
+| State + persistence (context, localStorage, `html.flow`)         | `src/hooks/use-flow-mode.tsx`                                    |
+| The control                                                      | `src/components/cadence/FlowWidget.tsx`                          |
+| Provider wiring                                                  | `src/routes/_authenticated.tsx`                                  |
+| Footer placement                                                 | `src/components/cadence/AppShell.tsx`                            |
+| Dim treatment + pulse                                            | `src/styles.css` (`html.flow`, `flowBreathe`)                    |
 
 Preferences persist client-side only (`cadence.flow.config`, `cadence.flow.session`), mirroring how theme and active-workspace are stored. No server table.
 

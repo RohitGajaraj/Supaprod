@@ -82,7 +82,7 @@ The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside
 
 ## CNV-03: the ARD, publishing the Outcome Contract as a standard (v12 sec 7.4)
 
-**Why this exists:** v12 sec 7.4, stated directly — "a standard needs consumers; the first consumers are the coding agents Cadence dispatches to." Every prior CNV step built and refined the Outcome Contract *inside* Cadence. Nothing outside Cadence could read it in a stable, versioned shape. CNV-03 closes that: the same contract, published.
+**Why this exists:** v12 sec 7.4, stated directly — "a standard needs consumers; the first consumers are the coding agents Cadence dispatches to." Every prior CNV step built and refined the Outcome Contract _inside_ Cadence. Nothing outside Cadence could read it in a stable, versioned shape. CNV-03 closes that: the same contract, published.
 
 ### What ships
 

@@ -9,14 +9,14 @@ happened overnight, what to look at, and the calls parked for you.
 
 ## What shipped (all pushed to main; Lovable auto-deploys)
 
-| Commit | What |
-| --- | --- |
-| `3549fc2e` | Repo-wide prettier sweep, code only (~7,800 lint findings cleared) |
-| `24fccc59` | Dormant-payments crash chain fixed (the recurring prod console error) + a real cross-tenant security hole in audio transcription closed |
-| `41d4b3b1` | The portal theme escape fixed: dropdowns, dialogs, palette, toasts now inherit the dark theme (the "white workspace switcher" bug) |
-| `ba05bd3f` | DESIGN-LOOM v4 adopted (the contract) + the build bible + all audit evidence committed |
+| Commit     | What                                                                                                                                                                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `3549fc2e` | Repo-wide prettier sweep, code only (~7,800 lint findings cleared)                                                                                                                                                                                       |
+| `24fccc59` | Dormant-payments crash chain fixed (the recurring prod console error) + a real cross-tenant security hole in audio transcription closed                                                                                                                  |
+| `41d4b3b1` | The portal theme escape fixed: dropdowns, dialogs, palette, toasts now inherit the dark theme (the "white workspace switcher" bug)                                                                                                                       |
+| `ba05bd3f` | DESIGN-LOOM v4 adopted (the contract) + the build bible + all audit evidence committed                                                                                                                                                                   |
 | `34bea876` | W1: the rail now shows every home (THE LOOP 01-05 · THE ENGINE 06-08 · Settings/Admin/account), v4 tokens, /knowledge is now /brain, no more blank-frame navigation, quiet top bar, complete command palette, Lovable/gpt-engineer fingerprints stripped |
-| `3b6b3018` | W2: all seven surfaces transformed (detail below) |
+| `3b6b3018` | W2: all seven surfaces transformed (detail below)                                                                                                                                                                                                        |
 
 ## The audit, in numbers
 
@@ -132,10 +132,11 @@ cadence-flow-beta.lovable.app is stuck — only your Lovable dashboard (or
 authorizing the Lovable MCP) can show why and republish.
 
 **Morning sequence (10 minutes):**
+
 1. Open Lovable → the project → check build/deploy status. One publish
    deploys all seven commits.
 2. Applying pending migrations at publish: `20260704110900_loom_prd_scope
-   _consistency.sql` (+ any earlier unapplied ones Lovable lists).
+_consistency.sql` (+ any earlier unapplied ones Lovable lists).
 3. Then run the 10-minute verification path above on the live app.
 4. Authorize the Lovable MCP when convenient — it unlocks live-DB checks,
    the "This is an Test Message - By RG" debris cleanup, and the rich demo
@@ -143,7 +144,6 @@ authorizing the Lovable MCP) can show why and republish.
 
 The demo seed was NOT run: the mission gates it on a stable, deployed
 production — that gate is yours to open after the publish.
-
 
 ## Day session addendum (2026-07-04 afternoon)
 
@@ -170,6 +170,7 @@ After your publish, two live-QA rounds ran against production and shipped:
   [`live-qa-round-1.md`](./live-qa-round-1.md) for any future round.
 
 **Your three actions:**
+
 1. Publish once more AND apply pending migrations (three: prd-scope
    consistency, demo-content humanize, seed-function humanize) — that is
    where the remaining on-screen em dashes die.

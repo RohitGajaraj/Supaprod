@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-15 |
-| Rank | #16 (dashboard) |
-| Tier | 2 |
-| Status | pending |
-| Category | Cockpit (cross-cutting rule set) |
-| Depends on | rides OBS-05 (Build), OBS-08 (Brain), OBS-09 (Engine Room); transitively OBS-01 tokens, OBS-03 primitives |
-| Blocks | nothing downstream |
+| Field         | Value                                                                                                                                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID            | OBS-15                                                                                                                                                                                                                                           |
+| Rank          | #16 (dashboard)                                                                                                                                                                                                                                  |
+| Tier          | 2                                                                                                                                                                                                                                                |
+| Status        | pending                                                                                                                                                                                                                                          |
+| Category      | Cockpit (cross-cutting rule set)                                                                                                                                                                                                                 |
+| Depends on    | rides OBS-05 (Build), OBS-08 (Brain), OBS-09 (Engine Room); transitively OBS-01 tokens, OBS-03 primitives                                                                                                                                        |
+| Blocks        | nothing downstream                                                                                                                                                                                                                               |
 | One-line what | Apply extensions §6 chart grammar wherever data draws: slate axes, teal machine series, dashed cobalt benchmarks, max 3 families, obsidian sparklines, the pencil layer (machine draws exact, human draws pencil), aurora only on score moments. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-15 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-15                                                                                                                                                                       |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                           |
 
 ## 2. Why we are doing it
 

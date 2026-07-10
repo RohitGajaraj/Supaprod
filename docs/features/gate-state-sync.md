@@ -4,7 +4,7 @@
 
 ## The problem (found against the live DB)
 
-A mission driven by a single agent run that **pauses on a HITL gate** (e.g. `studio.commit`) stayed `missions.status='running'` forever. `advanceMissionCore` only syncs missions that have a `mission_steps` DAG, and the frozen AI core (`loop.server.ts`) marks the **run** `waiting_approval` without touching the parent mission. The Delegate Desk maps mission status to a lane (`laneForStatus`: `running → working`, `blocked → needsYou`), so the mission sat in **"working"** — the operator was never told *they* were the blocker. This is the felt "why is the loop idle?" bug.
+A mission driven by a single agent run that **pauses on a HITL gate** (e.g. `studio.commit`) stayed `missions.status='running'` forever. `advanceMissionCore` only syncs missions that have a `mission_steps` DAG, and the frozen AI core (`loop.server.ts`) marks the **run** `waiting_approval` without touching the parent mission. The Delegate Desk maps mission status to a lane (`laneForStatus`: `running → working`, `blocked → needsYou`), so the mission sat in **"working"** — the operator was never told _they_ were the blocker. This is the felt "why is the loop idle?" bug.
 
 Live evidence: mission `0d0db176` was `running` for **88 hours**, 0 steps, one run `waiting_approval` on a pending `studio.commit`. Separately, a `failed`+decided `studio.stage` approval kept `escalation_state='pending'`, so it haunted every Needs-You surface (Today / governance read `escalation_state`, not `status`) as a phantom the operator could never clear.
 
@@ -31,7 +31,7 @@ Wiring (deterministic, idempotent, CAS-guarded):
 
 ## Scope boundary
 
-This is **orthogonal to BLD-RELIABILITY** (closed 2026-06-29 — *Cadence governs, OpenHands builds; don't invest in in-house codegen*). BLD-GATE-SYNC does not touch codegen; it makes the human-gate state truthful for **any** mission (in-house or delegated). It does not edit the pinned AI core (`loop.server.ts` et al.).
+This is **orthogonal to BLD-RELIABILITY** (closed 2026-06-29 — _Cadence governs, OpenHands builds; don't invest in in-house codegen_). BLD-GATE-SYNC does not touch codegen; it makes the human-gate state truthful for **any** mission (in-house or delegated). It does not edit the pinned AI core (`loop.server.ts` et al.).
 
 ## Verification
 

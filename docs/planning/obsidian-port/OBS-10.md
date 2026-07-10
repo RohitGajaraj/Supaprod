@@ -4,19 +4,19 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-10 |
-| Rank | #11 (dashboard) |
-| Tier | 1 |
-| Status | pending |
-| Category | Cockpit (IA / routing) |
-| Depends on | OBS-04 · OBS-05 · OBS-06 · OBS-07 · OBS-08 · OBS-09 (the five destinations + the door must render Obsidian first) |
-| Blocks | OBS-11 · OBS-12 · OBS-13 · OBS-14 (the palette, Ask, Settings, and onboarding all assume the five-destination IA is final) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-10                                                                                                                                                                                                                                                                                                                           |
+| Rank          | #11 (dashboard)                                                                                                                                                                                                                                                                                                                  |
+| Tier          | 1                                                                                                                                                                                                                                                                                                                                |
+| Status        | pending                                                                                                                                                                                                                                                                                                                          |
+| Category      | Cockpit (IA / routing)                                                                                                                                                                                                                                                                                                           |
+| Depends on    | OBS-04 · OBS-05 · OBS-06 · OBS-07 · OBS-08 · OBS-09 (the five destinations + the door must render Obsidian first)                                                                                                                                                                                                                |
+| Blocks        | OBS-11 · OBS-12 · OBS-13 · OBS-14 (the palette, Ask, Settings, and onboarding all assume the five-destination IA is final)                                                                                                                                                                                                       |
 | One-line what | Map every legacy `_authenticated.*` route into Today / Discover / Plan / Build / Brain / Engine Room, redirect every legacy path (no 404s), reshape `nav-model.ts` so the rail renders only the five + one door, and rule on every orphaned surface with the placement algorithm (Call · ⌘K · a room) instead of a new nav item. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-10 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · section "OBS-10 · IA consolidation" |
-| Hub | [`./README.md`](./README.md) §6 (IA target) · §7 (route inventory) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-10                                                                                                                                                                                                                                                       |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · section "OBS-10 · IA consolidation"                                                                                                                                                                                                                                     |
+| Hub           | [`./README.md`](./README.md) §6 (IA target) · §7 (route inventory)                                                                                                                                                                                                                                                               |
 
 ## 2. Why we are doing it
 
@@ -81,47 +81,47 @@ OBS-04 through OBS-09 each ported one surface, but the app still carries roughly
 
 **The full mapping table (every `_authenticated.*` route → destination + redirect).** Canonical destinations are bold; every other row is a redirect. `[stub]` = already a redirect, re-point only; `[render→stub]` = convert parchment render to a redirect; `[stays]` = live, not folded.
 
-| Legacy path | Destination | Redirect `to` (+ search) | Placement rule / note |
-| --- | --- | --- | --- |
-| `/today` | **Today** | - canonical | OBS-04 |
-| `/build`, `/build/$missionId` | **Build** | - canonical (detail stays as depth-3) | OBS-05 |
-| `/discover` | **Discover** | - canonical | OBS-06 |
-| `/plan` | **Plan** | - canonical (assumed; confirm OBS-07) | OBS-07 |
-| `/brain` | **Brain** | - canonical (assumed; confirm OBS-08) | OBS-08 |
-| `/govern` | **Engine Room** (door) | - canonical | OBS-09 |
-| `/product` | Discover | `/discover` (keep `?tab`,`?signal`,`?opp`) | `[render→stub]` |
-| `/discovery` | Discover | `/discover?tab=signals` | `[stub]` re-point off `/product` |
-| `/opportunities` | Discover | `/discover?tab=opportunities` | `[stub]` re-point |
-| `/prds` (layout), `/prds.index` | Plan | `/plan` | `[render→stub]` / `[stub]` |
-| `/prds/$id` | Plan | `/plan?spec=$id` | `[render→stub]`, preserve id |
-| `/roadmap` | Plan | `/plan?view=roadmap` | `[stub]` re-point |
-| `/stakeholder` | Plan | `/plan?view=roadmap` | `[render→stub]`, stakeholder view of the outcome roadmap |
-| `/knowledge` | Brain | `/brain` (keep `?tab`) | `[render→stub]` (invert if OBS-08 kept `/knowledge`) |
-| `/memory` | Brain | `/brain?tab=memory` | `[stub]` re-point |
-| `/docs` | Brain | `/brain?tab=docs` | `[stub]` re-point |
-| `/learn` | Brain | `/brain?tab=learnings` | `[stub]` re-point |
-| `/outcome` | Brain | `/brain?tab=learnings` | `[stub]` flatten chain |
-| `/impact` | Brain | `/brain?tab=learnings` | `[render→stub]`, outcomes / what-they-moved |
-| `/changelog` | Brain | `/brain?tab=record` | `[render→stub]`, shipped record |
-| `/calendar` | Brain | `/brain?tab=calendar` | `[stub]` re-point (Brain hosts calendar) |
-| `/meetings`, `/meetings/$id` | Brain | `/brain?tab=calendar` | `[stub]` flatten chain |
-| `/missions`, `/cockpit`, `/delegate`, `/fleet`, `/swarm` | Build | `/build` | live agents / runs are the Build cockpit; `swarm`/`fleet` rare → ⌘K |
-| `/missions/$missionId` | Build | `/build/$missionId` | `[render→stub]`, preserve id |
-| `/chat` | Ask panel | `/today` (Ask via ⌘J) | Ask is a panel, not a destination (OBS-12 may add `?ask=`) |
-| `/inbox`, `/tasks` | Today | `/today` | approvals + task capture live on Today (Call queue) |
-| `/agents` | Engine Room | `/govern` | agent roster = machine oversight; rare → ⌘K |
-| `/evals`, `/eval-health`, `/drift` | Engine Room | `/govern` (Quality room) | `[stub]`/`[render→stub]` |
-| `/guardrails` | Engine Room | `/govern` (Safety room) | `[stub]` |
-| `/budgets`, `/analytics` | Engine Room | `/govern` (Spend room) | `[stub]` |
-| `/traces`, `/traces/$traceId` | Engine Room | `/govern` (Record; `?trace=$traceId`) | `[render→stub]` |
-| `/observe`, `/prompts` | Engine Room | `/govern` | `[stub]`, machine internals; rare → ⌘K |
-| `/governance` | Engine Room | `/govern` (keep `?tab`) | `[stub]` already correct |
-| `/studio`, `/studio/$missionId` | Build | `/build`, `/build/$missionId` | `[stub]` already correct |
-| `/notifications`, `/briefing` | Settings | `/settings` | `[stub]`, notification + briefing prefs |
-| `/integrations` | Settings | `/settings` | `[stub]`, Connections is the one integrations home |
-| `/sync` | Settings (Connections) | `[stays]` for now; OBS-13 folds to `/settings` | door link + workspace bindings; flag |
-| `/trust-ledger` | Engine Room (Record) | `[stays]` (door link) | OBS-09 may fold into the Record room |
-| `/settings`, `/onboarding`, `/admin/*` | - | `[stays]` | OBS-13 / OBS-14 own these |
+| Legacy path                                              | Destination            | Redirect `to` (+ search)                       | Placement rule / note                                               |
+| -------------------------------------------------------- | ---------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
+| `/today`                                                 | **Today**              | - canonical                                    | OBS-04                                                              |
+| `/build`, `/build/$missionId`                            | **Build**              | - canonical (detail stays as depth-3)          | OBS-05                                                              |
+| `/discover`                                              | **Discover**           | - canonical                                    | OBS-06                                                              |
+| `/plan`                                                  | **Plan**               | - canonical (assumed; confirm OBS-07)          | OBS-07                                                              |
+| `/brain`                                                 | **Brain**              | - canonical (assumed; confirm OBS-08)          | OBS-08                                                              |
+| `/govern`                                                | **Engine Room** (door) | - canonical                                    | OBS-09                                                              |
+| `/product`                                               | Discover               | `/discover` (keep `?tab`,`?signal`,`?opp`)     | `[render→stub]`                                                     |
+| `/discovery`                                             | Discover               | `/discover?tab=signals`                        | `[stub]` re-point off `/product`                                    |
+| `/opportunities`                                         | Discover               | `/discover?tab=opportunities`                  | `[stub]` re-point                                                   |
+| `/prds` (layout), `/prds.index`                          | Plan                   | `/plan`                                        | `[render→stub]` / `[stub]`                                          |
+| `/prds/$id`                                              | Plan                   | `/plan?spec=$id`                               | `[render→stub]`, preserve id                                        |
+| `/roadmap`                                               | Plan                   | `/plan?view=roadmap`                           | `[stub]` re-point                                                   |
+| `/stakeholder`                                           | Plan                   | `/plan?view=roadmap`                           | `[render→stub]`, stakeholder view of the outcome roadmap            |
+| `/knowledge`                                             | Brain                  | `/brain` (keep `?tab`)                         | `[render→stub]` (invert if OBS-08 kept `/knowledge`)                |
+| `/memory`                                                | Brain                  | `/brain?tab=memory`                            | `[stub]` re-point                                                   |
+| `/docs`                                                  | Brain                  | `/brain?tab=docs`                              | `[stub]` re-point                                                   |
+| `/learn`                                                 | Brain                  | `/brain?tab=learnings`                         | `[stub]` re-point                                                   |
+| `/outcome`                                               | Brain                  | `/brain?tab=learnings`                         | `[stub]` flatten chain                                              |
+| `/impact`                                                | Brain                  | `/brain?tab=learnings`                         | `[render→stub]`, outcomes / what-they-moved                         |
+| `/changelog`                                             | Brain                  | `/brain?tab=record`                            | `[render→stub]`, shipped record                                     |
+| `/calendar`                                              | Brain                  | `/brain?tab=calendar`                          | `[stub]` re-point (Brain hosts calendar)                            |
+| `/meetings`, `/meetings/$id`                             | Brain                  | `/brain?tab=calendar`                          | `[stub]` flatten chain                                              |
+| `/missions`, `/cockpit`, `/delegate`, `/fleet`, `/swarm` | Build                  | `/build`                                       | live agents / runs are the Build cockpit; `swarm`/`fleet` rare → ⌘K |
+| `/missions/$missionId`                                   | Build                  | `/build/$missionId`                            | `[render→stub]`, preserve id                                        |
+| `/chat`                                                  | Ask panel              | `/today` (Ask via ⌘J)                          | Ask is a panel, not a destination (OBS-12 may add `?ask=`)          |
+| `/inbox`, `/tasks`                                       | Today                  | `/today`                                       | approvals + task capture live on Today (Call queue)                 |
+| `/agents`                                                | Engine Room            | `/govern`                                      | agent roster = machine oversight; rare → ⌘K                         |
+| `/evals`, `/eval-health`, `/drift`                       | Engine Room            | `/govern` (Quality room)                       | `[stub]`/`[render→stub]`                                            |
+| `/guardrails`                                            | Engine Room            | `/govern` (Safety room)                        | `[stub]`                                                            |
+| `/budgets`, `/analytics`                                 | Engine Room            | `/govern` (Spend room)                         | `[stub]`                                                            |
+| `/traces`, `/traces/$traceId`                            | Engine Room            | `/govern` (Record; `?trace=$traceId`)          | `[render→stub]`                                                     |
+| `/observe`, `/prompts`                                   | Engine Room            | `/govern`                                      | `[stub]`, machine internals; rare → ⌘K                              |
+| `/governance`                                            | Engine Room            | `/govern` (keep `?tab`)                        | `[stub]` already correct                                            |
+| `/studio`, `/studio/$missionId`                          | Build                  | `/build`, `/build/$missionId`                  | `[stub]` already correct                                            |
+| `/notifications`, `/briefing`                            | Settings               | `/settings`                                    | `[stub]`, notification + briefing prefs                             |
+| `/integrations`                                          | Settings               | `/settings`                                    | `[stub]`, Connections is the one integrations home                  |
+| `/sync`                                                  | Settings (Connections) | `[stays]` for now; OBS-13 folds to `/settings` | door link + workspace bindings; flag                                |
+| `/trust-ledger`                                          | Engine Room (Record)   | `[stays]` (door link)                          | OBS-09 may fold into the Record room                                |
+| `/settings`, `/onboarding`, `/admin/*`                   | -                      | `[stays]`                                      | OBS-13 / OBS-14 own these                                           |
 
 **New files**
 

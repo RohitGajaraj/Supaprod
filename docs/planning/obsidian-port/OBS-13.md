@@ -8,18 +8,18 @@ This is the complete build package for OBS-13. It ports the Settings surface to 
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-13 |
-| Rank | #14 |
-| Tier | 2 |
-| Status | ⬜ pending |
-| Category | Governance |
-| Depends on | OBS-10 (IA/route fold must land first so `/settings`, `/admin`, `/sync`, `/integrations` destinations are settled) · OBS-03 (primitives) · OBS-02 (shell) · OBS-01 (tokens + density attr) |
-| Blocks | nothing downstream |
+| Field         | Value                                                                                                                                                                                                                                                                                              |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-13                                                                                                                                                                                                                                                                                             |
+| Rank          | #14                                                                                                                                                                                                                                                                                                |
+| Tier          | 2                                                                                                                                                                                                                                                                                                  |
+| Status        | ⬜ pending                                                                                                                                                                                                                                                                                         |
+| Category      | Governance                                                                                                                                                                                                                                                                                         |
+| Depends on    | OBS-10 (IA/route fold must land first so `/settings`, `/admin`, `/sync`, `/integrations` destinations are settled) · OBS-03 (primitives) · OBS-02 (shell) · OBS-01 (tokens + density attr)                                                                                                         |
+| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                 |
 | One-line what | Settings as four panes (You · Workspace · Connections · Plan); Connections is the only integrations home with two shelves (Yours · This workspace's) rendering the §8 connection card verbatim; Admin becomes a role-gated door on Workspace using the Engine Room room pattern, never a nav item. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-13 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-13                                                                                                                                                                                                                         |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                             |
 
 ---
 
@@ -38,6 +38,7 @@ Settings is where trust is either earned or leaked. Today it is a parchment surf
 ## 3. What we are building
 
 **Scope IN**
+
 - Rewrite the pure grouping model `src/lib/settings-sections.ts` from 5 groups + Advanced to **four panes** (You · Workspace · Connections · Plan), preserving every `SectionId` and the `?section=` deep-link contract (legacy ids still land). Update `settings-sections.test.ts`.
 - Re-skin `src/routes/_authenticated.settings.tsx` to Obsidian · quiet left index (mono 01..04 + label, the nav anatomy), one card stack per pane, max-width 720px, no lucide.
 - **Connections pane = the only integrations home**, two shelves: **Yours** (account connections, `AccountConnectionsSection`) and **This workspace's** (workspace-level bindings/MCP). Each connection renders the §8 card anatomy verbatim (provider · scope · owner · glowing status word · last sync in mono · permissions · ONE action).
@@ -46,6 +47,7 @@ Settings is where trust is either earned or leaked. Today it is a parchment surf
 - Empty states as instructions with a time estimate (extensions §9).
 
 **Scope OUT (explicit boundary)**
+
 - **No server-function changes.** Consumed read-only: `getProfile`/`updateProfile`, `listConnections`, `listWorkspaceBindings`, `verifyConnection`/`disconnectConnection`/`deleteConnection`, `startGithubAppConnect`/`startGatewayConnect`, `getBillingState`, `getMySubscription`, `getMyCreditsView`, `amIAdmin`/`bootstrapSelfAdmin`, `listApiKeys`/`saveApiKey`, `getActiveBrief`/`upsertBrief`, `listAgents`. None of these `*.functions.ts` files are edited.
 - **No route folding.** `/sync`, `/integrations`, `/admin/*` route redirects and the `routeTree.gen.ts` regeneration are **OBS-10** territory · OBS-13 assumes OBS-10 landed. If OBS-10 has not folded `/sync` into the Connections shelf yet, OBS-13 renders both shelves inside Settings and leaves `/sync` reachable; note the delta.
 - **No billing/credits logic changes** · the Plan pane re-skins the existing `BillingTab`/`CreditsTab` bodies, it does not touch Stripe wiring.
@@ -133,12 +135,14 @@ Settings (route)
 **Glow** · status dot glow `0 0 10px` in the dot's role color (moss/marigold/madder). No glow on rows, cards, or the pane index · Settings is calm.
 
 **Connection card anatomy (§8 verbatim), per row:**
+
 - Left · `--raised` monogram tile, radius `--radius-control 8`, provider wordmark in Schibsted 13px primary. No lucide icon.
 - Line 2 (mono 9.5px caps, faint, middots) · `SCOPE · WORKSPACE  ·  OWNER · YOU  ·  LAST SYNC · 2H AGO  ·  READ ISSUES · READ PRS`.
 - Status · `StatusDot` 6px + mono-caps word · `LIVE` (moss glow), `STALE` (marigold glow), `FAILING` (madder glow).
 - Right · exactly ONE action button (quiet ghost `--raised`): `Connect` when unconnected, `Reconnect` when failing, `Disconnect` when live. Never two primaries.
 
 **Interaction states**
+
 - **Hover** (pane index row, connection card, action button) · bg one step up + hairline brighten, 140ms, tonal.
 - **Focus** · 2px glacier outline offset 2 on every focusable (rows and actions are real `<button>`s).
 - **Active** (selected pane) · index row bg `#1A1A1E`, index numeral turns ember.

@@ -19,12 +19,12 @@ Cadence is **product / decision-first** (a PM Chief of Staff), not code-first. C
 
 ## 1. Decisions LOCKED this session
 
-| # | Decision | Detail |
-|---|---|---|
-| D1 | **Unit of work = Product** | A workspace holds many Products. The DB table is named `projects` (legacy); the UI standardizes on **Product**. Label change only, no migration. |
-| D2 | **Repo attaches at the Product level, optional until Build** | Each Product can BYO a repo (any provider) or have Cadence create/manage one, attached only when it reaches Build. A Product with no repo is valid (discovery/strategy needs none). |
-| D3 | **Autonomy = trust-graduated** | The agent runs the entire Build to Ship chain (branch, commit, PR, CI, self-correct, merge, deploy, release notes) in the backend. On a NEW repo it pauses ONCE at a single product-framed decision ("Ready to ship X to <Product>. Go?"). That pause graduates to silent (ship-then-notify) as trust accrues. Git mechanics are never shown by default; reveal-on-demand for technical users. |
-| D4 | **Ship outbound = in-app only for now** | In-app changelog from release notes. Email / social / PR distribution deferred to a later, founder-gated phase. |
+| #   | Decision                                                     | Detail                                                                                                                                                                                                                                                                                                                                                                                         |
+| --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | **Unit of work = Product**                                   | A workspace holds many Products. The DB table is named `projects` (legacy); the UI standardizes on **Product**. Label change only, no migration.                                                                                                                                                                                                                                               |
+| D2  | **Repo attaches at the Product level, optional until Build** | Each Product can BYO a repo (any provider) or have Cadence create/manage one, attached only when it reaches Build. A Product with no repo is valid (discovery/strategy needs none).                                                                                                                                                                                                            |
+| D3  | **Autonomy = trust-graduated**                               | The agent runs the entire Build to Ship chain (branch, commit, PR, CI, self-correct, merge, deploy, release notes) in the backend. On a NEW repo it pauses ONCE at a single product-framed decision ("Ready to ship X to <Product>. Go?"). That pause graduates to silent (ship-then-notify) as trust accrues. Git mechanics are never shown by default; reveal-on-demand for technical users. |
+| D4  | **Ship outbound = in-app only for now**                      | In-app changelog from release notes. Email / social / PR distribution deferred to a later, founder-gated phase.                                                                                                                                                                                                                                                                                |
 
 ---
 
@@ -74,19 +74,20 @@ interface RepoProvider {
 
 Three layers, very different scope. Conflating them is the trap.
 
-| Layer | What | Cost / risk | Recommendation |
-|---|---|---|---|
-| **L1 - Managed AI credits** | Metered AI through our gateway so the user needs no LLM key (vs BYOK). | Low (gateway exists); mostly packaging + metering + billing. | **Do it**, as the default with BYOK optional. Biggest friction-kill for a non-technical user. |
-| **L2 - Managed PM data** | The user's products / decisions / PRDs / memory live in our Supabase already. | None (already true). | **Position it**, no build. "Plan everything, migrate nothing" is already real for the PM work. |
-| **L3 - Managed runtime for the user's shipped app** | DB + auth + hosting for the app the agent builds (literal Lovable Cloud, and beyond). | Very high: ops, cost, security, compliance, on-call. | **In scope, sequenced late** (founder ruling: the all-in-one North Star). Build after the loop + BYO path is proven. |
+| Layer                                               | What                                                                                  | Cost / risk                                                  | Recommendation                                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **L1 - Managed AI credits**                         | Metered AI through our gateway so the user needs no LLM key (vs BYOK).                | Low (gateway exists); mostly packaging + metering + billing. | **Do it**, as the default with BYOK optional. Biggest friction-kill for a non-technical user.                        |
+| **L2 - Managed PM data**                            | The user's products / decisions / PRDs / memory live in our Supabase already.         | None (already true).                                         | **Position it**, no build. "Plan everything, migrate nothing" is already real for the PM work.                       |
+| **L3 - Managed runtime for the user's shipped app** | DB + auth + hosting for the app the agent builds (literal Lovable Cloud, and beyond). | Very high: ops, cost, security, compliance, on-call.         | **In scope, sequenced late** (founder ruling: the all-in-one North Star). Build after the loop + BYO path is proven. |
 
 A **managed repo** (Cadence creates the repo) sits between L2 and L3 and is already part of the repo model (D2 / auto-create); reasonable to include now.
 
 ### Positioning ruling (founder, 2026-06-18): the all-in-one platform
 
-**Resolved: combined X + Y, leaning full-platform.** Cadence keeps X's *soul* (the PM / decision OS and the memory moat as the differentiator) AND takes on Y's scope (host the full lifecycle end to end). The North Star: a user logs in and runs their entire product org on Cadence, discovery -> decisions -> build -> deploy -> launch, on **one subscription**, with nothing external to wire up or pay for separately. L3 (managed runtime) is therefore IN SCOPE, not deferred.
+**Resolved: combined X + Y, leaning full-platform.** Cadence keeps X's _soul_ (the PM / decision OS and the memory moat as the differentiator) AND takes on Y's scope (host the full lifecycle end to end). The North Star: a user logs in and runs their entire product org on Cadence, discovery -> decisions -> build -> deploy -> launch, on **one subscription**, with nothing external to wire up or pay for separately. L3 (managed runtime) is therefore IN SCOPE, not deferred.
 
 Two guardrails so the ambition stays buildable and honest:
+
 1. **Sequence the hosting.** The end-state is the positioning and the architecture's North Star, but we build in order: the PM loop + BYO/connect path first (mostly built), then the managed runtime as a later, deliberate phase. We do not take on full-PaaS ops before the loop is proven.
 2. **Portability stays (lock-in is value, not hostage).** Even hosting everything, the user's code and data remain exportable; the lock-in is the memory moat + the all-in-one convenience, never a trap (Section 5.5). What makes leaving pointless is that the brain does not travel, not that the door is locked.
 
@@ -106,6 +107,7 @@ Two guardrails so the ambition stays buildable and honest:
 **The deliberate anti-lock-in stance (this is the subtle part):** keep everything PORTABLE. Managed repos live in the USER's own account/org; data is exportable; no proprietary trap. Counterintuitively, easy exit INCREASES trust, adoption, and evangelization, and the moat (memory + tuned judgment) does not leave with the files anyway. "Let them leave easily; they will not want to."
 
 **Monetization aligned to the moat:**
+
 - Cheap/free to start so value (and memory) can accrue; the accrued value is the conversion trigger.
 - Paid tiers = the autonomous loop running for you + managed AI credits (L1, usage-based, scales revenue with delivered value) + multiple products + team seats.
 - The more a user relies on the loop and the memory, the more they pay AND the more (value-)locked-in they are. Revenue and stickiness rise together, by design, without coercion.
@@ -119,6 +121,7 @@ Two guardrails so the ambition stays buildable and honest:
 ## 6. Drift / reuse plan (what changes, what is reused, what is retired)
 
 **Reused as-is (the foundation is sound):**
+
 - Connector registry + `resolveProviderAuth` + the connections / bindings tables.
 - The agent loop, the trust arc, and the approval system (D3 rides directly on these).
 - `studio_changesets` / `studio_changes` / `studio_changeset_revisions` / `studio_rollbacks`; missions / mission_steps.
@@ -126,6 +129,7 @@ Two guardrails so the ambition stays buildable and honest:
 - The AI gateway (becomes the metering point for L1 managed credits).
 
 **Changed:**
+
 - `connection_bindings` moves to Product-level (use the reserved `product_id`).
 - Build-engine tools refactor onto the `RepoProvider` interface (GitHub becomes one adapter).
 - Repo binding UX moves from one-per-workspace to per-Product (connect or create).
@@ -133,12 +137,14 @@ Two guardrails so the ambition stays buildable and honest:
 - The "project" UI label becomes "Product."
 
 **Added:**
+
 - `RepoProvider` interface + GitLab + Bitbucket adapters; the managed/auto-create repo path.
 - Per-Product repo attach UX; the two-way sync mirror.
 - Deploy capture (the `deployments` model from the gap-map) on the interface.
 - L1 managed-AI-credits packaging + metering; the in-app changelog.
 
 **Retired / reframed:**
+
 - The workspace-level single-repo assumption.
 - The git-mechanics-forward Build UI (becomes reveal-on-demand).
 
@@ -165,6 +171,7 @@ Two guardrails so the ambition stays buildable and honest:
 ---
 
 ## Related
+
 - [`../planning/byo-p5-managed-runtime-plan.md`](../planning/byo-p5-managed-runtime-plan.md) - the P5 ops/cost/security plan this doc's Section 7 (Phase 5) said was needed before any build; produced 2026-07-01, answers the five open questions in Section 8 of this doc that pertain to hosting.
 - [`build-driver-and-dispatch.md`](./build-driver-and-dispatch.md) - **the code-gen-side twin of this doc.** This doc specced `RepoProvider` (WHERE code lives); that doc specs `BuildDriver` (WHO writes it), so the native loop becomes one adapter and external engines plug in behind one seam. Read both together for the full build picture. (board group G13, founder-gated; decided 2026-06-28).
 - [`../features/lifecycle-gap-map.md`](../planning/lifecycle-gap-map.md) - the Build/Deploy/Review/Ship capture gaps this builds on.

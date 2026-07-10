@@ -15,6 +15,7 @@ The Critic gains a design dimension, folded onto the existing `CriticReview` sha
 - **Receipts**: each finding names the violated `principle` (hierarchy / accessibility / ia / consistency) and, for a consistency violation, the exact `standing_decision` title it conflicts with — never an opaque id.
 
 **Where it runs:**
+
 - **PRDs** — folded directly into `runCritic` (`src/lib/ai/critic.server.ts`): every PRD critic run (inline on `generatePrd`, or a manual re-run) also calls `runDesignCriticLens` and persists the result as `critic_review.design`. Best-effort: a failed design pass never drops the base spec red-team verdict.
 - **Scaffolds** — `runScaffoldDesignCritic` (`src/lib/design-scaffold.functions.ts`), a standalone server fn called from a "Check design consistency" button under a generated DEF-04 mockup (`DesignScaffoldPanel.tsx`). Scaffolds have no persisted row (DEF-04 is generate-on-demand), so this runs the lens directly on the mockup's HTML and returns the result to the client, non-persisted.
 

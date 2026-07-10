@@ -34,10 +34,12 @@
 **Why:** outcome memories store `prd_id` / `opportunity_id` in metadata but not the human titles, and `match_agent_memory` does not return metadata anyway. Storing the titles forward-only lets the engine render `"Smart Off-Hours Routing"` instead of the fallback "an untitled spec", with no migration (it is a `jsonb` field) and no backfill (old rows fall back gracefully).
 
 **Files:**
+
 - Modify: `src/lib/ai/memory.server.ts` (the `rememberOutcome` insert's `metadata` object)
 - Modify: `src/lib/outcome.functions.ts` (the `rememberOutcome(...)` call in `recordOutcome`, pass the titles)
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: outcome memories whose `metadata` includes `prd_title: string | null` and `opp_title: string | null`.
 
@@ -84,10 +86,12 @@ git commit -m "feat(decision-brain): persist prd/opp titles on outcome memories 
 ### Task 2: The precedent engine (semantic recall over outcome memories)
 
 **Files:**
+
 - Create: `src/lib/ai/decision-precedent.server.ts`
 - Test: `src/lib/ai/decision-precedent.test.ts`
 
 **Interfaces:**
+
 - Consumes: `embedOne`, `match_agent_memory`, the `agent_memory` table, `DecisionPrecedentRow` from `outcome-memory.ts`.
 - Produces:
   - `type PrecedentMatch = DecisionPrecedentRow & { id: string; prdId: string | null; opportunityId: string | null; score: number }`
@@ -103,12 +107,28 @@ Where `RawPrecedentCandidate = { id: string; kind: string; similarity: number; m
 import { describe, expect, test } from "bun:test";
 import { rankPrecedent, PRECEDENT_THRESHOLD } from "./decision-precedent.server";
 
-const cand = (over: Partial<{ id: string; kind: string; similarity: number; metadata: Record<string, unknown>; content: string }> = {}) => ({
+const cand = (
+  over: Partial<{
+    id: string;
+    kind: string;
+    similarity: number;
+    metadata: Record<string, unknown>;
+    content: string;
+  }> = {},
+) => ({
   id: over.id ?? "m1",
   kind: over.kind ?? "outcome",
   similarity: over.similarity ?? 0.9,
   content: over.content ?? "Outcome on the spec.",
-  metadata: over.metadata ?? { verdict: "missed", prd_title: "Bet A", opp_title: null, prior_ice: 6, new_ice: 4, prd_id: "p1", opportunity_id: "o1" },
+  metadata: over.metadata ?? {
+    verdict: "missed",
+    prd_title: "Bet A",
+    opp_title: null,
+    prior_ice: 6,
+    new_ice: 4,
+    prd_id: "p1",
+    opportunity_id: "o1",
+  },
 });
 
 describe("rankPrecedent", () => {
@@ -116,7 +136,7 @@ describe("rankPrecedent", () => {
     const rows = rankPrecedent(
       [
         cand({ id: "a", similarity: 0.9 }),
-        cand({ id: "b", similarity: 0.1 }),                 // below threshold -> dropped
+        cand({ id: "b", similarity: 0.1 }), // below threshold -> dropped
         cand({ id: "c", kind: "reflection", similarity: 0.95 }), // not an outcome -> dropped
         cand({ id: "d", similarity: 0.5 }),
       ],
@@ -129,12 +149,18 @@ describe("rankPrecedent", () => {
   });
 
   test("caps the result count", () => {
-    const many = Array.from({ length: 6 }, (_, i) => cand({ id: `m${i}`, similarity: 0.9 - i * 0.05 }));
+    const many = Array.from({ length: 6 }, (_, i) =>
+      cand({ id: `m${i}`, similarity: 0.9 - i * 0.05 }),
+    );
     expect(rankPrecedent(many, PRECEDENT_THRESHOLD, 3)).toHaveLength(3);
   });
 
   test("maps title/verdict/ICE from metadata and falls back when title is absent", () => {
-    const [row] = rankPrecedent([cand({ id: "x", metadata: { verdict: "validated", prior_ice: 6, new_ice: 7 } })], PRECEDENT_THRESHOLD, 3);
+    const [row] = rankPrecedent(
+      [cand({ id: "x", metadata: { verdict: "validated", prior_ice: 6, new_ice: 7 } })],
+      PRECEDENT_THRESHOLD,
+      3,
+    );
     expect(row.verdict).toBe("validated");
     expect(row.title).toBeNull();
     expect(row.priorIce).toBe(6);
@@ -163,7 +189,11 @@ Expected: FAIL ("export named 'rankPrecedent' not found").
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { embedOne } from "@/lib/rag/embed.server";
-import { OUTCOME_MEMORY_KIND, type DecisionPrecedentRow, type OutcomeVerdict } from "./outcome-memory";
+import {
+  OUTCOME_MEMORY_KIND,
+  type DecisionPrecedentRow,
+  type OutcomeVerdict,
+} from "./outcome-memory";
 
 /** Similarity floor (1 - cosine distance). Tunable; START conservative and tune on live data. */
 export const PRECEDENT_THRESHOLD = 0.3;
@@ -245,17 +275,30 @@ export async function loadDecisionPrecedent(
     const withWs = { ...base, for_workspace: args.workspaceId };
     let res = await supabase.rpc("match_agent_memory", withWs);
     if (res.error?.code === "PGRST202") res = await supabase.rpc("match_agent_memory", base);
-    const hits = (res.data ?? []) as Array<{ id: string; content: string; kind: string; similarity: number }>;
-    const outcomeHits = hits.filter((h) => h.kind === OUTCOME_MEMORY_KIND && h.id !== args.excludeId);
+    const hits = (res.data ?? []) as Array<{
+      id: string;
+      content: string;
+      kind: string;
+      similarity: number;
+    }>;
+    const outcomeHits = hits.filter(
+      (h) => h.kind === OUTCOME_MEMORY_KIND && h.id !== args.excludeId,
+    );
     if (!outcomeHits.length) return [];
 
     // match_agent_memory does not return metadata; fetch it for the surviving ids.
     const meta = await supabase
       .from("agent_memory")
       .select("id,metadata")
-      .in("id", outcomeHits.map((h) => h.id));
+      .in(
+        "id",
+        outcomeHits.map((h) => h.id),
+      );
     const metaById = new Map(
-      ((meta.data ?? []) as Array<{ id: string; metadata: unknown }>).map((r) => [r.id, r.metadata]),
+      ((meta.data ?? []) as Array<{ id: string; metadata: unknown }>).map((r) => [
+        r.id,
+        r.metadata,
+      ]),
     );
     const candidates: RawPrecedentCandidate[] = outcomeHits.map((h) => ({
       id: h.id,
@@ -288,36 +331,35 @@ git commit -m "feat(decision-brain): semantic decision-precedent engine over out
 
 ### Task 3: Upgrade the Critic to the semantic engine (seam 1, replaces DBR-0's recency query)
 
-**Why:** DBR-0 gave the Critic a recency-based `learnings` query. Swap it for the semantic engine so the Critic cites *relevant* precedent, and delete the now-superseded recency helper to avoid dead code.
+**Why:** DBR-0 gave the Critic a recency-based `learnings` query. Swap it for the semantic engine so the Critic cites _relevant_ precedent, and delete the now-superseded recency helper to avoid dead code.
 
 **Files:**
+
 - Modify: `src/lib/ai/critic.server.ts` (remove `loadDecisionPrecedent` + `PrecedentQueryRow`; call the engine)
 
 **Interfaces:**
+
 - Consumes: `loadDecisionPrecedent` (Task 2), `formatDecisionPrecedent` (existing).
 - Produces: no new exports.
 
 - [ ] **Step 1: Replace the import + delete the local recency helper.** In `src/lib/ai/critic.server.ts`, replace the `formatDecisionPrecedent` import line and remove the local `PrecedentQueryRow` type + `loadDecisionPrecedent` function (the whole DBR-0 block):
 
 ```ts
-import {
-  formatDecisionPrecedent,
-  type DecisionPrecedentRow,
-} from "@/lib/ai/outcome-memory";
+import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 ```
 
 - [ ] **Step 2: Call the engine with the row's text.** Replace the DBR-0 precedent block (the `const precedent = formatDecisionPrecedent(await loadDecisionPrecedent(supabase, ...workspace_id...))` lines) with:
 
 ```ts
-  // DBR / Ambient Precedent: semantic precedent over the workspace's past outcomes.
-  const precedentRows = await loadDecisionPrecedent(supabase, {
-    userId,
-    workspaceId: (row.workspace_id as string | null) ?? null,
-    text: subject,
-    excludeId: undefined,
-  });
-  const precedent = formatDecisionPrecedent(precedentRows as DecisionPrecedentRow[]);
+// DBR / Ambient Precedent: semantic precedent over the workspace's past outcomes.
+const precedentRows = await loadDecisionPrecedent(supabase, {
+  userId,
+  workspaceId: (row.workspace_id as string | null) ?? null,
+  text: subject,
+  excludeId: undefined,
+});
+const precedent = formatDecisionPrecedent(precedentRows as DecisionPrecedentRow[]);
 ```
 
 (The `userContent` / `systemContent` lines that consume `precedent` stay unchanged.)
@@ -339,9 +381,11 @@ git commit -m "feat(decision-brain): Critic uses the semantic precedent engine (
 ### Task 4: A server function the UI seams call
 
 **Files:**
+
 - Create: `src/lib/decision-precedent.functions.ts`
 
 **Interfaces:**
+
 - Consumes: `loadDecisionPrecedent` (Task 2).
 - Produces: `getDecisionPrecedent` (a `createServerFn` returning `PrecedentMatch[]` for a target opportunity or PRD).
 
@@ -398,9 +442,11 @@ git commit -m "feat(decision-brain): getDecisionPrecedent server fn for UI seams
 **Design gate:** before coding, load `docs/conventions/design-context.md` + `docs/conventions/engine-room-doctrine.md` and INVOKE the `impeccable` skill on the component (founder ruling). Mirror the existing `src/components/governance/CriticBadge.tsx` for the verdict-chip + Ember styling pattern.
 
 **Files:**
+
 - Create: `src/components/decision/PrecedentNudge.tsx`
 
 **Interfaces:**
+
 - Consumes: `getDecisionPrecedent` (Task 4) via `useServerFn` + `useQuery`.
 - Produces: `<PrecedentNudge kind="opportunity" | "prd" targetId={string} />`.
 
@@ -418,7 +464,13 @@ const CHIP: Record<string, string> = {
   mixed: "text-muted-foreground bg-muted",
 };
 
-export function PrecedentNudge({ kind, targetId }: { kind: "opportunity" | "prd"; targetId: string }) {
+export function PrecedentNudge({
+  kind,
+  targetId,
+}: {
+  kind: "opportunity" | "prd";
+  targetId: string;
+}) {
   const [dismissed, setDismissed] = useState(false);
   const fetchPrecedent = useServerFn(getDecisionPrecedent);
   const { data } = useQuery({
@@ -431,7 +483,9 @@ export function PrecedentNudge({ kind, targetId }: { kind: "opportunity" | "prd"
     <aside className="bento" aria-label="Decision precedent">
       <div className="flex items-center justify-between">
         <span className="mono-label">Precedent &mdash; you reasoned this way before</span>
-        <button className="text-xs text-muted-foreground" onClick={() => setDismissed(true)}>Dismiss</button>
+        <button className="text-xs text-muted-foreground" onClick={() => setDismissed(true)}>
+          Dismiss
+        </button>
       </div>
       <ul className="mt-2 space-y-1.5">
         {data.map((p) => (
@@ -470,10 +524,12 @@ git commit -m "feat(decision-brain): reusable PrecedentNudge UI primitive"
 **Why:** the two remaining v1 decision seams. Mirror where `CriticBadge` is already rendered (it sits on opportunity detail + PRD detail), and drop `PrecedentNudge` beside it.
 
 **Files:**
+
 - Modify: the opportunity detail surface (find via `grep -rn "CriticBadge" src/` and the opportunity route/component)
 - Modify: the PRD/spec detail surface (same grep)
 
 **Interfaces:**
+
 - Consumes: `<PrecedentNudge>` (Task 5).
 - Produces: nothing.
 

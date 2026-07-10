@@ -20,33 +20,35 @@
 
 If this product is run by an agent ecosystem, why does it still wear the clothes of a human PM tool
 (a "Plan next 2 weeks" sprint button, a To-Do/Doing/Done kanban, capacity-hours)? Why does it show
-*everything* instead of only the decision a human must make? And what should we be, positioned,
+_everything_ instead of only the decision a human must make? And what should we be, positioned,
 priced, sequenced, and built, to win the market as it actually is in mid-2026?
 
 The honest finding: **our engine is real and good, our story over-claims relative to what's wired
-today, and our UI contradicts our story.** Founder ruling: the *ambition*, autonomous end-to-end
+today, and our UI contradicts our story.** Founder ruling: the _ambition_, autonomous end-to-end
 execution of the whole product lifecycle, is non-negotiable and correct. This doc keeps that
 ambition as the North Star and fixes the two things that betray it: the human-PM-legacy UI, and the
-gap between *claimed* autonomy and *wired* autonomy (closed with real engineering, not messaging).
+gap between _claimed_ autonomy and _wired_ autonomy (closed with real engineering, not messaging).
 
 ---
 
 ## 2. The verdict: where the founder is right, where to course-correct
 
 ### RIGHT (validated; keep)
+
 1. **Agentic-first and genuinely autonomous**, not a chatbot/copilot, not consolidate-and-advise.
-   The system must *execute end-to-end on its own*. (Gartner: 40% of enterprise apps embed agents by
+   The system must _execute end-to-end on its own_. (Gartner: 40% of enterprise apps embed agents by
    end-2026.)
 2. **Model-agnostic + BYOK; the moat is workflow+memory+execution, not the model.** Table stakes that
-   *enables* the moat.
+   _enables_ the moat.
 3. **Smallest-viable-entry → PM wedge first, full OS as the destination.** Wedge-first beats
    platform-first. (Position = the OS umbrella; entry = the PM ritual, §3.)
 4. **"Simple front, powerful engine."** Approve-by-exception, one daily ritual, hide the engine room.
 5. **The closed loop + compounding memory**, the genuinely defensible idea and the market's true
-   whitespace. No credible player owns the *governed, autonomous closed loop*.
+   whitespace. No credible player owns the _governed, autonomous closed loop_.
 
 ### COURSE-CORRECT (accepted, ruling §10-#5)
-1. **Don't *claim* more autonomy than is *wired*, at each phase.** A discipline, not a retreat. The
+
+1. **Don't _claim_ more autonomy than is _wired_, at each phase.** A discipline, not a retreat. The
    market punishes hollow claims (enterprise AI abandonment 17%→42% in a year; trust in AI accuracy
    29% vs 40%; Gartner: 40% of agentic projects cancelled by 2027). Today the runtime pauses at every
    ship gate, defaults new agents to "review-everything," and needs a human to re-launch each mid-loop
@@ -57,7 +59,7 @@ gap between *claimed* autonomy and *wired* autonomy (closed with real engineerin
 3. **"Users build their own agents": right vision, wrong timing.** Defer the marketplace; **preserve
    the A2A handoff contract** so it's a config surface later, not a rebuild.
 4. **The 2-week sprint / kanban / capacity-hours contradict the pitch. Delete them.**
-5. **The OS position wins *vertically*, not by bundling.** We win as the **vertical, opinionated,
+5. **The OS position wins _vertically_, not by bundling.** We win as the **vertical, opinionated,
    governed system-of-record + memory that closes the loop and delegates execution to best-of-breed
    agents**, not by rebuilding Devin/ChatPRD/Productboard. "OS" = it runs the lifecycle and
    orchestrates execution; it does not re-implement every tool.
@@ -75,6 +77,7 @@ sense → decide → define → build → launch → learn, executing the work i
 direction and make the calls only you can; the system does the rest, and gets sharper every cycle.
 
 Two pillars under the umbrella:
+
 - **Pillar 1, PM Chief of Staff (felt entry):** the daily ritual. Overnight, agents read everything;
   each morning you get the **2 to 3 calls that need your judgment**, each with cited evidence + a Critic
   challenge + the drafted artifact that follows. The wedge: value in <10 min.
@@ -84,17 +87,17 @@ Two pillars under the umbrella:
 
 **Thesis:** it does **not** stop at consolidating inputs and telling you what to do. **It executes.**
 Chief-of-Staff ritual = front door; Decision System = spine; autonomous end-to-end execution = engine
-and destination. The human's supervision burden *shrinks as trust compounds*.
+and destination. The human's supervision burden _shrinks as trust compounds_.
 
-**One-liner (draft):** *"Cadence is the Agentic Product OS: it runs your product's entire lifecycle,
+**One-liner (draft):** _"Cadence is the Agentic Product OS: it runs your product's entire lifecycle,
 sensing signals, deciding priorities, drafting specs, shipping code, launching, and learning,
 autonomously, under your governance. You make the calls only you can; it does the rest, and remembers
-everything so it gets sharper every cycle."*
+everything so it gets sharper every cycle."_
 
 **One rule:** the claim never outruns the wiring.
 
 **Beachhead persona:** the **senior / founding PM at a 50 to 400-person B2B SaaS company**, owns an area,
-buyer *and* user, AI power user, shows up daily for the ritual. Tip of the spear: AI-native-startup
+buyer _and_ user, AI power user, shows up daily for the ritual. Tip of the spear: AI-native-startup
 product owners (Lenny's + X). Founders/CEOs are secondary expansion.
 
 ---
@@ -102,24 +105,26 @@ product owners (Lenny's + X). Founders/CEOs are secondary expansion.
 ## 4. What to DELETE / HIDE / BUILD (grounded to real files)
 
 ### DELETE (contradict the OS positioning)
+
 - **Sprint button + sprint-plan preview + capacity-hours**: `src/components/product/RoadmapPanel.tsx`
   ("Plan next 2 weeks" + "AI rebalance" buttons, ember sprint-preview, capacity math). Server fns:
   `planSprint` + `rebalanceRoadmap` in `src/lib/roadmap.functions.ts`.
 - **To-Do / Doing / Done kanban + human/agent assignee toggle**: `src/components/product/TasksPanel.tsx`.
-- **"AI rebalance" as an *optional* button**: continuous re-ranking becomes default; human reviews,
+- **"AI rebalance" as an _optional_ button**: continuous re-ranking becomes default; human reviews,
   doesn't trigger.
 - **Standalone Briefing route**: finish merge to Settings (`src/routes/_authenticated.briefing.tsx`).
-- **Route sprawl** (~43 `_authenticated.*` routes): ⚠️ most are *already* mothballed/redirecting; do
+- **Route sprawl** (~43 `_authenticated.*` routes): ⚠️ most are _already_ mothballed/redirecting; do
   **not** mass-delete route files.
 
 > ⚠️ **Flag (Today vs. Tasks):** the DELETE targets the **product-tab kanban + sprint planner**. But
-> **Today** (`src/routes/_authenticated.index.tsx`) has its *own* simple task-capture list (local
+> **Today** (`src/routes/_authenticated.index.tsx`) has its _own_ simple task-capture list (local
 > `TasksPanel` at :1249) and "Tasks shipped / In flight" tiles reading the same `tasks` table
 > (:782-792, :846). A cascade-delete of the `tasks` table/server fns breaks Today. **Recommendation
 > (ruling intact):** delete the product-tab kanban + sprint planner now; keep the `tasks` table and
 > Today's capture list until the BUILD dependency-graph replaces the executor framing.
 
 ### HIDE (engine room / Trust drawer / progressive disclosure)
+
 Govern's tabs → one **Engine Room** behind a **Trust drawer** · agent config + full roster → simple
 sheet (5 names) · evals/drift/prompts/budgets → engine room · traces → reachable from any artifact ·
 Build/Studio canvas → behind the mission · model routing/BYOK → Settings with smart defaults.
@@ -130,13 +135,14 @@ Build/Studio canvas → behind the mission · model routing/BYOK → Settings wi
 > links and the Trust row resolves.
 
 ### BUILD / FIX
+
 - **Replace sprint/kanban** with the **agent-decomposed dependency graph + live status** ("Builder is
   shipping A, B, C"). ETA only once a real estimate field exists (no faking).
 - **The decision-first card**: highest-leverage UI; spec in Appendix D. ⚠️ **It enriches the
-  *existing* calls queue** (`getNeedsYou` → `src/lib/today.functions.ts`, rendered at
+  _existing_ calls queue** (`getNeedsYou` → `src/lib/today.functions.ts`, rendered at
   `index.tsx:418-597`), not a greenfield build.
 - **Cold-start on-ramp**: a brand-new workspace lands on an empty Today; narrated empty state that
-  *is* the on-ramp ("forward me your last 20 pieces of feedback and I'll surface your first calls").
+  _is_ the on-ramp ("forward me your last 20 pieces of feedback and I'll surface your first calls").
 - **Make memory + the loop visible**: Memory Context pill + loop-closure re-score. ⚠️ The re-score
   **already happens** in `src/lib/outcome.functions.ts:200-253` (writes `learnings` `prior_ice`→
   `new_ice`, re-scores the opportunity); surface it, don't rebuild it.
@@ -164,7 +170,7 @@ Build/Studio canvas → behind the mission · model routing/BYOK → Settings wi
 
 - **North Star:** genuine **autonomous end-to-end execution** of the lifecycle. Not advice, execution.
 - **On-ramp:** the trust-arc (`src/lib/ai/trust.server.ts`): observing → proving → trusted → ambient.
-  Day one is supervised; autonomy *earns its way up* as success/approval/eval scores compound.
+  Day one is supervised; autonomy _earns its way up_ as success/approval/eval scores compound.
 - **Honesty rule:** at every phase, **claim only what's wired.**
 - **The engineering that earns the claim:** event-reactor auto-handoff, retry/recovery on hop failure,
   adaptive step budgets, execution-delegation under governance.
@@ -178,8 +184,9 @@ Build/Studio canvas → behind the mission · model routing/BYOK → Settings wi
 ## 7. Pricing & GTM
 
 ### Pricing
+
 - **Free:** 1 workspace, ritual capped, webhook ingest, decision log ~30 days, capped agent spend.
-  *Memory expires* → the paid pull.
+  _Memory expires_ → the paid pull.
 - **Pro, $39/mo** ($29 early-bird; $390/yr). Unlimited ritual, **full persistent decision memory
   (never expires)**, unlimited ingest, Critic everywhere, shareable decision links, transparent overage
   ceiling. **Charge for memory persistence, not per agent-run.**
@@ -189,11 +196,13 @@ Build/Studio canvas → behind the mission · model routing/BYOK → Settings wi
   team/enterprise. Per-seat is dying (21%→15%); hybrid is the team path.
 
 ### GTM: first 100 paying (solo founder, no sales team)
+
 1. **Pre-launch:** 15 to 25 hand-picked design partners, free + weekly feedback; **≥8 must pipe REAL data.**
-2. **Launch:** Lenny's community/Slack + build-in-public on X (lead with the *Critic* red-teaming a pet
+2. **Launch:** Lenny's community/Slack + build-in-public on X (lead with the _Critic_ red-teaming a pet
    feature) + Product Hunt + r/ProductManagement. Ship a **shareable decision link** as the viral loop.
-3. **Convert:** free→Pro paywall on *memory persistence + ritual continuity*; "anonymized decisions of
+3. **Convert:** free→Pro paywall on _memory persistence + ritual continuity_; "anonymized decisions of
    the week" content; design-partner referrals. ~100 paying **iff** time-to-value <10 min on real data.
+
 - **Do NOT:** cold outbound, "book a demo" gating, enterprise pilots, two GTM motions at once.
 
 ---
@@ -206,13 +215,15 @@ labor-scale, only if the autonomy and memory are real, not slideware.**
 
 **Proof gauntlet (instrumented from Phase 0, runs alongside the build, gated near the end of the
 ~45-day envelope, no fixed calendar date):**
+
 1. **Willingness-to-pay:** ≥10 PMs paying **≥$150/mo**.
-2. **The loop closes once, for real:** a signal cluster on a *real* customer's data re-ranks *their*
+2. **The loop closes once, for real:** a signal cluster on a _real_ customer's data re-ranks _their_
    roadmap with zero manual transport; a shipped spec gets an outcome review that moves a downstream
    priority.
 3. **Autonomy ticks up on a real account:** something they let the agent do unattended later that they
    gated at first.
 4. **Recruit ahead of the round:** a credible second hand (technical or GTM).
+
 - **North-star metric:** **Calls-queue acceptance rate** + **real-data ritual retention** + **autonomy
   ratio trending up.** Go/scale gate when the gauntlet clears, not on a date.
 
@@ -236,7 +247,9 @@ flowchart LR
 ```
 
 ### Phase 0: Honest Wedge ("the Chief of Staff is real")
+
 Dependency order: W1 → W2 → W3 → {W4, W5} → W6.
+
 - **W1, DELETE:** remove `RoadmapPanel.tsx` + `TasksPanel.tsx`; strip `roadmap`/`tasks` from the
   `Tab` union / `TABS` / `PRODUCT_DESC` / imports / render branches in
   `src/routes/_authenticated.product.tsx`; delete `planSprint`+`rebalanceRoadmap`; repoint/remove
@@ -251,22 +264,26 @@ Dependency order: W1 → W2 → W3 → {W4, W5} → W6.
   real overnight mission.
 
 ### Phase 1: The Loop Runs Itself ("autonomy, wired")
+
 Event-reactor auto-handoff across mid-loop hops; hop-failure retry/recovery; adaptive step budgets; a
 supervised end-to-end mission demonstrably runs. (`src/lib/ai/loop.server.ts`, `handoff.server.ts`.)
 
 ### Phase 2: The OS / Autonomous Execution ("it executes, end-to-end")
+
 Execution-delegation under governance; memory compounding proven + demoable; OS framing/IA; A2A
 contract hardened.
 
 ### Phase 3: Proof & Launch ("right product, in market")
+
 Real-data design-partner hardening; gauntlet instrumentation; pricing + shareable-decision viral loop;
 public launch. Gate on the §8 gauntlet, not a date.
 
 ---
 
 ## 10. Founder rulings (locked 2026-06-13)
+
 1. **Position = Agentic Product OS (umbrella)** = PM Chief of Staff (felt entry) + Decision System
-   (moat). Must *execute end-to-end autonomously*. (§3)
+   (moat). Must _execute end-to-end autonomously_. (§3)
 2. **Ecosystem:** defer build-your-own-agents/marketplace; **preserve the A2A contract.** (§5)
 3. **Timeline:** **no hard dates / no August deadline.** Continuous, phase-sequenced; demoable
    milestone ~every 2 weeks; **~45-day envelope as intent**, compress/extend on proof. (§9)
@@ -280,6 +297,7 @@ public launch. Gate on the §8 gauntlet, not a date.
 ---
 
 ## 11. Research persistence & standing context
+
 - This doc is the canonical strategy. Competitive + pain + UX findings:
   [`docs/references/competitive-landscape.md`](../references/competitive-landscape.md).
 - Rulings logged in [`session-decisions.md`](./session-decisions.md); `Ai_Cofounder.md` Repo
@@ -289,19 +307,21 @@ public launch. Gate on the §8 gauntlet, not a date.
 ---
 
 # Appendix A: Competitive landscape (mid-2026, sourced)
+
 **Arc:** 2024 copilot → 2025 autonomous agents → **2026 orchestration & governance.** Gartner: 40% of
 enterprise apps embed agents by end-2026 (from <5%); **40% of agentic projects cancelled by 2027.** MCP
 ~97M monthly SDK downloads, 5,800+ servers; MCP+A2A table stakes. "Agent sprawl" is the named pain (avg
 12 agents/company; ~50% isolated).
-**Players by station (each owns ONE; no end-to-end owner):** *Build*: Devin/Cognition, Factory ($1.5B),
-Cursor, GitHub Copilot Agent (GA), Replit ($253M ARR), v0/Vercel, Claude Code. *Sense*: Enterpret,
-Dovetail, Unwrap, Productboard signals. *Decide/Define*: ChatPRD (100k+ PMs, ships inside Linear),
-Productboard AI, Notion AI (21k custom agents in beta, MCP-native). *Coordinate*: Linear for Agents
+**Players by station (each owns ONE; no end-to-end owner):** _Build_: Devin/Cognition, Factory ($1.5B),
+Cursor, GitHub Copilot Agent (GA), Replit ($253M ARR), v0/Vercel, Claude Code. _Sense_: Enterpret,
+Dovetail, Unwrap, Productboard signals. _Decide/Define_: ChatPRD (100k+ PMs, ships inside Linear),
+Productboard AI, Notion AI (21k custom agents in beta, MCP-native). _Coordinate_: Linear for Agents
 ($1.25B), Atlassian Rovo, Height.
 **Whitespace:** the **governed, autonomous closed loop with compounding memory** has no verified owner.
 Defensible **only as a vertical, opinionated system-of-record / OS**, not neutral middleware.
 
 # Appendix B: Runtime reality audit (the gap P1 to P2 closes), verified in code
+
 - **Loop** (`loop.server.ts`): iterative {thought, action}; hard step caps (specialists ~6,
   orchestrator ~14, builder ~24); checkpoints each step.
 - **Trust** (`trust.server.ts`): arcs observing→proving→trusted→ambient; **new agents default
@@ -313,6 +333,7 @@ Defensible **only as a vertical, opinionated system-of-record / OS**, not neutra
   unattended end-to-end. P1 closes handoff/retry/budget; P2 adds governed execution-delegation.
 
 # Appendix C: Customer pain & adoption (sourced)
+
 - **#1 pain:** doc/status busywork; context-switching; loss of the evidence→decision thread.
 - **Adoption killers:** AI outside existing workflows; trust/verification friction (accuracy trust
   40%→29%); config paralysis; over-scope (95% of GenAI pilots don't scale); **42% enterprise AI
@@ -323,6 +344,7 @@ Defensible **only as a vertical, opinionated system-of-record / OS**, not neutra
   in <10 min.
 
 # Appendix D: Decision-first card spec (highest-leverage UI)
+
 **Collapsed:** `the call as a question` → `evidence count + Critic verdict` (e.g., "12 signals · Critic:
 revise, cannibalizes X") → `[Approve] [Open]`.
 **Fields (priority):** 1) the call as a question; 2) cited, countable, click-through evidence; 3) Critic

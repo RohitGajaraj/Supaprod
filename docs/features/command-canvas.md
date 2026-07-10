@@ -22,11 +22,11 @@ You tell Cadence what you want in plain language on the left; the right side sho
 
 The founder's cue: "the interface should be command-line-like (not a literal terminal), everything is a command-line interface, and the right side is a preview." The instinct is right; it just needs one reading to be safe.
 
-Cadence's first design law (the Engine-Room Doctrine) says: *name the outcome, not the mechanism; the default surface never makes the user reason about how the machine works.* A literal syntax CLI breaks that law (it forces command recall and exposes mechanism). So the resolution is:
+Cadence's first design law (the Engine-Room Doctrine) says: _name the outcome, not the mechanism; the default surface never makes the user reason about how the machine works._ A literal syntax CLI breaks that law (it forces command recall and exposes mechanism). So the resolution is:
 
 > "Command-line" means a **natural-language intent bar**, not a syntax CLI. You type what you want ("decide whether to cut feature X," "what changed in the roadmap this week"), not how the machine does it.
 
-Read that way, the tension is largely false. **Linear is the proof**: it is at once the most command-driven and the calmest tool, because its command layer is an *optional accelerator over an opinionated, minimal GUI*, every action also reachable by mouse. The preview pane is what makes a command bar calm: the user *watches* the outcome instead of *reasoning about* the mechanism. ([Inside Linear](https://www.lennysnewsletter.com/p/inside-linear-building-with-taste), [NN/g accelerators](https://www.nngroup.com/articles/ui-accelerators/))
+Read that way, the tension is largely false. **Linear is the proof**: it is at once the most command-driven and the calmest tool, because its command layer is an _optional accelerator over an opinionated, minimal GUI_, every action also reachable by mouse. The preview pane is what makes a command bar calm: the user _watches_ the outcome instead of _reasoning about_ the mechanism. ([Inside Linear](https://www.lennysnewsletter.com/p/inside-linear-building-with-taste), [NN/g accelerators](https://www.nngroup.com/articles/ui-accelerators/))
 
 ---
 
@@ -42,9 +42,9 @@ This is the same shape the market has already validated (Claude Artifacts, ChatG
 
 ## Relationship to today's Ask (resolving the overlap)
 
-The founder flagged this directly: Cadence already has **Ask** (route `/chat`, rail label "Brain"), which is *already* a natural-language box, it researches the web and the workspace and can dispatch missions ("run a mission to..."). A new command bar would mean **two natural-language entry points**, which is redundant and breaks the calm-front "one door" instinct.
+The founder flagged this directly: Cadence already has **Ask** (route `/chat`, rail label "Brain"), which is _already_ a natural-language box, it researches the web and the workspace and can dispatch missions ("run a mission to..."). A new command bar would mean **two natural-language entry points**, which is redundant and breaks the calm-front "one door" instinct.
 
-**Resolution: the Command Canvas is the evolution of Ask, not a second box.** We keep one natural-language surface and give it the half it is missing, a persistent **preview/canvas** on the right, and we let it both *answer* (research, now with Decision Brain graph citations) and *act* (dispatch and steer work, rendered live in the canvas). Today's Ask thread becomes the ephemeral left rail; the canvas becomes the durable right pane.
+**Resolution: the Command Canvas is the evolution of Ask, not a second box.** We keep one natural-language surface and give it the half it is missing, a persistent **preview/canvas** on the right, and we let it both _answer_ (research, now with Decision Brain graph citations) and _act_ (dispatch and steer work, rendered live in the canvas). Today's Ask thread becomes the ephemeral left rail; the canvas becomes the durable right pane.
 
 This is also what unifies the two bets: the canvas is the **face of the Decision Brain**. A question renders as a graph-cited answer; an intent renders as an artifact or a running mission, both in the same preview. Graph in (H1), canvas out (H2).
 
@@ -52,7 +52,7 @@ What changes from today's Ask: today it is conversation-only (answers land in th
 
 - **(A, recommended) Evolve Ask in place** into the Command Canvas (one surface gains the canvas + command execution).
 - **(B) Two altitudes:** keep Ask as the research/conversation surface and add a global `⌘K` command bar for quick intents that render into the current context. Risk: two NL boxes.
-- **(C) Full merge** under the Brain: one surface for research *and* command, the canvas showing either the cited answer or the artifact/mission. (A and C converge.)
+- **(C) Full merge** under the Brain: one surface for research _and_ command, the canvas showing either the cited answer or the artifact/mission. (A and C converge.)
 
 ## The 10 rules that keep a command interface calm
 
@@ -77,9 +77,9 @@ What changes from today's Ask: today it is conversation-only (answers land in th
 
 ## The value principle: useful at every step, even unexpected
 
-The canvas should make the machine's work *legible and trustworthy* at every step, surfacing value the user did not explicitly ask for:
+The canvas should make the machine's work _legible and trustworthy_ at every step, surfacing value the user did not explicitly ask for:
 
-- When the loop recalls a past decision mid-task, the canvas shows the citation chain, so you see *why* it answered the way it did.
+- When the loop recalls a past decision mid-task, the canvas shows the citation chain, so you see _why_ it answered the way it did.
 - When an agent hands off to the next, the canvas shows what context is being threaded forward.
 - When a result lands, the canvas collapses the process to a one-line summary and puts the artifact front and center (LukeW's collapse-to-summary), so attention returns to the work.
 

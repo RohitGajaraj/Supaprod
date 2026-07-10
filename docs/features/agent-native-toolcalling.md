@@ -72,7 +72,7 @@ consuming a mission's step budget.
   unchanged in every other respect. `responseFormat: "json_object"` is only requested when native
   tools are NOT being offered on that call, avoiding two competing instructions ("reply in strict
   JSON" vs. "use this tool") that could otherwise bias a model back toward the legacy envelope.
-  Every assistant turn pushed into `conv` (six sites) now uses a computed `assistantContent` -   `r.output` when non-empty, else a serialized `{thought, action}` envelope - so a pure native tool
+  Every assistant turn pushed into `conv` (six sites) now uses a computed `assistantContent` - `r.output` when non-empty, else a serialized `{thought, action}` envelope - so a pure native tool
   call with no accompanying prose never pushes an empty-string message (which a 4-lens adversarial
   review's verify pass found would otherwise be a real, confirmed path to an Anthropic 400 on the
   very next step, since the Messages API rejects empty non-final message content).
@@ -127,7 +127,7 @@ consuming a mission's step budget.
   never uses it, so extending native tool-calling there was out of this ticket's scope.
 - **The mechanical zod-to-JSON-Schema conversion has one documented, deliberate gap:** an open
   `z.record()` field (e.g. `agent.handoff`'s `context`) translates to a valid, Anthropic/gateway-
-  accepted `{"type":"object","additionalProperties":{}}` schema, which OpenAI's *strict*
+  accepted `{"type":"object","additionalProperties":{}}` schema, which OpenAI's _strict_
   function-calling mode specifically rejects (it requires `additionalProperties:false` + every
   property enumerated). This codebase does not use OpenAI's strict mode anywhere (no official SDK
   is imported; every provider call is a raw `fetch`), so this is a non-issue for every route this

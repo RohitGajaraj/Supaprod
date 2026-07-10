@@ -99,9 +99,7 @@ describe("signalForLearning", () => {
 
 describe("groupKeyForLearning", () => {
   test("composes verdict and signal", () => {
-    expect(groupKeyForLearning(learning({ id: "a", theme_id: "t-1" }))).toBe(
-      "validated|theme:t-1",
-    );
+    expect(groupKeyForLearning(learning({ id: "a", theme_id: "t-1" }))).toBe("validated|theme:t-1");
   });
 
   test("null when the verdict is outside the vocabulary or the signal is missing", () => {
@@ -112,10 +110,7 @@ describe("groupKeyForLearning", () => {
 
 describe("groupSameShapedLearnings", () => {
   test("a shape must repeat MIN_GROUP_SIZE times before it groups", () => {
-    const two = [
-      learning({ id: "a", theme_id: "t-1" }),
-      learning({ id: "b", theme_id: "t-1" }),
-    ];
+    const two = [learning({ id: "a", theme_id: "t-1" }), learning({ id: "b", theme_id: "t-1" })];
     expect(groupSameShapedLearnings(two)).toEqual([]);
     const three = [...two, learning({ id: "c", theme_id: "t-1" })];
     const groups = groupSameShapedLearnings(three);
@@ -189,10 +184,7 @@ describe("groupSameShapedLearnings", () => {
       learning({ id: "g", theme_id: "t-2" }),
     ];
     const groups = groupSameShapedLearnings(rows);
-    expect(groups.map((g) => g.groupKey)).toEqual([
-      "validated|theme:t-2",
-      "validated|theme:t-1",
-    ]);
+    expect(groups.map((g) => g.groupKey)).toEqual(["validated|theme:t-2", "validated|theme:t-1"]);
   });
 });
 

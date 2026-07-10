@@ -94,14 +94,33 @@ function ResetPasswordPage() {
           >
             Your password is updated. You are signed in with it now.
           </p>
-          <Link to="/" className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+          <Link
+            to="/"
+            className="btn btn-primary"
+            style={{ width: "100%", justifyContent: "center" }}
+          >
             Continue · opens your workspace
           </Link>
         </div>
       ) : canReset === null ? (
-        <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+        <div
+          style={{
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
           <Loader2 size={18} className="animate-spin" style={{ color: "var(--text-subtle)" }} />
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "4px 0", lineHeight: 1.55 }}>
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "var(--text-muted)",
+              margin: "4px 0",
+              lineHeight: 1.55,
+            }}
+          >
             Checking your reset link.
           </p>
         </div>

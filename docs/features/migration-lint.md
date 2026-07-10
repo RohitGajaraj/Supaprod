@@ -23,10 +23,12 @@ This linter closes that: it runs **offline** (no DB), so it catches the broken S
 `src/lib/migration-lint.ts` `lintMigrationSql(sql)` returns findings with a 1-based line.
 
 **ERROR (build-blocking — always-invalid SQL, zero false positives):**
+
 - `create-policy-if-not-exists` — `CREATE POLICY ... IF NOT EXISTS` (ERROR 42601).
 - `create-trigger-if-not-exists` — `CREATE TRIGGER ... IF NOT EXISTS` (unsupported).
 
 **WARN (advisory, non-blocking):**
+
 - `new-table-no-rls` — a new **public**-schema table with no `ENABLE ROW LEVEL SECURITY` in the same file (the repo requires RLS on tenant tables). Non-public-schema tables (e.g. `app_private`) are intentionally service-role-only and are skipped.
 - `add-column-notnull-no-default` — `ADD COLUMN ... NOT NULL` with no `DEFAULT` (fails on a populated table).
 

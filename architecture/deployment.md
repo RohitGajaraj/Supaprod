@@ -34,14 +34,14 @@ The browser only ever talks to the worker. The worker holds every secret. The da
 
 **Build tool: Vite 7** with the TanStack Start plugin. The build emits a Cloudflare Worker bundle.
 
-| Command | What it does |
-|---|---|
-| `bun install` | Install deps under the supply-chain guard (§4). |
-| `bun run dev` | Vite dev server. Use this to verify UI changes. |
-| `bun run build` | Production build: Vite to Cloudflare Worker bundle. |
-| `bun run build:dev` | Same pipeline, dev-mode build. |
-| `bun run preview` | Serve the built worker locally (a real worker, not the dev server). |
-| `bun run lint` / `bun run format` | ESLint / Prettier. |
+| Command                           | What it does                                                        |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `bun install`                     | Install deps under the supply-chain guard (§4).                     |
+| `bun run dev`                     | Vite dev server. Use this to verify UI changes.                     |
+| `bun run build`                   | Production build: Vite to Cloudflare Worker bundle.                 |
+| `bun run build:dev`               | Same pipeline, dev-mode build.                                      |
+| `bun run preview`                 | Serve the built worker locally (a real worker, not the dev server). |
+| `bun run lint` / `bun run format` | ESLint / Prettier.                                                  |
 
 **`wrangler.jsonc`** is the deploy manifest: `name: "tanstack-start-app"`, `compatibility_date: "2025-09-24"`, `compatibility_flags: ["nodejs_compat"]`, `main: "src/server.ts"`.
 
@@ -104,17 +104,17 @@ This is what makes the agent loop run itself. Supabase `pg_cron` calls the worke
 
 **Hook auth.** Every hook is gated by `requireHookCaller`, which matches an `apikey`, `x-cron-key`, or Bearer header against `SUPABASE_PUBLISHABLE_KEY`. The anon key shipped in the browser bundle doubles as the shared secret between pg_cron and the worker. Hooks run with `supabaseAdmin` (service role) because they act across users.
 
-| Hook | Schedule | What it does | State |
-|---|---|---|---|
-| `resume-runs` | `* * * * *` (every minute) | Promotes queued / stale / waiting_approval runs (batch 5) via `resumeAgentLoop`; then calls `advanceMissionCore` on up to 20 running missions (reflect step status, dispatch ready steps via CAS claim, finalize). The heart of the loop. | Built |
-| `approvals-tick` | `* * * * *` | Executes approved gated tool calls; notifies on denials. | Built |
-| `event-reactor-tick` | `* * * * *` | Drains `event_queue` rows with `approval_mode='auto'` (batch 10); dispatches each to its target agent. | Built |
-| `memory-tick` | daily | Decays memory: deletes `agent_memory` rows with `importance <= 2` and last-used older than 30 days. Pairs with the `touch` on recall so used memories survive. | Built |
-| `outcome-tick` | `0 * * * *` (hourly) | For `approved` PRDs with a linked GitHub issue, checks issue state and stamps `shipped_at` when closed. Feeds `rememberOutcome`, the compounding-memory moat. | Built |
-| `eval-tick` | scheduled / on-demand | Picks up to 20 recent `ai_events` lacking an eval; runs the `google/gemini-2.5-flash-lite` judge over 7 dimensions into `ai_evals`. | Built |
-| `eval-suite-tick` | `0 3 * * *` (daily 3am) | Runs enabled eval suites whose cron is set and last run is stale. | Built |
-| `indexer-tick` | `7 * * * *` (hourly at :07) | Chunks and embeds recent workspace content into `rag_chunks` (idempotent via content hash). | Built |
-| `drift-tick` | `0 4 * * *` (daily 4am) | Runs drift detection for users active in the last 30 days; opens/resolves drift incidents. | Built |
+| Hook                 | Schedule                    | What it does                                                                                                                                                                                                                              | State |
+| -------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| `resume-runs`        | `* * * * *` (every minute)  | Promotes queued / stale / waiting_approval runs (batch 5) via `resumeAgentLoop`; then calls `advanceMissionCore` on up to 20 running missions (reflect step status, dispatch ready steps via CAS claim, finalize). The heart of the loop. | Built |
+| `approvals-tick`     | `* * * * *`                 | Executes approved gated tool calls; notifies on denials.                                                                                                                                                                                  | Built |
+| `event-reactor-tick` | `* * * * *`                 | Drains `event_queue` rows with `approval_mode='auto'` (batch 10); dispatches each to its target agent.                                                                                                                                    | Built |
+| `memory-tick`        | daily                       | Decays memory: deletes `agent_memory` rows with `importance <= 2` and last-used older than 30 days. Pairs with the `touch` on recall so used memories survive.                                                                            | Built |
+| `outcome-tick`       | `0 * * * *` (hourly)        | For `approved` PRDs with a linked GitHub issue, checks issue state and stamps `shipped_at` when closed. Feeds `rememberOutcome`, the compounding-memory moat.                                                                             | Built |
+| `eval-tick`          | scheduled / on-demand       | Picks up to 20 recent `ai_events` lacking an eval; runs the `google/gemini-2.5-flash-lite` judge over 7 dimensions into `ai_evals`.                                                                                                       | Built |
+| `eval-suite-tick`    | `0 3 * * *` (daily 3am)     | Runs enabled eval suites whose cron is set and last run is stale.                                                                                                                                                                         | Built |
+| `indexer-tick`       | `7 * * * *` (hourly at :07) | Chunks and embeds recent workspace content into `rag_chunks` (idempotent via content hash).                                                                                                                                               | Built |
+| `drift-tick`         | `0 4 * * *` (daily 4am)     | Runs drift detection for users active in the last 30 days; opens/resolves drift incidents.                                                                                                                                                | Built |
 
 ```mermaid
 flowchart TD
@@ -183,14 +183,14 @@ flowchart LR
 
 ## 9. Known operational risks
 
-| Risk | State | Detail | Mitigation |
-|---|---|---|---|
-| **Migration-sync dependency** | Partial | The apply step rides on the Lovable sync, which is not owned by us and can lag. Committed fixes can sit unapplied on live for a window. | The pending-migration pattern (graceful degradation) keeps the system up. The v7 fix is an owned apply/verify step (M-0): if the sync lags, apply manually within a week and name an owner. |
-| **KI-13: live signup** | Partial (fix landed, pending sync) | `POST /auth/v1/signup` returned 500 `Database error saving new user` because the `handle_new_user` trigger threw on the live DB (migration drift, a seed helper/table absent). No new account could be created platform-wide until sync. | Fixed defensively in `20260614140000`: each seed step runs in its own `BEGIN..EXCEPTION` subtransaction, so a failed seed logs a warning and signup completes; the app self-heals profile and workspace. Verify a fresh signup after the next sync. Full entry: [`known-issues`](../docs/planning/known-issues.md). |
-| **Orchestrator slug mismatch** | Partial (live bug, fix-first) | The orchestrator prompt names slugs (`discovery`, `growth`, `analyst`) that are not seeded; only `discovery-scout`, `strategist`, `prd-writer`, `builder` exist. `mission.plan` slug validation throws, so any multi-agent mission with a sensing step dies. | Align the orchestrator prompt to the real seeded slugs, or add slug aliasing. Cheap fix, but it gates the whole multi-agent loop. v7 M-0, pre-everything. |
-| **Connectors not operational** | Partial | The connector platform is OAuth-wired in code but the OAuth clients are not registered, so SENSE is webhook-only in practice. | Founder OAuth-client registration; land one real ingest source. v7 M-0/M-A. Connector detail: [`integrations.md`](./integrations.md). |
-| **`observing`-by-default gating** | Built (by design, felt-product gap) | New users default to the `observing` arc, which gates everything for review. The felt experience is the opposite of ambient until the arc advances. | The visible observing to proving to trusted on-ramp (v7 §7), mostly defaults and UX, not new architecture. |
-| **High-scale mission cap (KI-16)** | Built (capped) | Mission advance is batched at 20 running missions per tick. No effect at early scale. | Raise the cap or shard the sweep at scale. |
+| Risk                               | State                               | Detail                                                                                                                                                                                                                                                       | Mitigation                                                                                                                                                                                                                                                                                                          |
+| ---------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Migration-sync dependency**      | Partial                             | The apply step rides on the Lovable sync, which is not owned by us and can lag. Committed fixes can sit unapplied on live for a window.                                                                                                                      | The pending-migration pattern (graceful degradation) keeps the system up. The v7 fix is an owned apply/verify step (M-0): if the sync lags, apply manually within a week and name an owner.                                                                                                                         |
+| **KI-13: live signup**             | Partial (fix landed, pending sync)  | `POST /auth/v1/signup` returned 500 `Database error saving new user` because the `handle_new_user` trigger threw on the live DB (migration drift, a seed helper/table absent). No new account could be created platform-wide until sync.                     | Fixed defensively in `20260614140000`: each seed step runs in its own `BEGIN..EXCEPTION` subtransaction, so a failed seed logs a warning and signup completes; the app self-heals profile and workspace. Verify a fresh signup after the next sync. Full entry: [`known-issues`](../docs/planning/known-issues.md). |
+| **Orchestrator slug mismatch**     | Partial (live bug, fix-first)       | The orchestrator prompt names slugs (`discovery`, `growth`, `analyst`) that are not seeded; only `discovery-scout`, `strategist`, `prd-writer`, `builder` exist. `mission.plan` slug validation throws, so any multi-agent mission with a sensing step dies. | Align the orchestrator prompt to the real seeded slugs, or add slug aliasing. Cheap fix, but it gates the whole multi-agent loop. v7 M-0, pre-everything.                                                                                                                                                           |
+| **Connectors not operational**     | Partial                             | The connector platform is OAuth-wired in code but the OAuth clients are not registered, so SENSE is webhook-only in practice.                                                                                                                                | Founder OAuth-client registration; land one real ingest source. v7 M-0/M-A. Connector detail: [`integrations.md`](./integrations.md).                                                                                                                                                                               |
+| **`observing`-by-default gating**  | Built (by design, felt-product gap) | New users default to the `observing` arc, which gates everything for review. The felt experience is the opposite of ambient until the arc advances.                                                                                                          | The visible observing to proving to trusted on-ramp (v7 §7), mostly defaults and UX, not new architecture.                                                                                                                                                                                                          |
+| **High-scale mission cap (KI-16)** | Built (capped)                      | Mission advance is batched at 20 running missions per tick. No effect at early scale.                                                                                                                                                                        | Raise the cap or shard the sweep at scale.                                                                                                                                                                                                                                                                          |
 
 The migration-sync dependency and KI-13 are the load-bearing operational risks: until the sync gate clears, no real account exists and the whole "real data" thesis is blocked at the door. This is why the v7 canon makes an owned apply/verify step the M-0 emergency, ahead of everything else.
 

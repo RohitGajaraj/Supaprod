@@ -36,8 +36,7 @@ export interface GoalProposal {
 }
 
 export type GoalPassResult =
-  | { proposed: 1; opportunityId: string }
-  | { proposed: 0; skipped: string };
+  { proposed: 1; opportunityId: string } | { proposed: 0; skipped: string };
 
 /** One proposal per goal per 24h: the hard spend bound the tick enforces
  *  before any model call. */
@@ -59,7 +58,8 @@ export function parseGoalProposal(raw: unknown): GoalProposal | { skip: string }
   if (!raw || typeof raw !== "object") return { skip: "unparseable model output" };
   const o = raw as Record<string, unknown>;
   if (o.skip === true || o.skip === "true") {
-    const reason = typeof o.reason === "string" && o.reason.trim() ? o.reason.trim() : "nothing new warranted";
+    const reason =
+      typeof o.reason === "string" && o.reason.trim() ? o.reason.trim() : "nothing new warranted";
     return { skip: reason.slice(0, 300) };
   }
   const title = typeof o.title === "string" ? o.title.trim() : "";
@@ -68,8 +68,14 @@ export function parseGoalProposal(raw: unknown): GoalProposal | { skip: string }
   return {
     title: title.slice(0, 200),
     problem: problem.slice(0, 2000),
-    target_user: typeof o.target_user === "string" && o.target_user.trim() ? o.target_user.trim().slice(0, 200) : null,
-    hypothesis: typeof o.hypothesis === "string" && o.hypothesis.trim() ? o.hypothesis.trim().slice(0, 500) : null,
+    target_user:
+      typeof o.target_user === "string" && o.target_user.trim()
+        ? o.target_user.trim().slice(0, 200)
+        : null,
+    hypothesis:
+      typeof o.hypothesis === "string" && o.hypothesis.trim()
+        ? o.hypothesis.trim().slice(0, 500)
+        : null,
   };
 }
 
@@ -117,8 +123,12 @@ async function gatherGoalContext(client: SupabaseClient, goal: GoalRow): Promise
   const th = (themesRes.data ?? []).map((t) => `- ${t.title} (x${t.frequency ?? 1})`).join("\n");
   lines.push(`\nTop themes:\n${th || "(none)"}`);
 
-  const linked = (linkedRes.data ?? []).map((o) => `- [${o.status ?? "backlog"}] ${o.title}`).join("\n");
-  lines.push(`\nOpportunities ALREADY proposed for this goal (do not duplicate):\n${linked || "(none)"}`);
+  const linked = (linkedRes.data ?? [])
+    .map((o) => `- [${o.status ?? "backlog"}] ${o.title}`)
+    .join("\n");
+  lines.push(
+    `\nOpportunities ALREADY proposed for this goal (do not duplicate):\n${linked || "(none)"}`,
+  );
 
   const open = (openOppsRes.data ?? []).map((o) => `- ${o.title}`).join("\n");
   lines.push(`\nOther top workspace opportunities (do not duplicate):\n${open || "(none)"}`);
@@ -131,7 +141,10 @@ async function gatherGoalContext(client: SupabaseClient, goal: GoalRow): Promise
  * (when the model proposes) one opportunity insert into Decide. Always
  * advances last_worked_at so the tick's oldest-first queue stays fair.
  */
-export async function runGoalWorkPass(client: SupabaseClient, goal: GoalRow): Promise<GoalPassResult> {
+export async function runGoalWorkPass(
+  client: SupabaseClient,
+  goal: GoalRow,
+): Promise<GoalPassResult> {
   // Hard spend bound BEFORE any model call: one proposal per goal per 24h.
   const cooldownCutoff = new Date(Date.now() - GOAL_PROPOSAL_COOLDOWN_MS).toISOString();
   const { count: recentCount } = await client
@@ -166,7 +179,10 @@ export async function runGoalWorkPass(client: SupabaseClient, goal: GoalRow): Pr
     });
   } catch (e) {
     await touchGoal(client, goal.id);
-    return { proposed: 0, skipped: `model call failed: ${e instanceof Error ? e.message : "unknown"}` };
+    return {
+      proposed: 0,
+      skipped: `model call failed: ${e instanceof Error ? e.message : "unknown"}`,
+    };
   }
 
   const parsed = parseGoalProposal(res.json);
@@ -216,6 +232,9 @@ export async function runGoalWorkPass(client: SupabaseClient, goal: GoalRow): Pr
 async function touchGoal(client: SupabaseClient, goalId: string): Promise<void> {
   await client
     .from("goals")
-    .update({ last_worked_at: new Date().toISOString(), updated_at: new Date().toISOString() } as never)
+    .update({
+      last_worked_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as never)
     .eq("id", goalId);
 }

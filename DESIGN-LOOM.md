@@ -69,13 +69,12 @@ A dark instrument, lit by meaning. Three additions over v3:
 > The test is not "did the tell go away" but "does this now feel considered,
 > insightful, and calm." Applies to EVERY surface, not the one being fixed.
 
-
-
 **1. Affordance is decoupled from emphasis.** The restraint budget limits how
 LOUD a thing is (emphasis), never whether it looks interactive (affordance).
 Every interactive control carries structural affordance: a shape (padding +
 radius) and either a fill or a border, so it can never be mistaken for a
 label. The button hierarchy (primitive `Button` / CSS `.btn`):
+
 - **Primary** (solid ember gradient, one per view): the main action.
 - **Secondary** (`--surface-raised` + `--hairline-strong` border): the
   workhorse, unlimited per screen.
@@ -83,9 +82,9 @@ label. The button hierarchy (primitive `Button` / CSS `.btn`):
   still unmistakably a button.
 - **Link** (glacier text, underline on hover): genuine inline navigation only,
   never a primary action.
-All buttons use the UI voice in **sentence case, never uppercase mono**.
-Mono-caps is metadata (timestamps, counts, costs, status), never an action.
-**Banned: the borderless, transparent, mono-uppercase "text button."**
+  All buttons use the UI voice in **sentence case, never uppercase mono**.
+  Mono-caps is metadata (timestamps, counts, costs, status), never an action.
+  **Banned: the borderless, transparent, mono-uppercase "text button."**
 
 **2. Prominence & the spotlight.** Ask of every screen: "what deserves the
 spotlight, and is it getting it?" A key insight, summary, takeaway, or brief
@@ -323,6 +322,7 @@ platform shows (a card, row, list item, or graph node) is a first-class,
 auditable thing, never a dead tile. The Decide layer's opportunity cards are
 the built exemplar; every surface adopts this by default, and existing surfaces
 are brought into line as they are touched.
+
 - **Click-to-open everywhere.** A single click on the object opens its own
   detail directly. The ⋯ / kebab menu is for SECONDARY actions only, never the
   only way to see an object. A double-click requirement or a dead card is a
@@ -357,7 +357,7 @@ are brought into line as they are touched.
 - **Scope.** Applies to EVERY surface and object type: Today, Discover, Decide,
   Plan/Define, Build, Brain, Trust Ledger, Engine Room, and any future surface.
   New objects adopt it by default (Discover signals already carry click-to-open
-  + source/reference; Decide is the built exemplar).
+  - source/reference; Decide is the built exemplar).
 - **Trace-ref prefix registry.** Every object type shares the same 6-char
   `traceRef()` code but carries its own type prefix, so an object traces
   cleanly across the whole loop: `SIG` signals, `THM` themes, `OPP`
@@ -423,8 +423,6 @@ are brought into line as they are touched.
   [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md),
   the reference doc behind this binding contract.
 
-
-
 ### The anti-slop catalog (the 46 tells to keep OUT, forever)
 
 The founder's standing law (2026-07-06): the interface must stay purely free of
@@ -468,8 +466,6 @@ defect. The tells, by group, that matter most for our dark product cockpit:
 Full living catalog + the browser overlay: impeccable.style/slop; the vendored
 rules + the `critique`/`audit` passes live in `.kiro/skills/impeccable/`.
 
-
-
 Role-color semantics (ember = needs-a-human ONLY; glacier = the machine voice;
 moss/madder = outcomes; blossom = information; violet = shimmer-only). One
 queue for attention. Depth on demand (list → slide-over → full view). The
@@ -487,7 +483,7 @@ light, never heavy borders:
 - Card top-light: `inset 0 1px 0 rgba(255,255,255,0.05)` on card and above.
 - Ambient shadow (raised+): `0 8px 24px -12px rgba(0,0,0,0.55)`.
 - Overlay depth (slide-over, dialogs, palette): `0 24px 64px -16px
-  rgba(0,0,0,0.65)` + glass hairline (blur 20, 8% white).
+rgba(0,0,0,0.65)` + glass hairline (blur 20, 8% white).
 - Hover still lifts one surface step AND brightens the top-light to 0.07 —
   the card catches the light.
 - Canvas atmosphere: one fixed, pointer-events-none layer per app root:
@@ -495,6 +491,7 @@ light, never heavy borders:
   opacity. Kills the dead-flat void; never on scrolling containers.
 
 ## 2b. The gradient language (founder direction 2026-07-04: gradients and
+
 patterns as a modern signature — adopted with restraint rules)
 
 Gradients in Loom are atmosphere and meaning, never decoration. Six legal

@@ -6,6 +6,7 @@
 
 > [!IMPORTANT]
 > **Live-state verification (2026-06-24, lane 2 · register item `EVENT-REACTOR-LIVE`).** The v11 row asked to "turn on the dormant reactor." A code + live-DB audit (via the Lovable MCP against the production project) shows the reactor **is already wired and scheduled end-to-end** — it is cold for lack of input volume, not because the pipeline is unbuilt:
+>
 > - **Emit (live):** the three `*_reactor_fanout` `AFTER INSERT/UPDATE` triggers exist; `event_subscriptions` holds **12 enabled default rows** across the workspaces (the three seeded types). An `AFTER INSERT` trigger is path-agnostic, so every signal/opportunity/PRD write path already fans out — there is **no non-redundant application-level emit code to add** for the existing types.
 > - **Consume (live):** the `event-reactor-tick` pg_cron job is **present and `active`, schedule `* * * * *`** (every minute), with the KI-27 reaper + bounded-retry hardening in the handler.
 > - **Why it looks dormant:** `event_queue` has a single all-time row — an `opportunity.scored` / `confirm` event from 2026-06-11 correctly **waiting for an operator** (confirm rows never auto-dispatch). The coldness is an _input/data_ gap (no connectors bound, near-zero live signals), owned by `TEST-SEED` + `AMBIENT-SENSE`, not a reactor-code gap.

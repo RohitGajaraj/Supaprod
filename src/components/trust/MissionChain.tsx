@@ -8,7 +8,11 @@
 
 import * as React from "react";
 import { traceRef } from "@/components/discover/format";
-import type { ChainStep, ChainLinkStatus, MissionChain as MissionChainData } from "@/lib/trust-chain.functions";
+import type {
+  ChainStep,
+  ChainLinkStatus,
+  MissionChain as MissionChainData,
+} from "@/lib/trust-chain.functions";
 
 const STATUS_DOT: Record<ChainLinkStatus, string> = {
   present: "var(--moss)",
@@ -96,7 +100,13 @@ function StepRow({ step, last }: { step: ChainStep; last: boolean }) {
             <span style={{ ...mono, color: "var(--text-faint)" }}>{traceRef(step.backingId)}</span>
           ) : null}
         </div>
-        <div style={{ fontSize: 12, color: dim ? "var(--text-faint)" : "var(--text-body)", marginTop: 2 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: dim ? "var(--text-faint)" : "var(--text-body)",
+            marginTop: 2,
+          }}
+        >
           {step.detail}
         </div>
       </div>

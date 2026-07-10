@@ -393,7 +393,11 @@ async function queryLane2(
       .from("missions")
       .select("id, goal, title")
       .in("id", missionIds);
-    for (const m of (missions ?? []) as { id: string; goal: string | null; title: string | null }[]) {
+    for (const m of (missions ?? []) as {
+      id: string;
+      goal: string | null;
+      title: string | null;
+    }[]) {
       missionMeta.set(m.id, { goal: m.goal, title: m.title });
     }
   }
@@ -411,7 +415,9 @@ async function queryLane3(db: SupabaseClient, workspaceId: string): Promise<Toda
   const [foresightRes, missesRes, challengeRes] = await Promise.all([
     db
       .from("insights")
-      .select("id, kind, headline, detail, claim, recommended_action, score, confidence, resolution")
+      .select(
+        "id, kind, headline, detail, claim, recommended_action, score, confidence, resolution",
+      )
       .eq("workspace_id", workspaceId)
       .eq("status", "open")
       .in("kind", ["prediction", "risk", "cost_of_inaction"])
@@ -420,7 +426,9 @@ async function queryLane3(db: SupabaseClient, workspaceId: string): Promise<Toda
       .limit(6),
     db
       .from("insights")
-      .select("id, kind, headline, detail, claim, recommended_action, score, confidence, resolution")
+      .select(
+        "id, kind, headline, detail, claim, recommended_action, score, confidence, resolution",
+      )
       .eq("workspace_id", workspaceId)
       .eq("resolution", "miss")
       .order("resolved_at", { ascending: false, nullsFirst: false })

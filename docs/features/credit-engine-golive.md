@@ -34,4 +34,5 @@ The credit engine was dormant behind `credits_enabled()` because a prior inciden
 - **Production go-live for real customers** would additionally need live Stripe keys (`pk_live_…`) so a capped free user has a real upgrade path — a founder go-live decision, distinct from this build-phase test.
 
 ## Related
+
 - `supabase/migrations/20260621130000_credit_golive_guard.sql` · [`../../src/lib/entitlements.ts`](../../src/lib/entitlements.ts) · [`billing-db-hygiene.md`](./billing-db-hygiene.md) · [`../../plan.md`](../../plan.md) §4 · dashboard rows WM-M11/M12/M13/M14/M16, BYO-P4.

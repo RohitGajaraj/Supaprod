@@ -8,10 +8,10 @@
 
 Permissions live in two files, by design:
 
-| File | Scope | Holds | Committed? |
-| --- | --- | --- | --- |
-| `.claude/settings.json` | **Shared** (travels with the repo, every session + tool + machine) | the **allow list** (pre-approved safe commands) + the **deny list** (destructive commands blocked for everyone) | **Yes** (checked in) |
-| `.claude/settings.local.json` | **Local** (this machine only) | **`"defaultMode": "bypassPermissions"`** + the same allow/deny as a belt-and-suspenders + `additionalDirectories` | **No** (gitignored) |
+| File                          | Scope                                                              | Holds                                                                                                             | Committed?           |
+| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `.claude/settings.json`       | **Shared** (travels with the repo, every session + tool + machine) | the **allow list** (pre-approved safe commands) + the **deny list** (destructive commands blocked for everyone)   | **Yes** (checked in) |
+| `.claude/settings.local.json` | **Local** (this machine only)                                      | **`"defaultMode": "bypassPermissions"`** + the same allow/deny as a belt-and-suspenders + `additionalDirectories` | **No** (gitignored)  |
 
 **Why the split.** The allow/deny lists are safe to share, so they live in the committed `settings.json` and protect every clone (the deny list holds even under bypass). **`bypassPermissions` is a per-machine, opt-in choice** — it must NEVER be committed, or anyone who clones the repo would silently get a hands-off agent. So bypass lives only in the local, gitignored `settings.local.json`.
 
@@ -33,7 +33,7 @@ Read/Edit/Write/Glob/Grep on all paths; WebSearch + WebFetch; and the safe shell
 
 ## Learnings (the gotchas that caused real prompt-storms)
 
-1. **Settings are per the directory the session is LAUNCHED from, not the repo.** A session started in the repo root reads the root's `.claude/settings.local.json`. The overnight loop runs in a **git worktree** (`.claude/worktrees/overnight-build`), so a session launched there reads the *worktree's* settings. **If the loop is driven from a session launched at the repo root, it reads the ROOT settings, not the worktree's.** Real failure (2026-06-18): the bypass config existed only in the worktree's `settings.local.json`, so a root-launched session still prompted on every call. **Fix: the bypass + allow/deny must be in the `settings.local.json` of whatever directory the session is actually launched from** — for safety, set it in BOTH the repo root and the worktree, and list both paths in `additionalDirectories`.
+1. **Settings are per the directory the session is LAUNCHED from, not the repo.** A session started in the repo root reads the root's `.claude/settings.local.json`. The overnight loop runs in a **git worktree** (`.claude/worktrees/overnight-build`), so a session launched there reads the _worktree's_ settings. **If the loop is driven from a session launched at the repo root, it reads the ROOT settings, not the worktree's.** Real failure (2026-06-18): the bypass config existed only in the worktree's `settings.local.json`, so a root-launched session still prompted on every call. **Fix: the bypass + allow/deny must be in the `settings.local.json` of whatever directory the session is actually launched from** — for safety, set it in BOTH the repo root and the worktree, and list both paths in `additionalDirectories`.
 2. **Settings are read at session START.** Editing `settings.local.json` mid-session does **not** retroactively stop prompts in that session; it takes effect on the **next** session. Set it before the run (or restart the session after changing it).
 3. **`additionalDirectories` must include every path the session touches** — the repo root AND the worktree path — or operations in the "other" directory prompt.
 4. **`settings.local.json` is gitignored on purpose.** Do not try to commit it. The committed, shareable layer is `settings.json` (allow/deny) plus this doc.
@@ -45,8 +45,18 @@ Read/Edit/Write/Glob/Grep on all paths; WebSearch + WebFetch; and the safe shell
    {
      "permissions": {
        "defaultMode": "bypassPermissions",
-       "allow": [ "Read(**)", "Edit(**)", "Write(**)", "Glob(**)", "Grep(**)", "Bash(git *)", "Bash(bun *)", "Bash(bunx *)", "..." ],
-       "deny": [ "Bash(git push --force*)", "Bash(git reset --hard *)", "Bash(rm -rf *)", "..." ],
+       "allow": [
+         "Read(**)",
+         "Edit(**)",
+         "Write(**)",
+         "Glob(**)",
+         "Grep(**)",
+         "Bash(git *)",
+         "Bash(bun *)",
+         "Bash(bunx *)",
+         "..."
+       ],
+       "deny": ["Bash(git push --force*)", "Bash(git reset --hard *)", "Bash(rm -rf *)", "..."],
        "additionalDirectories": [
          "<repo root absolute path>",
          "<repo root>/.claude/worktrees/overnight-build"

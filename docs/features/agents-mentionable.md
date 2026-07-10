@@ -27,12 +27,14 @@ So a mention does not bypass the lifecycle, it **pre-plans** it: it writes one `
 ## How it works (wiring)
 
 **Server (`src/routes/api/chat.ts`):**
+
 - `parseAgentMentions(text)` extracts candidate `@slug` tokens. The match requires a leading word boundary, so email addresses (no preceding whitespace before `@`) never match. Case-insensitive, lowercased to the `agents.slug` charset; a dangling hyphen is dropped.
 - `stripMention(text, slug)` removes the chosen `@slug` token so the dispatched goal reads as a clean instruction.
 - The roster is fetched once (`agents` where `user_id` + `enabled = true`, excluding `orchestrator`); the first candidate that matches an enabled slug wins.
 - Pre-flight for a mention only requires a workspace (the agent was already resolved as enabled). Dispatch inserts the single `mission_steps` row + fires `advanceMissionCore`. Reply text: "On it. I've dispatched **‹title›** to ‹agent name›."
 
 **Composer (`src/routes/_authenticated.chat.tsx`):**
+
 - `detectMentionQuery(value, caret)` returns the partial slug under the caret when it sits inside an open `@token` (null the moment a space closes it, which is what keeps the picker from ever hijacking Enter-to-send).
 - An agent picker floats above the composer (reuses `listAgents`, filtered to enabled non-orchestrator agents by slug/name). Arrow keys move the highlight, Enter/Tab/click insert `@slug `, Escape dismisses. When the picker is closed the keydown path is byte-identical to before, so message sending can never be hijacked.
 - Placeholder + helper line advertise the affordance ("type @ to assign an agent").

@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-03 |
-| Rank | #4 |
-| Tier | 1 (foundation, strictly ordered) |
-| Status | pending |
-| Category | Cockpit |
-| Depends on | OBS-02 (shell) · transitively OBS-01 (tokens + fonts) |
-| Blocks | OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09 (every surface consumes these primitives) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-03                                                                                                                                                                                                                                                                                                                    |
+| Rank          | #4                                                                                                                                                                                                                                                                                                                        |
+| Tier          | 1 (foundation, strictly ordered)                                                                                                                                                                                                                                                                                          |
+| Status        | pending                                                                                                                                                                                                                                                                                                                   |
+| Category      | Cockpit                                                                                                                                                                                                                                                                                                                   |
+| Depends on    | OBS-02 (shell) · transitively OBS-01 (tokens + fonts)                                                                                                                                                                                                                                                                     |
+| Blocks        | OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09 (every surface consumes these primitives)                                                                                                                                                                                                                                  |
 | One-line what | The Obsidian primitive set every surface reuses: `Button`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast` (singleton), `SlideOver` chassis (dialog + focus trap + restore), `CallCard`, `MissionRow`, `AuroraCard`, `Citation` chip, `PencilNote`, each to the exact `components.md` anatomy with every state designed. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-03 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-03                                                                                                                                                                                                                                                |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                    |
 
 ## 2. Why we are doing it
 
@@ -30,6 +30,7 @@ The tie to the v11 guiding star (trust at the point of decision) and the engine-
 ## 3. What we are building
 
 **Scope IN**
+
 - A new Obsidian primitive module (home decided in §6): the eleven primitives named in the one-line what, each matching its `components.md` anatomy exactly, each with every interaction state designed (hover, focus, active, disabled, empty, loading, error where applicable).
 - The `Toast` singleton controller: one toast at a time, replaces (never stacks), auto-dismisses after 3.6s, `cadRise` 200ms entrance.
 - The `SlideOver` chassis: `role="dialog"` + `aria-modal`, focus trap, focus restore on close, Esc + scrim-click close, `cadSlideIn` 240ms, scrim `rgba(4,4,5,0.6)` + `blur(3px)`.
@@ -37,6 +38,7 @@ The tie to the v11 guiding star (trust at the point of decision) and the engine-
 - Unit tests for the pure logic: `StatusDot` color/animation mapping, `VerdictChip` tone mapping, the `Toast` singleton replace-not-stack behavior, the `SlideOver` focus-trap + restore contract.
 
 **Scope OUT (no feature work rides along)**
+
 - No server functions, no `*.functions.ts`, no data-flow changes. These primitives are **pure presentational components**: they take props and render. They read no query keys and call no mutations. Downstream surface items (OBS-04..09) wire them to the real server fns (`discovery.functions.ts`, mission/build server fns, `knowledge` fns, etc.) read-only; OBS-03 must not touch those files.
 - No new AI surface, no `CallSurface` literal, no `runtime.server.ts` change.
 - No route consolidation (that is OBS-10). The only route added is the dev specimen, which OBS-10 will fold or gate for production.
@@ -206,6 +208,7 @@ Primitives are mostly slots the surfaces fill, but the specimen and the default 
 ## 11. Prototype-parity checklist (the last gate, tailored)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` and `/obsidian-specimen` side by side at 1440px:
+
 1. **Rail:** N/A for this item (no rail is rendered by OBS-03; verify the specimen sits inside OBS-02's shell if present, else on `--canvas`).
 2. **Surface chrome:** the specimen uses `--canvas` and Obsidian container padding; primitives sit on `--card`/`--surface-card-deep` exactly.
 3. **Type:** `CallCard` title Newsreader 20px/460; `MissionRow` title 13px/600; mono labels 9-9.5px caps with middots; Codystar only on `AuroraCard`; Caveat only on `PencilNote`.

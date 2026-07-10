@@ -171,7 +171,12 @@ export type ListPlaybookProposalsResult = { proposals: PlaybookProposal[] };
 
 export const listPlaybookProposals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({}).strip().parse(i ?? {}))
+  .inputValidator((i: unknown) =>
+    z
+      .object({})
+      .strip()
+      .parse(i ?? {}),
+  )
   .handler(async ({ context }): Promise<ListPlaybookProposalsResult> => {
     const supabase = context.supabase as SupabaseClient;
     const { data: wsRpc } = await supabase.rpc("current_user_default_workspace");
@@ -199,8 +204,7 @@ export const decidePlaybookProposal = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => DecideProposalSchema.parse(i))
   .handler(async ({ context, data }): Promise<DecidePlaybookProposalResult> => {
     const supabase = context.supabase as SupabaseClient;
-    const status: PlaybookProposalStatus =
-      data.decision === "confirm" ? "confirmed" : "dismissed";
+    const status: PlaybookProposalStatus = data.decision === "confirm" ? "confirmed" : "dismissed";
     const { data: updated, error } = await supabase
       .from("playbook_proposals")
       .update({ status, decided_by: context.userId, decided_at: new Date().toISOString() })

@@ -61,26 +61,26 @@ The answers, each expanded in its section:
 
 Grades: **WIRED** (code path exists and is gated green) · **ORGANIC** (runs on real non-seeded data in prod) · **BEHAVIORAL** (its output changes what agents do next) · **FELT** (a user sees it working without hunting) · **PROVABLE** (a metric a buyer can check).
 
-| Capability claim | Wired | Organic | Behavioral | Felt | Provable | The honest one-liner |
-| --- | --- | --- | --- | --- | --- | --- |
-| Autonomous loop (missions self-advance, agents hand off) | YES | YES | YES | YES | YES | 12+ live crons; model-free DAG advance every minute; live-verified repeatedly |
-| Outcome recording to memory (W1-AUTO, LRN-02) | YES | THIN | PARTIAL | PARTIAL | YES | Writes fire only inside human recordOutcome; volume is low |
-| Auto-reflection per run | YES | YES | PARTIAL | NO | PARTIAL | Real self-assessment, recalled next run; no ground-truth check |
-| Outcome-weighted retrieval | NO | NO | NO | NO | NO | **The gap.** Recall is cosine similarity only; verdicts are display text |
-| Supersession engine (detected, bi-temporal) | YES | ARMED | PARTIAL | PARTIAL | YES | Flag ON in prod since 06-24; trigger is still only human recordOutcome; engine-origin edges: zero (visible ones are seeded) |
-| Playbook win-rate ranking | YES | SEEDED | NO | NO | YES | Ranking verified live; **no agent selects a playbook by it yet** |
-| Trust arc / earned autonomy | YES | YES | YES | PARTIAL | YES | The one genuinely outcome-derived behavior signal today |
-| Ambient sense (signals in, no human start) | YES | YES | YES | YES | YES | 5-min sense-tick; 4 connectors live; injection-screened |
-| Self-initiated missions (trigger-tick) | YES | YES | YES | PARTIAL | YES | Proposes with Trust-Ledger receipt; auto-promote armed 07-01, cap 2/day |
-| Prediction (derive: prediction/risk/cost-of-inaction) | YES | YES | NO | PARTIAL | NO | Narrative AI on a live 2h cron; no calibration, no forecast model, nothing scores whether predictions came true |
-| Pre-emptive detection (staleness, drift, spikes, scout diffs) | YES | PARTIAL | PARTIAL | PARTIAL | PARTIAL | Real engines; **drift/eval/indexer crons registered against a dead URL** (defect); scout/researcher keyed off |
-| Out-of-app notification | NO | NO | NO | NO | NO | Email dispatch is a console.log scaffold; prefs schema and UI already exist |
-| Design capability for the user's product | THIN | YES | NO | PARTIAL | NO | Readiness grader + one-shot generic HTML mockup; no design memory, no iteration |
-| Build spine (stage, commit, PR, CI gate, eval gate, merge, revert) | YES | YES | YES | YES | YES | 7 real GitHub write tools behind hard gates; merge review-pinned |
-| Deploy / hosting | NO | NO | NO | NO | NO | Interface-only seam; deno-deploy adapter exists with zero importers |
-| Memory OS (visual, operable brain) | PARTIAL | YES | NO | PARTIAL | NO | Graph + node stories render; no actions from nodes, no growth metrics |
-| Trust Ledger + integrity seal | YES | YES | n/a | YES | YES | SHA-256 seal, share pages, public verify |
-| Interop (MCP read, A2A, machine view, llms.txt) | YES | YES | n/a | PARTIAL | YES | 10 read tools; write half gated by design |
+| Capability claim                                                   | Wired   | Organic | Behavioral | Felt    | Provable | The honest one-liner                                                                                                        |
+| ------------------------------------------------------------------ | ------- | ------- | ---------- | ------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Autonomous loop (missions self-advance, agents hand off)           | YES     | YES     | YES        | YES     | YES      | 12+ live crons; model-free DAG advance every minute; live-verified repeatedly                                               |
+| Outcome recording to memory (W1-AUTO, LRN-02)                      | YES     | THIN    | PARTIAL    | PARTIAL | YES      | Writes fire only inside human recordOutcome; volume is low                                                                  |
+| Auto-reflection per run                                            | YES     | YES     | PARTIAL    | NO      | PARTIAL  | Real self-assessment, recalled next run; no ground-truth check                                                              |
+| Outcome-weighted retrieval                                         | NO      | NO      | NO         | NO      | NO       | **The gap.** Recall is cosine similarity only; verdicts are display text                                                    |
+| Supersession engine (detected, bi-temporal)                        | YES     | ARMED   | PARTIAL    | PARTIAL | YES      | Flag ON in prod since 06-24; trigger is still only human recordOutcome; engine-origin edges: zero (visible ones are seeded) |
+| Playbook win-rate ranking                                          | YES     | SEEDED  | NO         | NO      | YES      | Ranking verified live; **no agent selects a playbook by it yet**                                                            |
+| Trust arc / earned autonomy                                        | YES     | YES     | YES        | PARTIAL | YES      | The one genuinely outcome-derived behavior signal today                                                                     |
+| Ambient sense (signals in, no human start)                         | YES     | YES     | YES        | YES     | YES      | 5-min sense-tick; 4 connectors live; injection-screened                                                                     |
+| Self-initiated missions (trigger-tick)                             | YES     | YES     | YES        | PARTIAL | YES      | Proposes with Trust-Ledger receipt; auto-promote armed 07-01, cap 2/day                                                     |
+| Prediction (derive: prediction/risk/cost-of-inaction)              | YES     | YES     | NO         | PARTIAL | NO       | Narrative AI on a live 2h cron; no calibration, no forecast model, nothing scores whether predictions came true             |
+| Pre-emptive detection (staleness, drift, spikes, scout diffs)      | YES     | PARTIAL | PARTIAL    | PARTIAL | PARTIAL  | Real engines; **drift/eval/indexer crons registered against a dead URL** (defect); scout/researcher keyed off               |
+| Out-of-app notification                                            | NO      | NO      | NO         | NO      | NO       | Email dispatch is a console.log scaffold; prefs schema and UI already exist                                                 |
+| Design capability for the user's product                           | THIN    | YES     | NO         | PARTIAL | NO       | Readiness grader + one-shot generic HTML mockup; no design memory, no iteration                                             |
+| Build spine (stage, commit, PR, CI gate, eval gate, merge, revert) | YES     | YES     | YES        | YES     | YES      | 7 real GitHub write tools behind hard gates; merge review-pinned                                                            |
+| Deploy / hosting                                                   | NO      | NO      | NO         | NO      | NO       | Interface-only seam; deno-deploy adapter exists with zero importers                                                         |
+| Memory OS (visual, operable brain)                                 | PARTIAL | YES     | NO         | PARTIAL | NO       | Graph + node stories render; no actions from nodes, no growth metrics                                                       |
+| Trust Ledger + integrity seal                                      | YES     | YES     | n/a        | YES     | YES      | SHA-256 seal, share pages, public verify                                                                                    |
+| Interop (MCP read, A2A, machine view, llms.txt)                    | YES     | YES     | n/a        | PARTIAL | YES      | 10 read tools; write half gated by design                                                                                   |
 
 ### 2.3 Engine facts a CTO will ask about (from the 2026-07-02 engine audit)
 
@@ -108,11 +108,11 @@ Cadence is model-agnostic by mandate, so it will never own weights. The market s
 
 **The Cadence reinforcement stack, named precisely:**
 
-| Substrate | What updates | The update signal | State today |
-| --- | --- | --- | --- |
-| **Data layer** | agent_memory, learnings, artifact_lineage edges, playbook_runs | Recorded outcomes, supersessions, validations | Wired, human-triggered, thin volume |
-| **Policy layer** | Trust arcs, approval modes, house rules in prompts | Run history, approval history, eval scores | Arc + floors real; house rules absent |
-| **Routing layer** | Which precedent is recalled, which playbook applied, which model called | Should be outcome quality; today is similarity + static preference | **The missing keystone** |
+| Substrate         | What updates                                                            | The update signal                                                  | State today                           |
+| ----------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------- |
+| **Data layer**    | agent_memory, learnings, artifact_lineage edges, playbook_runs          | Recorded outcomes, supersessions, validations                      | Wired, human-triggered, thin volume   |
+| **Policy layer**  | Trust arcs, approval modes, house rules in prompts                      | Run history, approval history, eval scores                         | Arc + floors real; house rules absent |
+| **Routing layer** | Which precedent is recalled, which playbook applied, which model called | Should be outcome quality; today is similarity + static preference | **The missing keystone**              |
 
 The Learning Ladder, used from here on to grade any learning claim:
 
@@ -211,11 +211,11 @@ So the convention change is real, but it is a **type change plus a lifecycle cha
 
 ### 7.2 The design: requirements decompose into three lifetimes
 
-| Lifetime | What it holds | Where it lives | Who authors it |
-| --- | --- | --- | --- |
-| **Standing context** (changes rarely) | Vision, ICP, positioning, constraints, quality bars, design language, house rules | The brain: Strategic Brief (JNY-02), design memory (DSN-01), house rules (RF-04) | Accreted, not re-written; supersedable |
+| Lifetime                                                                   | What it holds                                                                                                                       | Where it lives                                                                                                               | Who authors it                                               |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Standing context** (changes rarely)                                      | Vision, ICP, positioning, constraints, quality bars, design language, house rules                                                   | The brain: Strategic Brief (JNY-02), design memory (DSN-01), house rules (RF-04)                                             | Accreted, not re-written; supersedable                       |
 | **The Outcome Contract** (per bet; the artifact formerly known as the PRD) | Intent in one paragraph, evidence links, success metrics with oracle bindings, non-goals, budget and blast radius, ambiguity policy | A typed object on the graph; human view = narrative projection; agent view = the contract; clauses individually supersedable | **The agent drafts it; the human edits deltas and approves** |
-| **The verification set** (per contract) | Acceptance compiled to eval cases, CI checks, UAT items; everything unverifiable filed as a watched assumption | Evals + ExecGate + assumption register (FS-02) | Compiled, human-tuned |
+| **The verification set** (per contract)                                    | Acceptance compiled to eval cases, CI checks, UAT items; everything unverifiable filed as a watched assumption                      | Evals + ExecGate + assumption register (FS-02)                                                                               | Compiled, human-tuned                                        |
 
 Standing rules inside the contract: **a requirement without an oracle is an assumption, and assumptions get watched, not asserted. A contract without a budget and a rollback is not executable.** The document is a projection of the graph, so it is never stale, and machine view already proves the dual-projection layer platform-wide.
 
@@ -249,16 +249,16 @@ Engine-level latency levers that ride under this grammar: plan-time context pre-
 
 The same type-change logic applied across PM rituals, each mapped to what already exists or is planned here:
 
-| The old ritual | The agent-native replacement | Where it lives |
-| --- | --- | --- |
-| The PRD | The Outcome Contract (ARD), agent-authored, human-judged | CNV-01/02/04 |
-| Status meetings | Ambient stakeholder digests from live state | stakeholder-update + FS-03 (JNY-05) |
-| Roadmap as a slide | A live bet portfolio with ICE auto-adjusted from usage | shipped (SEN-05 + ice-adjust) |
-| OKRs reviewed quarterly | Outcome contracts with oracles, scored on a window | ARD metrics + RL-01 |
-| Backlog grooming | Signal triage with novelty scoring | shipped (Signal Fabric + Focus) |
-| Sprint ceremonies | Mission DAGs with HITL gates | shipped (missions) |
-| The annual strategy doc | A living brief with watched assumptions | JNY-02 + FS-02 |
-| The retro | Auto-drafted learnings, validated and distilled into house rules | LRN-02 + RF-04 |
+| The old ritual          | The agent-native replacement                                     | Where it lives                      |
+| ----------------------- | ---------------------------------------------------------------- | ----------------------------------- |
+| The PRD                 | The Outcome Contract (ARD), agent-authored, human-judged         | CNV-01/02/04                        |
+| Status meetings         | Ambient stakeholder digests from live state                      | stakeholder-update + FS-03 (JNY-05) |
+| Roadmap as a slide      | A live bet portfolio with ICE auto-adjusted from usage           | shipped (SEN-05 + ice-adjust)       |
+| OKRs reviewed quarterly | Outcome contracts with oracles, scored on a window               | ARD metrics + RL-01                 |
+| Backlog grooming        | Signal triage with novelty scoring                               | shipped (Signal Fabric + Focus)     |
+| Sprint ceremonies       | Mission DAGs with HITL gates                                     | shipped (missions)                  |
+| The annual strategy doc | A living brief with watched assumptions                          | JNY-02 + FS-02                      |
+| The retro               | Auto-drafted learnings, validated and distilled into house rules | LRN-02 + RF-04                      |
 
 This table is the "lead the industry" narrative in one artifact, and every row is either shipped or in this plan. Claim-never-outruns-wiring holds.
 
@@ -268,21 +268,21 @@ This table is the "lead the industry" narrative in one artifact, and every row i
 
 ### 8.1 The stage-by-stage verdict (PM arrives with "I want to build a product")
 
-| Stage | What the PM needs | Cadence today | Grade | Gap owner |
-| --- | --- | --- | --- | --- |
-| Vision and strategy | Form the vision, ICP, positioning; make the "right call" with evidence | Strategic Brief (free text, injected everywhere); no formation flow | THIN | JNY-02 |
-| Market, competitor, tech-shift intelligence | Continuous, decision-grade competitive and trend awareness | researcher-tick (daily brief, keyed off), scout-tick (diffs, keyed off), signals | PARTIAL (keys + synthesis depth) | JNY-01 |
-| Discovery | Signals in, clustered, scored | Signal Fabric: 8 connectors, MCP sources, novelty, Focus | DEEP | ship keys (founder) |
-| Decide | Evidence-backed calls, red-teamed, precedent-loaded | Critic + precedent + governing chain + Trust Ledger | DEEP | RF-02 makes it smarter |
-| Define | Specs agents can execute | PRD + AI assist + readiness; prose-shaped | REAL | CNV-01/02 |
-| Plan and sequence | Tasks, dependencies, dispatch | Task graphs, Linear dispatch (topological, idempotent) | DEEP | none |
-| Design | Flows, mockups, design system, critique | Readiness + one-shot generic mockup | THIN | DSN-01..05 |
-| Build | Code written, staged, reviewed, merged | Studio spine + delegate-out; CI + eval gates | DEEP | BuildDriver (G13, gated) |
-| Test / QA | Prove it does what the ARD says | CI gate + evals exist, disconnected from acceptance | PARTIAL | JNY-03 |
-| Ship / release | Merge, changelog, release notes | Shipped (BYO-P3): changelog, notes, outcome-tick | REAL | deploy = BYO-P5 (gated) |
-| Launch / GTM / marketing | Launch plan, messaging, channel drafts, success metrics armed | Launch-kit generator exists in Build; nothing else | THIN | JNY-04 |
-| Stakeholders (continuous) | Everyone in the loop without meetings | One-keystroke status update + packs; no send, no cadence | PARTIAL | JNY-05 (+FS-03) |
-| Learn | Did it work; what do we now believe | LRN-02 + W1-AUTO + supersession + lift metric | DEEP (thin volume) | RF-01 |
+| Stage                                       | What the PM needs                                                      | Cadence today                                                                    | Grade                            | Gap owner                |
+| ------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------- | ------------------------ |
+| Vision and strategy                         | Form the vision, ICP, positioning; make the "right call" with evidence | Strategic Brief (free text, injected everywhere); no formation flow              | THIN                             | JNY-02                   |
+| Market, competitor, tech-shift intelligence | Continuous, decision-grade competitive and trend awareness             | researcher-tick (daily brief, keyed off), scout-tick (diffs, keyed off), signals | PARTIAL (keys + synthesis depth) | JNY-01                   |
+| Discovery                                   | Signals in, clustered, scored                                          | Signal Fabric: 8 connectors, MCP sources, novelty, Focus                         | DEEP                             | ship keys (founder)      |
+| Decide                                      | Evidence-backed calls, red-teamed, precedent-loaded                    | Critic + precedent + governing chain + Trust Ledger                              | DEEP                             | RF-02 makes it smarter   |
+| Define                                      | Specs agents can execute                                               | PRD + AI assist + readiness; prose-shaped                                        | REAL                             | CNV-01/02                |
+| Plan and sequence                           | Tasks, dependencies, dispatch                                          | Task graphs, Linear dispatch (topological, idempotent)                           | DEEP                             | none                     |
+| Design                                      | Flows, mockups, design system, critique                                | Readiness + one-shot generic mockup                                              | THIN                             | DSN-01..05               |
+| Build                                       | Code written, staged, reviewed, merged                                 | Studio spine + delegate-out; CI + eval gates                                     | DEEP                             | BuildDriver (G13, gated) |
+| Test / QA                                   | Prove it does what the ARD says                                        | CI gate + evals exist, disconnected from acceptance                              | PARTIAL                          | JNY-03                   |
+| Ship / release                              | Merge, changelog, release notes                                        | Shipped (BYO-P3): changelog, notes, outcome-tick                                 | REAL                             | deploy = BYO-P5 (gated)  |
+| Launch / GTM / marketing                    | Launch plan, messaging, channel drafts, success metrics armed          | Launch-kit generator exists in Build; nothing else                               | THIN                             | JNY-04                   |
+| Stakeholders (continuous)                   | Everyone in the loop without meetings                                  | One-keystroke status update + packs; no send, no cadence                         | PARTIAL                          | JNY-05 (+FS-03)          |
+| Learn                                       | Did it work; what do we now believe                                    | LRN-02 + W1-AUTO + supersession + lift metric                                    | DEEP (thin volume)               | RF-01                    |
 
 **The shape:** a deep middle, thin ends. The two ends are precisely the founder's "three steps before code" and "after shipping." Closing them makes "everything I want gets done here" true across the lifecycle rather than true in the middle.
 
@@ -331,40 +331,40 @@ Full sourced sweep in the session record; the strategic extract:
 
 **Sequencing law:** the founder set the Obsidian port (G14) as the active front this morning; it stays ranked first. G15 items are registered Tier 1/Tier 2 so lanes pick them after the port's foundation block, and engine-lane work (server, migrations, crons) does not collide with port-lane work (surfaces) if run in parallel. Founder may promote any G15 item explicitly.
 
-| ID | Item | Tier | Size | Needs founder? |
-| --- | --- | --- | --- | --- |
-| RF-08 | Loop integrity fixes (stale crons, tool-enablement, fail-closed, agent-tick, eval-tick, catalog honesty) | 1 | S | No |
-| RF-01 | Outcome attribution breadth | 1 | M | No |
-| RF-02 | Outcome-weighted retrieval (the keystone) | 1 | S | No (one migration + tests) |
-| RF-03 | Retrieval feedback writeback | 1 | S | No |
-| RF-04 | House-rules distillation | 1 | M | No |
-| RF-05 | Playbook selection by win rate | 1 | S | No |
-| FS-01 | Prediction contracts + calibration | 1 | M | No |
-| FS-02 | Assumption watchers (proactive supersession) | 1 | L | No |
-| FS-03 | The reach channel (email digest facade) | 1 | M | Env key only (Resend-class; account founder-owned) |
-| PRF-01 | The proof surface | 1 | M | No |
-| BRN-01 | The operable brain (memory OS) | 1 | L | No |
-| CNV-01 | Outcome Contract type + dual projection | 1 | M | No |
-| CNV-04 | Agent-authored contracts (intent to drafted contract, human judges deltas) | 1 | M | No |
-| CNV-02 | Requirement-to-oracle compiler | 1 | M | No |
-| JNY-01 | Strategy head: competitive/trend intelligence | 1 | M | Firecrawl key presence check |
-| DSN-01 | Design memory (learned) | 1 | M | No |
-| DSN-02 | Design Critic lens | 1 | S | No |
-| BRN-02 | "Where your brain lives" card | 2 | S | No |
-| DSN-03 | Flow before screens | 2 | M | No |
-| DSN-04 | Design contract rides the BuildSpec | 2 | M | No |
-| JNY-02 | Living strategy brief | 2 | M | No |
-| JNY-03 | Test station | 2 | M | No |
-| JNY-04 | Launch/GTM kit | 2 | M | No |
-| JNY-05 | Ambient stakeholder loop | 2 | S | Tier ruling already made |
-| FS-04 | Risk in the brief (no new panel) | 2 | S | No |
-| AGT-03 | Speculative reversible prep (overlap review and execution) | 2 | M | No |
-| CNV-03 | Publish ARD as the dispatch standard | 2 | S | Timing call |
-| RF-06 | Trust arc fed by outcomes | Gated | M | Pinned chokepoint + autonomy policy |
-| RF-07 | Eval-driven prompt optimization | Gated | M | Attended chokepoint work |
-| AGT-02 | Consent scopes (plan-level approval, irreversible floors unchanged) | Gated | M | Approval semantics in the pinned loop |
-| AGT-01 | Structured-output protocol upgrade (kills the regex-parse retry tax) | Gated | M | Attended chokepoint work |
-| DSN-05 | BYO-Figma import | Gated | M | OAuth registration |
+| ID     | Item                                                                                                     | Tier  | Size | Needs founder?                                     |
+| ------ | -------------------------------------------------------------------------------------------------------- | ----- | ---- | -------------------------------------------------- |
+| RF-08  | Loop integrity fixes (stale crons, tool-enablement, fail-closed, agent-tick, eval-tick, catalog honesty) | 1     | S    | No                                                 |
+| RF-01  | Outcome attribution breadth                                                                              | 1     | M    | No                                                 |
+| RF-02  | Outcome-weighted retrieval (the keystone)                                                                | 1     | S    | No (one migration + tests)                         |
+| RF-03  | Retrieval feedback writeback                                                                             | 1     | S    | No                                                 |
+| RF-04  | House-rules distillation                                                                                 | 1     | M    | No                                                 |
+| RF-05  | Playbook selection by win rate                                                                           | 1     | S    | No                                                 |
+| FS-01  | Prediction contracts + calibration                                                                       | 1     | M    | No                                                 |
+| FS-02  | Assumption watchers (proactive supersession)                                                             | 1     | L    | No                                                 |
+| FS-03  | The reach channel (email digest facade)                                                                  | 1     | M    | Env key only (Resend-class; account founder-owned) |
+| PRF-01 | The proof surface                                                                                        | 1     | M    | No                                                 |
+| BRN-01 | The operable brain (memory OS)                                                                           | 1     | L    | No                                                 |
+| CNV-01 | Outcome Contract type + dual projection                                                                  | 1     | M    | No                                                 |
+| CNV-04 | Agent-authored contracts (intent to drafted contract, human judges deltas)                               | 1     | M    | No                                                 |
+| CNV-02 | Requirement-to-oracle compiler                                                                           | 1     | M    | No                                                 |
+| JNY-01 | Strategy head: competitive/trend intelligence                                                            | 1     | M    | Firecrawl key presence check                       |
+| DSN-01 | Design memory (learned)                                                                                  | 1     | M    | No                                                 |
+| DSN-02 | Design Critic lens                                                                                       | 1     | S    | No                                                 |
+| BRN-02 | "Where your brain lives" card                                                                            | 2     | S    | No                                                 |
+| DSN-03 | Flow before screens                                                                                      | 2     | M    | No                                                 |
+| DSN-04 | Design contract rides the BuildSpec                                                                      | 2     | M    | No                                                 |
+| JNY-02 | Living strategy brief                                                                                    | 2     | M    | No                                                 |
+| JNY-03 | Test station                                                                                             | 2     | M    | No                                                 |
+| JNY-04 | Launch/GTM kit                                                                                           | 2     | M    | No                                                 |
+| JNY-05 | Ambient stakeholder loop                                                                                 | 2     | S    | Tier ruling already made                           |
+| FS-04  | Risk in the brief (no new panel)                                                                         | 2     | S    | No                                                 |
+| AGT-03 | Speculative reversible prep (overlap review and execution)                                               | 2     | M    | No                                                 |
+| CNV-03 | Publish ARD as the dispatch standard                                                                     | 2     | S    | Timing call                                        |
+| RF-06  | Trust arc fed by outcomes                                                                                | Gated | M    | Pinned chokepoint + autonomy policy                |
+| RF-07  | Eval-driven prompt optimization                                                                          | Gated | M    | Attended chokepoint work                           |
+| AGT-02 | Consent scopes (plan-level approval, irreversible floors unchanged)                                      | Gated | M    | Approval semantics in the pinned loop              |
+| AGT-01 | Structured-output protocol upgrade (kills the regex-parse retry tax)                                     | Gated | M    | Attended chokepoint work                           |
+| DSN-05 | BYO-Figma import                                                                                         | Gated | M    | OAuth registration                                 |
 
 Founder decision list (small): the FS-03 email vendor account and key; the CNV-03 publish timing; the three Gated items above; and the standing key-provisioning pile that already exists in SSOT §4 (Firecrawl, PostHog, connector tokens, Stripe go-live) which this plan repeatedly makes more valuable but never blocks on.
 
@@ -372,15 +372,15 @@ Founder decision list (small): the FS-03 email vendor account and key; the CNV-0
 
 ## 12. Session inputs and decisions (2026-07-02)
 
-| # | Founder input (distilled from voice) | What it produced |
-| --- | --- | --- |
-| 1 | Adversarial analysis: agentic-first OS claim, where does reinforced learning come from, agent should recognize/notify/predict before failure, what are we lagging, what to build/modify, how to deliver value, implementation plan | The audit method (§13), §2 scorecard, §3 REINFORCE, §4 FORESEE, §11 plan |
-| 2 | Buyer/investor/power-user lens: "really doing the job or a UI layer?", core users justified? | §2.2/§2.3, §9, PRF-01 |
-| 3 | Use skills and agents at maximum potential; better strategy on designing and modeling the platform | Six parallel audit/research agents + cadence-design skill; this doc |
-| 4 | PM journey test end to end: value without overwhelm; starts three steps before code (market, competitors, tech shifts, vision); plan; stakeholders; testing after build; ship; then marketing/GTM | §8 journey table + JNY program |
-| 5 | Where is the knowledge layer stored; visual agentic OS layer for memory; Obsidian-style interaction, one-click actions, metrics a terminal cannot show | §5 storage truth + BRN-01/02 |
-| 6 | Should conventions like PRD/TRD be reinvented for agents (an ARD); revolutionize across the PM domain; lead the industry, creative but implementable | §7 CONVENTIONS + the replacements table |
-| 7 | Do not just adopt my PRD-to-ARD framing; pressure-test it, think from what the agent requires: the right command shape, efficient outcomes, lower latency, less friction, shorter time-to-outcome | §7.1 stress test (the rename fails four ways), §7.2 three-lifetime decomposition, §7.3 command grammar + latency levers, CNV-04 and AGT-01/02/03 |
+| #   | Founder input (distilled from voice)                                                                                                                                                                                               | What it produced                                                                                                                                 |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Adversarial analysis: agentic-first OS claim, where does reinforced learning come from, agent should recognize/notify/predict before failure, what are we lagging, what to build/modify, how to deliver value, implementation plan | The audit method (§13), §2 scorecard, §3 REINFORCE, §4 FORESEE, §11 plan                                                                         |
+| 2   | Buyer/investor/power-user lens: "really doing the job or a UI layer?", core users justified?                                                                                                                                       | §2.2/§2.3, §9, PRF-01                                                                                                                            |
+| 3   | Use skills and agents at maximum potential; better strategy on designing and modeling the platform                                                                                                                                 | Six parallel audit/research agents + cadence-design skill; this doc                                                                              |
+| 4   | PM journey test end to end: value without overwhelm; starts three steps before code (market, competitors, tech shifts, vision); plan; stakeholders; testing after build; ship; then marketing/GTM                                  | §8 journey table + JNY program                                                                                                                   |
+| 5   | Where is the knowledge layer stored; visual agentic OS layer for memory; Obsidian-style interaction, one-click actions, metrics a terminal cannot show                                                                             | §5 storage truth + BRN-01/02                                                                                                                     |
+| 6   | Should conventions like PRD/TRD be reinvented for agents (an ARD); revolutionize across the PM domain; lead the industry, creative but implementable                                                                               | §7 CONVENTIONS + the replacements table                                                                                                          |
+| 7   | Do not just adopt my PRD-to-ARD framing; pressure-test it, think from what the agent requires: the right command shape, efficient outcomes, lower latency, less friction, shorter time-to-outcome                                  | §7.1 stress test (the rename fails four ways), §7.2 three-lifetime decomposition, §7.3 command grammar + latency levers, CNV-04 and AGT-01/02/03 |
 
 Decisions logged in [session-decisions.md](./session-decisions.md) (2026-07-02 v12 entry); the raw reasoning in [strategic-inputs-log.md](./strategic-inputs-log.md) (2026-07-02 entry).
 

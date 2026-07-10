@@ -26,4 +26,5 @@ The flag claimed WM-M2/WM-F3 declare redundant SELECT policies. Inspecting the *
 These are OR'd, and while "read membership" usually subsumes "see own", they are **not interchangeable**: `is_account_member` is an active-membership check, so a pending / not-yet-active member would fail it yet must still be able to read their own row — exactly what "see own" guarantees. Dropping "see own" as "redundant" would silently remove that self-visibility fallback. The correct call (industry practice: never remove a defensive self-row RLS policy on an assumed redundancy) is to **keep both**. `accounts` has a single SELECT policy already, so there is nothing to consolidate there. No change is the right answer, not a deferral. (Independently, these tables are the active tenancy lane's working set, so any future change to them belongs to that lane.)
 
 ## Related
+
 - [`../../plan.md`](../../plan.md) §4 · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (`M-C-DB-HYGIENE`) · source of truth [`../../src/lib/entitlements.ts`](../../src/lib/entitlements.ts).

@@ -70,7 +70,10 @@ const KIND_TRACE_PREFIX: Record<string, string> = {
 export function kindTracePrefix(kind: string): string {
   return (
     KIND_TRACE_PREFIX[kind] ||
-    kind.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase() ||
+    kind
+      .replace(/[^a-zA-Z]/g, "")
+      .slice(0, 3)
+      .toUpperCase() ||
     "REF"
   );
 }

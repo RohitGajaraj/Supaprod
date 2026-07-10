@@ -8,6 +8,7 @@
 ## Overview
 
 Real role-based access control (RBAC) for workspaces and accounts. The four roles are:
+
 - **owner**: Billing/plan changes, delete account/workspace, transfer ownership, manage members
 - **admin**: Manage members (read/invite, no billing), create/delete workspace+product, approve agent actions, edit brief+guardrails
 - **member**: Create/edit content, run missions, no member/billing management
@@ -33,12 +34,14 @@ Real role-based access control (RBAC) for workspaces and accounts. The four role
 ### TypeScript (src/lib/roles.functions.ts)
 
 Server-side RBAC helpers:
+
 - `getUserWorkspaceRole(supabase, workspaceId, userId)`: Get user's role in a workspace
 - `getUserAccountRole(supabase, accountId, userId)`: Get user's role in an account
 - `assertWorkspaceRole(supabase, workspaceId, userId, roles, action)`: Gate an action by role; throws `PermissionDeniedError` if denied
 - `assertAccountRole(supabase, accountId, userId, roles, action)`: Gate an account action by role
 
 Shorthand assertions:
+
 - `assertWorkspaceOwner`, `assertCanManageWorkspace`
 - `assertAccountOwner`, `assertCanManageAccount`
 
@@ -56,6 +59,7 @@ Shorthand assertions:
 ## Behavioral Verification
 
 The migration is dry-run-verified via a BEGIN..ROLLBACK on the live prod DB (cycle 37):
+
 - Role CHECK constraint widened to support all 4 roles
 - RBAC helper functions created and grant-enabled
 - Owner demotion trigger prevents demotion to lesser roles

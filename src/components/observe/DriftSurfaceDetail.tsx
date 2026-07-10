@@ -194,18 +194,16 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     }
     return Array.from(map.values())
       .sort((a, b) => a.date.localeCompare(b.date))
-      .map(
-        (r): DayRow => ({
-          date: r.date,
-          reqs: r.reqs,
-          errs: r.errs,
-          latency: r.reqs ? r.lat / r.reqs : 0,
-          tokens: r.reqs ? r.tok / r.reqs : 0,
-          cost: r.reqs ? r.cost / r.reqs : 0,
-          errorRate: r.reqs ? (r.errs / r.reqs) * 100 : 0,
-          score: r.scoreReqs ? r.scoreSum / r.scoreReqs : null,
-        }),
-      );
+      .map((r): DayRow => ({
+        date: r.date,
+        reqs: r.reqs,
+        errs: r.errs,
+        latency: r.reqs ? r.lat / r.reqs : 0,
+        tokens: r.reqs ? r.tok / r.reqs : 0,
+        cost: r.reqs ? r.cost / r.reqs : 0,
+        errorRate: r.reqs ? (r.errs / r.reqs) * 100 : 0,
+        score: r.scoreReqs ? r.scoreSum / r.scoreReqs : null,
+      }));
   }, [snaps]);
 
   // Reference sparkline slot, honest rendering: on watch, the incident

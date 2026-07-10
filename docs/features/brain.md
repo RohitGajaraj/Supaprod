@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-12 · Last updated: 2026-06-19_
 
-> **What this is.** The conversational surface (rail label **Brain**, route `/chat`, threads = **Threads**) is two things fused deliberately: a **Perplexity-grade researcher** over the live web and your workspace, and the **company brain**, the asset that captures everything inward and outward, cited, and compounding. Tagline: *"Everything inward and outward, captured, cited, compounding."* Strategic grounding: company-brain positioning ratified 2026-06-12 ([`../strategy/session-decisions.md`](../strategy/session-decisions.md)). It surfaces moat pillar #4, **Compounding Product Memory**, from [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (platform law #6, "Memory compounds") as the felt product. Mission dispatch ("run a mission to…") still routes through the same box, unchanged.
+> **What this is.** The conversational surface (rail label **Brain**, route `/chat`, threads = **Threads**) is two things fused deliberately: a **Perplexity-grade researcher** over the live web and your workspace, and the **company brain**, the asset that captures everything inward and outward, cited, and compounding. Tagline: _"Everything inward and outward, captured, cited, compounding."_ Strategic grounding: company-brain positioning ratified 2026-06-12 ([`../strategy/session-decisions.md`](../strategy/session-decisions.md)). It surfaces moat pillar #4, **Compounding Product Memory**, from [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (platform law #6, "Memory compounds") as the felt product. Mission dispatch ("run a mission to…") still routes through the same box, unchanged.
 >
 > **Forward direction (2026-06-20, TOPMOST priority).** This surface evolves from flat vector recall into the **Decision Brain**: a typed, bi-temporal, auto-built decision knowledge graph with an Obsidian-style visual graph view that "speaks everything." Full spec: [`decision-brain.md`](./decision-brain.md); strategy: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (bet H1). The current flat-recall behavior documented below is the substrate the graph layers over (hybrid retrieval; vectors stay for fuzzy recall).
 
@@ -10,13 +10,13 @@
 
 One classifier call per message routes the mode:
 
-| Mode | Trigger | What runs |
-| --- | --- | --- |
-| `web` | Current external facts: weather, news, prices, competitors | 1 to 3 focused sub-queries → **parallel** web searches (top 6 deduped sources, scraped) |
+| Mode       | Trigger                                                           | What runs                                                                                                                                                                                                                            |
+| ---------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `web`      | Current external facts: weather, news, prices, competitors        | 1 to 3 focused sub-queries → **parallel** web searches (top 6 deduped sources, scraped)                                                                                                                                              |
 | `internal` | Your product: "what am I building next?", roadmap, specs, signals | Workspace RAG (k=8, MMR) **+ structured snapshots**: top-5 opportunities by ICE, roadmap lanes (now/next/later/shipped: lanes read `opportunities` statuses; no separate roadmap table exists), 5 newest decisions, running missions |
-| `both` | Comparative/strategic questions touching both worlds | Both pipelines, merged into **one numbered citation space** (web sources first, workspace continues the sequence) |
-| `chat` | Small talk / simple knowledge | Lightweight path (RAG k=4, no numbered cites) |
-| mission | "Run/dispatch…" intent | Unchanged orchestrator dispatch with inline cockpit |
+| `both`     | Comparative/strategic questions touching both worlds              | Both pipelines, merged into **one numbered citation space** (web sources first, workspace continues the sequence)                                                                                                                    |
+| `chat`     | Small talk / simple knowledge                                     | Lightweight path (RAG k=4, no numbered cites)                                                                                                                                                                                        |
+| mission    | "Run/dispatch…" intent                                            | Unchanged orchestrator dispatch with inline cockpit                                                                                                                                                                                  |
 
 While researching, the thread streams live progress ("Searching: … · Read 6 sources · Reading your workspace · Synthesizing"); after the answer a quiet summary row persists. Synthesis is Perplexity-style: direct answer first, structure after, `[n]` cites on every sourced claim, never fabricated.
 
@@ -25,7 +25,7 @@ While researching, the thread streams live progress ("Searching: … · Read 6 s
 - **Auto-retention**: every research answer (mode ≠ `chat`, > 300 chars) is distilled fire-and-forget into memory: `rag_chunks` rows with `source_kind='finding'` (title = the question, content = answer + numbered sources, `source_id` = the thread). Future questions recall them via the same retrieval as everything else, cited as **"Past finding: …"** with a Brain-icon chip linking back to `/chat`. This is the compounding loop: the brain is measurably smarter after every research session.
 - **Remember this** (Brain icon, answer footer): saves any answer to memory on demand.
 - **Capture as decision** (Gavel icon): writes a pending entry to the Decisions log (Knowledge · Decisions). Conversation becomes institutional memory.
-- **Brain status** (Brain icon, thread header): *"The brain knows · N signals · N docs · N meetings · N decisions · N PRDs · N findings · updated X ago"*. The asset, visible and growing.
+- **Brain status** (Brain icon, thread header): _"The brain knows · N signals · N docs · N meetings · N decisions · N PRDs · N findings · updated X ago"_. The asset, visible and growing.
 - **What feeds the brain** (inward): signals (incl. the webhook ingest door on `/sync`), meetings, docs, PRDs, decisions, learnings, mission outcomes, indexed hourly. (Outward): web research findings via retention.
 
 ## Citations contract
@@ -52,8 +52,8 @@ Composer-adjacent switcher: **Built-in** (Gemini family via the gateway; locally
 
 ## Verify checklist
 
-1. *"What is the weather in <city>?"* → progress line → cited answer (live + source chips with Firecrawl; disclosed-unverified otherwise).
-2. *"What am I building next, how does the roadmap look?"* → workspace snapshots cited; a `[n]` chip lands on the right app tab.
+1. _"What is the weather in <city>?"_ → progress line → cited answer (live + source chips with Firecrawl; disclosed-unverified otherwise).
+2. _"What am I building next, how does the roadmap look?"_ → workspace snapshots cited; a `[n]` chip lands on the right app tab.
 3. Ask a research question → new thread later on the same topic → answer cites **"Past finding: …"** (retention loop).
 4. **Remember this** → toast; **Capture as decision** → entry appears in Knowledge · Decisions.
 5. Brain status shows non-zero counts and recent freshness.

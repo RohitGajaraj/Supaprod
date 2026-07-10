@@ -16,16 +16,17 @@ Comprehensive security audit and remediation completed on 2026-07-10. All **high
 
 #### High-Severity Issues (5 → 0)
 
-| CVE/GHSA | Package | Issue | Status |
-|----------|---------|-------|--------|
-| GHSA-9m65-766c-r333 | @tanstack/start-server-core <1.167.30 | Server-function deserialization could invoke unintended sibling functions | ✓ Updated to 1.168.27 |
-| GHSA-fx2h-pf6j-xcff | vite >=7.0.0 <=7.3.4 | fs.deny bypass on Windows alternate paths | ✓ Updated to 8.1.4 |
-| GHSA-vmh5-mc38-953g | undici >=7.23.0 <7.28.0 | TLS validation bypass via SOCKS5 ProxyAgent | ✓ Resolved via transitive updates |
-| GHSA-vxpw-j846-p89q | undici >=7.23.0 <7.28.0 | WebSocket DoS via fragment count bypass | ✓ Resolved via transitive updates |
-| GHSA-hm92-r4w5-c3mj | undici >=7.23.0 <7.28.0 | Cross-origin routing via SOCKS5 pool reuse | ✓ Resolved via transitive updates |
-| GHSA-96hv-2xvq-fx4p | ws >=8.0.0 <8.20.1 | Memory exhaustion DoS from tiny fragments | ✓ Resolved via transitive updates |
+| CVE/GHSA            | Package                               | Issue                                                                     | Status                            |
+| ------------------- | ------------------------------------- | ------------------------------------------------------------------------- | --------------------------------- |
+| GHSA-9m65-766c-r333 | @tanstack/start-server-core <1.167.30 | Server-function deserialization could invoke unintended sibling functions | ✓ Updated to 1.168.27             |
+| GHSA-fx2h-pf6j-xcff | vite >=7.0.0 <=7.3.4                  | fs.deny bypass on Windows alternate paths                                 | ✓ Updated to 8.1.4                |
+| GHSA-vmh5-mc38-953g | undici >=7.23.0 <7.28.0               | TLS validation bypass via SOCKS5 ProxyAgent                               | ✓ Resolved via transitive updates |
+| GHSA-vxpw-j846-p89q | undici >=7.23.0 <7.28.0               | WebSocket DoS via fragment count bypass                                   | ✓ Resolved via transitive updates |
+| GHSA-hm92-r4w5-c3mj | undici >=7.23.0 <7.28.0               | Cross-origin routing via SOCKS5 pool reuse                                | ✓ Resolved via transitive updates |
+| GHSA-96hv-2xvq-fx4p | ws >=8.0.0 <8.20.1                    | Memory exhaustion DoS from tiny fragments                                 | ✓ Resolved via transitive updates |
 
 **Action Taken:**
+
 ```bash
 bun add --exact @tanstack/react-start@latest @tanstack/react-router@latest vite@latest
 bun update
@@ -39,16 +40,17 @@ bun update
 
 Location: `src/server.ts` (lines 58–116, `withSecurityHeaders()` function)
 
-| Header | Value | Purpose |
-|--------|-------|---------|
-| **Content-Security-Policy** | Restrictive; allows only 'self' + Stripe CDNs | Prevents inline script injection; allows third-party payment processing |
-| **X-Frame-Options** | DENY | Prevents clickjacking; blocks framing from any origin |
-| **X-Content-Type-Options** | nosniff | Prevents MIME-type sniffing attacks |
-| **Strict-Transport-Security** | max-age=31536000; preload | Enforces HTTPS for 1 year; enables HSTS preload list |
-| **Referrer-Policy** | strict-origin-when-cross-origin | Limits referrer leakage; safe for third-party embeds |
-| **Permissions-Policy** | Geolocation/microphone/camera disabled; payment allowed for Stripe | Restricts device permissions except payment (Stripe) |
+| Header                        | Value                                                              | Purpose                                                                 |
+| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| **Content-Security-Policy**   | Restrictive; allows only 'self' + Stripe CDNs                      | Prevents inline script injection; allows third-party payment processing |
+| **X-Frame-Options**           | DENY                                                               | Prevents clickjacking; blocks framing from any origin                   |
+| **X-Content-Type-Options**    | nosniff                                                            | Prevents MIME-type sniffing attacks                                     |
+| **Strict-Transport-Security** | max-age=31536000; preload                                          | Enforces HTTPS for 1 year; enables HSTS preload list                    |
+| **Referrer-Policy**           | strict-origin-when-cross-origin                                    | Limits referrer leakage; safe for third-party embeds                    |
+| **Permissions-Policy**        | Geolocation/microphone/camera disabled; payment allowed for Stripe | Restricts device permissions except payment (Stripe)                    |
 
 **Design Notes:**
+
 - CSP includes nonce-generation infrastructure (not yet used for inline scripts—theme bootstrap still uses 'unsafe-inline')
 - HSTS preload eligible for submission to improve ecosystem coverage
 - Stripe.js + Stripe Elements + webhooks (.hooks.stripe.com) explicitly allowed
@@ -73,6 +75,7 @@ Location: `src/server.ts` (lines 58–116, `withSecurityHeaders()` function)
 
 **CORS Defense-in-Depth Note:**
 Protected endpoints (`/api/chat`, `/api/mcp`) have wildcard CORS but require Bearer authentication before processing. This is acceptable because:
+
 1. Browsers cannot auto-send Bearer tokens (SameSite restrictions)
 2. Authentication is checked **before** response headers are sent
 3. Wildcard allows legitimate external agents (Claude, MCP clients) to call with tokens
@@ -106,14 +109,14 @@ Protected endpoints (`/api/chat`, `/api/mcp`) have wildcard CORS but require Bea
 
 These are unlikely to impact production and are tracked for future attention:
 
-| Package | Severity | Reason | Mitigation |
-|---------|----------|--------|-----------|
-| dompurify <=3.4.6 | Moderate (12 issues) | Dev-time dependency (monaco editor); not in production bundle | Upgrade when monaco updates |
-| brace-expansion 5.0.0–5.0.5 | Moderate | Dev-time (eslint); DoS via numeric range bloat | Awaiting upstream fix |
-| js-yaml 4.0.0–4.1.1 | Moderate | Dev-time (eslint); quadratic-complexity DoS | Awaiting upstream fix |
-| ws 8.x, undici 7.x (remaining) | Moderate | Transitive via dev tools; not in app runtime | Monitor for Vite/Nitro updates |
-| esbuild 0.27–0.28 | Low | Dev-time; Windows-only file-read (not production) | Awaiting upstream fix |
-| @babel/core <=7.29 | Low | Dev-time; source-map disclosure (not production) | Awaiting upstream fix |
+| Package                        | Severity             | Reason                                                        | Mitigation                     |
+| ------------------------------ | -------------------- | ------------------------------------------------------------- | ------------------------------ |
+| dompurify <=3.4.6              | Moderate (12 issues) | Dev-time dependency (monaco editor); not in production bundle | Upgrade when monaco updates    |
+| brace-expansion 5.0.0–5.0.5    | Moderate             | Dev-time (eslint); DoS via numeric range bloat                | Awaiting upstream fix          |
+| js-yaml 4.0.0–4.1.1            | Moderate             | Dev-time (eslint); quadratic-complexity DoS                   | Awaiting upstream fix          |
+| ws 8.x, undici 7.x (remaining) | Moderate             | Transitive via dev tools; not in app runtime                  | Monitor for Vite/Nitro updates |
+| esbuild 0.27–0.28              | Low                  | Dev-time; Windows-only file-read (not production)             | Awaiting upstream fix          |
+| @babel/core <=7.29             | Low                  | Dev-time; source-map disclosure (not production)              | Awaiting upstream fix          |
 
 **Assessment:** All remaining issues are in development-time tools (ESLint, esbuild, Babel) or transitive dependencies of build infrastructure. None affect the production runtime or bundle size.
 

@@ -24,7 +24,13 @@ import {
 } from "d3-force-3d";
 import type { KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { MonoLabel } from "@/components/obsidian/primitives";
-import { kindCssColor, kindLabel, nodeRadius, resolveKindColors, truncateTitle } from "./graph-visual";
+import {
+  kindCssColor,
+  kindLabel,
+  nodeRadius,
+  resolveKindColors,
+  truncateTitle,
+} from "./graph-visual";
 
 type SimNode3D = SimulationNodeDatum & {
   key: string;

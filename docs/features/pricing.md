@@ -13,7 +13,7 @@ The Settings → Plan picker and the public `/pricing` page now render the **5-t
 
 - **Top-level audience toggle:** `Personal` vs `Teams & Enterprise`. Selecting `Personal` shows three cards in one row (Star · Cluster · Constellation). Selecting `Teams & Enterprise` shows two cards in one row (Galaxy · Cosmos). Grid is forced (`repeat(3, 1fr)` / `repeat(2, 1fr)`) so cards never split half-half.
 - **Per-tier billing rules** (no global Monthly/Yearly toggle):
-  - **Star:** free; no toggle. Copy reads *"Free, upgrade anytime"* (not "Free forever") so the upgrade nudge stays subtle.
+  - **Star:** free; no toggle. Copy reads _"Free, upgrade anytime"_ (not "Free forever") so the upgrade nudge stays subtle.
   - **Cluster (Pro):** monthly + yearly toggle inside the card.
   - **Constellation (Max):** monthly only. No yearly toggle (founder ruling: Constellation is monthly-only).
   - **Galaxy / Cosmos:** no billing toggle; one-line contact-sales path.
@@ -27,6 +27,7 @@ The Settings → Plan picker and the public `/pricing` page now render the **5-t
 **Files of record:** `src/components/billing/PlanPicker.tsx`, `src/lib/entitlements.ts`, `src/routes/_authenticated.settings.tsx`, `src/lib/payments.functions.ts`. Conventions consulted: `engine-room-doctrine.md`, `ui-voice.md`, `destructive-actions.md`, `inline-management.md`, `humanized-output.md`, `data-minimalism.md`.
 
 **Verify:**
+
 1. Settings → Plan as a Free user: see three cards under Personal with Star highlighted; click "Teams & Enterprise" → two cards (Galaxy, Cosmos).
 2. Cluster card shows Monthly/Yearly toggle; Constellation card does not.
 3. Whichever tier the admin marks "Most popular" carries the centered pill on exactly one card.
@@ -60,6 +61,7 @@ The proof gauntlet (v7 section 8) requires paying PMs. M-C names "plan tier + me
 
 - **Schema** (`supabase/migrations/20260616200000_mc_plan_tier.sql`): `workspaces` gains `plan_tier` (free/pro/team, default free, CHECK-constrained), `stripe_customer_id`, `stripe_subscription_id`, `plan_updated_at`. A `BEFORE INSERT OR UPDATE` trigger (`protect_workspace_billing_columns`) makes these columns writable **only by the service-role**: a non-service-role INSERT is forced to free with no billing ids, and a non-service-role UPDATE preserves the prior billing values. So a user cannot self-grant a paid plan by PATCHing or INSERTing the column directly (the "ws owner manage" RLS policy is `FOR ALL`, so both paths had to be guarded).
 - **Entitlements** (`src/lib/entitlements.ts`): a pure `entitlementsFor(tier)` map (memory persistence + retention days, Critic everywhere, share links, shared memory, approval lanes) plus `isPlanTier` / `normalizePlanTier` (fail-safe default to free) and `planPresentation` for the UI. Unit-tested (`entitlements.test.ts`).
+
 > _Reconciled 2026-06-21 against shipped code: the two bullets below describe the original (pre-WM) rail. The live rail is now `src/lib/payments.functions.ts` + `src/routes/api/public/payments/webhook.ts` via the Lovable connector gateway. `getBillingState` stays current as the read-only billing-state reader; the legacy `createCheckoutSession` and `src/routes/api/stripe/webhook.ts` are superseded (the latter is dead code). See [`billing.md`](./billing.md) and [`credits.md`](./credits.md)._
 
 - **Server fns** (`src/lib/billing.functions.ts`): `getBillingState` (authed; reads the plan, owner flag, and whether Stripe is configured; pre-migration tolerant, defaults to free) stays current. The original `createCheckoutSession` here (authed, owner-only; Stripe Checkout via the REST API over fetch, gated on `STRIPE_SECRET_KEY` + a price id) is **superseded** by the live `src/lib/payments.functions.ts` rail (`createCheckoutSession`, `createPortalSession`, `getMySubscription`, `cancel/resumeMySubscription`, `createTopUpCheckout`), which resolves price tiers via `lookup_keys` in `src/lib/billing-tier.ts`.

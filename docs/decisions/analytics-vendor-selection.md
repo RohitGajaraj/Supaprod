@@ -16,28 +16,31 @@ Cadence is a Cloudflare-Worker + Supabase app, EU-residency-aware, solo-founder 
 
 **Hybrid (V3): BUY the commodity, BUILD the moat.**
 
-| Capability | Choice | Why |
-| --- | --- | --- |
-| Product usage + session replay + feature flags + A/B | **PostHog EU** | MIT core (self-host escape), one SDK covers 4 capabilities, EU region, generous free tier (1M events/mo + 5k replays), excellent Worker SDK. |
-| Server / route / Worker errors + performance | **Sentry EU** | Best Cloudflare Workers SDK, source-map upload, release tracking, transaction tracing, EU region, free tier 5k errors/mo. |
-| Uptime probes + on-call + status page | **Better Stack** | One vendor covers all three (vs PagerDuty + Statuspage + UptimeRobot = three bills), free tier 10 monitors, EU region. |
-| Agent-cost analytics, decision-velocity analytics, business-outcome analytics, in-app incidents panel | **BUILD in-house** on Postgres | This is the moat. Crosses private tables. Drives the Trust Ledger + PM Impact Ledger + admin surfaces. |
+| Capability                                                                                            | Choice                         | Why                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product usage + session replay + feature flags + A/B                                                  | **PostHog EU**                 | MIT core (self-host escape), one SDK covers 4 capabilities, EU region, generous free tier (1M events/mo + 5k replays), excellent Worker SDK. |
+| Server / route / Worker errors + performance                                                          | **Sentry EU**                  | Best Cloudflare Workers SDK, source-map upload, release tracking, transaction tracing, EU region, free tier 5k errors/mo.                    |
+| Uptime probes + on-call + status page                                                                 | **Better Stack**               | One vendor covers all three (vs PagerDuty + Statuspage + UptimeRobot = three bills), free tier 10 monitors, EU region.                       |
+| Agent-cost analytics, decision-velocity analytics, business-outcome analytics, in-app incidents panel | **BUILD in-house** on Postgres | This is the moat. Crosses private tables. Drives the Trust Ledger + PM Impact Ledger + admin surfaces.                                       |
 
 ## Alternatives considered + rejected
 
 ### Product analytics
+
 - **Mixpanel** — rejected: closed-source (no self-host escape), no integrated replay/flags, EU tenancy is Enterprise-tier.
 - **Amplitude** — rejected: closed-source, replay is a separate paid SKU, pricing climbs faster at 100k+ MAU.
 - **GA4** — rejected: marketing-oriented, sampled at scale, no event-stream export on free tier.
 - **Self-build on Postgres** — rejected for product usage: reinventing funnels/retention/replay is months of work for an inferior result. Reserve build budget for the moat.
 
 ### Error capture + performance
+
 - **Honeybadger** — rejected: weaker Worker support, no integrated performance product.
 - **Rollbar** — rejected: UI dated, EU residency is Enterprise.
 - **Bugsnag (SmartBear)** — rejected: Enterprise focus, pricing climbs fast.
 - **Datadog** — rejected: excellent product, wrong cost ($15/host/mo + APM SKUs is overkill for a single-Worker app), heavy lock-in.
 
 ### Uptime + on-call + status page
+
 - **PagerDuty (+ separate uptime + separate Statuspage)** — rejected: best-in-class on-call but $21/user/mo and you still need 2 more vendors; wrong fit for a solo founder.
 - **Statuspage (Atlassian) + UptimeRobot + PagerDuty** — rejected: three vendors, three bills, three dashboards.
 - **Self-hosted (Uptime Kuma + Cachet)** — rejected: the uptime monitor must run OUTSIDE Cloudflare (if our Worker is down, our self-hosted monitor on Workers is also down), so we'd need a separate VPS. Pay $0 for someone else to do this right.
@@ -48,11 +51,11 @@ Cadence is a global consumer-facing PM tool; users will be from the EU. GDPR pos
 
 ## Cost posture (web-verified 2026-06-25)
 
-| Vendor | Free tier | First paid trigger | Source |
-| --- | --- | --- | --- |
-| PostHog EU | 1M events/mo + 5k replays | Beyond free is usage-priced (~$0.00031/event) | posthog.com/pricing |
-| Sentry EU | 5k errors/mo + 10k performance units | Team plan $26/mo | sentry.io/pricing |
-| Better Stack | 10 monitors + 3-min checks + 1 status page | Team plan $25/mo | betterstack.com/pricing |
+| Vendor       | Free tier                                  | First paid trigger                            | Source                  |
+| ------------ | ------------------------------------------ | --------------------------------------------- | ----------------------- |
+| PostHog EU   | 1M events/mo + 5k replays                  | Beyond free is usage-priced (~$0.00031/event) | posthog.com/pricing     |
+| Sentry EU    | 5k errors/mo + 10k performance units       | Team plan $26/mo                              | sentry.io/pricing       |
+| Better Stack | 10 monitors + 3-min checks + 1 status page | Team plan $25/mo                              | betterstack.com/pricing |
 
 **Demo + early users = $0/mo.** Re-verify before paying.
 

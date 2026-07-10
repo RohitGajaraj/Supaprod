@@ -11,12 +11,7 @@
 // invite is email-bound), which is the industry-standard tradeoff.
 
 export type AuthContext =
-  | "signin"
-  | "signup"
-  | "reset-request"
-  | "reset-update"
-  | "invite"
-  | "oauth";
+  "signin" | "signup" | "reset-request" | "reset-update" | "invite" | "oauth";
 
 function extractMessage(error: unknown): string {
   if (!error) return "";
@@ -58,13 +53,7 @@ function defaultFor(context: AuthContext): string {
 export function authErrorMessage(error: unknown, context: AuthContext = "signin"): string {
   const raw = extractMessage(error).toLowerCase();
 
-  if (
-    has(raw, [
-      "invalid login credentials",
-      "invalid credentials",
-      "invalid email or password",
-    ])
-  ) {
+  if (has(raw, ["invalid login credentials", "invalid credentials", "invalid email or password"])) {
     return "That email or password isn't right. Try again.";
   }
 

@@ -4,13 +4,13 @@
 
 > **Purpose:** a tight, spoken founder demo of Cadence in under 3 minutes, driven by the seeded **Prism** (consumer money app) sample workspace. Problem, why you built it, the capabilities, and why it matters. No future-roadmap section (bootstrapped, pre-seed). Log in as `demo@redcadence.app` first; open the **Explore workspace**, **Prism** product. Full seed detail: [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md).
 
-**How to use this:** the left column is what you *say* (spoken, plain, no jargon). The right column in brackets is what you *do* on screen. Aim for a calm pace, roughly 150 words a minute. Practice the click path once so the talk track and the screen stay in sync.
+**How to use this:** the left column is what you _say_ (spoken, plain, no jargon). The right column in brackets is what you _do_ on screen. Aim for a calm pace, roughly 150 words a minute. Practice the click path once so the talk track and the screen stay in sync.
 
 ---
 
 ## 0:00 · The problem (25 seconds)
 
-> "Every product team is drowning in the same way. Signals live in support, sales, analytics, and reviews. Decisions live in someone's head or a doc nobody reads. And nobody remembers, six months later, whether the call was even right. The scarce skill today isn't building software anymore. AI can build. The scarce skill is deciding *what* to build, and knowing whether you were right."
+> "Every product team is drowning in the same way. Signals live in support, sales, analytics, and reviews. Decisions live in someone's head or a doc nobody reads. And nobody remembers, six months later, whether the call was even right. The scarce skill today isn't building software anymore. AI can build. The scarce skill is deciding _what_ to build, and knowing whether you were right."
 
 _[Stay on a title slide or the Cadence login. Do not click yet.]_
 
@@ -55,13 +55,15 @@ _[Return to Today, or the Trust Ledger hero view. Stop.]_
 ---
 
 ## Delivery notes
+
 - **Total:** about 2 minutes 45 seconds spoken. Trim the Discover beat first if you run long.
 - **The one line that must land:** "Cadence caught its own mistake, and kept the receipt." That is the moat in a sentence.
 - **Keep it plain.** No "orchestration layer", no "bi-temporal graph" on camera. Say "it remembers", "it red-teams", "it keeps the receipts".
 - **If asked "is this real data?"** Yes, it is a seeded sample workspace that runs the full product on realistic data, so every surface is live, not mocked.
-- **Second product (Trellis, analytics):** if a viewer wants proof it generalizes, switch products and show the same loop killing a reverse-ETL parity bet, citing the *same* precedent that spanned the money app. That cross-product memory is a strong closer for a technical audience.
+- **Second product (Trellis, analytics):** if a viewer wants proof it generalizes, switch products and show the same loop killing a reverse-ETL parity bet, citing the _same_ precedent that spanned the money app. That cross-product memory is a strong closer for a technical audience.
 
 ## Related
+
 - [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md) · the seed that powers this demo
 - [`demo-credentials.md`](./demo-credentials.md) · the login
 - [`../strategy/moat.md`](../strategy/moat.md) · the moat argument in depth

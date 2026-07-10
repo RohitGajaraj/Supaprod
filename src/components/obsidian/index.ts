@@ -71,5 +71,12 @@ export type {
   PencilLabelProps,
 } from "./pencil-mark";
 
-export { GraphSlider, graphPoints, graphX, graphY, smoothLinePath, nearestIndex } from "./graph-slider";
+export {
+  GraphSlider,
+  graphPoints,
+  graphX,
+  graphY,
+  smoothLinePath,
+  nearestIndex,
+} from "./graph-slider";
 export type { GraphSliderProps } from "./graph-slider";

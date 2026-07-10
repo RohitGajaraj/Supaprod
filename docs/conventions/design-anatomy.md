@@ -24,34 +24,34 @@ Founder ruling 2026-07-07, standing, every surface and object type. The binding 
 
 Color is meaningful and semantic (it encodes score tier, status, verdict, or designation), never decoration and never black-and-white monochrome. The role is what matters; the value is an implementation detail defined once in [`src/styles.css`](../../src/styles.css).
 
-| Token | Value (dark theme) | Role / meaning |
-| --- | --- | --- |
-| `--ember` | `#ff6b2c` | **RESERVED, globally, for the single Capture CTA.** The one primary action that starts the loop (capture a signal). It is deliberately scarce: it appears at most once on a screen, so it always means "the primary action." Never a card accent, never a rank color, never a chart series. This scarcity is the rule that makes ember legible; spending it elsewhere dilutes every other ember on the platform. |
-| `--glacier` | `#84b3ec` | The machine / intelligence voice: active lanes (Now / Next status), the rank spotlight badge, focus outlines, the priority/summary band tint. "The system is telling you something." |
-| `--moss` | `#7fbf8e` | Strong / positive / done: a strong score tier (>= 7), Shipped status, an endorsed (SHIP) verdict, the "quick win" designation. |
-| `--madder` | `#e06557` | Destructive / negative: Dropped status, a KILL verdict, delete actions. |
-| `--amber` (`--saffron`) | saffron | Caution / attention, used sparingly. |
-| `--text-primary` | `#f2f0ed` | The primary read (titles, values). |
-| `--text-muted` | `#9c978f` | Secondary text, a weak score tier, the "watch this week" designation. |
-| `--text-subtle` | `#7d786f` | Quiet meta, mono-caps labels, timestamps (recency is worth a touch more presence than the trace id). |
-| `--text-faint` | `#55524c` | The faintest tone: the trace ref, the Backlog status, the section-heading accent bar. Present for an agent or a curious human to read, never prominent. |
-| `--canvas` | `#0a0a0b` | Page background; also the dark text ON a filled glacier badge for contrast. |
-| `--card` | `#111113` | The default card surface. |
-| `--raised` | `#17171a` | A raised surface (hover, table header, secondary button). |
-| `--hairline` | `rgba(255,255,255,0.07)` | The 1px divider / chip border on every card, cell, chip, and section. |
-| `--pencil-lime` | `#cde07a` | The best bet's pencil ink (the one lime pencil wink). |
-| `--pencil-blossom` | `#e5bddf` | The "needs validation" designation ink. |
-| `--pencil-apricot` | `#ffb27a` | The "heavy lift" designation ink. |
+| Token                   | Value (dark theme)       | Role / meaning                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ember`               | `#ff6b2c`                | **RESERVED, globally, for the single Capture CTA.** The one primary action that starts the loop (capture a signal). It is deliberately scarce: it appears at most once on a screen, so it always means "the primary action." Never a card accent, never a rank color, never a chart series. This scarcity is the rule that makes ember legible; spending it elsewhere dilutes every other ember on the platform. |
+| `--glacier`             | `#84b3ec`                | The machine / intelligence voice: active lanes (Now / Next status), the rank spotlight badge, focus outlines, the priority/summary band tint. "The system is telling you something."                                                                                                                                                                                                                             |
+| `--moss`                | `#7fbf8e`                | Strong / positive / done: a strong score tier (>= 7), Shipped status, an endorsed (SHIP) verdict, the "quick win" designation.                                                                                                                                                                                                                                                                                   |
+| `--madder`              | `#e06557`                | Destructive / negative: Dropped status, a KILL verdict, delete actions.                                                                                                                                                                                                                                                                                                                                          |
+| `--amber` (`--saffron`) | saffron                  | Caution / attention, used sparingly.                                                                                                                                                                                                                                                                                                                                                                             |
+| `--text-primary`        | `#f2f0ed`                | The primary read (titles, values).                                                                                                                                                                                                                                                                                                                                                                               |
+| `--text-muted`          | `#9c978f`                | Secondary text, a weak score tier, the "watch this week" designation.                                                                                                                                                                                                                                                                                                                                            |
+| `--text-subtle`         | `#7d786f`                | Quiet meta, mono-caps labels, timestamps (recency is worth a touch more presence than the trace id).                                                                                                                                                                                                                                                                                                             |
+| `--text-faint`          | `#55524c`                | The faintest tone: the trace ref, the Backlog status, the section-heading accent bar. Present for an agent or a curious human to read, never prominent.                                                                                                                                                                                                                                                          |
+| `--canvas`              | `#0a0a0b`                | Page background; also the dark text ON a filled glacier badge for contrast.                                                                                                                                                                                                                                                                                                                                      |
+| `--card`                | `#111113`                | The default card surface.                                                                                                                                                                                                                                                                                                                                                                                        |
+| `--raised`              | `#17171a`                | A raised surface (hover, table header, secondary button).                                                                                                                                                                                                                                                                                                                                                        |
+| `--hairline`            | `rgba(255,255,255,0.07)` | The 1px divider / chip border on every card, cell, chip, and section.                                                                                                                                                                                                                                                                                                                                            |
+| `--pencil-lime`         | `#cde07a`                | The best bet's pencil ink (the one lime pencil wink).                                                                                                                                                                                                                                                                                                                                                            |
+| `--pencil-blossom`      | `#e5bddf`                | The "needs validation" designation ink.                                                                                                                                                                                                                                                                                                                                                                          |
+| `--pencil-apricot`      | `#ffb27a`                | The "heavy lift" designation ink.                                                                                                                                                                                                                                                                                                                                                                                |
 
 ### Fonts and radii
 
-| Token | Value | Use |
-| --- | --- | --- |
-| `--font-serif` | Newsreader | Numerals and hero reads (the ICE score, stat-cell values). The one editorial voice. |
-| `--font-ui` | Schibsted Grotesk | Body and titles. |
-| `--font-mono` | JetBrains Mono | All metadata: mono-caps labels, trace refs, timestamps, status/verdict/designation chips, rank badge. |
-| `--radius-card` | (card radius) | Cards. |
-| `--radius-control` | `8px` | Controls, stat cells. |
+| Token              | Value             | Use                                                                                                   |
+| ------------------ | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `--font-serif`     | Newsreader        | Numerals and hero reads (the ICE score, stat-cell values). The one editorial voice.                   |
+| `--font-ui`        | Schibsted Grotesk | Body and titles.                                                                                      |
+| `--font-mono`      | JetBrains Mono    | All metadata: mono-caps labels, trace refs, timestamps, status/verdict/designation chips, rank badge. |
+| `--radius-card`    | (card radius)     | Cards.                                                                                                |
+| `--radius-control` | `8px`             | Controls, stat cells.                                                                                 |
 
 ### The color-restraint judgment (founder input 2026-07-07)
 
@@ -67,7 +67,7 @@ Left to right, the card carries:
 
 1. **A color-tiered strength / score anchor (left).** The numeral (Newsreader, tabular-nums) tinted by tier: moss strong (>= 7), glacier mid (4 to 6.9), a quiet muted tone weak (< 4), with a small same-tone bar beneath as the shape cue for a glance or for a color-blind read. This is the at-a-glance priority.
 2. **The title as the primary read.** `--text-primary`, 600 weight.
-3. **Organized, quiet meta**, laid out as spaced middle-dot (`·`) items, never a cramped run-on. The caller joins provenance with ` · ` and the card splits it back so each fact is its own spaced item.
+3. **Organized, quiet meta**, laid out as spaced middle-dot (`·`) items, never a cramped run-on. The caller joins provenance with `·` and the card splits it back so each fact is its own spaced item.
 4. **Colored state chips**: a status pill (the lane) and a verdict chip, so the state reads without opening a menu.
 5. **A faint trace-and-time tail**: the trace ref (`OPP·A1B2C3`, `--text-faint`) and the timestamp (`updated 3H AGO`, `--text-subtle`, a touch more present than the id).
 6. **One clear primary action** (e.g. "Draft spec"), with secondary actions (lineage, move-to, delete) kept in the `⋯` menu, never as the only way to see the object.
@@ -109,18 +109,18 @@ Every object shows its origin and links back up the loop: `signal -> theme -> op
 
 Every object carries a visible, stable, human-readable reference derived from its id, via the ONE shared helper `traceRef(id)` ([`src/components/discover/format.ts`](../../src/components/discover/format.ts)): the first 6 alphanumerics of the uuid, upper-cased. Never a bespoke inline formatter. Each object type carries its own prefix, rendered as one quiet mono ref (`OPP·A1B2C3`):
 
-| Prefix | Object type |
-| --- | --- |
-| `SIG` | signals |
-| `THM` | themes |
-| `OPP` | opportunities |
-| `PRD` | specs and drafts |
-| `MIS` | missions and build outcomes |
-| `DEC` | decisions |
-| `LRN` | learnings |
-| `ASM` | assumption challenges (the Today "worth re-examining?" calls) |
-| `ACT` | decided autonomous actions (Trust Ledger action receipts, engine-only local code) |
-| `INC` | incidents (the Engine Room "what went wrong" log, engine-only local code) |
+| Prefix | Object type                                                                       |
+| ------ | --------------------------------------------------------------------------------- |
+| `SIG`  | signals                                                                           |
+| `THM`  | themes                                                                            |
+| `OPP`  | opportunities                                                                     |
+| `PRD`  | specs and drafts                                                                  |
+| `MIS`  | missions and build outcomes                                                       |
+| `DEC`  | decisions                                                                         |
+| `LRN`  | learnings                                                                         |
+| `ASM`  | assumption challenges (the Today "worth re-examining?" calls)                     |
+| `ACT`  | decided autonomous actions (Trust Ledger action receipts, engine-only local code) |
+| `INC`  | incidents (the Engine Room "what went wrong" log, engine-only local code)         |
 
 **Register a new type's prefix here (and in the DESIGN-LOOM dim 17 registry) before it ships.** The full uuid is copyable in the detail; the card shows only the short ref.
 
@@ -156,14 +156,14 @@ In strict order, each a tie-breaker for the one above:
 
 Beyond the #1 best bet, every ranked bet gets a system-derived **designation** from a self-explanatory PM vocabulary, so a human or an agent reads what each bet IS (not just its number) and knows which to pick, WITHOUT a model call. Evaluated in strict order, first match wins, so rank 1 is always the single best bet even if a lower rule would also match:
 
-| Order | Rule | Designation | Ink | Meaning shown in the detail |
-| --- | --- | --- | --- | --- |
-| 1 | `rank === 1` | **best bet** | `--pencil-lime` (the pencil wink, not a tag) | the top pick + rationale + next action |
-| 2 | NOT endorsed (verdict rank below SHIP) AND `impact >= 6` | **needs validation** | `--pencil-blossom` | "High appeal, thin evidence. Let the Critic weigh in before you commit." |
-| 3 | `ease >= 7` AND `impact >= 5` | **quick win** | `--moss` | "Low effort for real impact. A fast, safe ship." |
-| 4 | `ease <= 3` | **heavy lift** | `--pencil-apricot` | "Large effort for the expected return. Consider slicing it smaller." |
-| 5 | `corroboration >= 3` | **watch this week** | `--text-muted` | "Gaining signals, not yet the top bet. Keep it in view." |
-| 6 | otherwise | `null` (a plain ranked bet) | none | none |
+| Order | Rule                                                     | Designation                 | Ink                                          | Meaning shown in the detail                                              |
+| ----- | -------------------------------------------------------- | --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| 1     | `rank === 1`                                             | **best bet**                | `--pencil-lime` (the pencil wink, not a tag) | the top pick + rationale + next action                                   |
+| 2     | NOT endorsed (verdict rank below SHIP) AND `impact >= 6` | **needs validation**        | `--pencil-blossom`                           | "High appeal, thin evidence. Let the Critic weigh in before you commit." |
+| 3     | `ease >= 7` AND `impact >= 5`                            | **quick win**               | `--moss`                                     | "Low effort for real impact. A fast, safe ship."                         |
+| 4     | `ease <= 3`                                              | **heavy lift**              | `--pencil-apricot`                           | "Large effort for the expected return. Consider slicing it smaller."     |
+| 5     | `corroboration >= 3`                                     | **watch this week**         | `--text-muted`                               | "Gaining signals, not yet the top bet. Keep it in view."                 |
+| 6     | otherwise                                                | `null` (a plain ranked bet) | none                                         | none                                                                     |
 
 **Why these:** "needs validation" is the Critic-teardown target (high appeal, weak evidence) and maps straight onto the product's wedge; the others cover the classic effort-vs-impact reads a PM makes. More PM terms ("sure thing", "long shot", "table stakes") are documented spares if the set grows.
 
@@ -193,26 +193,26 @@ Only the best bet renders the loud lime pencil wink; every other designation is 
 
 The Engine Room naming map (the built exemplar):
 
-| Room (question) | id | Plain label (exposed) | Technical (trace beneath) |
-| --- | --- | --- | --- |
-| **Spend** (What is this costing me?) | trend | Over time | Cost trend |
-| | by-agent | By agent | Agent spend breakdown |
-| | caps | Limits | Budget caps |
-| | usage | Full usage | Analytics rollup |
-| **Quality** (Is the machine still good?) | score | Right now | Eval pass rate |
-| | suites | What we test | Eval suites |
-| | drift | Is it slipping? | Drift |
-| | prompts | Its instructions | Prompts |
-| | proof | Stress tests | Gauntlet |
-| **Safety** (What is it allowed to do?) | rules | What is allowed | Guardrails |
-| | controls | Emergency controls | Pause and kill switch |
-| | team | Who can act | Agent roster and trust |
-| | house-rules | Your policies | House rules |
-| | incidents | What went wrong | Incidents |
-| **Record** (What exactly happened?) | traces | Every run | Traces |
-| | approvals | Your decisions | Approval log |
-| | ledger | Tamper check | Ledger seal |
-| | support | From your users | Support signals |
+| Room (question)                          | id          | Plain label (exposed) | Technical (trace beneath) |
+| ---------------------------------------- | ----------- | --------------------- | ------------------------- |
+| **Spend** (What is this costing me?)     | trend       | Over time             | Cost trend                |
+|                                          | by-agent    | By agent              | Agent spend breakdown     |
+|                                          | caps        | Limits                | Budget caps               |
+|                                          | usage       | Full usage            | Analytics rollup          |
+| **Quality** (Is the machine still good?) | score       | Right now             | Eval pass rate            |
+|                                          | suites      | What we test          | Eval suites               |
+|                                          | drift       | Is it slipping?       | Drift                     |
+|                                          | prompts     | Its instructions      | Prompts                   |
+|                                          | proof       | Stress tests          | Gauntlet                  |
+| **Safety** (What is it allowed to do?)   | rules       | What is allowed       | Guardrails                |
+|                                          | controls    | Emergency controls    | Pause and kill switch     |
+|                                          | team        | Who can act           | Agent roster and trust    |
+|                                          | house-rules | Your policies         | House rules               |
+|                                          | incidents   | What went wrong       | Incidents                 |
+| **Record** (What exactly happened?)      | traces      | Every run             | Traces                    |
+|                                          | approvals   | Your decisions        | Approval log              |
+|                                          | ledger      | Tamper check          | Ledger seal               |
+|                                          | support     | From your users       | Support signals           |
 
 Alongside the naming, each room leads with an **interpretive layer**: the honest verdict line (from the glance) plus, only when the room is on watch, one plain **recommended action** (`glance.action`, derived from the same real state, pointing at a plain tab label), so a click answers "what does this mean and what do I do", not "here is a table".
 

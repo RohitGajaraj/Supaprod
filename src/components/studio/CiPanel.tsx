@@ -111,11 +111,13 @@ export function CiPanel({
             }}
           >
             <span>
-              <strong style={{ color: "var(--text-primary)" }}>{inspection.total_files}</strong> file
+              <strong style={{ color: "var(--text-primary)" }}>{inspection.total_files}</strong>{" "}
+              file
               {inspection.total_files === 1 ? "" : "s"}
             </span>
             <span>
-              <strong style={{ color: "var(--text-primary)" }}>{inspection.test_files}</strong> test file
+              <strong style={{ color: "var(--text-primary)" }}>{inspection.test_files}</strong> test
+              file
               {inspection.test_files === 1 ? "" : "s"}
             </span>
             <span>

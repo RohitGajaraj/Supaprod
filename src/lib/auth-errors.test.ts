@@ -28,9 +28,9 @@ describe("authErrorMessage", () => {
   });
 
   it("maps the short-password error", () => {
-    expect(
-      authErrorMessage(new Error("Password should be at least 6 characters"), "signup"),
-    ).toBe("Password must be at least 6 characters.");
+    expect(authErrorMessage(new Error("Password should be at least 6 characters"), "signup")).toBe(
+      "Password must be at least 6 characters.",
+    );
   });
 
   it("maps rate limiting", () => {

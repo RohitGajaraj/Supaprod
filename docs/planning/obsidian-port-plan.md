@@ -20,13 +20,15 @@ Any lane can pick an unblocked ID cold.
 
 **The doctrine chain (load before any ID):** invoke the `cadence-design`
 skill, which loads [`/DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (the law)
-+ [`design-reference/obsidian-v3/`](../../design-reference/obsidian-v3/)
-(tokens, `components.md`, `implementation-notes.md`, the runnable prototype)
-+ [`design-reference/obsidian-extensions.md`](../../design-reference/obsidian-extensions.md)
-(the stub specs: palette, Ask, Settings, onboarding, room details, charts,
-micro-interactions, density, empty states).
+
+- [`design-reference/obsidian-v3/`](../../design-reference/obsidian-v3/)
+  (tokens, `components.md`, `implementation-notes.md`, the runnable prototype)
+- [`design-reference/obsidian-extensions.md`](../../design-reference/obsidian-extensions.md)
+  (the stub specs: palette, Ask, Settings, onboarding, room details, charts,
+  micro-interactions, density, empty states).
 
 **Standing constraints (every ID):**
+
 - **THE PROTOTYPE IS THE FLOOR (founder ruling 2026-07-02, non-negotiable).**
   The shipped surface must be visually and behaviorally indistinguishable
   from `design-reference/obsidian-v3/design-reference/cadence-app.html` at
@@ -69,7 +71,7 @@ Open the prototype and the built surface side by side at 1440px and check:
 5. Motion: hover 140ms one-step lift; slide-over `cadSlideIn` 240ms; screen
    entry 260ms; pulses/glows only on live status; reduced-motion kills all.
 6. Behavior: keyboard map (1-5, g, Esc), call answering rewrites hero + badge
-   + progress + linked mission, slide-over gate sync, toast 3.6s singleton.
+   - progress + linked mission, slide-over gate sync, toast 3.6s singleton.
 7. Copy: the register matches (plain-words buttons, consequence helpers,
    mono-caps metadata, no em dashes, no exclamation marks).
 8. Grayscale screenshot still reads; restraint budget audited.
@@ -87,6 +89,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 ## The IDs
 
 ### OBS-01 · Tokens + fonts foundation
+
 - **Context:** `src/styles.css` is parchment; Obsidian tokens live in
   `design-reference/obsidian-v3/tokens/*.css`.
 - **Files:** `src/styles.css` (append an app-scoped token layer), font loading
@@ -104,6 +107,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   the token block.
 
 ### OBS-02 · The app shell (rail + top bar + keyboard) — ✅ shipped 2026-07-02 (lane1)
+
 - **Context:** the current shell is parchment with lucide icons; the target is
   `components.md` § Shell + the prototype.
 - **Files:** `src/components/cadence/AppShell.tsx` (or successor),
@@ -122,6 +126,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Verify:** side-by-side with `obsidian-v3/design-reference/cadence-app.html`.
 
 ### OBS-03 · Core primitives — ✅ shipped 2026-07-02 (lane2, library + specimen route both done)
+
 - **Files:** `src/components/obsidian/` (Button, StatusDot, VerdictChip,
   MonoLabel, Toast, SlideOver chassis, CallCard, MissionRow, AuroraCard,
   Citation chip, PencilNote) - a NEW folder, parallel to the parchment
@@ -144,6 +149,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Verify:** grayscale screenshot still reads; tsc + tests.
 
 ### OBS-04 · Today (the ritual)
+
 - **Files:** `src/routes/_authenticated.index.tsx` (or the Today route) +
   Today components.
 - **Steps:** hero (Newsreader 34px, count word in ember italic, rewrites as
@@ -157,6 +163,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   moss card; restraint budget audited.
 
 ### OBS-05 · Build (one cockpit) — ✅ shipped 2026-07-02 (lane3)
+
 - **Steps:** mission list rows per anatomy (status dot · title · verdict chip
   when done · step label · cost); the mission slide-over (numbered steps,
   live pulses, inline gate as compressed CallCard, trace toggle with mono log
@@ -165,6 +172,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   scrim close; trace lines show cost; slide-over is the app's ONE overlay depth.
 
 ### OBS-06 · Discover (the evidence desk)
+
 - **Steps:** two-column 1160px; signal feed (source pill blossom + verbatim
   quote + theme line); ICE-ranked opportunity rows (Newsreader score, verdict
   chip, Challenge action, the single pencil annotation on the top bet);
@@ -173,6 +181,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   with sources; max two pencil marks.
 
 ### OBS-07 · Plan (cited specs + outcome roadmap) — ✅ shipped 2026-07-02 (lane3)
+
 - **Steps:** spec list (serif body in detail view, state chips, blossom cites
   count); NOW/NEXT/LATER columns (NOW ember-tinted, LATER dimmed), each bet
   carrying its mono measure line; commit-to-Now ceremony (a confirm with the
@@ -181,6 +190,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   voice rules.
 
 ### OBS-08 · Brain (the record) — ✅ shipped 2026-07-02 (lane1)
+
 - **Steps:** stat trio (Newsreader numerals + mono micro-labels) + "Export my
   record"; decisions with outcome verdicts; learnings with what-they-moved
   lines in glacier mono; belief-graph surface reuses the existing data flow.
@@ -188,6 +198,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   absent (no dead control).
 
 ### OBS-09 · Engine Room (one door, four rooms)
+
 - **Steps:** health summary + 2×2 room cards (name, state chip, question,
   verdict line); the room-detail pattern from extensions §5 (question header,
   verdict-first body, mono sub-tabs, four depth levels max); the connection
@@ -196,6 +207,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   passes on every label.
 
 ### OBS-10 · IA consolidation (routes into five destinations) - ◐ shipped-partial 2026-07-02 (lane1, [~75%] - see feature-dashboard.md row + docs/features/obsidian-port.md for the full account of what folded and what was deliberately left live)
+
 - **Context:** current routes (`/prds`, `/roadmap`, `/discovery`, `/agents`,
   `/traces`, `/evals`, `/guardrails`, `/drift`, …) must fold into Today /
   Discover / Plan / Build / Brain / Engine Room per contract §8.
@@ -209,9 +221,13 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Gate:** flag the URL renames to the founder in the ship report.
 
 ### OBS-11 · ⌘K palette + capability catalog (extensions §1) - ✅ shipped 2026-07-02 (lane1)
+
 ### OBS-12 · Ask (⌘J) panel (extensions §2) - ✅ shipped 2026-07-02 (lane1)
+
 ### OBS-13 · Settings four panes + Admin door (extensions §3) - ◐ shipped-partial 2026-07-02 (lane1, [~70%] - see feature-dashboard.md row + docs/features/obsidian-port.md for what remains)
+
 ### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live) - ✅ shipped 2026-07-03 (lane1 - see feature-dashboard.md row + docs/features/obsidian-port.md)
+
 ### OBS-15 · Chart grammar adoption (extensions §6; rides with 05/08/09) - ✅ closed 2026-07-03 (lane1 grammar module + lane3 closing pass - see feature-dashboard.md row + docs/features/obsidian-port.md)
 
 For 11-15 the spec IS the extensions file section; each becomes a normal

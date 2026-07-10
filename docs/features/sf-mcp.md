@@ -27,21 +27,21 @@ sense-tick (every 5 min, pg_cron)
             7. recordCall()   — log success/failure to mcp_connections (sanitized only)
 ```
 
-| Piece | File | Role |
-|---|---|---|
-| Types | `src/lib/connectors/mcp/types.ts` | `McpServerId`, `McpContentBlock`, `McpServerSpec` — client-safe, no server imports |
-| Registry | `src/lib/connectors/mcp/registry.ts` | The 4 server slots, each pointing at its own `urlEnv`/`tokenEnv`/`toolEnv`/`argsEnv` names — no vendor logic |
-| Client | `src/lib/connectors/mcp/client.server.ts` | `callMcpTool()` — the generic two-step JSON-RPC handshake (`initialize` then `tools/call`) over HTTP, with SSE and JSON response parsing |
-| Ingest | `src/lib/connectors/mcp/ingest.server.ts` | `ingestMcpSignals()` — the per-workspace orchestrator: config gate → tier gate → rate limit → call → write → record |
-| Sink | `src/lib/sources/sink.server.ts` | `writeSignals()` — every candidate is `untrusted: true`, so it is screened for prompt injection before being stored |
-| Ledger | `supabase/migrations/20260701010000_mcp_connections.sql` | `mcp_connections` — rate-limit + audit telemetry only; never a URL or token |
-| Wiring | `src/routes/api/public/hooks/sense-tick.ts` | One explicit `await ingestMcpSignals(...)` call per workspace per tick, alongside the customer-voice fleet |
+| Piece    | File                                                     | Role                                                                                                                                     |
+| -------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Types    | `src/lib/connectors/mcp/types.ts`                        | `McpServerId`, `McpContentBlock`, `McpServerSpec` — client-safe, no server imports                                                       |
+| Registry | `src/lib/connectors/mcp/registry.ts`                     | The 4 server slots, each pointing at its own `urlEnv`/`tokenEnv`/`toolEnv`/`argsEnv` names — no vendor logic                             |
+| Client   | `src/lib/connectors/mcp/client.server.ts`                | `callMcpTool()` — the generic two-step JSON-RPC handshake (`initialize` then `tools/call`) over HTTP, with SSE and JSON response parsing |
+| Ingest   | `src/lib/connectors/mcp/ingest.server.ts`                | `ingestMcpSignals()` — the per-workspace orchestrator: config gate → tier gate → rate limit → call → write → record                      |
+| Sink     | `src/lib/sources/sink.server.ts`                         | `writeSignals()` — every candidate is `untrusted: true`, so it is screened for prompt injection before being stored                      |
+| Ledger   | `supabase/migrations/20260701010000_mcp_connections.sql` | `mcp_connections` — rate-limit + audit telemetry only; never a URL or token                                                              |
+| Wiring   | `src/routes/api/public/hooks/sense-tick.ts`              | One explicit `await ingestMcpSignals(...)` call per workspace per tick, alongside the customer-voice fleet                               |
 
 One misbehaving or unconfigured server slot can never break another or the caller — every step in the loop above is independently wrapped in `try/catch`, and `ingestMcpSignals` never throws.
 
 ## The trust & SSRF model
 
-**The core security property: a server's URL, token, and tool name come ONLY from founder-set environment variables — never from a `mcp_connections` row, never from a workspace setting, never from a request body or any user-supplied value.** `registry.ts` stores env var *names* (`urlEnv`, `tokenEnv`, `toolEnv`, `argsEnv`), never values; the actual value is read with `process.env[spec.urlEnv]` at call time inside `ingest.server.ts`. There is no code path, settings form, or API route that lets a workspace member or any external caller influence which host gets fetched or which token is sent.
+**The core security property: a server's URL, token, and tool name come ONLY from founder-set environment variables — never from a `mcp_connections` row, never from a workspace setting, never from a request body or any user-supplied value.** `registry.ts` stores env var _names_ (`urlEnv`, `tokenEnv`, `toolEnv`, `argsEnv`), never values; the actual value is read with `process.env[spec.urlEnv]` at call time inside `ingest.server.ts`. There is no code path, settings form, or API route that lets a workspace member or any external caller influence which host gets fetched or which token is sent.
 
 On top of that boundary, every URL is still checked with `assertSafeBaseUrl()` (the existing SSRF guard, `src/lib/url-safety.ts`) before any fetch — so even a founder typo or a misconfigured env var can't point the client at a private/internal host. `callMcpTool()` also never follows redirects (`redirect: "manual"`): a 3xx `Location` header is unvalidated by `assertSafeBaseUrl()` and could otherwise pivot the token-bearing request to an internal host, so a redirect response is simply treated as a failed handshake.
 
@@ -59,11 +59,11 @@ Within the client itself, `MAX_RESPONSE_BYTES = 1_000_000` bounds how much of a 
 
 All four slots ship dark. To activate one, the founder sets that slot's env vars in Lovable project settings — no code change, no migration, no deploy needed beyond the variable itself being picked up at runtime:
 
-| Server | Required env vars |
-|---|---|
-| Linear | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`, `MCP_LINEAR_ARGS` (optional, JSON) |
-| Gong | `MCP_GONG_URL`, `MCP_GONG_TOKEN`, `MCP_GONG_TOOL`, `MCP_GONG_ARGS` (optional, JSON) |
-| Granola | `MCP_GRANOLA_URL`, `MCP_GRANOLA_TOKEN`, `MCP_GRANOLA_TOOL`, `MCP_GRANOLA_ARGS` (optional, JSON) |
+| Server    | Required env vars                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| Linear    | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`, `MCP_LINEAR_ARGS` (optional, JSON)             |
+| Gong      | `MCP_GONG_URL`, `MCP_GONG_TOKEN`, `MCP_GONG_TOOL`, `MCP_GONG_ARGS` (optional, JSON)                     |
+| Granola   | `MCP_GRANOLA_URL`, `MCP_GRANOLA_TOKEN`, `MCP_GRANOLA_TOOL`, `MCP_GRANOLA_ARGS` (optional, JSON)         |
 | Enterpret | `MCP_ENTERPRET_URL`, `MCP_ENTERPRET_TOKEN`, `MCP_ENTERPRET_TOOL`, `MCP_ENTERPRET_ARGS` (optional, JSON) |
 
 A slot only activates once both its `_URL` and `_TOOL` vars resolve (the config gate in `ingestMcpSignals`); `_TOKEN` is sent as a Bearer header when present but is not itself required (some hosted servers may not need one). `_ARGS` is an optional JSON-stringified object of static tool call arguments (e.g. `{"limit":20}`); invalid or absent JSON safely defaults to `{}`. Also requires the workspace to be Pro+ tier (the `inflow` capability gate, same as every connector). The migration `20260701010000_mcp_connections.sql` must be applied (additive, idempotent) before any slot can record its rate-limit state.
@@ -78,19 +78,19 @@ A slot only activates once both its `_URL` and `_TOOL` vars resolve (the config 
 
 ## Related files
 
-| File | Role |
-|---|---|
-| `src/lib/connectors/mcp/types.ts` | Shared types (`McpServerId`, `McpContentBlock`, `McpServerSpec`) |
-| `src/lib/connectors/mcp/registry.ts` | The 4-slot, env-var-driven server registry |
-| `src/lib/connectors/mcp/client.server.ts` | The generic JSON-RPC-over-HTTP MCP client + SSRF guard call site |
-| `src/lib/connectors/mcp/client.test.ts` | 9 unit tests (`parseSseFrames`, `extractTextBlocks`) |
-| `src/lib/connectors/mcp/ingest.server.ts` | `ingestMcpSignals()` orchestrator + `blocksToCandidates()` + `hashText()` |
-| `src/lib/connectors/mcp/ingest.test.ts` | 11 unit tests (`hashText`, `blocksToCandidates`) |
-| `supabase/migrations/20260701010000_mcp_connections.sql` | `mcp_connections` rate-limit/audit table (no URLs/secrets) |
-| `src/routes/api/public/hooks/sense-tick.ts` | Wiring: one `ingestMcpSignals(...)` call per workspace, `mcp_servers` result map |
-| `src/lib/url-safety.ts` | `assertSafeBaseUrl()` — the SSRF guard this adapter depends on |
-| `src/lib/entitlements.ts` | `assertConnectorCapability()` — the tier gate this adapter depends on |
-| `docs/features/signal-fabric.md` | Parent spec; Phase 3 section updated |
+| File                                                     | Role                                                                             |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/lib/connectors/mcp/types.ts`                        | Shared types (`McpServerId`, `McpContentBlock`, `McpServerSpec`)                 |
+| `src/lib/connectors/mcp/registry.ts`                     | The 4-slot, env-var-driven server registry                                       |
+| `src/lib/connectors/mcp/client.server.ts`                | The generic JSON-RPC-over-HTTP MCP client + SSRF guard call site                 |
+| `src/lib/connectors/mcp/client.test.ts`                  | 9 unit tests (`parseSseFrames`, `extractTextBlocks`)                             |
+| `src/lib/connectors/mcp/ingest.server.ts`                | `ingestMcpSignals()` orchestrator + `blocksToCandidates()` + `hashText()`        |
+| `src/lib/connectors/mcp/ingest.test.ts`                  | 11 unit tests (`hashText`, `blocksToCandidates`)                                 |
+| `supabase/migrations/20260701010000_mcp_connections.sql` | `mcp_connections` rate-limit/audit table (no URLs/secrets)                       |
+| `src/routes/api/public/hooks/sense-tick.ts`              | Wiring: one `ingestMcpSignals(...)` call per workspace, `mcp_servers` result map |
+| `src/lib/url-safety.ts`                                  | `assertSafeBaseUrl()` — the SSRF guard this adapter depends on                   |
+| `src/lib/entitlements.ts`                                | `assertConnectorCapability()` — the tier gate this adapter depends on            |
+| `docs/features/signal-fabric.md`                         | Parent spec; Phase 3 section updated                                             |
 
 ## See also
 

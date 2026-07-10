@@ -29,7 +29,7 @@ Review and update:
 - DESIGN.md
 - AGENTS.md
 - GEMINI.md
-= README.md
+  = README.md
 
 These should become the permanent doctrine for future AI-generated design work.
 
@@ -69,6 +69,7 @@ Critically review every module including Today's Page, Onboarding, AI Plane, Eng
 ## Deliverables
 
 Provide:
+
 - Product understanding
 - UX audit
 - Information architecture
@@ -418,7 +419,6 @@ The end result should become the benchmark for an AI-native, enterprise-grade, c
 
 The final outcome should be a product that can confidently compete with world-class enterprise software while remaining approachable and enjoyable for everyday Product Managers.
 
-
 ## Design Doctrine 1
-Every design decision should prioritize clarity, consistency, discoverability, progressive disclosure, accessibility, performance perception, and long-term scalability. Validate whether the existing implementation supports the product vision before preserving it. Remove unnecessary complexity, strengthen the user's mental model, and ensure each interaction contributes to a premium, AI-native experience.
 
+Every design decision should prioritize clarity, consistency, discoverability, progressive disclosure, accessibility, performance perception, and long-term scalability. Validate whether the existing implementation supports the product vision before preserving it. Remove unnecessary complexity, strengthen the user's mental model, and ensure each interaction contributes to a premium, AI-native experience.

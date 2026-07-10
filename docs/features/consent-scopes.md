@@ -43,13 +43,13 @@ card appearing on `/missions/$id`, where they would have before.
 
 - **`resolveToolMode(toolName, rawToolMode, arc, contractApproved)`** (`loop.server.ts`, exported)
   - the full mode-composition chain, extracted out of `executeLoop`'s prior inline block so its
-  safety-floor ORDERING is directly unit-tested, not just the predicates it calls. Order: seeded
-  mode → arc dial (`resolveApprovalMode`, `review` sticky) → `HIGH_RISK_FORCE_REVIEW` floor →
-  `HIGH_RISK_MIN_CONFIRM`/`isHighRiskTool` floor → the pre-existing low-risk auto-clear → the new
-  AGT-02 branch, LAST in the chain.
+    safety-floor ORDERING is directly unit-tested, not just the predicates it calls. Order: seeded
+    mode → arc dial (`resolveApprovalMode`, `review` sticky) → `HIGH_RISK_FORCE_REVIEW` floor →
+    `HIGH_RISK_MIN_CONFIRM`/`isHighRiskTool` floor → the pre-existing low-risk auto-clear → the new
+    AGT-02 branch, LAST in the chain.
 - **The AGT-02 branch itself** only fires when `mode === "confirm"` AND `contractApproved` AND the
   tool is in NEITHER hand-curated safety-floor set AND `toolConsequence(toolName).reversible ===
-  "reversible"` (the existing `tool-consequences.ts` axis - not `"partial"`, not the fail-closed
+"reversible"` (the existing `tool-consequences.ts` axis - not `"partial"`, not the fail-closed
   default an uncatalogued tool gets). Every one of those four conditions must hold; failing any one
   leaves the tool at its pre-AGT-02 mode.
 - **`contractApproved`** is resolved ONCE per `executeLoop` invocation (a point-in-time gate, not
@@ -59,7 +59,7 @@ card appearing on `/missions/$id`, where they would have before.
   `resolveMissionPrdId` and BYO-P3's `outcome.functions.ts` already established and rely on.
 - **Scope note:** because the link is via `studio_changesets`, a mission never routed through a
   Studio/Build code-shipping dispatch (no changeset row yet) simply never gets `contractApproved =
-  true` - it falls back to normal per-step gating, the strictly safer default. This is a
+true` - it falls back to normal per-step gating, the strictly safer default. This is a
   conservative, honest subset of the ideal "any mission executing an approved contract," not a bug.
 
 ## Governance & guardrails
@@ -101,8 +101,8 @@ card appearing on `/missions/$id`, where they would have before.
 
 - **No UI surfaces this.** There is no visible "plan-level consent granted" indicator anywhere yet
   - an operator only notices its effect as fewer approval cards. A future pass could surface this
-  explicitly (e.g. a note on the mission's approval history), not built here since the spec's own
-  ask was the latency win, not a new UI affordance.
+    explicitly (e.g. a note on the mission's approval history), not built here since the spec's own
+    ask was the latency win, not a new UI affordance.
 - **Point-in-time, not continuously re-checked.** `contractApproved` is resolved once per
   `executeLoop` call; revoking a PRD's approval mid-run does not retroactively re-gate calls
   already in flight for that same continuous run (up to the mission's step budget). This matches

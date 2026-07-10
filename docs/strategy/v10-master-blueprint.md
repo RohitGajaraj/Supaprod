@@ -14,12 +14,12 @@
 
 **Product one-liner:** Cadence is the agentic product OS where a PM decides what is worth building and watches it get built and shipped. Agents run the loop; you make the calls that matter; every decision and outcome compounds into memory the team can trust.
 
-| Context | Verbatim | Why |
-| --- | --- | --- |
-| Launch hook (marketing) | **"The AI that red-teams your roadmap."** | Enters an existing emotional category; leads with judgment (v9 section 2). The shareable hook. |
-| Site hero (positioning) | **"Decide what's worth building. Watch it ship."** | The two heroes in one breath (v8 Fork 2). |
-| In-product footer (live) | **"Cadence - agents execute, you govern."** | Keep. The governance promise in five words. |
-| Investor / category | **"The decision and memory system of record for product teams."** | The moat framing (v7). |
+| Context                  | Verbatim                                                          | Why                                                                                            |
+| ------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Launch hook (marketing)  | **"The AI that red-teams your roadmap."**                         | Enters an existing emotional category; leads with judgment (v9 section 2). The shareable hook. |
+| Site hero (positioning)  | **"Decide what's worth building. Watch it ship."**                | The two heroes in one breath (v8 Fork 2).                                                      |
+| In-product footer (live) | **"Cadence - agents execute, you govern."**                       | Keep. The governance promise in five words.                                                    |
+| Investor / category      | **"The decision and memory system of record for product teams."** | The moat framing (v7).                                                                         |
 
 Do not ship "Agentic Product OS" as a public tagline (internal north star only).
 
@@ -51,33 +51,33 @@ Two human gates (the decision call, the merge approval); everything else runs un
 
 The "why" behind the build. These are the PM pains the loop must remove; each maps to a catalog feature in section 15.
 
-| # | Pain (the PM's words) | Today's broken workaround | The Cadence feature that kills it | Lane |
-| --- | --- | --- | --- | --- |
-| 1 | "Signal is scattered across 15 tools; I miss things and react late." | Manual triage across Intercom/Gong/Notion/email | Live ingest + clustering (SEN-01, F3, SEN-05) | A |
-| 2 | "I can't defend my roadmap calls; I get overruled or burned." | Gut + slides | Critic red-team with evidence (DEC-02, the teardown) | C |
-| 3 | "Writing PRDs and breaking down tasks eats my week." | Docs + Jira by hand | Cited PRD + task graph (H1) | C/Define |
-| 4 | "Shipping needs eng I don't control; my context gets lost across the seam." | Tickets + waiting | Autonomous build engine, one dispatch from an approved PRD (F-STUDIO + spine) | D |
-| 5 | "I never learn whether a bet paid off; nothing compounds." | Memory in my head, lost at handover | Outcome reviews + compounding memory (LRN-02, outcome-memory) | B |
-| 6 | "I don't trust the AI; one confident wrong answer and I'm done." | Avoid AI for real calls | Citations, the Critic, the audit trail, governed autonomy | B/Gov |
-| 7 | "Too many tools; the switching tax is brutal." | 93 apps, 1 hr/day lost | One platform, the whole loop; BYO-key, OAuth Connect | A/D |
-| 8 | "I want help without buying enterprise tooling." | Spreadsheets + ChatGPT tabs | Individual PM tier, self-serve, $39 (PLG, W6) | E |
+| #   | Pain (the PM's words)                                                       | Today's broken workaround                       | The Cadence feature that kills it                                             | Lane     |
+| --- | --------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| 1   | "Signal is scattered across 15 tools; I miss things and react late."        | Manual triage across Intercom/Gong/Notion/email | Live ingest + clustering (SEN-01, F3, SEN-05)                                 | A        |
+| 2   | "I can't defend my roadmap calls; I get overruled or burned."               | Gut + slides                                    | Critic red-team with evidence (DEC-02, the teardown)                          | C        |
+| 3   | "Writing PRDs and breaking down tasks eats my week."                        | Docs + Jira by hand                             | Cited PRD + task graph (H1)                                                   | C/Define |
+| 4   | "Shipping needs eng I don't control; my context gets lost across the seam." | Tickets + waiting                               | Autonomous build engine, one dispatch from an approved PRD (F-STUDIO + spine) | D        |
+| 5   | "I never learn whether a bet paid off; nothing compounds."                  | Memory in my head, lost at handover             | Outcome reviews + compounding memory (LRN-02, outcome-memory)                 | B        |
+| 6   | "I don't trust the AI; one confident wrong answer and I'm done."            | Avoid AI for real calls                         | Citations, the Critic, the audit trail, governed autonomy                     | B/Gov    |
+| 7   | "Too many tools; the switching tax is brutal."                              | 93 apps, 1 hr/day lost                          | One platform, the whole loop; BYO-key, OAuth Connect                          | A/D      |
+| 8   | "I want help without buying enterprise tooling."                            | Spreadsheets + ChatGPT tabs                     | Individual PM tier, self-serve, $39 (PLG, W6)                                 | E        |
 
 ---
 
 ## 5. Current state vs target (vis-a-vis scan, file-grounded `main` 2026-06-17)
 
-| Station | Built (real) | Gap to close | Lane |
-| --- | --- | --- | --- |
-| SENSE | Webhook ingest (KI-10); connector registry OAuth-wired (github/linear/notion/gdocs/gcal/outlook); signals to themes to opportunities (ICE) | Connectors operational; >=2 live sources; continuous feed; analytics inbound; audio | A |
-| DECIDE | Critic on opportunities (DEC-02); decision card + badge (F-DEC-CARD); shareable link (F-SHARE) | Critic as routable step; the packaged teardown first-run; roadmap live writes | C |
-| DEFINE | Cited PRD (H1); Critic-on-spec (DEF-03); prd to mission lineage | Task graph from PRD | C |
-| BUILD | Full hybrid engine (I1/I2/I3/J1/J2/K1) | Sandbox+preview; BYO-key delegate-out; rollback; ambient arc | D |
-| SHIP | PR gated; release notes | Launch-kit mission; announce pages; deploy trigger (deferred) | D/G |
-| LEARN | Outcome roll-ups; memory recall + handoff threading (W1); compounding view (N3); brief insight (N2) | Real outcome reviews (LRN-02); outcome-memory auto-trigger; cohort analytics | B |
-| Engine | Chokepoint (kill-switch to budget to guards to RAG to provider to humanize to log); BYO-key; auto-advance; 19-mesh to 5 faces; 31 tools; trust/autonomy dial | Ambient arc seeding; outcome-compound; MCP server; analytical depth | B/D/F |
-| Monetize | plan_tier/entitlements; Stripe (REST) + webhook; expiry engine dormant | Switch on; PLG; persona onboarding | E |
+| Station  | Built (real)                                                                                                                                                 | Gap to close                                                                        | Lane  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ----- |
+| SENSE    | Webhook ingest (KI-10); connector registry OAuth-wired (github/linear/notion/gdocs/gcal/outlook); signals to themes to opportunities (ICE)                   | Connectors operational; >=2 live sources; continuous feed; analytics inbound; audio | A     |
+| DECIDE   | Critic on opportunities (DEC-02); decision card + badge (F-DEC-CARD); shareable link (F-SHARE)                                                               | Critic as routable step; the packaged teardown first-run; roadmap live writes       | C     |
+| DEFINE   | Cited PRD (H1); Critic-on-spec (DEF-03); prd to mission lineage                                                                                              | Task graph from PRD                                                                 | C     |
+| BUILD    | Full hybrid engine (I1/I2/I3/J1/J2/K1)                                                                                                                       | Sandbox+preview; BYO-key delegate-out; rollback; ambient arc                        | D     |
+| SHIP     | PR gated; release notes                                                                                                                                      | Launch-kit mission; announce pages; deploy trigger (deferred)                       | D/G   |
+| LEARN    | Outcome roll-ups; memory recall + handoff threading (W1); compounding view (N3); brief insight (N2)                                                          | Real outcome reviews (LRN-02); outcome-memory auto-trigger; cohort analytics        | B     |
+| Engine   | Chokepoint (kill-switch to budget to guards to RAG to provider to humanize to log); BYO-key; auto-advance; 19-mesh to 5 faces; 31 tools; trust/autonomy dial | Ambient arc seeding; outcome-compound; MCP server; analytical depth                 | B/D/F |
+| Monetize | plan_tier/entitlements; Stripe (REST) + webhook; expiry engine dormant                                                                                       | Switch on; PLG; persona onboarding                                                  | E     |
 
-**Verdict:** engine + build spine real; the loop *ends* (live ingest, real outcome learning) and the *packaging* (wedge, onboarding, interop, analytical depth) are the unfinished, highest-leverage work.
+**Verdict:** engine + build spine real; the loop _ends_ (live ingest, real outcome learning) and the _packaging_ (wedge, onboarding, interop, analytical depth) are the unfinished, highest-leverage work.
 
 ---
 
@@ -96,16 +96,16 @@ Five calm top-level surfaces + Trust row + one Engine Room door. No new top-leve
 
 ## 7. Screen-by-screen (current, gap, how it should function)
 
-| Surface | Hero | Now | Gap / how it should function |
-| --- | --- | --- | --- |
-| **Today** `/` | DECIDE | call-count line, vitals, cleared ring, decision cards, pulse, top priorities, bottlenecks, what-changed, brief, agents rail, tasks | Add the **Critic-teardown first-run** as cold-start hero + a "challenge a bet" card; make it the shareable artifact. Answers "what needs me, what to push, what changed" in 1 to 3 clicks; never a passive dashboard. |
-| **Product** `/product` | sense→decide→define | signals, opportunities (ICE), specs, roadmap (H2), portfolio (B3) | Continuous discovery feed; Critic verdict inline on opportunity detail; roadmap place-into-bucket writes (migration sync). The work surface where signal becomes a Critic-checked decision. |
-| **Build** `/build` | SHIP | live cockpit, per-hunk curation, branch isolation, CI gate, release notes; PRD picker dispatches a mission | Sandbox+preview so self-correct is a loop action; BYO-key delegate-out; rollback. Feels like Cursor but autonomous; one dispatch in, merge approval out. |
-| **Brain** `/knowledge` | LEARN / moat visible | Memory, Learnings, Decisions, Docs, Calendar | "this learning moved these priorities"; outcome reviews (LRN-02) as a first-class Learnings view. The company brain a competitor cannot backfill. |
-| **Ask** `/chat` | cross-cut | web-grounded + RAG chat, model switcher, message footer (model/via/cost/latency/sources/feedback) | "Red-team this" + "Capture decision" inline; deep-linked citations. Grounded, cited, never a raw error; can spawn a mission. |
-| **Missions** `/missions` | the loop, visible | orchestrated missions, agent roster, swarm HUD, compounding view (N3), loop-health banner (E8) | Cancel/replay/checkpoints (D4); @-mentionable agents (later). Watch the mesh run; every hop cites the memory it drew on. |
-| **Engine Room** `/govern` | the one door | 10 outcome-named tabs, fully drillable; audit trail first-class | Cost-per-mission chips (ENG-06); incidents log (P7). The 95% never open it; operator gets full depth one click in. |
-| **Settings/Connectors/Public** | - | Plan tab; Connect button (OAuth) + webhook card; anon-safe `/d`,`/p` share | PLG-aware onboarding; the share link is the viral loop. |
+| Surface                        | Hero                 | Now                                                                                                                                | Gap / how it should function                                                                                                                                                                                          |
+| ------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Today** `/`                  | DECIDE               | call-count line, vitals, cleared ring, decision cards, pulse, top priorities, bottlenecks, what-changed, brief, agents rail, tasks | Add the **Critic-teardown first-run** as cold-start hero + a "challenge a bet" card; make it the shareable artifact. Answers "what needs me, what to push, what changed" in 1 to 3 clicks; never a passive dashboard. |
+| **Product** `/product`         | sense→decide→define  | signals, opportunities (ICE), specs, roadmap (H2), portfolio (B3)                                                                  | Continuous discovery feed; Critic verdict inline on opportunity detail; roadmap place-into-bucket writes (migration sync). The work surface where signal becomes a Critic-checked decision.                           |
+| **Build** `/build`             | SHIP                 | live cockpit, per-hunk curation, branch isolation, CI gate, release notes; PRD picker dispatches a mission                         | Sandbox+preview so self-correct is a loop action; BYO-key delegate-out; rollback. Feels like Cursor but autonomous; one dispatch in, merge approval out.                                                              |
+| **Brain** `/knowledge`         | LEARN / moat visible | Memory, Learnings, Decisions, Docs, Calendar                                                                                       | "this learning moved these priorities"; outcome reviews (LRN-02) as a first-class Learnings view. The company brain a competitor cannot backfill.                                                                     |
+| **Ask** `/chat`                | cross-cut            | web-grounded + RAG chat, model switcher, message footer (model/via/cost/latency/sources/feedback)                                  | "Red-team this" + "Capture decision" inline; deep-linked citations. Grounded, cited, never a raw error; can spawn a mission.                                                                                          |
+| **Missions** `/missions`       | the loop, visible    | orchestrated missions, agent roster, swarm HUD, compounding view (N3), loop-health banner (E8)                                     | Cancel/replay/checkpoints (D4); @-mentionable agents (later). Watch the mesh run; every hop cites the memory it drew on.                                                                                              |
+| **Engine Room** `/govern`      | the one door         | 10 outcome-named tabs, fully drillable; audit trail first-class                                                                    | Cost-per-mission chips (ENG-06); incidents log (P7). The 95% never open it; operator gets full depth one click in.                                                                                                    |
+| **Settings/Connectors/Public** | -                    | Plan tab; Connect button (OAuth) + webhook card; anon-safe `/d`,`/p` share                                                         | PLG-aware onboarding; the share link is the viral loop.                                                                                                                                                               |
 
 ---
 
@@ -118,6 +118,7 @@ Product name: **Cadence** only (retired experiment name never reintroduced; inte
 ## 9. The analytical engine (make it genuinely strong; founder priority)
 
 Not a BI dashboard; the closed measurement loop that proves the agents work and that the moat compounds. Five layers (current → target), all in Lane B:
+
 1. **Run analytics (built):** `ai_events` per call. Target: cost-per-mission/artifact rollup (ENG-06) so unit economics sit in front of the operator.
 2. **Proof metrics / gauntlet (built):** acceptance, autonomy, retention. Target: add **outcome-accuracy-lift-per-PM** (the scale-independent moat metric; the investor metric).
 3. **Outcome learning (the #1 gap):** LRN-02 predicted-vs-actual + Historian verdicts to `learnings`, plus the outcome-memory auto-trigger (scaffolded, not wired). Closes the loop.
@@ -150,13 +151,13 @@ Layers: client (TanStack Start/React 19/Vite, Cloudflare Worker) → auth+tenanc
 
 The current model is the 5-tier **Constellation** ladder presented Anthropic-style as **two toggles** (Individual: Free / Pro / Max; Business: Team / Enterprise), with usage **variants inside Max and Team**. This table is a summary; the canonical matrix + the variant packaging live in [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §2.4 + §2.4.1.
 
-| Tier (toggle) | Price (founder-gated) | Sold on | State |
-| --- | --- | --- | --- |
-| Free (Individual) | $0 | features; starter usage; memory decays ~30d | built; expiry dormant |
-| Pro (Individual) | ~$20/mo | features only (persistent memory, Critic everywhere, share links); no public usage number | rails built; needs Stripe secrets |
-| Max (Individual) | one card: "5x" / "20x more usage than Pro" (~$100 / ~$200) | the power-individual usage step; deepest memory + priority | WM-M17 (deferred, post-core) |
-| Team (Business) | one card: Standard (~$25-30/seat) / Premium seat | shared/pooled memory, per-role lanes, RBAC, per-member caps | entitlements built; WM-M17 seat variants deferred |
-| Enterprise (Business) | per-seat + API-rate usage + per-user allocation; contact sales | SSO, audit, residency, governance | WM-M19 (deferred); architecture ready |
+| Tier (toggle)         | Price (founder-gated)                                          | Sold on                                                                                   | State                                             |
+| --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Free (Individual)     | $0                                                             | features; starter usage; memory decays ~30d                                               | built; expiry dormant                             |
+| Pro (Individual)      | ~$20/mo                                                        | features only (persistent memory, Critic everywhere, share links); no public usage number | rails built; needs Stripe secrets                 |
+| Max (Individual)      | one card: "5x" / "20x more usage than Pro" (~$100 / ~$200)     | the power-individual usage step; deepest memory + priority                                | WM-M17 (deferred, post-core)                      |
+| Team (Business)       | one card: Standard (~$25-30/seat) / Premium seat               | shared/pooled memory, per-role lanes, RBAC, per-member caps                               | entitlements built; WM-M17 seat variants deferred |
+| Enterprise (Business) | per-seat + API-rate usage + per-user allocation; contact sales | SSO, audit, residency, governance                                                         | WM-M19 (deferred); architecture ready             |
 
 Margin is held by **right-sized credit grants + cost-aware routing + caching** (WM-M15), not BYO-key (self-serve BYOK was removed 2026-06-19; enterprise-only). Usage multipliers show only on Max + Team seats; Free/Pro are feature-led (§2.4.1 copy rule). Outcome pricing stays a later experiment (unit unsolved); ship seat/usage first. Switch-on: founder sets Stripe secrets + the variant numbers (bible §7); flip memory-expiry only when first-win is reliable.
 
@@ -167,62 +168,69 @@ Margin is held by **right-sized credit grants + cost-aware routing + caching** (
 Every actionable feature, grounded in code + the dashboard. Format per item: **`ID` State · Priority** then **What / Pain / How / Build** (acceptance + primary files). State: ✅ done · ◐ partial · ⬜ pending · ⏸ parked · ⏭ deferred. Priority: **P0** (loop-closing + wedge, build now) · **P1** (monetize + defend + autonomy) · **P2** (depth + breadth) · **CUT/DEFER** (not now). Lanes are file-disjoint so they can be picked up one at a time without collision.
 
 ### Lane A - SENSE / ingestion
-*Owns: `src/lib/connectors/`, `ingest.functions.ts`, `discovery.functions.ts`, signals/themes tables.*
 
-- **`F-CONN`** ⏸ · **P0 (founder action)** — *What:* OAuth connector platform (built, parked). *Pain:* #1, #7. *How:* one Connect button per provider; rows flip live on client-ID env secrets. *Build:* founder registers >=1 OAuth client (GitHub or Linear); zero code. Unblocks SEN-01.
-- **`SEN-01`** ⬜ · **P0** — *What:* a second live ingest source. *Pain:* #1 (the loop can't close on real data with one webhook). *How:* a registered connector pulls real signals → clusters into themes/opportunities. *Build accept:* a non-webhook signal clusters into an opportunity on a real account. *Files:* `connectors/` adapter + `discovery.functions.ts`.
-- **`SEN-05`** ⬜ · **P1** — *What:* analytics inbound (PostHog/Amplitude/Mixpanel) → `product_analytics`. *Pain:* #1, #5 (no usage signal feeds the loop). *How:* connector adapter writes product metrics as first-class signals. *Build:* one analytics provider lands cohort events. Feeds Lane B's F-ANALYTICS-2.
-- **`F3`** ◐ · **P2** — *What:* continuous discovery feed (always-fresh, incremental re-cluster). *Pain:* #1. *How:* per-product feed + incremental re-cluster vs today's manual Scout ingest. *Files:* discovery functions + `/product` feed UI.
-- **`F-AUDIO-1/2`** ⬜ · **CUT/DEFER (post-PMF)** — *What:* meeting transcription → action-item extraction. *Pain:* #1, #3. *Why defer:* high build cost, not loop-closing; revisit after the wedge proves.
-- **`SEN-04`** ⬜ · **CUT/DEFER** — *What:* competitor watchtower (Firecrawl crawl briefs). *Why defer:* nice ambient signal, not on the critical path.
+_Owns: `src/lib/connectors/`, `ingest.functions.ts`, `discovery.functions.ts`, signals/themes tables._
+
+- **`F-CONN`** ⏸ · **P0 (founder action)** — _What:_ OAuth connector platform (built, parked). _Pain:_ #1, #7. _How:_ one Connect button per provider; rows flip live on client-ID env secrets. _Build:_ founder registers >=1 OAuth client (GitHub or Linear); zero code. Unblocks SEN-01.
+- **`SEN-01`** ⬜ · **P0** — _What:_ a second live ingest source. _Pain:_ #1 (the loop can't close on real data with one webhook). _How:_ a registered connector pulls real signals → clusters into themes/opportunities. _Build accept:_ a non-webhook signal clusters into an opportunity on a real account. _Files:_ `connectors/` adapter + `discovery.functions.ts`.
+- **`SEN-05`** ⬜ · **P1** — _What:_ analytics inbound (PostHog/Amplitude/Mixpanel) → `product_analytics`. _Pain:_ #1, #5 (no usage signal feeds the loop). _How:_ connector adapter writes product metrics as first-class signals. _Build:_ one analytics provider lands cohort events. Feeds Lane B's F-ANALYTICS-2.
+- **`F3`** ◐ · **P2** — _What:_ continuous discovery feed (always-fresh, incremental re-cluster). _Pain:_ #1. _How:_ per-product feed + incremental re-cluster vs today's manual Scout ingest. _Files:_ discovery functions + `/product` feed UI.
+- **`F-AUDIO-1/2`** ⬜ · **CUT/DEFER (post-PMF)** — _What:_ meeting transcription → action-item extraction. _Pain:_ #1, #3. _Why defer:_ high build cost, not loop-closing; revisit after the wedge proves.
+- **`SEN-04`** ⬜ · **CUT/DEFER** — _What:_ competitor watchtower (Firecrawl crawl briefs). _Why defer:_ nice ambient signal, not on the critical path.
 
 ### Lane B - LEARN / the analytical engine (the moat)
-*Owns: `outcome.functions.ts`, `src/lib/ai/memory.server.ts`, `outcome-memory.ts`, `learnings`/`gauntlet`/`drift`/`evals`/`analytics` functions.*
 
-- **`LRN-02`** ⬜ · **P0** — *What:* real outcome reviews (predicted vs actual, Historian verdict). *Pain:* #5, #6 (nothing compounds; no honest scorekeeping). *How:* on a shipped/closed decision, capture predicted vs actual, write a verdict to `learnings`, re-score the opportunity ICE. *Build accept:* closing a decision produces a verdict + an ICE rescore visible on Brain. *Files:* `outcome.functions.ts`, new review fn, `learnings` table.
-- **`W1-AUTO` (outcome-memory auto-trigger)** ◐ · **P0** — *What:* wire the scaffolded `buildOutcomeMemory`/`rememberOutcome` to fire on decision close. *Pain:* #5 (the moat object exists but does not auto-compound). *How:* on outcome write, embed + store an `agent_memory` row (`metadata.source="outcome"`) that future recalls surface. *Build accept:* a closed decision's outcome is cited by a later mission's handoff. *Files:* `src/lib/ai/memory.server.ts`, `outcome-memory.ts`.
-- **`MOAT-VIS` (moat visibility)** ⬜ · **P0** — *What:* surface "this learning moved these priorities". *Pain:* #5, #6 (the compounding is invisible). *How:* on Today's what-changed + Brain Learnings, show the rescore and its cause. *Build accept:* a rescore renders with the learning that caused it. *Files:* `today.functions.ts`, `_authenticated.knowledge.tsx`.
-- **`MOAT-METRIC` (outcome-accuracy-lift-per-PM)** ⬜ · **P1** — *What:* the scale-independent moat metric. *Pain:* #6 + investor proof. *How:* measure recommendation quality vs a generic-model baseline as a single account's memory grows; show on the gauntlet. *Files:* `gauntlet.functions.ts`.
-- **`F-ANALYTICS-1`** ⬜ · **P1** — *What:* cohort metrics + telemetry to `product_analytics`. *Pain:* #5. *How:* released features get real usage data. *Depends:* SEN-05.
-- **`F-ANALYTICS-2`** ⬜ · **P1** — *What:* post-release cohort → Product Memory → auto-ICE. *Pain:* #5 (the outer loop). *How:* a shipped bet's real usage re-scores the roadmap automatically. *Depends:* F-ANALYTICS-1.
-- **`ENG-06` (cost chips)** ⬜ · **P2** — *What:* cost-per-mission/artifact chips. *Pain:* margin discipline. *Files:* read `token_usage`/`ai_events`; chip on Build/Engine Room.
-- **`P4` (eval deploy gate)** ◐ · **P2** — *What:* eval regression blocks deploy (>=10pt drop). *Pain:* #6. *How:* harden the existing harness into a hard gate.
+_Owns: `outcome.functions.ts`, `src/lib/ai/memory.server.ts`, `outcome-memory.ts`, `learnings`/`gauntlet`/`drift`/`evals`/`analytics` functions._
+
+- **`LRN-02`** ⬜ · **P0** — _What:_ real outcome reviews (predicted vs actual, Historian verdict). _Pain:_ #5, #6 (nothing compounds; no honest scorekeeping). _How:_ on a shipped/closed decision, capture predicted vs actual, write a verdict to `learnings`, re-score the opportunity ICE. _Build accept:_ closing a decision produces a verdict + an ICE rescore visible on Brain. _Files:_ `outcome.functions.ts`, new review fn, `learnings` table.
+- **`W1-AUTO` (outcome-memory auto-trigger)** ◐ · **P0** — _What:_ wire the scaffolded `buildOutcomeMemory`/`rememberOutcome` to fire on decision close. _Pain:_ #5 (the moat object exists but does not auto-compound). _How:_ on outcome write, embed + store an `agent_memory` row (`metadata.source="outcome"`) that future recalls surface. _Build accept:_ a closed decision's outcome is cited by a later mission's handoff. _Files:_ `src/lib/ai/memory.server.ts`, `outcome-memory.ts`.
+- **`MOAT-VIS` (moat visibility)** ⬜ · **P0** — _What:_ surface "this learning moved these priorities". _Pain:_ #5, #6 (the compounding is invisible). _How:_ on Today's what-changed + Brain Learnings, show the rescore and its cause. _Build accept:_ a rescore renders with the learning that caused it. _Files:_ `today.functions.ts`, `_authenticated.knowledge.tsx`.
+- **`MOAT-METRIC` (outcome-accuracy-lift-per-PM)** ⬜ · **P1** — _What:_ the scale-independent moat metric. _Pain:_ #6 + investor proof. _How:_ measure recommendation quality vs a generic-model baseline as a single account's memory grows; show on the gauntlet. _Files:_ `gauntlet.functions.ts`.
+- **`F-ANALYTICS-1`** ⬜ · **P1** — _What:_ cohort metrics + telemetry to `product_analytics`. _Pain:_ #5. _How:_ released features get real usage data. _Depends:_ SEN-05.
+- **`F-ANALYTICS-2`** ⬜ · **P1** — _What:_ post-release cohort → Product Memory → auto-ICE. _Pain:_ #5 (the outer loop). _How:_ a shipped bet's real usage re-scores the roadmap automatically. _Depends:_ F-ANALYTICS-1.
+- **`ENG-06` (cost chips)** ⬜ · **P2** — _What:_ cost-per-mission/artifact chips. _Pain:_ margin discipline. _Files:_ read `token_usage`/`ai_events`; chip on Build/Engine Room.
+- **`P4` (eval deploy gate)** ◐ · **P2** — _What:_ eval regression blocks deploy (>=10pt drop). _Pain:_ #6. _How:_ harden the existing harness into a hard gate.
 
 ### Lane C - DECIDE / the wedge
-*Owns: `discovery.functions.ts` Critic path, `today.functions.ts`, `decisions-share.functions.ts`, onboarding first-run.*
 
-- **`WEDGE` (Critic-teardown first-run)** ⬜ · **P0 (the launch wedge)** — *What:* "point Cadence at a feature you believe in, get an evidence-backed teardown." *Pain:* #2 (can't defend calls). *How:* a guided first-run takes a feature idea + connected signals, runs the Critic, returns a cited red-team in <10 min; lands on Today. *Build accept:* a new user gets a cited teardown in the first session. *Files:* onboarding (with W6), `discovery.functions.ts` Critic path, Today hero.
-- **`F-SHARE-TEARDOWN`** ◐ · **P0/P1 (viral loop)** — *What:* make the Critic teardown the shareable `/d/$slug` artifact (F-SHARE rails exist). *Pain:* growth. *How:* one click publishes a redacted teardown card; it drives signups. *Build accept:* the share link renders the teardown, anon-safe.
-- **`DEC-02-LOOP`** ⬜ · **P1** — *What:* promote Critic from inline call to a routable DECIDE step in the DAG. *Pain:* #2, #6 (every call should be challenged in-loop). *Files:* orchestrator step + `registry.server.ts`.
-- **`H2-WRITES`** ◐ · **P1** — *What:* outcome-roadmap place-into-bucket live writes. *Pain:* #2. *How:* commit opportunities to Now/Next/Later with a declared outcome+measure; gated on the migration sync. *Files:* `roadmap.functions.ts`, migration sync.
-- **`H1-TASKS` (task graph)** ◐ · **P1** — *What:* PRD → engineering task graph (DAG). *Pain:* #3. *How:* an approved PRD decomposes into ordered work units feeding BUILD. *Files:* `tasks.functions.ts`, `tasks` table.
+_Owns: `discovery.functions.ts` Critic path, `today.functions.ts`, `decisions-share.functions.ts`, onboarding first-run._
+
+- **`WEDGE` (Critic-teardown first-run)** ⬜ · **P0 (the launch wedge)** — _What:_ "point Cadence at a feature you believe in, get an evidence-backed teardown." _Pain:_ #2 (can't defend calls). _How:_ a guided first-run takes a feature idea + connected signals, runs the Critic, returns a cited red-team in <10 min; lands on Today. _Build accept:_ a new user gets a cited teardown in the first session. _Files:_ onboarding (with W6), `discovery.functions.ts` Critic path, Today hero.
+- **`F-SHARE-TEARDOWN`** ◐ · **P0/P1 (viral loop)** — _What:_ make the Critic teardown the shareable `/d/$slug` artifact (F-SHARE rails exist). _Pain:_ growth. _How:_ one click publishes a redacted teardown card; it drives signups. _Build accept:_ the share link renders the teardown, anon-safe.
+- **`DEC-02-LOOP`** ⬜ · **P1** — _What:_ promote Critic from inline call to a routable DECIDE step in the DAG. _Pain:_ #2, #6 (every call should be challenged in-loop). _Files:_ orchestrator step + `registry.server.ts`.
+- **`H2-WRITES`** ◐ · **P1** — _What:_ outcome-roadmap place-into-bucket live writes. _Pain:_ #2. _How:_ commit opportunities to Now/Next/Later with a declared outcome+measure; gated on the migration sync. _Files:_ `roadmap.functions.ts`, migration sync.
+- **`H1-TASKS` (task graph)** ◐ · **P1** — _What:_ PRD → engineering task graph (DAG). _Pain:_ #3. _How:_ an approved PRD decomposes into ordered work units feeding BUILD. _Files:_ `tasks.functions.ts`, `tasks` table.
 
 ### Lane D - BUILD / the autonomy spine
-*Owns: `studio.functions.ts`, `src/lib/ai/tools/registry.server.ts`, `loop.server.ts`, new sandbox service.*
 
-- **`SANDBOX` (sandbox + live preview)** ⬜ · **P1** — *What:* the one justified new build. *Pain:* #4 (no real test run / preview; self-correct is CI-polling). *How:* a sandbox service runs tests + renders preview so CI-fail triggers an in-loop re-plan and re-diff. *Build accept:* a failing test triggers an autonomous re-diff with no human poke. *Files:* new sandbox integration + `studio.functions.ts`.
-- **`AMBIENT-ARC`** ◐ · **P1** — *What:* seed + wire the ambient autonomy stage + auto-advance arc. *Pain:* #6 (autonomy must be earned and visible). *How:* a trusted agent runs confirm-gated tools unattended where safe; arc auto-advances on clean missions (scaffolded in `reflection.server.ts`). *Build accept:* a trusted agent runs a confirm-gated tool unattended, shown on the autonomy card. *Files:* `trust.server.ts`, `reflection.server.ts`, `agent_autonomy`.
-- **`BLD-04` (BYO-key delegate-out)** ⬜ · **P2** — *What:* escape hatch to external coding agents for the heavy 20%, under governance, customer's own key. *Pain:* #4, #7 (no revenue split). *How:* a mission classifier flags heavy work → delegate with BYO key. *Build accept:* a flagged-heavy mission delegates; default path stays in-platform.
-- **`K2` (rollback)** ⬜ · **P2** — *What:* one-action revert + feature-flag kill. *Pain:* #4, #6 (safe ship). *Files:* revert path + flag kill.
-- **`BLD-05` (inspector gate)** ⬜ · **P2** — *What:* preview + test bar before a merge proposal. *Depends:* SANDBOX.
+_Owns: `studio.functions.ts`, `src/lib/ai/tools/registry.server.ts`, `loop.server.ts`, new sandbox service._
+
+- **`SANDBOX` (sandbox + live preview)** ⬜ · **P1** — _What:_ the one justified new build. _Pain:_ #4 (no real test run / preview; self-correct is CI-polling). _How:_ a sandbox service runs tests + renders preview so CI-fail triggers an in-loop re-plan and re-diff. _Build accept:_ a failing test triggers an autonomous re-diff with no human poke. _Files:_ new sandbox integration + `studio.functions.ts`.
+- **`AMBIENT-ARC`** ◐ · **P1** — _What:_ seed + wire the ambient autonomy stage + auto-advance arc. _Pain:_ #6 (autonomy must be earned and visible). _How:_ a trusted agent runs confirm-gated tools unattended where safe; arc auto-advances on clean missions (scaffolded in `reflection.server.ts`). _Build accept:_ a trusted agent runs a confirm-gated tool unattended, shown on the autonomy card. _Files:_ `trust.server.ts`, `reflection.server.ts`, `agent_autonomy`.
+- **`BLD-04` (BYO-key delegate-out)** ⬜ · **P2** — _What:_ escape hatch to external coding agents for the heavy 20%, under governance, customer's own key. _Pain:_ #4, #7 (no revenue split). _How:_ a mission classifier flags heavy work → delegate with BYO key. _Build accept:_ a flagged-heavy mission delegates; default path stays in-platform.
+- **`K2` (rollback)** ⬜ · **P2** — _What:_ one-action revert + feature-flag kill. _Pain:_ #4, #6 (safe ship). _Files:_ revert path + flag kill.
+- **`BLD-05` (inspector gate)** ⬜ · **P2** — _What:_ preview + test bar before a merge proposal. _Depends:_ SANDBOX.
 
 ### Lane E - MONETIZE / PLG
-*Owns: `billing.functions.ts`, `entitlements.ts`, onboarding, `_authenticated.settings.tsx`, PLG funnel.*
 
-- **`W6` (persona onboarding)** ⬜ · **P0/P1 (also enables the wedge)** — *What:* per-track onboarding (Solo PM / Founding PM / Tech Founder) with sample data + first-win. *Pain:* #8. *How:* a new user picks a track, gets seeded data, reaches the teardown first-win fast. *Build accept:* a signed-up PM reaches first-win without hand-holding. *Files:* onboarding flow + seed data.
-- **`PLG` (funnel)** ⬜ · **P1** — *What:* public onboarding → first-win → upgrade. *Pain:* growth. *Depends:* W6, F-SHARE-TEARDOWN.
-- **`M-C-PRICE` (switch-on)** ◐ · **P1 (founder secrets)** — *What:* flip billing live. *How:* set Stripe secrets + price IDs; webhook updates plan_tier. *Build accept:* a real upgrade changes plan_tier.
-- **`M-C-EXPIRY` (memory-expiry flip)** ⏸ · **P1** — *What:* enable free-tier 14-day expiry (the paid pull). *How:* flip `memory_expiry_enabled()` once first-win is reliable.
+_Owns: `billing.functions.ts`, `entitlements.ts`, onboarding, `_authenticated.settings.tsx`, PLG funnel._
+
+- **`W6` (persona onboarding)** ⬜ · **P0/P1 (also enables the wedge)** — _What:_ per-track onboarding (Solo PM / Founding PM / Tech Founder) with sample data + first-win. _Pain:_ #8. _How:_ a new user picks a track, gets seeded data, reaches the teardown first-win fast. _Build accept:_ a signed-up PM reaches first-win without hand-holding. _Files:_ onboarding flow + seed data.
+- **`PLG` (funnel)** ⬜ · **P1** — _What:_ public onboarding → first-win → upgrade. _Pain:_ growth. _Depends:_ W6, F-SHARE-TEARDOWN.
+- **`M-C-PRICE` (switch-on)** ◐ · **P1 (founder secrets)** — _What:_ flip billing live. _How:_ set Stripe secrets + price IDs; webhook updates plan_tier. _Build accept:_ a real upgrade changes plan_tier.
+- **`M-C-EXPIRY` (memory-expiry flip)** ⏸ · **P1** — _What:_ enable free-tier 14-day expiry (the paid pull). _How:_ flip `memory_expiry_enabled()` once first-win is reliable.
 
 ### Lane F - INTEROP / the neutral brain
-*Owns: new MCP route, A2A card.*
 
-- **`Q1-MCP` (read-only MCP slice)** ⬜ · **P1 (pull forward)** — *What:* expose read signals/opps/PRDs + append-decision over MCP. *Pain:* the workspace-incumbent threat (v9 section 3). *How:* an external agent uses Cadence as a governed tool. *Build accept:* an external agent reads an opportunity and appends a decision, governed. *Files:* new MCP route (A2A card route exists).
+_Owns: new MCP route, A2A card._
+
+- **`Q1-MCP` (read-only MCP slice)** ⬜ · **P1 (pull forward)** — _What:_ expose read signals/opps/PRDs + append-decision over MCP. _Pain:_ the workspace-incumbent threat (v9 section 3). _How:_ an external agent uses Cadence as a governed tool. _Build accept:_ an external agent reads an opportunity and appends a decision, governed. _Files:_ new MCP route (A2A card route exists).
 - **`Q2` (A2A external)** ⬜ · **P2** — peer agents discover + call us, scoped/audited.
 - **`U6` (data export)** ⬜ · **P2** — full export (signals, decisions+lineage, PRDs, memory graph); the trust/escape-hatch.
 
 ### Lane G - COCKPIT / IA / governance polish
-*Owns: routes, `AppShell.tsx`, Engine Room tabs.*
+
+_Owns: routes, `AppShell.tsx`, Engine Room tabs._
 
 - **`D4`** ⬜ · **P2** — cancel / replay-and-branch / checkpoints on a mission.
 - **`P7`** ⬜ · **P2** — incidents log (safety/guardrail/cost) → traces.
@@ -233,6 +241,7 @@ Every actionable feature, grounded in code + the dashboard. Format per item: **`
 - **IA culls** (`F-IA-CULL-CALDOCS`, `F-IA-AGENTS-TABS`) ⬜ · **P2** — finish nav de-clutter.
 
 ### CUT / DEFER (mark down, do not build now)
+
 - **`K1-deploy`** ⏭ — Cadence-triggered deploy needs a deploy hook + founder config; deploy stays external. Keep deferred.
 - **F-AUDIO-1/2, SEN-04** — defer to post-PMF (Lane A).
 - **The full 19-agent mesh breadth** — defer; the 5-face loop must close on real data first (v7 section 7).
@@ -248,18 +257,14 @@ Every actionable feature, grounded in code + the dashboard. Format per item: **`
 Lanes are file-disjoint, so a session claims a lane and builds its top item. Recommended order; items within a tier can run in parallel sessions across different lanes.
 
 **P0 - build first (close the loop + land the wedge):**
-1. **`LRN-02` + `W1-AUTO`** (Lane B) - real outcome reviews + auto-compound. *This closes the loop; nothing matters more.*
-2. **`WEDGE`** (Lane C) - the Critic-teardown first-run. *The thing a PM feels in 10 minutes.*
+
+1. **`LRN-02` + `W1-AUTO`** (Lane B) - real outcome reviews + auto-compound. _This closes the loop; nothing matters more._
+2. **`WEDGE`** (Lane C) - the Critic-teardown first-run. _The thing a PM feels in 10 minutes._
 3. **`MOAT-VIS`** (Lane B) - make the compounding visible.
 4. **`SEN-01`** (Lane A) - second live source (after the founder registers an OAuth client, `F-CONN`).
 5. **`W6`** (Lane E) - persona onboarding (also the wedge's delivery surface).
 
-**P1 - monetize, defend, deepen autonomy:**
-6. `F-SHARE-TEARDOWN` + `PLG` + `M-C-PRICE` (Lane E/C) - the viral + revenue loop.
-7. `Q1-MCP` (Lane F) - the neutral-brain moat, pulled forward.
-8. `SANDBOX` + `AMBIENT-ARC` (Lane D) - full build autonomy.
-9. `SEN-05` + `F-ANALYTICS-1/2` + `MOAT-METRIC` (Lane A/B) - the outer analytical loop.
-10. `DEC-02-LOOP` + `H1-TASKS` + `H2-WRITES` (Lane C) - DECIDE/DEFINE depth.
+**P1 - monetize, defend, deepen autonomy:** 6. `F-SHARE-TEARDOWN` + `PLG` + `M-C-PRICE` (Lane E/C) - the viral + revenue loop. 7. `Q1-MCP` (Lane F) - the neutral-brain moat, pulled forward. 8. `SANDBOX` + `AMBIENT-ARC` (Lane D) - full build autonomy. 9. `SEN-05` + `F-ANALYTICS-1/2` + `MOAT-METRIC` (Lane A/B) - the outer analytical loop. 10. `DEC-02-LOOP` + `H1-TASKS` + `H2-WRITES` (Lane C) - DECIDE/DEFINE depth.
 
 **P2 - breadth/polish:** `ENG-06`, `BLD-04`, `K2`, `D4`, `P7`, `P3`, `R3`, `B5`, `FND-0.7`, IA culls.
 

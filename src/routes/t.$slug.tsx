@@ -13,8 +13,7 @@ import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE =
-  "https://cadence-flow-beta.lovable.app/og-cadence.png";
+const OG_IMAGE = "https://cadence-flow-beta.lovable.app/og-cadence.png";
 
 const VERDICT: Record<
   PublicTeardown["verdict"],
@@ -55,12 +54,18 @@ export const Route = createFileRoute("/t/$slug")({
       meta: [
         { title },
         { name: "description", content: desc },
-        { property: "og:title", content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown" },
+        {
+          property: "og:title",
+          content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown",
+        },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:image", content: OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown" },
+        {
+          name: "twitter:title",
+          content: t ? `${verdict}: ${stripAutoPrefix(t.title)}` : "A teardown",
+        },
         { name: "twitter:description", content: desc },
         { name: "twitter:image", content: OG_IMAGE },
       ],

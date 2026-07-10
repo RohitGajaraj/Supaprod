@@ -15,17 +15,17 @@ Tools (Playwright, the verify and run skills, the browser MCP) capture screensho
 
 ## Where each image goes (scenario to location)
 
-| Scenario | Location | Committed? | Retention |
-| --- | --- | --- | --- |
-| Automated test / verify run (Playwright, the verify skill) | `docs/screenshots/verify/` | No (local) | 14 days, then auto-purged |
-| Browser MCP default scratch (`browser_take_screenshot` with no path) | `.playwright-mcp/` (hidden) | No (local) | 7 days, then auto-purged |
-| Documenting a shipped feature / app UI (for a feature doc or demo) | `docs/screenshots/app-ui/` | No (local) | Kept (no auto-purge) |
-| Per-screen design-port reference | `docs/screenshots/screen-<n>/` | No (local) | Kept |
-| Before / after a fix | `docs/screenshots/fixes/` | No (local) | Kept |
-| Design inspiration / reference | `docs/screenshots/reference/` | No (local) | Kept |
-| Build-in-public capture | `docs/screenshots/brand-feed/` | No (local) | Kept (feeds the brand engine; see [[brand-feed-capture-rule]]) |
-| Canonical design reference a parallel build must match | `design-reference/**` | **Yes (committed)** | Permanent |
-| Anything at the repo root or `docs/` top level | swept to `docs/screenshots/verify/` | No | 0 (immediate) |
+| Scenario                                                             | Location                            | Committed?          | Retention                                                      |
+| -------------------------------------------------------------------- | ----------------------------------- | ------------------- | -------------------------------------------------------------- |
+| Automated test / verify run (Playwright, the verify skill)           | `docs/screenshots/verify/`          | No (local)          | 14 days, then auto-purged                                      |
+| Browser MCP default scratch (`browser_take_screenshot` with no path) | `.playwright-mcp/` (hidden)         | No (local)          | 7 days, then auto-purged                                       |
+| Documenting a shipped feature / app UI (for a feature doc or demo)   | `docs/screenshots/app-ui/`          | No (local)          | Kept (no auto-purge)                                           |
+| Per-screen design-port reference                                     | `docs/screenshots/screen-<n>/`      | No (local)          | Kept                                                           |
+| Before / after a fix                                                 | `docs/screenshots/fixes/`           | No (local)          | Kept                                                           |
+| Design inspiration / reference                                       | `docs/screenshots/reference/`       | No (local)          | Kept                                                           |
+| Build-in-public capture                                              | `docs/screenshots/brand-feed/`      | No (local)          | Kept (feeds the brand engine; see [[brand-feed-capture-rule]]) |
+| Canonical design reference a parallel build must match               | `design-reference/**`               | **Yes (committed)** | Permanent                                                      |
+| Anything at the repo root or `docs/` top level                       | swept to `docs/screenshots/verify/` | No                  | 0 (immediate)                                                  |
 
 `design-reference/**` is the ONLY place a committed image belongs (one curated image per screen, never a bulk dump). Everything under `docs/screenshots/` is local-only by design.
 

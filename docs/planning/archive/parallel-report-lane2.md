@@ -27,6 +27,7 @@
 **Gates confirmed clean:** tsc clean (0 errors), 1541/1541 tests pass, rebased on origin/main.
 
 **What unlocks next work (founder-gated):**
+
 - GitHub OAuth App registration → unblocks SEN-01 / F-CONN (live connectors) + Q2 (outward A2A)
 - Stripe live keys → enables credits engine go-live
 - SANDBOX provider pick → unblocks DEF-04 AI-mockup generative half
@@ -42,12 +43,14 @@
 **State:** 14 cycles done this run (… CORE-UX-TRUST `◐` #10, then **CORE-UX-FELT `◐` #11** this cycle). On `parallel/lane-2`, even with `origin/main`, claim released.
 
 **Founder steers now STANDING (in memory + docs):**
+
 1. **Build the ranked board top-down; decide IA/design yourself** — park ONLY what needs founder input or is chokepoint-pinned (`ai/*`). (memory `build-dont-overpark`)
 2. **Whole-register coverage + class-of-work order** (AGENTS.md §3): untouched `⬜` FIRST → partial `◐` SECOND (top-down) → pure design THIRD. Halt ONLY on a genuine founder-creative/strategic call or a secret I don't hold. A UI I can't visually verify is NOT a halt.
 3. **Compact AFTER each completed cycle, NEVER mid-cycle** — via ScheduleWakeup, then continue.
 4. **NO BLOCKCHAIN anywhere now** (memory `no-blockchain-trust-integrity`): integrity = a plain SHA-256 fingerprint for EVERY user, NOT enterprise/blockchain; signing/persistence deferred OPTIONAL.
 
 **🛑 GENUINE-STOP IS LIKELY REACHED — the next cycle should probably STOP + surface to the founder.** After 14 cycles, the autonomous front is EXHAUSTED. Honest map of everything remaining (verify with `lane.sh next` + `lane.sh list` + the dashboard each time, in case lane 1 added rows, but expect no clean slice):
+
 - **Chokepoint-pinned (`ai/*`, off-limits):** BRAIN-UX #8 (AI open-analyst ceiling), DBR #22 (supersession engine), CORE-UX-TRUST's auto-clear-gates (loop approval-mode).
 - **Founder-gated (a secret or his voice):** ORCH-DELEGATE #15 (Linear API key + BLD-04), INTEROP #16 (outward WRITE/A2A scoped-token = security-scope/audit), POS-V11 #20 + LANDING-PAGE-V11 #21 (founder-voice copy), KI-39-type cron/AI-spend activation.
 - **Lane-1 / other-lane domain:** REPO-DECLUTTER #28 (lane 1's active doc-reorg thread — they did the feature-backlog archive), IA-DEPTH-V11 #23 + `govern.tsx` de-jargon, DESIGN-V11 #24 (Tier-2 founder-prompted design).
@@ -63,6 +66,7 @@
 **Pick:** untouched ⬜ exhausted (ORCH Linear-key, POS/LANDING founder-copy, REPO-DECLUTTER + DELEGATE-DESK + AGENT-FLEET = lane 1). Class-2 ◐: CORE-UX-FELT #11's last substantive remainder = harden the wedge's hard-failure path (the cold-gateway RUN path was already graceful via a null verdict; the gap was the error path's raw toast).
 
 **Built:** the Critic-teardown wedge (the cold-start first impression) no longer dead-ends on a hard failure.
+
 - Pure `src/lib/wedge-cold.ts` — `classifyWedgeFailure(message)` → cold (gateway unconfigured/capped) / transient (network/timeout/5xx/429) / other (keeps the real message, framed calmly); `isGatewayColdError`. 8 tests.
 - `WedgeTeardown.tsx` — `onError` now sets a classified `failure` state → a calm inline `role=alert` banner (rose only for `other`) with honest guidance + the form preserved for retry, instead of a raw `toast.error`.
 
@@ -77,6 +81,7 @@
 **Pick:** untouched `⬜` exhausted (all gated/parked/lane-1) → shifted to class-2 `◐`, lowest Rank. CORE-UX-TRUST #10's buildable remainder = visible rejection-learning (auto-clear gates = chokepoint `ai/loop.server.ts` + founder-gated). Lane 1 on REPO-DECLUTTER (incl. the dashboard in its globs).
 
 **Built:** make the user's rejections visible + registered at the point of decision.
+
 - Pure `src/lib/rejection-learning.ts` — `summarizeRejections` tallies the caller's REJECTED decided rows per (agent, tool) (count + latest reason, NUL-keyed); `rejectionCountFor` / `rejectionPatternCount`. 6 tests.
 - `governance.functions.ts` — `listGovernApprovals` derives `rejectionsByKey` from the SAME RLS-scoped decided-history fetch that feeds the track record (no extra query).
 - `ApprovalsPanel.tsx` — a quiet "declined N× before" chip on a pending gate the caller has rejected before.
@@ -88,6 +93,7 @@
 ## 2026-06-24 — Cycle 12: DEF-04 ◐ — design readiness from a spec (the deterministic half) (v11 #27)
 
 **Founder steers now STANDING (in memory + docs):**
+
 1. **Build the ranked board top-down; decide IA/design yourself** — park ONLY what needs the founder's specific input or is chokepoint-pinned (`ai/*`). (memory `build-dont-overpark`)
 2. **Whole-register coverage + class-of-work order** (AGENTS.md §3): don't stop at the v11 front; class order = untouched `⬜` FIRST → partial `◐` SECOND (top-down) → pure design THIRD. Halt ONLY on a genuine founder-creative/strategic call or a secret I don't hold. A UI I can't visually verify is NOT a halt.
 3. **Compact AFTER each completed cycle, NEVER mid-cycle** — via ScheduleWakeup a fresh turn, then continue.
@@ -102,6 +108,7 @@
 **Pick:** lowest-rank UNTOUCHED `⬜` with a clean autonomous slice. DEF-04's headline (generated mockup + sandbox preview) needs the AI chokepoint / gated SANDBOX — built the deterministic half instead. Skipped: ORCH #15 (Linear key), POS/LANDING (founder copy), REPO-DECLUTTER #28 (contested-live target doc). Lane 1 had AGENT-FLEET-VIEW #30.
 
 **Built:** a design-readiness check that turns a PRD spec into a design brief.
+
 - Pure `src/lib/design-readiness.ts` — `analyzeDesignReadiness(body)` scans the spec for the 8 things design needs named (states, edge cases, a11y, responsive, copy, permissions, data, flow) → score + level + per-dimension checks; `readinessGaps`; `normalize` strips markdown. Deterministic, no AI/key/DB. 6 tests.
 - `src/components/product/DesignReadinessPanel.tsx` — a calm "Design readiness · N/8 · level" bar + the gaps to close, on the PRD page (client-side on the loaded body; silent when empty).
 
@@ -114,6 +121,7 @@
 **Pick:** lowest-rank UNTOUCHED `⬜` item buildable without founder input. Skipped: ORCH-DELEGATE #15 (Linear API key + BLD-04 gated), POS #20 / LANDING #21 (founder-voice copy), DELEGATE-DESK #25 (new-surface-vs-Missions product-IA call). DBR(H1) #22 is `◐` (deferred under class order). CONNECTORS-V11 #14 shipped by lane 1.
 
 **Built:** a plain integrity check over the Trust Ledger — a SHA-256 FINGERPRINT (a checksum, NOT a blockchain), available to every user.
+
 - Pure `src/lib/trust-verify.ts` — canonicalize (integrity-relevant fields only) + hash chain (`sealReceipts` head = fingerprint, total order) + `verifyReceipts` (detect/pinpoint tamper) + `shortHead`; Web Crypto; 13 tests.
 - `trust-ledger.functions.ts` — shared `loadReceipts` (listTrustReceipts preserved) + `getLedgerSeal` + `verifyLedgerSeal` (head = exactly 64 hex; RLS-scoped).
 - `_authenticated.trust-ledger.tsx` — calm `SealPanel` ("Integrity check · fingerprint · N records", Copy fingerprint, paste-to-verify Unchanged/Changed; hidden on an empty ledger).
@@ -129,6 +137,7 @@
 **Pick:** lowest-Rank fully-open buildable item. #8 BRAIN-UX `◐` parked (remainder = the AI open-analyst ceiling, chokepoint-gated). Lane 1 held IA-NAV-V11 (#12) — avoided.
 
 **Built:** a calm "loop position" strip that makes the engine's one continuous loop FELT across the surfaces (fixes the v11 "feels fragmented" perception), WITHOUT touching `AppShell`/`nav-model` (lane 1's IA-NAV territory).
+
 - **Pure model** `src/lib/loop-surfaces.ts` — the 7 loop surfaces in order (Today → Product → PRD → Build → Missions → Brain → Trust), each with its forward `produces` payload; `loopIndexForPath` (longest-prefix; `/` exact-only), `isLoopSurface`, cyclic `loopNeighbors` (Trust→Today wraps). Type derived from the `as const` array so `to` stays a literal route union (TanStack `<Link>` validates routes at compile time). 10 tests.
 - **Component** `src/components/cadence/LoopThread.tsx` — route-derived (`useRouterState`), renders null off-loop, current emphasized, next in action-blue, handoff caption "{produces} → {next}", cyclic glyph. Calm chrome (Engine-Room doctrine).
 - **Wiring** — one render in `TopBar` (covers 6 surfaces that mount it) + one on PRD detail (`prds.$id`, the lone loop surface without TopBar).
@@ -144,6 +153,7 @@
 **Founder steer this cycle:** stop over-parking #11-#21 — build the ranked board top-down and make the design/IA calls myself; park ONLY what needs the founder's specific input (saved to memory: `build-dont-overpark`). So I released TRUST-VERIFY (#26, no code written) and took **#11 CORE-UX-FELT** top-down. Mid-cycle the founder ALSO gave a specific UX ask: the Today home over-populates with the full approvals list — collapse it to one subtle bar that opens the detail. Folded that in (it IS CORE-UX-FELT) as the priority.
 
 **Shipped (◐):**
+
 - **Brief leads with STAKES not counts** — `ensureTodayBrief` folds pending gates into reversibility/blast-radius (pure `src/lib/copilot-brief.ts`, `summarizeGateStakes`/`describeStakes`, 7 tests) + a reframed prompt. The brief CALLS callModel but the change is the prompt/data, NOT the pinned runtime — so it's autonomously buildable.
 - **FOUNDER ASK — Today declutter** — gate approvals collapsed into one calm `PendingApprovalsBar` (count + quiet high-stakes hint) → Govern → Approvals. Real PM decisions (spec/opp reviews) still lead as cards.
 - **Track record relocated** — the CORE-UX-TRUST per-agent "approved 44/47" moved to `ApprovalsPanel` (its new point of decision); orphaned Today track query removed.
@@ -165,6 +175,7 @@
 **Found (the cycle's headline):** building the named "roadmap/spec read tools," a live-schema audit via the Lovable MCP found **3 existing MCP read tools broken by schema drift** — `search_signals` (`summary`→`content`, dead `products` embed), `search_opportunities` (`predicted_ice`/`roadmap_status`→`ice_score`/`roadmap_bucket`), `get_prd` (table `prd`→`prds`, dead cols→`body_md`). Each would error against prod on first external call. Logged KI-40.
 
 **Shipped (◐ — read surface now correct + complete):**
+
 - **Repaired** all 3 drifted tools against the verified prod schema.
 - **Added** `search_prds` (keyword/status spec discovery) + `get_roadmap` (now/next/later/unbucketed via pure `groupByRoadmapBucket`, ICE-desc). Catalog 6 → **8 tools**.
 - **Hardened** every search tool with `sanitizeIlikeQuery` vs PostgREST `.or()` filter-injection; ICE floor skips at `min_ice=0` so unscored opps aren't dropped.
@@ -204,6 +215,7 @@
 **Pre-cycle hygiene:** the working tree carried a pure Prettier reformat of 11 files (a format-on-save; `git diff --ignore-all-space` showed zero logic). Per the founder velocity ruling (batch lint/prettier to a pre-launch stage, never mid-build) I **discarded** it rather than ship a 439-line churn commit that would also collide with lane 1 on rebase.
 
 **Shipped (◐ → only the AI ceiling remains):** the two named rule-based remainder lenses for the Brain Insights tab.
+
 - **Why we believe this** — `getBrainInsights` returns each recent decision's `rationale` + `revisedBy` (the title that replaced it). Per-decision plain-language "why".
 - **What is unresolved** — an `unresolved` lens: active `contradicts` pairs touching a decision that no `supersedes` settled, + mixed outcomes; honest empty state.
 - Pure helpers `supersedingIdFor` / `supersedesParentMap` / `resolvedChildIds` / `activeContradictions` / `deriveUnresolved` (`src/lib/brain-insights.functions.ts`); UI `InsightsPanel.tsx`. 11 floor + 11 new = **22 tests**.
@@ -268,6 +280,7 @@ Before building, the claim of `M1 / LRN-01` returned a false `HELD`: the atomic 
 **Picked:** `M1 / LRN-01` (Support triage) — the founder's constraint this run was "untouched items only, start from zero, no AI chokepoint / Stripe / BYO keys." Of all 18 `⬜` rows it was the ONLY one not Gated/Deferred/chokepoint; the rerank put it at #2. Claimed the register row and **held** it for the increment.
 
 **Shipped (◐ dormant-correct, never touches the AI chokepoint):** the loop "tickets → recurring clusters → Discover signals," server + engine only.
+
 - `support_tickets` table (workspace-scoped, RLS via `is_workspace_member`; migration `20260622090000`, forward-only, applies on the founder's next publish).
 - PURE `src/lib/support/triage.ts` — Unicode-aware tokenizer + **greedy-leader clustering against each cluster's common core** + signal-payload shaping (deterministic, 24 tests).
 - `src/lib/support/draft.ts` — deterministic humanized template reply (works with no AI) + a dormant `DraftProvider` seam for the founder-gated AI layer (routes through an EXISTING `CallSurface` when wired; no new surface).
@@ -298,6 +311,7 @@ Before building, the claim of `M1 / LRN-01` returned a false `HELD`: the atomic 
 Continued the held DBR umbrella: wired v1 into the shared-premise walk so same-initiative nodes collapse onto one canonical id and the walk connects cousins across fragments the derivation edges miss. Extended the claim globs to `src/lib/ai/shared-premise**` (disjoint).
 
 **Shipped (◐ flag-gated OFF `DBR_ENTITY_ALIASING`, never touches the AI chokepoint):**
+
 - pure `canonicalNodeId` (`entity-resolution.ts`) — node id → smallest member REAL id (not a synthetic `ent:` key, so id lookups still resolve).
 - pure `canonicalizeEdges` (`shared-premise.ts`) — rewrites edge ids through the canonical map, kinds untouched.
 - server glue in `resolveSharedPremiseItems` (`shared-premise.server.ts`) — behind the flag, loads node titles (RLS-scoped, chunked) + collapses (target, ancestors, edges) before the cousin walk.
@@ -387,6 +401,7 @@ Picked a strong, self-contained capability in the Interop lane (skipped the IA/U
 ### ▶ RESUME CURSOR — overnight run state (2026-06-24 ~06:00, after 9 cycles)
 
 **FOUNDER STEERS THIS SESSION (apply going forward — also in memory `build-dont-overpark`):**
+
 1. **Build the ranked board TOP-DOWN; stop over-parking.** Make the design/IA calls myself using the design-context docs. PARK ONLY what needs the founder's specific input (positioning/pricing WORDING, secrets, recurring-AI-spend activation, outward security-scope/audit) or is hard-blocked by the chokepoint pin (ai/* files). Design polish alone is NOT a reason to park.
 2. **Compact AFTER each completed cycle (committed+pushed+docs-looped+released), NEVER mid-cycle, then continue without halt.** (Was: every 3 cycles.)
 
@@ -399,6 +414,7 @@ Picked a strong, self-contained capability in the Interop lane (skipped the IA/U
 ### ▶ RESUME CURSOR — overnight run state (2026-06-24 ~05:00, after 8 cycles)
 
 **Compaction-checkpoint update (cycles 6-8, this context):**
+
 - Cycle 6: BRAIN-UX-V11 (#8) ◐ — added the per-decision "why" (rationale + revisedBy) + "what's unresolved" (open contradictions + mixed) lenses; revised-vs-contested kept disjoint; 22 tests. Only the AI ceiling remains (gated).
 - Cycle 7: CORE-UX-TRUST (#10) ◐ — per-agent track record ("approved 44/47") inline on the Today DecisionCard; honest (failed-exec=yes, no fabricated rollbacks); 10 tests. Auto-clear-gates + rejection-learning halves stay founder-gated. (Parked #9 STITCH-LOOP = deferred UX/felt-design layer → the founder-prompted design cycle.)
 - Cycle 8: INTEROP-V11 (#16) ◐ — **a live-schema audit (Lovable MCP) found 3 existing MCP read tools broken by schema drift (KI-40); repaired all 3 + added `search_prds`/`get_roadmap` + hardened `.or()` injection.** 8 MCP tools.
@@ -412,6 +428,7 @@ Picked a strong, self-contained capability in the Interop lane (skipped the IA/U
 ### ▶ RESUME CURSOR — overnight run state (2026-06-24 ~04:00, after 5 cycles)
 
 **Lane 2 shipped this run (all committed + FF-pushed to origin/main, gate-green tsc+tests):**
+
 1. EVENT-REACTOR-LIVE (#2) ◐ — verified the reactor pipeline is wired+scheduled live; **applied KI-27 migration to prod via Lovable MCP (KI-38 resolved)**; **proven live end-to-end** (test signal → trigger → event → cron → mission, cleaned up).
 2. TRUST-LEDGER (#6) ✅ — `/trust-ledger` receipts surface (decisions+approvals+supersession); public path verified live.
 3. TRUST-SHARE (#7) ✅ — public `/d/$slug` receipt + Share affordance; privacy-hardened (private overrides never leak).

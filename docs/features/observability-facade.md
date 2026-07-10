@@ -12,27 +12,31 @@
 // src/lib/observability/index.ts
 
 // Analytics (PostHog under the hood)
-export function track(event: string, props?: Record<string, unknown>): void
-export function identify(userId: string, traits?: Record<string, unknown>): void
-export function pageView(path: string): void
+export function track(event: string, props?: Record<string, unknown>): void;
+export function identify(userId: string, traits?: Record<string, unknown>): void;
+export function pageView(path: string): void;
 
 // Errors (Sentry under the hood)
-export function captureError(err: unknown, ctx?: Record<string, unknown>): void
-export function captureMessage(msg: string, level: 'info'|'warning'|'error', ctx?: Record<string, unknown>): void
-export function setUser(userId: string | null): void
-export function setTag(key: string, value: string): void
+export function captureError(err: unknown, ctx?: Record<string, unknown>): void;
+export function captureMessage(
+  msg: string,
+  level: "info" | "warning" | "error",
+  ctx?: Record<string, unknown>,
+): void;
+export function setUser(userId: string | null): void;
+export function setTag(key: string, value: string): void;
 
 // Uptime (Better Stack under the hood)
-export function heartbeat(jobName: string): Promise<void>
+export function heartbeat(jobName: string): Promise<void>;
 
 // Job wrapper (in-house job_runs table + Better Stack heartbeat)
-export function withJobRun<T>(jobName: string, fn: () => Promise<T>): Promise<T>
+export function withJobRun<T>(jobName: string, fn: () => Promise<T>): Promise<T>;
 
 // Right-to-erasure
-export function forget(userId: string): Promise<void>
+export function forget(userId: string): Promise<void>;
 
 // Gate read (mirrors credits_enabled())
-export function observabilityEnabled(): boolean
+export function observabilityEnabled(): boolean;
 ```
 
 ## Rules

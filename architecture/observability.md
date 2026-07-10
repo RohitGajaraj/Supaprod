@@ -69,7 +69,7 @@ The three numbers v7 names as the proof the engine works are computed over live 
 
 Trust is the related per-agent score. `computeAllAgentTrust` (`trust.server.ts`) reads three live signal tables on demand: mission success rate from `agent_runs` (40%), approval acceptance from `agent_approvals` (30%), mean eval score joined through `ai_events.agent_id` from `ai_evals` (30%), all shrunk toward 0.5 with a prior weight of 10 so a handful of samples cannot swing the score. It produces a 0-to-100 score and an arc hint; the operator sets the actual arc via `agent_autonomy`.
 
-**Gap (Partial):** every input table is real and the math is real. The numbers only become *meaningful* once a real account runs the loop on real data, which is gated on M-0 (slug bug + migration sync) and M-A (ambient on-ramp, real ingest) in the v7 roadmap. The gauntlet is the dashboard the launch gate reads; it is waiting on the data, not on more code.
+**Gap (Partial):** every input table is real and the math is real. The numbers only become _meaningful_ once a real account runs the loop on real data, which is gated on M-0 (slug bug + migration sync) and M-A (ambient on-ramp, real ingest) in the v7 roadmap. The gauntlet is the dashboard the launch gate reads; it is waiting on the data, not on more code.
 
 ## 7. Logging: **Partial**
 
@@ -79,17 +79,17 @@ Structured row-level telemetry (the tables above) is the primary observability l
 
 ## Observability at a glance
 
-| Surface | Where it lives | Status |
-|---|---|---|
-| Cost and tokens | `ai_events`, `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`; chokepoint | Built; Partial on real data |
-| Execution traces | `ai_events` (`trace_id` / `parent_event_id`), `tool_calls`, `agent_run_checkpoints`; `/traces` | Built |
-| Per-event evals | `ai_evals`; `eval-tick` (judge: `gemini-2.5-flash-lite`, 7 dims) | Built; Partial coverage |
-| Structured eval suites | `eval_suites`, `eval_case_results`; `eval-suite-tick` (3am) | Built; coverage = authored cases |
-| Drift | `drift_snapshots`; `drift-tick` (4am) | Built; thin on signal pre-launch |
-| Guardrails | `guardrail_rules`, `guardrail_hits`; chokepoint + kill switch | Built |
-| Proof gauntlet | `agent_approvals`, `ritual_sessions`, `is_unattended`; `/govern?tab=gauntlet` | Built; Partial on real data |
-| Trust score | `computeAllAgentTrust` over `agent_runs` / `agent_approvals` / `ai_evals` | Built |
-| Application logging | `console.*` to Workers stream; `error-capture.ts` | Partial; aggregation Missing |
+| Surface                | Where it lives                                                                                 | Status                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------- |
+| Cost and tokens        | `ai_events`, `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`; chokepoint                | Built; Partial on real data      |
+| Execution traces       | `ai_events` (`trace_id` / `parent_event_id`), `tool_calls`, `agent_run_checkpoints`; `/traces` | Built                            |
+| Per-event evals        | `ai_evals`; `eval-tick` (judge: `gemini-2.5-flash-lite`, 7 dims)                               | Built; Partial coverage          |
+| Structured eval suites | `eval_suites`, `eval_case_results`; `eval-suite-tick` (3am)                                    | Built; coverage = authored cases |
+| Drift                  | `drift_snapshots`; `drift-tick` (4am)                                                          | Built; thin on signal pre-launch |
+| Guardrails             | `guardrail_rules`, `guardrail_hits`; chokepoint + kill switch                                  | Built                            |
+| Proof gauntlet         | `agent_approvals`, `ritual_sessions`, `is_unattended`; `/govern?tab=gauntlet`                  | Built; Partial on real data      |
+| Trust score            | `computeAllAgentTrust` over `agent_runs` / `agent_approvals` / `ai_evals`                      | Built                            |
+| Application logging    | `console.*` to Workers stream; `error-capture.ts`                                              | Partial; aggregation Missing     |
 
 ---
 
@@ -109,17 +109,17 @@ The runtime is a Cloudflare Worker; horizontal scale of the request path is the 
 
 - **Per-minute cron batch caps.** The loop advances on a fleet of every-minute hooks, each with a fixed batch size so a single tick has bounded work and bounded cost:
 
-  | Hook | Schedule | Batch cap |
-  |---|---|---|
-  | `resume-runs` | every minute | 5 queued/stale/waiting runs resumed; then up to 20 running missions advanced via `advanceMissionCore` |
-  | `approvals-tick` | every minute | pending approvals processed |
-  | `event-reactor-tick` | every minute | 10 `event_queue` rows (`approval_mode='auto'`) drained |
-  | `outcome-tick` | hourly | approved PRDs with linked issues, checked for close |
-  | `indexer-tick` | hourly (:07) | recent workspace content chunked and embedded into `rag_chunks` |
-  | `eval-tick` | scheduled/on-demand | 20 recent `ai_events` lacking an eval |
-  | `eval-suite-tick` | daily (3am) | enabled suites stale by >1h |
-  | `drift-tick` | daily (4am) | users active in the last 30 days |
-  | `memory-tick` | daily | low-value, unused memory rows pruned |
+  | Hook                 | Schedule            | Batch cap                                                                                             |
+  | -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
+  | `resume-runs`        | every minute        | 5 queued/stale/waiting runs resumed; then up to 20 running missions advanced via `advanceMissionCore` |
+  | `approvals-tick`     | every minute        | pending approvals processed                                                                           |
+  | `event-reactor-tick` | every minute        | 10 `event_queue` rows (`approval_mode='auto'`) drained                                                |
+  | `outcome-tick`       | hourly              | approved PRDs with linked issues, checked for close                                                   |
+  | `indexer-tick`       | hourly (:07)        | recent workspace content chunked and embedded into `rag_chunks`                                       |
+  | `eval-tick`          | scheduled/on-demand | 20 recent `ai_events` lacking an eval                                                                 |
+  | `eval-suite-tick`    | daily (3am)         | enabled suites stale by >1h                                                                           |
+  | `drift-tick`         | daily (4am)         | users active in the last 30 days                                                                      |
+  | `memory-tick`        | daily               | low-value, unused memory rows pruned                                                                  |
 
 - **Backpressure.** A workspace with five or more `status='running'` runs does not start a sixth; the new run is enqueued `status='queued'` and the `resume-runs` sweeper promotes it when capacity frees. This caps concurrent model load per workspace and is the spillover valve the batch caps lean on.
 - **Concurrency safety under scale.** Step dispatch and run promotion use compare-and-swap (`UPDATE ... WHERE status='planned'` / `WHERE status='queued'`), so two concurrent minute-ticks can never double-dispatch a step or double-run a run. Tool side effects are wrapped in `withIdempotency(key='tool:{runId}:{stepIndex}:{toolName}')`, so a resume after eviction returns the cached result instead of re-firing an external write. This is what lets the cron batches run aggressively without racing.
@@ -137,7 +137,7 @@ The runtime is a Cloudflare Worker; horizontal scale of the request path is the 
 This is the margin reality from v7 §9, stated plainly so it is not hand-waved: agentic workflows run **5 to 30 times** the token load of a single chat call. A multi-step decision cycle can cost roughly **$0.50 to $1.50** in inference. An active user on the ~$39/mo Pro tier running dozens of cycles a month can approach or exceed COGS on a single seat. Positive margin is not automatic; it is engineered, and the levers are wired:
 
 - **BYOK (bring your own key), Built, enterprise-only.** When an enterprise-tier user supplies a provider key (`user_api_keys`) and the model prefix matches a known BYO provider, the chokepoint routes the call to the user's own key and the inference cost moves off our books entirely. Model-agnostic by contract (adding a provider is an adapter, not a call-site change), so provider routing across labs is model-agnostic by contract. _(Positioning update 2026-06-19, enforced 2026-07-03 per WM-M9: self-serve BYOK is REMOVED: every non-enterprise tier is gated to the platform key at the `entitlements.byokAllowed` check in `resolveCallKey`/`byokeys.functions.ts`, regardless of any key a user may have saved earlier; managed metered credits are the only self-serve path. Model-agnostic provider routing via our keys remains. See [`../docs/strategy/moat.md`](../docs/strategy/moat.md) §7.)_
-- **Small-model routing, Built primitive, Partial policy.** The runtime can route any call to any model, and the per-surface defaults exist. The v7 intent (cheap models for familiar patterns, premium models only for hard reasoning) is a routing *policy* to layer on top of the existing capability. The mechanism is there; the cost-aware policy is the work.
+- **Small-model routing, Built primitive, Partial policy.** The runtime can route any call to any model, and the per-surface defaults exist. The v7 intent (cheap models for familiar patterns, premium models only for hard reasoning) is a routing _policy_ to layer on top of the existing capability. The mechanism is there; the cost-aware policy is the work.
 - **Batch and cache, Built.** The chokepoint cache (exact + near-dupe, per-user/workspace/surface salted) already turns repeat calls into free hits, logged with `cache_hit=true`. The cron hooks already batch eval, indexing, and drift work so those background calls amortize. `cache_hit` on `ai_events` is the instrument that proves the cache is earning its keep.
 - **Caps as a margin floor.** `ai_budgets` and `ai_surface_budgets` hard-stop a runaway user before the spend becomes a loss. Per-mission caps do the same at mission granularity. A user cannot cost more than their caps allow, full stop.
 
@@ -158,20 +158,20 @@ This is the margin reality from v7 §9, stated plainly so it is not hand-waved: 
 
 ## Non-functional requirements at a glance
 
-| Requirement | Bar | Status |
-|---|---|---|
-| Interaction latency | under 10s, felt single action | Target; measurable now via `latency_ms`/`ttft_ms` |
-| Time-to-value | under 10 min, signup to first closed loop on real data | Target; un-measurable until M-0/M-A |
-| Loop step budget | role+arc adaptive, ceiling 40 steps | Built |
-| Per-workspace concurrency | 5 running runs, then queue | Built |
-| Cron batch caps | per-hook fixed batches (table above) | Built; tunable |
-| Concurrency safety | CAS dispatch + idempotent tools | Built |
-| Availability / resumability | checkpoint + idempotency survive eviction; kill switch | Built; formal SLO Missing |
-| Inference margin | BYOK + small-model routing + batch/cache | Levers Built; routing policy + unit model Owed |
-| Ingest cap | 50 signals/request, token-gated (KI-10) | Built |
-| RPS rate limit | per-IP / per-token | Missing/Planned |
-| Memory retention | decay at importance≤2 + 30d unused; free-tier expiry | Decay Built; tier gating Planned |
-| Telemetry retention | audit trail kept | Built (no expiry by design); archival policy Planned |
+| Requirement                 | Bar                                                    | Status                                               |
+| --------------------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| Interaction latency         | under 10s, felt single action                          | Target; measurable now via `latency_ms`/`ttft_ms`    |
+| Time-to-value               | under 10 min, signup to first closed loop on real data | Target; un-measurable until M-0/M-A                  |
+| Loop step budget            | role+arc adaptive, ceiling 40 steps                    | Built                                                |
+| Per-workspace concurrency   | 5 running runs, then queue                             | Built                                                |
+| Cron batch caps             | per-hook fixed batches (table above)                   | Built; tunable                                       |
+| Concurrency safety          | CAS dispatch + idempotent tools                        | Built                                                |
+| Availability / resumability | checkpoint + idempotency survive eviction; kill switch | Built; formal SLO Missing                            |
+| Inference margin            | BYOK + small-model routing + batch/cache               | Levers Built; routing policy + unit model Owed       |
+| Ingest cap                  | 50 signals/request, token-gated (KI-10)                | Built                                                |
+| RPS rate limit              | per-IP / per-token                                     | Missing/Planned                                      |
+| Memory retention            | decay at importance≤2 + 30d unused; free-tier expiry   | Decay Built; tier gating Planned                     |
+| Telemetry retention         | audit trail kept                                       | Built (no expiry by design); archival policy Planned |
 
 ---
 

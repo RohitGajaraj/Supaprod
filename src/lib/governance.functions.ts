@@ -277,9 +277,7 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       (tools.data ?? []).map((t) => [
         t.tool_name as string,
         (t.mode === "review" ? "high" : t.mode === "auto" ? "low" : "medium") as
-          | "high"
-          | "medium"
-          | "low",
+          "high" | "medium" | "low",
       ]),
     );
 

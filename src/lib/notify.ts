@@ -115,7 +115,10 @@ const successWithFeedback: ToastFn = (message, opts) => {
   return id;
 };
 
-const errorWithFeedback = ((message: Parameters<typeof sonnerToast.error>[0], opts?: ExternalToast) => {
+const errorWithFeedback = ((
+  message: Parameters<typeof sonnerToast.error>[0],
+  opts?: ExternalToast,
+) => {
   fireFeedback("error");
   return sonnerToast.error(message, opts);
 }) as typeof sonnerToast.error;

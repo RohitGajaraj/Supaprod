@@ -158,8 +158,8 @@ function SyncInboxPage() {
           }}
         />
         <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: "12px 0 0", maxWidth: 560 }}>
-          What this workspace reads and writes: bindings, sync conflicts, and recently-synced
-          items. To connect a source, go to Settings &middot; Connections.
+          What this workspace reads and writes: bindings, sync conflicts, and recently-synced items.
+          To connect a source, go to Settings &middot; Connections.
         </p>
       </header>
 

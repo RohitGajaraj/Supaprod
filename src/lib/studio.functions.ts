@@ -108,12 +108,7 @@ export type StudioRunDetail = {
 
 /** Serializable JSON for server-fn payloads (matches the loop's Json shape). */
 export type StudioJson =
-  | string
-  | number
-  | boolean
-  | null
-  | StudioJson[]
-  | { [k: string]: StudioJson };
+  string | number | boolean | null | StudioJson[] | { [k: string]: StudioJson };
 
 export type StudioApproval = {
   id: string;
