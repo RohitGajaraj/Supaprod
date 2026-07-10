@@ -133,6 +133,13 @@ Collision law unchanged (B owns the 7 surface routes/nav/vocabulary; A owns chok
 - **E. Promote to record.** One-click on any answer: save as founder note / decision draft / task. Conversations already persist; add "copy receipt link." Nothing said in Ask may evaporate — that is the ledger law applied to chat.
 - **D. Act from Ask.** Actions become visible verbs with inline approval affordances honoring the per-tool modes (auto/confirm/review) from the existing registry; mission dispatch shows its receipt (mission id + link); after-answer suggestions ("Record this as a decision," "Open as spec draft").
 
+**G. The conversation anatomy (founder addition, 2026-07-10): make the two-way exchange visually unmistakable and world-class.** Decisions, so the lane does not freelance:
+
+- **User blurbs:** right-aligned, compact, subtle muted fill, no avatar, mono timestamp on hover. **Cadence blurbs:** left-aligned on the panel surface (no bubble fill), signed with the Cadence/agent mark and byline via the EXISTING `AgentMark`/`AgentBadge` primitives (stations-are-the-spine identity, consistent with PC-29) so who answered is always visible; mono meta line beneath (model, chunks read, time).
+- **Two-way feel:** the user's message echoes instantly (optimistic append), the reply streams token-by-token into its own blurb with the existing shimmer status, session/day dividers separate runs, and error states are designed (retry affordance, not a red wall).
+- **Typed cards (workstream C) render full-width inside the assistant lane,** never inside a bubble.
+- **Quality bar:** Loom §0.1 applies (4-tier buttons, hairlines, no bespoke text-buttons); PC-37 density tokens apply to all chat spacing/type; reference anatomies: Claude/ChatGPT message threads and Linear's compactness. Grayscale test must still distinguish user vs system by shape and alignment alone.
+
 **Acceptance:** the wedge path ("why did we decide X" on the seeded workspace → receipted answer with citation chips) demos clean; empty state never blank; every internal claim has ≥1 citation chip; all actions respect approval modes; zero AI calls outside the runtime chokepoint (existing `CallSurface`); tsc + build + tests green.
 
 **Lane: Sonnet builds.** Fable-fork escalation on exactly three judgment forks: the SSE block-protocol shape, the scope→retrieval param design, and the approval-affordance UX. Everything else is decided above.
