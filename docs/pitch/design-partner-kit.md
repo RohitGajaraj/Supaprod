@@ -42,6 +42,18 @@ Sourced from the thread sorted by top comments (highest engagement = most invest
 
 **On rows 16, 22–25:** these handles surfaced in the same top-sorted comment pull but without a comment substantial enough to paraphrase here confidently. Before drafting a personalized line for any of them, re-read their actual comment on the thread (one click, receipts-first) rather than sending a generic message — that is the whole point of this being a hand-picked list, not a scraped one.
 
+## The design-twin cohort (RPT-10 addition — the design-side parallel)
+
+Research §13.4 names a second beta-pool angle: "the design-twin cohort around Meng To's audience for the design-memory angle." **Meng To himself is correctly NOT a target** — he sells courses and founded a competing-adjacent tool (Aura), so per §12.4's citation-integrity rule he's a reference point for direction, never someone to solicit or cite as authority. The actual targets are practitioners who independently hand-build the same design-memory pattern he describes — found via the same methodology as the PM cohort (a real, dated, organic build-log, not a scrape).
+
+**The find (verified live, 2026-07-10, r/UXDesign):** "How I got Claude to actually USE my Figma design library instead of redrawing icons from scratch" — 138 points, 41 comments, posted 7 days ago by **u/Such-Book6849**. He hand-built a Claude Code skill (a component-key map + a hard "never rebuild from primitives, always import via the real library key" rule) so Claude stops improvising fake icons and instead uses his team's actual published Figma components — the design-discipline mirror of the PM cohort's memory-and-skill pattern, right down to "it's portable, versionable, and shared with the team by zipping the skill folder." This is the design-twin persona-proof the research doc predicted existed but hadn't yet located with a name attached.
+
+| # | Handle | Signal (from their own post) | Outreach angle |
+| --- | --- | --- | --- |
+| 26 | **u/Such-Book6849** | Built a hand-rolled Claude+Figma-MCP skill with a component-key map so Claude imports real design-system components instead of fabricating icons; shared the whole setup with his team. | The design-side mirror of the PC-13 cohort — hand-building exactly the "configured design memory" v13's research corpus already flagged (§13, Meng To's `design.md` pattern) but from a working practitioner, not a course-seller. Template A fits directly (swap "Claude Code as a PM" for "the Figma component-map post"). |
+
+**Why this satisfies RPT-10 without over-scoping:** the row's ask was "the Meng To design-twin cohort," not Meng To himself — this is exactly that, sourced the same receipts-first way as the primary 25, with the same founder-approval gate. Widening this list further (more r/UXDesign build-logs, a Threads/X pass on Meng To's own commenters) is a cheap follow-up once this first name is validated — not done here to avoid diluting a hand-picked list with lower-signal adds under time pressure.
+
 ## The outreach kit (drafts — founder sends, nothing else)
 
 **Channel:** Reddit DM (chat) to the handle — the only contact channel this cohort gave us. No email/LinkedIn lookups (that would be cross-source compilation on people who did not offer that channel — out of bounds per the privacy discipline).
@@ -107,10 +119,11 @@ and tell me what's missing. 15 minutes, I'll just show you it live?
 
 **Today (interim, until PC-15 ships the in-product pulse UI):** the founder or an assigned agent logs each partner's weekly feedback as a signal in the workspace signal store, tagged with its source partner and date — the same manual path used for any other externally-sourced signal today. This is a real but manual bridge, not an automated pulse; **do not claim it as [PROVEN] automated feedback→signals** until PC-15 lands the in-product surface (pulse on teardowns/briefs → signals + the "you said → we changed" changelog). Once PC-15 ships, partner feedback rides the same pipe as every other in-product pulse.
 
-## Acceptance tracking (PC-13)
+## Acceptance tracking (PC-13 + RPT-10)
 
-- [ ] 25 contacted — **0/25 sent** (target list ready; founder approval required per message, per the standing outward-send rule)
+- [ ] 25 contacted — **0/26 sent** (25 PM-cohort + 1 design-twin; target list ready; founder approval required per message, per the standing outward-send rule)
 - [ ] ≥10 onboarded
 - [ ] feedback→signals live (manual bridge today; automated at PC-15)
+- [x] RPT-10 (design-twin cohort): u/Such-Book6849 identified and receipts-verified, 2026-07-10
 
 **Standing rule, restated:** nothing above sends itself. Every message is a draft until the founder reads it, edits it if he wants to, and sends it himself (or explicitly approves this session sending it on his behalf).
