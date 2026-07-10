@@ -1,0 +1,124 @@
+# New-age product development — how frontier companies actually ship, and what that means for Cadence's artifact stack, positioning, and pricing
+
+> _Created: 2026-07-10, same session as [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md), in response to three founder mid-session asks: (1) should PRD/FRD/TRD even exist on an agent-native platform — rethink from first principles and propose something uniquely ours; (2) research how OpenAI/Anthropic/Google-class companies actually build (the Boris Cherny datapoint) and adapt it; (3) model the implications across strategy, positioning, features, roadmap, distribution, pricing, USP, moat, defense, future-proofing — documented with sources._
+>
+> **Status: research + proposal.** This doc feeds the strategy canon (v11 direction, v12 learning-loop/Outcome-Contract conventions, v13 campaign) — it does not modify it. Where this doc proposes conventions (§3), the founder ratifies before they become canon. Citation integrity per [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) §12.4 applies: named people, named companies, dated sources; transcript-mined quotes carry their episode + date; web-sourced facts carry their outlet.
+
+---
+
+## 1. The evidence — how frontier teams actually ship (dated, sourced)
+
+### 1.1 Anthropic / Claude Code (Boris Cherny, creator; Cat Wu, Head of Product, Claude Code)
+
+- **The build story (Anthropic's own published origin story, 2026; Boris Cherny's X announcement of it; Pragmatic Engineer + Lenny's podcast episodes):** Cherny joined Anthropic in Sept 2024 with an "agentic programming" mandate; Ben Mann's advice was **"build for the models six months from now."** He threw together a minimal CLI prototype **in two days** (the demo: screenshot Apple Music and say what song was playing; it got 2-3 Slack likes). Released internally as dogfood, **50% of Anthropic engineering was using it within five days**. Core features were completed in a **two-week sprint in Dec 2024**; public launch Feb 2025; adoption exploded with Claude 4 (May 2025). His framing after telling the story: "We are 1% done." (The founder's remembered "built in ten days" is directionally right: days-to-weeks with adoption as the gate, versus months of roadmap alignment.)
+- **The process (Cat Wu, Lenny's Podcast "How Anthropic's product team moves faster than anyone else," 2025/2026; corroborated by multiple secondary writeups):** **"PRDs are dead on the Claude Code team: prototypes replaced them."** No detailed requirements docs, no planning meetings — build a working prototype with Claude Code and ship it internally to everyone; demos of new ideas instead of stand-ups; internal engagement decides which prototypes get polished. Designers and PMs commit directly. The economics that make this rational: **"Because you can prototype in an afternoon, wrong bets are cheap."**
+- **The person as the datapoint:** Cherny (STATION F interview, 2026): **"I have not written a single line of code since November."** Anthropic's published story tracks his own work going from ~10% AI-written code in 2025 to ~100% in 2026.
+- **Where the real engineering went when agents met normal users (Cowork, per the Lenny's-episode coverage):** the team spotted **latent demand** — non-engineers (data science, finance, sales) already hacking around Claude Code — and the bulk of Cowork's engineering complexity was **not product logic but safety**: classifiers, a shipping VM, OS-level protections against accidental file deletion, and a rethought permission model for non-technical users.
+- Cross-reference: the corpus's in-house Anthropic-adjacent validation is Ankur Goyal's "distance" thesis (Braintrust, 2026-03-20): inside one set of four walls feedback circulates without process; **structure is only needed as distance grows** ([`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) §8).
+
+### 1.2 OpenAI (Ryan Lopopolo, frontier team; Abhi Muchhal, growth PM; company-level reporting)
+
+- **Company level (Inc., "How OpenAI Ships New Products With Lightning Speed," late 2025; DevDay 2025 coverage):** ~**92% of OpenAI engineers** make heavy use of Codex; **nearly every pull request at OpenAI is reviewed by Codex**, "catching hundreds of issues daily before they reach a human reviewer." Sora's DM feature: **Codex built it in the background while the engineers were still debating whether to build it.** Sora Android port: 4 engineers running multiple Codex instances each ("a team of four into a team of 16"), **~85% of the Android app written by Codex, functioning internal build in 18 days, app-store launch 10 days later.**
+- **Team level (transcript-verified, this corpus):** Ryan Lopopolo (2026-05-25): PMs write PRDs **as markdown in the repo** and vibe-code the tests; designers ship "painted door" UIs with no-op backends to get demand signal before backend investment; role-persona review agents (front-end-architect.md, reliability-engineer.md...) run as a matrixed CI job; "you can not have slop by simply not permitting the agent to write slop in the first place"; humans move to the back of the process. Abhi Muchhal (2026-06-03): "the currency of progress... is evals"; the experiment loop (hypothesis doc → Statsig → postmortem → decision meeting) is now a skill agents run. Full quotes: [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) §2-3.
+
+### 1.3 The rest of the frontier (transcript-verified in the corpus; §-refs into it)
+
+| Company | Dated fact about how they build | Corpus § |
+|---|---|---|
+| **Replit** (Amjad Masad, SaaStr 2026) | A production agent "reads all the traces of everyone using Replit every night, finds what's broken, generates a pull request with prompt changes, ships it as an A/B test, and loops back." "It's not improving its weights, it's improving its context." | [`pm-voice...`](./pm-voice-and-ai-tooling-research.md) §14 |
+| **Linear** (Nan Yu, 2025-08-04) | 2 PMs at a $1.25B company; user stories called "strangely indirect"; strong falsifiable point of view shipped in small increments ("the world is going to tell us if that is the right model"); internal-first rollout increments; weekly changelog as self-accountability; OKRs "largely overused." | corpus §16 |
+| **Laurel** (Jiaona Zhang, 2026-06-24) | Company OS: playbooks → skills → agents; captains (one accountable human per outcome); two-track reviews (small things ship via async channels + PR review; system-touching things get a product review); CS and go-to-market ship code. | corpus §1 |
+| **DoorDash team level** (Hannah Stulberg, 2026-04-07) | The team's context lives in a git repo; every function (including non-technical ops/strategy) contributes via PRs; PRDs are reviewed as PRs by the implementing engineer; "verification is how Claude knows the work was done and done well." | corpus §5 |
+| **Descript** (Laura Burkhauser, 2025-12-15) | PM writes eval pass/fail criteria on real production queries; ties go to the human "for now"; success = adoption + retention; honest about the agent harness being "still too brittle." | corpus §11 |
+| **Gumroad** (Sahil Lavingia, 2025-10-19) | One-person company at ~$10M ARR: "a lot of people invest in the PRD because they're going to give it to a human... if you're just giving it to an AI — why not [just build]?" PRD's surviving job: a diff-check of intent vs what the agents built. | corpus §15 |
+| **Kuse** (Xiankun Wu, 2025-11-21) | $10M ARR in 60 days on compounding project context ("a living work OS"); explicitly anti-one-shot-prompt. | corpus §13 |
+| **Google (individual practice)** (Gabor Meyer, 2026-04-30) | A non-coding PM runs a 21-role agent company; decisions documented so they're "replicatable"; screenshots enforced on every ticket to prevent default AI slop. | corpus §6 |
+
+### 1.4 The extracted pattern — eight working laws of new-age building
+
+1. **Prototype is the argument.** Working software replaces the persuasion document (Anthropic's prototypes-over-PRDs; OpenAI's painted doors; Sahil's "why not just build"). Wrong bets are cheap, so deciding-by-building beats deciding-by-aligning.
+2. **The eval is the requirement.** What survives from the PRD is the definition of "good," made runnable (Ankur Goyal's "the modern PRD is an eval"; Laura Burkhauser's PM-owned pass/fail; Abhi's "currency of progress").
+3. **Context repos are the institutional memory.** Requirements, decisions, style, and learnings flow to agents as versioned markdown/context files, not meetings (Hannah's Team OS; Ryan's 250K lines of markdown; Meng To's design.md; Gabor's documented decisions).
+4. **Quality is enforced by standing gates, not heroics.** Tests + review agents + LLM-judge CI + rules make slop structurally impossible rather than caught late (Ryan; OpenAI's every-PR-agent-reviewed; Warp's rules).
+5. **Dogfood adoption is the roadmap.** Internal engagement decides what gets polished (Claude Code's 50%-in-5-days gate; Cat Wu's demo-engagement selection; Linear's internal-first increments).
+6. **Learning is captured as context, nightly.** The system improves by writing what it learned back into its own context/policy — not by waiting for retraining (Masad's trace-reading agent; Ryan's feedback-into-repo; Abhi's experiment-review skill).
+7. **Accountability stays pinned to a human.** Captains, dispatch responsibility, tie-goes-to-human (Jiaona; Nan Yu's "robots are not actually responsible for anything"; Laura).
+8. **Build for the model six months out.** Accept weak PMF today to hit the ground running when capability lands (Ben Mann's advice to Cherny; Laura's "harness still too brittle" honesty is the same clock read from the other side).
+
+---
+
+## 2. Should Cadence have PRDs at all? The answer, from first principles
+
+**The founder's question:** "If a human is writing PRD and FRD and TRD, it makes sense. If the agent is working everything, why does it even need PRD, FRD, all that? All those inputs can flow as markdown files."
+
+**What the evidence says:** the PRD is dying as a *persuasion and handoff document* (its 2015 job) but its three load-bearing functions survive in new forms, and each already has a named new-age carrier:
+
+| Old artifact | Its real job | What carries that job now (evidence) |
+|---|---|---|
+| PRD (product requirements) | Say what "good" is; align humans | **A runnable eval + a working prototype** (Ankur Goyal 2026-03-20; Cat Wu; Ryan Lopopolo). Alignment happens by demo, not doc. |
+| FRD/TRD (functional/technical requirements) | Constrain how it's built | **Versioned context files** — agents.md / skills / design.md / rules — scoped per project and workflow, riding along with every agent task (Meng To's design.md as "design memory," 2026-05-06; Hannah's repo conventions; Warp's rules; Gabor's project memory). |
+| Status docs / decks / roadmap updates | Keep stakeholders informed | **Generated projections from live state** (Abhi's auto-drafted weekly update; Linear's changelog cadence; Todd Olson's "self-service instead of Slack-ing someone"). |
+| The paper trail ("why did we decide X?") | Institutional memory, accountability | **The decision record with receipts and recorded outcomes** — the one function nothing in the market carries well yet, and the r/PM community's top-voted pain ("cue hours of finding that Slack conversation from months ago," §12.1 of the sibling doc). |
+
+**The Cadence-native answer — artifacts are projections; the ledger is the source.** The proposal (extends v12's Outcome Contract / ARD conventions; founder to ratify naming):
+
+1. **One source-of-truth artifact per unit of work: the Outcome Contract.** Four living parts, all agent-readable markdown under the hood, one card in the UI: **Intent** (the why + the decision it traces to), **Eval** (runnable pass/high-pass/fail criteria — the PM-authored part, per Burkhauser), **Constraints** (the scoped context files: design memory, technical rules, guardrails, data boundaries), **Receipts & Outcome** (written back by the runtime: evidence trail, verification state, what actually happened, the binary verdict + rationale).
+2. **PRD/FRD/TRD/status-deck become one-click *projections* of the Contract, generated on demand for whoever needs them** — a stakeholder who asks for "the PRD" gets one, rendered fresh from the spine, stamped with generation date and drift-state ("this projection reflects the ledger as of now"). Nobody hand-maintains a document that can go stale; the §12.1 "hours of finding that Slack conversation" and Wensing's stale-Notion pain (2026-06-09) both dissolve structurally. This is the out-of-the-box move that is uniquely ours: **competitors generate documents; Cadence deprecates documents into views.**
+3. **The prototype slot.** For build-shaped work, the Contract's first receipt is a working prototype or painted door, not prose (Anthropic/OpenAI practice). "Demo attached" becomes a first-class state the UI rewards — reviews happen on the demo, Claude-Code-team style.
+4. **The intent-vs-built diff as a standard receipt.** After a Build run, Cadence renders what the agents *understood* against the Intent, Sahil-style ("you go back and reread your PRD and say: oh crap, I forgot to mention that," 2025-10-19) — turning the last surviving reason to write careful requirements into an automated check.
+5. **The changelog heartbeat.** A Linear-style weekly "what actually shipped/changed/was decided" projection, generated from outcomes, as the workspace's self-accountability surface (Nan Yu: "it helps us be accountable to ourselves," 2025-08-04).
+
+**Positioning line this unlocks:** "Stop writing documents about the work. Cadence keeps one living contract per decision — intent, eval, constraints, receipts — and prints you a PRD only when a human asks for one."
+
+---
+
+## 3. What replaces planning, stakeholder communication, and design review
+
+The founder's Boris-Cherny framing ("traditional roadmap + running between stakeholders would have taken months") maps to five concrete replacements, all evidenced:
+
+1. **Demo-engagement replaces roadmap debate.** Prototypes ship internally; usage decides (Anthropic; Linear's internal increments). Cadence equivalent: mission prototypes land in the workspace with adoption/outcome telemetry attached; the ranking learns from engagement, not from meeting consensus.
+2. **Two-track review replaces the all-purpose product review.** Small/reversible work ships through async channels + PR-style review; only system-touching work convenes humans (Jiaona Zhang, 2026-06-24). Cadence equivalent: guardrail-tiered approval — the HITL floor scales with blast radius, not with ceremony.
+3. **Captains replace RACI.** One named accountable human per outcome, visible on every dispatch (Jiaona; Nan Yu). Already ranked as product move #4 in the corpus doc.
+4. **Projections replace stakeholder decks.** Auto-generated, always-fresh views per audience (§2.2 above; Abhi's draft-first weekly update is the human-gated version).
+5. **Design memory replaces design handoff.** design.md-class context files + screenshot-grounded tickets keep taste continuous across generations (Meng To 2026-05-06; Gabor's screenshot enforcement 2026-04-30) — the v12 design leg, market-validated.
+
+---
+
+## 4. Modeling it for Cadence — strategy, positioning, USP, moat, pricing, distribution, roadmap (proposals, founder to ratify)
+
+| Layer | The model, grounded in this research | Primary evidence (dated) |
+|---|---|---|
+| **Strategy** | Own the layer the frontier proves is next: the build layer is commoditizing (92% Codex usage; Amodei's 1-2yr SWE clock), so the scarce work is deciding WHAT to build and verifying WHAT worked. Cadence = the decision layer with outcome memory above the fleets — now with the artifact-stack story (§2) as its concrete daily-felt expression. | Inc. late-2025; Amodei 2026-02-13; Masad SaaStr 2026 |
+| **Positioning** | "The new way of building, productized": frontier teams already killed the PRD-as-document; Cadence brings that operating model to the 90-99% who "aren't sure what to use when" — without the terminal, without 1,500 hours of setup. Anti-positioning: never another doc generator; we retire documents into projections. | Cat Wu (prototypes over PRDs); Jiaona Zhang 2026-06-24; Hannah Stulberg 2026-04-07 |
+| **USP** | The Outcome Contract: the only artifact in the market where intent, runnable eval, constraints, receipts, and the recorded outcome live as ONE living object — with PRD/FRD/status as disposable projections. Nobody named in 16 episodes + the frontier reporting carries the "why did we decide X" function with receipts. | §2 above; r/PM §12.1 (sibling doc); Ankur Goyal 2026-03-20 |
+| **Moat + defense** | (a) Outcome graph compounds per workspace (Zach Lloyd: tools that know you win, 2025-09-27; Xiankun Wu's living work OS); (b) evals/data outlast agent wiring — model releases upgrade us, never obsolete us (Ankur Goyal; v12 doctrine; Masad's context-not-weights); (c) trust artifacts (captains, verified-completion receipts) are governance surfaces incumbents can't bolt on credibly after their "it said it fixed it" reputations (Gabor on Lovable, Mike Ball on Replit). Defense against incumbents absorbing the category: same as Cycle/Atlassian answer — a decision-ledger OS across 13+ tools is not a feature, and our safety/permission depth IS the product (Anthropic's Cowork lesson: agents-for-normal-users = mostly safety engineering). | corpus §§6, 7, 12, 13; Cowork coverage 2026 |
+| **Pricing** | Hybrid: low flat entry (adoption habit, Mike Ball's graduated-seat behavior) + metered decision-runs/agent-runs (Ankur Goyal's precedent) + one flagship outcome-priced SKU (per verified shipped loop, Fin's 99c/resolution as the pattern) + eval-gated model downshifting to protect margin (Todd Olson's sub-15% GM warning; Ankit Shukla's 25x spread). Never seat-only (Zach Lloyd). | corpus product-moves #2, #9 |
+| **Distribution** | Receipts-first Show-HN posture (no influencer smell, §12.4 GTM law); publish our own failing-and-passing calibration scorecard as launch credibility (Warp's public-benchmark play); underpriced-channel content à la Kuse's Threads army rather than ad spend; deliver value inside Slack/email where the 90-99% already live (Jiaona's just-in-time delivery). | Zach Lloyd 2025-09-27; Xiankun Wu 2025-11-21; Jiaona 2026-06-24 |
+| **Roadmap (what this adds to the build front)** | The 10 ranked product moves in [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) stand; this doc adds three artifact-stack items above them in narrative priority: (i) Outcome Contract as the one work artifact + projections (PRD-on-demand), (ii) intent-vs-built diff receipt, (iii) changelog heartbeat projection. All three are demo-visible inside the <25-day launch window and give the demo its "new way of building" story arc. | §2-3 above |
+| **Future-proofing** | The §10 doctrine (sibling doc) holds and gains one law from this research: **when a process pain appears, absorb it as a projection or a contract field, never as a new document type.** The day Cadence ships a hand-maintained document, the thesis is broken. Build for the model six months out (Ben Mann): design the Contract so rising model capability auto-upgrades eval quality, receipt verification, and routing — no rebuild. | pm-voice §10; Cherny origin story |
+
+---
+
+## 5. Quick per-theme summaries (for fast reference)
+
+- **PRDs:** dead as documents at the frontier (Anthropic verbatim; OpenAI markdown-in-repo); alive as three functions — runnable eval, scoped context files, on-demand projection. Cadence productizes the split.
+- **How Claude Code was actually built:** 2-day prototype → internal dogfood → 50% adoption in 5 days → two-week core sprint → Feb 2025 launch; prototypes over PRDs; demos over stand-ups; "wrong bets are cheap."
+- **How OpenAI ships:** 92% engineers on Codex, every PR agent-reviewed, features built while humans debate them (Sora DMs), 4-person teams acting as 16 (Sora Android, 18 days).
+- **The self-improving loop in production:** Replit's nightly trace-reading agent shipping prompt-change PRs as A/B tests — context-learning, not weight-learning.
+- **Stakeholder process:** replaced by demo-engagement, two-track reviews, captains, and generated projections.
+- **Pricing:** the frontier consensus is off-seat: usage-metered (Braintrust), outcome-priced (Fin), margin-protected via eval-gated model routing.
+- **Moat:** compounding workspace outcome-graph + eval/data durability + trust governance — all three stated on the record by operators/CEOs who don't know Cadence exists.
+- **The unique invention to ratify:** "Artifacts are projections; the ledger is the source" — one Outcome Contract per unit of work; PRD/FRD/TRD/decks generated on demand, stamped with drift-state; intent-vs-built diff as a standard receipt; changelog heartbeat as the workspace pulse.
+
+---
+
+## Sources
+
+**Transcript-verified (this session's corpus, full quotes + video IDs):** [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) — 16 episodes, 2025-08 to 2026-06.
+
+**Web-sourced (this section's new evidence):**
+- Anthropic's published Claude Code origin story + Boris Cherny's announcement of it (X, 2026); Lenny's Podcast "Head of Claude Code: What happens after coding is solved" (Boris Cherny); The Pragmatic Engineer "Building Claude Code with Boris Cherny" (Gergely Orosz); STATION F interview ("I have not written a single line of code since November"); platformer.news Cherny interview.
+- Lenny's Podcast "How Anthropic's product team moves faster than anyone else" (Cat Wu, Head of Product, Claude Code) + secondary coverage of its prototypes-over-PRDs content; Cowork latent-demand/safety-engineering coverage of the same episode.
+- Inc. (Ben Sherry), "How OpenAI Ships New Products With Lightning Speed" (~92% Codex usage; every PR Codex-reviewed; Sora DM + Android-port anecdotes); OpenAI DevDay 2025 coverage (openai.com/devday; VentureBeat).
+- VentureBeat, "At 21, he bootstrapped Kuse.ai to $10M ARR in 60 days" (corroboration for corpus §13).
+- Frame docs: [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) §8 (NOW horizon), §10 (future-proofing doctrine), §12.1/§12.4 (community evidence + citation law), §13 (Meng To design.md), §14 (Amodei/Masad).
