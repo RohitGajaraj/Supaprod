@@ -67,7 +67,7 @@ export function timeEstimateFor(id: ProviderId): string {
 
 // The name pre-gate is handled by needsDetails/detailsDone below, not this
 // state machine - it is explicitly not one of the five counted screens.
-type Phase = "arrival" | "track" | "connect" | "critic";
+type Phase = "arrival" | "product" | "data" | "critic" | "results";
 
 function Frame({
   eyebrow,
@@ -105,6 +105,66 @@ function Frame({
       </h1>
       <div style={{ marginTop: 20 }}>{children}</div>
     </div>
+  );
+}
+
+function ProductNamePreGate({ onDone }: { onDone: (name: string) => void }) {
+  const [productName, setProductName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const name = productName.trim();
+    if (!name) {
+      toast.error("Give your product a name");
+      return;
+    }
+    setSaving(true);
+    onDone(name);
+  }
+
+  return (
+    <Screen>
+      <form onSubmit={save} style={{ width: 420, maxWidth: "calc(100vw - 48px)" }}>
+        <p
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: 26,
+            color: "var(--text-primary)",
+            margin: 0,
+          }}
+        >
+          What are you building?
+        </p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10, lineHeight: 1.55 }}>
+          A product name, feature, or bet. Cadence will challenge your thinking and show its work.
+        </p>
+        <input
+          autoFocus
+          required
+          placeholder="e.g. Mobile capture, better notifications"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+          style={{
+            width: "100%",
+            minWidth: 0,
+            background: "var(--raised)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            padding: "11px 14px",
+            color: "var(--text-primary)",
+            fontSize: 13,
+            marginTop: 20,
+            boxSizing: "border-box",
+          }}
+        />
+        <div style={{ marginTop: 16 }}>
+          <Button type="submit" variant="primary" disabled={saving}>
+            {saving ? "Saving…" : "Continue"}
+          </Button>
+        </div>
+      </form>
+    </Screen>
   );
 }
 
@@ -222,25 +282,29 @@ export function ObsidianOnboarding() {
   const needsDetails =
     !!profileQ.data && !(profileQ.data.profile as { display_name?: string } | null)?.display_name;
 
-  // SW-7 step-0 rerun (2026-07-09): the step state was memory-only, so any
-  // refresh (or a full-page bounce that missed ?connected=) restarted the
-  // whole flow at arrival. Persist the phase for the tab's lifetime; the
-  // finish mutation clears it on the way to Today.
+  // PC-02: phase state persists for tab refresh resilience
   const [phase, setPhase] = useState<Phase>(() => {
     if (typeof window === "undefined") return "arrival";
     const saved = window.sessionStorage.getItem("cadence.onboarding.phase");
-    return saved === "track" || saved === "connect" || saved === "critic" ? saved : "arrival";
+    return saved === "product" || saved === "data" || saved === "critic" || saved === "results"
+      ? (saved as Phase)
+      : "arrival";
   });
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.sessionStorage.setItem("cadence.onboarding.phase", phase);
   }, [phase]);
+
+  const [productName, setProductName] = useState<string>("");
   const [belief, setBelief] = useState<string>(FALLBACK_BELIEF);
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
     null,
   );
+  const [criticReview, setCriticReview] = useState<any>(null);
+  const [pasteNotes, setPasteNotes] = useState("");
+  const [showPaste, setShowPaste] = useState(false);
 
-  // Screen 3: connections
+  // PC-02: data source connections
   const fListConnections = useServerFn(listConnections);
   const fStartGithub = useServerFn(startGithubAppConnect);
   const fStartGateway = useServerFn(startGatewayConnect);
@@ -255,17 +319,17 @@ export function ObsidianOnboarding() {
   const connectionsQ = useQuery({
     queryKey: ["connections"],
     queryFn: () => fListConnections(),
-    enabled: phase === "connect",
+    enabled: phase === "data",
   });
   const suiteQ = useQuery({
     queryKey: ["calendar-connections"],
     queryFn: () => fSuiteList(),
-    enabled: phase === "connect",
+    enabled: phase === "data",
   });
   const seedEnabledQ = useQuery({
     queryKey: ["demo-seed-enabled"],
     queryFn: () => fSeedEnabled(),
-    enabled: phase === "connect",
+    enabled: phase === "data",
   });
 
   const providers = Object.values(CONNECTOR_REGISTRY).filter((s) => s.userFacing !== false);
@@ -288,16 +352,23 @@ export function ObsidianOnboarding() {
 
   async function afterConnected() {
     // Pull a real seeded/connected opportunity to point the Critic at; fall
-    // back to the constant belief if the workspace has none yet.
+    // back to the product belief if the workspace has none yet.
     try {
       const { opportunities } = await fListOpportunities();
       if (opportunities[0]) {
         setBelief(opportunities[0].title);
         seededBeliefRef.current = opportunities[0].title;
         setBeliefTarget({ kind: "opportunity", id: opportunities[0].id });
+      } else if (productName) {
+        setBelief(productName);
+        seededBeliefRef.current = productName;
       }
     } catch {
-      // never traps: the fallback belief still lets Finish complete
+      // Fall back to product name or constant belief
+      if (productName) {
+        setBelief(productName);
+        seededBeliefRef.current = productName;
+      }
     }
     setPhase("critic");
   }
@@ -365,65 +436,61 @@ export function ObsidianOnboarding() {
   const fRunCritic = useServerFn(runCriticReview);
   const fWedgeTeardown = useServerFn(runWedgeTeardown);
   const fComplete = useServerFn(completeOnboarding);
+
+  // PC-02: run Critic and display results, then mark onboarded
   const mFinish = useMutation({
     mutationFn: async () => {
-      // SW-6 (felt journey, the surprise beat): honor what the user actually
-      // typed. If they edited the belief, record THEIR words verbatim and run
-      // the Critic on them (runWedgeTeardown was built for exactly this and
-      // was orphaned); the prefilled seeded-opportunity title keeps the
-      // evidence-linked runCriticReview path.
       const typed = belief.trim();
       const editedBelief =
         typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
-      // The teardown/critic call is best-effort narration for the "surprise"
-      // beat, never a completion gate - unlike fWedgeTeardown, fRunCritic had
-      // no .catch(), so a failed run (a missing seeded target, an AI hiccup)
-      // threw out of the whole mutationFn and skipped fComplete/markOnboarded
-      // below. onError still navigated to /today, but with onboarded never
-      // set true server-side, the route gate bounced straight back to
-      // /onboarding's first screen - the "progress evaporated" loop this
-      // fixes. Both calls now degrade the same way: log and move on.
-      if (editedBelief) {
-        await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } }).catch(() => null);
-      } else if (beliefTarget) {
-        await fRunCritic({
-          data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id },
-        }).catch((e) => {
-          console.error("onboarding critic run failed (non-fatal):", e);
-          return null;
-        });
+
+      let review = null;
+      try {
+        if (editedBelief) {
+          const result = await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } });
+          review = result?.review ?? null;
+        } else if (beliefTarget) {
+          const result = await fRunCritic({
+            data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id },
+          });
+          review = result?.review ?? null;
+        }
+      } catch (e) {
+        console.error("onboarding critic run failed (non-fatal):", e);
       }
-      await fComplete({ data: {} });
-      const { data } = await supabase.auth.getSession();
-      if (data.session) await markOnboarded(data.session.user.id);
-    },
-    onSuccess: () => {
-      window.sessionStorage.removeItem("cadence.onboarding.phase");
-      window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
-      navigate({ to: "/today" });
+
+      setCriticReview(review);
+
+      // Move to results display before marking onboarded
+      setPhase("results");
+
+      // Complete onboarding in the background
+      try {
+        await fComplete({ data: {} });
+        const { data } = await supabase.auth.getSession();
+        if (data.session) await markOnboarded(data.session.user.id);
+      } catch (e) {
+        console.error("onboarding completion failed:", e);
+      }
     },
     onError: (e) => {
-      // fComplete itself (or the session/markOnboarded read) failed - the one
-      // failure mode the teardown catches above can't cover. Still land on
-      // Today per the "never traps" intent, but this case is a real gap: the
-      // gate will bounce back next load since onboarded was never set. The
-      // persisted phase is intentionally KEPT here so the bounce-back resumes
-      // at the critic step instead of restarting the whole flow.
-      console.error("onboarding completion failed:", e);
-      window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+      toast.error("Could not complete onboarding. Redirecting...");
+      console.error("onboarding error:", e);
+      window.sessionStorage.removeItem("cadence.onboarding.phase");
       navigate({ to: "/today" });
     },
   });
 
-  const mSeedTrack = useMutation({
-    mutationFn: (track: OnboardingTrack) => fSeedTrack({ data: { track } }),
+  // PC-02: product name → data source flow, skip track selection
+  const mSeedWorkspace = useMutation({
+    mutationFn: async (track: OnboardingTrack) => {
+      return fSeedTrack({ data: { track } });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["opportunities"] });
-      // SW-6: the seed just created the workspace on a fresh account; without
-      // this, activeWorkspace stays null and the demo-data button on the next
-      // step fails with "Workspace not ready yet".
       qc.invalidateQueries({ queryKey: ["workspaces"] });
-      setPhase("connect");
+      // Move directly to data source selection, skipping explicit track choice
+      setPhase("data");
     },
     onError: (e: Error) => toast.error(e.message || "Could not set up the workspace"),
   });
@@ -450,9 +517,6 @@ export function ObsidianOnboarding() {
   }, []);
 
   if (profileQ.isLoading)
-    // Never a dead-blank screen: after the login redirect this state was
-    // observed holding for 14+ seconds while the profile query settled, and
-    // the empty span read as a broken app (SW-7 step-0 rerun, 2026-07-09).
     return (
       <Screen>
         <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Waking your workspace…</p>
@@ -489,11 +553,16 @@ export function ObsidianOnboarding() {
             Judgment, with receipts.
           </p>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 12, maxWidth: 380 }}>
-            Cadence reads your signals, argues with your beliefs, and shows its work. Ten minutes to
-            your first teardown.
+            In the next 10 minutes: name your product, give Cadence one data point, and see what
+            it thinks. Receipts included.
           </p>
           <div style={{ marginTop: 24 }}>
-            <Button variant="primary" onClick={() => setPhase("track")}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setPhase("product");
+              }}
+            >
               Start
             </Button>
           </div>
@@ -502,239 +571,377 @@ export function ObsidianOnboarding() {
     );
   }
 
-  if (phase === "track") {
+  if (phase === "product") {
     return (
-      <Screen>
-        <Frame eyebrow="STEP 1 OF 4" heading="What are you here to do?">
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {TRACKS.map((track) => {
-              const d = trackDescriptions[track];
-              const busy = pendingTrack === track && mSeedTrack.isPending;
-              return (
-                <button
-                  key={track}
-                  type="button"
-                  disabled={mSeedTrack.isPending}
-                  onClick={() => {
-                    setPendingTrack(track);
-                    mSeedTrack.mutate(track);
-                  }}
-                  style={{
-                    textAlign: "left",
-                    padding: "14px 16px",
-                    borderRadius: "var(--radius-card)",
-                    background: "var(--card)",
-                    border: "1px solid var(--hairline)",
-                    opacity: mSeedTrack.isPending && !busy ? 0.5 : 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-ui)",
-                        fontSize: 15,
-                        fontWeight: 550,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {d.label}
-                    </span>
-                    {busy ? <MonoLabel tone="glacier">seeding</MonoLabel> : null}
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: "var(--text-muted)",
-                      marginTop: 4,
-                      marginBottom: 0,
-                    }}
-                  >
-                    {d.subtitle}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </Frame>
-      </Screen>
+      <ProductNamePreGate
+        onDone={(name) => {
+          setProductName(name);
+          // Auto-seed workspace with default track ("solo") for new accounts
+          setPendingTrack("solo");
+          mSeedWorkspace.mutate("solo");
+        }}
+      />
     );
   }
 
-  if (phase === "connect") {
+  if (phase === "data") {
     const seedLive = !!seedEnabledQ.data?.enabled;
     return (
       <Screen>
-        <Frame eyebrow="STEP 2 OF 4" heading="Give it something to read.">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {providers.map((spec) => {
-              const on = isConnected(spec);
-              const configured =
-                connectionsQ.data?.providerAvailability?.[spec.id]?.configured ?? false;
-              const busy = connectingId === spec.id && mConnect.isPending;
-              const estimate = timeEstimateFor(spec.id);
-              return (
+        <Frame eyebrow="STEP 2 OF 3" heading="What should Cadence read?">
+          {!showPaste ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {providers.slice(0, 5).map((spec) => {
+                  const on = isConnected(spec);
+                  const configured =
+                    connectionsQ.data?.providerAvailability?.[spec.id]?.configured ?? false;
+                  const busy = connectingId === spec.id && mConnect.isPending;
+                  const estimate = timeEstimateFor(spec.id);
+                  return (
+                    <button
+                      key={spec.id}
+                      type="button"
+                      disabled={on || busy || !configured}
+                      onClick={() => {
+                        setConnectError(null);
+                        setConnectingId(spec.id);
+                        mConnect.mutate(spec);
+                      }}
+                      style={{
+                        textAlign: "left",
+                        padding: "13px 14px",
+                        borderRadius: "var(--radius-card)",
+                        background: "var(--card)",
+                        border: "1px solid var(--hairline)",
+                        opacity: configured || on ? 1 : 0.45,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-ui)",
+                            fontSize: 13.5,
+                            fontWeight: 550,
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          {spec.label}
+                        </span>
+                        <MonoLabel style={{ display: "block", marginTop: 3 }}>
+                          {estimate.toUpperCase()}
+                        </MonoLabel>
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 12,
+                          color: "var(--text-subtle)",
+                        }}
+                      >
+                        {on ? "✓" : busy ? "…" : "→"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginTop: 4 }}>
                 <button
-                  key={spec.id}
                   type="button"
-                  disabled={on || busy || !configured}
-                  onClick={() => {
-                    setConnectError(null);
-                    setConnectingId(spec.id);
-                    mConnect.mutate(spec);
-                  }}
+                  onClick={() => setShowPaste(true)}
                   style={{
                     textAlign: "left",
                     padding: "13px 14px",
                     borderRadius: "var(--radius-card)",
                     background: "var(--card)",
                     border: "1px solid var(--hairline)",
-                    opacity: configured || on ? 1 : 0.45,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
+                    width: "100%",
+                    cursor: "pointer",
                   }}
                 >
-                  <span>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-ui)",
-                        fontSize: 13.5,
-                        fontWeight: 550,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {spec.label}
-                    </span>
-                    <MonoLabel style={{ display: "block", marginTop: 3 }}>
-                      {spec.label.toUpperCase()} · {estimate.toUpperCase()}
-                    </MonoLabel>
-                    {!configured ? (
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: 11,
-                          color: "var(--text-faint)",
-                          marginTop: 3,
-                        }}
-                      >
-                        Admin setup required
-                      </span>
-                    ) : null}
-                  </span>
                   <span
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 12,
-                      color: "var(--text-subtle)",
+                      fontFamily: "var(--font-ui)",
+                      fontSize: 13.5,
+                      fontWeight: 550,
+                      color: "var(--text-primary)",
                     }}
                   >
-                    {on ? "connected" : busy ? "…" : "→"}
+                    Or paste your notes
                   </span>
+                  <p
+                    style={{
+                      fontSize: 11.5,
+                      color: "var(--text-faint)",
+                      marginTop: 3,
+                      marginBottom: 0,
+                    }}
+                  >
+                    Paste a PRD, product notes, or your bet · Cadence will analyze it directly.
+                  </p>
                 </button>
-              );
-            })}
+              </div>
 
-            <button
-              type="button"
-              disabled={!seedLive || mDemo.isPending}
-              onClick={() => {
-                setConnectError(null);
-                mDemo.mutate();
-              }}
-              style={{
-                textAlign: "left",
-                padding: "13px 14px",
-                borderRadius: "var(--radius-card)",
-                background: "transparent",
-                border: "1px solid var(--hairline)",
-                marginTop: 4,
-                opacity: seedLive ? 1 : 0.5,
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "var(--font-ui)",
-                  fontSize: 13.5,
-                  fontWeight: 550,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {mDemo.isPending ? "Setting up demo data…" : "Use demo data instead · 0 setup"}
-              </span>
-              <p
-                style={{
-                  fontSize: 11.5,
-                  color: "var(--text-faint)",
-                  marginTop: 3,
-                  marginBottom: 0,
-                }}
-              >
-                {seedLive
-                  ? "A seeded workspace with real-shaped signals · nothing to connect."
-                  : "Demo data is not enabled yet · connect a real source to continue."}
-              </p>
-            </button>
+              {connectError ? (
+                <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4 }}>
+                  {connectError} · try connecting a different source
+                </p>
+              ) : null}
 
-            {connectError ? (
-              <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4 }}>
-                {connectError} · try demo data
-              </p>
-            ) : null}
-
-            {/* SW-6: this step could hard dead-end (no configured providers +
-                demo seed off left every button disabled). The seeded track
-                data already gives the Critic something real to work with, so
-                skipping is always safe. */}
-            <div style={{ marginTop: 10 }}>
-              <Button variant="tertiary" onClick={() => void afterConnected()}>
-                Skip for now, connect later in Settings
-              </Button>
+              <div style={{ marginTop: 10 }}>
+                <Button
+                  variant="tertiary"
+                  onClick={() => {
+                    void afterConnected();
+                  }}
+                >
+                  Or skip and connect later
+                </Button>
+              </div>
             </div>
+          ) : (
+            <div>
+              <textarea
+                value={pasteNotes}
+                onChange={(e) => setPasteNotes(e.target.value)}
+                placeholder="Paste your product notes, PRD, or the bet you want to challenge..."
+                style={{
+                  width: "100%",
+                  minHeight: 180,
+                  background: "var(--raised)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "11px 14px",
+                  color: "var(--text-body)",
+                  fontSize: 13,
+                  fontFamily: "var(--font-ui)",
+                  boxSizing: "border-box",
+                }}
+              />
+              <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (pasteNotes.trim()) {
+                      setBelief(pasteNotes.slice(0, 200));
+                      seededBeliefRef.current = pasteNotes.slice(0, 200);
+                      setPhase("critic");
+                    }
+                  }}
+                >
+                  Use these notes
+                </Button>
+                <Button variant="tertiary" onClick={() => setShowPaste(false)}>
+                  Back
+                </Button>
+              </div>
+            </div>
+          )}
+        </Frame>
+      </Screen>
+    );
+  }
+
+  if (phase === "critic") {
+    return (
+      <Screen>
+        <Frame eyebrow="STEP 3 OF 3" heading="Challenging your thinking…">
+          <input
+            value={belief}
+            onChange={(e) => setBelief(e.target.value)}
+            style={{
+              width: "100%",
+              background: "var(--raised)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "var(--radius-control)",
+              padding: "11px 14px",
+              color: "var(--text-body)",
+              fontSize: 13.5,
+              boxSizing: "border-box",
+            }}
+          />
+          <p style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 12, marginBottom: 0 }}>
+            Cadence will show its work with receipts.
+          </p>
+          <div style={{ marginTop: 16 }}>
+            <Button
+              variant="primary"
+              disabled={mFinish.isPending}
+              onClick={() => mFinish.mutate()}
+              style={{ width: "100%" }}
+            >
+              {mFinish.isPending ? "Analyzing…" : "Get the Critic's take"}
+            </Button>
           </div>
         </Frame>
       </Screen>
     );
   }
 
-  // phase === "critic"
-  return (
-    <Screen>
-      <Frame eyebrow="STEP 3 OF 4" heading="Point the Critic at a belief.">
-        <input
-          value={belief}
-          onChange={(e) => setBelief(e.target.value)}
-          style={{
-            width: "100%",
-            background: "var(--raised)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            padding: "11px 14px",
-            color: "var(--text-body)",
-            fontSize: 13.5,
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginTop: 16,
-          }}
-        >
-          <span style={{ fontSize: 11.5, color: "var(--text-subtle)", maxWidth: 260 }}>
-            The teardown lands on Today · receipts attached.
-          </span>
-          <Button variant="primary" disabled={mFinish.isPending} onClick={() => mFinish.mutate()}>
-            {mFinish.isPending ? "Challenging…" : "Challenge this"}
-          </Button>
-        </div>
-      </Frame>
-    </Screen>
-  );
+  // phase === "results" — show Critic findings + brain warming signals
+  if (phase === "results") {
+    return (
+      <Screen>
+        <Frame heading="Here's what Cadence found.">
+          {criticReview ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Verdict badge */}
+              <div
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: "var(--radius-card)",
+                  background:
+                    criticReview.verdict === "ship"
+                      ? "var(--success-tint)"
+                      : criticReview.verdict === "kill"
+                        ? "var(--danger-tint)"
+                        : "var(--caution-tint)",
+                  border:
+                    criticReview.verdict === "ship"
+                      ? "1px solid var(--success)"
+                      : criticReview.verdict === "kill"
+                        ? "1px solid var(--danger)"
+                        : "1px solid var(--caution)",
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 13,
+                    fontWeight: 550,
+                    color: "var(--text-primary)",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  Verdict: {criticReview.verdict}
+                </p>
+                {criticReview.summary ? (
+                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, margin: 0 }}>
+                    {criticReview.summary}
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Brain warming: risks + evidence */}
+              <div>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                    margin: 0,
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    fontWeight: 550,
+                  }}
+                >
+                  Key risks
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
+                    <div key={i} style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}>
+                      • {risk}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Missing evidence / precedent */}
+              {(criticReview.missing_evidence ?? []).length > 0 ? (
+                <div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text-muted)",
+                      margin: 0,
+                      marginBottom: 8,
+                      textTransform: "uppercase",
+                      fontWeight: 550,
+                    }}
+                  >
+                    What you need to test
+                  </p>
+                  <div style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}>
+                    {criticReview.missing_evidence[0]}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Confidence */}
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: "var(--radius-control)",
+                  background: "var(--raised)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                    margin: 0,
+                    marginBottom: 4,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Confidence
+                </p>
+                <div
+                  style={{
+                    height: 4,
+                    borderRadius: 2,
+                    background: "var(--hairline)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${(criticReview.confidence ?? 0.5) * 100}%`,
+                      background: "var(--text-muted)",
+                      transition: "width 300ms ease",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    window.sessionStorage.removeItem("cadence.onboarding.phase");
+                    window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+                    navigate({ to: "/today" });
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  Go to your workspace
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                Critic review is loading…
+              </p>
+              <Button
+                variant="tertiary"
+                onClick={() => {
+                  navigate({ to: "/today" });
+                }}
+                style={{ marginTop: 12 }}
+              >
+                Skip to workspace
+              </Button>
+            </div>
+          )}
+        </Frame>
+      </Screen>
+    );
+  }
+
+  return null;
 }
