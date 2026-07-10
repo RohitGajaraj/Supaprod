@@ -1,4 +1,3 @@
-
 # Parallel build - how to run the lanes
 
 > _Created: 2026-06-19 · Last updated: 2026-07-10_
@@ -15,15 +14,15 @@
 
 Five equal peer worktrees (`cadence-lane-0` .. `cadence-lane-4`). None is reserved for anything; each claims one item at a time from the ledger.
 
-| Lane | Skill | Folder | Branch | Prefers (then roams the whole board) |
-| --- | --- | --- | --- | --- |
-| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0` | Monetization, Credit, Foundational |
-| **1** | `/overnight-build-1` | `cadence-lane-1` | `parallel/lane-1` | Cockpit, then Governance |
-| **2** | `/overnight-build-2` | `cadence-lane-2` | `parallel/lane-2` | Sense, Decide, Interop |
-| **3** | `/overnight-build-3` | `cadence-lane-3` | `parallel/lane-3` | Governance, then Cockpit |
-| **4** | `/overnight-build-4` | `cadence-lane-4` | `parallel/lane-4` | Build, then Interop |
+| Lane  | Skill                    | Folder           | Branch            | Prefers (then roams the whole board) |
+| ----- | ------------------------ | ---------------- | ----------------- | ------------------------------------ |
+| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0` | Monetization, Credit, Foundational   |
+| **1** | `/overnight-build-1`     | `cadence-lane-1` | `parallel/lane-1` | Cockpit, then Governance             |
+| **2** | `/overnight-build-2`     | `cadence-lane-2` | `parallel/lane-2` | Sense, Decide, Interop               |
+| **3** | `/overnight-build-3`     | `cadence-lane-3` | `parallel/lane-3` | Governance, then Cockpit             |
+| **4** | `/overnight-build-4`     | `cadence-lane-4` | `parallel/lane-4` | Build, then Interop                  |
 
-The lane folders are siblings of this repo, under `~/Projects/My Projects/My Builds/`. The *number* is the identity, not the folder word; branch names are stable internal handles and are not renamed. Lane 0 used to be the special whole-product "WM/overnight" lane; as of 2026-06-21 it is a normal peer that claims per item like the rest.
+The lane folders are siblings of this repo, under `~/Projects/My Projects/My Builds/`. The _number_ is the identity, not the folder word; branch names are stable internal handles and are not renamed. Lane 0 used to be the special whole-product "WM/overnight" lane; as of 2026-06-21 it is a normal peer that claims per item like the rest.
 
 ## How to launch a lane
 
@@ -47,7 +46,7 @@ tab 4:  ob 3
 tab 5:  ob 4
 ```
 
-(`Ctrl-Shift-` ` or the `+` in the terminal panel opens a new tab.) Watch them all with `ob board` (or `bash scripts/lane.sh board`).
+(`Ctrl-Shift-` `or the`+`in the terminal panel opens a new tab.) Watch them all with`ob board`(or`bash scripts/lane.sh board`).
 
 > The command is a shell function in `~/.zshrc` (block marked `cadence parallel-build lanes (ob)`). Open a fresh terminal after install, or run `source ~/.zshrc` once, for it to be available.
 
@@ -68,7 +67,7 @@ Each worktree's `.claude/settings.local.json` sets `model: opus[1m]` + `effortLe
 A git working tree is a **private** view: a claim written into one worktree's dashboard copy is invisible to the other worktrees until it is committed, pushed, and the others pull. That gap let two lanes pick the same item. The fix is a **shared claim ledger that lives outside every worktree**, at `~/.cadence-parallel/`, with an **atomic** primitive:
 
 - **Claiming = `mkdir` of the item's claim dir**, which the OS does atomically - if two lanes race for the same item, exactly one wins and the rest get `HELD` and pick something else. (Proven by `scripts/lane.test.sh`: 12 concurrent claims → 1 winner.)
-- **Each claim also reserves the file globs it will touch.** A claim whose files overlap an active claim is rejected (`CONFLICT`), so even when lanes roam onto *different* items they can never edit the *same files*. This is what lets a lane safely build anything on the board, not just its own category.
+- **Each claim also reserves the file globs it will touch.** A claim whose files overlap an active claim is rejected (`CONFLICT`), so even when lanes roam onto _different_ items they can never edit the _same files_. This is what lets a lane safely build anything on the board, not just its own category.
 
 Commands (all lanes share one ledger):
 
@@ -84,6 +83,7 @@ The lane still mirrors its claim into the dashboard (`🔨 In Dev`) and pushes i
 ## Are the pinned reservations restrictive? (no - they are temporary)
 
 The ledger holds two kinds of entries:
+
 - **Per-item claims** (the normal case): a lane claims ONE dashboard row + the files it touches, builds it, releases it. Fully dynamic - any lane claims the highest-priority eligible row in ANY category. Nothing is glued to a category.
 - **Pinned reservations** (`[pinned]` in `lane.sh list`): a TEMPORARY guard for a lane running WITHOUT the ledger (the old-model Lanes 0/1/2 during the 2026-06-20 transition). They reserve that lane's live files so a new ledger-aware lane can't collide with a session it cannot see.
 
@@ -99,7 +99,7 @@ Each lane reads, every cycle: its `.remember/LANE.md` (lane number, branch, repo
 
 ## It never stops on its own
 
-A lane does not halt when its preferred category empties - it **roams** to the next eligible item anywhere on the board. When the *whole* board is dry it writes "board dry - long-polling" to its report and **rechecks every ~25 minutes** (a new row, a freed claim, or a founder push wakes it). It stops only on a real usage-limit (sub-5-minute retry) or when you stop it. This is the founder "never idle-stop" ruling, applied to lanes.
+A lane does not halt when its preferred category empties - it **roams** to the next eligible item anywhere on the board. When the _whole_ board is dry it writes "board dry - long-polling" to its report and **rechecks every ~25 minutes** (a new row, a freed claim, or a founder push wakes it). It stops only on a real usage-limit (sub-5-minute retry) or when you stop it. This is the founder "never idle-stop" ruling, applied to lanes.
 
 ## Seeing who is on what (per-lane current task)
 

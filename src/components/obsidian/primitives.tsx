@@ -15,14 +15,7 @@ export function rgba(hex: string, alpha: number): string {
 }
 
 export type MonoLabelTone =
-  | "ember"
-  | "glacier"
-  | "blossom"
-  | "moss"
-  | "madder"
-  | "marigold"
-  | "muted"
-  | "faint";
+  "ember" | "glacier" | "blossom" | "moss" | "madder" | "marigold" | "muted" | "faint";
 
 export const MONO_LABEL_TONE_COLOR: Record<MonoLabelTone, string> = {
   ember: "var(--ember)",

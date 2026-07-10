@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-12 |
-| Rank | #13 |
-| Tier | 2 |
-| Status | pending |
-| Category | Cockpit |
-| Depends on | OBS-10 (IA consolidation; the five destinations exist and legacy routes fold) · transitively OBS-03 (`SlideOver` chassis) |
-| Blocks | nothing downstream |
+| Field         | Value                                                                                                                                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID            | OBS-12                                                                                                                                                                                                                                                                                                 |
+| Rank          | #13                                                                                                                                                                                                                                                                                                    |
+| Tier          | 2                                                                                                                                                                                                                                                                                                      |
+| Status        | pending                                                                                                                                                                                                                                                                                                |
+| Category      | Cockpit                                                                                                                                                                                                                                                                                                |
+| Depends on    | OBS-10 (IA consolidation; the five destinations exist and legacy routes fold) · transitively OBS-03 (`SlideOver` chassis)                                                                                                                                                                              |
+| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                     |
 | One-line what | Ask (⌘J) summonable, context-aware AI panel: a right-docked 420px slide-over over any screen, canonical AI-message anatomy (body + sources + cost in mono + "How I got this" one click deeper), shimmer-while-thinking on a three-word status. A panel, never a destination. Ask leaves the rail here. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-12 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-12                                                                                                                                                                                                                             |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                 |
 
 ## 2. Why we are doing it
 
@@ -28,6 +28,7 @@ The v11 tie: Ask is the fast path into the decision-and-outcome layer. "How I go
 ## 3. What we are building
 
 **Scope IN**
+
 - A single summonable `AskPanel`, mounted once in the authenticated layout, opened by ⌘J from any surface (and by the ⌘K palette's ASK action, OBS-11).
 - The `SlideOver`-chassis chrome from OBS-03: right-docked 420px, `cadSlideIn` 240ms, scrim, Esc, focus trap + restore.
 - The canonical Obsidian AI-message anatomy: body, sources (blossom citation chips), time + cost in quiet mono, "How I got this" one-click-deeper trace.
@@ -38,6 +39,7 @@ The v11 tie: Ask is the fast path into the decision-and-outcome layer. "How I go
 - Removing Ask from the rail: the `nav-model.ts` primary entry and its lucide icon go; `/chat` redirects.
 
 **Scope OUT (no feature work rides along)**
+
 - `/api/chat` server logic is **consumed read-only** and MUST NOT change (streaming protocol, classifier, mission dispatch, research, meta events all stay byte-identical).
 - The conversation server functions (`createConversation`, `getConversation`, `listConversations`) are consumed read-only; the panel uses a single scratch conversation and does NOT build a threads rail (threads are a `/chat`-page concept being retired). No new server function, no migration, no schema change.
 - No change to the AI runtime, model routing, or cost logic.
@@ -90,15 +92,18 @@ _authenticated.tsx  (layout · edit: wrap providers, mount panel)
 ```
 
 **New files**
+
 - `src/lib/ask-context.tsx` · `AskProvider`, `useAsk`, the ⌘J listener, the path→context mapper.
 - `src/components/obsidian/AskPanel.tsx` · the panel + thread + message + composer + streaming client. (All sub-components co-located; export only `AskPanel`.)
 - `src/components/obsidian/__tests__/ask-panel.test.tsx` · the tests in §5.13.
 
 **File moves / renames / redirects**
+
 - `_authenticated.chat.tsx` → redirect stub to `/today` (coordinate with OBS-10). No new route file.
 - `nav-model.ts` · delete the Ask primary entry + its lucide import (§8).
 
 **Data flow (server fns consumed, not modified)**
+
 - `POST /api/chat` (SSE) · consumed read-only for streaming answers.
 - `createConversation` (`src/lib/conversations.functions.ts`) · consumed read-only to mint one scratch conversation per panel session (`ensureConversation`).
 - `parseChatMeta`, `ChatMeta` (`MessageMeta.tsx`); `parseResearchStatus`, `ResearchStatus` (`ResearchActivity.tsx`); `ChatMarkdown` · consumed as-is. **No server function is modified.**
@@ -106,11 +111,13 @@ _authenticated.tsx  (layout · edit: wrap providers, mount panel)
 ## 7. Design elements (exact values)
 
 **Panel chrome (mission-slide-over chrome, contract §9 / components.md "Mission slide-over"):**
+
 - Width 420px, max 92vw, fixed right. Background `#101013`. Left hairline 1px `rgba(255,255,255,0.09)` (`--hairline-strong`). Shadow `-30px 0 60px rgba(0,0,0,0.5)`. Enter `cadSlideIn` 240ms, `--ease cubic-bezier(0.23,1,0.32,1)`.
 - Scrim: `rgba(4,4,5,0.6)` + `blur(3px)`; click closes.
 - Radii: panel `--radius-panel 14` (inner cards `--radius-card 12`).
 
 **Header:**
+
 - `ASK` · mono `--font-mono` (JetBrains Mono) 9.5px caps, 0.11em tracking, `--glacier #7FD1DC`.
 - Context chip: mono 9px caps, glacier text on a glacier hairline pill (`1px rgba(127,209,220,0.35)`, radius `--radius-pill 99`, padding 3/8), `background: color-mix(in oklab, var(--glacier) 8%, transparent)`. The machine reads the screen; glacier is its voice.
 - Close: quiet mono link "Close" `--text-subtle #7D786F`; hover `#EAF6FF`.
@@ -118,12 +125,14 @@ _authenticated.tsx  (layout · edit: wrap providers, mount panel)
 **User turn:** `--surface-card-deep #0E0E10`, radius 12, padding 10/14, text `--font-ui` 13px/1.55 `--text-primary #F2F0ED`, right-aligned, max-width ~80% of panel.
 
 **AI message:**
+
 - Body: `--font-ui` 13px, line-height 1.65, `--text-body #B5AFA6`. Citations render as superscript blossom chips (`Citation` primitive, `--blossom #E5BDDF`).
 - Footer (quiet mono, `--font-mono` 9px caps, `--text-faint #55524C`, middot `·` separators): time ("· 1.4S"), cost ("· $0.02"), sources count. Source chips: blossom mono 8.5px on a blossom hairline.
 - "HOW I GOT THIS →" quiet inline link: mono-caps 9px `--glacier`; hover `#EAF6FF`. Model name appears only inside the expanded trace, never in the footer chrome.
 - Trace panel (expanded): `#0B0B0D` card, radius 10, mono 10.5px log lines (`--text-subtle`), the `meta.research.sub_queries` + numbered sources + the model id.
 
 **Shimmer status (while thinking):**
+
 - Three-word mono, `--font-mono` ~10px, background `--shimmer-gradient: linear-gradient(90deg,#7FD1DC,#5B7CFA,#8B5CF6,#C77DFF,#EAF6FF,#3B5BDB,#7FD1DC)`, `background-size: 280%`, `-webkit-background-clip: text`, color transparent, `animation: cadShimmer 5s linear infinite`. **Max one shimmer per screen** · the rail working line yields while `useAsk().isOpen`. Never a spinner.
 
 **Ember CTA (the one warm pixel, max one):** `Button` primary · ember fill `--ember #FF6B2C`, ink `--cta-ink #0A0A0B`, `--font-ui` 13px/600, radius `--radius-control 8`, padding 9/18. Hover `--ember-deep #C2571F`. Press `transform: scale(0.985)` for `--dur-control 140ms`. Rendered only when the reply proposes a genuinely human-needed action.
@@ -131,6 +140,7 @@ _authenticated.tsx  (layout · edit: wrap providers, mount panel)
 **Composer:** container hairline `1px var(--hairline)` on `#0E0E10`, radius 12, padding 10/12. Textarea `--font-ui` 13px/1.55, transparent, resize none, grows to 4 lines (~`4 × 1.55 × 13 ≈ 80px` max-height). Send affordance: quiet glacier `→` (Enter is the primary path). Cost preview under it: mono 9px caps `--text-faint`, "EST · $0.02", shown only when a heavy action is proposed. Helper: mono 9px caps "ENTER TO SEND · ESC CLOSES".
 
 **Interaction states**
+
 - **Hover:** Close and "How I got this" brighten to `#EAF6FF`; ember CTA → `--ember-deep`. Tonal only, nothing translates.
 - **Focus:** `:focus-visible` 2px `--glacier` outline, offset 2, on the textarea, Close, and the ember CTA. Selection ember 28% (`--selection`).
 - **Active/press:** ember CTA scale(0.985) 140ms.
@@ -183,6 +193,7 @@ All strings humanized: no em/en dashes (middot `·`), no exclamation marks, no e
 ## 11. Prototype-parity checklist (the last gate, tailored)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` (the mission slide-over is the chrome twin) side by side with the built panel at 1440px:
+
 1. **Chrome:** 420px right dock, `#101013`, left hairline 9% white, `-30px 0 60px black 50%`, scrim `rgba(4,4,5,0.6)`+blur(3px), `cadSlideIn` 240ms · matches the mission slide-over exactly.
 2. **Header:** mono `ASK` label 9.5px glacier + plain-words context chip + Close; no icons.
 3. **Type:** body UI 13px/1.65; user turn 13px/1.55 primary; mono metadata 9px caps with middots; trace 10.5px mono.

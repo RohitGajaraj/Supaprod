@@ -21,8 +21,24 @@
 const DENO_API_BASE = "https://api.deno.com/v2";
 
 const TEXT_EXTENSIONS = new Set([
-  "ts", "tsx", "js", "jsx", "mjs", "json", "jsonc", "html", "css", "md", "txt",
-  "svg", "yml", "yaml", "toml", "csv", "xml", "webmanifest",
+  "ts",
+  "tsx",
+  "js",
+  "jsx",
+  "mjs",
+  "json",
+  "jsonc",
+  "html",
+  "css",
+  "md",
+  "txt",
+  "svg",
+  "yml",
+  "yaml",
+  "toml",
+  "csv",
+  "xml",
+  "webmanifest",
 ]);
 const MAX_FILE_BYTES = 400_000;
 const MAX_FILES = 200;
@@ -44,8 +60,14 @@ export function denoDeployConfigured(): boolean {
  * (adversarial-review finding: 6 hex reached birthday territory at a few
  * thousand changesets, silently clobbering another changeset's live app). */
 export function deriveAppSlug(workspaceId: string, changesetId: string): string {
-  const ws = workspaceId.replace(/[^a-z0-9]/gi, "").slice(0, 8).toLowerCase();
-  const cs = changesetId.replace(/[^a-z0-9]/gi, "").slice(0, 12).toLowerCase();
+  const ws = workspaceId
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 8)
+    .toLowerCase();
+  const cs = changesetId
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 12)
+    .toLowerCase();
   return `cad-${ws}-${cs}`;
 }
 
@@ -160,7 +182,8 @@ export async function deployChangesetApp(args: {
   production: boolean;
 }): Promise<ChangesetDeployResult> {
   const token = denoToken();
-  if (!token) return { ok: false, revisionId: null, url: null, reason: "DENO_DEPLOY_TOKEN not set" };
+  if (!token)
+    return { ok: false, revisionId: null, url: null, reason: "DENO_DEPLOY_TOKEN not set" };
   const slug = deriveAppSlug(args.workspaceId, args.changesetId);
   const auth = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 

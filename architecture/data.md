@@ -40,9 +40,10 @@ Every signed-in profile must have at least one workspace membership. `current_us
 
 ### Why embeddings are locked to one model + dimension (read this before swapping the embedder)
 
-Every stored vector is **1536-d** (~20 `vector(1536)` columns across `rag_chunks`, `agent_memory`, etc.), chosen to match **OpenAI `text-embedding-3-small`** (the Lovable gateway's default embedder — strong, cheap [~$0.02 / 1M tokens]).
+Every stored vector is **1536-d** (~~20 `vector(1536)` columns across `rag_chunks`, `agent_memory`, etc.), chosen to match **OpenAI `text-embedding-3-small`** (the Lovable gateway's default embedder — strong, cheap [~~$0.02 / 1M tokens]).
 
 This makes embeddings, unlike completions, **NOT model-agnostic**:
+
 - **Completions** output text → any model works (Gemini/GPT/Claude are interchangeable; BYO routing in `runtime.server.ts` `byoConfig` covers them). This is why a BYO Gemini key drives chat with zero schema work.
 - **Embeddings** output a fixed-length vector → similarity search (cosine) requires every vector (stored chunks AND the query) to come from the **same model**: same **dimension** (768 ≠ 1536 can't even be compared) AND same **semantic space** (a different model at 1536-d is still a different space → garbage matches). So the embedder is pinned to OpenAI `text-embedding-3-small` (or the gateway, which uses it).
 - **Free embedders don't fit:** Gemini (`text-embedding-004` = 768) and Ollama (`nomic` = 768) mismatch the dimension; even Gemini's configurable-1536 mode is a different space. Switching to any of them = re-embed EVERY stored vector + change the column dimension + rebuild the HNSW index (a full, destructive data migration), then locked to that embedder. Not worth it — a cheap OpenAI key matches the existing vectors with no migration.

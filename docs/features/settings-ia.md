@@ -19,18 +19,18 @@ The first "yes" wins. This mirrors the data model: a user has accounts; an accou
 
 The live Settings tabs (`TABS` in the settings route) map cleanly onto the rubric:
 
-| Tab (id) | Scope | Why |
-| --- | --- | --- |
-| **Profile** (`profile`) | Personal | the user's identity; same in every workspace |
-| **Models** (`ai`) | Personal | personal BYO model keys + model preferences (user-level, like `api-keys` / `mcp-tokens`) |
-| **Accounts** (`connections`) | Account | account-level connected provider logins (connect once, use across the account's workspaces) |
-| **Plan** (`billing`) | Account | the subscription — billing entity (moved to the account in WM-M2) |
-| **Credits** (`credits`) | Account | credit balance / usage / top-ups — the account's spendable pool |
-| **Workspace** (`workspace`) | Workspace | the active workspace's brief / mission / members / invites / roles |
-| **Staff** (`staff`) | Workspace | the workspace's agent roster (agents carry `workspace_id` since WM-F1) |
-| **Integrations** (`interop`) | Workspace | per-workspace connector resource bindings |
-| **Data** (`data`) | Workspace | export / retention / right-to-be-forgotten for the active workspace's data |
-| **Health** (`health`) | System | platform health / readiness, read-only, cross-cutting |
+| Tab (id)                     | Scope     | Why                                                                                         |
+| ---------------------------- | --------- | ------------------------------------------------------------------------------------------- |
+| **Profile** (`profile`)      | Personal  | the user's identity; same in every workspace                                                |
+| **Models** (`ai`)            | Personal  | personal BYO model keys + model preferences (user-level, like `api-keys` / `mcp-tokens`)    |
+| **Accounts** (`connections`) | Account   | account-level connected provider logins (connect once, use across the account's workspaces) |
+| **Plan** (`billing`)         | Account   | the subscription — billing entity (moved to the account in WM-M2)                           |
+| **Credits** (`credits`)      | Account   | credit balance / usage / top-ups — the account's spendable pool                             |
+| **Workspace** (`workspace`)  | Workspace | the active workspace's brief / mission / members / invites / roles                          |
+| **Staff** (`staff`)          | Workspace | the workspace's agent roster (agents carry `workspace_id` since WM-F1)                      |
+| **Integrations** (`interop`) | Workspace | per-workspace connector resource bindings                                                   |
+| **Data** (`data`)            | Workspace | export / retention / right-to-be-forgotten for the active workspace's data                  |
+| **Health** (`health`)        | System    | platform health / readiness, read-only, cross-cutting                                       |
 
 ## Consequences (use this when adding a setting)
 

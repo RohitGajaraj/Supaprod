@@ -76,9 +76,24 @@ describe("groupMissionEvents (Lane 2: group by the mission that moved)", () => {
   test("groups mission transitions under the mission with its goal/title and cost", () => {
     const groups = groupMissionEvents(
       [
-        { entity_type: "mission", entity_id: "m1", to_stage: "running", at: "2026-07-07T10:00:00Z" },
-        { entity_type: "mission", entity_id: "m1", to_stage: "shipped", at: "2026-07-07T11:00:00Z" },
-        { entity_type: "mission", entity_id: "m2", to_stage: "running", at: "2026-07-07T09:00:00Z" },
+        {
+          entity_type: "mission",
+          entity_id: "m1",
+          to_stage: "running",
+          at: "2026-07-07T10:00:00Z",
+        },
+        {
+          entity_type: "mission",
+          entity_id: "m1",
+          to_stage: "shipped",
+          at: "2026-07-07T11:00:00Z",
+        },
+        {
+          entity_type: "mission",
+          entity_id: "m2",
+          to_stage: "running",
+          at: "2026-07-07T09:00:00Z",
+        },
       ],
       meta,
       cost,
@@ -94,8 +109,18 @@ describe("groupMissionEvents (Lane 2: group by the mission that moved)", () => {
   test("non-mission transitions fold under a single 'Other activity' group, sorted last", () => {
     const groups = groupMissionEvents(
       [
-        { entity_type: "decision", entity_id: "d1", to_stage: "approved", at: "2026-07-07T10:00:00Z" },
-        { entity_type: "mission", entity_id: "m1", to_stage: "running", at: "2026-07-07T11:00:00Z" },
+        {
+          entity_type: "decision",
+          entity_id: "d1",
+          to_stage: "approved",
+          at: "2026-07-07T10:00:00Z",
+        },
+        {
+          entity_type: "mission",
+          entity_id: "m1",
+          to_stage: "running",
+          at: "2026-07-07T11:00:00Z",
+        },
       ],
       meta,
       cost,
@@ -154,11 +179,7 @@ describe("assembleLane4 (real cost, never fabricated)", () => {
   });
 
   test("falls back to week aggregate for the average only when no per-item cost resolves", () => {
-    const lane = assembleLane4(
-      [{ ...learnings[1], id: "l3" }],
-      new Map(),
-      30,
-    );
+    const lane = assembleLane4([{ ...learnings[1], id: "l3" }], new Map(), 30);
     expect(lane.avg_cost_per_outcome_usd).toBe(30); // 30 / 1 item
   });
 

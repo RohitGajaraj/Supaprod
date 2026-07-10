@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-14 |
-| Rank | #15 |
-| Tier | 2 |
-| Status | pending (founder-gated on the demo seed) |
-| Category | Cockpit |
-| Depends on | OBS-10 (IA consolidation · the rail + `/today` destination are real), OBS-04 (lands on the ported Today, hosts the coach mark), OBS-03 (primitives: Button, MonoLabel, StatusDot), demo seed live (DEMO-SEED-RICH / `ONBOARDING_SEED_ENABLED=1`) |
-| Blocks | nothing downstream |
-| One-line what | The five-screen golden path: Arrival (butterfly choreography) to track pick to one connection or seeded demo to point the Critic to land on Today with one glacier coach mark. Every step carries a time estimate. No tour. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-14 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Field         | Value                                                                                                                                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID            | OBS-14                                                                                                                                                                                                                                           |
+| Rank          | #15                                                                                                                                                                                                                                              |
+| Tier          | 2                                                                                                                                                                                                                                                |
+| Status        | pending (founder-gated on the demo seed)                                                                                                                                                                                                         |
+| Category      | Cockpit                                                                                                                                                                                                                                          |
+| Depends on    | OBS-10 (IA consolidation · the rail + `/today` destination are real), OBS-04 (lands on the ported Today, hosts the coach mark), OBS-03 (primitives: Button, MonoLabel, StatusDot), demo seed live (DEMO-SEED-RICH / `ONBOARDING_SEED_ENABLED=1`) |
+| Blocks        | nothing downstream                                                                                                                                                                                                                               |
+| One-line what | The five-screen golden path: Arrival (butterfly choreography) to track pick to one connection or seeded demo to point the Critic to land on Today with one glacier coach mark. Every step carries a time estimate. No tour.                      |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-14                                                                                                                                                                       |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                           |
 
 ## 2. Why we are doing it
 
@@ -32,6 +32,7 @@ Onboarding is the first ten minutes, and the whole thesis has to be felt before 
 ## 3. What we are building
 
 **Scope IN**
+
 - A five-screen Obsidian onboarding, full-viewport, dark-only, scoped under `[data-obsidian]`, replacing the parchment `OnboardingFlow` render at `/onboarding`:
   1. **Arrival** · black canvas, the butterfly arrival choreography (fly in, four wing beats, land, settle), Newsreader 34px "Judgment, with receipts.", muted sub, one ember "Start".
   2. **Track pick** · three quiet cards, plain-words jobs; picking one seeds the examples (never limits capability).
@@ -43,6 +44,7 @@ Onboarding is the first ten minutes, and the whole thesis has to be felt before 
 - A per-screen progress affordance (four ember segments, Arrival is unnumbered) matching the prototype's mono-caps step register.
 
 **Scope OUT (no feature work rides along)**
+
 - No server functions are written or changed. OBS-14 consumes these existing ones read-only or via their existing mutations: `getProfile` (`["profile"]`, the name pre-gate), `seedWorkspaceForTrack` (track pick seeding, existing mutation), `listConnections` + the existing connect mutations (`startGatewayConnect` / `saveGatewayConnection` / `startGithubAppConnect` and the calendar trio), `runCriticReview` (`src/lib/discovery.functions.ts:20`, the Critic challenge), `completeOnboarding` (`src/lib/onboarding.functions.ts:229`, the finish), and `markOnboarded` (`src/lib/onboarding-gate.ts`). The seeded demo relies on the founder-gated seed (`seedWorkspace` / DEMO-SEED-RICH under `ONBOARDING_SEED_ENABLED=1`).
 - No new Critic kind, no new schema, no new columns, no new track. The staff-toggle step and the goal step from the parchment wizard are dropped, not re-skinned (staff config lives in Settings; the goal becomes the Critic belief).
 - The Today surface itself is OBS-04. OBS-14 adds only the coach mark host and the "just landed" trigger to it; it does not restyle Today.
@@ -115,6 +117,7 @@ All values below are quoted from hub §5. Scope every token to `[data-obsidian]`
 **Motion.** One easing `--ease cubic-bezier(0.23,1,0.32,1)`. Screen entrances use `cadRise` (translateY 10px to 0, 260ms). Hover on cards is a 140ms one-step surface lift + brightened hairline, tonal, never spatial. Press on the ember CTA: fill to `--ember-deep`, scale(0.985) for 140ms. `cadFlutter` (3.4s, transform-origin 12px 12px) for the butterfly rest; the bespoke `cadArrive` (900ms, opacity/translateY 18px to 0/scale 0.92 to 1) for the fly-in. All motion gates on `prefers-reduced-motion` (zeroed) and the in-product toggle.
 
 **Component anatomies.**
+
 - **Arrival hero:** butterfly 56px centered; 24px gap to the Newsreader 34px line; 12px to the muted 13px sub; 24px to the ember Start (control radius 8, 12px/20px padding, `--cta-ink` text). No card, no border, pure canvas.
 - **Track card:** `--card` fill, 1px `--hairline` border, radius 12, padding 14px/16px, left-aligned. Title Schibsted 15px/550, sub `--text-muted` 12px. Hover lifts to `--hover` and brightens the hairline to `--hairline-strong`. Pending state: a quiet glacier dot + "SEEDING" mono label, no spinner icon.
 - **Connection row:** `--card` fill, 1px hairline, radius 12, padding 13px/14px. Left: provider label Schibsted 13.5px/550 + a mono time estimate ("INTERCOM · ABOUT 2 MINUTES") in `--text-faint`. Right: a "Connect" text affordance (`→` unicode in mono, no lucide). Unconfigured providers drop to opacity 0.45 with helper "Admin setup required". The demo action is a full-width quiet row below the shelf, equal weight, no ember.
@@ -122,6 +125,7 @@ All values below are quoted from hub §5. Scope every token to `[data-obsidian]`
 - **Coach mark:** glass panel (backdrop-filter blur 20, background `rgba(17,17,19,0.72)`, 1px `rgba(255,255,255,0.08)` hairline, radius 14, padding 12px/14px), a 1px `--glacier` accent hairline on the anchored edge and a small glacier arrow pointing at the badge. Copy in `--text-body` 13px; a quiet "Got it" text button in `--text-muted`.
 
 **Interaction states.**
+
 - **Hover:** cards and rows lift one surface step (`--card` to `--hover`), hairline brightens; no translate.
 - **Focus:** 2px `--glacier` outline, offset 2 (`:focus-visible`) on every card, row, input, and button.
 - **Active/press:** ember CTA to `--ember-deep` + scale(0.985) 140ms.
@@ -172,6 +176,7 @@ Humanized: no em or en dashes, middot `·` as separator, no exclamation marks, p
 ## 11. Prototype-parity checklist (the last gate, tailored)
 
 Onboarding is off-shell, so the rail/top-bar points apply only to the landing on Today. Walk these side by side at 1440px with the frozen prototype and screenshots in the ship report:
+
 1. **Rail (on Today landing):** 236px, mono index 01 to 05, the ONE Today badge present, the working shimmer line live (a teardown is running).
 2. **Surface chrome:** onboarding is centered full-viewport, 600px framed screens, Arrival unframed; each screen enters with `cadRise` 260ms.
 3. **Type:** Arrival hero Newsreader 34px; screen headings 28px; UI 13px/1.55; mono step eyebrow and time estimates 9 to 9.5px caps with middots.

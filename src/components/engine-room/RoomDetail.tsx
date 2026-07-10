@@ -1,7 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button, VerdictChip, FlashlightTabs } from "@/components/obsidian";
-import { ROOM_QUESTIONS, ROOM_TAB_META, type RoomKey, type RoomTabMeta } from "@/lib/engine-room-glance";
+import {
+  ROOM_QUESTIONS,
+  ROOM_TAB_META,
+  type RoomKey,
+  type RoomTabMeta,
+} from "@/lib/engine-room-glance";
 import { useEngineRoomGlance } from "./EngineRoomSurface";
 import { SpendRoom } from "./rooms/SpendRoom";
 import { QualityRoom } from "./rooms/QualityRoom";

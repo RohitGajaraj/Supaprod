@@ -144,7 +144,12 @@ export function PreviewPanel({
           ) : null}
         </div>
         <p
-          style={{ margin: "8px 0 0", fontSize: 11.5, color: "var(--text-subtle)", lineHeight: 1.4 }}
+          style={{
+            margin: "8px 0 0",
+            fontSize: 11.5,
+            color: "var(--text-subtle)",
+            lineHeight: 1.4,
+          }}
         >
           {isLive
             ? "Updating live as the build works on the page."

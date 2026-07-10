@@ -15,15 +15,19 @@ The HITL path is not removed — it remains the default for any mission that fai
 ## The four conditions (all must hold simultaneously)
 
 ### 1. `BRAIN_AUTO_TRIGGER=1` — founder's circuit breaker
+
 An environment variable in Lovable project settings. Defaults to OFF (`0` or absent). Set it to `1` to activate auto-promotion. Flip it back to `0` at any time to immediately return to full HITL — no code change, no deploy needed. This is the kill switch.
 
 ### 2. `proposal.reversible = true` — only analysis missions
+
 The `TriggerProposal` type carries a `reversible` boolean. In the current policy (`evaluateTriggers` in `src/lib/sensing/trigger.ts`), all Watch-scan and customer-listen proposals are marked `reversible: true`. These are read-only analysis missions — the agent reviews signals and writes a summary. No external write, no code push, no stakeholder message. Future proposals that create PRs, send emails, or deploy code would carry `reversible: false` and would always require the human click regardless of the flag.
 
 ### 3. `ambientCount === 0` — ambient arc (not mid-sprint)
+
 Count of missions currently in `running` or `in_progress` status in this workspace. If any mission is actively executing, the workspace is "mid-sprint" and auto-promotion is skipped. This prevents stacking agent runs during an active session. When the active mission completes, the next trigger-tick will re-evaluate (the proposed mission stays open and deduplication will not re-create it, but its status is still `proposed` and the auto-promotion path will retry on the next tick when `ambientCount = 0`).
 
 ### 4. `autoTodayCount < AUTO_TRIGGER_DAILY_CAP` — daily spend cap
+
 `AUTO_TRIGGER_DAILY_CAP = 2`. At most two missions per workspace per 24-hour UTC day will be auto-promoted. This bounds the worst-case daily AI spend to ~$0.06 (two Watch/Listen runs at ~$0.03 each). The count is derived at runtime by querying `missions WHERE auto_trigger_source = 'auto' AND updated_at >= today_utc_start`. Within a single tick, the counter increments in memory after each auto-promotion so two proposals in the same tick cannot both slip through under the cap.
 
 ## Architecture
@@ -81,21 +85,21 @@ Set `BRAIN_AUTO_TRIGGER=0` (or remove the variable). Takes effect on the next tr
 
 ## Cost model
 
-| Scenario | Spend |
-|---|---|
-| Flag OFF (default) | $0.00 — no auto-runs |
-| Flag ON, 2 Watch runs/day | ~$0.03 × 2 = ~$0.06/day/workspace |
-| Flag ON, cap hit | $0.06 max/day/workspace (hard ceiling) |
+| Scenario                  | Spend                                  |
+| ------------------------- | -------------------------------------- |
+| Flag OFF (default)        | $0.00 — no auto-runs                   |
+| Flag ON, 2 Watch runs/day | ~$0.03 × 2 = ~$0.06/day/workspace      |
+| Flag ON, cap hit          | $0.06 max/day/workspace (hard ceiling) |
 
 ## Related files
 
-| File | Role |
-|---|---|
-| `src/lib/sensing/trigger.ts` | `shouldAutoPromote()` pure policy fn + `AUTO_TRIGGER_DAILY_CAP` constant |
-| `src/lib/sensing/trigger.test.ts` | 7 unit tests for `shouldAutoPromote` (all conditions × combinations) |
-| `src/routes/api/public/hooks/trigger-tick.ts` | Auto-promotion wiring; ambient + cap queries; the DB status flip |
-| `supabase/migrations/20260701000000_auto_trigger_source.sql` | Adds `auto_trigger_source` column to `missions` |
-| `docs/features/signal-fabric.md` | Parent spec; Phase 3 section updated |
+| File                                                         | Role                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `src/lib/sensing/trigger.ts`                                 | `shouldAutoPromote()` pure policy fn + `AUTO_TRIGGER_DAILY_CAP` constant |
+| `src/lib/sensing/trigger.test.ts`                            | 7 unit tests for `shouldAutoPromote` (all conditions × combinations)     |
+| `src/routes/api/public/hooks/trigger-tick.ts`                | Auto-promotion wiring; ambient + cap queries; the DB status flip         |
+| `supabase/migrations/20260701000000_auto_trigger_source.sql` | Adds `auto_trigger_source` column to `missions`                          |
+| `docs/features/signal-fabric.md`                             | Parent spec; Phase 3 section updated                                     |
 
 ## See also
 

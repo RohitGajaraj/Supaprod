@@ -13,10 +13,10 @@ toast: string | null               // auto-clear after 3.6s
 ## Data objects
 
 - **Call** `{ id, kind, expiry, title, body, ev: [{src, text}], okLabel,
-  noLabel, consequence, okToast, noToast }` — three kinds shown: SHIP IT?,
+noLabel, consequence, okToast, noToast }` — three kinds shown: SHIP IT?,
   WORTH BUILDING?, SPEND.
 - **Mission** `{ id, title, agent, cost, status: working|gate|done|queued,
-  gateId?, verdict?, step, steps: [{n, agent, what, state}], trace: [line] }`
+gateId?, verdict?, step, steps: [{n, agent, what, state}], trace: [line] }`
 - Signals, opportunities, specs, roadmap bets, decisions, learnings, rooms:
   see the prototype's constants for canonical sample content and copy tone.
 

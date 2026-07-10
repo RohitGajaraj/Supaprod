@@ -8,7 +8,7 @@
 
 **Goal:** ship the first increment of the Decision Brain's supersession engine: when a human records an outcome, infer and WRITE typed `supersedes`/`contradicts` edges (with bi-temporal validity, invalidate-don't-delete) between the workspace's own past decisions/outcomes, so the graph can later answer "what contradicts this / what did this outcome invalidate" — the queries that make outcome-labeled judgment structurally un-backfillable (the moat). **Flag-gated OFF by default** (zero AI spend, byte-identical) until the founder activates + tunes it.
 
-**Why this increment (DBR-1.5):** DBR-1 v1 (the read-side graph explorer) shipped in the knowledge lane over `artifact_lineage` with "an empty-but-ready supersession seam." Ambient Precedent (DBR-0 + increment 1) gives the Critic *precedent* but cannot express *contradiction/supersession*. This increment fills the write-side seam. It does NOT yet make the Critic reason over the edges multi-hop — that is DBR-2 (deferred, avoids read-side AI spend now).
+**Why this increment (DBR-1.5):** DBR-1 v1 (the read-side graph explorer) shipped in the knowledge lane over `artifact_lineage` with "an empty-but-ready supersession seam." Ambient Precedent (DBR-0 + increment 1) gives the Critic _precedent_ but cannot express _contradiction/supersession_. This increment fills the write-side seam. It does NOT yet make the Critic reason over the edges multi-hop — that is DBR-2 (deferred, avoids read-side AI spend now).
 
 ## Architecture (write-only this increment)
 
@@ -42,12 +42,14 @@
 **File:** create `supabase/migrations/<ts>_decision_brain_supersession_bitemporal.sql` (timestamp newer than all existing).
 
 - [ ] Add three nullable columns, additive only (no default, no NOT NULL, no index change):
+
 ```sql
 ALTER TABLE public.artifact_lineage
   ADD COLUMN IF NOT EXISTS valid_to timestamptz,        -- bi-temporal: when the belief stopped being true; NULL = currently valid
   ADD COLUMN IF NOT EXISTS invalidated_by uuid,         -- the lineage/learning row that retired this edge
   ADD COLUMN IF NOT EXISTS inference jsonb;             -- {verdict, score, source:'supersession-engine', ai_event_id}
 ```
+
 - [ ] Comment the columns. RLS already covers them (`FOR ALL`). No index needed for v1 (avoid a table lock; revisit if read-side filtering by `valid_to` is added in DBR-2).
 - [ ] **Live dry-run when DB access is available** (founder/publish step): `BEGIN; <alter>; ROLLBACK;` on prod via the Lovable/Supabase MCP to confirm a clean apply (offline this cycle: the migration is additive + idempotent, so it is safe by construction).
 
@@ -81,22 +83,24 @@ ALTER TABLE public.artifact_lineage
 ### Task 5: hook `inferSupersession` into `recordOutcome`
 
 - [ ] In `src/lib/outcome.functions.ts`, immediately after the `rememberOutcome(...)` call (~line 252-272) and before the `return` (~274), add ONE best-effort call:
+
 ```ts
-      // DBR-1.5: best-effort, flag-gated supersession-edge inference (never breaks the outcome).
-      try {
-        await inferSupersession(db, {
-          userId,
-          prdId: prd.id,
-          opportunityId: (prd.opportunity_id as string | null) ?? null,
-          text: [prd.title, data.summary].filter(Boolean).join(". "),
-          verdict: data.verdict,
-          summary: data.summary,
-          aiEventId: null,
-        });
-      } catch (e) {
-        console.error("inferSupersession failed (non-fatal):", e);
-      }
+// DBR-1.5: best-effort, flag-gated supersession-edge inference (never breaks the outcome).
+try {
+  await inferSupersession(db, {
+    userId,
+    prdId: prd.id,
+    opportunityId: (prd.opportunity_id as string | null) ?? null,
+    text: [prd.title, data.summary].filter(Boolean).join(". "),
+    verdict: data.verdict,
+    summary: data.summary,
+    aiEventId: null,
+  });
+} catch (e) {
+  console.error("inferSupersession failed (non-fatal):", e);
+}
 ```
+
 (`inferSupersession` is itself fail-safe; the outer try is belt-and-suspenders. Confirm `prd.title`/`prd.opportunity_id` are selected at the hook, open-confirmation #2.)
 
 ### Task 6: `.env.example` + doc-loop
@@ -109,6 +113,7 @@ ALTER TABLE public.artifact_lineage
 ## Founder-decision-points (proposed defaults applied; founder tunes at ACTIVATION)
 
 These are graph-taste/sequencing calls. The increment ships flag-OFF, so NONE block the build — the defaults are recorded and the founder tunes them when flipping `DECISION_BRAIN_SUPERSESSION` on:
+
 1. **Edge direction:** `contradicts` points new-outcome → prior-belief (proposed). Visible via the renderer's arrowheads.
 2. **Aggressiveness:** `SUPERSESSION_THRESHOLD=0.3` + `SUPERSESSION_MAX=2` (proposed, conservative; tune live to avoid false-contradiction graph pollution — the append-only-graph-rots risk).
 3. **Verdict→edge matrix:** `missed`-vs-prior-`validated/mixed`→`contradicts`; `validated`-vs-prior-`missed`→`supersedes`; `mixed`-as-new never asserts (proposed).

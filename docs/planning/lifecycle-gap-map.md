@@ -34,43 +34,43 @@ Plain agent names are used (slug in parens). Engineer = `builder`, Review = `qa`
 
 ### Stage 1 - Build (code) : WELL CAPTURED
 
-| Data point | Captured? | Where | Reference |
-|---|---|---|---|
-| Multi-file staged changeset | Yes | `studio_changesets` + `studio_changes` (op create/update/delete, base/new content) | `migrations/20260612100000_f_studio_engine.sql` |
-| Branch + base SHA | Yes | `studio_changesets.branch`, `.base_sha` | same |
-| Commit hash + revision history | Yes | `studio_changeset_revisions` (commit_sha, revision_num) | `migrations/20260616230000_i1b_studio_revisions.sql` |
-| PR number + URL + status | Yes | `studio_changesets.pr_number`, `.pr_url`, `.status` (staged/committed/pr_open/merged/abandoned) | `f_studio_engine.sql` |
-| Run status / duration / tokens / cost | Yes | `agent_runs` (+ `ai_events` for cost) | `migrations/20260602204826_*.sql` |
-| Loop checkpoints (resumable state) | Yes | `agent_run_checkpoints.state` (jsonb) | `migrations/20260603214017_*.sql` |
-| HITL approval gates | Yes | `agent_approvals` (tool, args, status, decided_by/at, rationale) | `migrations/20260602205139_*.sql` |
-| Per-file exclusive locks | Yes | `builder_file_claims` (unique held claim per repo/path) | `migrations/20260606164458_*.sql` |
-| Mission DAG lineage | Yes | `mission_steps` (depends_on, status, result) | `migrations/20260606120924_*.sql` |
+| Data point                            | Captured? | Where                                                                                           | Reference                                            |
+| ------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Multi-file staged changeset           | Yes       | `studio_changesets` + `studio_changes` (op create/update/delete, base/new content)              | `migrations/20260612100000_f_studio_engine.sql`      |
+| Branch + base SHA                     | Yes       | `studio_changesets.branch`, `.base_sha`                                                         | same                                                 |
+| Commit hash + revision history        | Yes       | `studio_changeset_revisions` (commit_sha, revision_num)                                         | `migrations/20260616230000_i1b_studio_revisions.sql` |
+| PR number + URL + status              | Yes       | `studio_changesets.pr_number`, `.pr_url`, `.status` (staged/committed/pr_open/merged/abandoned) | `f_studio_engine.sql`                                |
+| Run status / duration / tokens / cost | Yes       | `agent_runs` (+ `ai_events` for cost)                                                           | `migrations/20260602204826_*.sql`                    |
+| Loop checkpoints (resumable state)    | Yes       | `agent_run_checkpoints.state` (jsonb)                                                           | `migrations/20260603214017_*.sql`                    |
+| HITL approval gates                   | Yes       | `agent_approvals` (tool, args, status, decided_by/at, rationale)                                | `migrations/20260602205139_*.sql`                    |
+| Per-file exclusive locks              | Yes       | `builder_file_claims` (unique held claim per repo/path)                                         | `migrations/20260606164458_*.sql`                    |
+| Mission DAG lineage                   | Yes       | `mission_steps` (depends_on, status, result)                                                    | `migrations/20260606120924_*.sql`                    |
 
 Flow + tools: `src/lib/studio.functions.ts`, `src/lib/ai/tools/registry.server.ts` (studioStage / studioCommit / studioPrOpen / githubCiRead / studioPrMerge / studioRevert).
 
 ### Stage 2 - Review + merge gate : PARTIAL
 
-| Data point | Captured? | Where | Reference |
-|---|---|---|---|
-| CI verdict (success/failure/pending/neutral) | Read live, NOT persisted | in-memory at merge time only | `src/lib/ai/studio-ci.ts` (`mergeReadinessFromCi`) |
-| Hard merge gate (block on red/pending CI) | Yes | `studioPrMerge` re-fetches CI live | `registry.server.ts` ~1620-1710 |
-| Inspector summary (file count, test presence, ci_ran/passed) | Yes (warn-only, never blocks) | `summarizeInspection` -> CiPanel card | `src/lib/ai/studio-inspection.ts`, `src/components/studio/CiPanel.tsx` |
-| Operator approval (Cadence-native) | Yes | `agent_approvals` (status, decided_by/at, decision_reason) | `migrations/20260602205139_*.sql` |
-| Eval-regression gate | NO (does not exist) | grep for eval/regression/P4 in build path: none | - |
-| **Human PR review (comments, approvals, requested-changes, reviewer)** | **NO** | not read, not stored; connector has no reviews API | `src/lib/connectors/providers/github.server.ts` |
+| Data point                                                             | Captured?                     | Where                                                      | Reference                                                              |
+| ---------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| CI verdict (success/failure/pending/neutral)                           | Read live, NOT persisted      | in-memory at merge time only                               | `src/lib/ai/studio-ci.ts` (`mergeReadinessFromCi`)                     |
+| Hard merge gate (block on red/pending CI)                              | Yes                           | `studioPrMerge` re-fetches CI live                         | `registry.server.ts` ~1620-1710                                        |
+| Inspector summary (file count, test presence, ci_ran/passed)           | Yes (warn-only, never blocks) | `summarizeInspection` -> CiPanel card                      | `src/lib/ai/studio-inspection.ts`, `src/components/studio/CiPanel.tsx` |
+| Operator approval (Cadence-native)                                     | Yes                           | `agent_approvals` (status, decided_by/at, decision_reason) | `migrations/20260602205139_*.sql`                                      |
+| Eval-regression gate                                                   | NO (does not exist)           | grep for eval/regression/P4 in build path: none            | -                                                                      |
+| **Human PR review (comments, approvals, requested-changes, reviewer)** | **NO**                        | not read, not stored; connector has no reviews API         | `src/lib/connectors/providers/github.server.ts`                        |
 
 Note: the merge gate is **CI-green + Cadence approval**, NOT GitHub-review-gated. J1 "test discipline" is a prompt instruction, not a hard gate; the CI result is the only correctness signal.
 
 ### Stage 3 - Deploy : NOT CAPTURED (the big hole)
 
-| Data point | Captured? | Notes |
-|---|---|---|
-| Deployment event (a release went live) | NO | grep "deploy/deployment": none found in product code |
-| Environment model (preview / staging / production) | NO | grep "environment/staging/production": only infra env-vars, no product concept |
-| Preview / test deploy URL ("redeploy for testing") | NO | grep "preview": only `input_preview`/`output_preview` UI fields, not deploy previews |
-| Deploy status / logs | NO | merge closes the in-product loop; deploy is external (Lovable -> Cloudflare) |
-| Post-deploy health / smoke check | NO | grep "health/monitor/alert" in build path: none |
-| Deploy-level rollback (roll back a live release) | NO | K2 reverts the COMMIT, not a deployment (see Stage 2b) |
+| Data point                                         | Captured? | Notes                                                                                |
+| -------------------------------------------------- | --------- | ------------------------------------------------------------------------------------ |
+| Deployment event (a release went live)             | NO        | grep "deploy/deployment": none found in product code                                 |
+| Environment model (preview / staging / production) | NO        | grep "environment/staging/production": only infra env-vars, no product concept       |
+| Preview / test deploy URL ("redeploy for testing") | NO        | grep "preview": only `input_preview`/`output_preview` UI fields, not deploy previews |
+| Deploy status / logs                               | NO        | merge closes the in-product loop; deploy is external (Lovable -> Cloudflare)         |
+| Post-deploy health / smoke check                   | NO        | grep "health/monitor/alert" in build path: none                                      |
+| Deploy-level rollback (roll back a live release)   | NO        | K2 reverts the COMMIT, not a deployment (see Stage 2b)                               |
 
 The product itself deploys via Lovable publish -> Cloudflare Workers (`wrangler.jsonc`), but that pipeline is invisible to the product. There is no way for the loop to know a change deployed, to which environment, at what URL, or whether it stayed healthy.
 
@@ -82,14 +82,14 @@ Limits: operator-initiated only (no auto-rollback on a failed deploy, because we
 
 ### Stage 4 - Ship (announce) : DRAFT-ONLY
 
-| Data point | Captured? | Where | Reference |
-|---|---|---|---|
-| Release notes (generated) | Yes | `studio_changesets.release_notes`, `.release_notes_at` (Gemini summary of files + commits, regenerable) | `migrations/20260616240000_k1_release_notes.sql`, `generateReleaseNotes()` in `studio.functions.ts` |
-| Release notes shown in-app | Partial | collapsible card in the Build surface only (`ChangesPanel`); NOT in the Releases roll-up | `src/components/studio/ChangesPanel.tsx` |
-| "Releases" roll-up | Yes (but thin) | completed missions + completed `agent_runs` (duration/cost/tokens); does NOT show release_notes text | `src/components/product/ReleasesPanel.tsx`, `outcome.functions.ts` getOutcomeData |
-| **Publish to changelog page** | **NO** | no `/changelog` route; tool name `publish_changelog` has no implementation | - |
-| **Release email** | **NO** | no template, no trigger on merge, no recipients (`send_email` is an approval tool name only) | `outcome.functions.ts` LAUNCH_TOOLS |
-| **Social / PR / marketing** | **NO** | build-in-public lives in a separate private repo (Buffer); no hook from Ship; only manual `docs/brand-feed.md` | - |
+| Data point                    | Captured?      | Where                                                                                                          | Reference                                                                                           |
+| ----------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Release notes (generated)     | Yes            | `studio_changesets.release_notes`, `.release_notes_at` (Gemini summary of files + commits, regenerable)        | `migrations/20260616240000_k1_release_notes.sql`, `generateReleaseNotes()` in `studio.functions.ts` |
+| Release notes shown in-app    | Partial        | collapsible card in the Build surface only (`ChangesPanel`); NOT in the Releases roll-up                       | `src/components/studio/ChangesPanel.tsx`                                                            |
+| "Releases" roll-up            | Yes (but thin) | completed missions + completed `agent_runs` (duration/cost/tokens); does NOT show release_notes text           | `src/components/product/ReleasesPanel.tsx`, `outcome.functions.ts` getOutcomeData                   |
+| **Publish to changelog page** | **NO**         | no `/changelog` route; tool name `publish_changelog` has no implementation                                     | -                                                                                                   |
+| **Release email**             | **NO**         | no template, no trigger on merge, no recipients (`send_email` is an approval tool name only)                   | `outcome.functions.ts` LAUNCH_TOOLS                                                                 |
+| **Social / PR / marketing**   | **NO**         | build-in-public lives in a separate private repo (Buffer); no hook from Ship; only manual `docs/brand-feed.md` | -                                                                                                   |
 
 Verdict: Ship drafts and stores, then stops. The "launch" half (notes -> the world) is unimplemented.
 
@@ -113,7 +113,7 @@ There are two independent notions of "shipped," and nothing links them:
 1. **Build-merge shipped:** a `studio_changeset` reaches `status = merged` and gets `release_notes`. (Build station.)
 2. **PRD-outcome shipped:** a PRD's GitHub issue closes, `prds.shipped_at` is stamped, and an outcome/learning is recorded. (Learn station.)
 
-A Studio merge does not stamp a PRD; the outcome tick watches issues opened from PRDs via `github.issue.create`. So the agent that *wrote and merged the code* and the record that *learns whether it worked* live in different schema paths with no foreign key between them. Joining them is the highest-leverage, lowest-cost fix here, because both ends already exist.
+A Studio merge does not stamp a PRD; the outcome tick watches issues opened from PRDs via `github.issue.create`. So the agent that _wrote and merged the code_ and the record that _learns whether it worked_ live in different schema paths with no foreign key between them. Joining them is the highest-leverage, lowest-cost fix here, because both ends already exist.
 
 ---
 

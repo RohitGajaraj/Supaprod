@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-08 |
-| Rank | #9 |
-| Tier | 1 |
-| Status | pending |
-| Category | Knowledge |
-| Depends on | OBS-03 (Obsidian primitives) · transitively OBS-01, OBS-02 |
-| Blocks | nothing downstream (OBS-10 folds routes after all five surfaces exist, but does not block on this presentation port) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-08                                                                                                                                                                                                                                                                                                               |
+| Rank          | #9                                                                                                                                                                                                                                                                                                                   |
+| Tier          | 1                                                                                                                                                                                                                                                                                                                    |
+| Status        | pending                                                                                                                                                                                                                                                                                                              |
+| Category      | Knowledge                                                                                                                                                                                                                                                                                                            |
+| Depends on    | OBS-03 (Obsidian primitives) · transitively OBS-01, OBS-02                                                                                                                                                                                                                                                           |
+| Blocks        | nothing downstream (OBS-10 folds routes after all five surfaces exist, but does not block on this presentation port)                                                                                                                                                                                                 |
 | One-line what | Brain ported: a stat trio (Newsreader numerals + mono micro-labels) with "Export my record", decision rows with outcome verdict chips, learning rows with what-they-moved lines in glacier mono, and the belief graph surface reusing the existing F-IA-BRAIN-GRAPH data flow (presentation ported, data untouched). |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-08 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-08                                                                                                                                                                                                                                           |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                               |
 
 ## 2. Why we are doing it
 
@@ -30,6 +30,7 @@ This is **presentation and IA wiring only**. No server function changes. The bel
 ## 3. What we are building
 
 **Scope IN**
+
 - The Brain surface re-skinned to Obsidian, wrapped in `[data-obsidian]`, using the OBS-03 primitive set.
 - A **stat trio** at the top: three Newsreader 24px numerals, each with a mono micro-label, sourced from real data only (no placeholder numbers). The trio reuses the existing `getImpactLedger` server fn (read-only).
 - An **"Export my record"** secondary button that produces the portable record. It reuses the existing markdown export already backing `/impact` (`getImpactLedger` returns `markdown`). The control is present only when a record exists; otherwise it is honestly absent (no dead control).
@@ -40,6 +41,7 @@ This is **presentation and IA wiring only**. No server function changes. The bel
 - Optional sparklines inside the stat trio per obsidian-extensions §6 (single series, 1.5px, last-value dot only), IF the ledger already exposes a series; otherwise deferred to OBS-15 (chart grammar). Do not fabricate a series.
 
 **Scope OUT**
+
 - No server-function edits. `getImpactLedger`, `getBrainStatus`, `getCompanyBrainStats`, `listDecisions`, the brain-insights functions, and the `artifact_lineage` graph queries are all consumed read-only.
 - No route consolidation. OBS-08 keeps the surface at its current route (`/knowledge`); the fold of `/knowledge`, `/memory`, `/impact` into one Brain destination is **OBS-10**. OBS-08 ports presentation; OBS-10 wires the IA.
 - No new belief-graph capability. Presentation port only (founder ruling: reuse F-IA-BRAIN-GRAPH data flow, port presentation only).
@@ -74,7 +76,7 @@ Surgical, file by file, top to bottom. Assumes OBS-01 (`[data-obsidian]` + fonts
    - `128 CALLS MADE` -> `ledger.decisions` (or `outcomes.total`; pick the field that matches the prototype's "calls made" meaning: decisions logged).
    - `71% VALIDATED` -> `Math.round(outcomes.hitRate * 100) + "%"` when `hitRate !== null`, else omit the cell (honestly absent, no dash-filler beyond the ledger's own convention).
    - Third cell: net ICE moved -> `${iceShiftTotal >= 0 ? "+" : ""}${iceShiftTotal} ICE MOVED`. The prototype's example `$214k SAVED BY KILLS` is illustrative; the current ledger has NO dollars-saved metric, so render the real `iceShiftTotal` label instead. Do NOT fabricate a dollar figure.
-   Each cell: Newsreader 24px numeral (`--font-serif`, 450, `--text-primary`, tabular-nums) + `MonoLabel` micro-label below (8.5px, `--text-mono-micro`, `--text-subtle`, middot-separated where it reads as metadata). Nothing renders until the query resolves (no-filler law).
+     Each cell: Newsreader 24px numeral (`--font-serif`, 450, `--text-primary`, tabular-nums) + `MonoLabel` micro-label below (8.5px, `--text-mono-micro`, `--text-subtle`, middot-separated where it reads as metadata). Nothing renders until the query resolves (no-filler law).
 
 5. **Add "Export my record".** In `BrainStatTrio.tsx`, render an OBS-03 `Button` variant `secondary` labeled `Export my record`, right-aligned in the trio row. On click, take `query.data.markdown` and download it (Blob `text/markdown`, `a.download = "decision-record.md"`, revoke the object URL) exactly as `_authenticated.impact.tsx` already does. **The button renders only when `markdown` is non-empty** (a record exists). When the record is empty, render the empty-record instruction (§9) instead of a dead control.
 
@@ -120,12 +122,14 @@ _authenticated.knowledge.tsx  (route; shell provided by OBS-02)
 ```
 
 **New files**
+
 - `src/components/knowledge/BrainStatTrio.tsx` - the stat trio + export button.
 - `src/components/knowledge/__tests__/brain-stat-trio.test.tsx` - the trio + export + empty tests.
 
 **File moves / renames:** none. The route stays `_authenticated.knowledge.tsx` (OBS-10 owns any route rename to `/brain`). No component is deleted (parchment consumers of `DecisionsPanel` etc. may still exist until OBS-10; if you fork an Obsidian variant, keep the parchment original until the fold).
 
 **Data flow (all consumed read-only):**
+
 - `getImpactLedger` (`src/lib/pm-impact.functions.ts`) - query key `["impact-ledger", name]` -> stat trio numerals + `markdown` for export. Pure aggregator `src/lib/pm-impact.ts`.
 - `getBrainStatus` + `getCompanyBrainStats` (`src/lib/brain.functions.ts`) - query keys `["brain-status"]`, `["company-brain-stats"]` -> the Product brain count strip.
 - `listDecisions` (`src/lib/decisions.functions.ts`) -> decision rows.
@@ -153,6 +157,7 @@ Exact values, quoted from the hub §5 (never invent a hex, duration, or easing).
 **Glows:** live glacier dot `0 0 10px rgba(127,209,220,~)`. Verdict chips carry a soft glow of their own hue at low alpha (per OBS-03: 12% tinted fill, 45%-alpha border of the same hue).
 
 **Interaction states (design every one):**
+
 - **Stat cell - default:** `--card` bg, radius 12, 14/16 padding, Newsreader numeral + mono micro-label. **Hover:** none (a stat is not a control; it does not answer the cursor). No lift.
 - **Export button - default:** secondary variant, `--raised` bg, `--hairline-strong` border, radius 8, UI 13px. **Hover:** background lifts one step to `--hover`, hairline brightens (tonal, not spatial; nothing translates). **Focus:** 2px glacier outline, offset 2 (`:focus-visible`). **Press:** scale(0.985) 140ms. **Absent state:** when no record exists, the button is not rendered at all (no disabled dead control).
 - **Decision / learning row - default:** real `<button>`, `--card` (or alternating `--surface-card-deep`), bottom `--hairline`. **Hover:** fill `#141416`, hairline brightens. **Focus:** glacier outline offset 2. **Active/press:** scale(0.985) 140ms. Drills to `?decision=` / opens detail.
@@ -209,6 +214,7 @@ Voice check: calm, PM vocabulary (call, bet, ICE, ship), one wink at most, plain
 ## 11. Prototype-parity checklist (the last gate)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` (Brain view) side by side with `/knowledge` at 1440px:
+
 1. **Rail:** 236px mono index 01-05, Brain (05) active state bg `#1A1A1E` + ember index, one Today badge elsewhere, Engine Room door, user chip. (Provided by OBS-02; verify Brain is the active row.)
 2. **Surface chrome:** 52px top bar, container max-width matches the prototype's Brain width, `cadRise` entrance, correct padding rhythm.
 3. **Type:** hero Newsreader 34px with the one ember italic word (`record`); stat numerals Newsreader 24px tabular; mono micro-labels 8.5-9px caps with middots; learning moved-line glacier mono 10px.

@@ -6,7 +6,7 @@
 >
 > This is the cold-buildable spec. Any agent (Lovable Cloud / Claude Code / Antigravity) should be able to pick this up, run the migration, ship the server fns, and wire the UI without re-deriving intent.
 
-> _Reconciled 2026-06-21 against shipped code: (1) section 6 specified two cron hooks but the shipped reality is a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()` that clears expired plan overrides AND invitations atomically; (2) `adminRevokeSessions` (section 3) and `adminSystemHealth()` (section 3) were specced but did NOT ship - both deferred; (3) the admin plan override is stored as `subscriptions.plan_override_tier` (text slug), not the specced `plan_override_id` (uuid fk). The pricing/entitlements/admin block now lives on `feature-dashboard.md` (row M-C-PRICE + the M-C-* / ADM-* rows)._
+> _Reconciled 2026-06-21 against shipped code: (1) section 6 specified two cron hooks but the shipped reality is a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()` that clears expired plan overrides AND invitations atomically; (2) `adminRevokeSessions` (section 3) and `adminSystemHealth()` (section 3) were specced but did NOT ship - both deferred; (3) the admin plan override is stored as `subscriptions.plan_override_tier` (text slug), not the specced `plan_override_id` (uuid fk). The pricing/entitlements/admin block now lives on `feature-dashboard.md` (row M-C-PRICE + the M-C-\* / ADM-\* rows)._
 
 ---
 
@@ -38,16 +38,16 @@ One migration file. All new tables in `public`. Every table gets GRANT + RLS + p
 
 ### 2.1 New tables
 
-| Table | Purpose | Key columns |
-| --- | --- | --- |
-| `admin_audit_log` | Append-only record of every admin mutation. | `actor_user_id`, `action`, `target_kind` (`user`/`workspace`/`voucher`/`flag`/`banner`), `target_id`, `payload` (jsonb), `created_at` |
-| `vouchers` | Promo codes. | `code` (unique), `kind` (`signup`/`credit_grant`/`plan_upgrade`), `plan_id` (nullable), `credits` (int, nullable), `auto_login` (bool, signup only), `max_redemptions` (nullable), `expires_at`, `campaign_tag`, `created_by`, `active` |
-| `voucher_redemptions` | Who redeemed what, when. | `voucher_id`, `user_id`, `workspace_id` (nullable), `redeemed_at`, `meta` (jsonb) |
-| `invitations` | Admin-issued invites (single + bulk). | `email`, `workspace_id` (nullable = signup-only invite), `role`, `token` (unique), `state` (`pending`/`accepted`/`revoked`/`expired`), `invited_by`, `expires_at` |
-| `auto_approve_domains` | Email-domain auto-accept rules. | `domain` (unique), `workspace_id` (nullable), `default_role`, `created_by` |
-| `signup_approvals` | Manual-review queue when auto-approve does not match. | `email`, `requested_workspace_id`, `state` (`pending`/`approved`/`rejected`), `reviewed_by`, `reviewed_at`, `note` |
-| `feature_flags` | Server-readable kill switches. | `key` (unique), `enabled` (bool), `payload` (jsonb), `updated_by`, `updated_at` |
-| `system_banner` | Global banner (one-row-active). | `message`, `level` (`info`/`warn`/`alert`), `active`, `expires_at`, `updated_by` |
+| Table                  | Purpose                                               | Key columns                                                                                                                                                                                                                             |
+| ---------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin_audit_log`      | Append-only record of every admin mutation.           | `actor_user_id`, `action`, `target_kind` (`user`/`workspace`/`voucher`/`flag`/`banner`), `target_id`, `payload` (jsonb), `created_at`                                                                                                   |
+| `vouchers`             | Promo codes.                                          | `code` (unique), `kind` (`signup`/`credit_grant`/`plan_upgrade`), `plan_id` (nullable), `credits` (int, nullable), `auto_login` (bool, signup only), `max_redemptions` (nullable), `expires_at`, `campaign_tag`, `created_by`, `active` |
+| `voucher_redemptions`  | Who redeemed what, when.                              | `voucher_id`, `user_id`, `workspace_id` (nullable), `redeemed_at`, `meta` (jsonb)                                                                                                                                                       |
+| `invitations`          | Admin-issued invites (single + bulk).                 | `email`, `workspace_id` (nullable = signup-only invite), `role`, `token` (unique), `state` (`pending`/`accepted`/`revoked`/`expired`), `invited_by`, `expires_at`                                                                       |
+| `auto_approve_domains` | Email-domain auto-accept rules.                       | `domain` (unique), `workspace_id` (nullable), `default_role`, `created_by`                                                                                                                                                              |
+| `signup_approvals`     | Manual-review queue when auto-approve does not match. | `email`, `requested_workspace_id`, `state` (`pending`/`approved`/`rejected`), `reviewed_by`, `reviewed_at`, `note`                                                                                                                      |
+| `feature_flags`        | Server-readable kill switches.                        | `key` (unique), `enabled` (bool), `payload` (jsonb), `updated_by`, `updated_at`                                                                                                                                                         |
+| `system_banner`        | Global banner (one-row-active).                       | `message`, `level` (`info`/`warn`/`alert`), `active`, `expires_at`, `updated_by`                                                                                                                                                        |
 
 ### 2.2 Column additions
 
@@ -73,6 +73,7 @@ Every new public table gets, in the same migration: GRANT to `authenticated` onl
 All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(auth.uid(),'admin')` inside `.handler()`. Every mutation appends one row to `admin_audit_log` in the same transaction.
 
 ### `src/lib/admin.functions.ts` - People · Users panel
+
 - `adminSearchUsers({ q, limit, offset })` - paged list joining profile + plan + credit balance.
 - `adminGetUserDetail({ userId })` - identity, plan, credits, workspaces, last 50 audit rows.
 - `adminGrantCredits({ userId, delta, reason })` - signed delta; ledger + audit.
@@ -82,14 +83,17 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
 - ~~`adminRevokeSessions({ userId })` - Supabase auth admin invalidates refresh tokens.~~ **DEFERRED / NOT SHIPPED** _(reconciled 2026-06-21: specced but did not ship)._
 
 ### `src/lib/admin-invitations.functions.ts` - People · Invitations panel
+
 - `adminCreateInvitation`, `adminBulkCreateInvitations({ csv })`, `adminListInvitations`, `adminRevokeInvitation`.
 - `adminListAutoApproveDomains` / `adminUpsertAutoApproveDomain` / `adminDeleteAutoApproveDomain`.
 - `adminListSignupApprovals` / `adminReviewSignupApproval`.
 
 ### `src/lib/admin-vouchers.functions.ts` - People · Vouchers panel
+
 - `adminListVouchers`, `adminCreateVoucher`, `adminUpdateVoucher`, `adminDeactivateVoucher`, `adminListRedemptions`.
 
 ### `src/lib/redeem-voucher.functions.ts` - public-facing (not admin)
+
 - `redeemVoucher({ code })` used by signup (`?voucher=`) and by an in-app "Redeem code" field.
   - Validates `active`, `max_redemptions`, `expires_at`.
   - **signup** kind: creates user if missing, enrolls into voucher's `planId`, credits the bonus, and if `auto_login=true` confirms the email server-side (`email_confirm: true`) and issues a session.
@@ -98,15 +102,18 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
   - Always inserts a `voucher_redemptions` row.
 
 ### `src/lib/admin-workspaces.functions.ts` - Workspaces tab
+
 - `adminSearchWorkspaces`, `adminGetWorkspaceDetail`, `adminAddWorkspaceMember`, `adminRemoveWorkspaceMember`, `adminChangeMemberRole`, `adminGrantWorkspaceCredits`, `adminOverrideWorkspacePlan`, `adminTransferWorkspaceOwnership`, `adminSoftDeleteWorkspace`, `adminRestoreWorkspace`.
 
 ### `src/lib/admin-platform.functions.ts` - Platform tab
+
 - `adminListFlags`, `adminUpsertFlag`, `adminDeleteFlag`.
 - `adminGetBanner`, `adminSetBanner`.
 - `adminListAuditLog({ actorUserId?, targetKind?, targetId?, since?, limit, offset })`.
 - ~~`adminSystemHealth()` - thin pass-through to `/api/public/health`; deep-link to `/govern`.~~ **DEFERRED / NOT SHIPPED** _(reconciled 2026-06-21: specced but did not ship)._
 
 ### Public-readable helpers (SECURITY DEFINER, no admin gate)
+
 - `get_active_banner()` - used by the app shell.
 - `get_flag(key text)` - backs `useFlag(key)` hook (5-min client cache).
 - `get_invitation_by_token(token text)` - used by `/join/$token`.
@@ -116,12 +123,14 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
 ## 4. Frontend
 
 ### 4.1 Routes
+
 - `src/routes/_authenticated.admin.tsx` - existing shell; TabRow extended to 5 entries: `Overview · Pricing · People · Workspaces · Platform`.
 - `src/routes/_authenticated.admin.people.tsx` - inner sub-tab row (Users / Invitations / Vouchers).
 - `src/routes/_authenticated.admin.workspaces.tsx`
 - `src/routes/_authenticated.admin.platform.tsx`
 
 ### 4.2 Patterns
+
 - Detail views are shadcn `Sheet` drawers (keeps list context); no extra routes per record.
 - Destructive actions go through `useConfirm()` (`docs/conventions/destructive-actions.md`); irreversible deletes (workspace hard-delete post window, voucher hard-delete) use typed-name match.
 - Section headers use `.mono-label`; numbers carry units.
@@ -129,6 +138,7 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
 - **Consequence-first** copy: "Suspend · blocks sign-in", "Grant 500 credits · adds to monthly balance", "Soft-delete · 30-day restore window".
 
 ### 4.3 Top-of-tab outcome statements (one line each, calm front)
+
 - People: "Manage who can use Cadence, grant credits, and run promo campaigns."
 - Workspaces: "Inspect tenants, adjust plans, and move ownership."
 - Platform: "Pull kill switches, post banners, and read the admin audit trail."
@@ -150,9 +160,11 @@ All in `src/lib/` (client-safe path, NOT `src/server/`). All gate on `has_role(a
 > _Reconciled 2026-06-21 against shipped code: the original two-hook design (`plan-override-tick.ts` + `invitation-expire-tick.ts`) is SUPERSEDED. The shipped reality is a SINGLE hook that does both jobs atomically. The two-hook spec is kept below struck-through for history._
 
 **Shipped:**
+
 - `src/routes/api/public/hooks/admin-expiry-tick.ts` -> calls `cron_tick_admin_expiries()` - nightly: in one RPC, clears expired plan overrides (`subscriptions.plan_override_*` where `expires_at < now()`) AND marks expired invitations, with one audit row per expiry. Follows `/api/public/hooks/*` cron-key auth (see `architecture/integrations.md`).
 
 **Superseded (original spec, did NOT ship as two hooks):**
+
 - ~~`src/routes/api/public/hooks/plan-override-tick.ts` - nightly: clears `plan_override_*` where `expires_at < now()`; one audit row per expiry.~~
 - ~~`src/routes/api/public/hooks/invitation-expire-tick.ts` - nightly: marks expired invitations.~~
 

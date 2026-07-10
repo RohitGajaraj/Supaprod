@@ -17,6 +17,7 @@ A **"Why this · source evidence"** card traces an artifact all the way back to 
 No new graph tables: it reuses the existing `artifact_lineage` edge table (signal → theme → opportunity → prd → task, plus opportunity → mission). `recordLineage` already writes those edges across the discovery pipeline.
 
 `getProvenance({ kind, id })` in `src/lib/lineage.functions.ts`:
+
 - A **bounded upward BFS** over `artifact_lineage` ancestor edges (`child_kind`/`child_id` → `parent_kind`/`parent_id`), starting at the opportunity.
 - A `seen` set makes it cycle-safe; `MAX_DEPTH = 8` and `MAX_NODES = 80` cap the walk so a large or cyclic graph can never run away (a `truncated` flag is returned when a cap is hit).
 - Collects every `signal` reached at the root of the chain, then hydrates their `title`/`content`/`source`/`sentiment`/`created_at`.

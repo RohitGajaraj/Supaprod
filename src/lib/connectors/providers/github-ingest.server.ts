@@ -62,9 +62,7 @@ async function fetchIssueSignals(token: string, repo: string): Promise<GhSignal[
   return items
     .filter((i) => !i.pull_request) // exclude PRs (they also appear in /issues)
     .map((i) => {
-      const labels = (i.labels ?? [])
-        .map((l) => l.name)
-        .filter((n): n is string => Boolean(n));
+      const labels = (i.labels ?? []).map((l) => l.name).filter((n): n is string => Boolean(n));
       return {
         externalId: `github:issue:${repo}:${i.number}`,
         title: (i.title ?? "").slice(0, 300),

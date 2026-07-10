@@ -28,7 +28,7 @@
 
 ### F2. There is no golden path
 
-A first-run user lands on Today and is invited to explore. Nothing carries them from intent to outcome. The 3-minute demo ("signal → opportunity → spec → tasks → PR → CI green → release note → learning") exists as *capabilities scattered across routes* but not as *one continuous, watchable run*. → **Verdict: M1 is a single demo spine, not more features** (feature map §9).
+A first-run user lands on Today and is invited to explore. Nothing carries them from intent to outcome. The 3-minute demo ("signal → opportunity → spec → tasks → PR → CI green → release note → learning") exists as _capabilities scattered across routes_ but not as _one continuous, watchable run_. → **Verdict: M1 is a single demo spine, not more features** (feature map §9).
 
 ### F3. Agents are configured, not embodied
 
@@ -36,7 +36,7 @@ The platform treats agents as infrastructure to set up (roster CRUD, prompts, sc
 
 ### F4. The loop's right half is scaffolding
 
-S7 Visual QA, S9 GTM, S10 Support, S11 Analytics, S12 Learn are placeholders or thin reads over existing tables (`/outcome` renders approvals as "Launches"). The closed loop, the entire differentiation, is half-open. Meanwhile the left half (discover→define→plan) is the *commoditizing* half (Dovetail, Productboard, ChatPRD all do pieces). **We are strongest where the market is crowded and weakest where the whitespace is.** → **Verdict: M2 prioritizes the right half: support triage, analytics ingest, GTM drafting, learning re-score, as real agents with real connectors.**
+S7 Visual QA, S9 GTM, S10 Support, S11 Analytics, S12 Learn are placeholders or thin reads over existing tables (`/outcome` renders approvals as "Launches"). The closed loop, the entire differentiation, is half-open. Meanwhile the left half (discover→define→plan) is the _commoditizing_ half (Dovetail, Productboard, ChatPRD all do pieces). **We are strongest where the market is crowded and weakest where the whitespace is.** → **Verdict: M2 prioritizes the right half: support triage, analytics ingest, GTM drafting, learning re-score, as real agents with real connectors.**
 
 ### F5. Signal ingestion, the loop's front door, has no real doors
 
@@ -56,7 +56,7 @@ Continuous swarms reacting to every event = unbounded token burn. Budgets exist 
 
 ### F9. The moat needs the memory flywheel running
 
-"Compounding Product Memory" is pitched, but the memory graph (X4) is mostly tables, not a queryable, agent-consulted institution. Until agents demonstrably *get better because they remember*, the moat is a slide. → **Verdict: M2 makes every mission consult memory before acting and write a learning after; show the consultation in the trace.**
+"Compounding Product Memory" is pitched, but the memory graph (X4) is mostly tables, not a queryable, agent-consulted institution. Until agents demonstrably _get better because they remember_, the moat is a slide. → **Verdict: M2 makes every mission consult memory before acting and write a learning after; show the consultation in the trace.**
 
 ### F10. Frontier-lab scenario (the founder's wipe-out test)
 

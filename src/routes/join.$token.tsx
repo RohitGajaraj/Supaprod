@@ -114,7 +114,14 @@ function JoinPage() {
             >
               You have a workspace invitation
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 18, lineHeight: 1.55 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--text-muted)",
+                marginBottom: 18,
+                lineHeight: 1.55,
+              }}
+            >
               Log in or sign up with the email it was sent to. You will land right back here to
               join.
             </p>
@@ -181,7 +188,14 @@ function JoinPage() {
             >
               This invitation could not be accepted
             </h1>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 18, lineHeight: 1.55 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--text-muted)",
+                marginBottom: 18,
+                lineHeight: 1.55,
+              }}
+            >
               {state.message}
             </p>
             <Link to="/" className="btn btn-ghost btn-sm">

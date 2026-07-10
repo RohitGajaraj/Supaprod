@@ -4,19 +4,19 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-07 |
-| Rank | #8 |
-| Tier | 1 |
-| Status | Pending (not started) |
-| Category | Define |
-| Depends on | OBS-03 (Obsidian primitives) · assumes OBS-01 (tokens/fonts) + OBS-02 (shell) landed |
-| Blocks | nothing downstream (OBS-10 folds routes into this destination) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                                                                |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-07                                                                                                                                                                                                                                                                                                                                                               |
+| Rank          | #8                                                                                                                                                                                                                                                                                                                                                                   |
+| Tier          | 1                                                                                                                                                                                                                                                                                                                                                                    |
+| Status        | Pending (not started)                                                                                                                                                                                                                                                                                                                                                |
+| Category      | Define                                                                                                                                                                                                                                                                                                                                                               |
+| Depends on    | OBS-03 (Obsidian primitives) · assumes OBS-01 (tokens/fonts) + OBS-02 (shell) landed                                                                                                                                                                                                                                                                                 |
+| Blocks        | nothing downstream (OBS-10 folds routes into this destination)                                                                                                                                                                                                                                                                                                       |
 | One-line what | Plan as the definition desk: a 1160px surface with an outcome-declared roadmap (Now / Next / Later, each bet carrying its mono measure line, Now ember-tinted, Later deep and dimmed) plus a cited spec list (state chips, blossom cites count, serif body in a read slide-over), and a commit-to-Now ceremony that states the promise + measure before a bet lands. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) line 238 (group G14) |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-07 entry) |
-| Hub | [`./README.md`](./README.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) line 238 (group G14)                                                                                                                                                                                                                                                                                            |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-07 entry)                                                                                                                                                                                                                                                                                                |
+| Hub           | [`./README.md`](./README.md)                                                                                                                                                                                                                                                                                                                                         |
 
 ## 2. Why we are doing it
 
@@ -29,6 +29,7 @@ The felt outcome ties straight to the v11 guiding star (the decision-and-outcome
 ## 3. What we are building
 
 **Scope IN**
+
 - A new Plan surface at `/plan`, built to prototype parity at 1440px: the 1160px container, the Newsreader hero, an outcome roadmap of three columns (Now / Next / Later), and the cited spec list below it (match the prototype's section order).
 - The **roadmap columns**: Now (ember header + ember-tinted card borders), Next (neutral), Later (deep cards, dimmer ink). Each bet card carries its title and a mono-caps **measure line**.
 - The **commit-to-Now ceremony**: a confirm dialog that states the promise (outcome) and the measure before a bet moves into Now; it requires both when they are missing.
@@ -37,6 +38,7 @@ The felt outcome ties straight to the v11 guiding star (the decision-and-outcome
 - Empty states for both sections as instructions with time estimates; loading and error states; the full interaction-state set.
 
 **Scope OUT (no feature work rides along)**
+
 - No server function is modified. This item **consumes read-only** `listSpecs` → `["prds"]`, `getRoadmap` → `["roadmap"]`, and `getPrd` → `["prd", id]`. It **calls** two existing roadmap mutations for the commit path (`commitRoadmapItem`, `updateRoadmapItem`) with no signature change; nothing else writes.
 - No drag-and-drop, no bulk re-prioritize bar, no backlog column, no brief→PRD composer, no rename/delete/lineage/task-graph, no Linear push. Those are parchment `RoadmapBoard` / `SpecsPanel` / `/prds/$id` affordances that stay live until OBS-10 relocates them (see §13).
 - No route redirect, no nav-model edit, no `routeTree.gen.ts` hand-edit. Folding `/product` · `/prds` · `/roadmap` into `/plan` is OBS-10.
@@ -58,7 +60,7 @@ Build top to bottom. Each step names the file and the change. This assumes OBS-0
    - `stateChip(status: string): { label: string; tone: "moss" | "marigold" | "glacier" }` · `approved` → `{ APPROVED, moss }`, `shipped` → `{ SHIPPED, moss }`, `review` → `{ CRITIC REVIEW, marigold }`, else (`draft`/null) → `{ DRAFTING, glacier }`.
    - `citesLabel(citations: unknown): string | null` · `Array.isArray` guard; `N SOURCES` (or `1 SOURCE`), `null` when zero.
    - `measureCaps(measure: string | null): string | null` · upcases a user-authored measure for the mono line; `null` when empty. Render verbatim otherwise (never rewrite the human's words).
-   Unit-test this file.
+     Unit-test this file.
 2. **Create `src/components/plan/BetCard.tsx`.** Props `{ title, measure, outcome, column, iceScore, onMoveTo, hasOutcome }`. Renders the bet anatomy in §7 (title + measure mono line + the ember `Needs outcome` VerdictChip when `!hasOutcome`, and the three quiet mono move controls). Tint follows `column` (Now ember border, Next neutral, Later deep + dim). The whole card is a real element; move controls `stopPropagation`.
 3. **Create `src/components/plan/CommitCeremony.tsx`.** A `role="dialog"` `aria-modal` centered glass panel (focus-trapped, Esc + scrim close, restore focus). Props `{ bet, onConfirm, onCancel }`. If the bet already has `outcome` + `measure`, the body **states the promise** and the CTA commits directly. If either is missing, the body shows two inputs (outcome, measure) and the CTA is disabled until both are filled (mirrors the governed `commitRoadmapItem` contract). Copy in §9.
 4. **Create `src/components/plan/RoadmapColumns.tsx`.** Consumes `getRoadmap` (`["roadmap"]`, the exact key `RoadmapBoard` uses, to share the cache). Filter items to buckets `now | next | later` (ignore `bucket === null` backlog items on this surface · backlog placement is parchment scope, §13). Render three columns in order Now / Next / Later; within each, order by `ice_score` desc. Each item → `BetCard`. `onMoveTo("now")` opens `CommitCeremony`; on confirm, call `commitRoadmapItem({ data: { id, bucket: "now", outcome, measure } })`, invalidate `["roadmap"]`, fire the Toast. `onMoveTo("next" | "later")` calls `updateRoadmapItem({ data: { id, bucket } })` (lenient), invalidate + Toast. Handle loading (three ghost columns), error (house-voice retry), and the empty roadmap instruction (§9).
@@ -84,11 +86,12 @@ src/components/plan/
 ```
 
 **Data flow (all query keys shared with the still-live parchment surfaces · never introduce a parallel key):**
+
 - `RoadmapColumns` → `getRoadmap()` → `["roadmap"]` (read) · `commitRoadmapItem` / `updateRoadmapItem` (write, existing fns, unchanged).
 - `SpecList` → `listSpecs()` → `["prds"]` (read).
 - `SpecDetail` → `getPrd({ data: { id } })` → `["prd", id]` (read).
 
-**Server functions are consumed, not modified.** OBS-07 is explicitly allowed to *call* `commitRoadmapItem` and `updateRoadmapItem` (the commit ceremony and column moves) because those already exist and carry the governance rule; it changes neither signature nor behavior.
+**Server functions are consumed, not modified.** OBS-07 is explicitly allowed to _call_ `commitRoadmapItem` and `updateRoadmapItem` (the commit ceremony and column moves) because those already exist and carry the governance rule; it changes neither signature nor behavior.
 
 ## 7. Design elements
 
@@ -98,13 +101,14 @@ src/components/plan/
 
 **Roadmap columns.** Three-column CSS grid, `gap: 16px (--space-4)`. Column header: `MonoLabel` 9.5px caps, `0.11em` tracking, middot separators. Card `--radius-card 12`, padding `16px 18px`, gap between cards `12px`.
 
-| Column | Header color | Card background | Card border | Ink |
-| --- | --- | --- | --- | --- |
-| **Now** | `--ember #FF6B2C` | `--card #111113` | `1px rgba(255,107,44,0.25)` (ember-tinted) | `--text-primary` title |
-| **Next** | `--text-primary #F2F0ED` | `--card #111113` | `1px --hairline rgba(255,255,255,0.07)` | `--text-primary` title |
-| **Later** | `--text-muted #9C978F` | `--surface-card-deep #0E0E10` | `1px --hairline-faint rgba(255,255,255,0.05)` | `--text-muted` title (dimmed) |
+| Column    | Header color             | Card background               | Card border                                   | Ink                           |
+| --------- | ------------------------ | ----------------------------- | --------------------------------------------- | ----------------------------- |
+| **Now**   | `--ember #FF6B2C`        | `--card #111113`              | `1px rgba(255,107,44,0.25)` (ember-tinted)    | `--text-primary` title        |
+| **Next**  | `--text-primary #F2F0ED` | `--card #111113`              | `1px --hairline rgba(255,255,255,0.07)`       | `--text-primary` title        |
+| **Later** | `--text-muted #9C978F`   | `--surface-card-deep #0E0E10` | `1px --hairline-faint rgba(255,255,255,0.05)` | `--text-muted` title (dimmed) |
 
 **Bet card anatomy** (`BetCard`, from components.md "Roadmap columns"):
+
 1. Title: 13px/600, `--text-primary` (Later: `--text-muted`), single line ellipsis.
 2. Measure line: `--font-mono` **8px caps**, `0.11em` tracking, `--text-faint #55524C` with the number in `--glacier #7FD1DC` (the machine's declared target). Example render: `DROP-OFF -20% BY AUG 1`. Rendered verbatim from the human's measure; omit the line if none.
 3. When `!hasOutcome`: an ember `VerdictChip` reading `NEEDS OUTCOME` (mono 8.5px caps, ember fill 12%, 45%-alpha ember border), leading the card · an annotation, not a badge.
@@ -119,14 +123,15 @@ src/components/plan/
 **Commit ceremony dialog** (`CommitCeremony`): centered, 480px (max 92vw), glass (`--raised #17171A` base, blur 20, 8% white hairline), `--radius-panel 14`, `cadRise 200ms`. Header Newsreader 20px/460. Body states the promise + measure (or the two inputs when missing). CTA: **the one ember button on this surface** (`--ember` fill, `--cta-ink #0A0A0B`, 13px/600, `--radius-control 8`, padding 9/18; hover `--ember-deep #C2571F`; press scale(0.985) 140ms). Secondary `Not yet` (`--hover #1D1D21` fill, 9% white border). Consequence helper 11.5px `--text-subtle`.
 
 **Interaction states (every control answers the cursor):**
-- *Hover:* background lifts one surface step + hairline brightens, 140ms `--ease`. Tonal, not spatial · nothing translates.
-- *Focus:* `:focus-visible` 2px `--glacier` outline, offset 2, on every bet card, spec row, move control, and dialog control.
-- *Active/press:* ember CTA → `--ember-deep`, `transform: scale(0.985)` 140ms.
-- *Selection:* `--selection rgba(255,107,44,0.28)`.
-- *Empty:* the instruction cards in §9 (never a blank box, never an illustration).
-- *Loading:* roadmap = three ghost columns (hairline card outlines, no spinner); spec list = four ghost rows; spec detail = a three-line shimmer on the serif body (the one shimmer budget, `cadShimmer` 5s).
-- *Error:* a `--surface-card-deep` card, mono `--madder` label ("Couldn't load Plan"), the message, and a quiet `Retry · reloads the surface` link.
-- *Motion:* all of the above gate on `prefers-reduced-motion` (durations zeroed) and the in-product toggle.
+
+- _Hover:_ background lifts one surface step + hairline brightens, 140ms `--ease`. Tonal, not spatial · nothing translates.
+- _Focus:_ `:focus-visible` 2px `--glacier` outline, offset 2, on every bet card, spec row, move control, and dialog control.
+- _Active/press:_ ember CTA → `--ember-deep`, `transform: scale(0.985)` 140ms.
+- _Selection:_ `--selection rgba(255,107,44,0.28)`.
+- _Empty:_ the instruction cards in §9 (never a blank box, never an illustration).
+- _Loading:_ roadmap = three ghost columns (hairline card outlines, no spinner); spec list = four ghost rows; spec detail = a three-line shimmer on the serif body (the one shimmer budget, `cadShimmer` 5s).
+- _Error:_ a `--surface-card-deep` card, mono `--madder` label ("Couldn't load Plan"), the message, and a quiet `Retry · reloads the surface` link.
+- _Motion:_ all of the above gate on `prefers-reduced-motion` (durations zeroed) and the in-product toggle.
 
 **Restraint budget audit (hub §4):** one ember CTA (the ceremony) · zero aurora cards · at most one shimmer (the spec-body loading state) · zero pencil annotations on this surface · status color only on state chips and the Needs-outcome chip · one machine voice (glacier on the measure number and move-control hover). Grayscale test: every state chip ships its word, every measure ships its text, so the screen reads with color removed.
 
@@ -142,7 +147,7 @@ src/components/plan/
 
 Humanized: no em/en dashes (middot `·` or a plain hyphen), no exclamation marks, no emoji, plain-words buttons, consequence in helper text, mono-caps metadata with middots.
 
-- **Hero (roadmap section):** `The bets you have committed to.` with one ember italic word per the prototype (for example *committed*). Sub: `Every bet declares an outcome and a measure. Nothing hides in a backlog.`
+- **Hero (roadmap section):** `The bets you have committed to.` with one ember italic word per the prototype (for example _committed_). Sub: `Every bet declares an outcome and a measure. Nothing hides in a backlog.`
 - **Column headers:** `NOW` · `NEXT` · `LATER` (mono caps).
 - **Bet measure line (example, rendered verbatim from the human):** `DROP-OFF -20% BY AUG 1`.
 - **Needs-outcome chip:** `NEEDS OUTCOME`.
@@ -182,6 +187,7 @@ Humanized: no em/en dashes (middot `·` or a plain hyphen), no exclamation marks
 ## 11. Prototype-parity checklist (last gate · hub §5.9, tailored)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` (Plan) and `/plan` side by side at 1440px:
+
 1. **Rail:** 236px, mono index with Plan (03) active (bg `#1A1A1E` + ember index) · from the shell; confirm Plan is the active destination.
 2. **Surface chrome:** 52px top bar; container max-width 1160px; padding 36/32/64; `cadRise` 260ms entrance.
 3. **Type:** hero Newsreader 34px with one ember italic word; bet titles 13px/600; spec body Newsreader ~15px/1.7; measure line mono 8px caps; cites mono 9px; mono labels 9.5px caps with middots.

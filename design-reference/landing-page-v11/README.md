@@ -2,8 +2,8 @@
 
 > Created 2026-06-28. For any future session, agent, or designer that picks up the public
 > landing page (`src/routes/index.tsx`). This is **not** a file dump — it captures the
-> *ideology* of what was built, *why*, *which reference applies where*, and *what to pick
-> up next*. Read this first before changing the landing page or revamping it.
+> _ideology_ of what was built, _why_, _which reference applies where_, and _what to pick
+> up next_. Read this first before changing the landing page or revamping it.
 
 The founder plans to revamp this page after a while. When that happens, start here.
 
@@ -72,7 +72,7 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
    (Decision layer / Outcome memory / Compounding edge), auto-cycling + clickable, each with an
    expanded context window AND a small **system visual** showing how it works.
 9. **Guerrilla** — "Building used to be the hard part. / Now it's the easy part." New problem
-   framing: building got cheap; the hard part is knowing *what* to build and *why* the last
+   framing: building got cheap; the hard part is knowing _what_ to build and _why_ the last
    thing shipped. Positive, system-led close (never "replace your people").
 10. **Brand band** (the artistic peak — founder loves this, wants to enhance it later) — a
     cosmic morphing gradient + film grain + drifting particles, a giant **hollow "Cadence"
@@ -85,25 +85,27 @@ keyframes/classes in the `STYLES` constant, fonts loaded via a Google Fonts `<li
 ## 4. Reference images in this folder — and where each one applies
 
 ### External inspirations (the feeling to evolve toward; do NOT copy exactly)
-| File | What it is | Where it landed / how to use it |
-|---|---|---|
-| `inspiration-01-pixel-display-font.png` | Gharage "From Function to Feeling" — chunky **pixel/bitmap display font** | Became the **Silkscreen pixel kicker** in the brand band. Keep pixel type as a *sparing accent*, never a heading. |
-| `inspiration-02-perplexity-answer-engine.png` | Perplexity launch — painterly portrait, "We're an answer engine." | The *feeling* target: artistic, alive, emotional. Informs the brand band. |
-| `inspiration-03-perplexity-surreal-portal.png` | Perplexity — surreal book-portal on Mars | Imaginative / premium mood reference. |
-| `inspiration-04-perplexity-outline-wordmark.png` | Perplexity — **hollow/outline wordmark** over artwork | Became the **hollow "Cadence" outline wordmark** (`-webkit-text-stroke`) in the brand band. |
-| `inspiration-05-perplexity-comet-cosmic.png` | Perplexity Comet — **cosmic gradient** swirl | Became the **cosmic morphing gradient + particles + grain** in the brand band. |
 
-**Founder direction on these:** bring the *artistic touch / portrait form / liveliness* into
+| File                                             | What it is                                                                | Where it landed / how to use it                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `inspiration-01-pixel-display-font.png`          | Gharage "From Function to Feeling" — chunky **pixel/bitmap display font** | Became the **Silkscreen pixel kicker** in the brand band. Keep pixel type as a _sparing accent_, never a heading. |
+| `inspiration-02-perplexity-answer-engine.png`    | Perplexity launch — painterly portrait, "We're an answer engine."         | The _feeling_ target: artistic, alive, emotional. Informs the brand band.                                         |
+| `inspiration-03-perplexity-surreal-portal.png`   | Perplexity — surreal book-portal on Mars                                  | Imaginative / premium mood reference.                                                                             |
+| `inspiration-04-perplexity-outline-wordmark.png` | Perplexity — **hollow/outline wordmark** over artwork                     | Became the **hollow "Cadence" outline wordmark** (`-webkit-text-stroke`) in the brand band.                       |
+| `inspiration-05-perplexity-comet-cosmic.png`     | Perplexity Comet — **cosmic gradient** swirl                              | Became the **cosmic morphing gradient + particles + grain** in the brand band.                                    |
+
+**Founder direction on these:** bring the _artistic touch / portrait form / liveliness_ into
 the platform; do **not** clone Perplexity. The current brand band achieves this with **CSS art
 only** (gradients, grain, particles, outline + pixel type) — no commissioned imagery. A future
 revamp could push it further with real painterly/portrait art if assets exist.
 
 ### In-progress feedback screenshots (context for the iteration, not targets)
-| File | What it showed | What it became |
-|---|---|---|
-| `feedback-01-moat-section.png` | Moat as three flat cards | Vertical tabs + per-layer system visuals (more spotlight). |
-| `feedback-02-manifesto-essay.png` | Manifesto reading like an essay/slide-deck | Centred, tight statement. |
-| `feedback-03-guerrilla-essay.png` | Guerrilla reading like an essay + odd bullet | Centred; shorter lead; clean close, no bracket-bullet. |
+
+| File                                  | What it showed                                 | What it became                                                  |
+| ------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------- |
+| `feedback-01-moat-section.png`        | Moat as three flat cards                       | Vertical tabs + per-layer system visuals (more spotlight).      |
+| `feedback-02-manifesto-essay.png`     | Manifesto reading like an essay/slide-deck     | Centred, tight statement.                                       |
+| `feedback-03-guerrilla-essay.png`     | Guerrilla reading like an essay + odd bullet   | Centred; shorter lead; clean close, no bracket-bullet.          |
 | `feedback-04-trust-ledger-indent.png` | Ledger table left-indented; shimmer everywhere | Table fills the frame; one calm trust chip + plain-text impact. |
 
 ---
@@ -114,7 +116,7 @@ revamp could push it further with real painterly/portrait art if assets exist.
   with violet reserved for agents. This is the current law (§2.2).
 - **Fonts:** default → a **Bricolage Grotesque** display experiment (founder: "playful, not
   enterprise" — rejected) → **serif headings restored** + **IBM Plex Mono** for system output
-  + **Silkscreen** pixel as one accent.
+  - **Silkscreen** pixel as one accent.
 - **Positioning:** drifted toward "automation tool" → corrected to **judgment / decision /
   memory** language everywhere, especially the CTA.
 - **Structure:** essays / slide-deck crescendos → **centred editorial statements**; the moat
@@ -132,7 +134,7 @@ revamp could push it further with real painterly/portrait art if assets exist.
 
 ## 6. Gotchas a future agent MUST know (these caused real bugs)
 
-- **Never use `scrollIntoView` for in-page animation.** It scrolls *every* scrollable ancestor
+- **Never use `scrollIntoView` for in-page animation.** It scrolls _every_ scrollable ancestor
   including the document. The live terminal did this on every typed char and hijacked the whole
   page scroll (page felt frozen, snapped to the orbit, drifted). Auto-scroll a component's own
   container with `el.scrollTop = el.scrollHeight` instead.

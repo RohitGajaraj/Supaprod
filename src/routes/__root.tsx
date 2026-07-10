@@ -52,7 +52,10 @@ function NotFoundComponent() {
       <div className="mono-label" style={{ marginBottom: 8 }}>
         404 · not found
       </div>
-      <h1 className="font-display" style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}>
+      <h1
+        className="font-display"
+        style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}
+      >
         Page not found
       </h1>
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
@@ -79,7 +82,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="mono-label" style={{ marginBottom: 8 }}>
         something broke
       </div>
-      <h1 className="font-display" style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}>
+      <h1
+        className="font-display"
+        style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}
+      >
         This page didn't load
       </h1>
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>

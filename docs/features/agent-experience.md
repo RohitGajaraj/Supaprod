@@ -39,6 +39,7 @@ The governing law is the Engine-Room Doctrine ([`../conventions/engine-room-doct
 ```
 
 **Visibility tiers (founder-confirmed 2026-06-18): Cast vs Crew.**
+
 - **Cast** = can surface in the relay when it acts (the user sees it in motion, never as a managed roster).
 - **Crew** = pure engine/infrastructure (event fan-out, memory consolidation). Never shown to the end user. We see and manage it only in the Engine Room.
 
@@ -50,23 +51,23 @@ The end-user/platform split is the direct answer to "are the new agents visible 
 
 Internal DB slugs are never renamed (the rename-disclaimer rule). Naming and identity are a display layer over the slug. Names below are the proposed friendly-archetype set (section 4) and are easy to change.
 
-| Station | Agent (face) | slug | Tier | One-liner (outcome-framed) |
-| --- | --- | --- | --- | --- |
-| **Sense** | Scout | `discovery-scout` | cast | Watches your connected sources and surfaces what changed. |
-| Sense | Researcher | `researcher` (re-enable) | cast | Digs into a question across the web and your workspace. |
-| Sense | Voice | `voice` (NEW) | cast | Clusters what customers are saying into themes. |
-| **Decide** | Strategist | `strategist` | cast | Ranks and re-scores the bets by impact. |
-| Decide | Critic | `critic` (NEW agent row) | cast | Red-teams the call before you commit. |
-| **Define** | Scribe | `prd-writer` | cast | Turns the decision into a clear spec. |
-| Define | Sketch | `ux-architect` (re-enable) | cast | Maps the experience and the flows. |
-| Define | Planner | `sprint-planner` (re-enable) | cast | Breaks the spec into sprint-ready work. |
-| **Build** | Maker | `builder` (display "Studio" today) | cast | Writes the change in your codebase. |
-| Build | Reviewer | `reviewer` (NEW; or re-enable `qa`) | cast | Checks the diff before it ships. |
-| **Ship** | Herald | `herald` (NEW) | cast | Announces what shipped: notes, changelog, post. |
-| **Learn** | Echo | `echo` (NEW) | cast | Reads the outcome against the bet and feeds memory. |
-| (conductor) | Chief of Staff | `orchestrator` | cast (special) | Runs the loop and brings you only what needs you. |
-| - | Reactor | `reactor` | **crew** | Engine event fan-out (hidden). |
-| - | Archivist | `archivist` (NEW) | **crew** | Memory consolidation (hidden). |
+| Station     | Agent (face)   | slug                                | Tier           | One-liner (outcome-framed)                                |
+| ----------- | -------------- | ----------------------------------- | -------------- | --------------------------------------------------------- |
+| **Sense**   | Scout          | `discovery-scout`                   | cast           | Watches your connected sources and surfaces what changed. |
+| Sense       | Researcher     | `researcher` (re-enable)            | cast           | Digs into a question across the web and your workspace.   |
+| Sense       | Voice          | `voice` (NEW)                       | cast           | Clusters what customers are saying into themes.           |
+| **Decide**  | Strategist     | `strategist`                        | cast           | Ranks and re-scores the bets by impact.                   |
+| Decide      | Critic         | `critic` (NEW agent row)            | cast           | Red-teams the call before you commit.                     |
+| **Define**  | Scribe         | `prd-writer`                        | cast           | Turns the decision into a clear spec.                     |
+| Define      | Sketch         | `ux-architect` (re-enable)          | cast           | Maps the experience and the flows.                        |
+| Define      | Planner        | `sprint-planner` (re-enable)        | cast           | Breaks the spec into sprint-ready work.                   |
+| **Build**   | Maker          | `builder` (display "Studio" today)  | cast           | Writes the change in your codebase.                       |
+| Build       | Reviewer       | `reviewer` (NEW; or re-enable `qa`) | cast           | Checks the diff before it ships.                          |
+| **Ship**    | Herald         | `herald` (NEW)                      | cast           | Announces what shipped: notes, changelog, post.           |
+| **Learn**   | Echo           | `echo` (NEW)                        | cast           | Reads the outcome against the bet and feeds memory.       |
+| (conductor) | Chief of Staff | `orchestrator`                      | cast (special) | Runs the loop and brings you only what needs you.         |
+| -           | Reactor        | `reactor`                           | **crew**       | Engine event fan-out (hidden).                            |
+| -           | Archivist      | `archivist` (NEW)                   | **crew**       | Memory consolidation (hidden).                            |
 
 Clubbed / deprecated (map-only: render a face on historical runs, never seeded): `operations` -> Chief of Staff; `growth-strategist` / `data-analyst` -> Strategist; `customer-insights` / `competitor-watcher` -> Scout; `engineer` -> Maker; `copilot` -> Chief of Staff; `stakeholder` / `release` -> Herald.
 
@@ -137,19 +138,14 @@ This is the answer to "where should we (platform) see these things": one door, o
 There is a standing founder ruling (SSOT section 1, 2026-06-18) that the design / UX-polish pass is LAST, done ONCE, and founder-triggered. **The founder explicitly waived that rule for this initiative (2026-06-18): Claude Code has full authority to plan and execute the agent-experience UX now.** So the two phases below are a sensible build ORDER (foundation before the surfaces that consume it), not a gate, and both build in this initiative:
 
 **Phase 1, agent foundation (buildable now, no founder taste needed):**
+
 1. The three-tier catalog in `agent-vocabulary.ts` (stations, faces, specialists; total resolvers; fixes the leak). Reconcile `memory-view.ts`.
 2. The naming + identity tokens (the agent palette + glyphs as data; the called-out component spec).
 3. Migration A (canonical seed incl. the new `critic` agent + the `handle_new_user` seed fix; no schema change) and Migration B (idempotent backfill: re-seed every user + re-assert the cut). Smoke-test signup.
 4. The prompt rewrite + the adversarial proofread pass + at least one eval per cast agent.
 5. Orchestrator station-aware planning (group the roster by station in the planner prompt; persist `mission_steps.station`).
 
-**Phase 2, agent experience UX (greenlit now; builds after Phase 1's foundation lands):**
-6. The `<AgentRelay>` component (full + mini) with the ephemeral-line, collapse-to-artifact behavior.
-7. The 6-station loop spine on **Today** (the command-center home, so the cross-surface loop map sits higher than any single surface; founder ruling 2026-06-18). Product keeps its tabs. The agent palette is the brand orchid family (warm oklch, disjoint from the status colors), and a running agent's name carries a motion-gated brand-orchid shimmer (`.agent-live`).
-8. The Today mini relay (replacing the standing agent rail).
-9. Engine Room > Team (relocate roster, trust dial, inspector, throughput).
-10. Retire the missions Agents tab + the roster grid; repoint the `/agents` redirect to `/govern?tab=team`.
-11. Apply the identity system (hues + glyphs) across the surfaces; Engine-Room stamp every touched surface.
+**Phase 2, agent experience UX (greenlit now; builds after Phase 1's foundation lands):** 6. The `<AgentRelay>` component (full + mini) with the ephemeral-line, collapse-to-artifact behavior. 7. The 6-station loop spine on **Today** (the command-center home, so the cross-surface loop map sits higher than any single surface; founder ruling 2026-06-18). Product keeps its tabs. The agent palette is the brand orchid family (warm oklch, disjoint from the status colors), and a running agent's name carries a motion-gated brand-orchid shimmer (`.agent-live`). 8. The Today mini relay (replacing the standing agent rail). 9. Engine Room > Team (relocate roster, trust dial, inspector, throughput). 10. Retire the missions Agents tab + the roster grid; repoint the `/agents` redirect to `/govern?tab=team`. 11. Apply the identity system (hues + glyphs) across the surfaces; Engine-Room stamp every touched surface.
 
 Both phases are greenlit (founder, 2026-06-18). Phase 1 lands first because Phase 2's surfaces consume the catalog model, the identity tokens, and the station-aware planning it produces.
 

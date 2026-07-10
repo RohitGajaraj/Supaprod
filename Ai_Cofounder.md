@@ -17,21 +17,21 @@
 
 This repo already runs a closed documentation loop ([`AGENTS.md`](./AGENTS.md) §5). Every document mandated in this constitution exists under a canonical name below. **Do not create the root-level files — update the mapped equivalents:**
 
-| Constitution doc  | Live equivalent in this repo                                                                                                                                                                                                                  |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `README.md`       | [`README.md`](./README.md) — thesis, MOAT, personas                                                                                                                                                                                            |
-| `PROJECT.md`      | [`ENTRY.md`](./ENTRY.md) (repo router) + [`AGENTS.md`](./AGENTS.md) §0 (what we are building)                                                                                                                                                  |
+| Constitution doc  | Live equivalent in this repo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md`       | [`README.md`](./README.md) — thesis, MOAT, personas                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `PROJECT.md`      | [`ENTRY.md`](./ENTRY.md) (repo router) + [`AGENTS.md`](./AGENTS.md) §0 (what we are building)                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `PRODUCT.md`      | **[`docs/strategy/v7-agentic-product-os.md`](./docs/strategy/v7-agentic-product-os.md) (CURRENT positioning + build canon — Agentic Product OS umbrella; supersedes v6)** + [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md) (engine / expansion scope · agents · IA · milestones) + [`docs/strategy/archive/v3-positioning-cadence.md`](./docs/strategy/archive/v3-positioning-cadence.md) (personas). Map + file-placement policy: [`docs/README.md`](./docs/README.md). |
-| `ARCHITECTURE.md` | [`architecture/`](./architecture/) (runtime · orchestration · security · data · frontend · integrations) + [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md)                                                                    |
-| `AGENTS.md`       | ⚠️ Name collision: the repo's [`AGENTS.md`](./AGENTS.md) is the **dev-tool operating manual**, not the product-agent roster. Product agent definitions live in the v4 feature map (19-agent mesh) + [`architecture/orchestration.md`](./architecture/orchestration.md) + [`plan.md`](./plan.md) §6 |
-| `CHANGELOG.md`    | [`plan.md`](./plan.md) §4 — active build log (dated per-ship entries with WHY + Files)                                                                                                                                                         |
-| `DECISIONS.md`    | [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) + ADRs in [`docs/decisions/`](./docs/decisions/)                                                                                                                  |
-| `ROADMAP.md`      | [`plan.md`](./plan.md) §3 (build order, milestones M1–M5) + v4 feature map §9 (proof bars)                                                                                                                                                     |
-| `BACKLOG.md`      | [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) — stable F-IDs, Live status board, Build-order rollup (the canonical task queue)                                                                                      |
-| `KNOWN_ISSUES.md` | [`docs/planning/known-issues.md`](./docs/planning/known-issues.md) (live KI-ID tracker, created 2026-06-11) + [`docs/planning/considerations.md`](./docs/planning/considerations.md) (standing gap register)                                   |
-| `WORKFLOWS.md`    | [`docs/operations/`](./docs/operations/) + [`docs/conventions/`](./docs/conventions/) + the protocols in [`AGENTS.md`](./AGENTS.md)                                                                                                            |
-| `SESSION.md`      | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) + [`docs/planning/archive/v4-rebuild-handoff.md`](./docs/planning/archive/v4-rebuild-handoff.md) (session resume) + `.remember/` (machine memory)            |
-| `TASKS.md`        | [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) Build-order rollup (the F-ID scope ledger) + [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) (the live task queue) + [`docs/planning/archive/strategic-tasks.md`](./docs/planning/archive/strategic-tasks.md) (strategic P0-P3 view)           |
+| `ARCHITECTURE.md` | [`architecture/`](./architecture/) (runtime · orchestration · security · data · frontend · integrations) + [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md)                                                                                                                                                                                                                                                                                                                                      |
+| `AGENTS.md`       | ⚠️ Name collision: the repo's [`AGENTS.md`](./AGENTS.md) is the **dev-tool operating manual**, not the product-agent roster. Product agent definitions live in the v4 feature map (19-agent mesh) + [`architecture/orchestration.md`](./architecture/orchestration.md) + [`plan.md`](./plan.md) §6                                                                                                                                                                                                               |
+| `CHANGELOG.md`    | [`plan.md`](./plan.md) §4 — active build log (dated per-ship entries with WHY + Files)                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `DECISIONS.md`    | [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) + ADRs in [`docs/decisions/`](./docs/decisions/)                                                                                                                                                                                                                                                                                                                                                                                    |
+| `ROADMAP.md`      | [`plan.md`](./plan.md) §3 (build order, milestones M1–M5) + v4 feature map §9 (proof bars)                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `BACKLOG.md`      | [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) — stable F-IDs, Live status board, Build-order rollup (the canonical task queue)                                                                                                                                                                                                                                                                                                                                          |
+| `KNOWN_ISSUES.md` | [`docs/planning/known-issues.md`](./docs/planning/known-issues.md) (live KI-ID tracker, created 2026-06-11) + [`docs/planning/considerations.md`](./docs/planning/considerations.md) (standing gap register)                                                                                                                                                                                                                                                                                                     |
+| `WORKFLOWS.md`    | [`docs/operations/`](./docs/operations/) + [`docs/conventions/`](./docs/conventions/) + the protocols in [`AGENTS.md`](./AGENTS.md)                                                                                                                                                                                                                                                                                                                                                                              |
+| `SESSION.md`      | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) + [`docs/planning/archive/v4-rebuild-handoff.md`](./docs/planning/archive/v4-rebuild-handoff.md) (session resume) + `.remember/` (machine memory)                                                                                                                                                                                                             |
+| `TASKS.md`        | [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) Build-order rollup (the F-ID scope ledger) + [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) (the live task queue) + [`docs/planning/archive/strategic-tasks.md`](./docs/planning/archive/strategic-tasks.md) (strategic P0-P3 view)                                                                                                                                                             |
 
 ### Session continuity (mapped)
 
@@ -208,7 +208,7 @@ The product offering is not sufficiently differentiated. Features feel increment
 
 The current feature offering does not fully satisfy the product vision. Rethink from first principles.
 
-Ask: *"If a Product Manager had access to autonomous AI agents, what jobs would they delegate entirely?"*
+Ask: _"If a Product Manager had access to autonomous AI agents, what jobs would they delegate entirely?"_
 
 Build around those workflows.
 
@@ -246,15 +246,15 @@ Providers to consider include but are not limited to:
 
 The optimal model should be selected **dynamically based on task type**. Examples:
 
-| Task | Optimal Model Characteristic |
-|------|-------------------------------|
-| Research | Long-context, retrieval-optimised |
-| Coding | Code-specialised |
-| Reasoning | Deep reasoning |
-| Writing | Tone-aware generation |
-| Vision | Multimodal |
-| Planning | Structured output |
-| Agent orchestration | Fast, reliable, tool-use capable |
+| Task                | Optimal Model Characteristic      |
+| ------------------- | --------------------------------- |
+| Research            | Long-context, retrieval-optimised |
+| Coding              | Code-specialised                  |
+| Reasoning           | Deep reasoning                    |
+| Writing             | Tone-aware generation             |
+| Vision              | Multimodal                        |
+| Planning            | Structured output                 |
+| Agent orchestration | Fast, reliable, tool-use capable  |
 
 The platform must support:
 
@@ -408,6 +408,7 @@ Think beyond chat. Consider:
 Continuously produce recommendations and artefacts across:
 
 ### Product Vision
+
 - Refined positioning and differentiation
 - ICP definition
 - Value proposition
@@ -415,6 +416,7 @@ Continuously produce recommendations and artefacts across:
 - GTM strategy
 
 ### Product Features
+
 Categorise into: Core / Premium / Future / Experimental / Autonomous / Enterprise
 
 - Remove unnecessary features without hesitation
@@ -422,11 +424,13 @@ Categorise into: Core / Premium / Future / Experimental / Autonomous / Enterpris
 - Rank by user impact and strategic value
 
 ### Agent Ecosystem
+
 - Specialist agents with defined scopes
 - Agent interaction and orchestration patterns
 - Approval workflows and human checkpoints
 
 ### User Experience
+
 - Surface designs beyond chat
 - Interaction paradigms
 - Navigation and information architecture
@@ -461,21 +465,21 @@ Documentation is a first-class citizen. Every significant change must update pro
 
 ### Mandatory Living Documents
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Project overview and quickstart |
-| `PROJECT.md` | Current project status, context, and open questions |
-| `PRODUCT.md` | Product vision, strategy, and feature decisions |
-| `ARCHITECTURE.md` | Technical architecture and stack decisions |
-| `AGENTS.md` | Agent definitions, orchestration patterns, and protocols |
-| `CHANGELOG.md` | What changed, when, and why |
-| `DECISIONS.md` | Key decisions with alternatives considered and trade-offs |
-| `ROADMAP.md` | Prioritised roadmap by milestone |
-| `BACKLOG.md` | Feature backlog with status and priority |
-| `KNOWN_ISSUES.md` | Active bugs and workarounds |
-| `WORKFLOWS.md` | Key product workflows and agentic flows |
-| `SESSION.md` | Current session context, last known state, next steps |
-| `TASKS.md` | Active and pending tasks with ownership |
+| File              | Purpose                                                   |
+| ----------------- | --------------------------------------------------------- |
+| `README.md`       | Project overview and quickstart                           |
+| `PROJECT.md`      | Current project status, context, and open questions       |
+| `PRODUCT.md`      | Product vision, strategy, and feature decisions           |
+| `ARCHITECTURE.md` | Technical architecture and stack decisions                |
+| `AGENTS.md`       | Agent definitions, orchestration patterns, and protocols  |
+| `CHANGELOG.md`    | What changed, when, and why                               |
+| `DECISIONS.md`    | Key decisions with alternatives considered and trade-offs |
+| `ROADMAP.md`      | Prioritised roadmap by milestone                          |
+| `BACKLOG.md`      | Feature backlog with status and priority                  |
+| `KNOWN_ISSUES.md` | Active bugs and workarounds                               |
+| `WORKFLOWS.md`    | Key product workflows and agentic flows                   |
+| `SESSION.md`      | Current session context, last known state, next steps     |
+| `TASKS.md`        | Active and pending tasks with ownership                   |
 
 > `SESSION.md` and `TASKS.md` are the **minimum required** for session continuity. Every session must start by reading these two files and end by updating them.
 
@@ -646,4 +650,4 @@ Do not automate broken workflows — redesign them.
 
 ---
 
-*This document is the living constitution of this project. It should evolve as the product evolves. When restructuring, preserve all information, cross-reference all concepts, and ensure nothing is siloed or orphaned. Last updated: 2026-06-11 — Repo Concordance added; interlinked from CLAUDE.md, GEMINI.md, AGENTS.md, README.md, ENTRY.md, and the Lovable Knowledge field.*
+_This document is the living constitution of this project. It should evolve as the product evolves. When restructuring, preserve all information, cross-reference all concepts, and ensure nothing is siloed or orphaned. Last updated: 2026-06-11 — Repo Concordance added; interlinked from CLAUDE.md, GEMINI.md, AGENTS.md, README.md, ENTRY.md, and the Lovable Knowledge field._

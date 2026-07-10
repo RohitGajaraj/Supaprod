@@ -97,6 +97,7 @@ The Chief of Staff entry point: a Today surface that brings the PM only the call
 > As a PM, when I open Cadence I want one queue of the calls that need me (approval gates, PRDs in review, opportunities the Critic flagged) so I can clear my decisions in one place instead of hunting across tabs.
 
 Acceptance criteria:
+
 - The Today surface returns three call types in one round-trip: pending or expired approval gates (ordered by expiry, capped at 10), PRDs in `review` status with their Critic review, and opportunities whose Critic verdict is `revise` or `kill`.
 - Each card shows enough to decide: for approvals, the model and estimated cost from the trace; for PRD and opportunity calls, the Critic annotation.
 - Approving an approval card resolves it through `resolveApproval`. The cleared-calls ring increments on clear.
@@ -110,6 +111,7 @@ Dependencies: A4 (Critic annotations), governance approval store. Code: `src/lib
 > As a brand-new user with no signals, opportunities, or PRDs yet, I want a guided on-ramp instead of an empty decision queue so I know what to do first.
 
 Acceptance criteria:
+
 - When signals, opportunities, and PRDs all read zero, the Today surface shows the cold-start on-ramp instead of the Needs-You queue.
 - A seeded demo workspace never sees the cold state.
 
@@ -120,6 +122,7 @@ Dependencies: A1. Code: `getColdStart` in `today.functions.ts`, `ColdStartOnramp
 > As a PM, I want to watch a mission run, see which steps the loop executed on its own, and step in only when a step is gated, so I can trust the loop without babysitting it.
 
 Acceptance criteria:
+
 - The mission detail surface shows a hop timeline, a mission graph (steps as nodes, dependencies as edges), and per-hop thought, tool call, and final output with tool-consequence labels and reversibility badges.
 - It polls every 4 seconds (2 seconds for live hops).
 - Every auto-mode, side-effecting tool call is recorded as unattended in `tool_calls` and labelled "executed unattended" in the cockpit.
@@ -134,10 +137,12 @@ Dependencies: B1 (auto-advance), B2 (slug-bug fix to reach multi-step). Code: `s
 > As a PM, I want every consequential call red-teamed before I make it, so I see the case against it, not just the case for.
 
 Acceptance criteria (Built today):
+
 - The Critic runs as an inline call (`runCritic`) over opportunities and PRDs and stores its verdict on the row's `critic_review` jsonb.
 - Critic-flagged opportunities and PRDs surface in the Today queue with the verdict.
 
 Acceptance criteria (Missing, required for M-B):
+
 - Critic is promoted to a first-class step in the orchestrated loop (a DECIDE red-team hop), not only an inline call, so "every call is challenged" holds inside missions, not just on standalone rows.
 
 Dependencies: B2 (orchestrated loop must run). Code today: `src/lib/discovery.functions.ts` (lines 25, 62, 90). Note: Critic is not a seeded agent; the `critic` slug is a display face only.
@@ -153,6 +158,7 @@ The engine: the loop advances itself under governance, with a visible trust arc 
 > As any user, when I dispatch a multi-agent mission I want it to plan and run instead of dying at the planning step.
 
 Acceptance criteria:
+
 - The orchestrator's stored system prompt enumerates only seeded slugs (`discovery-scout`, `strategist`, `prd-writer`, `builder`), or `mission.plan` validation aliases legacy names (`discovery`, `growth`, `analyst`) to real slugs.
 - A multi-agent mission with a sensing step plans and dispatches without `mission.plan` throwing `references unknown slug`.
 
@@ -163,6 +169,7 @@ Dependencies: none. This gates the entire loop and ships before anything else. C
 > As a PM, I want the loop to carry a multi-wave mission forward on its own, between my visits, without me pushing each step.
 
 Acceptance criteria:
+
 - `advanceMissionCore` runs every minute via the `resume-runs` cron, model-free, claim-first compare-and-swap.
 - Multi-wave missions advance past wave 0 (reflect, dispatch-ready, finalize) unattended.
 - An operator can still push a mission forward manually with `advanceMission`.
@@ -175,6 +182,7 @@ Dependencies: B0 (so multi-agent missions reach the advance path). Code: `src/li
 > As a PM, I want a stuck or failing step to retry within a bound and respect a step budget, so a mission neither stalls silently nor burns unbounded cost.
 
 Acceptance criteria:
+
 - The agent loop applies bounded retry and adaptive step budgets.
 - Non-governance model errors set the run failed and the mission halted (no infinite `running`).
 
@@ -185,10 +193,12 @@ Dependencies: B1. Code: `src/lib/ai/loop.server.ts`. (Known residual: KI-15, a r
 > As a new user, I want the product to feel ambient (the loop runs reversible work, I approve the rest) with a visible on-ramp that earns more autonomy as the agents prove safe, not "gate everything from day one."
 
 Acceptance criteria (Built today):
+
 - A four-stage trust arc (observing, proving, trusted, ambient) is computed from mission success rate, approval acceptance rate, and mean eval score, stored in `agent_autonomy`.
 - `resolveApprovalMode` is a safety floor: `ambient` makes everything auto, `trusted` promotes confirm to auto, `proving` promotes auto to confirm, `observing` makes everything review.
 
 Acceptance criteria (Required for M-A, currently Missing or default-blocked):
+
 - New accounts no longer feel "gate everything." Today the default is `observing` (every action, including auto-mode tools, becomes review), which structurally blocks unattended execution and pins the autonomy ratio near zero. M-A ships an honest, visible on-ramp (observing to proving to trusted) that loosens gating as the agent demonstrates safety.
 - The Today queue presents two card types: "Waiting for your call" (approve or override) and "Executed and learned" (summary plus one-click undo). The green, executed-and-learned share grows as decisions roll forward without override.
 - An override asks one question ("what's your reasoning?") that is stored as a memory signal (feeds Epic C).
@@ -200,12 +210,14 @@ Dependencies: B0, B1, C2 (override reasoning becomes memory). Code: `src/lib/ai/
 > As a PM, I want a real source of signals to flow in and trigger the sensing path, so the loop has real data to work on.
 
 Acceptance criteria (Built):
+
 - An operator can rotate, revoke, and manage a 64-char ingest token (`ingest_tokens`).
 - The public ingest endpoint accepts a Bearer token and inserts up to 50 signals per call.
 - An event reactor maps `signal.created` to a target agent with an approval mode; auto-mode dispatches run via the cron tick, confirm-mode queues for approval.
 - The auto-discovery path chains signal to Scout to scored opportunity to Strategist to PRD to Builder.
 
 Gaps (required to operate on live):
+
 - The `ingest_tokens` migration is committed but unapplied on live (KI-09); the endpoint 401s until synced.
 - The endpoint has no rate limit (KI-10); a leaked token allows uncapped POSTs and fan-out cost. Add a per-token rate cap before scale.
 
@@ -216,6 +228,7 @@ Dependencies: M-0 migration sync. Code: `src/lib/ingest.functions.ts`, `src/lib/
 > As a PM, I want to connect my real sources (calendar, GitHub, and the rest) with a Connect button, so sensing is more than a webhook.
 
 Acceptance criteria:
+
 - The OAuth-only connector UI ships in Settings, Connected accounts (Built; founder ruling is Connect-button OAuth only, no key paste).
 - Provider client-ID secrets are set and the GitHub App is registered, so connections and workspace bindings stop showing "setup pending" and actually connect (Missing; KI-12, KI-01).
 - At least two ingest sources are real and feeding the loop by M-A exit.
@@ -227,11 +240,13 @@ Dependencies: founder OAuth-client registration and the six secrets; M-0 migrati
 > As a PM, I want a work order to become staged code, a PR, a CI read, and a gated merge, so the loop reaches shippable output, not just a spec.
 
 Acceptance criteria (Built):
+
 - A work order (goal, optional PRD link, model) runs the Build agent loop, stages multi-file changes in `studio_changesets`, and exposes a pipeline journey strip from live DB fields.
 - The session detail shows Changes, PR and CI, and Cost tabs; a steer mutation redirects mid-session.
 - Changeset lifecycle is `staged`, `committed`, `pr_open`, `merged`, `abandoned`.
 
 Gaps:
+
 - The GitHub App is not yet registered (KI-12), so PR creation is non-operational on live and CI refresh is manual. The changeset tables gate on the same migration sync.
 
 Dependencies: B5 (GitHub App registration), M-0 migration sync. Code: `src/lib/studio.functions.ts`, `src/routes/_authenticated.build.*`.
@@ -247,6 +262,7 @@ The defensible layer: every validation, override, and outcome becomes a reasonin
 > As a PM, I want what shipped (or got killed) to teach the system, so my priorities re-score on evidence and I do not re-derive the same call.
 
 Acceptance criteria:
+
 - A completed mission or moved opportunity is distilled into a memory payload with verdict and summary and written to the memory store.
 - The linked opportunity's ICE is re-scored (prior ICE to new ICE).
 - Each dispatched hop recalls semantic memory into the handoff payload's `memory_refs`, rendered to the receiving agent.
@@ -269,6 +285,7 @@ Dependencies: B3, C1. Code: extends `outcome.functions.ts` / `memory.server.ts`.
 > As a PM, I want the unattended loop to recall the full semantic memory, not only reflections, so the moat is real on the autonomous path, not just the interactive one.
 
 Acceptance criteria:
+
 - The memory-recall scope fix (`20260614091000`, a COALESCE change) is applied and verified on live, so the autonomous path recalls semantic memory, not only reflections.
 
 Dependencies: M-0 migration sync. Status: committed in code, blocked on sync.
@@ -294,6 +311,7 @@ Make "agent-friendly" true: expose the typed handoff contract so external agents
 > As an external agent (the agent-as-user persona), I want to query a team's decision and memory layer and hand work into their governed loop through MCP, so I can act on their product context without a human relaying it.
 
 Acceptance criteria:
+
 - An MCP server exposes read access to decisions and memory and a write path that hands a task into the governed loop, subject to the same approval modes as a human-initiated mission.
 - The surface maps to the existing typed A2A `HandoffPayload`; it does not invent a second contract.
 
@@ -304,6 +322,7 @@ Dependencies: B0, B3 (governance applies to agent-initiated work too). Note: the
 > As an integrator, I want a documented public API for signals in, decisions out, and mission status, so the user's other tools integrate without screen-scraping.
 
 Acceptance criteria:
+
 - A documented, authenticated API covers signal ingest, decision read, and mission status at minimum.
 - Auth and rate limiting are enforced (closes the KI-10 class of risk for the public surface).
 
@@ -320,6 +339,7 @@ Monetize on memory persistence and outcomes; grow through a public redacted deci
 > As an individual PM, I want a free tier that lets me try the loop and a Pro tier whose pull is that my decision memory never expires, so the value of paying is the moat I have been building.
 
 Acceptance criteria:
+
 - Free: one workspace, ritual capped, webhook ingest, memory expires (around 30 days).
 - Pro (around $39/mo): unlimited ritual, persistent decision memory that never expires, Critic everywhere, shareable decision links.
 - Team: value- or outcome-anchored, shared memory, per-role approval lanes; charged on memory persistence and decisions or outcomes, not per-seat or per-run. The >$150/mo bar is piloted as fixed-fee outcome contracts with design partners, asserted as a price only after churn under 5% per month across at least 10 teams.
@@ -332,9 +352,11 @@ Dependencies: C1 (memory must exist to expire or persist), margin controls (BYOK
 > As a PM building in public, I want to share a public, redacted decision card so my network sees Cadence's reasoning and follows the link back.
 
 Acceptance criteria (Built):
+
 - A public decision page (`/d/$slug`) renders one decision marked public, server-side, with full OG tags (title, rationale, image); anonymous readers see only safe columns. This is the viral loop entry point and is live. The same anon-scoping hardening was applied to the prototype surface `/p/$slug` (KI-17, fix committed, awaiting sync).
 
 Acceptance criteria (required for M-C):
+
 - The signup funnel attributes inbound from a decision link, so we can prove a shared decision drives signups (the M-C exit criterion).
 
 Dependencies: E1 (shareable links are a Pro entitlement). Code: `src/routes/d.$slug` (public, SSR), `src/routes/p.$slug`.
@@ -344,6 +366,7 @@ Dependencies: E1 (shareable links are a Pro entitlement). Code: `src/routes/d.$s
 > As an individual PM, I want my daily ritual and persistent memory to be the reason I convert, not a paywall in my face.
 
 Acceptance criteria:
+
 - Conversion is driven by memory persistence and ritual continuity (the ritual session is already recorded for the retention metric).
 - The funnel is instrumented end to end (decision-link inbound through activation through conversion).
 
@@ -360,6 +383,7 @@ The activation promise: a real new user signs up and the loop closes once on the
 > As a new user, I want signup to actually create my account.
 
 Acceptance criteria:
+
 - A real signup completes and seeds profile plus default workspace. The KI-13 fix wraps each seed step in its own subtransaction so a failed seed logs a warning and signup still completes (the app self-heals profile and workspace).
 - Verified on a fresh signup after the migration sync.
 
@@ -370,9 +394,11 @@ Dependencies: M-0 migration sync. Status: fix landed in code (`20260614140000`),
 > As a new user, I want a first-run flow that gets me from signup to one closed loop on my own data in under 10 minutes.
 
 Acceptance criteria (Built):
+
 - A full-viewport onboarding flow exists, gated on `profiles.onboarded`, with no app shell.
 
 Acceptance criteria (required for M-A exit):
+
 - The flow connects at least one real ingest source (a working connector or the webhook) and walks the user to one closed loop (a signal sensed, a call decided, an outcome learned) on their data, measured under 10 minutes.
 
 Dependencies: B0, B3, B4 or B5 (a real source), F1. Code: `OnboardingFlow`, `getColdStart`.
@@ -383,14 +409,14 @@ Dependencies: B0, B3, B4 or B5 (a real source), F1. Code: `OnboardingFlow`, `get
 
 Launch is gated on the proof gauntlet, not a date. The three engine metrics already compute over real tables at `/govern?tab=gauntlet`; the business metrics are instrumented as paying accounts arrive.
 
-| Metric | Definition | Target | Status | Source |
-|---|---|---|---|---|
-| Acceptance rate (Gauntlet A) | approved / (approved + rejected) over a 14-day window, accepted = approved, executed, or failed | Trending up; high enough that approve-by-exception is real | **Built** | `agent_approvals`, `gauntlet.functions.ts` |
-| Ritual retention (Gauntlet B) | distinct UTC days with Today open (7, 14, 30 day plus streak) | Sticky daily use on real accounts | **Built** (real-data flag distinguishes account from demo) | `ritual_sessions` |
-| Autonomy ratio (Gauntlet C) | unattended / (unattended + gated) side-effecting tool calls | Rises over time as the loop carries more reversible work | **Built** (structurally near zero until B3 ambient on-ramp ships, since observing gates everything) | `tool_calls` vs `agent_approvals` |
-| Outcome-accuracy lift per PM | recommendation accuracy versus a generic-model baseline as a single account's memory grows | Measurably rising for one account (scale-independent moat proof) | **Missing** (required for M-B) | extends `gauntlet.functions.ts` |
-| Net dollar retention (NDR) | expansion from memory compounding | >115 to 120% | **Missing** (needs paying teams) | E + billing |
-| Time-to-value | signup to first closed loop on real data | < 10 minutes | **Partial** (blocked by F1, F2, a real source) | onboarding instrumentation |
+| Metric                        | Definition                                                                                      | Target                                                           | Status                                                                                              | Source                                     |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Acceptance rate (Gauntlet A)  | approved / (approved + rejected) over a 14-day window, accepted = approved, executed, or failed | Trending up; high enough that approve-by-exception is real       | **Built**                                                                                           | `agent_approvals`, `gauntlet.functions.ts` |
+| Ritual retention (Gauntlet B) | distinct UTC days with Today open (7, 14, 30 day plus streak)                                   | Sticky daily use on real accounts                                | **Built** (real-data flag distinguishes account from demo)                                          | `ritual_sessions`                          |
+| Autonomy ratio (Gauntlet C)   | unattended / (unattended + gated) side-effecting tool calls                                     | Rises over time as the loop carries more reversible work         | **Built** (structurally near zero until B3 ambient on-ramp ships, since observing gates everything) | `tool_calls` vs `agent_approvals`          |
+| Outcome-accuracy lift per PM  | recommendation accuracy versus a generic-model baseline as a single account's memory grows      | Measurably rising for one account (scale-independent moat proof) | **Missing** (required for M-B)                                                                      | extends `gauntlet.functions.ts`            |
+| Net dollar retention (NDR)    | expansion from memory compounding                                                               | >115 to 120%                                                     | **Missing** (needs paying teams)                                                                    | E + billing                                |
+| Time-to-value                 | signup to first closed loop on real data                                                        | < 10 minutes                                                     | **Partial** (blocked by F1, F2, a real source)                                                      | onboarding instrumentation                 |
 
 Founder launch gate (locked 2026-06-14): at least 10 PMs paying around $150/mo, the loop closes once on a partner's real data, and the autonomy ratio ticks up on a real account.
 

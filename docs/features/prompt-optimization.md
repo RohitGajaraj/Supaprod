@@ -22,7 +22,7 @@ become a concrete, versioned fix a human can approve, not just a dashboard numbe
 This row was previously marked "Gated: attended chokepoint work" on the assumption that the
 drafting call would need a new `CallSurface` literal in the pinned `runtime.server.ts` (the same
 reasoning that correctly gated AGT-01/AGT-02). Fresh investigation found two already-shipped
-precedents for a structurally identical "draft-only, human confirms" AI call reusing the *existing*
+precedents for a structurally identical "draft-only, human confirms" AI call reusing the _existing_
 `judge` surface without any founder-attended session: `src/lib/outcome.functions.ts`'s LRN-02
 Historian verdict drafter, and this session's own RF-04 (`house-rules-tick.ts`). RF-07 follows the
 same path - reuses `judge`, makes zero edits to any of the 5 pinned chokepoint files

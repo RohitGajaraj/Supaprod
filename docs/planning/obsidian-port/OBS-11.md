@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-11 |
-| Rank | #12 |
-| Tier | 2 |
-| Status | pending (pick after OBS-10 lands) |
-| Category | Cockpit |
-| Depends on | OBS-10 (route consolidation → the five canonical destinations must be real) · OBS-01/02/03 (tokens, shell, primitives) |
-| Blocks | nothing downstream |
+| Field         | Value                                                                                                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-11                                                                                                                                                                                                                                                                                                        |
+| Rank          | #12                                                                                                                                                                                                                                                                                                           |
+| Tier          | 2                                                                                                                                                                                                                                                                                                             |
+| Status        | pending (pick after OBS-10 lands)                                                                                                                                                                                                                                                                             |
+| Category      | Cockpit                                                                                                                                                                                                                                                                                                       |
+| Depends on    | OBS-10 (route consolidation → the five canonical destinations must be real) · OBS-01/02/03 (tokens, shell, primitives)                                                                                                                                                                                        |
+| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                            |
 | One-line what | Supersede the parchment cmdk palette with the glass ⌘K palette (560px, sections JUMP · ACT · ASK · CATALOG, mono index rows) plus the "What can it do?" capability catalog: every capability as a plain-words pitch with a "Try it on real data" action. The answer to 250+ features without growing the nav. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-11 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-11 one-paragraph index) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-11                                                                                                                                                                                                                                    |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-11 one-paragraph index)                                                                                                                                                                                                                           |
 
 ## 2. Why we are doing it
 
@@ -32,6 +32,7 @@ The current palette (`src/components/cadence/CommandPalette.tsx`) is a lucide-ic
 ## 3. What we are building
 
 **Scope IN**
+
 - A new glass palette component that fully supersedes `CommandPalette.tsx`: 560px centered panel, `--raised` glass, four mono-caps sections **JUMP · ACT · ASK · CATALOG**, mono index rows, ember caret, focus trap + restore.
 - Keyboard: `⌘K` / `Ctrl+K` toggles; `Esc` closes; arrow keys move the active row; `Enter` runs it; scrim click closes. Keep the existing `cadence:open-cmdk` window event so the rail "Jump to" affordance still opens it.
 - **JUMP** section: the five canonical destinations + the three most-recent objects (shown on empty query).
@@ -43,6 +44,7 @@ The current palette (`src/components/cadence/CommandPalette.tsx`) is a lucide-ic
 - New unit tests for the pure catalog registry + the query filter + the section grouping.
 
 **Scope OUT (no feature work rides along)**
+
 - No new server functions, no new AI surface, no new `CallSurface` literal. The palette **consumes read-only**: TanStack Router `navigate` for JUMP/CATALOG destinations, the existing `cadence:open-cmdk` and (new, client-only) `cadence:open-ask` window events, and whatever cheap client-side "recent objects" source already exists (a `sessionStorage`/`localStorage` recents list or a lightweight query key that is already populated by the surfaces). If no recents source exists yet, ship the 3-recent slot reading from a client `recents` helper seeded by navigation · **do not** add a server fn to compute recents.
 - No changes to the Ask panel itself (OBS-12 owns it); OBS-11 only summons it.
 - No route redirects or nav-model route changes (OBS-10 owns those); OBS-11 reads the already-canonical routes.
@@ -101,15 +103,18 @@ Component tree (the palette overlay):
 `Section`, `Row`, `CatalogRow`, `InputRow` are small local components inside `CommandPalette.tsx` (no new component files needed for chrome · mirror how the old file kept `Item` local).
 
 **New files to create**
+
 - `src/lib/palette-catalog.ts` · `CatalogEntry` type, `CATALOG`, `filterCatalog`.
 - `src/lib/palette-sections.ts` · `JUMP_DESTINATIONS`, `ACT_VERBS` (may be folded into `palette-catalog.ts` if small; keep pure).
 - `src/lib/palette-recents.ts` · client recents helper.
 - `src/lib/palette-catalog.test.ts` · unit tests.
 
 **Files modified**
+
 - `src/components/cadence/CommandPalette.tsx` · full rewrite of the render + the `GotoShortcuts` route map.
 
 **Files unchanged (consumed read-only)**
+
 - `src/routes/_authenticated.tsx` · mount point untouched.
 - `src/lib/nav-model.ts` · destination list read, not edited (OBS-10 owns route edits).
 - All target surfaces (Discover/Plan/Build/Brain/Engine Room) · reached via `navigate` / client events, not modified.
@@ -133,6 +138,7 @@ All values below are the exact tokens from the hub (§5) and extensions §1 · d
 **Catalog row.** Pitch in `--font-ui` 13px `--text-body`; the **Try it** action is a quiet secondary control right-aligned: `--font-ui` 12px, `--text-muted`, hairline border, `--radius-control 8px`, no fill; on hover it lifts to `--hover #1D1D21` and hairline brightens to `--hairline-strong rgba(255,255,255,0.09)`. Try it never goes ember (running a capability is not a human-gated decision).
 
 **Interaction states (design every one).**
+
 - **Hover (row):** background lifts one step to `--hover #1D1D21`; hairline is not drawn per-row (rows are separated by space, not borders); label brightens to `--text-primary`. Tonal only · nothing translates.
 - **Active / keyboard-selected row:** background `#1A1A1E`; mono index turns ember; a **2px glacier (`#7FD1DC`) focus ring, offset 2** on the row (`:focus-visible` idiom, applied to the active row as it scrolls into view). Arrow keys move it; the list auto-scrolls to keep it visible.
 - **Press (a JUMP/CATALOG row):** the row's action fires immediately on `Enter`/click; no scale transform on rows (scale(0.985) is reserved for buttons · the Try it chip may use it: press → `scale(0.985)` 140ms).

@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-04 |
-| Rank | #5 |
-| Tier | 1 (foundation surface) |
-| Status | pending |
-| Category | Cockpit |
-| Depends on | OBS-03 (primitives: Button, StatusDot, MonoLabel, Toast, CallCard, MissionRow, AuroraCard, Citation) |
-| Blocks | OBS-14 (onboarding golden path lands the user on Today) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-04                                                                                                                                                                                                                                                                                                                                                                                       |
+| Rank          | #5                                                                                                                                                                                                                                                                                                                                                                                           |
+| Tier          | 1 (foundation surface)                                                                                                                                                                                                                                                                                                                                                                       |
+| Status        | pending                                                                                                                                                                                                                                                                                                                                                                                      |
+| Category      | Cockpit                                                                                                                                                                                                                                                                                                                                                                                      |
+| Depends on    | OBS-03 (primitives: Button, StatusDot, MonoLabel, Toast, CallCard, MissionRow, AuroraCard, Citation)                                                                                                                                                                                                                                                                                         |
+| Blocks        | OBS-14 (onboarding golden path lands the user on Today)                                                                                                                                                                                                                                                                                                                                      |
 | One-line what | Today ported to Obsidian: the hero (Newsreader 34px, one ember italic count word that rewrites as calls clear), the Call queue (canonical CallCard, cross-object sync to missions), What changed with causes, the loop strip (SENSE · DECIDE · DEFINE · BUILD · LEARN with live counts, DECIDE ember when calls pend), the ONE Loop Health aurora card, and the machine-right-now mini-list. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-04 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-04                                                                                                                                                                                                                                                                                                                   |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                                                                                       |
 
 ## 2. Why we are doing it
 
@@ -32,6 +32,7 @@ Today is the ritual screen: the first thing the PM opens, the place the loop rep
 ## 3. What we are building
 
 **Scope IN**
+
 - The hero band: mono eyebrow greeting, Newsreader 34px headline with the single ember italic count word, rewriting live as calls are answered (`Two calls` to `One call` to `All clear.`).
 - The loop strip: five mono-caps pills SENSE · DECIDE · DEFINE · BUILD · LEARN joined by faint `→`, each with a live count, each a jump to its surface; DECIDE goes ember when calls pend, BUILD carries a pulsing glacier dot.
 - The Call queue rendered with the canonical OBS-03 `CallCard`; the all-clear empty state as a moss-hairline card.
@@ -42,6 +43,7 @@ Today is the ritual screen: the first thing the PM opens, the place the loop rep
 - Cross-object sync on answering a call: queue, hero, badge, progress, "machine right now" step label, and the linked mission all update with no reload.
 
 **Scope OUT (no feature work rides along)**
+
 - No server functions are written or changed. Today consumes these read-only: `getGreeting` (`["greeting", localHour]`), `getNeedsYou` (`["needs-you"]`, the Call queue source: `{approvals, prdCalls, oppCalls}`), `getLoopPulse` (`["loop-pulse"]`, the strip counts: signals / opportunities / specs / runs / memories), `listLearnings` (`["learnings"]`, What changed), `listAgentRuns` (`["runs"]`, machine-right-now), `getAcceptanceRate` + `getAutonomyRatio` (Loop Health inputs), `listProjects` (`["projects"]`, shell). The only mutation is the existing `resolveApproval` (answering a call) via `decideApproval`.
 - No new columns, no schema, no new Call kinds. The nav-model reshape and route folds are OBS-02 / OBS-10, not here.
 - The Build mission slide-over is OBS-05. Today opens Build and hands off; it does not render the slide-over itself.
@@ -106,11 +108,13 @@ _authenticated.today.tsx  (Dashboard, rewritten · consumes server fns, mutates 
 All colors from the `[data-obsidian]` token layer. Never invent a hex.
 
 **Hero band** (prototype-exact):
+
 - Eyebrow: `--font-mono` 9.5px, letter-spacing 0.14em, color `--text-subtle #7D786F`, uppercase, margin-bottom 10px. Copy: `Good morning, {userName}` (time-adaptive from `getGreeting`).
 - Headline: `--font-serif` (Newsreader), weight 430, font-size 34px (`--text-hero`), line-height 1.15, letter-spacing -0.015em, color `--text-primary #F2F0ED`, margin `0 0 24px`, `text-wrap: balance`. Structure: `<em style="font-style:italic;color:#FF6B2C">{heroA}</em>{heroB}`. The italic ember word is the ONE emotional serif word per screen.
 - All-clear variant swaps the italic color to moss (see all-clear card).
 
 **Loop strip** (container: flex, align center, gap 8, flex-wrap, margin-bottom 28):
+
 - Arrow between pills: span color `--text-faint #55524C`, font-size 11px, glyph `→` (U+2192); the first pill has no leading arrow.
 - Pill button: inline-flex, align center, gap 7, border `1px {bc}`, `--radius-pill 99`, padding `6px 13px`, background transparent, color `{c}`, `--font-mono` 9.5px, letter-spacing 0.10em, box-shadow `{sh}`, transition background 140ms; hover background `#141416`.
 - Tones: **ember** → bc `rgba(255,107,44,0.5)`, c `--ember #FF6B2C`, sh `0 0 14px rgba(255,107,44,0.15)`. **glacier** → bc `rgba(127,209,220,0.35)`, c `--glacier #7FD1DC`, sh `none`. **quiet** → bc `rgba(255,255,255,0.12)`, c `--text-muted #9C978F`, sh `none`.
@@ -132,6 +136,7 @@ All colors from the `[data-obsidian]` token layer. Never invent a hex.
 **Machine right now card:** background `--card #111113`, border `1px --hairline rgba(255,255,255,0.07)`, radius 12, padding 16/18. Header row: mono 9px caps letter-spacing 0.12em `--text-subtle #7D786F` `The machine right now` (flex:1) + `OPEN →` quiet glacier button (mono 9px, color `--glacier`, hover `#EAF6FF`). Rows grid gap 9: each a full-width `<button>`, dot 6px radius 99 background = status color + its box-shadow glow + status animation, title 12.5px `--text-primary` (ellipsis), step label mono 9px right, cost mono 9px faint.
 
 **Interaction states (design every one):**
+
 - **Hover:** pills background to `#141416`; CallCard and MissionRow lift one surface step + brighter hairline, 140ms, tonal only (nothing translates); machine-now rows dim to opacity 0.85; quiet links brighten to `#EAF6FF`.
 - **Focus:** 2px glacier outline offset 2 (`:focus-visible`) on every pill, CallCard action, machine-now row, and the OPEN link.
 - **Active / press:** ember primary → `--ember-deep #C2571F`, transform scale(0.985) 140ms.

@@ -48,7 +48,9 @@ describe("receiptStatusLabel", () => {
 
 describe("ledgerSummary — plain-language, real counts only", () => {
   test("empty ledger", () => {
-    expect(ledgerSummary({ all: 0, standing: 0, superseded: 0 })).toBe("Nothing on the record yet.");
+    expect(ledgerSummary({ all: 0, standing: 0, superseded: 0 })).toBe(
+      "Nothing on the record yet.",
+    );
   });
   test("all standing, plural and singular", () => {
     expect(ledgerSummary({ all: 5, standing: 5, superseded: 0 })).toBe(

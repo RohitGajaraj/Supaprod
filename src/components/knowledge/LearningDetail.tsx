@@ -143,7 +143,8 @@ export function LearningDetail({ id }: { id: string }) {
     priorIce != null && newIce != null ? Math.round((newIce - priorIce) * 10) / 10 : null;
   const moved = delta != null && delta !== 0;
 
-  const deltaTone: StatTone = delta == null || delta === 0 ? "muted" : delta > 0 ? "moss" : "madder";
+  const deltaTone: StatTone =
+    delta == null || delta === 0 ? "muted" : delta > 0 ? "moss" : "madder";
 
   const copyId = () => {
     void navigator.clipboard?.writeText(l.id);
@@ -282,7 +283,12 @@ export function LearningDetail({ id }: { id: string }) {
             </p>
           ) : (
             <p
-              style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
+              style={{
+                fontSize: "12px",
+                color: "var(--text-subtle)",
+                fontStyle: "italic",
+                margin: 0,
+              }}
             >
               No memo was recorded for this outcome.
             </p>

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-20 · Last updated: 2026-06-20_
 
-> **What this is.** A living, append-forward register of **forward product bets** that are bigger than a backlog item and not yet specced into the build queue, captured comprehensively (thesis, evidence, wiring, open questions) so each can be enriched and then promoted into the queue with full context. This sits between the raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) and the specced work in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md): a bet lives here while we are still deciding *what* and *how* to build, then graduates to dashboard IDs and a feature spec once enriched.
+> **What this is.** A living, append-forward register of **forward product bets** that are bigger than a backlog item and not yet specced into the build queue, captured comprehensively (thesis, evidence, wiring, open questions) so each can be enriched and then promoted into the queue with full context. This sits between the raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) and the specced work in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md): a bet lives here while we are still deciding _what_ and _how_ to build, then graduates to dashboard IDs and a feature spec once enriched.
 >
 > **Standing rule (no orphans).** Every bet here is cross-linked to the canon it touches and back again. A bet is captured here in the same session the cue surfaces; the raw input goes to [`strategic-inputs-log.md`](./strategic-inputs-log.md); the decision to pursue (and any repositioning it causes) goes to [`session-decisions.md`](./session-decisions.md). This file is linked from the strategy [`README.md`](./README.md) role map.
 
@@ -15,10 +15,10 @@
 
 ## Index of bets
 
-| ID | Bet | Drill-down doc | Priority | Status |
-| --- | --- | --- | --- | --- |
+| ID     | Bet                | Drill-down doc                                       | Priority                                | Status                                                                                                                                                                                                                              |
+| ------ | ------------------ | ---------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **H1** | The Decision Brain | [`decision-brain.md`](../features/decision-brain.md) | **TOPMOST (founder ruling 2026-06-20)** | Increment 1 ([Ambient Precedent](../features/ambient-precedent.md)) SHIPPED to `main` (◐) 2026-06-20 cycle 55, all 6 tasks (engine + ranker ✅ unit-verified; 3 seams render-on-publish); deeper graph (DBR-1+) awaiting enrichment |
-| **H2** | The Command Canvas | [`command-canvas.md`](../features/command-canvas.md) | **Un-parked 2026-07-03 (founder)** | CMD-0 shipped (lane3), `◐ [~40%]`: the preview/canvas blocks render inside the existing Ask panel; CMD-1 (NL intent bar) and CMD-2 (direct manipulation) remain |
+| **H2** | The Command Canvas | [`command-canvas.md`](../features/command-canvas.md) | **Un-parked 2026-07-03 (founder)**      | CMD-0 shipped (lane3), `◐ [~40%]`: the preview/canvas blocks render inside the existing Ask panel; CMD-1 (NL intent bar) and CMD-2 (direct manipulation) remain                                                                     |
 
 Both came from one founder session (2026-06-20) and are best read as one arc: a **second-brain product** where a knowledge graph is the engine and a command-plus-preview surface is the front. Graph in, canvas out. Each bet has a self-contained, shareable drill-down doc in [`../features/`](../features/) (linked above); this register holds the strategic view (thesis, wiring, multi-lens, roadmap).
 
@@ -41,13 +41,13 @@ This is not a new feature bolted on. It is the **physical data structure of the 
 
 - **Typed nodes:** `Signal`, `Opportunity`, `Assumption`, `Decision`, `PRD`, `Experiment`, `Outcome`/`Metric`, plus shared entities `Person`, `Team`, `Feature`.
 - **Typed edges (the moat lives in the edges):** `cites`, `depends-on`, `supersedes`, `validates`, `contradicts`, `derived-from`. Each edge is **time-bounded** (`valid_at` / `invalid_at`).
-- **Outcome-labeled supersession (the signature mechanic):** when an outcome lands, the prior assumption is **invalidated, not deleted**. The supersession chain is preserved with provenance. That chain *is* the "was-the-reasoning-right" loop, and it stays queryable forever.
+- **Outcome-labeled supersession (the signature mechanic):** when an outcome lands, the prior assumption is **invalidated, not deleted**. The supersession chain is preserved with provenance. That chain _is_ the "was-the-reasoning-right" loop, and it stays queryable forever.
 
 ### Why a graph and not just more vectors (research-grounded)
 
 Flat vector RAG has three structural failures for compounding memory, and they map exactly onto the queries a PM decision OS must answer:
 
-1. **No temporal sequence:** it returns the most *similar* fact, not the most *current* one (recommends a preference the user already abandoned).
+1. **No temporal sequence:** it returns the most _similar_ fact, not the most _current_ one (recommends a preference the user already abandoned).
 2. **No causal traversal:** vectors are isolated points, so chains ("this assumption led to this decision led to this outcome") cannot be walked.
 3. **No invalidation:** it cannot recognize that a later event overrode an earlier fact.
 
@@ -61,15 +61,15 @@ The decision-intelligence literature gives the moat its language: "decision #10,
 
 ### The three hard guardrails (or the bet backfires)
 
-1. **Hybrid, never graph-only.** Graph indexing costs roughly 10 to 40 times the cost and roughly 2.3 times the latency of vectors, and *loses* about 13% on simple single-hop lookups. Keep vectors for fuzzy recall; route only multi-hop, contradiction, and decision queries through the graph. ([agentmarketcap](https://agentmarketcap.ai/blog/2026/04/07/graph-rag-vs-vector-rag-agent-memory-neo4j-pgvector), [Atlan memory-vs-rag-vs-kg](https://atlan.com/know/ai-memory-vs-rag-vs-knowledge-graph/))
+1. **Hybrid, never graph-only.** Graph indexing costs roughly 10 to 40 times the cost and roughly 2.3 times the latency of vectors, and _loses_ about 13% on simple single-hop lookups. Keep vectors for fuzzy recall; route only multi-hop, contradiction, and decision queries through the graph. ([agentmarketcap](https://agentmarketcap.ai/blog/2026/04/07/graph-rag-vs-vector-rag-agent-memory-neo4j-pgvector), [Atlan memory-vs-rag-vs-kg](https://atlan.com/know/ai-memory-vs-rag-vs-knowledge-graph/))
 2. **Auto-extract, never manual.** Every "build a second brain" post-mortem converges on the same failure: manual capture and over-structuring kill adoption (the classic "elaborate system on Sunday, four notes by Tuesday"). The graph must be auto-populated from artifacts the PM already produces (PRDs, discovery, logged decisions), never a second job. (Cognee Extract to Cognify to Load shape; Mem0/Zep resolve contradictions on write.) ([Okafor, "the concept is the problem"](https://justtalkingtech.medium.com/i-tried-every-second-brain-app-the-concept-is-the-problem-not-the-tools-5015de4c8812))
 3. **Storage is not the moat.** A bi-temporal property graph over Supabase/pgvector is viable for v1 (Graphiti on Neo4j is the open reference if we cross over later). The defensibility is the **typed temporal decision ontology plus auto-extraction plus outcome labeling**, which a competitor cannot backfill, because the value is accumulated, outcome-validated, linked judgment over calendar time.
 
 ### What to borrow
 
-- **Tana (supertags):** typed nodes and typed edges that *mean something*, not raw untyped backlinks. This is the single most transferable PKM idea.
+- **Tana (supertags):** typed nodes and typed edges that _mean something_, not raw untyped backlinks. This is the single most transferable PKM idea.
 - **Glean (Enterprise Graph):** the graph is the explainability substrate, "because the graph is explicit, you can trace why a result emerged." That is our "why did we decide X" made queryable. ([Glean graph vs vector](https://www.glean.com/blog/knowledge-graph-vs-vector-database))
-- **Guru (Verified RAG):** retrieve the *governing* decision (most recent, confirmed, not-yet-superseded), not the nearest text.
+- **Guru (Verified RAG):** retrieve the _governing_ decision (most recent, confirmed, not-yet-superseded), not the nearest text.
 
 ### What NOT to do
 
@@ -81,11 +81,11 @@ Do not market or build "Obsidian for PMs" (manual linked notes). Do not go pure-
 
 ### Thesis
 
-A **natural-language command / intent bar** as the primary visual surface, with a **live preview / canvas pane** on the right that renders outcomes as structured, outcome-named blocks. The founder's "everything is command-line, right side is preview" instinct is sound **if and only if** "command-line" is read as a *natural-language intent bar*, not a *syntax CLI*.
+A **natural-language command / intent bar** as the primary visual surface, with a **live preview / canvas pane** on the right that renders outcomes as structured, outcome-named blocks. The founder's "everything is command-line, right side is preview" instinct is sound **if and only if** "command-line" is read as a _natural-language intent bar_, not a _syntax CLI_.
 
 ### Why this does not conflict with the Engine-Room Doctrine
 
-The doctrine says "name the outcome, not the mechanism; the default surface never makes the user reason about how the machine works." A command bar violates that only if it requires memorized syntax. **Linear is the existence proof**: it is simultaneously the most command-driven and the calmest tool, because its command layer is an *optional accelerator over an opinionated, minimal GUI*, with plain-language outcome labels and a full mouse fallback. The preview pane is what makes the command bar calm-compatible: the user *watches* the outcome instead of *reasoning about* the mechanism. ([Inside Linear](https://www.lennysnewsletter.com/p/inside-linear-building-with-taste), [NN/g accelerators](https://www.nngroup.com/articles/ui-accelerators/))
+The doctrine says "name the outcome, not the mechanism; the default surface never makes the user reason about how the machine works." A command bar violates that only if it requires memorized syntax. **Linear is the existence proof**: it is simultaneously the most command-driven and the calmest tool, because its command layer is an _optional accelerator over an opinionated, minimal GUI_, with plain-language outcome labels and a full mouse fallback. The preview pane is what makes the command bar calm-compatible: the user _watches_ the outcome instead of _reasoning about_ the mechanism. ([Inside Linear](https://www.lennysnewsletter.com/p/inside-linear-building-with-taste), [NN/g accelerators](https://www.nngroup.com/articles/ui-accelerators/))
 
 ### The 10 calm-command rules (the resolution to keep)
 
@@ -111,7 +111,7 @@ The doctrine says "name the outcome, not the mechanism; the default surface neve
 - **Claude Artifacts / ChatGPT Canvas:** persistent artifact plus ephemeral conversation; highlight-to-edit scopes changes so the system never over-rewrites.
 - **bolt.new Visual Inspector:** click-to-target beats prose-only editing (v0's prose-only model is the cited negative example).
 
-2026 direction (NN/g, Wattenberger, Maggie Appleton, LukeW, a16z, LangChain, Vercel): the field is moving *off* the bare text box toward hybrid UIs, generative UI assembled from constrained components, and review-not-drive autonomy. Command-plus-preview sits exactly where this converges. ([NN/g generative UI](https://www.nngroup.com/articles/generative-ui/), [LangChain ambient agents](https://www.langchain.com/blog/introducing-ambient-agents), [a16z agentic interface](https://podscripts.co/podcasts/a16z-podcast/big-ideas-2026-the-agentic-interface))
+2026 direction (NN/g, Wattenberger, Maggie Appleton, LukeW, a16z, LangChain, Vercel): the field is moving _off_ the bare text box toward hybrid UIs, generative UI assembled from constrained components, and review-not-drive autonomy. Command-plus-preview sits exactly where this converges. ([NN/g generative UI](https://www.nngroup.com/articles/generative-ui/), [LangChain ambient agents](https://www.langchain.com/blog/introducing-ambient-agents), [a16z agentic interface](https://podscripts.co/podcasts/a16z-podcast/big-ideas-2026-the-agentic-interface))
 
 ### Scope ruling (the decision to keep)
 
@@ -125,7 +125,7 @@ Syntax-recall burden; mechanism-forward jargon; blank-prompt or hidden-trigger d
 
 ## The combined arc: a second-brain product
 
-H1 and H2 are the engine and the front of the same product instinct. A knowledge graph is the natural *engine* of a second brain; a command-plus-preview surface is the natural *front* of one (it is literally how Obsidian works: a command palette over a graph with a preview). The strategic shape is **graph in, canvas out**: one decision graph that every pillar reads from, one legible governed canvas that every action renders into.
+H1 and H2 are the engine and the front of the same product instinct. A knowledge graph is the natural _engine_ of a second brain; a command-plus-preview surface is the natural _front_ of one (it is literally how Obsidian works: a command palette over a graph with a preview). The strategic shape is **graph in, canvas out**: one decision graph that every pillar reads from, one legible governed canvas that every action renders into.
 
 ---
 
@@ -141,20 +141,20 @@ H1 and H2 are the engine and the front of the same product instinct. A knowledge
 - **MCP is a read-only foundation** (`searchSignals`/`searchOpportunities`/`getPRD`/`appendDecision`), with no outcome feedback.
 - **`O1` (knowledge graph + query) is partial** (provenance walk only) and **`O3` (fact drift + skill packs) is pending**, both filed P2 in the knowledge lane.
 
-These gaps *are* the two bets. Wiring map:
+These gaps _are_ the two bets. Wiring map:
 
-| What | Today | Bet | Action |
-| --- | --- | --- | --- |
-| Outcome to memory loop | Closed (human-gated) but flat + Critic-blind | H1 | **DBR-0 DONE (2026-06-20, ◐):** fed past outcomes to the Critic (`formatDecisionPrecedent` + a best-effort workspace-outcomes query in `runCritic`). Flat to typed graph is DBR-1. |
-| `O1` knowledge graph + query | Partial (provenance only) | H1 | **REPOSITION + elevate** P2 to moat-tier; becomes the typed decision graph. |
-| `O3` fact drift + skill packs | Pending | H1 | **ABSORB** into H1 (freshness/provenance + MCP export). |
-| Brain surface (`brain.functions.ts`, `brain.md`) | Status dashboard | H1 | **REPOSITION** into a navigable decision graph (Glean "trace why" + Guru governing-decision retrieval). |
-| Critic (`critic.server.ts`, the wedge, G2) | Spec-only, context-blind | H1 | **MODIFY:** read the graph for multi-hop "what contradicts this / what happened last time." Upgrades the launch wedge's receipts. |
-| MCP (G6 Interop, Lane F) | Read-only | H1 | **BRING FORWARD:** the graph becomes the neutral brain external agents query and write outcomes to; populate A2A `memory_refs` from it. |
-| Loop legibility / mission cockpit (G7) | Inline cooking banner | H2 | **BUILD:** the preview/canvas pane (the valuable half first). |
-| `CommandPalette.tsx` (`⌘K`, nav-only) | Navigation | H2 | **MODIFY:** elevate to an NL intent bar (Raycast pattern); preserve the GUI fallback. |
-| Ask surface (`/chat`, rail "Brain") | NL Q&A + mission dispatch | H2 | **EVOLVE, do not duplicate:** the Command Canvas is the maturation of Ask (one NL surface + a persistent preview), resolving the two-NL-box overlap the founder flagged (2026-06-20). Detail in [`../features/command-canvas.md`](../features/command-canvas.md). |
-| Connectors (GitHub live; Linear/Jira/Notion registered) | Partial | H1 | **EXTEND:** outcome detection feeds the graph's `Outcome` nodes with external truth. |
+| What                                                    | Today                                        | Bet | Action                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------- | -------------------------------------------- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outcome to memory loop                                  | Closed (human-gated) but flat + Critic-blind | H1  | **DBR-0 DONE (2026-06-20, ◐):** fed past outcomes to the Critic (`formatDecisionPrecedent` + a best-effort workspace-outcomes query in `runCritic`). Flat to typed graph is DBR-1.                                                                                |
+| `O1` knowledge graph + query                            | Partial (provenance only)                    | H1  | **REPOSITION + elevate** P2 to moat-tier; becomes the typed decision graph.                                                                                                                                                                                       |
+| `O3` fact drift + skill packs                           | Pending                                      | H1  | **ABSORB** into H1 (freshness/provenance + MCP export).                                                                                                                                                                                                           |
+| Brain surface (`brain.functions.ts`, `brain.md`)        | Status dashboard                             | H1  | **REPOSITION** into a navigable decision graph (Glean "trace why" + Guru governing-decision retrieval).                                                                                                                                                           |
+| Critic (`critic.server.ts`, the wedge, G2)              | Spec-only, context-blind                     | H1  | **MODIFY:** read the graph for multi-hop "what contradicts this / what happened last time." Upgrades the launch wedge's receipts.                                                                                                                                 |
+| MCP (G6 Interop, Lane F)                                | Read-only                                    | H1  | **BRING FORWARD:** the graph becomes the neutral brain external agents query and write outcomes to; populate A2A `memory_refs` from it.                                                                                                                           |
+| Loop legibility / mission cockpit (G7)                  | Inline cooking banner                        | H2  | **BUILD:** the preview/canvas pane (the valuable half first).                                                                                                                                                                                                     |
+| `CommandPalette.tsx` (`⌘K`, nav-only)                   | Navigation                                   | H2  | **MODIFY:** elevate to an NL intent bar (Raycast pattern); preserve the GUI fallback.                                                                                                                                                                             |
+| Ask surface (`/chat`, rail "Brain")                     | NL Q&A + mission dispatch                    | H2  | **EVOLVE, do not duplicate:** the Command Canvas is the maturation of Ask (one NL surface + a persistent preview), resolving the two-NL-box overlap the founder flagged (2026-06-20). Detail in [`../features/command-canvas.md`](../features/command-canvas.md). |
+| Connectors (GitHub live; Linear/Jira/Notion registered) | Partial                                      | H1  | **EXTEND:** outcome detection feeds the graph's `Outcome` nodes with external truth.                                                                                                                                                                              |
 
 **On-track verdict.** H1 is not a new lane bolted on. It is the **completion of Lane B (LEARN) and the M-B milestone gate** ("compounding memory surfaced; gauntlet shows rising numbers"), which today cannot be proven because the loop is stubbed. The `WM-*` monetization work continues untouched in parallel (file-disjoint). H2 is genuinely additive and lower priority; sequence its preview pane alongside the agent-execution and cockpit surfaces, and defer the full intent bar until power-user demand is evidenced.
 
@@ -164,17 +164,17 @@ These gaps *are* the two bets. Wiring map:
 
 ## Multi-lens read
 
-| Lens | H1 Decision Brain | H2 Command Canvas |
-| --- | --- | --- |
-| **Founder** | Completes the moat already claimed; turns "memory moat" from a slogan into an enforced data structure. | A power-feel front; sequence behind H1. |
-| **Investor** | The check-writing metric (outcome-accuracy lift per PM as memory grows) becomes measurable and un-backfillable; "context graph as moat" is the funded thesis (Atlassian, Glean). | UX delight, not defensibility; do not pitch as the moat. |
-| **Incubator / YC** | Sharpens the wedge story with receipts; "why now" (the vector-to-graph memory shift) is current and citable. | Demo-able wow, but a side-note in the narrative. |
-| **End-customer PM** | "It remembers what we decided, why, and whether it worked." The Critic stops being vibes. | Faster for keyboard-native PMs; must never force syntax on the rest. |
-| **Power user** | Multi-hop queries ("what contradicts this assumption") are the senior-PM superpower. | The CLI altitude they want: frecency, shortcuts, omnipotence principle. |
-| **Marketer** | Shareable artifact equals the Critic teardown with graph-cited receipts ("watch the AI demolish my pet feature with our own history"). | A striking, screenshot-able surface for build-in-public. |
-| **Evangelist** | "Decision #10,001 is smarter than #10,000," the institutional-memory narrative. | "Command your product org," memorable but secondary. |
-| **Business / monetization** | Graph depth is retention gravity (an export cannot take the tuned linked judgment); rides the account-level credit pool (more workspaces equals a deeper graph). | No direct monetization; a tier differentiator at most. |
-| **Incumbent / competitor (the threat)** | Biggest risk: Atlassian (150B-object Teamwork Graph, opened via MCP) or Notion/Glean add an outcome-labeled decision schema. Defense: win on the decision/outcome ontology, the adversarial Critic (incumbents will not tell customers they are wrong), and cross-tool neutrality. | Copyable UX; not a defense. |
+| Lens                                    | H1 Decision Brain                                                                                                                                                                                                                                                                  | H2 Command Canvas                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Founder**                             | Completes the moat already claimed; turns "memory moat" from a slogan into an enforced data structure.                                                                                                                                                                             | A power-feel front; sequence behind H1.                                 |
+| **Investor**                            | The check-writing metric (outcome-accuracy lift per PM as memory grows) becomes measurable and un-backfillable; "context graph as moat" is the funded thesis (Atlassian, Glean).                                                                                                   | UX delight, not defensibility; do not pitch as the moat.                |
+| **Incubator / YC**                      | Sharpens the wedge story with receipts; "why now" (the vector-to-graph memory shift) is current and citable.                                                                                                                                                                       | Demo-able wow, but a side-note in the narrative.                        |
+| **End-customer PM**                     | "It remembers what we decided, why, and whether it worked." The Critic stops being vibes.                                                                                                                                                                                          | Faster for keyboard-native PMs; must never force syntax on the rest.    |
+| **Power user**                          | Multi-hop queries ("what contradicts this assumption") are the senior-PM superpower.                                                                                                                                                                                               | The CLI altitude they want: frecency, shortcuts, omnipotence principle. |
+| **Marketer**                            | Shareable artifact equals the Critic teardown with graph-cited receipts ("watch the AI demolish my pet feature with our own history").                                                                                                                                             | A striking, screenshot-able surface for build-in-public.                |
+| **Evangelist**                          | "Decision #10,001 is smarter than #10,000," the institutional-memory narrative.                                                                                                                                                                                                    | "Command your product org," memorable but secondary.                    |
+| **Business / monetization**             | Graph depth is retention gravity (an export cannot take the tuned linked judgment); rides the account-level credit pool (more workspaces equals a deeper graph).                                                                                                                   | No direct monetization; a tier differentiator at most.                  |
+| **Incumbent / competitor (the threat)** | Biggest risk: Atlassian (150B-object Teamwork Graph, opened via MCP) or Notion/Glean add an outcome-labeled decision schema. Defense: win on the decision/outcome ontology, the adversarial Critic (incumbents will not tell customers they are wrong), and cross-tool neutrality. | Copyable UX; not a defense.                                             |
 
 ---
 

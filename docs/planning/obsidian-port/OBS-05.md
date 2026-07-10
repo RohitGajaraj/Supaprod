@@ -8,18 +8,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-05 |
-| Rank | #6 (dashboard) |
-| Tier | 1 |
-| Status | pending (build after OBS-03 lands primitives) |
-| Category | Build |
-| Depends on | OBS-03 (core primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`) |
-| Blocks | nothing downstream |
+| Field         | Value                                                                                                                                                                                                                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-05                                                                                                                                                                                                                                                                                                                        |
+| Rank          | #6 (dashboard)                                                                                                                                                                                                                                                                                                                |
+| Tier          | 1                                                                                                                                                                                                                                                                                                                             |
+| Status        | pending (build after OBS-03 lands primitives)                                                                                                                                                                                                                                                                                 |
+| Category      | Build                                                                                                                                                                                                                                                                                                                         |
+| Depends on    | OBS-03 (core primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`)                                                                                                                                                                                                   |
+| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                                            |
 | One-line what | Port the Build surface to Obsidian: mission rows (status dot · title · verdict chip when done · step label · cost) plus the mission slide-over (numbered steps, live pulses, inline gate as a compressed CallCard, raw-trace toggle with per-hop cost, `?mission=` deep link). The slide-over is the app's one overlay depth. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14 · row OBS-05 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14 · row OBS-05                                                                                                                                                                                                                                                   |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                        |
 
 ---
 
@@ -36,6 +36,7 @@ The felt outcome: the user glances at Build, sees which missions are moving in c
 ## 3. What we are building
 
 **Scope IN**
+
 - Re-skin `/build` (`src/routes/_authenticated.build.index.tsx`) to the Obsidian idiom: canvas surface, mono-index chrome via the OBS-02 shell, Newsreader hero, and the OBS-03 `MissionRow` anatomy for each session row (status dot · title · verdict chip when done · step label · cost).
 - Build the **mission slide-over** driven by `?mission=<missionId>` search param: header (MISSION label + status word + cost + Close), numbered step list with live status dots, the inline **gate** rendered as a compressed CallCard, the **raw-trace toggle** (per-hop cost in mono), and the footer strip.
 - Wire **cross-object sync**: answering the gate inside the slide-over invalidates the Today Call-queue query (`["needs-you"]`) plus the build queries, so Today and the mission row both reflect the decision immediately. This is the one explicit behavior beyond pure presentation (item note + hub §5.10).
@@ -44,6 +45,7 @@ The felt outcome: the user glances at Build, sees which missions are moving in c
 - Remove `lucide-react` from this surface's chrome (per hub §8/§9 iconography law).
 
 **Scope OUT (no feature work rides along)**
+
 - No changes to any server function. This item **consumes read-only**: `listStudioSessions` (query key `["studio-sessions", showArchived]`), `getStudioSession` (new query key `["studio-session", missionId]` for the slide-over), `listProjects`, `listPrds`, `dispatchStudioSession` (composer, unchanged), `setStudioSessionArchived`, `deleteStudioSession`. The **one mutation the slide-over gate uses is the already-existing `decideApproval`** (the same fn `ApprovalCard.tsx` calls today); we do not author a new approval path, we only relocate the gate UI into the slide-over and add cache invalidation.
 - No change to the full-page `/build/$missionId` detail route's data contract, tabs, polling, or `steerStudioSession`. That route becomes the depth-3 "full view" reached from the slide-over; OBS-05 does not rebuild its internals (its own Obsidian re-skin can be a follow-on; the slide-over is the depth-2 win this item ships).
 - No roadmap/spec/discover data. No new charts (chart grammar is OBS-15).
@@ -103,11 +105,13 @@ _authenticated.build.index.tsx (route)
 ```
 
 **New files**
+
 - `src/components/obsidian/BuildMissionRow.tsx`
 - `src/components/obsidian/MissionSlideOver.tsx`
 - `src/components/obsidian/MissionSlideOver.test.tsx`
 
 **Files modified**
+
 - `src/routes/_authenticated.build.index.tsx` (re-skin, add `?mission=` search, swap row + slide-over, drop lucide).
 
 **File moves/renames**: none. The `/build/$missionId` full route stays; internal `studio.*` identifiers stay (rename disclaimer).
@@ -199,6 +203,7 @@ All tokens are the `[data-obsidian]` scope from `tokens/*.css` (hub §5). Do not
 ## 11. Prototype-parity checklist (last gate · §5.9, tailored)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` at 1440px, click Build, and compare:
+
 1. **Rail**: 236px mono index 01-05, Build (04) active bg `#1A1A1E` + ember index, working shimmer line if a mission is live. (OBS-02 owns the rail; verify it renders around Build.)
 2. **Surface chrome**: 52px top bar, container max-width and padding match, `cadRise` entrance.
 3. **Type**: hero Newsreader 34px with the one ember italic word; row titles 13.5px/600; slide-over title 21px/460; gate title 17px; mono labels 9-9.5px caps with middots.

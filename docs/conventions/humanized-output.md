@@ -24,21 +24,24 @@ Enforcement is tiered (founder ruling, 2026-06-16):
 
 ## The rule
 
-Ship text that reads human and reads like *this* product. Two failure modes are banned: the **fingerprint** (mechanical tells that say "a model wrote this") and the **template** (generic phrasing that reads like one in a thousand AI apps). Remove the first. Beat the second with a point of view.
+Ship text that reads human and reads like _this_ product. Two failure modes are banned: the **fingerprint** (mechanical tells that say "a model wrote this") and the **template** (generic phrasing that reads like one in a thousand AI apps). Remove the first. Beat the second with a point of view.
 
 ## Banned fingerprints (remove every one)
 
 **Punctuation.**
+
 - No em dash (`—`) or en dash (`–`) anywhere in shipped or generated text. Replace with a period, comma, colon, parentheses, or a line break. Plain hyphens stay only inside compound words (`role-based`, `auto-confirm`) and code.
 - No "smart" dash sequences as separators. No trailing `!`. No `...` filler.
 
 **Invisible and look-alike characters.** These are the silent giveaway. Strip them entirely:
+
 - Zero-width: `U+200B` zero-width space, `U+200C` ZWNJ, `U+200D` ZWJ, `U+2060` word joiner, `U+FEFF` BOM / zero-width no-break.
 - No-break and exotic spaces: `U+00A0` non-breaking space, `U+202F` narrow no-break, the range `U+2002` to `U+200A` (en, em, thin, hair spaces). Use a normal space.
 - Soft hyphen `U+00AD`. Directional marks `U+200E` / `U+200F`. Replacement char `U+FFFD`.
 - No trailing whitespace, no double spaces, no stray tabs in prose.
 
 **Phrasing and structure (the template tells).**
+
 - Buzzwords: the full denylist lives in [`ui-voice.md`](./ui-voice.md) (`seamless`, `leverage`, `empower`, `robust`, `unlock`, `delve`, `elevate`, `supercharge`, `cutting-edge`, and the rest). Do not duplicate it here. Honor it everywhere, not just in UI.
 - Triple-pattern listicles ("faster, smarter, better"). Preamble ("In today's fast-paced world"). Hedging in confirms ("might", "could potentially"). Filler ("Let's dive in", "Feel free to", "It's worth noting that", "Certainly!"). Decorative emoji in body copy. Title Case Everywhere (use sentence case except product and page names).
 - Over-uniform rhythm: every sentence the same length, every paragraph three sentences, every list exactly three items. Human writing varies.
@@ -96,7 +99,7 @@ A pre-commit / hook check enforcing 1 and 2 on staged text files is the durable 
 
 ## Why
 
-Two reasons, both load-bearing. First, trust: AI fingerprints make a product read as low-effort and machine-made, which is the opposite of the craft a PM pays for. Second, the platform's promise is that its *generated* output is good enough to use as-is. A PRD with em dashes and zero-width spaces betrays the machine and breaks that promise. Operator ruling, 2026-06-14.
+Two reasons, both load-bearing. First, trust: AI fingerprints make a product read as low-effort and machine-made, which is the opposite of the craft a PM pays for. Second, the platform's promise is that its _generated_ output is good enough to use as-is. A PRD with em dashes and zero-width spaces betrays the machine and breaks that promise. Operator ruling, 2026-06-14.
 
 ## Related
 

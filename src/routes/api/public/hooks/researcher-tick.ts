@@ -160,10 +160,18 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
                 .eq("id", ws.owner_id)
                 .maybeSingle();
               const agenticModel =
-                (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
-                  ?.agentic_model?.trim() ||
-                (ownerProf as { agentic_model?: string | null; default_model?: string | null } | null)
-                  ?.default_model?.trim() ||
+                (
+                  ownerProf as {
+                    agentic_model?: string | null;
+                    default_model?: string | null;
+                  } | null
+                )?.agentic_model?.trim() ||
+                (
+                  ownerProf as {
+                    agentic_model?: string | null;
+                    default_model?: string | null;
+                  } | null
+                )?.default_model?.trim() ||
                 "google/gemini-2.5-flash";
 
               // Synthesize competitive brief via AI

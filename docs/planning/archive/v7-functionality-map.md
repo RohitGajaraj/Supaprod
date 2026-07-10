@@ -33,6 +33,7 @@ Every flow follows the same shape so you can scan:
 **Inputs.** Email and password at signup. Nothing else is required before the first screen renders.
 
 **Behavior.**
+
 1. Signup hits Supabase auth. The Postgres trigger `handle_new_user` fires and seeds a profile row, a default workspace, and the starter agent roster (`discovery-scout`, `strategist`, `prd-writer`, `builder`, `orchestrator`).
 2. The app shell (`_authenticated.tsx`) reads `profiles.onboarded`. If it is false, the loader redirects to `/onboarding` before any surface paints.
 3. `/onboarding` renders `OnboardingFlow` full-viewport with no app chrome. It is the sole first-run surface. On completion it flips `profiles.onboarded` to true and routes to `/`.
@@ -40,6 +41,7 @@ Every flow follows the same shape so you can scan:
 5. Today also fires `recordRitualSession` on mount (an upsert keyed to the UTC day, idempotent) so gauntlet Metric B can count this as a day the operator opened the loop.
 
 **States.**
+
 - **Loading**: auth round-trip, then the gate loader. No app shell flash because the redirect runs in `beforeLoad`.
 - **Empty**: a brand-new workspace with no seeded data shows `ColdStartOnramp`, the deliberate first-run path.
 - **Error**: KI-13: the live `handle_new_user` trigger threw, so signup returned 500 and no account was created. The fix (`20260614140000`) wraps each seed step in its own `BEGIN..EXCEPTION` subtransaction so signup completes even when one seed step fails. The fix is committed but awaits Lovable sync, so on live this is still the active failure mode.
@@ -60,6 +62,7 @@ Every flow follows the same shape so you can scan:
 **Inputs.** None from the user. Today is a read surface that assembles the calls only the operator should make.
 
 **Behavior.**
+
 1. On mount, `getNeedsYou` runs one round-trip that returns five things:
    - `approvals`: `agent_approvals` where `escalation_state` is `pending` or `expired`, ordered by `expires_at` ascending, limit 10, each enriched with the per-trace `model` and `est_cost_usd` pulled from `ai_events`.
    - `prdCalls`: `prds` where `status = 'review'`, limit 5, including the `critic_review` jsonb.
@@ -72,6 +75,7 @@ Every flow follows the same shape so you can scan:
 5. The Memory re-score strip pulls the latest closed-loop learning (see flow H) and shows the most recent ICE delta.
 
 **States.**
+
 - **Loading**: the queue skeletons while `getNeedsYou` resolves.
 - **Empty**: no pending approvals, no review-status PRDs, no flagged opportunities: the queue shows the cleared state, ring full. A fresh workspace shows cold-start instead (flow A).
 - **Error**: if `getNeedsYou` fails, the surface degrades to the daily-brief and agent-rail panels rather than an empty error page.
@@ -92,6 +96,7 @@ Every flow follows the same shape so you can scan:
 **Inputs.** One decision per card: approve, reject, or defer. An approval card optionally carries a note.
 
 **Behavior.**
+
 1. **Approve** on an approval card calls `resolveApproval`. The `agent_approvals` row moves to `approved`, `decided_at` is stamped, and the blocked tool call is released to execute. If the call belongs to a running mission, the mission resumes on the next sweeper tick (flow E).
 2. **Reject** sets the row to `rejected` with `decided_at`. The tool call does not run, and the mission step that requested it halts rather than proceeding.
 3. **Defer** ("Not now") is session-local only. No write. The card returns on the next load because its underlying state is unchanged.
@@ -99,6 +104,7 @@ Every flow follows the same shape so you can scan:
 5. The cleared-ring counter increments locally on each resolved card so the ritual feels like it closes.
 
 **States.**
+
 - **Loading**: the card shows a pending spinner on the action button while the mutation is in flight.
 - **Empty**: no cards, ring full (flow B empty state).
 - **Error**: a failed `resolveApproval` surfaces an inline error on the card and leaves the row untouched, so a retry is safe.
@@ -120,15 +126,16 @@ Every flow follows the same shape so you can scan:
 
 **Behavior.** Three proof metrics, each with a recent-7-days-versus-prior-7-days trend:
 
-| Metric | Label | Source | Formula |
-|---|---|---|---|
-| A | Acceptance rate | `agent_approvals` with `decided_at` set | `approved / (approved + rejected)`, where accepted counts `{approved, executed, failed}`, over a 14-day window with a 7-day trend |
-| B | Ritual retention | `ritual_sessions` | distinct UTC days Today was opened, over 7, 14, and 30 days, plus current streak |
-| C | Autonomy ratio | `tool_calls` (ok=true, side-effecting) versus `agent_approvals` (side-effecting) | `unattended / (unattended + gated)`; a rising number means the loop carries more reversible work on its own |
+| Metric | Label            | Source                                                                           | Formula                                                                                                                           |
+| ------ | ---------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Acceptance rate  | `agent_approvals` with `decided_at` set                                          | `approved / (approved + rejected)`, where accepted counts `{approved, executed, failed}`, over a 14-day window with a 7-day trend |
+| B      | Ritual retention | `ritual_sessions`                                                                | distinct UTC days Today was opened, over 7, 14, and 30 days, plus current streak                                                  |
+| C      | Autonomy ratio   | `tool_calls` (ok=true, side-effecting) versus `agent_approvals` (side-effecting) | `unattended / (unattended + gated)`; a rising number means the loop carries more reversible work on its own                       |
 
 Each metric computes Bayesian-shrunk where sample size is small, and shows "Not enough data yet" rather than an invented number when the window is sparse.
 
 **States.**
+
 - **Loading**: metric cards skeleton.
 - **Empty**: sparse data renders the "Not enough data yet" copy, never a fabricated percentage. Metric B carries a `realData` flag that distinguishes a real account from a demo.
 - **Error**: Metric B is pre-migration tolerant: if the `ritual_sessions` table does not yet exist, it degrades to `tableReady: false` instead of throwing.
@@ -149,6 +156,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** A goal string from the mission composer, optionally scoped to a signal, opportunity, or PRD.
 
 **Behavior.**
+
 1. The composer calls `startOrchestratedMission` with the goal. The orchestrator runs `mission.plan`, which fetches the live specialist roster via `listSpecialistSlugs` (all `enabled=true` agents that are not the orchestrator) and prompts a planner model to emit a step DAG of `{agent_slug, sub_goal, depends_on, rationale}`.
 2. `mission.plan` validates every returned `agent_slug` against the live roster. On a mismatch it throws: `mission.plan: step N references unknown slug "X". Valid: ...` and the mission dies at planning (line 177 of `orchestrator.server.ts`).
 3. A valid plan creates the mission and its step rows. Each step is a hop.
@@ -159,6 +167,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 8. Bounded retry and adaptive budget run inside the loop: a step retries a capped number of times and the token budget adapts to the work, both deterministic.
 
 **States.**
+
 - **Loading**: the composer shows a dispatching state; the cockpit skeletons the timeline until the first poll resolves.
 - **Empty**: no missions yet shows the composer and an empty list.
 - **Error**: the orchestrator slug bug is the live failure here: the orchestrator's stored `agents.system_prompt` names slugs `discovery`, `growth`, `analyst`, none of which are seeded (real slugs are `discovery-scout`, `strategist`, `prd-writer`, `builder`). When the planner follows those examples, `mission.plan` throws at step validation and the mission dies before any hop runs. A single-agent mission can survive if the planner happens to pick a real slug; a multi-agent orchestrated mission reliably hits the bug.
@@ -179,6 +188,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** Mission outcomes, approval decisions, and eval scores accumulated over time. No direct user input beyond optionally moving the arc.
 
 **Behavior.**
+
 1. The trust score is computed on read, not stored as a running total. It blends three Bayesian-shrunk inputs: 0.4 times mission success rate, 0.3 times approval acceptance rate, 0.3 times mean eval score (0 to 100 after the KI-14 scale fix).
 2. `suggestArc` maps the score to one of four arcs: fewer than 3 samples is `observing`; score at or above 90 is `ambient`; at or above 75 is `trusted`; at or above 55 is `proving`; otherwise `observing`.
 3. The chosen arc is stored in `agent_autonomy`. When no row exists, the fallback is `observing` (line 194 of `trust.server.ts`).
@@ -190,6 +200,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
    - `observing`: promotes everything, including `auto`-declared tools, to `review`.
 
 **States.**
+
 - **Loading**: the autonomy panel skeletons while the score computes.
 - **Empty**: fewer than 3 samples reads as `observing` with the "still proving" framing rather than a fabricated score.
 - **Error**: a missing `agent_autonomy` row is not an error; it resolves to the `observing` default by design.
@@ -210,12 +221,14 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** Every tool call the agent loop makes. No user input.
 
 **Behavior.**
+
 1. Every auto-mode tool call (one that ran inline with no human gate) writes a `tool_calls` row capturing the tool, arguments summary, `ok` result, and whether it was side-effecting.
 2. `getAutonomyRatio` reads `tool_calls` where `ok=true` and the call was side-effecting (the unattended numerator) against side-effecting `agent_approvals` (the gated denominator) to produce Metric C.
 3. The cockpit annotates each hop's tool calls with a consequence label and a reversibility badge so the operator can audit, after the fact, exactly what ran without their sign-off.
 4. This is the receipt for ambient execution: it makes "the loop carried this on its own" inspectable rather than a claim.
 
 **States.**
+
 - **Loading**: the audit view skeletons.
 - **Empty**: no unattended calls yet (the new-account norm because of flow J) shows a near-zero ratio with honest copy.
 - **Error**: degrades to showing only gated activity if `tool_calls` reads fail.
@@ -236,6 +249,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** A completed mission or a moved opportunity. No direct user input.
 
 **Behavior.**
+
 1. **Recall (read side).** When an agent runs, the loop pulls relevant prior outcomes from the memory store and threads them as `memory_refs` into the step context. Recall is what makes the next decision draw on the last one.
 2. **Compounding (write side).** A mission completes or an opportunity changes status, and `getOutcomeData` collects the outcome.
 3. `buildOutcomeMemory(outcome)` formats a memory payload with a verdict and a summary.
@@ -244,6 +258,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 6. Today fetches learnings and renders the most recent ICE delta as the "Memory, the loop closed" strip. This is the visible proof that a recorded outcome changed a future score.
 
 **States.**
+
 - **Loading**: the Memory strip and the `/knowledge` Memory tab skeleton.
 - **Empty**: no closed-loop outcomes yet shows the strip in a waiting state rather than inventing a delta.
 - **Error**: a failed re-score leaves the prior ICE intact, so the opportunity is never left in a half-scored state.
@@ -264,12 +279,14 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** A POST of signal payloads with a Bearer token. Token lifecycle managed by the operator on `/sync`.
 
 **Behavior.**
+
 1. **Token.** The operator rotates a 64-character hex token on `/sync`. It is stored in `ingest_tokens` and is revocable.
 2. **Ingest.** A POST to `/api/public/ingest-signals` with the Bearer token validates the token and inserts up to 50 `signals` rows per call.
 3. **Reactor fan-out.** `event_subscriptions` maps `signal.created` to a `target_agent_slug` with an `approval_mode` of `auto` or `confirm`. The cron tick at `/api/public/hooks/event-reactor-tick` dispatches `auto`-mode subscriptions immediately and queues `confirm`-mode ones for human approval. A dispatch creates a mission via `createMission` and runs `runAgentLoop`.
 4. **Auto-discovery chain.** `signal.created` dispatches Scout, which runs the discovery pipeline, scores an opportunity, emits `opportunity.scored` to the Strategist, and on `prd.approved` hands to Builder. This is the sense-to-build chain running off one inbound signal.
 
 **States.**
+
 - **Loading**: the token panel and sync mappings skeleton on `/sync`.
 - **Empty**: no subscriptions means an inbound signal lands but fans out to nothing; the signal still persists for manual triage.
 - **Error**: KI-09: the `ingest_tokens` migration (`20260611190000`) is committed but not yet synced, so the token UI renders but the token functions error and the endpoint returns 401 until the migration applies. KI-10: the endpoint has no rate limit, so a leaked token is uncapped cost exposure.
@@ -292,6 +309,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** A work order (goal, optional PRD link, model choice) from the Build dispatcher composer.
 
 **Behavior.**
+
 1. The dispatcher calls into the Build agent loop with the `builder` slug.
 2. The loop stages file changes into `studio_changesets`. The changeset lifecycle is `staged -> committed -> pr_open -> merged -> abandoned`.
 3. On commit, the loop opens a PR and writes `pr_url` and `pr_number` onto the changeset.
@@ -301,6 +319,7 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 7. On green CI, the operator approves the merge gate and Builder closes the loop.
 
 **States.**
+
 - **Loading**: the dispatcher session list polls every 5 seconds; the session detail polls every 4 seconds and skeletons the journey strip until the first poll.
 - **Empty**: no sessions shows the composer and PRD picker.
 - **Error**: KI-12: the GitHub App is not registered, so PR creation is non-operational on live. The PR and CI tab is wired (`pr_url`, `pr_number`, CI snapshots) but cannot verify until the app secrets exist. An env-var fallback keeps existing `github.issue_close` tool calls working. There is also a pre-migration gate on the changeset tables (KI-12) for the dispatcher.
@@ -321,12 +340,14 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 **Inputs.** A free-text message, a model choice (gateway or BYO key), and an optional mode toggle for research.
 
 **Behavior.**
+
 1. **Chat.** A message streams over SSE through `callModelStream`, the SSR streaming variant of the AI chokepoint. The chokepoint enforces guardrails, tracks cost, routes BYO keys, logs tokens, and runs `humanizeText()` on the output before it reaches the user.
 2. The model switcher lets the operator pick a gateway model or a BYO-key model per thread.
 3. Brain actions are inline: "Remember this" writes a memory; "Capture decision" creates a decision record. An inline mission cockpit and approval gates let a chat turn spin up and govern a mission without leaving the thread. A threads rail holds history.
 4. **Research mode.** A query is decomposed into sub-queries, web search runs in parallel across them, and the result is synthesized into an answer with numbered citations.
 
 **States.**
+
 - **Loading**: tokens stream live; a buffered boundary keeps the sanitizer from splitting a multi-byte sequence.
 - **Empty**: a new thread shows the composer and the threads rail.
 - **Error**: a guardrail block or a model error surfaces inline in the thread; the chokepoint catches it rather than failing the stream silently.
@@ -342,19 +363,19 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 
 ## Quick status table
 
-| Flow | Status | The gap, named |
-|---|---|---|
-| A. Signup and onboarding | Partial | KI-13 signup 500 on live until migration syncs |
-| B. Today decision queue | Built | none |
-| C. Decision card approve/reject/defer | Built | none |
-| D. Gauntlet metrics | Built | Metric C reads low on new accounts (see J/flow F) |
-| E. Mission planning and auto-advance | Built engine, live bug | orchestrator slug bug kills multi-agent missions; KI-02 durable resume unverified |
-| F. Trust arc and modes | Built, structural gap | observing-by-default gates everything new |
-| G. Executed-unattended audit | Built | ratio near zero until arc advances |
-| H. Memory and outcome compounding | Built | none; this is the moat |
-| I. Ingest to reactor to mission | Partial | KI-09 endpoint blocked until migration syncs; KI-10 no rate limit |
-| J. Build loop to PR to CI to merge | Partial | KI-12 GitHub App not registered; PR and CI non-operational on live |
-| K. Chat and research | Built | none |
+| Flow                                  | Status                 | The gap, named                                                                    |
+| ------------------------------------- | ---------------------- | --------------------------------------------------------------------------------- |
+| A. Signup and onboarding              | Partial                | KI-13 signup 500 on live until migration syncs                                    |
+| B. Today decision queue               | Built                  | none                                                                              |
+| C. Decision card approve/reject/defer | Built                  | none                                                                              |
+| D. Gauntlet metrics                   | Built                  | Metric C reads low on new accounts (see J/flow F)                                 |
+| E. Mission planning and auto-advance  | Built engine, live bug | orchestrator slug bug kills multi-agent missions; KI-02 durable resume unverified |
+| F. Trust arc and modes                | Built, structural gap  | observing-by-default gates everything new                                         |
+| G. Executed-unattended audit          | Built                  | ratio near zero until arc advances                                                |
+| H. Memory and outcome compounding     | Built                  | none; this is the moat                                                            |
+| I. Ingest to reactor to mission       | Partial                | KI-09 endpoint blocked until migration syncs; KI-10 no rate limit                 |
+| J. Build loop to PR to CI to merge    | Partial                | KI-12 GitHub App not registered; PR and CI non-operational on live                |
+| K. Chat and research                  | Built                  | none                                                                              |
 
 ---
 

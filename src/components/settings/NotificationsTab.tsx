@@ -12,11 +12,7 @@ import {
   updateNotificationPreferences,
   type UserNotificationPreferences,
 } from "@/lib/notifications.functions";
-import {
-  getFeedbackPrefs,
-  setFeedbackPrefs,
-  fireFeedback,
-} from "@/lib/interaction-feedback";
+import { getFeedbackPrefs, setFeedbackPrefs, fireFeedback } from "@/lib/interaction-feedback";
 
 const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; desc: string }[] = [
   { key: "Approvals", label: "Approvals Needed", desc: "Tool runs waiting on human decision." },
@@ -172,9 +168,7 @@ export function NotificationsTab() {
                 <tr
                   key={r.key}
                   style={
-                    i < ROWS.length - 1
-                      ? { borderBottom: "1px solid var(--hairline)" }
-                      : undefined
+                    i < ROWS.length - 1 ? { borderBottom: "1px solid var(--hairline)" } : undefined
                   }
                 >
                   <td style={{ padding: "14px 12px" }}>

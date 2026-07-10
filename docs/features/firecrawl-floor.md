@@ -12,7 +12,7 @@ The agent's `web.search` tool must not hard-depend on a single paid provider. Be
 2. **else `SEARXNG_URL` set** → a self-hosted **SearXNG** metasearch instance (the autonomy floor). SearXNG is open-source the operator runs themselves; no paid dependency.
 3. **else** → a clear error that names **both** options (set a Firecrawl key, or self-host SearXNG and set `SEARXNG_URL`), instead of the old Firecrawl-only message.
 
-This is the BBI doctrine made real: *a zero-external-paid-dep native default that must always be able to hold the floor.* See [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (`SELF-HOST` / FIRECRAWL-FLOOR is the worked example) and the Sourcing Map.
+This is the BBI doctrine made real: _a zero-external-paid-dep native default that must always be able to hold the floor._ See [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (`SELF-HOST` / FIRECRAWL-FLOOR is the worked example) and the Sourcing Map.
 
 ## Scope (and deliberate non-scope)
 

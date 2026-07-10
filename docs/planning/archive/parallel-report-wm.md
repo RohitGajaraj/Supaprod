@@ -20,6 +20,7 @@
 - **Commit:** see `git log` on `parallel/lane-0` (fast-forward to `main`). **Released claim** after ship.
 
 **Publish-verify queue (for the founder):**
+
 - DATA-RETENTION-b: on publish, in `BEGIN..ROLLBACK`, enable `right_to_erasure_enabled()`, `select forget_workspace('<a test workspace WITH rows>')`, confirm `erasure_residue` → `{}` and the workspace row gone, then `ROLLBACK`. Activation = flip the flag + operator-invoke per verified erasure request.
 
 ### 2026-06-21 02:20 — H2-WRITES — Outcome-roadmap governed writes (◐) — SHIPPED

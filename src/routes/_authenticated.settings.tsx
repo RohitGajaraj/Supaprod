@@ -1733,11 +1733,7 @@ function ModelsTab() {
               Agentic · automatic runs (researcher, cluster, reflection)
             </span>
             <span className="mono-label" style={{ color: "var(--ink)" }}>
-              {!agenticModel
-                ? "Auto"
-                : currentAgentic
-                  ? currentAgentic.label
-                  : agenticModel}
+              {!agenticModel ? "Auto" : currentAgentic ? currentAgentic.label : agenticModel}
             </span>
             <span className="mono-label" style={{ fontSize: 9 }}>
               {!agenticModel
@@ -1748,10 +1744,7 @@ function ModelsTab() {
                     : "byo"
                   : "unknown"}
             </span>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setEditingAgentic((v) => !v)}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={() => setEditingAgentic((v) => !v)}>
               Change
             </button>
           </div>

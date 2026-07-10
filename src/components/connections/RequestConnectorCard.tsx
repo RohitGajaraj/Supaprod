@@ -69,7 +69,13 @@ export function RequestConnectorCard({ compact = false }: { compact?: boolean })
     <form
       onSubmit={onSubmit}
       className="bento"
-      style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", marginTop: 12 }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        marginTop: 12,
+      }}
     >
       <span
         aria-hidden="true"

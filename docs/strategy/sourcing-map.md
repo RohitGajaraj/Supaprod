@@ -9,6 +9,7 @@
 Across 11 capability clusters (~73 distinct tracked capabilities): **~56 are true must-build moat, ~17 are obviated or sourced elsewhere** if we buy/integrate the right substrate. **No moat cluster is obviated by any vendor** - every "obviation" is a commodity sub-layer UNDER the moat, never the moat itself. Build the judgment, borrow/buy the commodity behind a seam, own the store.
 
 **Biggest build-effort savings (one integration removes a whole category of grind):**
+
 - **AI runtime / chokepoint** - the entire LLM-gateway feature set (multi-provider routing, retry/fallback, semantic cache, virtual keys/budgets, the embedding model, the web crawler) is already-owned-or-bought. ~6 sub-items obviated, zero new gateway to build.
 - **Tenancy / auth** - the whole auth substrate (login, social OAuth, SAML SSO, SCIM) is ~5 items obviated by Supabase Auth + WorkOS behind the JWT seam. "Do not build custom auth in 2026."
 - **Reliability / ops** - the generic infra-reliability half (uptime, error tracking, status page, on-call, platform dashboards, LLM-trace storage) is ~5 items obviated by Cloudflare-native observability + one uptime SaaS + an OTel emit.
@@ -28,19 +29,19 @@ External engines (Graphiti, Zep, mem0, Cognee, Neo4j, FalkorDB, Memgraph, Kuzu) 
 
 ## The cluster table
 
-| Cluster | Verdict | Build (moat) | Obviated / sourced | Founder call? |
-| --- | --- | --- | --- | --- |
-| Decision Brain / memory-moat | HYBRID (BUILD-dominant) | 11 | 0 (substrate already self-hosted) | only the embed/rerank spend line + the `DBR-1.5` flag flip |
-| Decide / Critic wedge + roadmap | BUILD (edges aside) | 10 | 0 | confirm the "no-buy" on the decision layer |
-| Build / autonomy spine + execution | HYBRID | 10 | 2 | sandbox provider + cost line; A2A delegate-out posture |
-| Tenancy / workspace / RBAC | HYBRID | 10 | 5 | enterprise-SSO+SCIM provider direction (no spend) |
-| AI runtime / chokepoint | HYBRID | 5 | 6 | confirm embeddings-key reuse; ratify no external gateway |
-| Reliability / ops / observability | HYBRID | 6 | 4 | pick the uptime/status/on-call SaaS |
-| Analytics / measurement / evals | HYBRID | 5 | 2 | pick the inbound product-analytics provider |
-| Data / privacy / compliance | HYBRID | 5 | 3 | enable Supabase Pro + PITR (spend); retention/erasure policy at activation |
-| Interop / neutral-brain MCP | HYBRID | 5 | 5 | remote-MCP OAuth provider; outward A2A posture |
-| Sense / ingestion / connectors | HYBRID | 4 | 3 | register 1 OAuth client; Merge.dev (defer) |
-| Governance / safety / guardrails | HYBRID | 4 | 3 | pick the OSS injection-detector floor |
+| Cluster                            | Verdict                 | Build (moat) | Obviated / sourced                | Founder call?                                                              |
+| ---------------------------------- | ----------------------- | ------------ | --------------------------------- | -------------------------------------------------------------------------- |
+| Decision Brain / memory-moat       | HYBRID (BUILD-dominant) | 11           | 0 (substrate already self-hosted) | only the embed/rerank spend line + the `DBR-1.5` flag flip                 |
+| Decide / Critic wedge + roadmap    | BUILD (edges aside)     | 10           | 0                                 | confirm the "no-buy" on the decision layer                                 |
+| Build / autonomy spine + execution | HYBRID                  | 10           | 2                                 | sandbox provider + cost line; A2A delegate-out posture                     |
+| Tenancy / workspace / RBAC         | HYBRID                  | 10           | 5                                 | enterprise-SSO+SCIM provider direction (no spend)                          |
+| AI runtime / chokepoint            | HYBRID                  | 5            | 6                                 | confirm embeddings-key reuse; ratify no external gateway                   |
+| Reliability / ops / observability  | HYBRID                  | 6            | 4                                 | pick the uptime/status/on-call SaaS                                        |
+| Analytics / measurement / evals    | HYBRID                  | 5            | 2                                 | pick the inbound product-analytics provider                                |
+| Data / privacy / compliance        | HYBRID                  | 5            | 3                                 | enable Supabase Pro + PITR (spend); retention/erasure policy at activation |
+| Interop / neutral-brain MCP        | HYBRID                  | 5            | 5                                 | remote-MCP OAuth provider; outward A2A posture                             |
+| Sense / ingestion / connectors     | HYBRID                  | 4            | 3                                 | register 1 OAuth client; Merge.dev (defer)                                 |
+| Governance / safety / guardrails   | HYBRID                  | 4            | 3                                 | pick the OSS injection-detector floor                                      |
 
 ## What we SOURCE ELSEWHERE (do NOT build the obviated part; wire the named option behind the cluster's seam)
 
@@ -58,18 +59,18 @@ External engines (Graphiti, Zep, mem0, Cognee, Neo4j, FalkorDB, Memgraph, Kuzu) 
 
 ## Founder calls (the cluster-level decisions that are yours; full list mirrors into SSOT §4)
 
-| # | Cluster | The call | Recommendation | Saving if sourced |
-| --- | --- | --- | --- | --- |
-| 1 | Sense | Register ONE provider OAuth client (Slack / GitHub-issues / a support tool) | Do it (unblocks `SEN-01`/`F-CONN` today); do NOT re-adopt Nango; defer Merge.dev | lights up the 2nd live source; OAuth gateway + Firecrawl + Groq obviate ~3 items |
-| 2 | AI runtime | Confirm the agent reuses the existing OpenAI key for embeddings; ratify NO external LLM gateway | Reuse the key (cents/mo via credits); adopt no LiteLLM/Portkey/OpenRouter | obviates the entire gateway feature set (~6 items) |
-| 3 | Data/privacy | SPEND: enable Supabase Pro + the PITR add-on on production | Enable it (satisfies `DR-BACKUP`, no build); keep the destructive-flag flips + legal copy founder-only at activation | obviates building any backup/restore engine |
-| 4 | Build | Confirm the SANDBOX provider + approve its compute cost line; set the `BLD-04` delegate-out posture | Cloudflare Sandbox SDK default (no new vendor); DEFER the A2A delegate-out posture | INTEGRATE removes >80% of the sandbox build |
-| 5 | Tenancy | Pick the enterprise-SSO+SCIM provider DIRECTION (no spend until a deal) | WorkOS AuthKit (Supabase-native) default; Clerk alt; no spend until a real enterprise ask | obviates the whole auth substrate (~5 items) |
-| 6 | Reliability | Pick the uptime/status/on-call SaaS; approve a public status page + error tracking | Better Stack (free tier) pointed at `/api/public/health`; errors via Cloudflare Logs or Sentry free | obviates ~5 generic-infra items |
-| 7 | Analytics | Pick the inbound product-analytics provider | PostHog (open-source, self-hostable, free to ~1M events/mo) | obviates the event SDK + cohort engine + retention math |
-| 8 | Governance | Pick the OSS injection-detector floor + how it runs | LlamaFirewall PromptGuard 2 via a new guardrail CallSurface (or a zero-GPU in-process floor); defer Lakera | obviates building a learned injection classifier from scratch |
-| 9 | Interop | Pick the remote-MCP OAuth/DCR provider (when Q2 lands); confirm the outward A2A posture | Cloudflare OAuthProvider (in-stack); external peers call us under workspace-scoped tokens, the append path stays human-approval-gated | obviates the transport + OAuth-server + card-signing + registry build |
-| 10 | Decide | Confirm the strategic "no-buy" on the decision layer | Confirm (PRD/roadmap SaaS stay competitors-to-absorb + export targets) | keeps the founder's effort in deepening the moat |
+| #   | Cluster      | The call                                                                                            | Recommendation                                                                                                                        | Saving if sourced                                                                |
+| --- | ------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1   | Sense        | Register ONE provider OAuth client (Slack / GitHub-issues / a support tool)                         | Do it (unblocks `SEN-01`/`F-CONN` today); do NOT re-adopt Nango; defer Merge.dev                                                      | lights up the 2nd live source; OAuth gateway + Firecrawl + Groq obviate ~3 items |
+| 2   | AI runtime   | Confirm the agent reuses the existing OpenAI key for embeddings; ratify NO external LLM gateway     | Reuse the key (cents/mo via credits); adopt no LiteLLM/Portkey/OpenRouter                                                             | obviates the entire gateway feature set (~6 items)                               |
+| 3   | Data/privacy | SPEND: enable Supabase Pro + the PITR add-on on production                                          | Enable it (satisfies `DR-BACKUP`, no build); keep the destructive-flag flips + legal copy founder-only at activation                  | obviates building any backup/restore engine                                      |
+| 4   | Build        | Confirm the SANDBOX provider + approve its compute cost line; set the `BLD-04` delegate-out posture | Cloudflare Sandbox SDK default (no new vendor); DEFER the A2A delegate-out posture                                                    | INTEGRATE removes >80% of the sandbox build                                      |
+| 5   | Tenancy      | Pick the enterprise-SSO+SCIM provider DIRECTION (no spend until a deal)                             | WorkOS AuthKit (Supabase-native) default; Clerk alt; no spend until a real enterprise ask                                             | obviates the whole auth substrate (~5 items)                                     |
+| 6   | Reliability  | Pick the uptime/status/on-call SaaS; approve a public status page + error tracking                  | Better Stack (free tier) pointed at `/api/public/health`; errors via Cloudflare Logs or Sentry free                                   | obviates ~5 generic-infra items                                                  |
+| 7   | Analytics    | Pick the inbound product-analytics provider                                                         | PostHog (open-source, self-hostable, free to ~1M events/mo)                                                                           | obviates the event SDK + cohort engine + retention math                          |
+| 8   | Governance   | Pick the OSS injection-detector floor + how it runs                                                 | LlamaFirewall PromptGuard 2 via a new guardrail CallSurface (or a zero-GPU in-process floor); defer Lakera                            | obviates building a learned injection classifier from scratch                    |
+| 9   | Interop      | Pick the remote-MCP OAuth/DCR provider (when Q2 lands); confirm the outward A2A posture             | Cloudflare OAuthProvider (in-stack); external peers call us under workspace-scoped tokens, the append path stays human-approval-gated | obviates the transport + OAuth-server + card-signing + registry build            |
+| 10  | Decide       | Confirm the strategic "no-buy" on the decision layer                                                | Confirm (PRD/roadmap SaaS stay competitors-to-absorb + export targets)                                                                | keeps the founder's effort in deepening the moat                                 |
 
 The Decision-Brain cluster needs no shape call: the agent acts. The founder is consulted only for the cents/month embed+rerank line, flipping `DECISION_BRAIN_SUPERSESSION` on + tuning the threshold once `DBR-1.5` ships dormant, and a future-only taste call if graph scale ever forces the in-Postgres Apache-AGE escape hatch.
 

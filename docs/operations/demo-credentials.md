@@ -51,7 +51,7 @@ Each account also gets an empty `My Workspace` alongside the Demo workspace, whi
 
 If a demo account ever ends up empty, call the seed function manually as a database superuser.
 
-> ⚠️ **KI-14 — run the normalization too.** `seed_demo_workspace` still writes eval/drift scores on the legacy **0–1** scale, but those columns are now **0–100** (migration `20260614160000`). Re-seeding a *fresh/emptied* demo account without normalizing makes the Evals/Drift surfaces read the false "score 1 · below gate 80". Use this exact block (seed, then normalize):
+> ⚠️ **KI-14 — run the normalization too.** `seed_demo_workspace` still writes eval/drift scores on the legacy **0–1** scale, but those columns are now **0–100** (migration `20260614160000`). Re-seeding a _fresh/emptied_ demo account without normalizing makes the Evals/Drift surfaces read the false "score 1 · below gate 80". Use this exact block (seed, then normalize):
 
 ```sql
 SELECT public.seed_demo_workspace(id) FROM auth.users WHERE email = 'demo@redcadence.app';

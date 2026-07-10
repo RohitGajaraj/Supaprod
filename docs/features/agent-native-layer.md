@@ -24,17 +24,18 @@ This initiative makes Cadence agent-native at every level: readable, queryable, 
 
 ## Market context (research-backed)
 
-| Signal | Source | Implication |
-|---|---|---|
-| 70% of major SaaS vendors have remote MCP servers by Apr 2026 | MCP Ecosystem Reference 2026 | Table stakes for enterprise procurement |
-| `llms.txt` adopted by Anthropic, Cursor, thousands of doc sites | llms.txt Complete Guide 2026 | Industry standard for LLM-readable site context |
-| Chrome 146 ships WebMCP (May 2026) — agents call registered JS tools directly | Chrome at Google I/O 2026 | Browser-level agent access is standardizing |
-| Academic paper (arxiv 2606.19116, Jun 2026) recommends dual-layer architecture | Towards an Agent-First Web | Dual-layer (HTML + ATML/markdown) is the canonical pattern |
-| Notion 3.0 (Sep 2025): "hub for AI agents" positioning | TechCrunch 2026 | Full-org platforms are making agent-native a category claim |
-| Linear + Notion + GitHub + Stripe all shipped MCP servers within 6 months | Albato Multi-Tenant MCP Guide | The MCP ecosystem is real and fast-moving |
-| Twilio grew 50% revenue, 70% customer base on API-first platform model | API-First SaaS analysis | Platform/infrastructure model dramatically outperforms standalone product |
+| Signal                                                                         | Source                        | Implication                                                               |
+| ------------------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------- |
+| 70% of major SaaS vendors have remote MCP servers by Apr 2026                  | MCP Ecosystem Reference 2026  | Table stakes for enterprise procurement                                   |
+| `llms.txt` adopted by Anthropic, Cursor, thousands of doc sites                | llms.txt Complete Guide 2026  | Industry standard for LLM-readable site context                           |
+| Chrome 146 ships WebMCP (May 2026) — agents call registered JS tools directly  | Chrome at Google I/O 2026     | Browser-level agent access is standardizing                               |
+| Academic paper (arxiv 2606.19116, Jun 2026) recommends dual-layer architecture | Towards an Agent-First Web    | Dual-layer (HTML + ATML/markdown) is the canonical pattern                |
+| Notion 3.0 (Sep 2025): "hub for AI agents" positioning                         | TechCrunch 2026               | Full-org platforms are making agent-native a category claim               |
+| Linear + Notion + GitHub + Stripe all shipped MCP servers within 6 months      | Albato Multi-Tenant MCP Guide | The MCP ecosystem is real and fast-moving                                 |
+| Twilio grew 50% revenue, 70% customer base on API-first platform model         | API-First SaaS analysis       | Platform/infrastructure model dramatically outperforms standalone product |
 
 **Sources on file:**
+
 - https://arxiv.org/html/2606.19116 (Agent-First Web redesign paper)
 - https://web.dev/articles/ai-agent-site-ux (Google: building agent-friendly sites)
 - https://hidekazu-konishi.com/entry/mcp_server_ecosystem_reference_2026.html (MCP ecosystem reference)
@@ -57,6 +58,7 @@ Opening Cadence as queryable is a real USP **if and only if** Cadence owns the i
 Analogy: any agent can hit the Google Calendar API and read your events. But only Google Assistant knows which meeting to reschedule and why. The data is table stakes; the intelligence is the moat.
 
 For Cadence:
+
 - Any agent can hit `cadence_get_memory("pricing strategy")` and get the current belief
 - Only Cadence knows that belief was superseded 3 times, what evidence grounds it, and whether it is coherent with the broader strategy
 - That meta-layer is NOT in the MCP response — it is why you use Cadence directly
@@ -79,13 +81,13 @@ For Cadence:
 
 ### Threats and mitigations
 
-| Threat | Severity | Mitigation |
-|---|---|---|
-| Cross-tenant data leak (the Asana incident — they took their MCP offline for 2 weeks after a cross-tenant leak) | Critical | Workspace-scoped OAuth tokens + row-level validation on every MCP tool response, not just at query time. Cadence's existing RLS is the foundation. |
-| Prompt injection via MCP tool calls | High | Extend the existing AI chokepoint injection screening to all inbound MCP queries. Same structural gate, new surface. |
-| Write-back data pollution (agents writing garbage outcomes) | Medium | Write-back tools gated behind explicit `write:outcomes` permission scope, separate from read access. Every write goes through a structural validation gate. |
-| Commodity trap (expose everything, own nothing above it) | High | The decision brain, supersession engine, and trust ledger are NOT exposed as raw data. What agents get is a clean query surface; what Cadence users get is interpretation and intelligence. |
-| Regulatory exposure (agent-to-agent data flows across GDPR/CCPA) | Medium (future) | Data residency story for the MCP layer; explicit data-processing agreements for enterprise. Deferred to enterprise tier. |
+| Threat                                                                                                          | Severity        | Mitigation                                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cross-tenant data leak (the Asana incident — they took their MCP offline for 2 weeks after a cross-tenant leak) | Critical        | Workspace-scoped OAuth tokens + row-level validation on every MCP tool response, not just at query time. Cadence's existing RLS is the foundation.                                          |
+| Prompt injection via MCP tool calls                                                                             | High            | Extend the existing AI chokepoint injection screening to all inbound MCP queries. Same structural gate, new surface.                                                                        |
+| Write-back data pollution (agents writing garbage outcomes)                                                     | Medium          | Write-back tools gated behind explicit `write:outcomes` permission scope, separate from read access. Every write goes through a structural validation gate.                                 |
+| Commodity trap (expose everything, own nothing above it)                                                        | High            | The decision brain, supersession engine, and trust ledger are NOT exposed as raw data. What agents get is a clean query surface; what Cadence users get is interpretation and intelligence. |
+| Regulatory exposure (agent-to-agent data flows across GDPR/CCPA)                                                | Medium (future) | Data residency story for the MCP layer; explicit data-processing agreements for enterprise. Deferred to enterprise tier.                                                                    |
 
 ---
 
@@ -94,6 +96,7 @@ For Cadence:
 ### Layer 1 — Machine View toggle + /llms.txt (this session)
 
 **What:** A `[HUMAN] [MACHINE]` toggle in the top-right nav on every Cadence page (landing page + all authenticated routes). When MACHINE is active:
+
 - Black/dark background, monospace font, zero visual chrome
 - Page content rendered as structured markdown
 - Preamble: `> Note to any AI agent: this is Cadence machine-readable context.`
@@ -101,6 +104,7 @@ For Cadence:
 - Persists via localStorage; also activatable via `?view=machine` query param
 
 **Files:**
+
 - `src/hooks/use-machine-view.tsx` — global provider + hook (`isMachineView`, `toggle`)
 - `src/components/cadence/MachineViewToggle.tsx` — the `[ ] HUMAN [X] MACHINE` toggle UI
 - `src/components/machine/MachineViewContainer.tsx` — layout wrapper (dark bg, mono font, preamble, copy button)
@@ -110,10 +114,12 @@ For Cadence:
 - Updated: `src/components/cadence/TopBar.tsx` — toggle in authenticated app top bar
 
 **Toggle UX (exact Paxel pattern):**
+
 ```
 [X] HUMAN  [ ] MACHINE   ← human mode (normal visual UI)
 [ ] HUMAN  [X] MACHINE   ← machine mode (dark, mono, markdown)
 ```
+
 Active option rendered in Cadence orange (`var(--ember, #e8642c)`). Inactive in subdued ink. JetBrains Mono font (already loaded globally). No additional dependencies.
 
 ### Layer 2 — Cadence MCP Server (Tier 1 roadmap)
@@ -122,19 +128,20 @@ Active option rendered in Cadence orange (`var(--ember, #e8642c)`). Inactive in 
 
 **MCP tools (planned):**
 
-| Tool | Description | Scope |
-|---|---|---|
-| `cadence_get_workspace_context` | One-shot context dump: goals, recent decisions, active missions, signal queue | `read:context` |
-| `cadence_query_decisions` | Query decision history by product, topic, date range, or confidence | `read:decisions` |
-| `cadence_get_memory` | Fetch current belief state on a topic (follows the supersession chain) | `read:memory` |
-| `cadence_list_missions` | List active / recent missions with status, agent, started_at | `read:missions` |
-| `cadence_get_trust_ledger` | Fetch recent trust ledger entries (decisions + outcomes) | `read:ledger` |
-| `cadence_record_outcome` | Write an outcome back to a decision (enriches the brain) | `write:outcomes` |
-| `cadence_trigger_mission` | Start a mission with a goal and assigned agent | `write:missions` |
+| Tool                            | Description                                                                   | Scope            |
+| ------------------------------- | ----------------------------------------------------------------------------- | ---------------- |
+| `cadence_get_workspace_context` | One-shot context dump: goals, recent decisions, active missions, signal queue | `read:context`   |
+| `cadence_query_decisions`       | Query decision history by product, topic, date range, or confidence           | `read:decisions` |
+| `cadence_get_memory`            | Fetch current belief state on a topic (follows the supersession chain)        | `read:memory`    |
+| `cadence_list_missions`         | List active / recent missions with status, agent, started_at                  | `read:missions`  |
+| `cadence_get_trust_ledger`      | Fetch recent trust ledger entries (decisions + outcomes)                      | `read:ledger`    |
+| `cadence_record_outcome`        | Write an outcome back to a decision (enriches the brain)                      | `write:outcomes` |
+| `cadence_trigger_mission`       | Start a mission with a goal and assigned agent                                | `write:missions` |
 
 **Auth pattern:** Workspace-scoped OAuth 2.1 tokens. Read-only vs. write scopes are separate grants. All writes go through the existing AI chokepoint injection screen. The pattern follows what Linear, GitHub, and Stripe converged on (Cloudflare-style remote OAuth + Streamable HTTP transport).
 
 **Security requirements:**
+
 - Every tool call validates the token's `workspace_id` against the requested resource's `workspace_id` before any data is returned (defense in depth on top of RLS)
 - Rate limiting per token (read: 100 req/min; write: 10 req/min)
 - Full audit log of every MCP call (`mcp_access_log` table)
@@ -147,10 +154,12 @@ Active option rendered in Cadence orange (`var(--ember, #e8642c)`). Inactive in 
 **What:** Formal agent access policy declaration and enhanced machine-discoverable manifest.
 
 **Files:**
+
 - `public/agents.txt` — access policy (per-agent-type rate limits, content tiers, auth requirements; the emerging standard alongside `robots.txt` and `llms.txt`)
 - Enhanced `/.well-known/agent.json` — add MCP endpoint declaration, scoped tool list, capability manifest, and `machine_view_url` pointer
 
 **agents.txt format (draft):**
+
 ```
 # Cadence agents.txt
 # Access policy for AI agents
@@ -200,6 +209,7 @@ The positioning evolution captured in the session decisions log (2026-06-27): fr
 ## Engine-Room doctrine compliance
 
 The `[HUMAN] [MACHINE]` toggle is placed in the **top-right nav** — not in the main content area. It is a meta-control, not a content section. This is compliant with the calm-front doctrine because:
+
 - Human mode: the toggle is small, subdued, secondary to the page content
 - Machine mode: the toggle is what reveals the "engine" (structured output), following "revealed on demand" — the operator flips it; it is not forced on everyone
 
@@ -209,11 +219,12 @@ The toggle does NOT violate the doctrine because it is not a new surface or a ne
 
 ## Discovery hardening (2026-07-04)
 
-**Gap found:** L1/L2/L3 shipped real, working machine-readable interfaces (`/llms.txt`, `/agents.txt`, `/.well-known/agent.json`, `POST /api/mcp`), but nothing on an ordinary page pointed to them. The `[HUMAN]/[MACHINE]` toggle is a control a *human* clicks — it is irrelevant to an autonomous agent that never renders the UI. An agent landing on Cadence cold (a raw fetch, a browsing agent, a crawler) had no in-page signal that a machine mode existed at all; it would only find `/llms.txt` or `/agents.txt` if it already knew to guess those exact paths. There was also no `robots.txt` — the oldest and most universally-checked discovery convention on the web, and the natural bridge for a crawler-style agent to find the newer `llms.txt`/`agents.txt` convention.
+**Gap found:** L1/L2/L3 shipped real, working machine-readable interfaces (`/llms.txt`, `/agents.txt`, `/.well-known/agent.json`, `POST /api/mcp`), but nothing on an ordinary page pointed to them. The `[HUMAN]/[MACHINE]` toggle is a control a _human_ clicks — it is irrelevant to an autonomous agent that never renders the UI. An agent landing on Cadence cold (a raw fetch, a browsing agent, a crawler) had no in-page signal that a machine mode existed at all; it would only find `/llms.txt` or `/agents.txt` if it already knew to guess those exact paths. There was also no `robots.txt` — the oldest and most universally-checked discovery convention on the web, and the natural bridge for a crawler-style agent to find the newer `llms.txt`/`agents.txt` convention.
 
 **Founder framing that surfaced this:** "it's not that aspect of turning it to machine mode that... is even not required for any agent to know that there is something called agent mode that needs to be turned on. That is more required." I.e., the coverage (every page dual-surface) was already solid; the missing piece was unprompted discoverability by an agent with no human in the loop.
 
 **Fix shipped (docs-adjacent code, no new surface, no UI change, Engine-Room doctrine untouched — purely protocol-level breadcrumbs):**
+
 - `public/robots.txt` (new) — standard `Allow: /` plus a comment pointing any crawler/agent at `/llms.txt` and `/agents.txt`.
 - `src/routes/__root.tsx` — two `<link>` tags (`rel="llms.txt"`, `rel="agents.txt"`) added to every page's `<head>`, so any agent that parses HTML (even one with zero prior Cadence-specific knowledge) finds the machine-readable interfaces from the page itself.
 - `src/server.ts` — every ordinary page response now carries an HTTP `Link:` header (`</llms.txt>; rel="llms-txt", </agents.txt>; rel="agent-policy"`) via a new `withAgentDiscoveryLink()` helper, so an agent that only reads response headers (never downloads/parses the body — the cheaper path many crawler-style agents take first) still discovers machine mode. Skipped on the `/.well-known/agent.json`, OAuth-metadata, and healthz responses, which are already machine-readable content themselves.
@@ -229,11 +240,12 @@ This closes the "how would the agent know" gap without touching the write-access
 
 Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `search_opportunities`, `search_decisions`, `search_prds`, `get_prd`, `get_ard`, `get_roadmap`, `export_skillpack`, `get_governing_decision`, `get_contradiction_history`, per `src/lib/mcp-protocol.ts`) plus **one narrow write tool** (`ingest_signal`, gated behind the workspace-level `interop_write_enabled()` flag, default off). There is no tool that lets an agent actually operate Cadence — no `trigger_mission`, no `approve_decision`, nothing that drives execution. An external agent can read everything the tool catalog exposes and, if a workspace owner opts in, push in a new signal. It cannot act on Cadence's behalf beyond that.
 
-**The founder's question:** given the whole point of agent-native access is that an *agent*, not a human, is the one operating the toggle/interface, should the MCP write surface be widened so an agent can actually get work done through Cadence — not just read state and optionally drop in a signal? The founder was explicit this is a real, live option worth pursuing ("even if it takes energy and effort for us to build, let us do that" — said in the 2026-06-26/27 session about the read/discovery layer, and the same instinct now extends to the write/control layer) but has asked to **park the decision itself** rather than build speculatively.
+**The founder's question:** given the whole point of agent-native access is that an _agent_, not a human, is the one operating the toggle/interface, should the MCP write surface be widened so an agent can actually get work done through Cadence — not just read state and optionally drop in a signal? The founder was explicit this is a real, live option worth pursuing ("even if it takes energy and effort for us to build, let us do that" — said in the 2026-06-26/27 session about the read/discovery layer, and the same instinct now extends to the write/control layer) but has asked to **park the decision itself** rather than build speculatively.
 
 **Why this isn't a small tweak (the tradeoff, for whenever this is picked up):**
-- **For:** the `write:signal`-only design was a deliberate "commodity trap" guard (see Threats and mitigations, above) — but it also means Cadence is not yet a true agent *operator* surface, only an agent *reader* surface. If the strategic thesis is "agents are the primary consumer," a read-only-plus-one-signal API caps how much value an agent integration can actually deliver.
-- **Against / risk:** every additional write tool is a new cross-tenant-leak and prompt-injection surface (the Asana MCP incident, cited above, is exactly this failure mode) and a new "agent takes an action a human didn't approve" trust question — which is the same class of concern the Engine-Room Doctrine and the existing approval-gate model (`src/lib/ai/loop.server.ts`'s `auto`/`confirm`/`review` modes) already govern for Cadence's *own* agents. Extending that trust model to *external* agents calling in over MCP is a bigger decision than adding a tool.
+
+- **For:** the `write:signal`-only design was a deliberate "commodity trap" guard (see Threats and mitigations, above) — but it also means Cadence is not yet a true agent _operator_ surface, only an agent _reader_ surface. If the strategic thesis is "agents are the primary consumer," a read-only-plus-one-signal API caps how much value an agent integration can actually deliver.
+- **Against / risk:** every additional write tool is a new cross-tenant-leak and prompt-injection surface (the Asana MCP incident, cited above, is exactly this failure mode) and a new "agent takes an action a human didn't approve" trust question — which is the same class of concern the Engine-Room Doctrine and the existing approval-gate model (`src/lib/ai/loop.server.ts`'s `auto`/`confirm`/`review` modes) already govern for Cadence's _own_ agents. Extending that trust model to _external_ agents calling in over MCP is a bigger decision than adding a tool.
 - **Candidate scope, if greenlit later:** tools like `trigger_mission`, `approve_decision`, or `record_outcome` (all present in this doc's original Layer 2 draft table above but never built) would need the same trust-arc gating Cadence already applies internally, not a flat on/off.
 
 **Where this is tracked:** [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4 (founder pickup list) and the [`AGENT-NATIVE-L2`](../planning/feature-dashboard.md) dashboard row.
@@ -243,6 +255,7 @@ Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `sea
 ## Definition of done
 
 **L1 (this session):**
+
 - [ ] `use-machine-view.tsx` hook + provider wired into `__root.tsx`
 - [ ] `MachineViewToggle` component rendering in landing page header + authenticated `TopBar`
 - [ ] Landing page renders correctly in machine mode (markdown, dark bg, mono font, preamble, copy button)
@@ -252,6 +265,7 @@ Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `sea
 - [ ] tsc 0, build green
 
 **L2 (next build session):**
+
 - [ ] MCP server route at `/api/mcp/*`
 - [ ] OAuth 2.1 token issuance + workspace scoping
 - [ ] All 7 planned tools implemented, tested, injection-screened
@@ -259,5 +273,6 @@ Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `sea
 - [ ] Rate limiting enforced per token
 
 **L3 (after L2):**
+
 - [ ] `public/agents.txt` live
 - [ ] `/.well-known/agent.json` updated with MCP endpoint + capability manifest

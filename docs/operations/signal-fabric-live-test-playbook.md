@@ -13,9 +13,9 @@
 2. **Get the cron-hook secret** so you can force a tick on demand instead of waiting for the real schedule (5 min for sense-tick, hourly for scout-tick, every 2h for derive-tick). It's `CRON_SECRET` in Lovable Cloud → Secrets, or fetch it live: `SELECT public.get_cron_hook_secret();` via the Supabase MCP / SQL editor. Treat it like any other credential — do not paste it into chat or commit it anywhere.
 3. **Sign in.** Use the seeded demo account for a zero-setup look (`demo@redcadence.app`, password in [`demo-credentials.md`](./demo-credentials.md)) or your own workspace for a from-scratch test. The demo account already has signals/themes/insights seeded, so Scenario 1 needs no setup at all.
 4. **Base URL** for manual hook calls: `https://cadence-flow-beta.lovable.app` (swap in your own published URL if different).
-5. *(Optional, only needed for Scenario 5)* Set `BRAIN_AUTO_TRIGGER=1` in Lovable project settings.
-6. *(Optional, only needed for Scenario 3)* A sandbox/test API token for whichever customer-voice connector you want to test (Intercom is the easiest to get a free sandbox token for).
-7. *(Optional, only needed for Scenario 6)* A real hosted MCP server URL + token — Linear's official hosted MCP server (`https://mcp.linear.app/sse` at time of writing — verify the current URL in Linear's own docs before using it) is the easiest of the four to test against since it needs no special enterprise contract.
+5. _(Optional, only needed for Scenario 5)_ Set `BRAIN_AUTO_TRIGGER=1` in Lovable project settings.
+6. _(Optional, only needed for Scenario 3)_ A sandbox/test API token for whichever customer-voice connector you want to test (Intercom is the easiest to get a free sandbox token for).
+7. _(Optional, only needed for Scenario 6)_ A real hosted MCP server URL + token — Linear's official hosted MCP server (`https://mcp.linear.app/sse` at time of writing — verify the current URL in Linear's own docs before using it) is the easiest of the four to test against since it needs no special enterprise contract.
 
 **Manual tick command shape** (replace `<TICK>` with `sense-tick` / `cluster-tick` / `derive-tick` / `trigger-tick` / `scout-tick`, and `<SECRET>` with the value from step 2):
 
@@ -100,18 +100,19 @@ This is the highest-value scenario to run first tomorrow, since it's the only sh
 
 ## Fail modes & where to look
 
-| Symptom | Likely cause | Where to look |
-|---|---|---|
-| `sense-tick` returns `{ok:true, note:"auto_sense not migrated yet"}` | A pending migration didn't land | Re-run prerequisite step 1 |
-| Connector ingest always returns `source:"none"` | Missing env token, or workspace tier is Free | Confirm the Lovable secret name matches exactly; check `plan_tier` |
-| Watch/Listen mission never appears | Threshold not actually cleared, or a mission with the same title is already open (dedup) | Check `signals` row counts in the last 24h; check Missions panel for an existing open one with the same title |
-| Auto-trigger never fires even with the flag on | Another mission is `running`/`queued` (ambient-arc gate), or the daily cap (2) is already hit | Query `missions` for the workspace's current statuses and today's `auto_trigger_source='auto'` count |
-| SF-MCP `mcp_servers` field always `none` | `MCP_<SERVER>_URL` or `_TOOL` env var missing/typo'd | Re-check exact env var names in [`sf-mcp.md`](../features/sf-mcp.md) |
-| SF-MCP errors every call | The hosted server's actual tool/arg schema doesn't match what was sent, or the server requires a session the lightweight handshake didn't establish | Check `mcp_connections.last_error` (sanitized, no secrets); call the server directly via curl/Postman to confirm its real `tools/list` output |
+| Symptom                                                              | Likely cause                                                                                                                                        | Where to look                                                                                                                                 |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sense-tick` returns `{ok:true, note:"auto_sense not migrated yet"}` | A pending migration didn't land                                                                                                                     | Re-run prerequisite step 1                                                                                                                    |
+| Connector ingest always returns `source:"none"`                      | Missing env token, or workspace tier is Free                                                                                                        | Confirm the Lovable secret name matches exactly; check `plan_tier`                                                                            |
+| Watch/Listen mission never appears                                   | Threshold not actually cleared, or a mission with the same title is already open (dedup)                                                            | Check `signals` row counts in the last 24h; check Missions panel for an existing open one with the same title                                 |
+| Auto-trigger never fires even with the flag on                       | Another mission is `running`/`queued` (ambient-arc gate), or the daily cap (2) is already hit                                                       | Query `missions` for the workspace's current statuses and today's `auto_trigger_source='auto'` count                                          |
+| SF-MCP `mcp_servers` field always `none`                             | `MCP_<SERVER>_URL` or `_TOOL` env var missing/typo'd                                                                                                | Re-check exact env var names in [`sf-mcp.md`](../features/sf-mcp.md)                                                                          |
+| SF-MCP errors every call                                             | The hosted server's actual tool/arg schema doesn't match what was sent, or the server requires a session the lightweight handshake didn't establish | Check `mcp_connections.last_error` (sanitized, no secrets); call the server directly via curl/Postman to confirm its real `tools/list` output |
 
 ## Doc-loop closure on a clean pass
 
 When a scenario passes live for the first time, in one commit:
+
 - Note the pass + date in [`signal-fabric.md`](../features/signal-fabric.md)'s phase history.
 - If this is the first full live pass, add a "LIVE-VERIFIED" line to the SOURCE-OF-TRUTH.md Signal Fabric callout, same convention as past live-verification passes (search that file for "LIVE-VERIFIED" for the established phrasing).
 

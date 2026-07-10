@@ -24,23 +24,23 @@ A deterministic JSON envelope:
 
 ```jsonc
 {
-  "schema_version": "1.0",          // the FORMAT version (rotate on envelope change)
+  "schema_version": "1.0", // the FORMAT version (rotate on envelope change)
   "workspace_id": "<uuid>",
-  "generated_at": "<ISO>",          // when exported (does NOT affect content_hash)
-  "content_hash": "sk1_1a2b3c4d",   // a stable fingerprint of the lesson CONTENT
+  "generated_at": "<ISO>", // when exported (does NOT affect content_hash)
+  "content_hash": "sk1_1a2b3c4d", // a stable fingerprint of the lesson CONTENT
   "lesson_count": 12,
   "summary": "12 lessons from real outcomes (8 validated, 2 missed, 2 mixed).",
   "lessons": [
     {
       "id": "<learning uuid>",
-      "verdict": "validated",        // validated | missed | mixed
+      "verdict": "validated", // validated | missed | mixed
       "lesson": "Shipping behind a flag de-risked the rollout.",
-      "topic": "Flagged rollout",    // the opportunity the decision was about
-      "ice_delta": 0.4,              // new_ice - prior_ice, 1dp; null when unknown
-      "recorded_at": "<ISO>"
-    }
+      "topic": "Flagged rollout", // the opportunity the decision was about
+      "ice_delta": 0.4, // new_ice - prior_ice, 1dp; null when unknown
+      "recorded_at": "<ISO>",
+    },
     // ... newest first, capped at `limit` (default 200, max 500)
-  ]
+  ],
 }
 ```
 

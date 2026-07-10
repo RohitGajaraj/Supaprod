@@ -8,13 +8,13 @@
 
 ## In one line
 
-Cadence's memory becomes a **living decision graph**: a typed, time-aware, auto-built map of every signal, decision, assumption, and outcome, connected the way a senior PM's mind connects them, that you can *see* (an Obsidian-style graph that speaks everything) and that quietly makes you smarter at every step, often before you ask.
+Cadence's memory becomes a **living decision graph**: a typed, time-aware, auto-built map of every signal, decision, assumption, and outcome, connected the way a senior PM's mind connects them, that you can _see_ (an Obsidian-style graph that speaks everything) and that quietly makes you smarter at every step, often before you ask.
 
 ---
 
 ## The problem today
 
-Cadence already remembers, but it remembers *flatly*. Memory is stored as embeddings and retrieved by similarity (vector recall over chunks). That has three structural limits, and they are exactly the limits that matter for product decisions:
+Cadence already remembers, but it remembers _flatly_. Memory is stored as embeddings and retrieved by similarity (vector recall over chunks). That has three structural limits, and they are exactly the limits that matter for product decisions:
 
 1. **It returns what is similar, not what is current.** If you changed your mind last month, a flat store still surfaces the old belief.
 2. **It cannot walk a chain.** "This signal led to this assumption led to this decision led to this outcome" is invisible to a pile of vectors.
@@ -22,7 +22,7 @@ Cadence already remembers, but it remembers *flatly*. Memory is stored as embedd
 
 Two real consequences follow, and a code-state review (2026-06-20) sharpened them (correcting an earlier draft that wrongly called the outcome loop "stubbed"):
 
-- **The outcome loop IS closed, and correctly human-gated.** `recordOutcome` already writes an outcome-labeled memory via `rememberOutcome` (`outcome.functions.ts`), and it is human-gated by design, because a verdict (validated / missed) is only knowable weeks *after* ship, not at ship-detection time. So memory does compound; it just compounds *flatly* (text plus an embedding), with no typed relationships and no supersession.
+- **The outcome loop IS closed, and correctly human-gated.** `recordOutcome` already writes an outcome-labeled memory via `rememberOutcome` (`outcome.functions.ts`), and it is human-gated by design, because a verdict (validated / missed) is only knowable weeks _after_ ship, not at ship-detection time. So memory does compound; it just compounds _flatly_ (text plus an embedding), with no typed relationships and no supersession.
 - **The Critic, the launch wedge, is blind to all of it.** `runCritic` red-teams only the target row's own fields; it reads no past outcomes. So it cannot say "we shipped a similar bet and it missed." The Decision Brain fixes both: it gives the flat memory a typed, time-aware shape, and it feeds that history to the Critic so the verdict carries receipts (the first step, DBR-0, does the latter today, see the build roadmap).
 
 ---
@@ -31,9 +31,9 @@ Two real consequences follow, and a code-state review (2026-06-20) sharpened the
 
 A **typed, bi-temporal, auto-extracted decision knowledge graph, layered over the existing vector recall**, whose signature mechanic is **outcome-labeled supersession**.
 
-Plain version: every meaningful thing in the product (a piece of feedback, an opportunity, an assumption, a decision, a spec, a shipped result) becomes a **node with a type**. The relationships between them become **edges with a meaning** (this decision *cites* that evidence; this outcome *contradicts* that assumption; this decision *supersedes* an older one). Every node and edge knows *when* it was true. When reality proves something wrong, the brain does not delete the old belief; it marks it superseded and keeps the trail. That trail is the answer to "was our reasoning right," and it stays answerable forever.
+Plain version: every meaningful thing in the product (a piece of feedback, an opportunity, an assumption, a decision, a spec, a shipped result) becomes a **node with a type**. The relationships between them become **edges with a meaning** (this decision _cites_ that evidence; this outcome _contradicts_ that assumption; this decision _supersedes_ an older one). Every node and edge knows _when_ it was true. When reality proves something wrong, the brain does not delete the old belief; it marks it superseded and keeps the trail. That trail is the answer to "was our reasoning right," and it stays answerable forever.
 
-This is not "Obsidian for PMs" in the sense of notes you maintain by hand. The structure is Tana-grade (typed), the *look* is Obsidian-grade (a graph you can see and roam), and the upkeep is **automatic**: the brain builds itself from the work you are already doing.
+This is not "Obsidian for PMs" in the sense of notes you maintain by hand. The structure is Tana-grade (typed), the _look_ is Obsidian-grade (a graph you can see and roam), and the upkeep is **automatic**: the brain builds itself from the work you are already doing.
 
 ### The felt surface: an Obsidian-style graph that speaks everything
 
@@ -50,7 +50,7 @@ The graph view is the proof of the moat made visible: a competitor can copy a fe
 
 ## The principle: deliver value at every step, often before it is expected
 
-The Decision Brain earns its place only if it is **useful at every single step, including steps where the user did not ask for anything**. The graph is the asset; the felt value is the brain *volunteering* the right thing at the right moment. Concrete moments where it should quietly exceed expectations:
+The Decision Brain earns its place only if it is **useful at every single step, including steps where the user did not ask for anything**. The graph is the asset; the felt value is the brain _volunteering_ the right thing at the right moment. Concrete moments where it should quietly exceed expectations:
 
 - **Opening a PRD:** the brain has already pulled the three past decisions an assumption here rests on, and flags one that an outcome later contradicted, before you defend it in a review.
 - **Logging a decision:** it auto-links the signals and opportunities that justify it, and gently surfaces "this looks like the decision you made in March; here is what happened."
@@ -58,7 +58,7 @@ The Decision Brain earns its place only if it is **useful at every single step, 
 - **In the Critic:** before you argue for your pet feature, the Critic already has receipts from your own history, so its verdict is grounded, not generic.
 - **In chat / Ask:** answers come with "past finding" and "past decision" citations that link straight back into the graph.
 
-The test for every Decision Brain surface: *did the user get a useful, specific, trust-building nudge they did not have to ask for?* If a step only stores data and surfaces nothing, it is not done.
+The test for every Decision Brain surface: _did the user get a useful, specific, trust-building nudge they did not have to ask for?_ If a step only stores data and surfaces nothing, it is not done.
 
 ---
 
@@ -71,12 +71,12 @@ The test for every Decision Brain surface: *did the user get a useful, specific,
 
 ## Why a graph beats more vectors (the evidence)
 
-| Hard query a PM brain must answer | Flat vectors | Decision graph |
-| --- | --- | --- |
-| "What is the *current* belief, not the similar old one?" | Fails (returns similar) | Bi-temporal validity |
-| "What contradicts this assumption?" | Cannot express | `contradicts` edge traversal |
-| "What happened last time we reasoned this way?" | Cannot walk the chain | Multi-hop traversal |
-| "Trace why this shipped, back to the root signal" | Keyword guess | Provenance walk |
+| Hard query a PM brain must answer                        | Flat vectors            | Decision graph               |
+| -------------------------------------------------------- | ----------------------- | ---------------------------- |
+| "What is the _current_ belief, not the similar old one?" | Fails (returns similar) | Bi-temporal validity         |
+| "What contradicts this assumption?"                      | Cannot express          | `contradicts` edge traversal |
+| "What happened last time we reasoned this way?"          | Cannot walk the chain   | Multi-hop traversal          |
+| "Trace why this shipped, back to the root signal"        | Keyword guess           | Provenance walk              |
 
 Published benchmarks on exactly these cases: Zep/Graphiti **63.8%** vs Mem0 **49.0%** on LongMemEval, with gains concentrated in **temporal (+29.6 points)** and **multi-hop (+23.1 points)** ([Mem0](https://mem0.ai/blog/state-of-ai-agent-memory-2026), [Zep](https://blog.getzep.com/stop-using-rag-for-agent-memory/)); GraphRAG roughly **86%** vs vector roughly **32%** on a Microsoft enterprise benchmark ([agentmarketcap](https://agentmarketcap.ai/blog/2026/04/07/graph-rag-vs-vector-rag-agent-memory-neo4j-pgvector)). The whole agent-memory frontier (Zep/Graphiti, Mem0, Letta, Cognee, Microsoft GraphRAG) has converged on graph memory, and the decision-intelligence literature names the moat: "decision #10,001 is smarter than #10,000," and replicating institutional memory carries a "structurally infinite" cost ([Decision DNA](https://chancecurtiss.substack.com/p/decision-dna-how-institutional-memory)).
 

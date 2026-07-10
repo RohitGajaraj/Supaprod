@@ -4,7 +4,7 @@
 
 Closes the `considerations.md` AI-safety-lens **P1** gap "Loop/runaway detection" (_"agents can spin; cap + detect"_). KI-15/16 shipped the **caps** (per-tick `MISSION_BATCH` + per-mission step-dispatch bound). This is the **detect** half: surface a mission whose hop / step / retry / spend has blown past those caps so an operator (or a future alert) sees it.
 
-It is the **inverse of E8's stall monitor** (`loop-health.functions.ts`): a stall is too *little* progress (stuck/expired/queue-depth); a runaway is too *much* churn. Together they bracket "the loop is misbehaving," and with RELIABILITY-SLO they form a loop-observability triad.
+It is the **inverse of E8's stall monitor** (`loop-health.functions.ts`): a stall is too _little_ progress (stuck/expired/queue-depth); a runaway is too _much_ churn. Together they bracket "the loop is misbehaving," and with RELIABILITY-SLO they form a loop-observability triad.
 
 ## What it flags
 
@@ -30,7 +30,7 @@ The defaults are **independently-chosen heuristics that sit deliberately above t
 ## Governance & guardrails
 
 - Read-only over existing tables; the loop is never mutated (KI-15/16 own enforcement; this only observes).
-- Distinct from `loop-health.functions.ts` (stall, the inverse) and `governance.functions.ts` (the *control* side: kill-switch, caps, approvals). This is the only surface that flags *runaway* behavior.
+- Distinct from `loop-health.functions.ts` (stall, the inverse) and `governance.functions.ts` (the _control_ side: kill-switch, caps, approvals). This is the only surface that flags _runaway_ behavior.
 
 ## Verification
 

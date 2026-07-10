@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-02 |
-| Rank | #3 |
-| Tier | 1 (foundation, strictly ordered) |
-| Status | pending |
-| Category | Cockpit |
-| Depends on | OBS-01 (tokens + fonts + 8 keyframes + `[data-obsidian]`) |
-| Blocks | OBS-03 (primitives), and transitively every surface (OBS-04..09) and the IA fold (OBS-10) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID            | OBS-02                                                                                                                                                                                                                                                                                                                         |
+| Rank          | #3                                                                                                                                                                                                                                                                                                                             |
+| Tier          | 1 (foundation, strictly ordered)                                                                                                                                                                                                                                                                                               |
+| Status        | pending                                                                                                                                                                                                                                                                                                                        |
+| Category      | Cockpit                                                                                                                                                                                                                                                                                                                        |
+| Depends on    | OBS-01 (tokens + fonts + 8 keyframes + `[data-obsidian]`)                                                                                                                                                                                                                                                                      |
+| Blocks        | OBS-03 (primitives), and transitively every surface (OBS-04..09) and the IA fold (OBS-10)                                                                                                                                                                                                                                      |
 | One-line what | The app shell: a 236px rail on `--rail` with a mono numeral nav 01-05 (NO icons, lucide removed from the rail), the Butterfly mark with flutter, the one Today badge, the shimmer working line, the Engine Room door, the user chip, a 52px top bar, the surface container with `cadRise`, and the keyboard map 1-5 / g / Esc. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-02 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-02                                                                                                                                                                                                                                                     |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                         |
 
 ---
 
@@ -36,6 +36,7 @@ Architecturally OBS-02 also makes a foundation decision the whole port depends o
 ## 3. What we are building
 
 **Scope IN**
+
 - A reskinned `AppShell` rendering the Obsidian rail: 236px, `--rail` background, right hairline; Butterfly header + wordmark + workspace name; the `Search … ⌘K` affordance; the five-item mono-index nav; the footer trio (shimmer working line, Engine Room door, user chip).
 - The nav-model reshape in `src/lib/nav-model.ts`: drop the `lucide` import and the `icon` field, add a mono `index` field, rename the five destinations to Today · Discover · Plan · Build · Brain, and remove Ask from the rail. Update `nav-model.test.ts`.
 - **Hoisting** the shell once into `src/routes/_authenticated.tsx` (wrap `<Outlet/>`), and unwrapping the per-page `<AppShell>` from the ~21 routes that currently wrap it.
@@ -44,6 +45,7 @@ Architecturally OBS-02 also makes a foundation decision the whole port depends o
 - The keyboard map: `1`-`5` switch the five surfaces, `g` opens the Engine Room, `Esc` closes overlays; guarded against inputs and modifiers.
 
 **Scope OUT (no feature work rides along)**
+
 - No server-function changes. The shell CONSUMES read-only, exactly as today: `getWorkspacePauseState`, `getNeedsYou` (drives the Today badge count), `getLiveRunCounts` (drives the shimmer working line), `amIAdmin`, plus the `useWorkspace` context. None are modified.
 - No primitive components (Button, StatusDot, Toast, CallCard, MissionRow, SlideOver): that is OBS-03.
 - No surface content (Today hero, Call queue, mission rows): those are OBS-04..09. OBS-02 restyles only the frame.
@@ -158,9 +160,11 @@ _authenticated.tsx  (layout, data-obsidian on root)
 ```
 
 **New files**
+
 - `src/components/obsidian/Surface.tsx` - the surface container (max-width 1060/1160, padding 36/32/64, `cadRise`).
 
 **Modified files**
+
 - `src/lib/nav-model.ts` (reshape), `src/lib/nav-model.test.ts` (assertions).
 - `src/components/cadence/AppShell.tsx` (rail reskin, lucide removed, `NavRow` rewrite).
 - `src/components/cadence/TopBar.tsx` (bar reskin, lucide removed).
@@ -183,6 +187,7 @@ All hexes/durations below are quoted from `ui-kit-shell.html` and hub §5. Never
 **Butterfly header** - `img/butterfly-ember.svg` 24px, `filter: drop-shadow(0 0 6px rgba(255,107,44,0.4))`, `cadFlutter 3.4s` (transform-origin 12px 12px), gap 11px to the wordmark. Wordmark 13.5px/700 `var(--text-primary)` letter-spacing -0.01em; workspace name 10.5px `var(--text-subtle)`.
 
 **`nav-item` anatomy + states** (mono index + label + optional badge):
+
 - Base: `display:flex; align-items:center; gap:11px; width:100%; padding:8px 10px; border:none; border-radius:8px; font-size:13px; background:transparent; color:var(--text-muted); transition:background 140ms var(--ease)`. `.num` = mono 9.5px `var(--text-faint)`.
 - **Hover** (tonal, not spatial - nothing translates): `background: var(--raised)` (`#17171A`), `color: var(--text-primary)`.
 - **Active:** `background: #1A1A1E`, `color: var(--text-primary)`, `font-weight:600`, and the `.num` turns `var(--ember)`.
@@ -202,6 +207,7 @@ All hexes/durations below are quoted from `ui-kit-shell.html` and hub §5. Never
 **Surface container** - `max-width:1060px` (1160 for Discover/Plan), `margin:0 auto`, `padding:36px 32px 64px`, `animation: cadRise 260ms var(--ease) both`.
 
 **States that apply to the whole shell**
+
 - **Empty / cold:** the rail is never empty (five fixed destinations). The Today badge and shimmer line simply do not render when their counts are zero; the Engine Room door reads "ALL CLEAR". No empty illustration.
 - **Loading:** the badge/shimmer/door counts come from `useQuery`; while pending, render nothing (no skeleton in the rail) so the frame never flickers a spinner.
 - **Error:** if a count query fails, treat as zero (badge hidden, "ALL CLEAR", shimmer hidden). The frame must never surface a fetch error - it is chrome.
@@ -215,7 +221,7 @@ All hexes/durations below are quoted from `ui-kit-shell.html` and hub §5. Never
 - **nav-model.test.ts:** update the labels assertion and the per-item field assertion (icon to index); add an index-format test.
 - **AppShell.tsx:** remove ALL lucide imports; rewrite `NavRow`; restyle aside/header/search/footer; keep data hooks and dropdown handlers.
 - **TopBar.tsx:** remove `Calendar` + `ChevronRight` lucide imports; collapse breadcrumbs to a surface title + subtitle; restyle to 52px.
-- **_authenticated.tsx:** wrap `<Outlet/>` in `<AppShell>`; ensure `data-obsidian` on the root.
+- **\_authenticated.tsx:** wrap `<Outlet/>` in `<AppShell>`; ensure `data-obsidian` on the root.
 - **21 routes:** remove the per-page `<AppShell>` wrapper + import + the `projects` prop.
 - **CommandPalette.tsx `GotoShortcuts`:** replace the `g`-chord map with the Obsidian map (1-5 + single-press g + Esc).
 - **Redirects:** none in OBS-02. Route renames to `/discover`, `/plan`, `/engine-room` and their redirects are OBS-10.
@@ -259,6 +265,7 @@ All hexes/durations below are quoted from `ui-kit-shell.html` and hub §5. Never
 ## 11. Prototype-parity checklist (the last gate · from hub §5.9, tailored)
 
 Open `ui-kit-shell.html` and the built shell side by side at 1440px:
+
 1. **Rail:** 236px, mono index 01-05, active bg `#1A1A1E` + ember index, the ONE Today badge, the shimmer working line, the Engine Room door, the user chip - all present and positioned identically.
 2. **Surface chrome:** 52px top bar, surface container max-width 1060 (1160 Discover/Plan), padding 36/32/64, `cadRise` entrance on the surface content.
 3. **Type:** wordmark 13.5px/700, nav labels 13px, mono indices 9.5px, mono labels/date 9-9.5px caps with middots.

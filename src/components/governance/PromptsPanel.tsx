@@ -821,7 +821,10 @@ function PromptUsagePanel({
                     fontSize: 12,
                   }}
                 >
-                  <span className="mono-label tabular-nums" style={{ color: "var(--text-primary)" }}>
+                  <span
+                    className="mono-label tabular-nums"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     v{v.version} · {v.status}
                   </span>
                   <span className="mono-label tabular-nums" style={{ color: "var(--text-subtle)" }}>

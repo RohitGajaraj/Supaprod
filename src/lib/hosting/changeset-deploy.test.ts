@@ -17,7 +17,14 @@ describe("deriveAppSlug", () => {
 
 describe("deployableFile", () => {
   test("accepts the template file family", () => {
-    for (const p of ["main.ts", "deno.json", "cadence.json", "README.md", ".github/workflows/ci.yml", "assets/logo.svg"]) {
+    for (const p of [
+      "main.ts",
+      "deno.json",
+      "cadence.json",
+      "README.md",
+      ".github/workflows/ci.yml",
+      "assets/logo.svg",
+    ]) {
       expect(deployableFile(p, 1000)).toBe(true);
     }
   });

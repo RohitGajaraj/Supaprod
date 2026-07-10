@@ -112,6 +112,7 @@ In the `/discovery` tab, you should see new signals appear in the signal list. T
 **Limit:** 100 signals per 1 hour per token (rolling window)
 
 The `checkIngestRateLimit()` function:
+
 1. Checks if the token has an active rate-limit record
 2. If the window has expired (> 1 hour old), resets the counter to 1
 3. If the counter ≥ 100 in the active window, returns HTTP 429 with `Retry-After` seconds

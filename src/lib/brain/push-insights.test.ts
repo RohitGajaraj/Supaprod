@@ -54,7 +54,11 @@ describe("detectGroundShifts", () => {
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe("ground_shift");
     expect(out[0].dedupKey).toBe("ground_shift:d1");
-    expect(out[0].action).toEqual({ label: "Open the decision", kind: "open_decision", targetId: "d1" });
+    expect(out[0].action).toEqual({
+      label: "Open the decision",
+      kind: "open_decision",
+      targetId: "d1",
+    });
     expect(out[0].body).toContain("Newer call");
     expect(out[0].priority).toBe(3);
   });
@@ -94,7 +98,11 @@ describe("detectBetContradictions", () => {
     const out = detectBetContradictions(bestBet, [learning()]);
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe("bet_contradiction");
-    expect(out[0].action).toEqual({ label: "Re-rank the queue", kind: "rerank_bets", targetId: "opp1" });
+    expect(out[0].action).toEqual({
+      label: "Re-rank the queue",
+      kind: "rerank_bets",
+      targetId: "opp1",
+    });
     expect(out[0].dedupKey).toBe("bet_contradiction:opp1:l1");
     expect(out[0].body).toContain("Activation stayed flat");
   });
@@ -112,7 +120,9 @@ describe("detectBetContradictions", () => {
   });
 
   test("a learning on a different opportunity is ignored", () => {
-    expect(detectBetContradictions(bestBet, [learning({ opportunity_id: "opp2" })])).toHaveLength(0);
+    expect(detectBetContradictions(bestBet, [learning({ opportunity_id: "opp2" })])).toHaveLength(
+      0,
+    );
   });
 
   test("the newest contradicting learning carries the single candidate", () => {
@@ -135,7 +145,11 @@ describe("detectCalibrationMisses", () => {
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe("assumption_miss");
     expect(out[0].title).toContain("Churn complaints will double");
-    expect(out[0].action).toEqual({ label: "Review the assumption", kind: "review_assumption", targetId: "i1" });
+    expect(out[0].action).toEqual({
+      label: "Review the assumption",
+      kind: "review_assumption",
+      targetId: "i1",
+    });
     expect(out[0].dedupKey).toBe("assumption_miss:i1");
     expect(out[0].themeId).toBe("t1");
   });

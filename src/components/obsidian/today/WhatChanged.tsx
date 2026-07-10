@@ -85,7 +85,13 @@ export function WhatChanged({ items }: WhatChangedProps) {
                 onClick={it.onOpen}
                 title="Open this learning"
                 className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                style={{ gap: 10, background: "transparent", border: "none", padding: 0, cursor: "pointer" }}
+                style={{
+                  gap: 10,
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
               >
                 {inner}
               </button>

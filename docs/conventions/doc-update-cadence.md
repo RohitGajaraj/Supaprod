@@ -53,6 +53,7 @@ Any "what are we building next?" question is answered by reading one chain, in o
 The milestone gates and execution order are defined in `docs/planning/v10_implementation-plan.md`; the build/structure canon is `docs/strategy/v10-master-blueprint.md` (with `docs/strategy/README.md` as the arbiter of which strategy doc governs what). The feature statuses come from `docs/planning/feature-dashboard.md`. The tracker (the SSOT) is the synthesis layer that joins them.
 
 Rules:
+
 - The tracker and the cursor are Tier 1: update them in the same commit as any change that ships a feature, moves a status, or completes a milestone.
 - The resolution of NEXT is mechanical: the first not-done item in the current (earliest not-done) milestone. No interpretation needed.
 - Every item carries a status: Built, In progress, Next, Blocked, or Later. Nothing is left undescribed.

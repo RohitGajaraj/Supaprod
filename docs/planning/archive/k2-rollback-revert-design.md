@@ -16,21 +16,21 @@ Cadence's Build engine (F-STUDIO) ships real code: a mission stages a multi-file
 
 1. **Revision content is not stored.** `studio_changeset_revisions` holds only `revision_no, commit_sha, commit_url, message, files[{path,op}]` - no file content, no per-revision `base_sha`. The durable record of what a revision actually contained is **the commit object on GitHub**. (This is exactly why I1b deferred "revert-to-revision … needs per-revision content or git ops.")
 2. **All git mutation is the GitHub Git Data API - no local checkout.** Branch `studio/<mission8>-<changeset12>`; commit = blobs → tree → commit → ref; merge = `PUT /pulls/{n}/merge` (squash) after the J2 CI re-read in `src/lib/ai/studio-ci.ts`.
-3. **No feature-flag system exists.** The only runtime kill is FND-0.6 (`kill_switches`, gating *AI calls* at the chokepoint) plus per-agent/tool `enabled` booleans. Nothing toggles a shipped feature inside the user's deployed product.
-4. **Deploy is external** (K1-deploy deferred under the founder honesty ruling). Cadence ships code *to the repo*; the user's own CD redeploys it. K2 therefore operates on **git/PR-level artifacts**, never on a production deploy it does not own.
+3. **No feature-flag system exists.** The only runtime kill is FND-0.6 (`kill_switches`, gating _AI calls_ at the chokepoint) plus per-agent/tool `enabled` booleans. Nothing toggles a shipped feature inside the user's deployed product.
+4. **Deploy is external** (K1-deploy deferred under the founder honesty ruling). Cadence ships code _to the repo_; the user's own CD redeploys it. K2 therefore operates on **git/PR-level artifacts**, never on a production deploy it does not own.
 
 ## 3. Scope
 
 **In scope (the honest trio):**
 
-- **R1 · Roll back a merged release.** One action in `ChangesPanel` turns a merged changeset into a **revert changeset** that restores the touched paths to their pre-merge state, then flows through the *existing* commit → PR → J2-gated merge rails. The operator gets a real revert PR; CI + human review gate the re-merge.
+- **R1 · Roll back a merged release.** One action in `ChangesPanel` turns a merged changeset into a **revert changeset** that restores the touched paths to their pre-merge state, then flows through the _existing_ commit → PR → J2-gated merge rails. The operator gets a real revert PR; CI + human review gate the re-merge.
 - **R2 · Documented rollback record.** A `studio_rollbacks` row links the original changeset → revert changeset/PR + reason + status, plus a humanized rollback note (mirrors K1 `generateReleaseNotes`). This is the "documented rollback per release."
 - **R3 · Kill an in-flight change.** For a not-yet-merged changeset (`staged | committed | pr_open`): close the PR if open, release `builder_file_claims`, set `status='abandoned'`. Cadence fully owns pre-merge state, so this is honest and immediate.
 
 **Explicitly out of scope (documented as deferred in `studio.md`, K1-deploy-style):**
 
 - **Production feature-flag kill.** No flag infra exists and deploy is external; a flag would toggle nothing real in the user's product. Building it would violate the repo's "claim never outruns wiring" rule. **Cut.** (Founder decision, 2026-06-18.)
-- **Per-revision revert on an open branch.** Lower value (the operator can re-stage); K2 reverts at the *release* (merged changeset) granularity.
+- **Per-revision revert on an open branch.** Lower value (the operator can re-stage); K2 reverts at the _release_ (merged changeset) granularity.
 - **Surgical 3-way revert** that reverses only the changeset's hunks when later changesets touched the same paths. Without local git this needs a 3-way merge; deferred. K2 does a **hard restore** of the touched paths to their pre-merge state and surfaces the caveat in the revert PR body (CI + review catch breakage).
 - **Auto-rollback triggers** (e.g. revert automatically when post-merge CI goes red). Speculative; deferred.
 
@@ -42,7 +42,7 @@ Rather than build bespoke git-revert plumbing, K2 **constructs an inverse change
 
 Given a merged changeset `CS` (`status='merged'`, has `pr_number`):
 
-1. **Find the merge commit's parent.** `GET /pulls/{pr_number}` → `merge_commit_sha = M`. `GET /commits/{M}` → `P = parents[0].sha` (the default-branch head *before* CS merged).
+1. **Find the merge commit's parent.** `GET /pulls/{pr_number}` → `merge_commit_sha = M`. `GET /commits/{M}` → `P = parents[0].sha` (the default-branch head _before_ CS merged).
 2. **Reconstruct the inverse content per touched path.** The touched-path set comes from `CS`'s `studio_changes` rows (authoritative path+op list). For each path, read its blob **at `P`** (`GET /contents/{path}?ref=P`). Present at `P`: revert sets that path's content back to the `P` blob (`op=update`/`create`). Absent at `P` (CS created it): `op=delete`.
 3. **Create a revert changeset** `RCS`: `status='staged'`, `title="Revert: <CS.title>"`, on a new branch `studio/revert-<changeset12>-<n>`, hosted by a **new minimal "rollback" mission** that does **not** enter the agent loop (no orchestrator dispatch, no reactor fan-out) - it exists only to host `RCS` and drive the existing session UI/merge tool. Its `studio_changes` rows carry `new_content = P-state` and `base_content = current default-branch state` (for the diff).
 4. **Ship it through the existing rails.** `studio.commit` (blobs→tree→commit→ref) → `studio.pr.open` → **J2 CI gate** → human-gated `studio.pr.merge`. No new git code.
@@ -58,22 +58,22 @@ Given a merged changeset `CS` (`status='merged'`, has `pr_number`):
 
 **New table** `studio_rollbacks` (new timestamped migration `…_k2_rollbacks.sql` under `supabase/migrations/`, RLS workspace-scoped, mirroring `studio_changesets`):
 
-| column | type | notes |
-| --- | --- | --- |
-| `id` | uuid pk | |
-| `user_id` | uuid | RLS owner |
-| `workspace_id` | uuid | RLS scope |
-| `product_id` | uuid null | |
-| `original_changeset_id` | uuid fk studio_changesets | the release being rolled back |
-| `revert_changeset_id` | uuid fk studio_changesets null | the inverse changeset (null until created) |
-| `reason` | text | operator-supplied |
-| `status` | text check(`initiated`\|`reverted`\|`failed`) | `initiated` on revert-changeset creation, `reverted` when the revert PR merges |
-| `note` | text null | humanized rollback note (K1 chokepoint) |
-| `created_at` / `updated_at` | timestamptz | |
+| column                      | type                                          | notes                                                                          |
+| --------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------ |
+| `id`                        | uuid pk                                       |                                                                                |
+| `user_id`                   | uuid                                          | RLS owner                                                                      |
+| `workspace_id`              | uuid                                          | RLS scope                                                                      |
+| `product_id`                | uuid null                                     |                                                                                |
+| `original_changeset_id`     | uuid fk studio_changesets                     | the release being rolled back                                                  |
+| `revert_changeset_id`       | uuid fk studio_changesets null                | the inverse changeset (null until created)                                     |
+| `reason`                    | text                                          | operator-supplied                                                              |
+| `status`                    | text check(`initiated`\|`reverted`\|`failed`) | `initiated` on revert-changeset creation, `reverted` when the revert PR merges |
+| `note`                      | text null                                     | humanized rollback note (K1 chokepoint)                                        |
+| `created_at` / `updated_at` | timestamptz                                   |                                                                                |
 
 No change to existing tables. The revert reuses `studio_changesets` / `studio_changes` as-is.
 
-**Pre-migration tolerance (house pattern).** Reads tolerate the table being absent (panel renders "rollback history · after sync"); the revert *write* is gated on the migration applying. Mirror the F-SHARE / B5 / H2 tolerance pattern.
+**Pre-migration tolerance (house pattern).** Reads tolerate the table being absent (panel renders "rollback history · after sync"); the revert _write_ is gated on the migration applying. Mirror the F-SHARE / B5 / H2 tolerance pattern.
 
 ## 6. Server functions (`src/lib/studio.functions.ts`)
 

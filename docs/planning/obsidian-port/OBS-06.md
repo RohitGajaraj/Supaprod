@@ -5,18 +5,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-06 |
-| Rank | #7 |
-| Tier | 1 |
-| Status | pending |
-| Category | Sense |
-| Depends on | OBS-03 (core primitives) |
-| Blocks | nothing downstream (OBS-10 folds legacy routes into this surface once it exists) |
+| Field         | Value                                                                                                                                                                                                                                                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID            | OBS-06                                                                                                                                                                                                                                                                                                                         |
+| Rank          | #7                                                                                                                                                                                                                                                                                                                             |
+| Tier          | 1                                                                                                                                                                                                                                                                                                                              |
+| Status        | pending                                                                                                                                                                                                                                                                                                                        |
+| Category      | Sense                                                                                                                                                                                                                                                                                                                          |
+| Depends on    | OBS-03 (core primitives)                                                                                                                                                                                                                                                                                                       |
+| Blocks        | nothing downstream (OBS-10 folds legacy routes into this surface once it exists)                                                                                                                                                                                                                                               |
 | One-line what | Discover as the evidence desk: two-column 1160px surface, a signal feed (blossom source pills, verbatim quotes, theme lines) on the left and ICE-ranked opportunity rows (Newsreader score, verdict chip, Challenge action, one pencil on the top bet) on the right, Critic verdict inline, column footers in the house voice. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-06 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-06                                                                                                                                                                                                                                                     |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                         |
 
 ## 2. Why we are doing it
 
@@ -29,6 +29,7 @@ The felt outcome ties straight to the v11 guiding star (the decision-and-outcome
 ## 3. What we are building
 
 **Scope IN**
+
 - A new Discover surface at `/discover`, built to prototype parity at 1440px: the 1160px container, the Newsreader hero, the two-column grid (signal feed + opportunity queue), both column footers.
 - A signal feed (left): live-feed header with a "128 THIS WEEK" glacier count, verbatim signal cards (source pill, timestamp, quote, theme line), the verbatim footer line.
 - An opportunity queue (right): queue header with a "RE-RANKED 2H AGO" note, ICE-ranked rows (Newsreader ICE score, title, sub, verdict chip, Challenge button), exactly ONE pencil annotation on the top bet, the challenge-any-bet footer line.
@@ -36,6 +37,7 @@ The felt outcome ties straight to the v11 guiding star (the decision-and-outcome
 - The no-sources empty state and the loading / error states, all in the house voice.
 
 **Scope OUT (no feature work rides along)**
+
 - No server functions are written or modified. This surface consumes, read-only: `listSignals`, `listThemes`, `listOpportunities`, `listLearnings` (query). The one action it fires is the pre-existing `runCriticReview` (already the engine behind `CriticBadge`); it is wired, not authored.
 - The legacy `/product` route and its `SignalsPanel` / `OpportunitiesPanel` capture form, bulk import, cluster button, promote-to-opportunity, draft-spec, status dropdown, lineage drawer, and delete stay live and byte-untouched. OBS-06 does not delete or move them. Their relocation (so nothing is lost when `/product` folds) is an OBS-10 decision, flagged in §13.
 - No route redirect, no nav-model edit, no `routeTree.gen.ts` change beyond the generator adding the new route file. Folding `/product` · `/discovery` · `/opportunities` into `/discover` is OBS-10.
@@ -94,6 +96,7 @@ Tokens quoted from hub §5. Port as `[data-obsidian]`-scoped custom properties (
 **Column grid.** `display: grid; grid-template-columns: 1fr 1.15fr; gap: 20px; align-items: start`.
 
 ### Left column · signal feed
+
 - **Panel:** `background: #111113; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 18px 20px`.
 - **Header row:** `display: flex; align-items: baseline; margin-bottom: 14px`. Left label mono `font-size: 9px; letter-spacing: 0.12em; color: #7D786F; text-transform: uppercase; flex: 1` = `Live signal feed`. Right count mono `font-size: 9px; letter-spacing: 0.08em; color: #7FD1DC` = `128 THIS WEEK` (glacier; derive the number from real signals this week).
 - **Body:** `display: grid; gap: 14px`.
@@ -104,6 +107,7 @@ Tokens quoted from hub §5. Port as `[data-obsidian]`-scoped custom properties (
 - **Column footer:** `font-size: 11.5px; color: #55524C; margin-top: 12px` = `Every quote is verbatim and keeps its source. Nothing here is a summary.`
 
 ### Right column · opportunity queue
+
 - **Wrapper:** `display: grid; gap: 12px`.
 - **Header row:** `display: flex; align-items: baseline; padding: 0 4px`. Left mono `9px / 0.12em / #7D786F / uppercase / flex: 1` = `The opportunity queue · ranked by ICE`. Right mono `9px / 0.08em / #55524C` = `RE-RANKED 2H AGO`.
 - **Opportunity row (`OpportunityRow`):** `position: relative; background: #111113; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px 18px; display: flex; gap: 16px; align-items: center; transition: background 140ms`. Hover: `background: #141416` (tonal one-step lift, nothing translates).
@@ -120,9 +124,11 @@ Tokens quoted from hub §5. Port as `[data-obsidian]`-scoped custom properties (
 - **Column footer:** `font-size: 11.5px; color: #55524C; padding: 0 4px` = `Challenge any bet, even your own. The Critic answers with evidence, never with vibes.`
 
 ### Toast (Challenge)
+
 Fixed bottom-center, `background: #17171A`, `border: 1px solid rgba(127,191,142,0.4)` + moss glow, `font-size: 13px; color: #F2F0ED`, `cadRise` 200ms in, auto-dismiss 3.6s, singleton (a new Challenge replaces the current toast, resetting the 3.6s timer). Text in §9.
 
 ### Interaction states
+
 - **Hover:** opportunity rows lift to `#141416`; Challenge button to `#242429`. Tonal only · nothing moves.
 - **Focus:** every actionable element (Challenge button, and any row that becomes actionable later) shows `:focus-visible` `outline: 2px solid #7FD1DC; outline-offset: 2px` (glacier focus ring). Signal cards are non-interactive and take no focus.
 - **Active / pressed:** Challenge is a secondary button, so no ember-deep press; keep the `#242429` hover fill, no scale transform (scale(0.985) is reserved for the ember primary, which this surface does not render).
@@ -173,6 +179,7 @@ All strings below are final. No em or en dashes, no exclamation marks, no emoji;
 ## 11. Prototype-parity checklist (the last gate, tailored)
 
 Open `design-reference/obsidian-v3/design-reference/cadence-app.html` (Discover) and `/discover` side by side at 1440px:
+
 1. **Rail:** 236px, mono index 01-05, Discover = index `02` active (bg `#1A1A1E`, ember index); the one Today badge unchanged; user chip present.
 2. **Surface chrome:** 52px top bar; container max-width 1160px; padding 36/32/64; `cadRise` 260ms entrance.
 3. **Type:** hero Newsreader 28px/430 with the single glacier italic `Signal`; ICE score Newsreader 23px/460; titles 13.5px/600; quotes 13px/1.6; mono labels 8.5-9px caps with middots.

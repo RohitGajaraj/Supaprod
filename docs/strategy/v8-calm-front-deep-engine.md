@@ -43,17 +43,17 @@
 
 ## 2. The calm front (the only top-level surfaces)
 
-| Surface | What it is to the user | Loop role |
-| --- | --- | --- |
-| **Today** (hero: decide) | The calls that need your judgment this morning, and what changed while you were away | decide |
-| **Build** (hero: ship) | What is shipping right now: live builds, diffs, ship. Feels like Cursor | build / ship |
-| **Ask** | Ask anything; web-grounded research + workspace answers | sense / cross-cut |
-| **Product** | The work: signals -> opportunities -> specs -> releases | sense / decide / define / launch |
-| **Memory** | What we have learned and what we remember (outcome-named; no "lineage" jargon on the label) | learn |
+| Surface                  | What it is to the user                                                                      | Loop role                        |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------------------------------- |
+| **Today** (hero: decide) | The calls that need your judgment this morning, and what changed while you were away        | decide                           |
+| **Build** (hero: ship)   | What is shipping right now: live builds, diffs, ship. Feels like Cursor                     | build / ship                     |
+| **Ask**                  | Ask anything; web-grounded research + workspace answers                                     | sense / cross-cut                |
+| **Product**              | The work: signals -> opportunities -> specs -> releases                                     | sense / decide / define / launch |
+| **Memory**               | What we have learned and what we remember (outcome-named; no "lineage" jargon on the label) | learn                            |
 
 Approvals are surfaced as "your calls" on Today plus a badge, not a separate technical surface. Connectors are one **Connect** button (OAuth, no key paste).
 
-> **Forward bets (2026-06-20, [`horizon-bets.md`](./horizon-bets.md)).** Two structure-relevant bets sit on top of this map. **H1 the Decision Brain** (topmost priority) reshapes the **Memory/Brain** surface from a status view into an auto-built, Obsidian-style visual decision graph (the engine under the moat); spec [`../features/decision-brain.md`](../features/decision-brain.md). **H2 the Command Canvas** adds a natural-language command bar plus live-preview interaction *altitude* over the calm GUI (an accelerator, never a primary-only path, so it stays inside Law #1); spec [`../features/command-canvas.md`](../features/command-canvas.md).
+> **Forward bets (2026-06-20, [`horizon-bets.md`](./horizon-bets.md)).** Two structure-relevant bets sit on top of this map. **H1 the Decision Brain** (topmost priority) reshapes the **Memory/Brain** surface from a status view into an auto-built, Obsidian-style visual decision graph (the engine under the moat); spec [`../features/decision-brain.md`](../features/decision-brain.md). **H2 the Command Canvas** adds a natural-language command bar plus live-preview interaction _altitude_ over the calm GUI (an accelerator, never a primary-only path, so it stays inside Law #1); spec [`../features/command-canvas.md`](../features/command-canvas.md).
 
 ---
 
@@ -63,18 +63,18 @@ Everything technical collapses behind a single Engine Room door, renamed to outc
 
 **Engine Room tab labels: before to after (applied 2026-06-16). The `?tab=<id>` ids are the routing contract and never change; only the display label changes.**
 
-| Before (mechanism) | After (outcome) | id (unchanged) |
-| --- | --- | --- |
-| Guardrails | **Safety** | `guardrails` |
-| Budgets | **Spend** | `budgets` |
-| Evals | **Quality checks** | `evals` |
-| Gauntlet | **Loop health** | `gauntlet` |
-| Traces | **Activity** | `traces` |
-| Drift | **Trends** | `drift` |
-| Controls | Controls (kept, already clear) | `controls` |
-| Approvals | Approvals (kept, user-facing action) | `approvals` |
-| Prompts | Prompts (kept, operator-deep tool) | `prompts` |
-| Analytics | Analytics (kept) | `analytics` |
+| Before (mechanism) | After (outcome)                      | id (unchanged) |
+| ------------------ | ------------------------------------ | -------------- |
+| Guardrails         | **Safety**                           | `guardrails`   |
+| Budgets            | **Spend**                            | `budgets`      |
+| Evals              | **Quality checks**                   | `evals`        |
+| Gauntlet           | **Loop health**                      | `gauntlet`     |
+| Traces             | **Activity**                         | `traces`       |
+| Drift              | **Trends**                           | `drift`        |
+| Controls           | Controls (kept, already clear)       | `controls`     |
+| Approvals          | Approvals (kept, user-facing action) | `approvals`    |
+| Prompts            | Prompts (kept, operator-deep tool)   | `prompts`      |
+| Analytics          | Analytics (kept)                     | `analytics`    |
 
 Also applied in the same pass: the surface header **Govern -> Engine Room** (matching the Trust-row door); the sidebar spend bar + Trust-row label **Budgets -> Spend** (and the lingering "open budgets" hover fixed, plus its banned em dash); the Build surface **CI -> Checks** (stage chip + status + toast); the command palette and runtime cap messages updated to the new labels. Drill-in is unchanged: each tab still opens its full surface (the complete audit trail under Activity, full diffs under Changes, full token/cost under Spend, etc.) — recessed, not removed.
 
@@ -82,9 +82,9 @@ Also applied in the same pass: the surface header **Govern -> Engine Room** (mat
 
 The two-state rule for every machine surface:
 
-| State | Where | What the user sees |
-| --- | --- | --- |
-| Default (calm) | On the front | A one-line outcome, or nothing |
+| State            | Where                          | What the user sees                                      |
+| ---------------- | ------------------------------ | ------------------------------------------------------- |
+| Default (calm)   | On the front                   | A one-line outcome, or nothing                          |
 | On demand (deep) | One click into the Engine Room | The full thing, fully interactive, complete audit trail |
 
 ---

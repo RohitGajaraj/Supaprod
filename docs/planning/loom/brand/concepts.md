@@ -9,6 +9,7 @@ A shared note on color: in the product palette, any of these can carry the glaci
 ---
 
 ## 1. The Loom Knot
+
 **File:** `1-loom-knot.svg`
 
 **Idea.** One continuous thread tied into a woven trefoil: three lobes, three crossings, and the strand visibly passes over and under itself, so the mark is simultaneously a knot, a loop with no end, and a weave. It is the product thesis drawn literally: every decision is a strand that loops back through memory and binds the next one.
@@ -22,6 +23,7 @@ A shared note on color: in the product palette, any of these can carry the glaci
 ---
 
 ## 2. The Facet Butterfly
+
 **File:** `2-facet-butterfly.svg`
 
 **Idea.** The existing butterfly equity, rebuilt from four flat cut planes: two large upper wings and two smaller lower wings, each a single sharp quadrilateral, with the unfilled vertical channel between the halves doing the work of the body. No outline, no curves, no gradient; the creature emerges from negative space, the way the product's judgment emerges from structured facts.
@@ -35,6 +37,7 @@ A shared note on color: in the product palette, any of these can carry the glaci
 ---
 
 ## 3. The Decision Path
+
 **File:** `3-decision-path.svg`
 
 **Idea.** The constellation reduced to its irreducible sentence: an open ring (the signal arrives, still a question), a thread down to a large solid node (the call gets made, and it has weight), and a longer thread rising to a second ring (the outcome comes back and is checked). The three nodes trace a shallow dip-then-rise, so the whole mark quietly draws the shape of a checkmark without ever being one.
@@ -48,6 +51,7 @@ A shared note on color: in the product palette, any of these can carry the glaci
 ---
 
 ## 4. The Throughline (wildcard)
+
 **File:** `4-throughline.svg`
 
 **Idea.** Three thin strands converge on a small solid point and deliberately stop short of it; from that point, one bold line launches up and to the right, unbroken. Many options arrive, one call leaves: it is "the call" drawn as physics (convergence, commitment, trajectory) with no gavel, no checkmark, no lightning bolt.

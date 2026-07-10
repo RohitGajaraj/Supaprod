@@ -65,10 +65,7 @@ export function ThemeRow({
       aria-label={`Open theme: ${title}`}
       onClick={() => onOpenDetail(themeId)}
       onKeyDown={(event) => {
-        if (
-          (event.key === "Enter" || event.key === " ") &&
-          event.target === event.currentTarget
-        ) {
+        if ((event.key === "Enter" || event.key === " ") && event.target === event.currentTarget) {
           event.preventDefault();
           onOpenDetail(themeId);
         }

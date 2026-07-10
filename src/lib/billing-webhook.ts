@@ -192,13 +192,9 @@ export function buildSubscriptionUpdate(
 /** PURE. The subscription period window as ISO, preferring the line-item period over the sub-level one. */
 export function resolvePeriod(
   item:
-    | { current_period_start?: number | null; current_period_end?: number | null }
-    | null
-    | undefined,
+    { current_period_start?: number | null; current_period_end?: number | null } | null | undefined,
   sub:
-    | { current_period_start?: number | null; current_period_end?: number | null }
-    | null
-    | undefined,
+    { current_period_start?: number | null; current_period_end?: number | null } | null | undefined,
 ): { start: string | null; end: string | null } {
   return {
     start: unixSecondsToIso(item?.current_period_start ?? sub?.current_period_start),

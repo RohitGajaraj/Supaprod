@@ -33,11 +33,11 @@ PRD (approved)
 
 ## Files
 
-| File | Role |
-|------|------|
-| `src/lib/orchestrator.ts` | Pure logic: validate, dangling-dep detection, topo-sort, priority map |
-| `src/lib/orchestrator.functions.ts` | Server functions: added `dispatchPRDToLinear` + `linearGql` helper |
-| `src/lib/orchestrator.test.ts` | 23 tests covering all pure logic |
+| File                                | Role                                                                  |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `src/lib/orchestrator.ts`           | Pure logic: validate, dangling-dep detection, topo-sort, priority map |
+| `src/lib/orchestrator.functions.ts` | Server functions: added `dispatchPRDToLinear` + `linearGql` helper    |
+| `src/lib/orchestrator.test.ts`      | 23 tests covering all pure logic                                      |
 
 ## What's NOT built (gated)
 

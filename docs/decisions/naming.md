@@ -8,7 +8,7 @@
 
 ## Why rename (unchanged)
 
-Both names floated so far are contested. **"Cadence"** carries trademark risk: Cadence Design Systems ($80B EDA) now brands aggressively in *agentic AI* (announced a "fully autonomous virtual AI design engineer," Computex 2026). The 2026-06-10 replacement also had real collisions (a 10M-user route-planning app and others on the same word, plus weak SEO ownability), which is why it was reverted on 2026-06-16. Net: Cadence is the **accepted interim working name** despite the trademark note; the real brand is a deliberate pre-launch call. Target quality bar: Perplexity / Comet / Claude / Lovable — short, evocative, a story to hang a tagline on.
+Both names floated so far are contested. **"Cadence"** carries trademark risk: Cadence Design Systems ($80B EDA) now brands aggressively in _agentic AI_ (announced a "fully autonomous virtual AI design engineer," Computex 2026). The 2026-06-10 replacement also had real collisions (a 10M-user route-planning app and others on the same word, plus weak SEO ownability), which is why it was reverted on 2026-06-16. Net: Cadence is the **accepted interim working name** despite the trademark note; the real brand is a deliberate pre-launch call. Target quality bar: Perplexity / Comet / Claude / Lovable — short, evocative, a story to hang a tagline on.
 
 ## Founder-rejected candidates (do not re-propose)
 
@@ -18,12 +18,12 @@ Both names floated so far are contested. **"Cadence"** carries trademark risk: C
 
 ## Fresh directions for the final round (logged 2026-06-11, NOT yet researched for clearance — verify before picking)
 
-The strongest unexplored lane: names whose *story is the product mechanic itself* — coordination without doing the rowing.
+The strongest unexplored lane: names whose _story is the product mechanic itself_ — coordination without doing the rowing.
 
-1. **Murmuration** — thousands of starlings moving as one coordinated swarm, no central controller, instant signal propagation. The single most accurate metaphor for the agent mesh that exists in nature. Long (4 syllables) but unforgettable; "Murmur" as the casual short form. Tagline: *"A thousand agents. One motion."*
+1. **Murmuration** — thousands of starlings moving as one coordinated swarm, no central controller, instant signal propagation. The single most accurate metaphor for the agent mesh that exists in nature. Long (4 syllables) but unforgettable; "Murmur" as the casual short form. Tagline: _"A thousand agents. One motion."_
 2. **Auriga** — the Charioteer constellation; the one who holds the reins of many horses but doesn't pull the chariot. Exactly "agents execute, humans govern." 3 syllables, clean sound. Known minor collision: Auriga (IT services firm) — verify weight.
 3. **Coxswain** — steers the boat and sets the rhythm; the only crew member who doesn't row. The literal product thesis. Risk: spelling/pronunciation ("COX-n"). Could brand as **Coxn**.
-4. **Godwit** — the bar-tailed godwit flies ~13,000 km nonstop, the longest uninterrupted flight of any animal: pure autonomous endurance, no pit stops. Short, quirky-memorable in the Lovable register. Tagline: *"Nonstop from signal to ship."*
+4. **Godwit** — the bar-tailed godwit flies ~13,000 km nonstop, the longest uninterrupted flight of any animal: pure autonomous endurance, no pit stops. Short, quirky-memorable in the Lovable register. Tagline: _"Nonstop from signal to ship."_
 5. **Orrery** — the clockwork model of the whole solar system on one desk; the cockpit metaphor as an object. Beautiful story, risky spelling ("OR-er-ee").
 
 ## Decision criteria (apply at final round)
@@ -36,6 +36,6 @@ At the end of the pre-launch sequence: founder reviews the fresh directions (plu
 
 ## Product-level taglines (name-independent, keep)
 
-- *"A product org that runs itself — under your command."*
-- *"You set the intent. Agents do the rest."*
-- *"From signal to ship, run by agents."*
+- _"A product org that runs itself — under your command."_
+- _"You set the intent. Agents do the rest."_
+- _"From signal to ship, run by agents."_

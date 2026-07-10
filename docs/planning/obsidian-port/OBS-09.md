@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field | Value |
-| --- | --- |
-| ID | OBS-09 |
-| Rank | #10 |
-| Tier | 1 |
-| Status | pending |
-| Category | Governance |
-| Depends on | OBS-03 (primitives), transitively OBS-01 (tokens/fonts) + OBS-02 (shell) |
-| Blocks | nothing downstream (OBS-10 folds the legacy governance routes into this surface; OBS-13 reuses the room pattern; OBS-15 draws the score-room charts) |
+| Field         | Value                                                                                                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID            | OBS-09                                                                                                                                                                                                                                                                                                        |
+| Rank          | #10                                                                                                                                                                                                                                                                                                           |
+| Tier          | 1                                                                                                                                                                                                                                                                                                             |
+| Status        | pending                                                                                                                                                                                                                                                                                                       |
+| Category      | Governance                                                                                                                                                                                                                                                                                                    |
+| Depends on    | OBS-03 (primitives), transitively OBS-01 (tokens/fonts) + OBS-02 (shell)                                                                                                                                                                                                                                      |
+| Blocks        | nothing downstream (OBS-10 folds the legacy governance routes into this surface; OBS-13 reuses the room pattern; OBS-15 draws the score-room charts)                                                                                                                                                          |
 | One-line what | The Engine Room: one door opens on a health glance (2x2 room cards, each with name · state chip · question · verdict line), plus the room-detail pattern (question header, verdict-first body, mono sub-tabs, four depth levels max) and the connection strip with a live pulse. Approvals NEVER render here. |
-| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-09 |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Dashboard row | [`../feature-dashboard.md`](../feature-dashboard.md) group G14, row OBS-09                                                                                                                                                                                                                                    |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                        |
 
 ## 2. Why we are doing it
 
@@ -32,6 +32,7 @@ The felt outcome: a recessed door in the rail that, when opened, answers four ho
 ## 3. What we are building
 
 **Scope IN**
+
 - The **glance**: the serif hero, the 2x2 room-card grid, and the GitHub connection strip with a live moss pulse, indistinguishable from the prototype at 1440px.
 - The four **RoomCard**s (Spend · Quality · Safety · Record): name + state chip (HEALTHY moss / WATCH marigold) + question + mono verdict line, each a real `<button>` that opens the room.
 - The **room-detail pattern** (from extensions §5): a room header (question in Newsreader 20px, verdict line in mono under it, state chip right), a verdict-first body (one aurora score card ONLY on a score-moment room, otherwise a plain-words verdict sentence), mono-caps sub-tabs with an underline active signal, and rows that drill into a sub-tab detail (table or trace).
@@ -40,6 +41,7 @@ The felt outcome: a recessed door in the rail that, when opened, answers four ho
 - A pure, unit-tested glance view-model helper that derives each room's state chip + verdict line from existing read queries.
 
 **Scope OUT**
+
 - **No approvals surface, ever.** The current `ApprovalsPanel`, `NotificationsPanel` (attention), and `ControlsPanel` (kill switch / caps) are NOT ported here; approvals are Calls on Today (OBS-04). If any actionable item surfaces in a room, it raises a Call, it is not actioned in place.
 - No new server functions, no schema changes, no data-flow changes. Every number is read-only from an existing query.
 - No route consolidation or redirect of the legacy `/govern` (that is OBS-10). OBS-09 adds a new Obsidian surface at `/engine-room` alongside the untouched parchment `/govern`.
@@ -103,6 +105,7 @@ src/lib/
 ```
 
 **Component tree (glance)**
+
 ```
 EngineRoomSurface
 ├─ h1  "The engine, at a glance."          (glance italic glacier)
@@ -114,7 +117,9 @@ EngineRoomSurface
 │  └─ RoomCard(record)  → VerdictChip(HEALTHY/moss)
 └─ ConnectionStrip (GitHub · live moss pulse · helper)
 ```
+
 **Component tree (room-detail)**
+
 ```
 RoomDetail
 ├─ quiet Button "← ALL ROOMS"
@@ -138,6 +143,7 @@ All values resolved from hub §5 / the prototype. Port as `[data-obsidian]`-scop
 **Room grid.** `display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px;`.
 
 **RoomCard (anatomy, top to bottom).** Container `<button>`: `display:grid; gap:7px; text-align:left; background:#111113; border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:18px 20px; cursor:pointer; transition:background 140ms;`.
+
 - Title row: `display:flex; align-items:center; gap:10px;` → name `font-size:14px; font-weight:700; color:#F2F0ED; flex:1;` · state chip (`VerdictChip`) mono `font-size:8px; letter-spacing:0.1em; font-weight:600;` tinted pill `radius:99px; padding:1px 8px;` HEALTHY text `#8FD9A0` / border `rgba(127,191,142,0.45)` / bg `rgba(127,191,142,0.12)`; WATCH text `#E8B44C` / border `rgba(232,180,76,0.45)` / bg `rgba(232,180,76,0.12)`.
 - Question: `font-size:12px; color:#55524C;`.
 - Verdict line: `font-family:'JetBrains Mono'; font-size:10px; letter-spacing:0.04em; color:#9C978F;`.
@@ -155,6 +161,7 @@ All values resolved from hub §5 / the prototype. Port as `[data-obsidian]`-scop
 **Motion.** Screen entry `cadRise 260ms`. Card + row hover: tonal one-step lift only (`#111113 → #141416`), `140ms`, nothing translates. Live moss pulse on the connection dot only. Aurora drift only inside a score card. All gated by `prefers-reduced-motion` (zeroed) and the in-product motion toggle.
 
 **Interaction states**
+
 - **Hover** (card, row, sub-tab, door): background lifts one surface step; hairline brightens; no translate.
 - **Focus** (`:focus-visible`): `2px` glacier `#7FD1DC` outline, offset `2`. All cards, rows, sub-tabs, and the back button are real `<button>`s.
 - **Active** (sub-tab): `#F2F0ED` text + the `2px` glacier underline.
@@ -177,6 +184,7 @@ All values resolved from hub §5 / the prototype. Port as `[data-obsidian]`-scop
 (The prototype renders this with an em dash before "they"; the humanized-output law forbids em dashes, so the shipped string uses the middot `·`. Note the delta in the ship report; it is a sanctioned correction, not a divergence.)
 
 **Room names + questions + verdict shapes (from the prototype):**
+
 - `Spend` · `What is this costing me?` · `$482 of $600 · trending +12%` · state `WATCH`
 - `Quality` · `Is the machine still good?` · `Evals 94 / 88 / 91 · no drift` · state `HEALTHY`
 - `Safety` · `What is it allowed to do?` · `3 guardrails on · 0 incidents` · state `HEALTHY`
@@ -189,6 +197,7 @@ All values resolved from hub §5 / the prototype. Port as `[data-obsidian]`-scop
 **Back affordance.** `← ALL ROOMS` (mono caps, quiet).
 
 **Verdict-first sentences (non-score rooms, plain words, lead the body):**
+
 - Safety/RULES: `Three guardrails are on. Nothing has tripped them this week.`
 - Safety/INCIDENTS: `Zero incidents. The last block was a redaction, not a breach.`
 - Record/TRACES: `Every run is on the record. Open any one to replay it step by step.`
@@ -196,6 +205,7 @@ All values resolved from hub §5 / the prototype. Port as `[data-obsidian]`-scop
 
 **Empty state (all clear, extensions §9).** `Four rooms, nothing burning. Come back when a chip turns marigold.`
 **Per-room empty rows (instruction + time estimate):**
+
 - Spend, no runs: `No spend yet. The first mission draws this line in about a minute.`
 - Quality, no evals: `No eval yet. Point a suite at a prompt and the score lands in about five minutes.`
 - Safety, no rules: `No guardrails yet. Turn one on in Settings and it applies to every AI call.`

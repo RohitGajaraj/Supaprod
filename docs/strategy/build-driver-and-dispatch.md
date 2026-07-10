@@ -62,7 +62,7 @@ The capability ceiling this hits in practice: on a cheap model (free Gemini Flas
 export type DelegateProviderId = "openhands" | "devin" | "claude-code" | "swe-agent";
 export interface DelegateProvider {
   readonly id: DelegateProviderId;
-  readonly available: boolean;          // wired AND permitted (flag + credentials)
+  readonly available: boolean; // wired AND permitted (flag + credentials)
   submit(req: DelegateRequest): Promise<DelegateVerdict>;
 }
 ```
@@ -78,30 +78,30 @@ But it abstracts only external delegation, submit plus a later poll (`src/lib/de
 ```ts
 // src/lib/build/driver.ts  (proposed; the umbrella over src/lib/delegate/*)
 export type BuildDriverId =
-  | "native"        // the home-grown Gemini loop, wrapped as an adapter
-  | "claude-sdk"    // Claude Agent SDK, owned premium default
-  | "openhands"     // MIT, self-host, white-label / enterprise path
-  | "devin"         // BYO, demand-gated
-  | "codex"         // BYO, demand-gated
-  | "cursor";       // BYO, demand-gated
+  | "native" // the home-grown Gemini loop, wrapped as an adapter
+  | "claude-sdk" // Claude Agent SDK, owned premium default
+  | "openhands" // MIT, self-host, white-label / enterprise path
+  | "devin" // BYO, demand-gated
+  | "codex" // BYO, demand-gated
+  | "cursor"; // BYO, demand-gated
 
 export interface BuildSpec {
-  goal: string;                       // what to build
-  acceptanceCriteria: string[];       // the test bar
-  decisionRef: string | null;         // the decision that mandated it (lineage)
-  designPointers?: string[];          // design-system + convention references
-  targetFiles?: string[];             // the blast radius the agent should touch
-  guardrails: string[];               // policy the engine must honor
-  repo: { url: string; baseBranch: string };  // via RepoProvider
+  goal: string; // what to build
+  acceptanceCriteria: string[]; // the test bar
+  decisionRef: string | null; // the decision that mandated it (lineage)
+  designPointers?: string[]; // design-system + convention references
+  targetFiles?: string[]; // the blast radius the agent should touch
+  guardrails: string[]; // policy the engine must honor
+  repo: { url: string; baseBranch: string }; // via RepoProvider
   budget: { maxIterations: number; maxSpendUsd: number };
   evidenceIds: { kind: string; id: string }[]; // the rows that justify the work
 }
 
 export interface BuildDriver {
   readonly id: BuildDriverId;
-  readonly available: boolean;                         // wired AND permitted
-  dispatch(spec: BuildSpec): Promise<BuildSession>;    // hand off the task
-  poll(session: BuildSession): Promise<BuildStatus>;   // progress + live trace
+  readonly available: boolean; // wired AND permitted
+  dispatch(spec: BuildSpec): Promise<BuildSession>; // hand off the task
+  poll(session: BuildSession): Promise<BuildStatus>; // progress + live trace
   result(session: BuildSession): Promise<BuildResult>; // PR/diff + tests + confidence
   cancel(session: BuildSession): Promise<void>;
 }
@@ -122,6 +122,7 @@ Cadence is the conductor. `RepoProvider` is "where the code lives." `BuildDriver
 **Back (engine to Cadence): a `BuildResult`,** a PR or diff, a session trace, test results, and a confidence/risk signal.
 
 **The two control points we never cede:**
+
 1. **The spec on the way out:** what, with what context, under what guardrails, what budget.
 2. **The merge gate on the way in:** our own evals, guardrails, security review, lineage, and the trust-arc / HITL decision before anything merges.
 
@@ -150,19 +151,19 @@ All facts below were web-verified against primary sources during the design sess
 
 ### 8.1 The engine landscape
 
-| Engine | Type | Headless dispatch | Self-host / white-label | Role for Cadence |
-|---|---|---|---|---|
-| **Native (Cadence loop)** | Owned agent | Yes | Yes (ours) | Cheap default floor for small, safe changes |
-| **Claude Agent SDK** | Headless SDK | Yes, natively (`query()`) | Yes; "{YourName} Powered by Claude" allowed, not "Claude Code" | **Owned premium default (the brain we brand)** |
-| **OpenHands** (ex-OpenDevin) | OSS autonomous agent | Yes (CLI, Python SDK, Cloud REST v1, GitHub resolver) | **Yes, MIT core** (enterprise/ folder is PolyForm trial) | **White-label / self-host / enterprise path (already stubbed)** |
-| **Devin** (Cognition) | Closed cloud agent | Yes (REST `api.devin.ai/v3`) | No self-host, no white-label, no BYO LLM | Visible "Send to Devin" BYO relay |
-| **OpenAI Codex** (2025 agentic) | Closed agent + OSS CLI | Partial (local CLI yes; cloud sandbox only via `@Codex` on GitHub) | CLI is Apache 2.0; cloud no | BYO relay or embed the CLI with user keys |
-| **GitHub Copilot coding agent** | Closed agent | Partial, fatal flaw: no server-to-server tokens (must proxy each user's OAuth) | No; GitHub-locked, GitHub-branded | "Relay to GitHub" only |
-| **Google Jules** | Closed async agent | Partial (alpha API, GitHub-only) | No | Named relay only; immature, security caveat |
-| **Cursor** (Anysphere) | IDE + Cloud Agents | Yes (Cloud Agents REST API v1 beta + CLI `-p --force`) | No white-label, no reseller (explicit) | BYO relay only; never the hidden backend |
-| **Windsurf** (Codeium) | IDE | Retired; became Devin Desktop (2026-06-02) | n/a | Do not target; rebranded into a competitor |
-| **Factory.ai** ("Droids") | Agent platform | Partial (`droid exec` CLI headless; no hosted API) | On-prem at Enterprise; no white-label | Demand-gated BYO via CLI |
-| **OSS / CLI** (Aider, SWE-agent, Cline, Goose) | OSS agents | Yes (CLI / SDK) | Yes (Apache/MIT) | Optional self-host adapters; Aider and SWE-agent the cleanest |
+| Engine                                         | Type                   | Headless dispatch                                                              | Self-host / white-label                                        | Role for Cadence                                                |
+| ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| **Native (Cadence loop)**                      | Owned agent            | Yes                                                                            | Yes (ours)                                                     | Cheap default floor for small, safe changes                     |
+| **Claude Agent SDK**                           | Headless SDK           | Yes, natively (`query()`)                                                      | Yes; "{YourName} Powered by Claude" allowed, not "Claude Code" | **Owned premium default (the brain we brand)**                  |
+| **OpenHands** (ex-OpenDevin)                   | OSS autonomous agent   | Yes (CLI, Python SDK, Cloud REST v1, GitHub resolver)                          | **Yes, MIT core** (enterprise/ folder is PolyForm trial)       | **White-label / self-host / enterprise path (already stubbed)** |
+| **Devin** (Cognition)                          | Closed cloud agent     | Yes (REST `api.devin.ai/v3`)                                                   | No self-host, no white-label, no BYO LLM                       | Visible "Send to Devin" BYO relay                               |
+| **OpenAI Codex** (2025 agentic)                | Closed agent + OSS CLI | Partial (local CLI yes; cloud sandbox only via `@Codex` on GitHub)             | CLI is Apache 2.0; cloud no                                    | BYO relay or embed the CLI with user keys                       |
+| **GitHub Copilot coding agent**                | Closed agent           | Partial, fatal flaw: no server-to-server tokens (must proxy each user's OAuth) | No; GitHub-locked, GitHub-branded                              | "Relay to GitHub" only                                          |
+| **Google Jules**                               | Closed async agent     | Partial (alpha API, GitHub-only)                                               | No                                                             | Named relay only; immature, security caveat                     |
+| **Cursor** (Anysphere)                         | IDE + Cloud Agents     | Yes (Cloud Agents REST API v1 beta + CLI `-p --force`)                         | No white-label, no reseller (explicit)                         | BYO relay only; never the hidden backend                        |
+| **Windsurf** (Codeium)                         | IDE                    | Retired; became Devin Desktop (2026-06-02)                                     | n/a                                                            | Do not target; rebranded into a competitor                      |
+| **Factory.ai** ("Droids")                      | Agent platform         | Partial (`droid exec` CLI headless; no hosted API)                             | On-prem at Enterprise; no white-label                          | Demand-gated BYO via CLI                                        |
+| **OSS / CLI** (Aider, SWE-agent, Cline, Goose) | OSS agents             | Yes (CLI / SDK)                                                                | Yes (Apache/MIT)                                               | Optional self-host adapters; Aider and SWE-agent the cleanest   |
 
 Notable shifts the research caught, which overturned older assumptions: **Cursor now has headless dispatch** (Cloud Agents API + CLI), so it is no longer "human-in-editor only," but it remains non-white-labelable. **Windsurf no longer exists** as an independent product (Cognition retired the brand into Devin Desktop on 2026-06-02, after the 2025 saga: OpenAI's ~$3B deal collapsed 2025-07-11, Google paid ~$2.4B to hire its CEO and license the tech, and Cognition acquired the rest on 2025-07-14). **Continue.dev was acquired by Cursor and frozen.** **gpt-engineer was archived (2026-04-22); it is Lovable's own lineage (Anton Osika).**
 
@@ -176,7 +177,7 @@ Code generation is the single most expensive call in the product. The "10x to 10
 
 - **Tokens:** a normal chat turn is roughly 1 to 2k tokens; an agentic coding task averages 1 to 3.5M tokens including retries (arXiv 2604.22750), roughly 100x to 1000x. Runs on the same task differ by up to 30x in tokens.
 - **Dollars:** a normal turn is ~$0.003 to $0.02; a raw autonomous run is ~$0.10 to $0.70 in token cost (for example an Opus task modeled at ~$0.68), and $2 to $23 at product pricing (Devin ACU). So ~10x at the low end to 100x to 300x once you hit premium models or productized per-task pricing.
-- **Reference points:** Devin's ACU (~15 min of work, ~$2.25/ACU at the Devin 2.0 reference, ~$9/hr); Claude Code's official "~$13 per developer per active day"; Cursor's usage pools billed at API rates with no markup.
+- **Reference points:** Devin's ACU (~15 min of work, ~~$2.25/ACU at the Devin 2.0 reference, ~$9/hr); Claude Code's official "~~$13 per developer per active day"; Cursor's usage pools billed at API rates with no markup.
 - **Safe framing for any pricing copy:** "~10x to 100x in dollars, ~100x to 1000x in tokens."
 
 ---

@@ -212,17 +212,15 @@ async function mutateCancelFlag(
 export const cancelMySubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { environment: StripeEnv }) => data)
-  .handler(
-    ({ data, context }): Promise<MutateResult> =>
-      mutateCancelFlag(context as never, data.environment, true),
+  .handler(({ data, context }): Promise<MutateResult> =>
+    mutateCancelFlag(context as never, data.environment, true),
   );
 
 export const resumeMySubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { environment: StripeEnv }) => data)
-  .handler(
-    ({ data, context }): Promise<MutateResult> =>
-      mutateCancelFlag(context as never, data.environment, false),
+  .handler(({ data, context }): Promise<MutateResult> =>
+    mutateCancelFlag(context as never, data.environment, false),
   );
 
 // ---------------------------------------------------------------------------

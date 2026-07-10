@@ -26,10 +26,10 @@ These are the only routes that take a request from outside the authenticated app
 
 - **Method:** `POST` (plus `OPTIONS` for CORS preflight).
 - **Purpose:** conversational answers grounded in workspace RAG, optional multi-query web research, agent-loop dispatch, and mission creation. Runs through `callModelStream` with `surface='chat'`.
-- **Auth:** `Authorization: Bearer <supabase-jwt>`. The handler builds a per-request Supabase client that acts *as the user*, so RLS applies to everything it reads. No header, no token, or a non-`Bearer` scheme returns `401`.
+- **Auth:** `Authorization: Bearer <supabase-jwt>`. The handler builds a per-request Supabase client that acts _as the user_, so RLS applies to everything it reads. No header, no token, or a non-`Bearer` scheme returns `401`.
 - **Request:** JSON. The conversation (`messages: {role, content}[]`), the chosen model, the workspace, and research-mode flags. Models that only route through a BYO key (`anthropic/*`, `claude*`, `deepseek/*`, `xai/*`, `grok`, `moonshot/*`) are detected and require the user to have a matching key, otherwise the handler returns a friendly note instead of a hard error.
 - **Response:** Server-Sent Events, SSE protocol v2. The order on every path is: zero or more `{"status":{phase,label}}` research-progress events, then token chunks (`choices[0].delta.content`), then exactly one `meta` event, then `[DONE]`. The `meta` event carries `{model, via, latency_ms, tokens_in, tokens_out, cost_usd, sources[], web_used, workspace_chunks, research?}`. Fields may be `0` or empty when unknown; a consumer never blocks on them. The meta block is streamed live only, never persisted (the `messages` table has no metadata column).
-- **Notes:** a governance halt (kill switch or mission cap) is emitted as a `status='blocked'` `ai_events` row *before* the stream opens, so a paused workspace never streams a token. See [`runtime.md`](./runtime.md) for the full halt pipeline.
+- **Notes:** a governance halt (kill switch or mission cap) is emitted as a `status='blocked'` `ai_events` row _before_ the stream opens, so a paused workspace never streams a token. See [`runtime.md`](./runtime.md) for the full halt pipeline.
 
 ### 1.2 The Build (Studio) chat surface (Partial)
 
@@ -41,7 +41,7 @@ CLAUDE.md and older docs reference a `src/routes/api/studio-chat.ts` route. **It
 
 - **Method:** `POST`.
 - **Purpose:** machine-friendly signal ingest. This is the one SENSE source that runs today without connector OAuth, which is why v7 §2 calls SENSE "webhook-only in practice."
-- **Auth:** a per-workspace ingest token, *not* the cron-caller secret. Callers send `Authorization: Bearer <token>` or `x-ingest-token: <token>`. The token is looked up in `ingest_tokens` (where `revoked_at IS NULL`) via the service-role client to resolve `user_id` plus `workspace_id`. A missing token returns `401` with `{ok:false, error:"missing ingest token"}`; an unknown one returns `401` `"invalid ingest token"`. Tokens are minted and revoked in `ingest.functions.ts`.
+- **Auth:** a per-workspace ingest token, _not_ the cron-caller secret. Callers send `Authorization: Bearer <token>` or `x-ingest-token: <token>`. The token is looked up in `ingest_tokens` (where `revoked_at IS NULL`) via the service-role client to resolve `user_id` plus `workspace_id`. A missing token returns `401` with `{ok:false, error:"missing ingest token"}`; an unknown one returns `401` `"invalid ingest token"`. Tokens are minted and revoked in `ingest.functions.ts`.
 - **Request:** either a batch `{ signals: [{title, content?, source?}, ...] }` (max 50) or a single bare `{title, content?, source?}`. `title` is required (1 to 500 chars); `content` is optional (max 5000). Unknown keys are stripped. A non-JSON body returns `400 "invalid JSON body"`; a shape mismatch returns `400` with the expected-shape message.
 - **Response:** `{ok:true, created:<n>}` on success. Errors return `{ok:false, error}` with the status above; an insert failure returns `500`.
 - **Why the explicit workspace stamp matters:** inserted rows stamp `workspace_id` directly, because the column default returns `NULL` without an auth context and the `signals_reactor_fanout` trigger matches on `workspace_id`. The explicit stamp is what lets a webhook signal enter the `signal.created` auto-pipeline (the `event_queue` fan-out).
@@ -53,7 +53,7 @@ CLAUDE.md and older docs reference a `src/routes/api/studio-chat.ts` route. **It
 - **Method:** `GET` (plus `OPTIONS`). Unauthenticated, cacheable (`Cache-Control: public, max-age=300`), CORS-open.
 - **Purpose:** let another agent discover what Cadence can do and where to send work.
 - **Response:** a JSON agent card with `schema_version`, `name`, `version`, `description`, `provider`, `documentation_url`, an `endpoints` block, an `authentication` block (`schemes:["bearer"]`), a `capabilities` block (`streaming:true`, `push_notifications:false`, `multi_turn:true`), declared `skills` (search signals, draft a PRD, propose a sprint, summarize traces), and a `policies` block (`destructive_actions_require_approval:true`, `pii_egress_filtered:true`, `rate_limit_per_minute:60`).
-- **Why Partial:** the card advertises three endpoints (`message_send`, `message_stream`, `tasks`) at `/api/public/a2a/*`. **Those endpoints are not built yet** (Missing/Planned, M-D). The card is a published intent; the A2A *server* it points at does not answer. The card should also be served from `/.well-known/agent.json` once that edge route is wired (not yet done).
+- **Why Partial:** the card advertises three endpoints (`message_send`, `message_stream`, `tasks`) at `/api/public/a2a/*`. **Those endpoints are not built yet** (Missing/Planned, M-D). The card is a published intent; the A2A _server_ it points at does not answer. The card should also be served from `/.well-known/agent.json` once that edge route is wired (not yet done).
 
 ### 1.5 `GET /api/public/connect/github/callback`, GitHub OAuth callback (Built)
 
@@ -65,20 +65,20 @@ CLAUDE.md and older docs reference a `src/routes/api/studio-chat.ts` route. **It
 
 - **Auth (shared for all hooks):** `requireHookCaller` (`hooks/-_auth.server.ts`). The caller must present the Supabase publishable/anon key as a shared secret in `apikey`, `x-cron-key`, or a `Bearer` `Authorization` header. The anon key is already in the browser bundle, so this provisions no new secret; the key acts purely as a "this call came from our cron, not the open internet" gate. A mismatch returns `401`; a missing configured key returns `500`.
 
-| Hook | Schedule | What it does | Status |
-|---|---|---|---|
-| `resume-runs` | every minute | Promotes `queued` / stale `running` / resolved `waiting_approval` runs (batch 5) via `resumeAgentLoop`, then calls `advanceMissionCore` on up to 20 running missions. This is the heartbeat of "the loop runs itself." Returns `{ok, resumed[], failed[], advanced[]}`. | Built |
-| `approvals-tick` | every minute | Executes approved gated tool calls; notifies on denials. | Built |
-| `event-reactor-tick` | every minute | Drains `event_queue` rows with `approval_mode='auto'` (batch 10); dispatches each to its target agent. | Built |
-| `agent-tick` | scheduled | Runs cron-scheduled agents whose `cron_schedule` is due. | Built |
-| `outcome-tick` | hourly | Checks GitHub issue close state for approved PRDs with linked issues; stamps `shipped_at`; distils the shipped outcome into memory. | Built |
-| `indexer-tick` | hourly (:07) | Chunks and embeds recent workspace content into `rag_chunks` (idempotent via content hashes). | Built |
-| `eval-tick` | scheduled | Picks up to 20 recent `ai_events` lacking an `ai_evals` row; runs the LLM judge over 7 dimensions. | Built |
-| `eval-suite-tick` | daily (03:00) | Runs enabled eval suites whose `schedule_cron` is set and `last_run_at` is stale. | Built |
-| `drift-tick` | daily (04:00) | Runs `runDriftForUser` for users active in the last 30 days; opens/resolves drift incidents. | Built |
-| `memory-tick` | daily | Deletes low-value `agent_memory` (importance ≤ 2 and unused for 30 days). The decay sweep that keeps the moat clean. | Built |
+| Hook                 | Schedule      | What it does                                                                                                                                                                                                                                                            | Status |
+| -------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `resume-runs`        | every minute  | Promotes `queued` / stale `running` / resolved `waiting_approval` runs (batch 5) via `resumeAgentLoop`, then calls `advanceMissionCore` on up to 20 running missions. This is the heartbeat of "the loop runs itself." Returns `{ok, resumed[], failed[], advanced[]}`. | Built  |
+| `approvals-tick`     | every minute  | Executes approved gated tool calls; notifies on denials.                                                                                                                                                                                                                | Built  |
+| `event-reactor-tick` | every minute  | Drains `event_queue` rows with `approval_mode='auto'` (batch 10); dispatches each to its target agent.                                                                                                                                                                  | Built  |
+| `agent-tick`         | scheduled     | Runs cron-scheduled agents whose `cron_schedule` is due.                                                                                                                                                                                                                | Built  |
+| `outcome-tick`       | hourly        | Checks GitHub issue close state for approved PRDs with linked issues; stamps `shipped_at`; distils the shipped outcome into memory.                                                                                                                                     | Built  |
+| `indexer-tick`       | hourly (:07)  | Chunks and embeds recent workspace content into `rag_chunks` (idempotent via content hashes).                                                                                                                                                                           | Built  |
+| `eval-tick`          | scheduled     | Picks up to 20 recent `ai_events` lacking an `ai_evals` row; runs the LLM judge over 7 dimensions.                                                                                                                                                                      | Built  |
+| `eval-suite-tick`    | daily (03:00) | Runs enabled eval suites whose `schedule_cron` is set and `last_run_at` is stale.                                                                                                                                                                                       | Built  |
+| `drift-tick`         | daily (04:00) | Runs `runDriftForUser` for users active in the last 30 days; opens/resolves drift incidents.                                                                                                                                                                            | Built  |
+| `memory-tick`        | daily         | Deletes low-value `agent_memory` (importance ≤ 2 and unused for 30 days). The decay sweep that keeps the moat clean.                                                                                                                                                    | Built  |
 
-The full halt, budget, eval, and drift behavior these hooks invoke is documented in [`runtime.md`](./runtime.md) and [`orchestration.md`](./orchestration.md). This table is the *interface* (route, method, auth, cadence), not the internals.
+The full halt, budget, eval, and drift behavior these hooks invoke is documented in [`runtime.md`](./runtime.md) and [`orchestration.md`](./orchestration.md). This table is the _interface_ (route, method, auth, cadence), not the internals.
 
 ---
 
@@ -98,7 +98,12 @@ A representative shape, from `decisions.functions.ts`:
 ```ts
 export const listDecisions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ /* ... */ }).partial().parse(i ?? {}))
+  .inputValidator((i) =>
+    z
+      .object({/* ... */})
+      .partial()
+      .parse(i ?? {}),
+  )
   .handler(async ({ context, data }) => {
     const { supabase } = context; // RLS client, acting as the user
     // ...
@@ -111,7 +116,7 @@ export const listDecisions = createServerFn({ method: "GET" })
 
 Two middlewares carry the bearer token to the handler:
 
-- **`requireSupabaseAuth`** (`src/integrations/supabase/auth-middleware.ts`, generated): reads `Authorization: Bearer <jwt>` off the request, rejects anything that is missing or not a `Bearer` token, and builds a Supabase client whose global headers carry that token. That client acts *as the user*, so every query inside the handler is RLS-scoped. This is the same token model as `/api/chat`.
+- **`requireSupabaseAuth`** (`src/integrations/supabase/auth-middleware.ts`, generated): reads `Authorization: Bearer <jwt>` off the request, rejects anything that is missing or not a `Bearer` token, and builds a Supabase client whose global headers carry that token. That client acts _as the user_, so every query inside the handler is RLS-scoped. This is the same token model as `/api/chat`.
 - **`attachSupabaseAuth`**: a global server-fn middleware so server functions auto-carry the bearer token without each one re-reading the header (see [`data.md`](./data.md)).
 
 The contract: handlers receive `context.supabase` (the user's RLS client) and never the service-role client. The service-role client (`client.server.ts`) is reserved for the cron hooks and the connector credential chain. No server function reads a provider env var directly; that path goes through `resolveProviderAuth` ([`integrations.md`](./integrations.md)).
@@ -136,16 +141,16 @@ The current agent-facing interface is internal: the typed `HandoffPayload` that 
 
 ### 3.1 `HandoffPayload` (Built)
 
-`src/lib/ai/handoff.server.ts`. A mission groups several `agent_runs` under one operator intent. Each hop is recorded as an `agent_messages` row with a *structured* payload, never a prompt-stuffed string. When the receiver run starts, the loop calls `consumeInboundHandoff` to fetch the latest unconsumed message and `renderHandoffBlock` to inject it into the receiver's system prompt, the same way the workspace brief is injected.
+`src/lib/ai/handoff.server.ts`. A mission groups several `agent_runs` under one operator intent. Each hop is recorded as an `agent_messages` row with a _structured_ payload, never a prompt-stuffed string. When the receiver run starts, the loop calls `consumeInboundHandoff` to fetch the latest unconsumed message and `renderHandoffBlock` to inject it into the receiver's system prompt, the same way the workspace brief is injected.
 
 ```ts
 export type HandoffPayload = {
-  task: string;                                          // the headline the receiver solves next
-  context?: Record<string, unknown>;                     // structured context the sender gathered
+  task: string; // the headline the receiver solves next
+  context?: Record<string, unknown>; // structured context the sender gathered
   artifacts?: { kind: string; id: string; title?: string }[]; // stable IDs the receiver can read with its own tools
-  open_questions?: string[];                             // what the sender leaves to the receiver's judgement
-  constraints?: string[];                                // hard limits the receiver must respect
-  memory_refs?: { id: string; summary?: string }[];      // the moat seam (see below)
+  open_questions?: string[]; // what the sender leaves to the receiver's judgement
+  constraints?: string[]; // hard limits the receiver must respect
+  memory_refs?: { id: string; summary?: string }[]; // the moat seam (see below)
 };
 ```
 
@@ -160,7 +165,7 @@ Two guarantees make it honest:
 
 ### 3.3 Enqueue and consume (Built)
 
-- **`enqueueHandoff`** inserts the `agent_messages` row *and* a `queued` child `agent_runs` row for the receiver. The `resume-runs` sweeper picks the queued run up on its next tick. It also strips phantom `memory_refs`.
+- **`enqueueHandoff`** inserts the `agent_messages` row _and_ a `queued` child `agent_runs` row for the receiver. The `resume-runs` sweeper picks the queued run up on its next tick. It also strips phantom `memory_refs`.
 - **`consumeInboundHandoff`** fetches the latest unconsumed `kind='handoff'` message addressed to the starting run and marks it consumed atomically (`consumed_by_run_id`), so a message is delivered once.
 - **`maybeCompleteMission`** finalizes the mission when no unconsumed messages remain and every step is terminal, and auto-captures a `decisions` row.
 
@@ -168,13 +173,13 @@ Two guarantees make it honest:
 
 ### 3.4 The live caveat (Partial)
 
-The contract is real and the loop runs on it, **but** the orchestrator prompt names agent slugs that are not seeded (`discovery`, `growth`, `analyst`), while the shipped roster is `discovery-scout`, `strategist`, `prd-writer`, `builder` plus the orchestrator. `mission.plan` validates planned slugs against the seeded roster and throws on a phantom slug, so any multi-agent mission with a sensing step dies before the first handoff. This is the v7 M-0 "fix first" bug: the *contract* is Built; a multi-agent mission running on it is **Partial** until the slug mismatch is fixed. See v7 §2 (gap 1) and §7.
+The contract is real and the loop runs on it, **but** the orchestrator prompt names agent slugs that are not seeded (`discovery`, `growth`, `analyst`), while the shipped roster is `discovery-scout`, `strategist`, `prd-writer`, `builder` plus the orchestrator. `mission.plan` validates planned slugs against the seeded roster and throws on a phantom slug, so any multi-agent mission with a sensing step dies before the first handoff. This is the v7 M-0 "fix first" bug: the _contract_ is Built; a multi-agent mission running on it is **Partial** until the slug mismatch is fixed. See v7 §2 (gap 1) and §7.
 
 ---
 
 ## 4. The dual-user surface: MCP server plus public API
 
-v7 §8 commits Cadence to being agent-friendly *and* human-friendly, and v7 §12 M-D scopes the build. None of this exists on `main` yet. It is the external interface that does the most for distribution, and it is pulled forward in the risk plan (v7 §14: the fast-follower window may be 6 to 12 months, so do not wait for M-D to start the MCP/API contract).
+v7 §8 commits Cadence to being agent-friendly _and_ human-friendly, and v7 §12 M-D scopes the build. None of this exists on `main` yet. It is the external interface that does the most for distribution, and it is pulled forward in the risk plan (v7 §14: the fast-follower window may be 6 to 12 months, so do not wait for M-D to start the MCP/API contract).
 
 ### 4.1 MCP server (Missing/Planned, M-D)
 
@@ -186,7 +191,7 @@ v7 §8 commits Cadence to being agent-friendly *and* human-friendly, and v7 §12
 
 ### 4.2 Public API (Missing/Planned, M-D)
 
-A documented, versioned HTTP API over the same curated subset, with stable request/response shapes and its own auth (scoped API keys, not the internal bearer model). This is the contract external developers build against, distinct from the internal server-function surface in §2, which is explicitly *not* a stable external interface. Pulling this forward also enables the B2B2B fallback in v7 §14 (embed Cadence's memory/decision layer inside Jira or Linear via MCP if the standalone window closes).
+A documented, versioned HTTP API over the same curated subset, with stable request/response shapes and its own auth (scoped API keys, not the internal bearer model). This is the contract external developers build against, distinct from the internal server-function surface in §2, which is explicitly _not_ a stable external interface. Pulling this forward also enables the B2B2B fallback in v7 §14 (embed Cadence's memory/decision layer inside Jira or Linear via MCP if the standalone window closes).
 
 ### 4.3 A2A server endpoints (Missing/Planned, M-D)
 

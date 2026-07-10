@@ -84,14 +84,7 @@ const ShipHistoryPanel = lazy(() =>
 );
 
 type Tab =
-  | "insights"
-  | "calendar"
-  | "memory"
-  | "learnings"
-  | "decisions"
-  | "design"
-  | "graph"
-  | "docs";
+  "insights" | "calendar" | "memory" | "learnings" | "decisions" | "design" | "graph" | "docs";
 const TABS: Tab[] = [
   "insights",
   "calendar",

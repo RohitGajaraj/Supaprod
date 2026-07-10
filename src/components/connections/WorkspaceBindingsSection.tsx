@@ -142,7 +142,9 @@ export function WorkspaceBindingsSection() {
               const connection =
                 connections.find((c) => c.provider === spec.id && c.status === "connected") ??
                 connections.find((c) => c.provider === spec.id);
-              const boundTime = binding ? latestIso([binding.updated_at, binding.created_at]) : null;
+              const boundTime = binding
+                ? latestIso([binding.updated_at, binding.created_at])
+                : null;
               const healthy = binding?.connection_status === "connected";
 
               return (
@@ -171,7 +173,14 @@ export function WorkspaceBindingsSection() {
                     {binding ? (
                       <>
                         <div style={{ textAlign: "right", minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              justifyContent: "flex-end",
+                            }}
+                          >
                             <StatusPill tone={healthy ? "moss" : "madder"}>
                               {healthy ? "Bound" : "Reconnect needed"}
                             </StatusPill>

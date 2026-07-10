@@ -74,7 +74,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
     mutationFn: (enabled: boolean) => fToggleStage({ data: { enabled } }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["design-gate", prdId] });
-      toast.success(res.enabled ? "Design stage on for this workspace." : "Design stage off for this workspace.");
+      toast.success(
+        res.enabled
+          ? "Design stage on for this workspace."
+          : "Design stage off for this workspace.",
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -135,7 +139,10 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         disabled={decideGate.isPending}
         className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
       >
-        <ThumbsUp className="h-3 w-3" style={gate.status === "approved" ? { color: "var(--moss)" } : undefined} />
+        <ThumbsUp
+          className="h-3 w-3"
+          style={gate.status === "approved" ? { color: "var(--moss)" } : undefined}
+        />
         Approve design
       </button>
       <button
@@ -144,7 +151,10 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
         disabled={decideGate.isPending}
         className="loom-press inline-flex items-center gap-1 rounded-md border hairline px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
       >
-        <ThumbsDown className="h-3 w-3" style={gate.status === "rejected" ? { color: "var(--madder)" } : undefined} />
+        <ThumbsDown
+          className="h-3 w-3"
+          style={gate.status === "rejected" ? { color: "var(--madder)" } : undefined}
+        />
         Request changes
       </button>
     </div>
@@ -190,7 +200,11 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} strokeWidth={1.9} />
+            <Sparkles
+              className="h-3.5 w-3.5"
+              style={{ color: "var(--glacier)" }}
+              strokeWidth={1.9}
+            />
             <span className="text-[13px] font-medium text-foreground">Design gate</span>
             {gateChip}
           </div>
@@ -271,7 +285,9 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => (gate?.stageEnabled ? decideGate.mutate(true) : feedback.mutate(true))}
+                onClick={() =>
+                  gate?.stageEnabled ? decideGate.mutate(true) : feedback.mutate(true)
+                }
                 disabled={
                   gate?.stageEnabled
                     ? decideGate.isPending
@@ -291,7 +307,9 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
               </button>
               <button
                 type="button"
-                onClick={() => (gate?.stageEnabled ? decideGate.mutate(false) : feedback.mutate(false))}
+                onClick={() =>
+                  gate?.stageEnabled ? decideGate.mutate(false) : feedback.mutate(false)
+                }
                 disabled={
                   gate?.stageEnabled
                     ? decideGate.isPending

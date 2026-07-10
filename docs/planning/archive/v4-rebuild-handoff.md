@@ -14,7 +14,7 @@
 
 1. **Naming: DEFERRED to the final activity.** Founder rejected Rigel/Tanager/Sittella/Perihelion (and earlier Cadence/Cadence are conflicted). **"Cadence" stays the interim working name** in all docs, with the existing rename disclaimer. Fresh naming directions logged in [`../decisions/naming.md`](../decisions/naming.md). Do not block any work on naming.
 2. **GTM: PLG wedge → enterprise.** Land with the individual senior PM (self-serve, 10-minute wow), expand team → org. Enterprise governance (SSO, audit, budgets) built into the architecture from day 1, sold later. Founder weighting: **pain-point/end-user first, investor framing secondary.**
-3. **Future-proofing rule (founder mandate):** at every platform node, define (a) native agents, (b) pluggable external-agent slots (MCP/A2A), and (c) the frontier-absorption path — if a lab ships a "PM frontier model" or PM-specialized agents, it plugs into the chokepoint as a routable brain and *strengthens* the platform. Solutioning at every level must keep this in mind.
+3. **Future-proofing rule (founder mandate):** at every platform node, define (a) native agents, (b) pluggable external-agent slots (MCP/A2A), and (c) the frontier-absorption path — if a lab ships a "PM frontier model" or PM-specialized agents, it plugs into the chokepoint as a routable brain and _strengthens_ the platform. Solutioning at every level must keep this in mind.
 4. **No version gating (V1/V2).** Plan end-to-end full scope; sequence by milestone (M1…M5), each milestone independently demo-able.
 
 ## Progress checklist (update as steps complete)
@@ -37,13 +37,13 @@
 
 ## Doc map after this rebuild (what changed where)
 
-| Doc | Role after v4 rebuild |
-| --- | --- |
-| `docs/strategy/archive/v4-feature-map.md` | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
-| `docs/strategy/archive/v4-stress-test.md` | Why v3 wasn't enough — the argued verdict |
-| `docs/references/competitive-landscape.md` | Market research with links (don't re-research) |
-| `plan.md` | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here |
-| `docs/planning/feature-backlog.md` | Ticket-level F-IDs; v4 overlay section maps backlog → stations |
-| `README.md` | Product thesis, updated to v4 framing |
-| `docs/strategy/archive/v3-positioning-cadence.md` | Historical — superseded by v4 for scope; persona definitions still valid |
-| `docs/decisions/naming.md` | Naming deferred; fresh directions; final activity |
+| Doc                                               | Role after v4 rebuild                                                                     |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `docs/strategy/archive/v4-feature-map.md`         | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
+| `docs/strategy/archive/v4-stress-test.md`         | Why v3 wasn't enough — the argued verdict                                                 |
+| `docs/references/competitive-landscape.md`        | Market research with links (don't re-research)                                            |
+| `plan.md`                                         | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here            |
+| `docs/planning/feature-backlog.md`                | Ticket-level F-IDs; v4 overlay section maps backlog → stations                            |
+| `README.md`                                       | Product thesis, updated to v4 framing                                                     |
+| `docs/strategy/archive/v3-positioning-cadence.md` | Historical — superseded by v4 for scope; persona definitions still valid                  |
+| `docs/decisions/naming.md`                        | Naming deferred; fresh directions; final activity                                         |

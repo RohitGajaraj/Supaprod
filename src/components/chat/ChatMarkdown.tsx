@@ -121,16 +121,20 @@ const components: Components = {
   ),
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
   hr: () => <hr className="my-4 border-border" />,
-  a: ({ children, href }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="underline decoration-foreground/30 underline-offset-2 transition-colors hover:decoration-foreground"
-    >
-      {children}
-    </a>
-  ),
+  a: ({ children, href }) => {
+    // Allowlist safe protocols to prevent XSS via javascript: or data: URIs
+    const isSafeHref = !href || /^(https?:|mailto:|\/|#)/.test(href);
+    return (
+      <a
+        href={isSafeHref ? href : "#"}
+        target="_blank"
+        rel="noreferrer"
+        className="underline decoration-foreground/30 underline-offset-2 transition-colors hover:decoration-foreground"
+      >
+        {children}
+      </a>
+    );
+  },
   code: ({ children, className }) => (
     <code
       className={`rounded bg-secondary/70 px-1 py-0.5 font-mono text-[12px] ${className ?? ""}`}

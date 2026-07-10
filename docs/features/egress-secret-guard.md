@@ -21,6 +21,7 @@ This closes it by **reusing** the existing engine (not re-implementing detection
 ## What it does
 
 `src/lib/egress-guardrails.ts`:
+
 - `EGRESS_SECRET_RULES` — a self-contained set of **high-confidence, structural** credential formats (OpenAI `sk-…` legacy + the scoped `sk-(proj|svcacct|admin)-…` forms, AWS `AKIA…`, GitHub `gh[pousr]_…` + `github_pat_…`, Stripe `sk_live_…`, Slack `xox[baprs]-…`, Google `AIza…`, and PEM private-key blocks). Owned here, **not** loaded from the per-workspace `guardrail_rules` table, so the floor holds even for a workspace that never configured guardrails. A security floor must not depend on opt-in config.
 - `scanEgressForSecrets(text)` — runs the rules through `evaluateGuardrails` (so the regex matching, ReDoS-safety, and zero-width guarding are the **same** code the chokepoint uses) and returns `{ blocked, ruleNames }`.
 - `describeEgressSecrets(ruleNames)` — a user-facing message naming the secret **types** found, never the value.

@@ -12,14 +12,14 @@ The SF-CONNECTORS fleet (Stripe/Slack/Zendesk/HubSpot/Salesforce/Canny/Productbo
 
 ## Status
 
-| Source | Status | Env var(s) |
-| --- | --- | --- |
-| Slack | ✅ Done (2026-07-01) | `SLACK_BOT_TOKEN`, `SLACK_SIGNAL_CHANNEL` |
-| Stripe | ❌ Blocked — see below | `STRIPE_API_KEY` |
-| HubSpot | ✅ Done (2026-07-01, via Service Keys, not Legacy Apps) | `HUBSPOT_ACCESS_TOKEN` |
-| Salesforce | ✅ Done (2026-07-01) | `SALESFORCE_ACCESS_TOKEN`, `SALESFORCE_INSTANCE_URL` |
-| Linear (SF-MCP) | ✅ Done (2026-07-01) | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`=`list_issues`, `MCP_LINEAR_ARGS`=`{"limit":20,"orderBy":"updatedAt"}` |
-| Canny | ✅ Done (2026-07-01) | `CANNY_API_KEY` |
+| Source          | Status                                                  | Env var(s)                                                                                                                    |
+| --------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Slack           | ✅ Done (2026-07-01)                                    | `SLACK_BOT_TOKEN`, `SLACK_SIGNAL_CHANNEL`                                                                                     |
+| Stripe          | ❌ Blocked — see below                                  | `STRIPE_API_KEY`                                                                                                              |
+| HubSpot         | ✅ Done (2026-07-01, via Service Keys, not Legacy Apps) | `HUBSPOT_ACCESS_TOKEN`                                                                                                        |
+| Salesforce      | ✅ Done (2026-07-01)                                    | `SALESFORCE_ACCESS_TOKEN`, `SALESFORCE_INSTANCE_URL`                                                                          |
+| Linear (SF-MCP) | ✅ Done (2026-07-01)                                    | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`=`list_issues`, `MCP_LINEAR_ARGS`=`{"limit":20,"orderBy":"updatedAt"}` |
+| Canny           | ✅ Done (2026-07-01)                                    | `CANNY_API_KEY`                                                                                                               |
 
 ## Stripe — blocked, not a quick task
 
@@ -30,6 +30,7 @@ Stripe operates **invite-only in India** and requires a properly registered busi
 Sources: [Stripe accounts are invite-only in India](https://support.stripe.com/questions/stripe-accounts-are-invite-only-in-india), [How can I open a Stripe account in India?](https://support.stripe.com/questions/how-can-i-open-a-stripe-account-in-india), [2025 updates to India verification requirements](https://support.stripe.com/questions/2025-updates-to-india-verification-requirements)
 
 If it ever gets unblocked, the steps are:
+
 1. Dashboard → mode toggle (Test/Live, top right) → pick based on real vs. sandbox data.
 2. Developers → API keys → **Restricted keys** section → **+ Create restricted key**.
 3. Name it, set only **Subscriptions: Read** and **Events: Read**, leave everything else None.
@@ -69,11 +70,11 @@ Unlike the others, Salesforce doesn't hand you a static token from a settings pa
 3. Click **New External Client App** (top right) — Salesforce renamed "Connected Apps" to "External Client Apps" in a recent release; this is the one that gets you OAuth/Consumer Key/Client Credentials Flow. **Not** "New Lightning App" — that builds a UI app with tabs, unrelated to API access.
    - Basic Information: name it "Cadence Signal Fabric", enter your email as contact, **Distribution State = Local** (this app only ever talks to your own org — "Packaged" is for apps distributed to other orgs via AppExchange, not relevant here).
    - Check **Enable OAuth Settings**.
-   - Callback URL: Salesforce requires *something* here even though this flow doesn't use it — enter `https://login.salesforce.com/services/oauth2/callback`.
+   - Callback URL: Salesforce requires _something_ here even though this flow doesn't use it — enter `https://login.salesforce.com/services/oauth2/callback`.
    - Selected OAuth Scopes: add **"Manage user data via APIs (api)"**.
    - Save. Salesforce warns changes can take ~10 minutes to propagate — expected, not an error.
 4. The app opens on the **Manage External Client Apps** detail page with three tabs: **Policies**, **Settings**, **Package Defaults**.
-   - On **Policies**, expand **OAuth Policies** → check **Enable Client Credentials Flow** (under "OAuth Flows and External Client App Enhancements") → a **"Run As (Username)"** field appears — this needs your actual **Salesforce username**, not your login email. Developer Edition orgs often auto-generate a username that only *looks* like your email (Salesforce usernames must be globally unique across every org worldwide, so a suffix is often appended). Find the real one at Setup → Quick Find → **"Users"** → your row → the **Username** column (distinct from the Email column). Entering the email instead produces: *"We couldn't save the external client app... Enter a valid execution user for the OAuth client credentials flow."*
+   - On **Policies**, expand **OAuth Policies** → check **Enable Client Credentials Flow** (under "OAuth Flows and External Client App Enhancements") → a **"Run As (Username)"** field appears — this needs your actual **Salesforce username**, not your login email. Developer Edition orgs often auto-generate a username that only _looks_ like your email (Salesforce usernames must be globally unique across every org worldwide, so a suffix is often appended). Find the real one at Setup → Quick Find → **"Users"** → your row → the **Username** column (distinct from the Email column). Entering the email instead produces: _"We couldn't save the external client app... Enter a valid execution user for the OAuth client credentials flow."_
    - Also set **IP Relaxation** to **"Relax IP restrictions"** on this same screen — the default "Enforce IP restrictions" commonly blocks a plain curl token request from an untrusted machine, and this is a throwaway dev sandbox so loosening it is fine. Save.
 5. Click the **Settings** tab → expand **OAuth Settings** → under **App Settings** click **"Consumer Key and Secret"** (may prompt an emailed verification code) → copy both the **Consumer Key** and **Consumer Secret**. They are two different values — don't copy the Secret field twice.
 6. Note your instance URL — visible in the browser address bar while logged in, e.g. `https://yourdomain-dev-ed.develop.my.salesforce.com`. Don't confuse this with the Setup page URL (which is on a different `...salesforce-setup.com` admin domain) or copy anything after the first `/` past `.com`.
@@ -95,7 +96,7 @@ Caveat: tokens from this flow can expire per your org's session-timeout setting 
 ## Linear (SF-MCP) — done
 
 1. Free signup at `linear.app` (unlimited members, 2 teams, 250 issues, no card).
-2. Workspace Settings → **API** → the personal-key creation link is *not* on that page directly — it says "View your personal API keys from your **security & access settings**"; click that link (it's your own account settings, not the workspace-level API page) → create a **Personal API key** there.
+2. Workspace Settings → **API** → the personal-key creation link is _not_ on that page directly — it says "View your personal API keys from your **security & access settings**"; click that link (it's your own account settings, not the workspace-level API page) → create a **Personal API key** there.
 3. Linear's hosted MCP endpoint is `https://mcp.linear.app/mcp` and accepts a plain Bearer token (the personal API key) — no OAuth dance needed.
 4. `MCP_LINEAR_TOOL` isn't published anywhere — Claude queries the server's `tools/list` JSON-RPC method directly (same curl-based pattern as the Salesforce REST calls) once the key exists. Confirmed value: **`list_issues`** (out of 47 available tools) — it's the one that maps to "recent issues as signals," matching customer-voice/discovery intent. Its schema supports `limit` and `updatedAt`/`orderBy` filters, so a bounded recent-issues pull is possible via `MCP_LINEAR_ARGS`.
 5. Lovable Secrets: `MCP_LINEAR_URL` = `https://mcp.linear.app/mcp`, `MCP_LINEAR_TOKEN` = the personal API key, `MCP_LINEAR_TOOL` = `list_issues`, `MCP_LINEAR_ARGS` = `{"limit":20,"orderBy":"updatedAt"}` (caps each pull to the 20 most recently updated issues, matching the client's own 20-block cap).
@@ -110,10 +111,10 @@ Caveat: tokens from this flow can expire per your org's session-timeout setting 
 
 ## Skipped entirely — and why
 
-| Source | Why skipped |
-| --- | --- |
-| Zendesk | No permanent free tier — only a 14-day trial, or a "sponsored" dev account gated to Zendesk Marketplace app developers. |
-| Productboard | Has a free-forever plan, but API access is paid-only on every tier. |
-| Delighted | Free plan caps at 25 responses/month; API access appears gated to their $249/mo Premium tier. |
-| Granola (SF-MCP) | Has a free "Basic" plan, but the hosted MCP server specifically requires a paid plan. |
-| Gong, Enterpret (SF-MCP) | No self-serve signup at all — enterprise sales-only, no public API/MCP path. |
+| Source                   | Why skipped                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Zendesk                  | No permanent free tier — only a 14-day trial, or a "sponsored" dev account gated to Zendesk Marketplace app developers. |
+| Productboard             | Has a free-forever plan, but API access is paid-only on every tier.                                                     |
+| Delighted                | Free plan caps at 25 responses/month; API access appears gated to their $249/mo Premium tier.                           |
+| Granola (SF-MCP)         | Has a free "Basic" plan, but the hosted MCP server specifically requires a paid plan.                                   |
+| Gong, Enterpret (SF-MCP) | No self-serve signup at all — enterprise sales-only, no public API/MCP path.                                            |

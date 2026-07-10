@@ -29,6 +29,7 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 ## How it works
 
 **Email leg:**
+
 - Migration `20260703150000_jny05_stakeholder_digest.sql`: two columns on `user_notification_preferences` (`digest_stakeholder_update boolean default false`, `digest_stakeholder_audience text default 'exec'`, checked to `exec`/`eng`/`board`). No new table.
 - `src/lib/stakeholder-pack.functions.ts`: extracted `loadNewestDecisionBrief(supabase, workspaceId, wantId?)`, the data-loading core `getStakeholderPack` already had (decision + lineage evidence + supersession standing + recorded outcome), so the digest composer reuses it instead of a second copy.
 - `src/lib/notifications.functions.ts`'s `generateDigest`: when `digest_stakeholder_update` is on, resolves the caller's workspace via `ensure_user_default_workspace(_user_id)` with the **explicit** `userId` (not `current_user_default_workspace()`, which wraps `auth.uid()` and is null when this runs under the service-role admin client from the `digest-tick` cron; caught during self-review, the same service-role-vs-session-context bug class already fixed once for `ai_events`), loads the newest decision, composes one audience's pack (`composeStakeholderPack`), and appends its rendered markdown as a "Stakeholder update:" section in the digest content. Best-effort: no workspace, no decisions yet, or any lookup failure just skips the section, never blocks the rest of the digest.
@@ -36,6 +37,7 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 - `src/components/settings/NotificationsTab.tsx`: the toggle + audience `<select>`, following the existing card pattern exactly.
 
 **Slack write-back leg (shipped 2026-07-03):**
+
 - `src/lib/connectors/registry.ts`: Slack's `capabilities.outflow` flipped to `true` and a second `resourceTypes` entry added — `{ kind: "digest_channel", label: "Stakeholder digest channel" }` — alongside the pre-existing `channel` (the customer-voice read channel). Both resource kinds are unaffected by each other: the existing inflow ingest (`slack-ingest.server.ts`) still resolves with `resourceKind: "channel"` + `requiredCapability: "inflow"`, entirely independent of the new `digest_channel` + `outflow` path. This is deliberately the same shape as `github`/`linear`/`notion`'s existing entries (one connector, both directions), not a new abstraction.
 - Reuses the existing `/sync` Workspace-bindings UI and `BindingPicker` component as-is — `resourceKind` was already a free-string column with no allow-list, so adding the new resource type required zero new UI code.
 - `src/lib/connectors/providers/slack.server.ts`: new `postMessage(token, channelId, text)` calling `chat.postMessage`, mirroring `sendEmail`'s never-throws `{sent/posted, reason}` shape. `listResources` extended to answer for `digest_channel` too (same public-channel list Slack's inflow side already lists).

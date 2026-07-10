@@ -18,7 +18,9 @@ The admin "credits engine" toggle (Settings → Admin → Overview) writes `app_
 ## Go-live sequence
 
 ### Step 1 - provide live Stripe keys (founder)
+
 Set these as wrangler secrets (server) + the Vite client token (the env-var split in `CLAUDE.md`):
+
 - `STRIPE_LIVE_API_KEY` (server, the live secret key via the Lovable connector gateway)
 - `VITE_PAYMENTS_CLIENT_TOKEN` = the **live** publishable token (`pk_live_...`) — flips `PaymentTestModeBanner` to live and lets the embedded checkout mount
 - `PAYMENTS_LIVE_WEBHOOK_SECRET` (the live webhook signing secret)
@@ -27,13 +29,17 @@ Set these as wrangler secrets (server) + the Vite client token (the env-var spli
 > Until live keys are present, `stripeConfigured` is false and checkout stays in sandbox/preview. Nothing charges.
 
 ### Step 2 - backfill credits (one call, safe, idempotent)
+
 Grant every existing account its tier's monthly allowance so no one is blocked the moment metering turns on:
+
 ```sql
 select public.backfill_account_credits();
 -- free -> 500, pro -> 2500, max -> 10000, team -> 10000; enterprise = custom (skipped).
 -- Only touches accounts with monthly_grant_credits = 0; preserves bundle grants + top-ups.
 ```
+
 Verify zero accounts are unfunded:
+
 ```sql
 select count(*) from account_credits c join accounts a on a.id=c.account_id
  where a.plan_tier <> 'enterprise'
@@ -42,28 +48,37 @@ select count(*) from account_credits c join accounts a on a.id=c.account_id
 ```
 
 ### Step 3 - keep new accounts funded (so the guard stays true after go-live)
+
 New free accounts start at 0 until granted. The `credit-tick` cron grants un-granted accounts on its schedule; confirm it is enabled in production so a brand-new free account is funded before its first AI call. (Follow-up `GRANT-ON-CREATE` will seed the free allowance at account creation so there is never a gap; until then the cron covers it.)
 
 ### Step 4 - enable metering (the switch)
+
 Either flip the admin toggle (Settings → Admin → Overview → "Turn ON"), or:
+
 ```sql
 -- this goes through the guard; it will RAISE if any account is still unfunded.
 select public.admin_set_credits_enabled(true);  -- (must be called as an admin)
 ```
+
 The guard refuses if step 2/3 were skipped. Once on, `assertAccountCredits` meters AI calls and `debitAccountCredits` draws down the pool.
 
 ### Step 5 - verify
+
 - A test subscribe (live, small) grants the bundle's credits; a top-up adds to the balance; an AI call debits and the ledger shows the `debit` row; the Credits tab balance moves.
 - Watch `ai_events` for any `credit_exhausted` blocks (should be none for funded accounts).
 
 ## Rollback
+
 If anything looks wrong, turn metering off instantly (reversible, restores the dormant state):
+
 ```sql
 update public.app_settings set value='false'::jsonb, updated_at=now() where key='credits_enabled';
 ```
+
 Balances are preserved; only the debit path stops. The in-process flag cache refreshes within 5 minutes (cold-starts immediately).
 
 ## Related
+
 - [`../features/billing.md`](../features/billing.md) · [`../features/credits.md`](../features/credits.md) · [`../features/pricing.md`](../features/pricing.md)
 - Engine: `src/routes/api/public/payments/webhook.ts`, `src/lib/payments.functions.ts`, `src/lib/credits.functions.ts`, `src/lib/ai/runtime.server.ts`
 - Migrations: `20260621120000_credit_flow_apply.sql` (grant/topup/renewal RPCs), `20260621130000_credit_golive_guard.sql` (guard + backfill)

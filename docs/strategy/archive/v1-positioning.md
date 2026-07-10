@@ -106,14 +106,14 @@ LangChain/LangGraph (most-used), AutoGen (Microsoft, enterprise), CrewAI (multi-
 
 ## Verdict on the Six Threads (evidence-graded)
 
-| #   | Thread                          | Verdict                   | Why                                                                                                                                                                                                                           |
-| --- | ------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Cursor for PM**               | **Strong**                | Lenny + Korey HN + ChatPRD evidence confirms demand. ⚠ "Cursor for X" is a pitch cliché now. Differentiate on _what the agent does after the PM specs_, not on the IDE metaphor.                                              |
+| #   | Thread                          | Verdict                   | Why                                                                                                                                                                                                                          |
+| --- | ------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Cursor for PM**               | **Strong**                | Lenny + Korey HN + ChatPRD evidence confirms demand. ⚠ "Cursor for X" is a pitch cliché now. Differentiate on _what the agent does after the PM specs_, not on the IDE metaphor.                                             |
 | 2   | **Company Brain**               | **Moderate**              | Pain real. **No live source uses "company brain": founder vocabulary.** Glean owns enterprise-search budget. Differentiate as _product-domain memory_ (decisions, customer evidence, supersedes-chains), not general search. |
-| 3   | **AI-Native Discovery Engines** | **Strong**                | One of the most-voiced PM frustrations. Dovetail/Sprig confirm demand. Gap: _continuous synthesis across multiple signal sources_ without manual effort.                                                                      |
+| 3   | **AI-Native Discovery Engines** | **Strong**                | One of the most-voiced PM frustrations. Dovetail/Sprig confirm demand. Gap: _continuous synthesis across multiple signal sources_ without manual effort.                                                                     |
 | 4   | **SaaS Challengers**            | **Weak**                  | Macro investor narrative, not buyer narrative. Live sources don't say "I want a Jira challenger"; they say "I wish Jira understood why I prioritized this." **Recommend drop as a sales-facing thread.**                     |
-| 5   | **Software for Agents**         | **Moderate**              | MCP/A2A real. Developer story, not PM buyer story. **Right platform play, wrong primary wedge.**                                                                                                                              |
-| 6   | **AI OS for Companies**         | **Weak / ⚠ Contradicted** | **No live source uses "AI OS" framing.** Enterprise buyers buy solutions to budgeted problems, not "operating systems." Reserve for analyst/investor narrative post-traction.                                                 |
+| 5   | **Software for Agents**         | **Moderate**              | MCP/A2A real. Developer story, not PM buyer story. **Right platform play, wrong primary wedge.**                                                                                                                             |
+| 6   | **AI OS for Companies**         | **Weak / ⚠ Contradicted** | **No live source uses "AI OS" framing.** Enterprise buyers buy solutions to budgeted problems, not "operating systems." Reserve for analyst/investor narrative post-traction.                                                |
 
 **Headline finding:** _"The six-thread framing is investor-legible but buyer-opaque. No live source used the vocabulary Cadence uses to describe itself."_
 
@@ -235,14 +235,14 @@ This is **imagined feedback based on Cagan's published canon**, not a real Cagan
 
 ### Six-thread reframe to drop the buyer-opaque language
 
-| Old framing                   | New framing (buyer-legible)                                      |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Cursor for Product Management | "AI that drafts the spec, you approve the ticket"                |
+| Old framing                   | New framing (buyer-legible)                                     |
+| ----------------------------- | --------------------------------------------------------------- |
+| Cursor for Product Management | "AI that drafts the spec, you approve the ticket"               |
 | Company Brain                 | **"Product Memory"**: _why_ this decision, _what_ changed since |
-| AI-Native Discovery Engines   | "Your weekly discovery digest, grounded in evidence"             |
+| AI-Native Discovery Engines   | "Your weekly discovery digest, grounded in evidence"            |
 | SaaS Challengers              | _(drop, reframe as "Cadence-on-top, not Cadence-instead")_      |
-| Software for Agents           | _(platform play, not lead positioning)_                          |
-| AI OS for Companies           | _(reserve for analyst/investor narrative post-traction)_         |
+| Software for Agents           | _(platform play, not lead positioning)_                         |
+| AI OS for Companies           | _(reserve for analyst/investor narrative post-traction)_        |
 
 ### Design system direction (replaces the 5-pillar limit in design.md)
 

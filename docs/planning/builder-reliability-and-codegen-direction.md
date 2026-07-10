@@ -7,7 +7,7 @@
 
 There are two layers here, and they should be weighted very differently:
 
-1. **Tactical (small, optional):** harden the in-house Builder so a *cheap* model can't silently produce an unusable build. Worth doing **only** if the in-house Builder must demo reliably in the very near term. ~half a day, but touches the pinned AI chokepoint (attended change).
+1. **Tactical (small, optional):** harden the in-house Builder so a _cheap_ model can't silently produce an unusable build. Worth doing **only** if the in-house Builder must demo reliably in the very near term. ~half a day, but touches the pinned AI chokepoint (attended change).
 2. **Strategic (the real call):** **do not over-invest in our own codegen agent.** The durable direction — already named in the canon (`ORCH-DELEGATE`, `BLD-04`, the sourcing map) — is **"build = orchestration of external coding agents, not codegen."** Delegate the actual code-writing to capable external agents (Claude Code, OpenHands, Cursor, etc.) and keep Cadence as the **governing + decision/memory layer on top.** That sidesteps the cheap-model-capability problem entirely and is where the moat is.
 
 **My recommendation:** treat the in-house Builder as a **$0 floor for trivial single-file changes only.** Put real investment into the **delegation path (`BLD-04` / `ORCH-DELEGATE`)**, which is both the reliable answer for "codes and tools" and the on-moat one. Only do the tactical hardening if you need a believable in-house-Builder demo before the delegation path is ready.
@@ -26,7 +26,7 @@ This is a **model-capability ceiling**, not a bug: a cheap model on an agentic f
 
 Make weak models self-correct instead of failing silently. Two small changes, both in **chokepoint-pinned files** (`src/lib/ai/tools/registry.server.ts`, `src/lib/ai/loop.server.ts`), so this is an **attended core change**, not an autonomous-lane edit:
 
-1. **Make `content` required-for-create at the schema layer.** Today `studio.stage`'s `content` is `z.string().optional()`, validated as present only at `run()` time (which throws *after* the call is gated/approved). Refine the schema so `op: "create" | "update"` requires `content` — then the agent gets an **immediate validation error** and the loop's existing error-feedback path makes it retry *with* content, in-loop, before any gate.
+1. **Make `content` required-for-create at the schema layer.** Today `studio.stage`'s `content` is `z.string().optional()`, validated as present only at `run()` time (which throws _after_ the call is gated/approved). Refine the schema so `op: "create" | "update"` requires `content` — then the agent gets an **immediate validation error** and the loop's existing error-feedback path makes it retry _with_ content, in-loop, before any gate.
 2. **A one-line prompt nudge** in the Builder system prompt: "When you call `studio.stage`, always include the FULL file contents in `content` for every create/update — never a path alone."
 
 Net: a cheap model gets one corrective round-trip and usually succeeds, at ~one extra cheap call. Low effort, removes the silent dead-end. **But it only makes the in-house Builder marginally more reliable — it does not make it a strong code generator.**
@@ -42,6 +42,7 @@ The canon already says this is the answer; the live failure just makes it concre
 - **Sourcing map / BBI doctrine:** codegen is a commodity racing to capability; we **INTEGRATE** capable agents behind our own seam, we don't **BUILD** a codegen competitor.
 
 **Why this is the right call for "codes and tools":**
+
 - **Reliability for free.** External coding agents (Claude Code, OpenHands, Cursor) are already strong at exactly the task our in-house loop is weak at, and they improve without our effort. We stop fighting model capability.
 - **It's on-moat.** Cadence's defensibility is the **governance + decision/memory** layer. "We govern and orchestrate the best coding agents, with full decision lineage and trust receipts" is a moat; "we wrote our own mediocre codegen agent" is not.
 - **It matches the BYO / tools posture.** Users plug in the coding agent they trust; Cadence is the control plane (specs in, governed PRs out, outcomes fed back to the brain).

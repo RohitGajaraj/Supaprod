@@ -161,8 +161,7 @@ export async function resolveBestAgentModelForUser(
       .select("agentic_model")
       .eq("id", userId)
       .maybeSingle();
-    const pinnedModel = (profile as { agentic_model?: string | null } | null)
-      ?.agentic_model;
+    const pinnedModel = (profile as { agentic_model?: string | null } | null)?.agentic_model;
     if (pinnedModel) return pinnedModel;
   } catch (e) {
     // Profile lookup failing is non-fatal; fall through to the default logic.

@@ -258,8 +258,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       const meta = u?.user_metadata as
-        | { display_name?: string; full_name?: string; name?: string }
-        | undefined;
+        { display_name?: string; full_name?: string; name?: string } | undefined;
       const name =
         meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "Account";
       setUserName(name);

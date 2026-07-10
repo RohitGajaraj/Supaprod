@@ -6,6 +6,7 @@ humans and AI builders can see precisely how every screen should look and
 behave before implementing it in `src/`.
 
 > [!IMPORTANT]
+>
 > ## CURRENT: the v3 "Obsidian" system (adopted 2026-07-02)
 >
 > The design contract for ALL authenticated app surfaces is
@@ -52,23 +53,23 @@ npx serve .            # or: python3 -m http.server
 
 ## Contents
 
-| File | What it is |
-|---|---|
-| `Cadence Prototype.html` | Entry point — the full app mockup |
-| `Platform Design Blueprint.html` | The signed design contract (v2) |
-| `cadence/tokens.css` | Token snapshot (live copy is at repo root) |
-| `cadence/data.js` | All mock data, incl. drill-down payloads |
-| `cadence/app.jsx` | Routing, shared state, approvals/missions logic |
-| `cadence/shell.jsx` | Sidebar, topbar, cooking banner, construction pill |
-| `cadence/home.jsx` | Today screen — hero ritual, calls queue |
-| `cadence/chat.jsx` | Chat + Mission Cockpit + auto-title rule |
-| `cadence/missions.jsx` | Mission list, detail, graph view |
-| `cadence/loop.jsx` | Product / Knowledge / Govern / Settings screens |
-| `cadence/loop-detail.jsx` | Drill-downs: signal, opportunity, release, decision, learning, connector |
-| `cadence/govern-detail.jsx` | Drill-downs: eval suite, agent analytics, trace replay, drift |
-| `cadence/onboard.jsx` | Login + onboarding first-run flow |
-| `cadence/icons.jsx` | Icon set + the Butterfly mark |
-| `cadence/tweaks-panel.jsx` | Design-review tweaks panel (ignore for production) |
+| File                             | What it is                                                               |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| `Cadence Prototype.html`         | Entry point — the full app mockup                                        |
+| `Platform Design Blueprint.html` | The signed design contract (v2)                                          |
+| `cadence/tokens.css`             | Token snapshot (live copy is at repo root)                               |
+| `cadence/data.js`                | All mock data, incl. drill-down payloads                                 |
+| `cadence/app.jsx`                | Routing, shared state, approvals/missions logic                          |
+| `cadence/shell.jsx`              | Sidebar, topbar, cooking banner, construction pill                       |
+| `cadence/home.jsx`               | Today screen — hero ritual, calls queue                                  |
+| `cadence/chat.jsx`               | Chat + Mission Cockpit + auto-title rule                                 |
+| `cadence/missions.jsx`           | Mission list, detail, graph view                                         |
+| `cadence/loop.jsx`               | Product / Knowledge / Govern / Settings screens                          |
+| `cadence/loop-detail.jsx`        | Drill-downs: signal, opportunity, release, decision, learning, connector |
+| `cadence/govern-detail.jsx`      | Drill-downs: eval suite, agent analytics, trace replay, drift            |
+| `cadence/onboard.jsx`            | Login + onboarding first-run flow                                        |
+| `cadence/icons.jsx`              | Icon set + the Butterfly mark                                            |
+| `cadence/tweaks-panel.jsx`       | Design-review tweaks panel (ignore for production)                       |
 
 Screen → source map: find any screen's code by its `data-screen-label`
 attribute in the jsx files.

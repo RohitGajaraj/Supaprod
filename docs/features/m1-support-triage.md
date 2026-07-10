@@ -59,7 +59,7 @@ draftSupportReply -> a humanized acknowledgement per cluster (template now, AI l
 ## Founder-gated / deferred (NOT autonomous)
 
 - **Inbound channel** (Intercom / Zendesk / email ingestion) — needs a connector OAuth
-  + recurring spend. Until then, tickets enter via manual add / bulk paste.
+  - recurring spend. Until then, tickets enter via manual add / bulk paste.
 - **AI-written draft** — the dormant `DraftProvider` seam; wiring it routes through the
   AI chokepoint (a founder/attended chokepoint increment), and may add recurring AI
   spend. The template reply is the always-on floor in the meantime.
