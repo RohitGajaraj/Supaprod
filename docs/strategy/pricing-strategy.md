@@ -1,7 +1,7 @@
 # Cadence Pricing Strategy
 
 > _Created: 2026-06-26 (founder session — 4-tier model decision + credit-dropdown architecture)_
-> _Last updated: 2026-06-26_
+> _Last updated: 2026-07-10 (research merge: Critic teardown moves INTO Free; the value-metric evolution note — credits price closed loops, never tokens or seats; the labor-budget anchor line. Executed under the founder's full-tweak-authority grant, [`session-decisions.md`](./session-decisions.md) 2026-07-10 decision 7; every change carries its evidence pointer inline.)_
 
 > **Status: CANONICAL.** This is the single source of truth for WHY Cadence prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../features/billing.md). This doc is the strategy layer those two reference.
 
@@ -50,6 +50,12 @@ Lovable's model (Free / Pro / Business / Enterprise, with a credit dropdown on P
 ### Why this fits Cadence specifically
 
 Cadence's value is the decision layer, not the raw AI compute. Credits are the meter; the decision memory, the Critic, the Trust Ledger, the governance rails — those are the product. The credit dropdown says "how much of the engine do you want running" and the tier boundary says "what level of the product do you need." These are orthogonal questions, which is why the dropdown sits inside a tier card rather than across separate tier cards.
+
+### Value-metric evolution — credits price closed loops and finished results, never tokens or seats (2026-07-10 research merge)
+
+**The standing direction for every future pricing/packaging decision:** a credit is a proxy for **finished results — closed decision loops** (decision → dispatched work → shipped → outcome recorded), never for tokens, API calls, or seats. Fits because Cadence's value event IS the closed decision loop, so the loop is the honest unit to price — the five-source market convergence corroborates rather than decides: seat pricing is visibly dying at the agentic frontier (Warp's Zach Lloyd: "fixed price per seat... doesn't work that well," 2025-09-27; Braintrust removed user-based pricing entirely, 2026-03-20; Pendo's Todd Olson naming Fin's "99 cents per support ticket closed" his favorite model, 2025-12-03 — [`../references/podcast-corpus-aakash.md`](../references/podcast-corpus-aakash.md) synthesis #1), Sierra's Bret Taylor: "tokens are not correlated with value" (2026-03-10, [`../references/podcast-corpus-frontier.md`](../references/podcast-corpus-frontier.md) §15), a16z: "'users' is being replaced by 'output'" (2024-12 / 2025-10-03, [`../references/investor-corpus-yc-vc.md`](../references/investor-corpus-yc-vc.md) §7), and Meng To: "you pay for the finished result" (2026-05-06 transcript, [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §13.6).
+
+Presentation follows the metric: the pricing page and the in-app meter lead with **per-artifact outcome ranges, never token math**, and adopt the **labor-budget anchor copy line** (investor corpus §A move 8): each mission pack lists its credit range against the work it replaces — e.g. *"a Critic teardown ≈ 15–40 credits; a spec→PR mission ≈ 150–400 credits — an afternoon of coordination work."* (a16z: the budget line agentic products tap is labor, and "per-seat is no longer the atomic unit of software," 2024-12; Huang at Sequoia AI Ascent: "you pay them salaries; you pay agents tokens," 2026-04-20.) True per-outcome billing (pay per resolved decision / merged PR) is **NOT adopted — FOUNDER-CALL**: the migration evidence points there, but outcome-attribution disputes pre-launch cut the other way (v13 §6); registered as G18 row RPT-20.
 
 ---
 
@@ -115,8 +121,10 @@ Memory is why someone pays. It is the primary charge lever and the lock-in mecha
 | ------------------------------------ | ------------------------ | ----------------------------------------- | ------------------------------------------ | -------------------------------------------- |
 | Memory persistence                   | 30-day rolling decay     | Persistent, never expires                 | Persistent, never expires                  | Persistent, custom retention                 |
 | Cross-workspace recall               | No                       | Within your own workspaces (paid benefit) | Pooled across all team members' workspaces | Org-wide, cross-workspace                    |
-| Decision Brain (supersession engine) | No                       | Yes (Critic red-teams every PRD + bet)    | Yes + custom Critic profiles               | Yes + approved-model lists + custom profiles |
+| Decision Brain (supersession engine) | Critic teardown included (capped by the credit allowance — see 2026-07-10 note below) | Yes (Critic red-teams every PRD + bet)    | Yes + custom Critic profiles               | Yes + approved-model lists + custom profiles |
 | Trust Ledger history                 | 30 days (mirrors memory) | Full persistent history                   | Full persistent history                    | Full + compliance-grade export + legal hold  |
+
+> **2026-07-10 research merge — the Critic teardown moves INTO Free (supersedes the old "No" in the cell above and §7.1's old first sentence; authority: [`session-decisions.md`](./session-decisions.md) 2026-07-10 decision 7).** The teardown IS the first-ten-minutes wedge ([`moat.md`](./moat.md); v13 PC-02), and a wedge behind a paywall is not a wedge — this resolves the pricing-strategy-§7.1-vs-moat.md contradiction surfaced by [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §16.2.1. It is an entitlement flip, not a new meter: Free's existing credit allowance already caps usage, and **memory decay stays the Free→Pro lever** (§5/§6 unchanged in that role). Fits because the product's first undeniable receipt — a red-teamed bet with checkable evidence — must land in the wedge persona's first session: the $28K bakeoff's survivors won by being narrow and evidence-grounded in minutes (research §2), and the founder's overwhelm bar makes a first-session receipt launch-gating (research §10). Pro keeps Critic-everywhere depth; Business keeps custom profiles; Enterprise keeps approved-model lists.
 
 ### 3.2 Agent Execution Capacity (the loop engine)
 
@@ -262,13 +270,13 @@ This section documents the felt reason at each tier transition — not the featu
 
 ### Free to Pro
 
-**The moment:** the user has been running missions and making decisions for a few weeks. They go back to reference a decision from 6 weeks ago and it is gone (30-day decay). Or they run a mission and the Critic does not red-team it because Critic-everywhere is a Pro feature. The memory decay is felt, not just noticed.
+**The moment:** the user has been running missions and making decisions for a few weeks. They go back to reference a decision from 6 weeks ago and it is gone (30-day decay). The memory decay is felt, not just noticed. _(2026-07-10 research merge: the Critic teardown itself is now IN Free, credit-capped — the wedge is never paywalled; what Free lacks is Critic-everywhere depth, persistent memory, and cross-workspace recall. See the §3.1 note.)_
 
 **The felt reason:** "I made a decision two months ago about the product direction. I need to know if it was right and what I've learned since. It is gone. I need my memory to persist."
 
 **Secondary reasons:**
 
-- The Critic is not on my side on every spec I write (Pro: Critic everywhere)
+- The Critic reaches only as far as my Free credits do, and not on every spec (Pro: Critic everywhere — 2026-07-10 research merge)
 - I can only track 2 products (Free limit)
 - I cannot recall across all my workspaces (cross-workspace memory is paid)
 
@@ -326,7 +334,7 @@ These are features that have user value but are often undercommunicated. They sh
 
 ### 7.1 Critic depth (not just "on/off")
 
-Free users get no Critic. Pro users get the Critic on every PRD and bet. Business users get Critic with custom profiles (e.g., "red-team from the perspective of our largest enterprise customer" as a saved profile). Enterprise users get approved-model lists (the Critic runs on a specific model the security team has approved).
+Free users get the Critic teardown, capped by the Free credit allowance _(2026-07-10 research merge: the teardown is the wedge and is never paywalled — evidence: research doc §16.2.1 + moat.md's wedge thesis; fits because the first receipted teardown is the first-session proof the wedge persona decides on; authority: session-decisions 2026-07-10 decision 7)_. Pro users get the Critic on every PRD and bet. Business users get Critic with custom profiles (e.g., "red-team from the perspective of our largest enterprise customer" as a saved profile). Enterprise users get approved-model lists (the Critic runs on a specific model the security team has approved).
 
 This is a meaningful upgrade signal that the pricing page should communicate: the Critic gets SMARTER and more customizable as you upgrade.
 
