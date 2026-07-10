@@ -724,3 +724,9 @@ approvals is a defect, not a queue. The laws:
 9. When this file is silent, DESIGN-OBSIDIAN.md (v3) applies. When both are
    silent, ask the specimen prototypes; when those are silent, the
    interfacecraft/devouringdetails school decides.
+
+---
+
+## Addendum — the density doctrine (founder ruling, 2026-07-10)
+
+**Compact by default.** The platform reads too airy: paddings, gaps, control heights, and type sizes step DOWN to the density of world-class tools (Linear, Raycast, Vercel dashboards) while staying readable. The implementation is token-led — a density scale in `src/styles.css` applied through the shared primitives, never per-component hacks. Exact values, guardrails (12px readability floor for body-adjacent text; mono metadata stays 10–11px; tap targets ≥32px; hairlines/hierarchy/spotlight/aurora untouched), and acceptance gates live in the PC-37 spec ([`docs/planning/launch-sprint-specs.md`](./docs/planning/launch-sprint-specs.md)). Where older Loom/Obsidian examples show roomier paddings or larger type, the density tokens win. Love-Gate review is required before the density PR merges.

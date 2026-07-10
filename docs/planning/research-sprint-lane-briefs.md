@@ -115,3 +115,14 @@ NOTHING outward is ever sent, posted, or published without the founder's explici
 - [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
 - [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §16 + [`../references/investor-corpus-yc-vc.md`](../references/investor-corpus-yc-vc.md) §A + [`../references/podcast-corpus-aakash.md`](../references/podcast-corpus-aakash.md) + [`../references/podcast-corpus-lenny.md`](../references/podcast-corpus-lenny.md) + [`../references/podcast-corpus-frontier.md`](../references/podcast-corpus-frontier.md) + [`../references/new-age-product-development-research.md`](../references/new-age-product-development-research.md) — the evidence base
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10 — decisions 1–7 (the authority + boundaries for this merge)
+
+---
+
+## 2026-07-10 additions — PC-36 + PC-37 (founder directives, specced same day)
+
+Two new Tier-1 G17 rows are ready for pickup; specs are decision-complete in [`launch-sprint-specs.md`](./launch-sprint-specs.md):
+
+- **PC-36 — Ask v2** (Build, Sonnet lane): five workstreams in order A→C→B→E→D plus voice phase 1; the block vocabulary and temporal recall are binding (founder extension in the spec). Exactly three named Fable forks (SSE block protocol, scope→retrieval params, approval-affordance UX) — everything else is decided in the spec, do not re-litigate.
+- **PC-37 — Density pass** (Design, Sonnet lane): token-led, shared-primitives-only; exact starting values in the spec; any token-value dispute is a Fable fork. **Love-Gate review by Fable BEFORE merge** (DESIGN-LOOM density addendum, 2026-07-10).
+
+Pick these by derived rank via `bash scripts/lane.sh next` as usual; claim on the dashboard before starting.

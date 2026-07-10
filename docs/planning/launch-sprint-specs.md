@@ -109,3 +109,49 @@ Already execution-grade: PC-13 seeds from the research §12 cohort (25 targets, 
 - **Lane D (SONNET):** PC-13 → 14 → 26 → PC-27 draft → the G18 sweep by rank.
 
 Collision law unchanged (B owns the 7 surface routes/nav/vocabulary; A owns chokepoints; C backend/feature files; D docs/GTM). Paste-ready prompts: [`research-sprint-lane-briefs.md`](./research-sprint-lane-briefs.md) — v3 blocks.
+
+---
+
+## PC-36 — Ask v2: the front door to the ledger and fleet (founder directive 2026-07-10)
+
+**Why (founder, 2026-07-10):** Ask is "functional but a placeholder — not the core value." It must become the conversational door into everything Cadence knows and can do, not a generic chat window.
+
+**Current state (audited 2026-07-10):** `src/components/obsidian/AskPanel.tsx` (495 lines, OBS-12: Cmd+J summonable right-docked 420px panel, mounted app-wide via `_authenticated.tsx`); `src/lib/ask-context.tsx` derives a plain-words "About: X" label from the route (`contextForPath`) — a LABEL only, it scopes nothing; `src/routes/api/chat.ts` (1,018 lines) already has: intent routing (internal vs web at L335), workspace RAG grounding (`workspace_chunks`), conversation persistence, REAL mission creation (`isMission` → `createMission` → the engine, L451+), research-activity streaming, and a ModelSwitcher component. Verdict: the plumbing is strong; the experience is a blank box with invisible powers.
+
+**The five gaps → five workstreams (build in this order: A → C → B → E → D):**
+
+- **A. Capability surface (kill the blank canvas).** Empty state shows 4–6 route-aware suggested asks (reuse `contextForPath`; e.g. on a decision: "Why did we decide this?" · on Discover: "What changed overnight?") + slash commands with a `/` palette: `/why` (decision recall — THE wedge), `/status`, `/spec`, `/decide`, `/dig` (web research), `/mission`. Every command maps to an EXISTING capability; no new engine.
+- **C. Receipts-first answers.** Internal answers render entity cards above prose (decision card with evidence links, opportunity card with ICE + signals) and every workspace-grounded claim gets a citation chip deep-linking to its source; a meta line states what was read (n chunks, sources). Implement as typed blocks in the existing SSE protocol (extend `ChatMeta`); reuse existing card primitives. An Ask answer must look like Cadence, not like ChatGPT.
+- **B. Scope that scopes.** The "About" chip becomes a control: This screen / This product / Whole workspace, plus entity-attach (search decisions/opportunities/PRDs, pin as context). Scope feeds the retrieval params in `chat.ts` grounding — a real filter, not prompt garnish.
+- **E. Promote to record.** One-click on any answer: save as founder note / decision draft / task. Conversations already persist; add "copy receipt link." Nothing said in Ask may evaporate — that is the ledger law applied to chat.
+- **D. Act from Ask.** Actions become visible verbs with inline approval affordances honoring the per-tool modes (auto/confirm/review) from the existing registry; mission dispatch shows its receipt (mission id + link); after-answer suggestions ("Record this as a decision," "Open as spec draft").
+
+**Acceptance:** the wedge path ("why did we decide X" on the seeded workspace → receipted answer with citation chips) demos clean; empty state never blank; every internal claim has ≥1 citation chip; all actions respect approval modes; zero AI calls outside the runtime chokepoint (existing `CallSurface`); tsc + build + tests green.
+
+**Lane: Sonnet builds.** Fable-fork escalation on exactly three judgment forks: the SSE block-protocol shape, the scope→retrieval param design, and the approval-affordance UX. Everything else is decided above.
+
+**Founder extension (same day, 2026-07-10 — binding on the build):**
+
+- **The block vocabulary (the "weather card" bar).** Answers render as typed inline cards, the way ChatGPT renders a weather card — never a wall of prose. Named block types for v2: **decision card** (the decision + evidence links + who/when + outcome status), **timeline block** (what happened on this entity over a window — decisions, supersessions, outcomes, missions), **opportunity card** (ICE + backing signals), **status digest** (product/mission state), **mission receipt** (dispatched work + link). "Why did I decide this?" returns the decision card; "what happened in the last three weeks on this?" returns the timeline block. Temporal recall is first-class: the retrieval layer must answer over a time window from the ledger, not just semantic top-k.
+- **F. Voice (phased).** Phase 1 (this row): mic input on the ask box — browser speech-to-text dictation — plus an optional read-aloud toggle on answers. Phase 2 (post-launch gate, registered but NOT in this row's acceptance): full duplex realtime voice conversation; needs model/cost decisions at the chokepoint, so it is a founder-gated follow-up, claim-on-wiring.
+- **The frame: Ask is the conversational layer of Cadence, not a window.** One engine, one block vocabulary; the panel (Cmd+J) is its first surface, and the same typed blocks become embeddable on entity pages later. Design every block as a reusable component, not panel-internal markup.
+
+
+---
+
+## PC-37 — The density pass: compact, world-class shell (founder ruling 2026-07-10)
+
+**Why (founder, 2026-07-10):** spacing/padding/type run too airy platform-wide; target the compact, clean density of world-class tools (Linear, Raycast, Vercel dashboards) — smaller but still readable.
+
+**Current state (audited 2026-07-10):** `src/styles.css` is the Tailwind v4 token layer (462 CSS vars: colors, radius) with NO spacing/typography/density scale — components hardcode paddings and font sizes (e.g., AskPanel inline `fontSize` 10–13, cards `p-6`, generous section gaps). That is why the fix is a TOKEN pass, not 200 file edits.
+
+**The one-pass, token-led method:**
+1. **Add density tokens to `styles.css`:** `--page-gutter: 24px` (from ~32) · `--card-pad: 16px` (from 24) · `--section-gap: 16px` (from 24) · `--control-h: 32px` (from 40) · `--row-h: 38px` (from ~48) · type ramp: body 14→13px, secondary 13→12px, mono metadata stays 10–11px (existing Loom law), page titles 24→20px, card titles 16→14px. These exact values are the starting proposal; any dispute on a value is a Fable fork, not a lane debate.
+2. **Apply through shared primitives ONLY:** Card/SpotlightCard/AuroraCard paddings, PageHeader, shell (header height, rail paddings, main gutter), table row heights, shadcn button/input size defaults. Then one sweep for hardcoded `p-6|p-8|h-10|text-base` in `src/components/` that overrides the primitives, folding them onto the tokens.
+3. **Never touch:** hairline weights, the 4-tier button hierarchy, spotlight/aurora treatments, role colors — Loom §0.1 is unchanged by this pass.
+
+**Guardrails:** readability floor 12px for body-adjacent text (mono metadata may sit at 10px); tap targets ≥32px; grayscale test still passes; no horizontal overflow at 1280px; the anti-scroll law should visibly BENEFIT (more value in the first viewport).
+
+**Acceptance:** before/after screenshots of five surfaces (Today, Discover, a Decide detail, a Build mission, Brain) attached to the PR; tsc + build green; **Love-Gate review by Fable BEFORE merge** (this is a design-contract change — DESIGN-LOOM density addendum, 2026-07-10).
+
+**Lane: Sonnet executes; Fable reviews at the gate.**
