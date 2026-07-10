@@ -333,7 +333,7 @@ export function GraphForceCanvas({
     // Labels in screen space (constant size). Virtualized: below the zoom
     // threshold only the focused neighborhood, hover and focus keep labels.
     ctx.globalAlpha = 1;
-    ctx.font = '10.5px "Schibsted Grotesk", ui-sans-serif, sans-serif';
+    ctx.font = '10.5px "Geist", ui-sans-serif, sans-serif';
     ctx.textAlign = "center";
     const showAll = cam.k >= LABEL_ZOOM_THRESHOLD;
     const hovered = hoverRef.current?.key ?? null;
@@ -508,7 +508,6 @@ export function GraphForceCanvas({
     return () => {
       sim.stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 
   // Contradiction hotspots pulse once on arrival.
@@ -519,13 +518,11 @@ export function GraphForceCanvas({
       if (!pulseStarts.current.has(key)) pulseStarts.current.set(key, now);
     }
     wake();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotKeys]);
 
   // Redraw when focus/selection/annotations change.
   useEffect(() => {
     wake();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, staleKeys, reducedMotion]);
 
   // DPR-aware sizing.
@@ -549,7 +546,6 @@ export function GraphForceCanvas({
     const ro = new ResizeObserver(apply);
     ro.observe(wrapper);
     return () => ro.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Wheel zoom to the cursor. Native listener: React's root-attached wheel
@@ -575,7 +571,6 @@ export function GraphForceCanvas({
     };
     canvas.addEventListener("wheel", onWheel, { passive: false });
     return () => canvas.removeEventListener("wheel", onWheel);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(

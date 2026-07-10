@@ -12,7 +12,7 @@ export function renderErrorPage(): string {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       :root { color-scheme: dark; }
-      body { font: 15px/1.55 "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0a0a0b; color: #f2f0ed; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      body { font: 15px/1.55 "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0a0a0b; color: #f2f0ed; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
       .card { max-width: 26rem; width: 100%; text-align: center; padding: 2rem; }
       .mark { display: flex; justify-content: center; margin-bottom: 1.25rem; }
       h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.5rem; letter-spacing: -0.01em; }

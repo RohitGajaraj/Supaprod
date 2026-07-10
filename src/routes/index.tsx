@@ -373,8 +373,8 @@ const STYLES = `
   @keyframes auroraDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); opacity:0.55 } 50% { transform: translate3d(0,-18px,0) scale(1.06); opacity:0.8 } }
   .lp-aurora { animation: auroraDrift 14s ease-in-out infinite; will-change: transform, opacity; }
 
-  /* Pixel display accent (Silkscreen) - innovative type for one signature moment */
-  .lp-pixel { font-family: "Silkscreen", "IBM Plex Mono", monospace; }
+  /* Pixel display accent (Geist Pixel) - the one signature brand moment (DESIGN-TEMPO.md SS3) */
+  .lp-pixel { font-family: "Geist Pixel Square", monospace; }
   /* Drifting particles + slow cosmic gradient morph for the brand band */
   @keyframes floatP { 0%,100% { transform: translateY(0); opacity: 0.45 } 50% { transform: translateY(-16px); opacity: 0.95 } }
   .lp-particle { animation: floatP 7s ease-in-out infinite; will-change: transform, opacity; }
@@ -574,7 +574,7 @@ function Tag({ children, col }: { children: React.ReactNode; col: string }) {
   return (
     <span
       style={{
-        fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+        fontFamily: "Geist Mono, monospace",
         fontSize: 9,
         letterSpacing: "0.14em",
         textTransform: "uppercase",
@@ -718,7 +718,7 @@ function OrbitRingLabeled({ active }: { active: number }) {
             textAnchor={n.anchor}
             fill={n.isActive ? C.violetBright : "rgba(255,255,255,0.4)"}
             fontSize="8.5"
-            fontFamily='"IBM Plex Mono", "JetBrains Mono", monospace'
+            fontFamily="Geist Mono, monospace"
             letterSpacing="0.1em"
             style={{ transition: "fill 0.4s" }}
           >
@@ -730,7 +730,7 @@ function OrbitRingLabeled({ active }: { active: number }) {
             textAnchor={n.anchor}
             fill={n.isActive ? "rgba(103,232,249,0.85)" : "rgba(255,255,255,0.24)"}
             fontSize="7"
-            fontFamily='"IBM Plex Mono", "JetBrains Mono", monospace'
+            fontFamily="Geist Mono, monospace"
             style={{ transition: "fill 0.4s" }}
           >
             {n.orbitKicker}
@@ -794,7 +794,7 @@ function OrbitRingLabeled({ active }: { active: number }) {
         textAnchor="middle"
         fill="#2a1300"
         fontSize="9.5"
-        fontFamily='"IBM Plex Mono", "JetBrains Mono", monospace'
+        fontFamily="Geist Mono, monospace"
         fontWeight="700"
         letterSpacing="0.12em"
       >
@@ -828,7 +828,7 @@ function TerminalCard({
     if (el) el.scrollTop = el.scrollHeight;
   }, [count, typed]);
 
-  const mono = '"IBM Plex Mono", "JetBrains Mono", monospace';
+  const mono = "Geist Mono, monospace";
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
   const typingLine = count < entries.length ? entries[count] : null;
@@ -1063,7 +1063,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
           style={{
             color: C.violetBright,
             fontSize: 10,
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
           }}
         >
           ◎
@@ -1072,7 +1072,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
           style={{
             fontSize: 11,
             color: C.muted,
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
           }}
         >
           cadence / today
@@ -1081,7 +1081,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
           style={{
             marginLeft: "auto",
             fontSize: 8,
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
             color: C.violetBright,
             border: `1px solid rgba(167,139,250,0.3)`,
             borderRadius: 4,
@@ -1117,7 +1117,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
             <div
               style={{
                 fontSize: 9,
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                fontFamily: "Geist Mono, monospace",
                 color: icons[step],
                 letterSpacing: "0.1em",
                 marginBottom: 5,
@@ -1146,7 +1146,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
                 background: C.violetDim,
                 color: C.violetBright,
                 cursor: "default",
-                fontFamily: "Schibsted Grotesk, sans-serif",
+                fontFamily: "Geist, sans-serif",
                 flexShrink: 0,
               }}
             >
@@ -1194,7 +1194,7 @@ function MockDecisionCard({ revealed }: { revealed: boolean }) {
               key={s.id}
               style={{
                 fontSize: 8,
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                fontFamily: "Geist Mono, monospace",
                 color: i <= step ? C.violetBright : C.faint,
                 transition: "color 0.4s",
               }}
@@ -1263,7 +1263,7 @@ function MockLiveRun({ revealed }: { revealed: boolean }) {
   // ETA falls off the SAME `progress` clock as the bar, so the number drops because
   // the bar fills — 8 min down to 1, then resolves to "shipped" (never a stuck clock).
   const etaMin = Math.max(1, Math.ceil((1 - progress) * 8));
-  const mono = '"IBM Plex Mono", "JetBrains Mono", monospace';
+  const mono = "Geist Mono, monospace";
 
   return (
     <div
@@ -1485,7 +1485,7 @@ function FlowList({ entries, revealed }: { entries: LogEntry[]; revealed: boolea
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
                 <span
                   style={{
-                    fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                    fontFamily: "Geist Mono, monospace",
                     fontSize: 9,
                     color: C.faint,
                   }}
@@ -1494,7 +1494,7 @@ function FlowList({ entries, revealed }: { entries: LogEntry[]; revealed: boolea
                 </span>
                 <span
                   style={{
-                    fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                    fontFamily: "Geist Mono, monospace",
                     fontSize: 9.5,
                     fontWeight: 600,
                     color: e.col,
@@ -1598,7 +1598,7 @@ function HeroSection() {
           >
             <div
               style={{
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                fontFamily: "Geist Mono, monospace",
                 fontSize: 9,
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
@@ -1715,7 +1715,7 @@ function ContrastSection() {
         >
           <p
             style={{
-              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontFamily: "Geist Mono, monospace",
               fontSize: 10,
               letterSpacing: "0.16em",
               textTransform: "uppercase",
@@ -1755,7 +1755,7 @@ function ContrastSection() {
             >
               <p
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 9,
                   letterSpacing: "0.12em",
                   textTransform: "uppercase",
@@ -1869,7 +1869,7 @@ function TrustSection() {
             >
               <span
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 11.5,
                   fontWeight: 600,
                   color: C.emberBright,
@@ -1918,7 +1918,7 @@ function OrbitSection() {
         <p
           style={{
             fontSize: 11,
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
             color: C.emberBright,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
@@ -1955,7 +1955,7 @@ function OrbitSection() {
           gap: 9,
           flexWrap: "wrap",
           justifyContent: "center",
-          fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+          fontFamily: "Geist Mono, monospace",
           fontSize: 11.5,
           minHeight: 18,
         }}
@@ -2020,7 +2020,7 @@ function StatsStrip() {
                 fontSize: "clamp(22px,3vw,30px)",
                 fontWeight: 700,
                 color: C.emberBright,
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                fontFamily: "Geist Mono, monospace",
                 textShadow: `0 0 20px ${C.emberGlow}`,
                 lineHeight: 1.1,
               }}
@@ -2051,7 +2051,7 @@ function MultiProductStrip() {
           margin: 0,
           fontSize: 13,
           color: C.muted,
-          fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+          fontFamily: "Geist Mono, monospace",
           letterSpacing: "0.02em",
         }}
       >
@@ -2078,7 +2078,7 @@ function ManifestoStrip() {
       >
         <div
           style={{
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
             fontSize: 10,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
@@ -2182,7 +2182,7 @@ function StationsSection() {
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 9,
                       color: C.faint,
                     }}
@@ -2191,7 +2191,7 @@ function StationsSection() {
                   </span>
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 14,
                       color: i === active ? s.color : C.faint,
                       textShadow: i === active ? `0 0 14px ${s.glow}` : "none",
@@ -2207,7 +2207,7 @@ function StationsSection() {
                       fontSize: 9,
                       letterSpacing: "0.12em",
                       textTransform: "uppercase",
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       color: i === active ? s.color : C.faint,
                       marginBottom: 6,
                       transition: "color 0.35s",
@@ -2241,7 +2241,7 @@ function StationsSection() {
                 >
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 8,
                       color: C.faint,
                       display: "block",
@@ -2469,7 +2469,7 @@ function LedgerSection() {
                 <span
                   key={h}
                   style={{
-                    fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                    fontFamily: "Geist Mono, monospace",
                     fontSize: 9,
                     color: C.faint,
                     letterSpacing: "0.1em",
@@ -2506,7 +2506,7 @@ function LedgerSection() {
                   <span style={{ fontSize: 13, color: C.muted }}>{row.outcome}</span>
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 9.5,
                       color: row.col,
                       border: `1px solid ${row.col}44`,
@@ -2520,7 +2520,7 @@ function LedgerSection() {
                   </span>
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 11,
                       fontWeight: 600,
                       color: isHot ? C.emberBright : C.faint,
@@ -2551,7 +2551,7 @@ function LedgerSection() {
         >
           <span
             style={{
-              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontFamily: "Geist Mono, monospace",
               fontSize: 9.5,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
@@ -2608,7 +2608,7 @@ function LedgerSection() {
             <div key={l} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 18,
                   fontWeight: 700,
                   color: C.emberBright,
@@ -2680,7 +2680,7 @@ function LedgerSection() {
 
 // A small system visual per moat layer, so each shows how it works, not just text.
 function MoatVisual({ idx, col }: { idx: number; col: string }) {
-  const mono = '"IBM Plex Mono", "JetBrains Mono", monospace';
+  const mono = "Geist Mono, monospace";
   const panel: CSSProperties = {
     marginTop: 24,
     padding: "14px 16px",
@@ -2840,7 +2840,7 @@ function MoatLayers({ on }: { on: boolean }) {
               <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 <span
                   style={{
-                    fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                    fontFamily: "Geist Mono, monospace",
                     fontSize: 8.5,
                     letterSpacing: "0.14em",
                     textTransform: "uppercase",
@@ -2882,7 +2882,7 @@ function MoatLayers({ on }: { on: boolean }) {
       >
         <div
           style={{
-            fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+            fontFamily: "Geist Mono, monospace",
             fontSize: 9.5,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
@@ -3049,7 +3049,7 @@ function GuerrillaSection() {
         >
           <div
             style={{
-              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontFamily: "Geist Mono, monospace",
               fontSize: 10,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
@@ -3118,7 +3118,7 @@ function GuerrillaSection() {
               <div
                 style={{
                   fontSize: 11,
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   letterSpacing: "0.16em",
                   color: C.emberBright,
                   paddingTop: 5,
@@ -3157,7 +3157,7 @@ function GuerrillaSection() {
               <div
                 style={{
                   fontSize: 11,
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   letterSpacing: "0.16em",
                   color: C.emberBright,
                   paddingTop: 5,
@@ -3476,12 +3476,6 @@ function LandingPage() {
   return (
     <MachineViewContainer machineContent={MACHINE_CONTENT} title="Cadence">
       <style dangerouslySetInnerHTML={{ __html: STYLES }} />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap"
-      />
       <div
         className="lp-page"
         style={{
@@ -3635,7 +3629,7 @@ function LandingPage() {
             >
               <span
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 9,
                   color: C.faint,
                 }}

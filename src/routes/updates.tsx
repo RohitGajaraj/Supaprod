@@ -61,7 +61,7 @@ function UpdatesPage() {
           <div key={e.title} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 20 }}>
             <span
               style={{
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                fontFamily: "Geist Mono, monospace",
                 fontSize: 11.5,
                 color: "#94a3b8",
                 paddingTop: 2,

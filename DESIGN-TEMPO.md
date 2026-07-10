@@ -80,7 +80,18 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
 
 ## 3. Typography law — three faces, three jobs
 
+**Verified against vercel.com/font (2026-07-11):** Vercel built Geist for developers and
+designers on three Swiss-design principles — simplicity, minimalism, speed — with
+"precision, clarity, and functionality." Mono shipped first for code-environment
+readability; Sans followed for general typographic needs; Pixel followed for display
+variation. Vercel states no rigid hierarchy beyond "the right face for the context" —
+which is exactly the three-lane split below. No deviation needed; our lane assignment
+already matches Vercel's own usage intent one-to-one.
+
 Self-hosted (no Google Fonts, no CDN): `/public/fonts/geist/` + `tokens/fonts.css`.
+Exact `@font-face` names in use, all self-hosted variable fonts (weight axis 100-900
+except Pixel, which is a fixed-weight 400 display face): `"Geist"`, `"Geist Mono"`,
+`"Geist Pixel Square"` / `Circle` / `Grid` / `Line` / `Triangle`.
 
 1. **Geist Sans** (`--font-sans`) — every interface string. The only UI face.
 2. **Geist Mono** (`--font-mono`) — technical content: ids, slugs, paths, code, hashes,
@@ -97,8 +108,23 @@ lines (14 is the UI workhorse; mono variants pair one size down); `text-copy-*` 
 multi-line text (14 most common, 13 where space is premium). `<strong>` nested inside
 gives Strong (labels/copy) or Subtle (headings). Tabular numerals for changing numbers.
 
-**Retired faces: Newsreader, Schibsted Grotesk, JetBrains Mono, Codystar, Caveat** — do
-not reintroduce. Inter/Roboto remain banned as ever.
+**Retired faces: Newsreader, Schibsted Grotesk, JetBrains Mono, IBM Plex Mono, Codystar,
+Caveat, Silkscreen** — do not reintroduce. Inter/Roboto remain banned as ever.
+
+**Known footgun (found + fixed 2026-07-11):** `src/styles.css` carries a legacy
+`[data-obsidian]` token block (ported from the retired Obsidian v3 app contract) that
+still declares the old Ember-era voice vars — `--font-serif`, `--font-ui`, `--font-dotted`,
+`--font-pencil` — by their legacy names, because ~130 components still reference those
+var names directly. A *second*, later `[data-obsidian]` block was added to re-alias them
+to Geist and wins the cascade (same selector, later source order beats the earlier
+block) — but the earlier block still held literal retired-font strings until this fix,
+so a routine refactor that removed the later block (or reordered them) would have
+silently un-fixed the whole app. The literal strings are gone now; every legacy-named
+var aliases via `var()` to `--font-sans` / `--font-mono` / `--font-pixel`. **Rule going
+forward: a legacy-named font var may only ever hold a `var()` alias to the Tempo trio,
+never a literal font-family string — in either `[data-obsidian]` block.** A landing-page
+`<link>` to Google Fonts for IBM Plex Mono + Silkscreen was also found still loading
+live (`src/routes/index.tsx`) and removed — self-hosted Geist only, no Google Fonts.
 
 ## 4. Materials law — elevation is a preset
 
@@ -229,3 +255,7 @@ and the numeral-index navigation.
   (11) at most one personality touch, and it costs nothing.
 - Implementation order (the porting phase) is a separate plan; this file governs every
   pixel built from 2026-07-10 onward.
+- **Automated guard**: `src/__tests__/design-tempo-font-guard.test.ts` fails the test
+  suite if any retired font-family literal (§3) reappears anywhere in `src/`, including
+  inside CSS custom-property values — the exact class of regression documented in §3's
+  known footgun. Extend that test's banned-string list if a new face is ever retired.

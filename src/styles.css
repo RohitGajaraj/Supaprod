@@ -5,11 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Cadence — "Ember Editorial" design language.
- * Source of truth: Project Cadence - Design v1 (DESIGN.md + cadence/tokens.css).
- * Warm parchment canvas · espresso/cacao ink · burnished ember copper accent ·
- * Newsreader serif display · Schibsted Grotesk UI · JetBrains Mono metadata.
+ * Cadence — Tempo v5 design system (Geist-derived, ember brand accent).
+ * Source of truth: /DESIGN-TEMPO.md + design-reference/tempo-v5/tokens/.
+ * Typography is Geist Sans (all UI, display included) · Geist Mono (technical
+ * content) · Geist Pixel (brand moments only). Never Newsreader, Schibsted
+ * Grotesk, JetBrains Mono/IBM Plex Mono, Codystar, Caveat, or Silkscreen —
+ * those belonged to the retired Ember Editorial system (old DESIGN.md).
  * Depth = surface tints, hairlines whisper-light, shadows rare.
+ *
+ * FOOTGUN (fixed 2026-07-11, do not reintroduce): this file still carries a
+ * legacy `[data-obsidian]` token block (~line 1690) with historical Ember
+ * voice-name vars (--font-serif/--font-ui/--font-dotted/--font-pencil). A
+ * later corrective `[data-obsidian]` block (~line 2887) re-aliases them to
+ * Geist and wins the cascade (same selector, later source order). Any legacy
+ * -named font var must always resolve through --font-sans/--font-mono/
+ * --font-pixel — never a literal font-family string — in BOTH blocks.
  *
  * Color roles (exclusive — color tells the user WHO acts and WHAT is asked):
  *   --ember        needs-human only: gates, calls, primary CTA
@@ -346,7 +356,7 @@
   }
   body {
     min-height: 100vh;
-    /* Ember body: 13px / 1.55 / Schibsted Grotesk — dense, editorial. */
+    /* Body voice: 13px / 1.55 / Geist — dense, editorial. */
     font-size: 13px;
     line-height: 1.55;
     letter-spacing: 0;
@@ -380,8 +390,8 @@
   }
 
   /* Tabular numerals where numbers live (tables, mono metadata) — NOT on all
-     prose: Schibsted Grotesk's tnum widens . , : to digit cells and breaks
-     body copy ("pain ． The"). Loom §4: tabular-nums wherever a NUMBER lives. */
+     prose: the UI font's tnum widens . , : to digit cells and breaks body
+     copy ("pain ． The"). Tabular-nums wherever a NUMBER lives, never in prose. */
   main :is(td, th, time),
   .tabular-nums {
     font-variant-numeric: tabular-nums;
@@ -1789,18 +1799,24 @@ html[data-motion="off"] .agent-live {
   --focus-ring: var(--glacier); /* 2px glacier focus ring */
   --selection: rgba(255, 107, 44, 0.28);
 
-  /* === tokens/typography.css · three voices + two special inks === */
-  --font-serif: "Newsreader", ui-serif, Georgia, serif;
-  --font-ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-dotted: "Codystar", cursive; /* aurora numerals ONLY */
-  --font-pencil: "Caveat", cursive; /* pencil annotations ONLY */
+  /* === legacy Ember Editorial voice names, aliased to Tempo v5 (DESIGN-TEMPO.md §3) ===
+   * Kept as var names only — ~130 components still reference var(--font-ui) /
+   * var(--font-serif) / var(--font-pencil). Never reintroduce a literal font
+   * string here; point every voice at the Tempo trio (--font-sans / --font-mono
+   * / --font-pixel) or a var() alias to one of them. See the guardrail note above. */
+  --font-serif: var(--font-display); /* was Newsreader; Tempo v5 has no serif — Geist covers display too */
+  --font-ui: var(--font-sans); /* was Schibsted Grotesk */
+  /* --font-mono intentionally NOT redeclared here — the Geist Mono definition
+     above is the single source of truth; a second declaration in this same
+     @theme block would silently win (last-declaration-wins) and revert it. */
+  --font-dotted: var(--font-pixel); /* was Codystar; aurora numerals = a brand moment */
+  --font-pencil: var(--font-pixel); /* was Caveat; pencil annotations = a brand moment */
 
-  --text-hero: 34px; /* Newsreader 420-440, -0.015em, 1.15 */
-  --text-h2: 28px; /* Newsreader 430-440 */
-  --text-card-title: 20px; /* Newsreader 450-460, 1.3 */
-  --text-score: 52px; /* Codystar, aurora cards only */
-  --text-base: 13px; /* Schibsted, 1.55 line height */
+  --text-hero: 34px; /* Geist display, -0.015em, 1.15 */
+  --text-h2: 28px; /* Geist display */
+  --text-card-title: 20px; /* Geist display, 1.3 */
+  --text-score: 52px; /* Geist Pixel, aurora cards only */
+  --text-base: 13px; /* Geist, 1.55 line height */
   --text-sm: 12px;
   --text-helper: 11.5px;
   --text-mono-label: 9.5px; /* mono caps, 0.10-0.12em tracking */

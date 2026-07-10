@@ -11,7 +11,7 @@ export function MachineViewToggle() {
       onClick={toggle}
       title={isMachineView ? "Switch to human view" : "Switch to machine-readable view"}
       style={{
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: "'Geist Mono', monospace",
         fontSize: 11,
         letterSpacing: "0.06em",
         background: "none",

@@ -79,7 +79,7 @@ export function LegalPageShell({
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <p
             style={{
-              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontFamily: "Geist Mono, monospace",
               fontSize: 10,
               letterSpacing: "0.16em",
               textTransform: "uppercase",

@@ -346,7 +346,7 @@ function TraceHop({
     return { color: "var(--moss)" };
   };
   return (
-    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, marginBottom: 10 }}>
+    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 11, marginBottom: 10 }}>
       {inbound ? (
         <div style={{ marginBottom: 4 }}>
           <button

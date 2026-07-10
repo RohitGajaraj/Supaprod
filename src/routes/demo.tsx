@@ -90,7 +90,7 @@ function Tag({ children }: { children: React.ReactNode }) {
   return (
     <span
       style={{
-        fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+        fontFamily: "Geist Mono, monospace",
         fontSize: 9,
         letterSpacing: "0.14em",
         textTransform: "uppercase",
@@ -136,7 +136,7 @@ function OverviewSection({ overview }: { overview: DemoOverview }) {
             <div key={label as string} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 22,
                   fontWeight: 700,
                   color: C.emberBright,
@@ -168,7 +168,7 @@ function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
             {teardown.verdict ? (
               <span
                 style={{
-                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontFamily: "Geist Mono, monospace",
                   fontSize: 10.5,
                   color: col,
                   border: `1px solid ${col}55`,
@@ -255,7 +255,7 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
                 </span>
                 <span
                   style={{
-                    fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                    fontFamily: "Geist Mono, monospace",
                     fontSize: 9.5,
                     color: C.faint,
                     textTransform: "uppercase",
@@ -307,7 +307,7 @@ function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
         <Card>
           <p
             style={{
-              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontFamily: "Geist Mono, monospace",
               fontSize: 10.5,
               color: C.emberBright,
               textTransform: "uppercase",
@@ -340,7 +340,7 @@ function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
                   </span>
                   <span
                     style={{
-                      fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                      fontFamily: "Geist Mono, monospace",
                       fontSize: 10,
                       color: C.faint,
                       textTransform: "uppercase",

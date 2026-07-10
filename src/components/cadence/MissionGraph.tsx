@@ -96,7 +96,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
               textAnchor="middle"
               style={{
                 fill: "var(--ink-subtle)",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "'Geist Mono', monospace",
                 fontSize: 8.5,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
@@ -149,7 +149,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   y={nodeY + 21}
                   style={{
                     fill: "var(--agent)",
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "'Geist Mono', monospace",
                     fontSize: 10,
                     fontWeight: 600,
                   }}
@@ -161,7 +161,7 @@ export function MissionGraph({ steps }: { steps: MissionGraphStep[] }) {
                   y={nodeY + 40}
                   style={{
                     fill: "var(--ink-subtle)",
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "'Geist Mono', monospace",
                     fontSize: 8,
                   }}
                 >
