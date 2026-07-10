@@ -306,6 +306,41 @@ export const completeOnboarding = createServerFn({ method: "POST" })
   });
 
 /**
+ * PC-02: Track onboarding funnel milestones for analytics (signup, product_named,
+ * data_connected, critic_completed, onboarding_completed).
+ */
+export const recordOnboardingMilestone = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid(),
+        stage: z.enum([
+          "signup",
+          "product_named",
+          "data_connected",
+          "critic_completed",
+          "onboarding_completed",
+        ]),
+        metadata: z.record(z.unknown()).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    const { trackFunnelMilestone } = await import("./activation-funnel.server");
+
+    try {
+      await trackFunnelMilestone(data.workspaceId, userId, data.stage as any, data.metadata);
+      return { success: true };
+    } catch (e) {
+      console.error("[PC-02] recordOnboardingMilestone failed:", e);
+      // Fail gracefully - funnel tracking is non-critical
+      return { success: false };
+    }
+  });
+
+/**
  * Set agent enabled status (called by the onboarding flow "Meet your staff" step).
  *
  * Keyed by agent id (the row PK), which is what the only caller — OnboardingFlow —

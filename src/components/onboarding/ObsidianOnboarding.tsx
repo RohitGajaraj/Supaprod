@@ -26,6 +26,7 @@ import { getProfile, updateProfile } from "@/lib/profile.functions";
 import {
   seedWorkspaceForTrack,
   completeOnboarding,
+  recordOnboardingMilestone,
   type OnboardingTrack,
 } from "@/lib/onboarding.functions";
 import { trackDescriptions } from "@/lib/onboarding/track-seeds";
@@ -34,6 +35,8 @@ import { runCriticReview, runWedgeTeardown, listOpportunities } from "@/lib/disc
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalButterfly } from "@/components/onboarding/ArrivalButterfly";
+import { track } from "@/lib/observability/analytics";
+import { trackFunnelMilestone } from "@/lib/activation-funnel.server";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 // SW-7: multi-account suite providers (Calendar + Gmail/Outlook Mail), same
@@ -73,10 +76,12 @@ function Frame({
   eyebrow,
   heading,
   children,
+  showTimer,
 }: {
   eyebrow?: string;
   heading: string;
   children: React.ReactNode;
+  showTimer?: string;
 }) {
   return (
     <div
@@ -86,23 +91,39 @@ function Frame({
         animation: "cadRise 260ms var(--ease) both",
       }}
     >
-      {eyebrow ? (
-        <MonoLabel tone="glacier" style={{ marginBottom: 10 }}>
-          {eyebrow}
-        </MonoLabel>
-      ) : null}
-      <h1
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 430,
-          fontSize: 28,
-          lineHeight: 1.2,
-          color: "var(--text-primary)",
-          margin: 0,
-        }}
-      >
-        {heading}
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div>
+          {eyebrow ? (
+            <MonoLabel tone="glacier" style={{ marginBottom: 10 }}>
+              {eyebrow}
+            </MonoLabel>
+          ) : null}
+          <h1
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontWeight: 430,
+              fontSize: 28,
+              lineHeight: 1.2,
+              color: "var(--text-primary)",
+              margin: 0,
+            }}
+          >
+            {heading}
+          </h1>
+        </div>
+        {showTimer ? (
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              textAlign: "right",
+            }}
+          >
+            {showTimer}
+          </div>
+        ) : null}
+      </div>
       <div style={{ marginTop: 20 }}>{children}</div>
     </div>
   );
@@ -295,6 +316,33 @@ export function ObsidianOnboarding() {
     window.sessionStorage.setItem("cadence.onboarding.phase", phase);
   }, [phase]);
 
+  // PC-02: stopwatch timer for the "10-minute wedge" promise
+  const startTimeRef = useRef<number | null>(null);
+  const [elapsed, setElapsed] = useState<string>("0m 0s");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.sessionStorage.getItem("cadence.onboarding.startTime");
+    if (!saved) {
+      startTimeRef.current = Date.now();
+      window.sessionStorage.setItem("cadence.onboarding.startTime", startTimeRef.current.toString());
+    } else {
+      startTimeRef.current = parseInt(saved, 10);
+    }
+
+    const interval = setInterval(() => {
+      if (startTimeRef.current) {
+        const now = Date.now();
+        const deltaSec = Math.floor((now - startTimeRef.current) / 1000);
+        const minutes = Math.floor(deltaSec / 60);
+        const seconds = deltaSec % 60;
+        setElapsed(`${minutes}m ${seconds}s`);
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const [productName, setProductName] = useState<string>("");
   const [belief, setBelief] = useState<string>(FALLBACK_BELIEF);
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
@@ -351,6 +399,9 @@ export function ObsidianOnboarding() {
   const seededBeliefRef = useRef<string>(FALLBACK_BELIEF);
 
   async function afterConnected() {
+    // Track data_connected milestone
+    await trackMilestone("data_connected");
+
     // Pull a real seeded/connected opportunity to point the Critic at; fall
     // back to the product belief if the workspace has none yet.
     try {
@@ -436,6 +487,23 @@ export function ObsidianOnboarding() {
   const fRunCritic = useServerFn(runCriticReview);
   const fWedgeTeardown = useServerFn(runWedgeTeardown);
   const fComplete = useServerFn(completeOnboarding);
+  const fRecordMilestone = useServerFn(recordOnboardingMilestone);
+
+  // PC-02: Helper to track funnel milestone (async, non-blocking)
+  async function trackMilestone(
+    stage: "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
+    metadata?: Record<string, unknown>,
+  ) {
+    if (!activeWorkspace?.id) return;
+    try {
+      await fRecordMilestone({
+        data: { workspaceId: activeWorkspace.id, stage, metadata },
+      });
+    } catch (e) {
+      console.error("[PC-02] trackMilestone failed:", e);
+      // Non-critical: continue even if tracking fails
+    }
+  }
 
   // PC-02: run Critic and display results, then mark onboarded
   const mFinish = useMutation({
@@ -459,6 +527,12 @@ export function ObsidianOnboarding() {
         console.error("onboarding critic run failed (non-fatal):", e);
       }
 
+      // Track critic_completed milestone
+      await trackMilestone("critic_completed", {
+        verdict: review?.verdict,
+        confidence: review?.confidence,
+      });
+
       setCriticReview(review);
 
       // Move to results display before marking onboarded
@@ -469,6 +543,9 @@ export function ObsidianOnboarding() {
         await fComplete({ data: {} });
         const { data } = await supabase.auth.getSession();
         if (data.session) await markOnboarded(data.session.user.id);
+
+        // Track onboarding_completed milestone
+        await trackMilestone("onboarding_completed");
       } catch (e) {
         console.error("onboarding completion failed:", e);
       }
@@ -489,6 +566,8 @@ export function ObsidianOnboarding() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["opportunities"] });
       qc.invalidateQueries({ queryKey: ["workspaces"] });
+      // Track product_named milestone
+      void trackMilestone("product_named", { productName });
       // Move directly to data source selection, skipping explicit track choice
       setPhase("data");
     },
@@ -588,7 +667,7 @@ export function ObsidianOnboarding() {
     const seedLive = !!seedEnabledQ.data?.enabled;
     return (
       <Screen>
-        <Frame eyebrow="STEP 2 OF 3" heading="What should Cadence read?">
+        <Frame eyebrow="STEP 2 OF 3" heading="What should Cadence read?" showTimer={elapsed}>
           {!showPaste ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -749,7 +828,7 @@ export function ObsidianOnboarding() {
   if (phase === "critic") {
     return (
       <Screen>
-        <Frame eyebrow="STEP 3 OF 3" heading="Challenging your thinking…">
+        <Frame eyebrow="STEP 3 OF 3" heading="Challenging your thinking…" showTimer={elapsed}>
           <input
             value={belief}
             onChange={(e) => setBelief(e.target.value)}
@@ -786,7 +865,7 @@ export function ObsidianOnboarding() {
   if (phase === "results") {
     return (
       <Screen>
-        <Frame heading="Here's what Cadence found.">
+        <Frame heading="Here's what Cadence found." showTimer={elapsed}>
           {criticReview ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Verdict badge */}
@@ -912,8 +991,11 @@ export function ObsidianOnboarding() {
                 <Button
                   variant="primary"
                   onClick={() => {
-                    window.sessionStorage.removeItem("cadence.onboarding.phase");
-                    window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+                    if (typeof window !== "undefined") {
+                      window.sessionStorage.removeItem("cadence.onboarding.phase");
+                      window.sessionStorage.removeItem("cadence.onboarding.startTime");
+                      window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+                    }
                     navigate({ to: "/today" });
                   }}
                   style={{ width: "100%" }}
