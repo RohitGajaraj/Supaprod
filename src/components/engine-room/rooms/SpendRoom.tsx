@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { AuroraCard, MonoLabel, GraphSlider } from "@/components/obsidian";
 import { getAnalyticsOverview, getAgentSpendBreakdown } from "@/lib/analytics.functions";
+import { getFunnelSnapshot } from "@/lib/funnel.functions";
 import { zeroFillDaily } from "@/lib/engine-room-glance";
 import { Row, EmptyRow, ErrorRetry, PanelPending, type RoomBodyProps } from "../RoomDetail";
 
@@ -140,7 +141,67 @@ function ByAgentView({ agent }: { agent?: string }) {
   );
 }
 
+// PC-06: signup -> connected -> first teardown -> first mission -> week-2
+// return, counts + conversion off signup, in the Spend room's own chart
+// pattern (a 7/30-day toggle beside the count list, same as TrendView).
+function FunnelView() {
+  const [windowDays, setWindowDays] = React.useState<7 | 30>(7);
+  const fFunnel = useServerFn(getFunnelSnapshot);
+  const q = useQuery({
+    queryKey: ["funnel-snapshot", windowDays],
+    queryFn: () => fFunnel({ data: { windowDays } }),
+  });
+
+  if (q.isError) {
+    return <ErrorRetry message="The funnel did not load." onRetry={() => void q.refetch()} />;
+  }
+  if (q.isLoading) return <PanelPending />;
+  const steps = q.data?.steps ?? [];
+  const signupCount = steps.find((s) => s.stage === "signup")?.count ?? 0;
+  if (signupCount === 0) {
+    return (
+      <EmptyRow message="No signups in this window yet. The funnel fills in as accounts move through it." />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        {([7, 30] as const).map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setWindowDays(d)}
+            className="rounded-full px-3 py-1"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-xs)",
+              border: "1px solid var(--hairline)",
+              color: windowDays === d ? "var(--text-primary)" : "var(--text-muted)",
+              background: windowDays === d ? "var(--surface-recessed, #141416)" : "transparent",
+            }}
+          >
+            {d} DAYS
+          </button>
+        ))}
+      </div>
+      <div>
+        {steps.map((s) => (
+          <Row
+            key={s.stage}
+            subject={s.label}
+            value={String(s.count)}
+            statusWord={s.conversionFromPrev === null ? "100%" : `${s.conversionFromPrev}%`}
+            statusColor="var(--text-muted)"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SpendRoom({ view, agent }: RoomBodyProps) {
+  if (view === "funnel") return <FunnelView />;
   if (view === "by-agent") return <ByAgentView agent={agent} />;
   if (view === "caps") {
     return (

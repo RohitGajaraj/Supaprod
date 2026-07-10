@@ -94,6 +94,12 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       technical: "Analytics rollup",
       descriptor: "Every call, model, and token, itemized.",
     },
+    {
+      id: "funnel",
+      label: "Funnel",
+      technical: "Activation funnel",
+      descriptor: "How far new signups get, and where they drop off.",
+    },
   ],
   quality: [
     {

@@ -17,6 +17,7 @@ import { track } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { extractRejectedAlternatives } from "@/lib/ai/decision-alternatives";
 import { callModel } from "@/lib/ai/runtime.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type HandoffPayload = {
   /** Short headline the receiver should solve next. */
@@ -241,6 +242,19 @@ export async function createMission(
     .single();
   if (error) throw new Error(error.message);
   void track("mission_started", userId, { workspace_id: workspaceId });
+  // PC-06: the funnel's "first mission dispatched" step. Idempotent
+  // (funnel_milestones UNIQUE(workspace_id, user_id, stage)) and best-effort
+  // - a tracking failure must never block a real mission from being created.
+  void (supabaseAdmin as unknown as SupabaseClient)
+    .from("funnel_milestones")
+    .upsert(
+      { workspace_id: workspaceId, user_id: userId, stage: "first_mission" },
+      { onConflict: "workspace_id,user_id,stage", ignoreDuplicates: true },
+    )
+    .then(
+      () => {},
+      () => {},
+    );
   const mission = data as MissionRow;
   // SEAM-1: creation event (from null). The starting agent is only an id here
   // (slug would cost a lookup), so the actor is 'system'.
