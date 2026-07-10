@@ -94,6 +94,8 @@ Applying the four questions (why does it exist / what pain does it kill / can an
 5. **Distribution in the judgment community** — the wedge (teardown links, PM-impact ledgers) spreads PM-to-PM; labs sell horizontal seats.
 The survival playbook from precedent (Cursor beside Copilot, Perplexity beside Google, vs Jasper's death): workflow depth + compounding proprietary data + trust friction + application-layer speed. All four are our existing architecture; the campaign's job is to make them *visible and used*.
 
+**The why-now, from the people building the threat (research §14):** Amodei says models "may just do SWE end-to-end… in a year or two" — build commoditization is Cadence's *precondition*, stated by the person shipping the models. Masad describes Replit's production self-improving agent with the exact mechanism of our reinforcement doctrine ("it's not improving its weights, it's improving its context, which matters just as much") and predicts internal "Oracle" agents execs consult for decisions — a description of our layer from a founder building the layer below it. Every 2026 voice points at the same empty seat: **the governed decision layer with outcome memory above the agent fleet** — and nobody named in any of those conversations occupies it.
+
 ## 8. Positioning, pricing, the one-liner
 
 **The category:** the decision and outcome operating system for product teams (unchanged, v11 1A verbatim stands). Never "AI PM tool" — that category label pattern-matches to the graveyard.

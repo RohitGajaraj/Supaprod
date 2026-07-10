@@ -237,9 +237,47 @@ Read alongside [`../strategy/moat.md`](../strategy/moat.md), [`../strategy/v11-g
 
 ---
 
+## 14. Industry-direction voices — Amodei, Masad, the Lenny-circle 2026 (added 2026-07-10, per founder ask: "how the industry is moving, how the agentic world is moving")
+
+> Method: full-transcript or transcript-grade extraction where reachable (Dwarkesh publishes full transcripts; SaaStr's 2026 writeup is first-person reporting of Masad's talk; the Meng To and Aakash episodes in §13/§11 were transcript-pulled). Where only summary-level was reachable, it is marked. Every quote dated.
+
+**Dario Amodei (Anthropic CEO), Dwarkesh Patel podcast, 2026-02-13 ("We are near the end of the exponential"):**
+- Timeline, verbatim: "I think we may get to the point in a year or two where the models can just do **SWE end-to-end. That's a whole sphere of human activity that we're just saying models can do now.**" And: the "country of geniuses in a data center" arrives in "one to two years, maybe one to three years," operating with "general control of a computer screen."
+- Already true internally: "**We have engineers at Anthropic who don't write any code.**"
+- The compounding-product loop: "we ourselves are developing the model and we ourselves know what we most need... it's creating this feedback loop." Plus the standing safety posture ("we need to put in place the safeguards... the right alignment work").
+- Nuance datapoint for §5 (fears): Fortune, 2026-05-26 — Amodei (and Altman) publicly walking back the jobs-apocalypse framing; his revised line: automation "may actually expand the work people do."
+- **Read for Cadence:** if SWE goes end-to-end on a 1-2 year clock, the scarce layer is exactly one level up — deciding WHAT to build and verifying WHAT worked. The build layer commoditizing is not a threat to Cadence; it is the precondition for it. The strongest timeline argument for launching the decision layer NOW, from the person shipping the models.
+
+**Amjad Masad (Replit founder/CEO), SaaStr AI 2026 + Lenny's Podcast (2024-11):**
+- The self-improving agent, in production at Replit: an internal agent "reads all the traces of everyone using Replit every night, finds what's broken, generates a pull request with prompt changes, ships it as an A/B test, and loops back." His mechanism claim, verbatim: "**It's not improving its weights, it's improving its context, which matters just as much.**" — Replit's founder stating Cadence's v12 reinforcement doctrine (learning lives in data/policy/routing, never weights) as shipped state of the art. The single best external validation quote this research found.
+- The "Oracle" prediction: companies will run internal agents "holding comprehensive business data (GitHub commits, Slack messages, Notion docs, emails) that executives consult for strategic decisions" — "this future is nearer than most realize." That is a description of Cadence's signal fabric + decision brain, from a founder whose company builds the execution layer BELOW it, not this layer.
+- Builder guidance from the same talk: distinguish "bugs to remove from context versus architectural decisions to retain in long-term memory" (memory curation + supersession — machinery Cadence has); document schemas so agents don't write expensive queries; monorepos win on "context leverage."
+- From the Lenny episode (2024-11): "PMs, designers, and even non-technical founders can ship working products — AI as their developer in the pocket"; live demo of account/bug-fix/feature in minutes; the personal note that he stopped coding himself ("a small crisis, the thing that made him him").
+- **Read for Cadence:** the execution-layer leader predicts the decision-layer product and says context-learning is the real lever. Both statements belong in the YC "why now / why us" section.
+
+**The Lenny-circle, 2026 (summary-level, not transcript-verified — searchable corpus at lenny.productbuilder.net, 294+ transcripts):**
+- The structural trend across 2026 episodes: canonical product teams shifting "from specialist teams to lean pods of four to six generalists," including a "**product staff**" role — PM, design, data science, and research blended into one generalist operator. The Coinbase memo (§12.3) is the aggressive end of the same curve; Cadence's one-person-runner persona sits ON the curve, not past it.
+- Dan Shipper (Every founder, 2026 episode "The AI paradox: more automation, more humans, more work"): company-wide super-agents; "automation actually creates more human managerial work"; "PMs and full-stack designers will thrive." The paradox framing matters for positioning: Cadence sells relief from the NEW work automation creates (managing, verifying, deciding across agent output) — not only the old grunt work.
+
+**The cross-voice synthesis (what changed vs. §11's convergence read):** §11's five PM voices agreed judgment is the scarce asset. §14's builders go further: the execution layer is finishing (Amodei's 1-2 year SWE clock), the learning that matters is context-learning not weight-learning (Masad, shipped), and the org shape is collapsing toward one generalist operator with an agent fleet (Lenny-circle + Coinbase). Every arrow points at the same empty seat: **the governed decision layer with outcome memory above the agent fleet** — occupied by nobody named in any of these conversations. That is the positioning sentence for the launch.
+
+---
+
+## 15. Standing follow-up queue + the agentic-everywhere directive (2026-07-10, end-of-session capture)
+
+**The founder's closing directive (verbatim-close):** "How can I have agents across every single surface of our product and make sure that agents take care of everything on their own, and I do the minimal thing — what does that require from my end as a human... making it truly agentic-first, really delivering value, not just a wrapper or a pitch-level agentic claim. Think everything from that perspective." **Routing, not reinvention:** this is the v12 north star restated (the 2026-07-02 seven-question session: the learning loop, the ambient/foresight layer, HITL floors as the human-minimum contract) and the v13 campaign's execution scope (G15/G17 rows). The research contribution to it from this doc: the human-minimum is already market-defined — the human holds taste (§13), judgment/receipt-approval (§11, §12.1), and the consent gates users demand (§5, §9); everything else is agent work the §3 ranking orders. Any surface where an agent cannot yet take the work end-to-end should say so honestly (the §9 accountability seam) rather than wear agentic chrome — that is the wrapper test the founder names.
+
+**Transcript-corpus follow-ups (method proven this session — one command per video: `uvx --from youtube-transcript-api python -c "...fetch('<VIDEO_ID>')..."`; see §13.6):**
+1. **More Aakash Gupta episodes** (founder ask): shortlist by relevance to the wedge — his AI-PM operator interviews (the 100+ AI PM series), evals-as-the-new-PRD episodes, and the Meng To episode's siblings. Apply §12.4: mine for operator quotes and named-company facts, not his framing.
+2. **Frontier launch corpus** (founder ask): keynote/launch transcripts for OpenAI (ChatGPT agent releases, DevDay 2025/2026), Anthropic (Claude feature launches, agent SDK), Cursor, image-agent launches — extract the FEATURE-level moves (what shipped, what it obsoletes, what it leaves open) as roadmap candidates. Note: the parallel session's frontier-agent-UX brief (`2026-07-10-launch-research-briefs.md`) already covers part of this; extend it, don't duplicate.
+3. **Remaining §12.5 items:** LinkedIn scroll-loop (Aakash/Lenny image posts), r/startups + r/ExperiencedDevs top-of-year passes, "I'd pay for" keyword corpus, Aakash-callout thread deep-read, Meng To's other 2026 videos, Aura teardown.
+
+---
+
 ## Related
 
 - [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) — single-creator PM content audit (sibling reference; §11 extends it with the wider circle; **§12.4's citation-integrity correction governs how it may be cited**)
 - [`competitive-landscape.md`](./competitive-landscape.md) — June-2026 market scan (AI-PM tools, suite agents, MCP/A2A)
+- [`2026-07-10-launch-research-briefs.md`](./2026-07-10-launch-research-briefs.md) — the parallel v13 session's 7-agent sweep (frontier-agent UX brief lives there; §15's frontier corpus extends it)
 - [`../strategy/moat.md`](../strategy/moat.md) — moat/competition canon this research corroborates
-- [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) — 2026-07-10 entry pointing back to this doc
+- [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) — 2026-07-10 entries pointing back to this doc
