@@ -1386,7 +1386,9 @@ export async function callModel(
       r.hits.forEach((h) => hits.push(h));
       if (r.blocked)
         throw Object.assign(
-          new Error(`Blocked by guardrail: ${r.hits.find((h) => h.action === "block")?.rule_name}`),
+          new Error(
+            `A safety rule blocked this: ${r.hits.find((h) => h.action === "block")?.rule_name}`,
+          ),
           { code: "GUARDRAIL_BLOCK" },
         );
       return { ...m, content: r.text };
@@ -1904,7 +1906,9 @@ export async function callModelStream(
       r.hits.forEach((h) => hits.push(h));
       if (r.blocked)
         throw Object.assign(
-          new Error(`Blocked by guardrail: ${r.hits.find((h) => h.action === "block")?.rule_name}`),
+          new Error(
+            `A safety rule blocked this: ${r.hits.find((h) => h.action === "block")?.rule_name}`,
+          ),
           { code: "GUARDRAIL_BLOCK" },
         );
       return { ...m, content: r.text };

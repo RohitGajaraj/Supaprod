@@ -48,10 +48,10 @@ export function GoalsPanel() {
       qc.invalidateQueries({ queryKey: ["goals"] });
       qc.invalidateQueries({ queryKey: ["opportunities"] });
       if (r.firstPass?.proposed === 1) {
-        toast.success("Goal set. The swarm already proposed its first opportunity into Decide.");
+        toast.success("Goal set. Cadence already proposed its first opportunity into Decide.");
       } else {
         toast.success(
-          "Goal set. The swarm found nothing new yet; it keeps watching and re-plans every 20 minutes.",
+          "Goal set. Cadence found nothing new yet. It keeps watching and re-plans every 20 minutes.",
         );
       }
     },
@@ -104,13 +104,13 @@ export function GoalsPanel() {
             color: "var(--text-muted)",
           }}
         >
-          What outcome should the swarm keep working?
+          What outcome should Cadence keep working?
         </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder='State the outcome, like "grow activation 15% this quarter". The swarm re-plans against it.'
+            placeholder='State the outcome, like "grow activation 15% this quarter". Cadence re-plans against it.'
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();
             }}
@@ -140,7 +140,7 @@ export function GoalsPanel() {
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>Loading goals…</p>
       ) : goals.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
-          No standing goals yet. Set one above and the swarm starts working it immediately.
+          No standing goals yet. Set one above and Cadence starts working it immediately.
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

@@ -2322,7 +2322,7 @@ const BRIEF_FIELDS: {
   {
     key: "current_focus",
     label: "Current focus",
-    hint: "What the swarm should prioritize this quarter. Cut, don't expand.",
+    hint: "What Cadence should prioritize this quarter. Cut, don't expand.",
     placeholder: "Q3 2026: close the Discover, Define, Plan, Build loop on real signals.",
     rows: 4,
   },
@@ -2335,7 +2335,7 @@ const BRIEF_FIELDS: {
   },
   {
     key: "notes",
-    label: "Notes for the swarm",
+    label: "Notes for Cadence",
     hint: "Tone, constraints, decisions, references.",
     placeholder: "Speak in product terms. Lean concise over verbose. Always cite evidence.",
     rows: 4,

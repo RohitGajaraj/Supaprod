@@ -177,7 +177,7 @@ export function DecisionsPanel() {
     mutationFn: (data: { title: string; rationale?: string }) => fCreate({ data }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["decisions"] });
-      toast.success("Decision logged · the swarm reads it");
+      toast.success("Decision logged · Cadence reads it");
       setOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -453,7 +453,7 @@ function LogDecisionDialog({
             Log decision
           </DialogTitle>
           <DialogDescription style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>
-            Capture a choice that should outlive this week. The swarm reads these.
+            Capture a choice that should outlive this week. Cadence reads these.
           </DialogDescription>
         </DialogHeader>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

@@ -67,6 +67,7 @@ import { Route as AuthenticatedDriftRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedDocsRouteImport } from './routes/_authenticated.docs'
 import { Route as AuthenticatedDiscoveryRouteImport } from './routes/_authenticated.discovery'
 import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated.discover'
+import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated.design'
 import { Route as AuthenticatedDelegateRouteImport } from './routes/_authenticated.delegate'
 import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated.decide'
 import { Route as AuthenticatedCockpitRouteImport } from './routes/_authenticated.cockpit'
@@ -454,6 +455,11 @@ const AuthenticatedDiscoveryRoute = AuthenticatedDiscoveryRouteImport.update({
 const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDesignRoute = AuthenticatedDesignRouteImport.update({
+  id: '/design',
+  path: '/design',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDelegateRoute = AuthenticatedDelegateRouteImport.update({
@@ -1019,6 +1025,7 @@ export interface FileRoutesByFullPath {
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/delegate': typeof AuthenticatedDelegateRoute
+  '/design': typeof AuthenticatedDesignRoute
   '/discover': typeof AuthenticatedDiscoverRoute
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
@@ -1171,6 +1178,7 @@ export interface FileRoutesByTo {
   '/cockpit': typeof AuthenticatedCockpitRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/delegate': typeof AuthenticatedDelegateRoute
+  '/design': typeof AuthenticatedDesignRoute
   '/discover': typeof AuthenticatedDiscoverRoute
   '/discovery': typeof AuthenticatedDiscoveryRoute
   '/docs': typeof AuthenticatedDocsRoute
@@ -1325,6 +1333,7 @@ export interface FileRoutesById {
   '/_authenticated/cockpit': typeof AuthenticatedCockpitRoute
   '/_authenticated/decide': typeof AuthenticatedDecideRoute
   '/_authenticated/delegate': typeof AuthenticatedDelegateRoute
+  '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
   '/_authenticated/discovery': typeof AuthenticatedDiscoveryRoute
   '/_authenticated/docs': typeof AuthenticatedDocsRoute
@@ -1480,6 +1489,7 @@ export interface FileRouteTypes {
     | '/cockpit'
     | '/decide'
     | '/delegate'
+    | '/design'
     | '/discover'
     | '/discovery'
     | '/docs'
@@ -1632,6 +1642,7 @@ export interface FileRouteTypes {
     | '/cockpit'
     | '/decide'
     | '/delegate'
+    | '/design'
     | '/discover'
     | '/discovery'
     | '/docs'
@@ -1785,6 +1796,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cockpit'
     | '/_authenticated/decide'
     | '/_authenticated/delegate'
+    | '/_authenticated/design'
     | '/_authenticated/discover'
     | '/_authenticated/discovery'
     | '/_authenticated/docs'
@@ -2403,6 +2415,13 @@ declare module '@tanstack/react-router' {
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof AuthenticatedDiscoverRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/design': {
+      id: '/_authenticated/design'
+      path: '/design'
+      fullPath: '/design'
+      preLoaderRoute: typeof AuthenticatedDesignRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/delegate': {
@@ -3141,6 +3160,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCockpitRoute: typeof AuthenticatedCockpitRoute
   AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
   AuthenticatedDelegateRoute: typeof AuthenticatedDelegateRoute
+  AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
   AuthenticatedDiscoveryRoute: typeof AuthenticatedDiscoveryRoute
   AuthenticatedDocsRoute: typeof AuthenticatedDocsRoute
@@ -3198,6 +3218,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCockpitRoute: AuthenticatedCockpitRoute,
   AuthenticatedDecideRoute: AuthenticatedDecideRoute,
   AuthenticatedDelegateRoute: AuthenticatedDelegateRoute,
+  AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
   AuthenticatedDiscoveryRoute: AuthenticatedDiscoveryRoute,
   AuthenticatedDocsRoute: AuthenticatedDocsRoute,

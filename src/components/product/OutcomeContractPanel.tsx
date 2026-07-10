@@ -543,7 +543,7 @@ function OracleBadge({ clause }: { clause: ContractClause }) {
   if (!clause.oracle_kind) return null;
   const title =
     clause.oracle_kind === "eval"
-      ? "Compiled to an eval case, graded by the evals engine"
+      ? "Compiled to an eval case, graded by Cadence"
       : clause.oracle_kind === "ci"
         ? clause.oracle_ref || "Covered by the standard CI gate"
         : clause.oracle_kind === "uat"

@@ -10,30 +10,39 @@ import {
 import { CANONICAL_PATHS } from "./legacy-redirects";
 
 /**
- * IA-NAV-V11 → OBS-02 → OBS-10 → LOOM W1 → Decide (2026-07-07): the rail is
- * one calm grouped list where EVERYTHING is reachable by clicking (the LOOM
- * visibility law): THE LOOP (6 destinations, Decide is its own decide stage
- * between Discover and Plan) + THE ENGINE (2 visible rows: Engine Room, Trust
- * Ledger) + the footer (Settings, role-gated Admin). Connections was removed
- * from the rail (2026-07-06): connecting lives in Settings > Connections and
- * /sync (Sync & bindings) is reached from there. These tests lock the
- * invariants: unique live paths, no /chat, no /knowledge (renamed /brain).
+ * IA-NAV-V11 → OBS-02 → OBS-10 → LOOM W1 → Decide (2026-07-07) → PC-28
+ * (2026-07-10): the rail is one calm grouped list where EVERYTHING is
+ * reachable by clicking (the LOOM visibility law): THE LOOP (7 destinations,
+ * the completed D-family - Discover/Decide/Define/Design - Build, Brain) +
+ * THE ENGINE (2 visible rows: Engine Room, Ledger) + the footer (Settings,
+ * role-gated Admin). Connections was removed from the rail (2026-07-06):
+ * connecting lives in Settings > Connections and /sync (Sync & bindings) is
+ * reached from there. These tests lock the invariants: unique live paths, no
+ * /chat, no /knowledge (renamed /brain).
  */
 
 describe("nav-model - THE LOOP (primary destinations)", () => {
-  it("is one flat list of exactly six outcome-named destinations", () => {
-    expect(PRIMARY_NAV.length).toBe(6);
+  it("is one flat list of exactly seven outcome-named destinations", () => {
+    expect(PRIMARY_NAV.length).toBe(7);
     const labels = PRIMARY_NAV.map((n) => n.label);
-    expect(labels).toEqual(["Today", "Discover", "Decide", "Define", "Build", "Brain"]);
+    expect(labels).toEqual(["Today", "Discover", "Decide", "Define", "Design", "Build", "Brain"]);
   });
 
-  it("every destination has a route, a label, and a mono index 01-06", () => {
+  it("every destination has a route, a label, and a mono index 01-07", () => {
     for (const n of PRIMARY_NAV) {
       expect(n.to.startsWith("/")).toBe(true);
       expect(n.label.length).toBeGreaterThan(0);
-      expect(n.index).toMatch(/^0[1-6]$/);
+      expect(n.index).toMatch(/^0[1-7]$/);
     }
-    expect(PRIMARY_NAV.map((n) => n.index)).toEqual(["01", "02", "03", "04", "05", "06"]);
+    expect(PRIMARY_NAV.map((n) => n.index)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+  });
+
+  it("Design completes the D-family between Define and Build (PC-28)", () => {
+    const design = PRIMARY_NAV.find((n) => n.label === "Design");
+    expect(design?.to).toBe("/design");
+    const order = PRIMARY_NAV.map((n) => n.to);
+    expect(order.indexOf("/design")).toBe(order.indexOf("/plan") + 1);
+    expect(order.indexOf("/build")).toBe(order.indexOf("/design") + 1);
   });
 
   it("Brain's URL and label agree: /brain, never /knowledge (LOOM rename)", () => {
@@ -65,9 +74,14 @@ describe("nav-model - THE LOOP (primary destinations)", () => {
 });
 
 describe("nav-model - THE ENGINE (visible machinery group)", () => {
-  it("exposes exactly Engine Room and Trust Ledger with indices 07-08 (Connections moved to Settings)", () => {
-    expect(ENGINE_GROUP.map((n) => n.label)).toEqual(["Engine Room", "Trust Ledger"]);
-    expect(ENGINE_GROUP.map((n) => n.index)).toEqual(["07", "08"]);
+  it("exposes exactly Engine Room and Ledger with indices 08-09 (Connections moved to Settings)", () => {
+    expect(ENGINE_GROUP.map((n) => n.label)).toEqual(["Engine Room", "Ledger"]);
+    expect(ENGINE_GROUP.map((n) => n.index)).toEqual(["08", "09"]);
+  });
+
+  it("Ledger keeps its /trust-ledger route (PC-28: label drops the mechanism word, the slug does not move)", () => {
+    const ledger = ENGINE_GROUP.find((n) => n.label === "Ledger");
+    expect(ledger?.to).toBe("/trust-ledger");
   });
 
   it("keeps engine-room + trust-ledger in the rail; /sync is off the rail (reached from Settings > Connections)", () => {

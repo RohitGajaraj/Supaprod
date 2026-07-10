@@ -125,7 +125,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
       </div>
 
       <div style={{ marginBottom: 14 }}>
-        {sectionHeading("goals", "Goals", "Standing outcomes the swarm keeps working")}
+        {sectionHeading("goals", "Goals", "Standing outcomes Cadence keeps working")}
       </div>
       <GoalsPanel />
 

@@ -31,31 +31,36 @@ export type NavItemDef = {
   search?: Record<string, string>;
 };
 
-/** THE LOOP: the six outcome-named destinations (the calm front). Decide
- * (2026-07-07) is its own stage between Discover (sense) and Plan (define):
- * the ranked opportunity queue moved out of Discover so each surface owns one
- * step of the loop and no surface is a cramped multi-column overflow. */
+/** THE LOOP: the seven outcome-named destinations (the calm front). Decide
+ * (2026-07-07) is its own stage between Discover (sense) and Plan (define);
+ * Design (PC-28, completing the D-family: Discover · Decide · Define ·
+ * Design) sits between Define and Build - Prototype + Brand Kit live there
+ * (PC-31 builds the full route; a minimal honest placeholder ships with this
+ * row so the nav entry is never a dead link). */
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   { to: "/today", label: "Today", index: "01" },
   { to: "/discover", label: "Discover", index: "02" },
   { to: "/decide", label: "Decide", index: "03" },
   { to: "/plan", label: "Define", index: "04" },
-  { to: "/build", label: "Build", index: "05" },
-  { to: "/brain", label: "Brain", index: "06" },
+  { to: "/design", label: "Design", index: "05" },
+  { to: "/build", label: "Build", index: "06" },
+  { to: "/brain", label: "Brain", index: "07" },
 ];
 
 /**
  * THE ENGINE: the machinery group, VISIBLE in the rail (LOOM retires the
  * hover-menu door; these are direct rows). The Engine Room row is the glance
- * (four rooms inside; /govern remains its drill layer); Trust Ledger is the
- * receipts surface. Connections was removed from the rail (2026-07-06): the
- * single connect home is Settings > Connections, and /sync (retitled "Sync &
+ * (four rooms inside; /govern remains its drill layer); Ledger (PC-28: the
+ * mechanism word "Trust" drops from the label - the ledger IS the trust) is
+ * the receipts surface, still served at /trust-ledger (route slugs do not
+ * move). Connections was removed from the rail (2026-07-06): the single
+ * connect home is Settings > Connections, and /sync (retitled "Sync &
  * bindings") is reached from there, not the primary nav. Approvals are Calls
  * on Today, NEVER here (contract §8).
  */
 export const ENGINE_GROUP: readonly NavItemDef[] = [
-  { to: "/engine-room", label: "Engine Room", index: "07" },
-  { to: "/trust-ledger", label: "Trust Ledger", index: "08" },
+  { to: "/engine-room", label: "Engine Room", index: "08" },
+  { to: "/trust-ledger", label: "Ledger", index: "09" },
 ];
 
 /**

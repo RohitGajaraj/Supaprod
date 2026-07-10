@@ -28,8 +28,8 @@ const ROWS: { key: "Approvals" | "Health" | "Budget" | "Drift"; label: string; d
   },
   {
     key: "Drift",
-    label: "Output Drift & Trends",
-    desc: "Tripped drift detections and output quality shifts.",
+    label: "Output Quality & Trends",
+    desc: "Alerts when Cadence's output quality changes or slips.",
   },
 ];
 

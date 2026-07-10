@@ -142,7 +142,7 @@ function TrustRow({
     onSuccess: (_res, arc) => {
       qc.invalidateQueries({ queryKey: ["agent-trust"] });
       qc.invalidateQueries({ queryKey: ["swarm", "hud"] });
-      toast.success(`Arc set to ${arc}`);
+      toast.success(`Trust stage set to ${arc}`);
     },
     onError: (e: Error) => toast.error(e.message),
   });

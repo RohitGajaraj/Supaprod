@@ -16,13 +16,15 @@
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
 
-/** The six primary destinations + the door. Decide (2026-07-07) is its own
- * decide-stage destination between Discover (sense) and Plan (define). */
+/** The seven primary destinations + the door. Decide (2026-07-07) is its own
+ * decide-stage destination between Discover (sense) and Plan (define);
+ * Design (PC-28) completes the D-family between Define and Build. */
 export const CANONICAL_PATHS = [
   "/today",
   "/discover",
   "/decide",
   "/plan",
+  "/design",
   "/build",
   "/brain",
   "/engine-room",

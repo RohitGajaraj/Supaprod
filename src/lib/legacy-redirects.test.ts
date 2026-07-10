@@ -12,9 +12,9 @@ describe("legacy-redirects", () => {
     }
   });
 
-  it("has exactly seven canonical paths, one per destination + the door", () => {
-    expect(CANONICAL_PATHS.length).toBe(7);
-    expect(new Set(CANONICAL_PATHS).size).toBe(7);
+  it("has exactly eight canonical paths, one per destination + the door", () => {
+    expect(CANONICAL_PATHS.length).toBe(8);
+    expect(new Set(CANONICAL_PATHS).size).toBe(8);
   });
 
   it("no path appears in both the canonical set and the door-internal set", () => {

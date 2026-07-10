@@ -813,7 +813,7 @@ ${grounding}`,
               const friendly =
                 errMsg.includes("budget reached") ||
                 errMsg.includes("credits exhausted") ||
-                errMsg.includes("Blocked by guardrail")
+                errMsg.includes("A safety rule blocked this")
                   ? errMsg
                   : byoOnly
                     ? byoKeyMissingMessage(byoOnly.label)

@@ -108,7 +108,7 @@ export function LoopsPanel() {
             color: "var(--text-muted)",
           }}
         >
-          What should the swarm keep re-running?
+          What should Cadence keep re-running?
         </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
           <select

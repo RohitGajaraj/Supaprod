@@ -25,6 +25,29 @@
 //
 // This file is client-safe (no server imports) so route components and panels
 // can call it directly while rendering agent identities.
+//
+// THE VOICE GRAMMAR (PC-28, the naming and voice pass - binding for every
+// surface and every generated string, not just agent identities):
+//   - Surfaces are outcome nouns: the D-family (Discover, Decide, Define,
+//     Design) plus Today, Build, Brain, Ledger. No invented nouns, no
+//     mechanism words as a surface name.
+//   - Sublines say what the surface does for you, one plain sentence. The
+//     sublines LOOM already shipped are good; do not rewrite a subline that
+//     already reads this way just to reword it.
+//   - Buttons are verb + object, sentence case, never mono-uppercase (Loom
+//     §1 - the button hierarchy already bans the bare text-button; this adds
+//     the copy rule on top: "Approve the spec", not "SUBMIT").
+//   - Empty states are honest, name who acts next, and when: "Nothing needs
+//     you. Cadence's next sweep is at 2am." Never a bare "No results" or a
+//     dead silence.
+//   - Taglines derive from the one-liner family in docs/pitch/one-pager.md -
+//     never invent a new slogan per surface.
+//   - Mechanism words (mission, swarm, arc, eval, guardrail, drift, station,
+//     specialist) stay OUT of user-facing copy everywhere except Engine
+//     Room, where they are the correct technical whisper for the audience
+//     that reads them (an engineer debugging, not a PM glancing at Today).
+//     A subline may whisper the mechanism in small print for recognition
+//     ("evals · guardrails") but never as the headline.
 
 export type AgentFace = "scout" | "strategist" | "critic" | "scribe" | "chief-of-staff";
 export type AgentStation = "sense" | "decide" | "define" | "build" | "ship" | "learn";

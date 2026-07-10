@@ -1326,7 +1326,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </span>
           </div>
           <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginBottom: 12 }}>
-            The loop ran these actions without a gate; the agents&rsquo; trust arc had earned auto.
+            The loop ran these actions without a gate; the agent had already earned automatic trust.
             You reviewed nothing in advance; each row notes whether it can be undone.
           </p>
           <div style={{ display: "flex", flexDirection: "column" }}>
