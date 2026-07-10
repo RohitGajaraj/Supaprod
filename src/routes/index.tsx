@@ -8,9 +8,9 @@ import { MachineViewToggle } from "@/components/cadence/MachineViewToggle";
 import { MachineViewContainer } from "@/components/machine/MachineViewContainer";
 import { CadenceMark } from "@/components/cadence/Primitives";
 
-const TITLE = "Cadence: The product OS that runs your entire product lifecycle";
+const TITLE = "Cadence: What Cursor did for code, Cadence does for deciding what to build";
 const DESC =
-  "Cadence is the product operating system that owns your full product lifecycle, from first signal to final outcome. Six stations. One loop. You govern the calls that matter. Everything else runs.";
+  "Agents do the product work end to end. You make the calls. The ledger proves what worked. Cadence is the agent-native operating system for your entire product lifecycle.";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -393,6 +393,7 @@ const STYLES = `
   @media (max-width:720px) { .lp-manifesto-grid { grid-template-columns:1fr!important; gap:18px!important; } }
   @media (max-width:760px) { .lp-moat-grid { grid-template-columns:1fr!important; gap:14px!important; } }
   @media (max-width:640px) { .lp-stats-grid { grid-template-columns:repeat(2,1fr)!important; } }
+  @media (max-width:600px) { .lp-trust-row { grid-template-columns:1fr!important; gap:4px!important; } }
 `;
 
 // Hooks
@@ -1623,29 +1624,19 @@ function HeroSection() {
 
             <h1
               style={{
-                fontSize: "clamp(32px, 4.5vw, 52px)",
-                lineHeight: 1.06,
+                fontSize: "clamp(30px, 4vw, 46px)",
+                lineHeight: 1.1,
                 fontWeight: 750,
-                margin: "0 0 6px",
+                margin: "0 0 28px",
                 color: C.text,
                 letterSpacing: "-0.03em",
               }}
             >
-              Product teams
+              What Cursor did for writing code,
               <br />
-              don't build anymore.
-            </h1>
-            <h1
-              className="lp-agentsdo"
-              style={{
-                fontSize: "clamp(32px, 4.5vw, 52px)",
-                lineHeight: 1.06,
-                fontWeight: 750,
-                margin: "0 0 28px",
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Agents do.
+              <span style={{ color: C.emberBright, textShadow: `0 0 30px ${C.emberGlow}` }}>
+                Cadence does for deciding what to build.
+              </span>
             </h1>
 
             <p
@@ -1657,31 +1648,14 @@ function HeroSection() {
                 maxWidth: 440,
               }}
             >
-              <Brand /> is the agent-native operating system for your entire product. It runs the
-              full lifecycle end to end: sensing what matters, making the call, writing the spec,
-              building, shipping, and learning from every outcome. Your product moves on its own.
-              Your team stays on the decisions that need real judgment. Everything else runs
-              autonomously.
+              Agents do the product work end to end. You make the calls. The ledger proves what
+              worked.
             </p>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/signup" className="btn btn-primary" style={{ textDecoration: "none" }}>
-                Start free
+                Tear down your pet feature — free
               </a>
-              <Link
-                to="/pricing"
-                className="lp-ghost"
-                style={{
-                  textDecoration: "none",
-                  padding: "10px 18px",
-                  borderRadius: 8,
-                  border: `1px solid ${C.border}`,
-                  color: C.muted,
-                  fontSize: 13,
-                }}
-              >
-                See pricing
-              </Link>
             </div>
           </div>
 
@@ -1694,6 +1668,218 @@ function HeroSection() {
           >
             <TerminalCard title="cadence, live run" entries={SUCCESS_LOG} revealed={on} />
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// The one contrast that lands (v11 §14.3): an AI feature/chatbot drafts and
+// waits; an AI operating system owns the loop and the work is done.
+function ContrastSection() {
+  const { ref, on } = useReveal(0.15);
+  const cols = [
+    {
+      tag: "What everyone else ships",
+      title: "An AI feature",
+      lines: ["Drafts a suggestion.", "Hands it to you.", "Waits.", "Easy to copy."],
+      col: C.faint,
+      border: C.border,
+      glow: "transparent",
+    },
+    {
+      tag: "What Cadence is",
+      title: "An AI operating system",
+      lines: [
+        "Collects the context.",
+        "Decides, with your precedent.",
+        "Acts, and keeps the log.",
+        "The work is done.",
+      ],
+      col: C.emberBright,
+      border: C.emberBorder,
+      glow: C.emberGlow,
+    },
+  ];
+  return (
+    <section ref={ref} style={{ padding: "64px 24px", borderBottom: `1px solid ${C.divider}` }}>
+      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: 32,
+            opacity: on ? 1 : 0,
+            transform: on ? "translateY(0)" : "translateY(14px)",
+            transition: "opacity 0.5s ease, transform 0.5s ease",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+              fontSize: 10,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: C.emberBright,
+              margin: "0 0 8px",
+            }}
+          >
+            The one difference that matters
+          </p>
+        </div>
+        <div
+          className="lp-moat-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 20,
+            opacity: on ? 1 : 0,
+            transform: on ? "translateY(0)" : "translateY(18px)",
+            transition: "opacity 0.55s ease 0.08s, transform 0.55s ease 0.08s",
+          }}
+        >
+          {cols.map((c) => (
+            <div
+              key={c.title}
+              className="lp-card"
+              style={
+                {
+                  padding: "24px 22px",
+                  borderRadius: 14,
+                  border: `1px solid ${c.border}`,
+                  background: c === cols[1] ? C.bgCardHot : C.bgCard,
+                  boxShadow: c === cols[1] ? `0 0 40px ${c.glow}` : "none",
+                  "--accent": c.border,
+                  "--accent-soft": c.glow,
+                } as CSSProperties
+              }
+            >
+              <p
+                style={{
+                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontSize: 9,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: C.faint,
+                  margin: "0 0 10px",
+                }}
+              >
+                {c.tag}
+              </p>
+              <h3
+                style={{
+                  fontSize: 18,
+                  fontWeight: 650,
+                  color: c.col,
+                  margin: "0 0 16px",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {c.title}
+              </h3>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {c.lines.map((l) => (
+                  <li
+                    key={l}
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: 8,
+                      fontSize: 13.5,
+                      color: C.muted,
+                      padding: "5px 0",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <span style={{ color: c.col, flexShrink: 0 }}>{c === cols[1] ? "✓" : "·"}</span>
+                    {l}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// The data-trust answer, above the fold's fold — the 43% of PMs who name data
+// security as the #1 AI-adoption blocker (research) meet the honest answer
+// before they scroll past it, not on a buried policy page.
+const TRUST_ITEMS = [
+  { label: "What we read", body: "Only the sources you connect, scoped to what you approve." },
+  {
+    label: "What we never touch",
+    body: "Nothing ships or merges without you — the merge gate is always human-reviewed.",
+  },
+  { label: "One-click revoke", body: "Disconnect any source anytime. Access ends immediately." },
+  { label: "Where it lives", body: "Your workspace's own Postgres, exportable in open formats." },
+  { label: "No training on your data", body: "Your product's decisions and code stay yours." },
+  { label: "Bring your own AI keys", body: "Run Cadence on your own model keys if you prefer." },
+];
+
+function TrustSection() {
+  const { ref, on } = useReveal(0.1);
+  return (
+    <section ref={ref} style={{ padding: "56px 24px", borderBottom: `1px solid ${C.divider}` }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        <div
+          style={{
+            marginBottom: 26,
+            opacity: on ? 1 : 0,
+            transform: on ? "translateY(0)" : "translateY(14px)",
+            transition: "opacity 0.5s ease, transform 0.5s ease",
+          }}
+        >
+          <Tag col={C.emberBright}>The data-trust answer</Tag>
+          <h2
+            style={{
+              fontSize: "clamp(20px,2.6vw,26px)",
+              fontWeight: 600,
+              margin: 0,
+              color: C.text,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Before you connect anything.
+          </h2>
+        </div>
+        <div
+          style={{
+            borderRadius: 14,
+            border: `1px solid ${C.border}`,
+            background: C.bgCard,
+            overflow: "hidden",
+            opacity: on ? 1 : 0,
+            transition: "opacity 0.55s ease 0.1s",
+          }}
+        >
+          {TRUST_ITEMS.map((t, i) => (
+            <div
+              key={t.label}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "220px 1fr",
+                gap: 20,
+                padding: "13px 20px",
+                borderBottom: i < TRUST_ITEMS.length - 1 ? `1px solid ${C.divider}` : undefined,
+                alignItems: "baseline",
+              }}
+              className="lp-trust-row"
+            >
+              <span
+                style={{
+                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: C.emberBright,
+                }}
+              >
+                {t.label}
+              </span>
+              <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.55 }}>{t.body}</span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1846,6 +2032,33 @@ function StatsStrip() {
         ))}
       </div>
     </section>
+  );
+}
+
+// The multi-product line (PC-33's story): one PM running more than one
+// product, one fleet of agents across all of them.
+function MultiProductStrip() {
+  return (
+    <div
+      style={{
+        padding: "18px 24px",
+        borderBottom: `1px solid ${C.divider}`,
+        textAlign: "center",
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          fontSize: 13,
+          color: C.muted,
+          fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+          letterSpacing: "0.02em",
+        }}
+      >
+        <span style={{ color: C.emberBright, fontWeight: 600 }}>One PM. Five products.</span> A
+        fleet that works while you sleep — and shows its receipts every morning.
+      </p>
+    </div>
   );
 }
 
@@ -2419,6 +2632,47 @@ function LedgerSection() {
         >
           Illustrative. Your real ledger populates from live calls and outcomes.
         </p>
+
+        {/* Not a mockup — a real, live shared decision, the same page every Cadence
+            account gets for its own calls. Reuses the d.$slug public-share route. */}
+        <div
+          style={{
+            marginTop: 20,
+            padding: "14px 18px",
+            borderRadius: 12,
+            border: `1px solid ${C.border}`,
+            background: "rgba(255,255,255,0.02)",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            opacity: on ? 1 : 0,
+            transition: "opacity 0.5s ease 0.6s",
+          }}
+        >
+          <p style={{ fontSize: 12.5, color: C.muted, margin: 0, lineHeight: 1.55, maxWidth: 520 }}>
+            Not a mockup — here is a real decision, shared straight from a live workspace, receipts
+            and all. We publish our own misses too; every call gets graded, not just the ones that
+            worked.
+          </p>
+          <a
+            href="/d/706dec4788834ea4abcebfc745f34d27"
+            className="lp-ghost"
+            style={{
+              textDecoration: "none",
+              padding: "8px 14px",
+              borderRadius: 8,
+              border: `1px solid ${C.border}`,
+              color: C.text,
+              fontSize: 12.5,
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            See the real call →
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -3338,8 +3592,11 @@ function LandingPage() {
 
         <main style={{ flex: 1, position: "relative", zIndex: 1 }}>
           <HeroSection />
+          <ContrastSection />
+          <TrustSection />
           <OrbitSection />
           <StatsStrip />
+          <MultiProductStrip />
           <ManifestoStrip />
           <StationsSection />
           <AgentInActionSection />
@@ -3356,41 +3613,77 @@ function LandingPage() {
               maxWidth: 1120,
               margin: "0 auto",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              gap: 14,
             }}
           >
-            <span
+            <div
               style={{
-                fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
-                fontSize: 9,
-                color: C.faint,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 12,
               }}
             >
-              Made with Cadence
-            </span>
-            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <Link
-                to="/pricing"
-                className="lp-nav"
-                style={{ fontSize: 11, color: C.faint, textDecoration: "none" }}
+              <span
+                style={{
+                  fontFamily: '"IBM Plex Mono", "JetBrains Mono", monospace',
+                  fontSize: 9,
+                  color: C.faint,
+                }}
               >
-                Pricing
-              </Link>
-              <a
-                href="/login"
-                className="lp-nav"
-                style={{ fontSize: 11, color: C.faint, textDecoration: "none" }}
-              >
-                Sign in
-              </a>
-              <a
-                href="/signup"
-                className="btn btn-primary btn-sm"
-                style={{ textDecoration: "none" }}
-              >
-                Start free
-              </a>
+                Made with Cadence
+              </span>
+              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <Link
+                  to="/pricing"
+                  className="lp-nav"
+                  style={{ fontSize: 11, color: C.faint, textDecoration: "none" }}
+                >
+                  Pricing
+                </Link>
+                <a
+                  href="/login"
+                  className="lp-nav"
+                  style={{ fontSize: 11, color: C.faint, textDecoration: "none" }}
+                >
+                  Sign in
+                </a>
+                <a
+                  href="/signup"
+                  className="btn btn-primary btn-sm"
+                  style={{ textDecoration: "none" }}
+                >
+                  Start free
+                </a>
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 16,
+                paddingTop: 12,
+                borderTop: `1px solid ${C.divider}`,
+              }}
+            >
+              {[
+                { href: "/security", label: "Security" },
+                { href: "/ard", label: "ARD" },
+                { href: "/updates", label: "Changelog" },
+                { href: "/privacy", label: "Privacy" },
+                { href: "/terms", label: "Terms" },
+              ].map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className="lp-nav"
+                  style={{ fontSize: 10.5, color: C.faint, textDecoration: "none" }}
+                >
+                  {l.label}
+                </a>
+              ))}
             </div>
           </div>
         </footer>

@@ -2676,6 +2676,28 @@ function ProfileTab() {
           {save.isPending ? "Saving…" : "Save · agents greet you by it"}
         </button>
       </div>
+
+      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+        <MonoLabel style={{ marginBottom: 12 }}>Legal & trust</MonoLabel>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+          {[
+            { href: "/security", label: "Security" },
+            { href: "/privacy", label: "Privacy policy" },
+            { href: "/terms", label: "Terms of service" },
+            { href: "/updates", label: "Changelog" },
+          ].map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 12, color: "var(--ink-subtle)", textDecoration: "none" }}
+            >
+              {l.label} ↗
+            </a>
+          ))}
+        </div>
+      </div>
     </form>
   );
 }
