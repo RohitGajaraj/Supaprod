@@ -103,6 +103,7 @@ export function CalendarPanel({
   onMeetingChange: (id: string | undefined) => void;
 }) {
   const qc = useQueryClient();
+  const oauthIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const confirm = useConfirm();
   // WM-F9b: scope the meetings read to the active workspace (and key the query
   // by it so it refetches on a workspace switch — the WM-F8b refetch-on-switch
@@ -216,8 +217,9 @@ export function CalendarPanel({
       const deadline = Date.now() + 5 * 60 * 1000;
       const iv = setInterval(() => {
         qc.invalidateQueries({ queryKey: ["calendar-connections"] });
-        if (Date.now() > deadline) clearInterval(iv);
+        if (Date.now() > deadline) { clearInterval(iv); oauthIntervalRef.current = null; }
       }, 3_000);
+      oauthIntervalRef.current = iv;  // Track for cleanup
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1573,6 +1575,17 @@ function ConnectButton({
   const hasGoogle = connections.some((c) => c.provider === "google");
   const hasMicrosoft = connections.some((c) => c.provider === "microsoft");
   const any = connections.length > 0;
+
+  // Cleanup: abort any pending OAuth polling if component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (oauthIntervalRef.current) {
+        clearInterval(oauthIntervalRef.current);
+        oauthIntervalRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
