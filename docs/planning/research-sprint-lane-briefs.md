@@ -122,7 +122,7 @@ NOTHING outward is ever sent, posted, or published without the founder's explici
 
 Two new Tier-1 G17 rows are ready for pickup; specs are decision-complete in [`launch-sprint-specs.md`](./launch-sprint-specs.md):
 
-- **PC-36 — Ask v2** (Build, Sonnet lane): five workstreams in order A→C→B→E→D plus voice phase 1; the block vocabulary and temporal recall are binding (founder extension in the spec). Exactly three named Fable forks (SSE block protocol, scope→retrieval params, approval-affordance UX) — everything else is decided in the spec, do not re-litigate.
+- **PC-36 — Ask v2** (Build, Sonnet lane): workstream Z FIRST (founder-reported typing/streaming defects: per-keystroke refetch, full-thread re-render, non-duplex stream - the audit checklist is in the spec), then A→C→B→E→D plus voice phase 1; the block vocabulary and temporal recall are binding (founder extension in the spec). Exactly three named Fable forks (SSE block protocol, scope→retrieval params, approval-affordance UX) — everything else is decided in the spec, do not re-litigate.
 - **PC-37 — Density pass** (Design, Sonnet lane): token-led, shared-primitives-only; exact starting values in the spec; any token-value dispute is a Fable fork. **Love-Gate review by Fable BEFORE merge** (DESIGN-LOOM density addendum, 2026-07-10).
 
 Pick these by derived rank via `bash scripts/lane.sh next` as usual; claim on the dashboard before starting.
