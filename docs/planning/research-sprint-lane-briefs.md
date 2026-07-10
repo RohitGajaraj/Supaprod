@@ -4,43 +4,41 @@
 
 **Shared protocol (all four lanes):** `git pull origin main` first · own worktree (`git worktree add ../cadence-lane-<X> -b parallel/lane-<X>` or reuse a cadence-lane-N checkout) · claim before building (flip the dashboard row to `🔨 In Dev (lane<X>)` + `bash scripts/lane.sh claim <ID> lane<X> "<globs>"`, globs disjoint) · AGENTS.md §3 gates (tsc/build/tests) · commit with a WHY · `git push origin parallel/lane-<X>:main` · flip the row ✅ + one-line note · next row. NEVER pick Gated/FOUNDER-CALL rows. The Love Gate governs everything user-facing: enterprise-credible AND consumer-grade, verified on a fresh production account.
 
-## THE FOUR LANES (paste these)
+## THE FOUR LANES v3 (paste these) — 1 FABLE + 3 SONNET (founder economics: thinking is pre-loaded in the spec files; Fable only where money/chokepoints demand it)
 
-### Lane A — the coherence cluster (FABLE — judgment + taste, end to end)
-
-```
-git pull origin main. Read docs/planning/coherence-cluster-specs.md fully (the v2 cold-build specs), then docs/planning/v13-proof-campaign-plan.md sections 0-3.
-You are LANE A (Fable): the coherence cluster PC-32 -> PC-33 -> PC-28 -> PC-29 -> PC-30 -> PC-31, in exactly that order, maps AND applies together - one surface fully coherent before the next.
-The specs are decision-complete: build what they say; you may deepen with judgment but never silently skip or re-litigate a made decision. Bind to the audit facts cited in the specs (file:line) - verify each before editing.
-CLAIM: one PC row at a time per the shared protocol. Your exclusive files while In-Dev: the 7 surface route files, src/lib/nav-model.ts, src/lib/agent-vocabulary.ts, the today/* lane components. Chokepoints (loop.server.ts, runtime.server.ts) are LANE B's - if a step needs them, note it on the row and continue.
-Love Gate per surface: the 5-second "what do I look at?" test + the stranger test ("who works here, what did they just do, what can I hand them, how do I check it") on a fresh production account.
-Worktree: ../cadence-lane-A -b parallel/lane-A. Push each ship: git push origin parallel/lane-A:main.
-```
-
-### Lane B — the trust + chokepoint spine (FABLE — attended-grade engine work)
+### Lane A — danger rows + the review gate (FABLE)
 
 ```
-git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-4 (the 25-day ship + gates), then the row specs in section 2.
-You are LANE B (Fable): the chokepoint spine, in order: PC-05 (billing go-live pack - if the merchant-of-record account is not yet provided, build everything up to the live-key seam and mark the row [awaiting MoR account]) -> PC-07 (goal-until-verified missions; you own loop.server.ts - attended-grade care, adversarial self-review before commit) -> PC-12 (parallel fan-out to one review queue) -> PC-16 (judgment-memory hero moments) -> PC-27 DRAFT ONLY (assemble the YC application draft from docs/pitch/ + the strategy corpus; the founder submits post-launch, W27 batch).
-You are the ONLY lane allowed to edit src/lib/ai/loop.server.ts and src/lib/ai/runtime.server.ts. Every chokepoint edit gets an adversarial review pass before commit.
+git pull origin main. Read docs/planning/launch-sprint-specs.md (sections PC-05, PC-07, and "The lane cut"), then docs/planning/v13-proof-campaign-plan.md sections 0-1 and 4.
+You are LANE A (Fable): (1) PC-05 billing go-live pack - build to the live-key seam even if the merchant-of-record account is not yet provided (mark [awaiting MoR account] at that seam). (2) PC-07 goal-until-verified missions - you are the ONLY lane allowed to edit src/lib/ai/loop.server.ts / runtime.server.ts; adversarial self-review before every chokepoint commit. (3) Then you become the STANDING REVIEW GATE: after Lane B ships each surface, run its Love-Gate walkthrough on a fresh production account (the 5-second test + the stranger test) and fix-or-file what fails; review Lane C's PC-12 and PC-16 diffs before merge.
+CLAIM per the shared protocol below. Worktree: ../cadence-lane-A -b parallel/lane-A. Push each ship: git push origin parallel/lane-A:main.
+```
+
+### Lane B — the coherence cluster (SONNET, executing Fable's specs)
+
+```
+git pull origin main. Read docs/planning/coherence-cluster-specs.md FULLY (v2 - decision-complete cold-build specs with file:line evidence), then docs/planning/v13-proof-campaign-plan.md sections 0-2.
+You are LANE B (Sonnet): the coherence cluster in exactly this order: PC-32 -> PC-33 -> PC-28 -> PC-29 -> PC-30 -> PC-31. The thinking is done in the spec: build what it says; verify each cited file:line before editing; where a genuine judgment fork appears that the spec does not answer, write the question + your recommendation on the dashboard row, take the reversible option, and continue - never block, never invent scope.
+Your exclusive files while a cluster row is In-Dev: the 7 surface route files, src/lib/nav-model.ts, src/lib/agent-vocabulary.ts, the today/* lane components. Chokepoints are Lane A's - if a step needs them, note it on the row and continue.
+After each surface ships, notify via the row note; Lane A runs the Love Gate on it.
 CLAIM per the shared protocol. Worktree: ../cadence-lane-B -b parallel/lane-B. Push: git push origin parallel/lane-B:main.
 ```
 
-### Lane C — launch-critical build (SONNET — well-specified product rows)
+### Lane C — launch-critical build (SONNET)
 
 ```
-git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-2 (the 25-day ship; your rows' acceptance criteria live in section 2).
-You are LANE C (Sonnet): launch-critical build rows, in order: PC-03 (public homepage + positioning refresh - copy comes from docs/pitch/one-pager.md, the one-liner + the data-trust answer; parchment DESIGN.md contract) -> PC-04 (try-without-signup demo) -> PC-06 (activation funnel instrumentation) -> PC-08 (Routines productized) -> PC-10 (finish artifact rewind: UI wiring; note the roadmaps leg is deferred - see the row) -> PC-11 (confidence-gated execution) -> PC-15 (in-product feedback pulse) -> PC-22 (eng receipts chain; folds the SW-7 remainder).
-NEVER edit: loop.server.ts, runtime.server.ts (Lane B's), the 7 surface route files / nav-model.ts / agent-vocabulary.ts while Lane A has a cluster row In-Dev (check Active claims) - if your row needs one, mark the row [needs lane A/B] and continue to the next.
+git pull origin main. Read docs/planning/launch-sprint-specs.md FULLY (your rows: PC-03, 04, 06, 08, 10, 11, 15, 12, 16, 22 - each spec has a verify-first step; do it before building).
+You are LANE C (Sonnet): build in this order: PC-03 (homepage + privacy/terms; copy ONLY from docs/pitch/one-pager.md PROVEN-tagged claims) -> PC-04 (no-signup demo) -> PC-06 (funnel; read commit 39f6779a's diff first, extend not duplicate) -> PC-08 (Routines) -> PC-10 (rewind finish) -> PC-11 (confidence gates) -> PC-15 (pulse) -> PC-12 (fan-out; Lane A reviews the diff pre-merge) -> PC-16 (judgment-memory moments; Lane A reviews copy) -> PC-22 (eng receipts + the SW-7 fold).
+NEVER edit: loop.server.ts / runtime.server.ts (Lane A's); the 7 surface routes / nav-model / agent-vocabulary while Lane B has a cluster row In-Dev (check Active claims) - mark [needs lane B] and continue.
 CLAIM per the shared protocol. Worktree: ../cadence-lane-C -b parallel/lane-C. Push: git push origin parallel/lane-C:main.
 ```
 
-### Lane D — GTM + the research sweep (SONNET — outward assets + G18 rows)
+### Lane D — GTM + the research sweep (SONNET)
 
 ```
-git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-2 and 6, docs/pitch/README.md (the routing rule), then docs/planning/research-sprint-lane-briefs.md (this file) for the G18 pickup rules below.
-You are LANE D (Sonnet): GTM + research-derived rows, in order: PC-13 (design-partner program: the 25-target kit seeded from the research section-12 cohort; receipts-first outreach drafts - NOTHING sends without the founder) -> PC-14 (the listing assets: Show HN draft with no-signup demo path + honest-limitations list + the failure-path GIF plan; Product Hunt kit; every claim checked against docs/pitch/one-pager.md PROVEN tags) -> PC-26 (HyperAgent GTM rig per plan section 6) -> then the G18 sweep: rows tagged "lane B"/"lane C" in G18 comments, class DECISIVE, by rank - respecting the same file-collision rules as Lane C.
-Everything outward-facing follows docs/pitch/ (the routing rule): cite artifacts and companies, never gurus; claims carry PROVEN/WIRING/ROADMAP tags; founder approves every send/publish.
+git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-2 and 6, docs/pitch/README.md (the routing rule), docs/planning/launch-sprint-specs.md (PC-13/14/26/27 notes), then this file's G18 section below for pickup rules.
+You are LANE D (Sonnet): PC-13 (design-partner kit from the research section-12 cohort; receipts-first; NOTHING sends without the founder) -> PC-14 (listing assets per docs/pitch/demo-script.md Show-HN variant; every claim PROVEN-tagged; Google tiles gated "request access") -> PC-26 (HyperAgent rig, arm's-length per plan section 6) -> PC-27 (assemble docs/pitch/yc/application-draft.md per application-strategy.md section 3; founder does the voice pass) -> then the G18 sweep: DECISIVE rows by rank, respecting Lane C's collision rules.
+Everything outward follows docs/pitch/: artifacts and companies, never gurus; founder approves every send/publish.
 CLAIM per the shared protocol. Worktree: ../cadence-lane-D -b parallel/lane-D. Push: git push origin parallel/lane-D:main.
 ```
 
