@@ -257,7 +257,8 @@ async function recordPrecedentCitations(
       })),
     );
   }
-  for (const id of plan.bumpDecisionIds) {
-    await db.rpc("bump_decision_cited_by", { _decision_id: id });
-  }
+  // Parallelize RPC calls: bump all decision IDs concurrently
+  await Promise.all(
+    plan.bumpDecisionIds.map((id) => db.rpc("bump_decision_cited_by", { _decision_id: id }))
+  );
 }

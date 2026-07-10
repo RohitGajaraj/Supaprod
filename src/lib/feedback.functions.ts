@@ -46,9 +46,12 @@ async function applyRetrievalFeedback(
   if (!rows.length) return;
 
   const delta = rating > 0 ? 1 : -1;
-  for (const memoryId of new Set(rows.map((r) => r.memory_id))) {
-    await supabase.rpc("bump_memory_importance", { p_memory_id: memoryId, p_delta: delta });
-  }
+  // Parallelize RPC calls: bump all memory IDs concurrently
+  await Promise.all(
+    Array.from(new Set(rows.map((r) => r.memory_id))).map((memoryId) =>
+      supabase.rpc("bump_memory_importance", { p_memory_id: memoryId, p_delta: delta })
+    )
+  );
 }
 
 export const submitFeedback = createServerFn({ method: "POST" })
