@@ -32,6 +32,7 @@ import {
 } from "@/lib/discovery.functions";
 import { getProvenance } from "@/lib/lineage.functions";
 import { CriticBadge } from "@/components/governance/CriticBadge";
+import { RewindButton } from "@/components/prds/RewindButton";
 import { PrecedentNudge } from "@/components/decision/PrecedentNudge";
 import { SharedPremiseNudge } from "@/components/decision/SharedPremiseNudge";
 import { DecisionCurrencyBanner } from "@/components/decision/DecisionCurrencyBanner";
@@ -554,6 +555,14 @@ function SpecEditorPage() {
             target={{ kind: "prd", id }}
             invalidateKey={["prd", id]}
           />
+          {(prd as { snapshot_before?: unknown }).snapshot_before ? (
+            <>
+              <span aria-hidden style={{ color: "var(--text-faint)" }}>
+                ·
+              </span>
+              <RewindButton prdId={id} hasSnapshot={true} />
+            </>
+          ) : null}
         </div>
 
         {/* Title (h1 of the surface) + the thread's maker's mark */}

@@ -50,21 +50,19 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
 
     if (!prd.snapshot_before) throw new Error("This PRD has no previous snapshot to revert to.");
 
-    // Restore from snapshot
-    const revertedBodyMd = prd.snapshot_before as any;
+    // Bug fix (2026-07-10, PC-10 finish pass): snapshot_before must hold the
+    // SAME shape on every read and write, or a second revert corrupts
+    // body_md with a stringified wrapper object. It is always the bare
+    // prior body_md value, nothing else.
+    const revertedBodyMd = prd.snapshot_before as unknown as string;
 
-    // Capture the current (soon-to-be-previous) state for future rewinds
-    const currentSnapshot = {
-      body_md: prd.body_md,
-      reverted_at: new Date().toISOString(),
-    };
-
-    // Update the PRD
+    // Update the PRD, capturing the current (soon-to-be-previous) body as
+    // the next snapshot -- same bare shape, so a revert is reversible.
     const { error: updateErr } = await db
       .from("prds")
       .update({
         body_md: revertedBodyMd,
-        snapshot_before: currentSnapshot,
+        snapshot_before: prd.body_md,
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.prd_id);
@@ -101,7 +99,7 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
 
     const { data: decision, error: fetchErr } = await db
       .from("decisions")
-      .select("id,workspace_id,body,snapshot_before")
+      .select("id,workspace_id,rationale,snapshot_before")
       .eq("id", data.decision_id)
       .single();
 
@@ -110,18 +108,18 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
     if (!decision.snapshot_before)
       throw new Error("This decision has no previous snapshot to revert to.");
 
-    const revertedBody = decision.snapshot_before as any;
-    const currentSnapshot = {
-      body: decision.body,
-      reverted_at: new Date().toISOString(),
-    };
+    // Bug fix (2026-07-10, PC-10 finish pass): decisions has no `body`
+    // column -- its content field is `rationale`. This read/write was
+    // targeting a nonexistent column and would have thrown on first use.
+    // Also matches the prd fix above: snapshot_before is always the bare
+    // prior value, never a wrapper object, so a second revert stays clean.
+    const revertedRationale = decision.snapshot_before as unknown as string;
 
     const { error: updateErr } = await db
       .from("decisions")
       .update({
-        body: revertedBody,
-        snapshot_before: currentSnapshot,
-        updated_at: new Date().toISOString(),
+        rationale: revertedRationale,
+        snapshot_before: decision.rationale,
       })
       .eq("id", data.decision_id);
 
