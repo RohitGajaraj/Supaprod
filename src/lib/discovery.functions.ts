@@ -321,7 +321,8 @@ export const listThemes = createServerFn({ method: "GET" })
     let query = context.supabase
       .from("themes")
       .select("*")
-      .order("frequency", { ascending: false });
+      .order("frequency", { ascending: false })
+      .limit(300);
     // Same fix as listSignals: a theme clustered by the cron path (projectId
     // null - it clusters a whole workspace, not one product) must still show
     // inside a product-scoped view, not just the unreachable all-products one.
@@ -398,7 +399,8 @@ export const listOpportunities = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("opportunities")
       .select("*")
-      .order("ice_score", { ascending: false });
+      .order("ice_score", { ascending: false })
+      .limit(500);
     if (error) throw new Error(error.message);
     return { opportunities: data ?? [] };
   });
@@ -544,7 +546,8 @@ export const listSpecs = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("prds")
       .select("id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations")
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(300);
     if (error) throw new Error(error.message);
     return { prds: data ?? [] };
   });

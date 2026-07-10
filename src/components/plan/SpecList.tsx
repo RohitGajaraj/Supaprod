@@ -63,6 +63,10 @@ export function SpecList({ onOpen }: SpecListProps) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
+  // Anti-scroll (founder ruling 2026-07-06): show the top few and expand on
+  // demand, same idiom as SignalFeed/AutoClustered.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_SPECS = 8;
 
   useEffect(() => {
     if (renamingId) renameInputRef.current?.focus();
@@ -178,6 +182,7 @@ export function SpecList({ onOpen }: SpecListProps) {
   }
 
   const specList = specs.data?.prds ?? [];
+  const shownSpecs = showAll ? specList : specList.slice(0, VISIBLE_SPECS);
 
   if (specList.length === 0) {
     return (
@@ -207,7 +212,7 @@ export function SpecList({ onOpen }: SpecListProps) {
           boxShadow: "var(--shadow-elevated)",
         }}
       >
-        {specList.map((spec, i) => {
+        {shownSpecs.map((spec, i) => {
           const chip = stateChip(spec.status);
           const cites = citesLabel(spec.citations);
           const isRenaming = renamingId === spec.id;
@@ -220,7 +225,7 @@ export function SpecList({ onOpen }: SpecListProps) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                borderBottom: i < specList.length - 1 ? "1px solid var(--hairline)" : "none",
+                borderBottom: i < shownSpecs.length - 1 ? "1px solid var(--hairline)" : "none",
               }}
             >
               <div
@@ -404,6 +409,26 @@ export function SpecList({ onOpen }: SpecListProps) {
           );
         })}
       </div>
+      {specList.length > VISIBLE_SPECS ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 12,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${specList.length - VISIBLE_SPECS} more`}
+        </button>
+      ) : null}
       <LineageDrawer
         open={lineage !== null}
         onOpenChange={(o) => {

@@ -5,6 +5,7 @@
 // the same getOutcomeData server function. Named ShipHistoryPanel (not
 // ReleasesPanel) because that name is already taken by the legacy component,
 // which may briefly coexist during this port.
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -32,8 +33,14 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the missions list shows the
+// top few and expands on demand, so Brain never becomes a long wall. Runs
+// already cap at 10 (runs.slice below); this is the missions half of that.
+const VISIBLE_MISSIONS = 8;
+
 export function ShipHistoryPanel() {
   const fOutcome = useServerFn(getOutcomeData);
+  const [showAll, setShowAll] = useState(false);
   const outcome = useQuery({ queryKey: ["outcome"], queryFn: () => fOutcome() });
 
   const missions = outcome.data?.releases.missions ?? [];
@@ -97,7 +104,7 @@ export function ShipHistoryPanel() {
           Completed missions
         </MonoLabel>
       ) : null}
-      {missions.map((m) => (
+      {(showAll ? missions : missions.slice(0, VISIBLE_MISSIONS)).map((m) => (
         <Link
           key={m.id}
           to="/build/$missionId"
@@ -147,6 +154,26 @@ export function ShipHistoryPanel() {
           <ChevronRight size={12} style={{ color: "var(--text-faint)" }} />
         </Link>
       ))}
+
+      {missions.length > VISIBLE_MISSIONS ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${missions.length - VISIBLE_MISSIONS} more`}
+        </button>
+      ) : null}
 
       {runs.length > 0 ? (
         <MonoLabel

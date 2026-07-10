@@ -20,7 +20,10 @@ export const listDocs = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .eq("archived", false)
       .order("position", { ascending: true })
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      // PC-32: defensive cap, no unbounded reads. The UI grid caps its own
+      // rendered count well below this; this is the query-side floor.
+      .limit(200);
     if (error) throw new Error(error.message);
     return { docs: data ?? [] };
   });

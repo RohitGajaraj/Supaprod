@@ -22,6 +22,10 @@ const COLUMNS: { key: RoadmapBucket; label: string; color: string }[] = [
   { key: "later", label: "LATER", color: "var(--text-muted)" },
 ];
 
+// Anti-scroll (founder ruling 2026-07-06): each column shows its top few and
+// expands independently, same idiom as SignalFeed/AutoClustered.
+const VISIBLE_ITEMS = 5;
+
 /**
  * OBS-07 §5 step 4: the outcome-declared Now/Next/Later board. Backlog items
  * (`bucket: null`) are out of this surface's scope (§13) and stay invisible
@@ -43,6 +47,15 @@ export function RoadmapColumns() {
   const roadmap = useQuery({ queryKey: ["roadmap"], queryFn: () => fRoadmap() });
   const [ceremonyBet, setCeremonyBet] = useState<CommitCeremonyBet | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // One toggle per column (Now/Next/Later are independent lists).
+  const [expandedCols, setExpandedCols] = useState<Set<RoadmapBucket>>(new Set());
+  const toggleExpanded = (key: RoadmapBucket) =>
+    setExpandedCols((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   const toggleSelect = (id: string, on: boolean) =>
     setSelectedIds((prev) => {
@@ -287,13 +300,15 @@ export function RoadmapColumns() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
         {COLUMNS.map((col) => {
           const colItems = itemsByBucket.get(col.key) ?? [];
+          const expanded = expandedCols.has(col.key);
+          const shownItems = expanded ? colItems : colItems.slice(0, VISIBLE_ITEMS);
           return (
             <div key={col.key}>
               <MonoLabel style={{ color: col.color, marginBottom: 10, display: "block" }}>
                 {col.label} · {colItems.length}
               </MonoLabel>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {colItems.map((item) => (
+                {shownItems.map((item) => (
                   <BetCard
                     key={item.id}
                     id={item.id}
@@ -313,6 +328,25 @@ export function RoadmapColumns() {
                     editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
                   />
                 ))}
+                {colItems.length > VISIBLE_ITEMS ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(col.key)}
+                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    style={{
+                      fontFamily: "var(--font-ui)",
+                      fontSize: 12.5,
+                      fontWeight: 500,
+                      color: "var(--text-muted)",
+                      background: "transparent",
+                      border: "1px solid var(--hairline-strong)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "8px 14px",
+                    }}
+                  >
+                    {expanded ? "Show fewer" : `Show ${colItems.length - VISIBLE_ITEMS} more`}
+                  </button>
+                ) : null}
               </div>
             </div>
           );

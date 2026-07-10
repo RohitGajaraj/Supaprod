@@ -477,6 +477,11 @@ function BuildPage() {
   const search = Route.useSearch();
   const [showArchived, setShowArchived] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StudioSessionListItem | null>(null);
+  // PC-32 (super light, engine underneath): the missions list shows the top
+  // few and expands on demand, same idiom as SignalFeed/AutoClustered, so
+  // Build's calm front never becomes an unbounded wall of rows.
+  const [showAllMissions, setShowAllMissions] = useState(false);
+  const VISIBLE_MISSIONS = 8;
   const sessions = useQuery({
     queryKey: ["studio-sessions", showArchived],
     queryFn: () => fList({ data: { includeArchived: showArchived } }),
@@ -742,7 +747,7 @@ function BuildPage() {
                     boxShadow: "var(--top-light), var(--shadow-ambient)",
                   }}
                 >
-                  {rows.map((s) => (
+                  {(showAllMissions ? rows : rows.slice(0, VISIBLE_MISSIONS)).map((s) => (
                     <BuildMissionRow
                       key={s.mission_id}
                       session={s}
@@ -754,6 +759,28 @@ function BuildPage() {
                     />
                   ))}
                 </div>
+                {rows.length > VISIBLE_MISSIONS ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllMissions((v) => !v)}
+                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    style={{
+                      marginTop: 10,
+                      fontFamily: "var(--font-ui)",
+                      fontSize: 12.5,
+                      fontWeight: 500,
+                      color: "var(--text-muted)",
+                      background: "transparent",
+                      border: "1px solid var(--hairline-strong)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "8px 14px",
+                    }}
+                  >
+                    {showAllMissions
+                      ? "Show fewer"
+                      : `Show ${rows.length - VISIBLE_MISSIONS} more missions`}
+                  </button>
+                ) : null}
               </div>
             )}
           </>

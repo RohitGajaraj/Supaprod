@@ -110,9 +110,14 @@ function RowAction({
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the list shows the top few
+// and expands on demand, so Brain never becomes a long wall.
+const VISIBLE_ANNOUNCEMENTS = 6;
+
 export function AnnouncementsPanel() {
   const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
+  const [showAll, setShowAll] = useState(false);
 
   const fList = useServerFn(listAnnouncements);
   const fMembers = useServerFn(listWorkspaceMembers);
@@ -273,8 +278,8 @@ export function AnnouncementsPanel() {
             overflow: "hidden",
           }}
         >
-          {rows.map((a, i) => {
-            const border = i < rows.length - 1 ? "1px solid var(--hairline)" : "none";
+          {(showAll ? rows : rows.slice(0, VISIBLE_ANNOUNCEMENTS)).map((a, i, shown) => {
+            const border = i < shown.length - 1 ? "1px solid var(--hairline)" : "none";
             if (editId === a.id) {
               return (
                 <div
@@ -386,6 +391,27 @@ export function AnnouncementsPanel() {
           })}
         </div>
       )}
+
+      {rows.length > VISIBLE_ANNOUNCEMENTS ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 10,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_ANNOUNCEMENTS} more`}
+        </button>
+      ) : null}
 
       <Dialog
         open={open}

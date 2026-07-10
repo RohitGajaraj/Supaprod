@@ -50,6 +50,10 @@ export function LoopsPanel() {
   const fStatus = useServerFn(setLoopStatus);
   const [kind, setKind] = useState<LoopKind>("competitor_sweep");
   const [cadence, setCadence] = useState<LoopCadence | "">("");
+  // Anti-scroll (founder ruling 2026-07-06): show the top few and expand on
+  // demand, same idiom as SignalFeed/AutoClustered.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_LOOPS = 5;
 
   const loopsQ = useQuery({ queryKey: ["loops"], queryFn: () => fList() });
 
@@ -157,7 +161,7 @@ export function LoopsPanel() {
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {loops.map((l) => (
+          {(showAll ? loops : loops.slice(0, VISIBLE_LOOPS)).map((l) => (
             <LoopCard
               key={l.id}
               loop={l}
@@ -165,6 +169,25 @@ export function LoopsPanel() {
               statusPending={setStatus.isPending}
             />
           ))}
+          {loops.length > VISIBLE_LOOPS ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-control)",
+                padding: "8px 14px",
+              }}
+            >
+              {showAll ? "Show fewer" : `Show ${loops.length - VISIBLE_LOOPS} more`}
+            </button>
+          ) : null}
         </div>
       )}
     </div>

@@ -69,7 +69,10 @@ export const listAnnouncements = createServerFn({ method: "GET" })
       .from("announcements")
       .select("*")
       .eq("workspace_id", data.workspaceId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      // PC-32: defensive cap, no unbounded reads. The UI list caps its own
+      // rendered count well below this; this is the query-side floor.
+      .limit(200);
     if (error) throw new Error(error.message);
     return { announcements: (rows ?? []) as AnnouncementRow[] };
   });

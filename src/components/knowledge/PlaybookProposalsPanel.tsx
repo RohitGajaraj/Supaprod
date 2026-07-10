@@ -11,6 +11,7 @@
 // panel disappears entirely when nothing is proposed (Brain never re-clutters
 // with an empty section), but a LOAD FAILURE renders as a failure, never as
 // "no proposals" (CompoundingPanel's error contract).
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -131,11 +132,16 @@ function ProposalCard({
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the panel shows the top few
+// open proposals and expands on demand, so Brain never becomes a long wall.
+const VISIBLE_PROPOSALS = 6;
+
 export function PlaybookProposalsPanel() {
   const fList = useServerFn(listPlaybookProposals);
   const fDecide = useServerFn(decidePlaybookProposal);
   const qc = useQueryClient();
   const confirmDialog = useConfirm();
+  const [showAll, setShowAll] = useState(false);
 
   const q = useQuery({ queryKey: ["playbook-proposals"], queryFn: () => fList() });
 
@@ -208,7 +214,7 @@ export function PlaybookProposalsPanel() {
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {open.map((p) => (
+        {(showAll ? open : open.slice(0, VISIBLE_PROPOSALS)).map((p) => (
           <ProposalCard
             key={p.id}
             p={p}
@@ -216,6 +222,25 @@ export function PlaybookProposalsPanel() {
             onDecide={(decision) => requestDecide(p.id, decision)}
           />
         ))}
+        {open.length > VISIBLE_PROPOSALS ? (
+          <button
+            type="button"
+            onClick={() => setShowAll((v) => !v)}
+            className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: 12.5,
+              fontWeight: 500,
+              color: "var(--text-muted)",
+              background: "transparent",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--radius-control)",
+              padding: "8px 14px",
+            }}
+          >
+            {showAll ? "Show fewer" : `Show ${open.length - VISIBLE_PROPOSALS} more`}
+          </button>
+        ) : null}
       </div>
     </section>
   );

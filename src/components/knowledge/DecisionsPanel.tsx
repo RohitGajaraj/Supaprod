@@ -143,11 +143,17 @@ function FilterGroup<T extends string>({
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the table shows the top few
+// rows and expands on demand, so Brain never becomes a long wall. The server
+// already caps at 100 (listDecisions); this is the UI-side half of that cap.
+const VISIBLE_DECISIONS = 8;
+
 export function DecisionsPanel() {
   const [source, setSource] = useState<SourceFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const navigate = useNavigate();
 
   const qc = useQueryClient();
@@ -280,7 +286,7 @@ export function DecisionsPanel() {
             <span>When</span>
             <span>Why</span>
           </div>
-          {rows.map((d, i) => (
+          {(showAll ? rows : rows.slice(0, VISIBLE_DECISIONS)).map((d, i, shown) => (
             <button
               key={d.id}
               type="button"
@@ -294,7 +300,7 @@ export function DecisionsPanel() {
                 gap: 12,
                 padding: "13px 18px",
                 alignItems: "baseline",
-                borderBottom: i < rows.length - 1 ? "1px solid var(--hairline)" : "none",
+                borderBottom: i < shown.length - 1 ? "1px solid var(--hairline)" : "none",
                 fontSize: 13,
                 background: "transparent",
                 border: "none",
@@ -385,6 +391,27 @@ export function DecisionsPanel() {
           ))}
         </div>
       )}
+
+      {rows.length > VISIBLE_DECISIONS ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 10,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_DECISIONS} more`}
+        </button>
+      ) : null}
 
       <LogDecisionDialog
         open={open}

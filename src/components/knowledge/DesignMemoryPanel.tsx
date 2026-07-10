@@ -75,11 +75,16 @@ function FilterGroup<T extends string>({
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the table shows the top few
+// rows and expands on demand, so Brain never becomes a long wall.
+const VISIBLE_DESIGN_MEMORY = 8;
+
 export function DesignMemoryPanel() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const qc = useQueryClient();
   const fList = useServerFn(listDesignMemory);
@@ -187,7 +192,7 @@ export function DesignMemoryPanel() {
             <span>Source</span>
             <span>When</span>
           </div>
-          {rows.map((d, i) => (
+          {(showAll ? rows : rows.slice(0, VISIBLE_DESIGN_MEMORY)).map((d, i, shown) => (
             <DesignMemoryRowView
               key={d.id}
               row={d}
@@ -195,12 +200,33 @@ export function DesignMemoryPanel() {
               onToggle={() => setExpanded(expanded === d.id ? null : d.id)}
               onDecide={(decision) => decide.mutate({ id: d.id, decision })}
               deciding={decide.isPending}
-              last={i === rows.length - 1}
+              last={i === shown.length - 1}
               grid={GRID}
             />
           ))}
         </div>
       )}
+
+      {rows.length > VISIBLE_DESIGN_MEMORY ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 10,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${rows.length - VISIBLE_DESIGN_MEMORY} more`}
+        </button>
+      ) : null}
 
       <AddDesignMemoryDialog open={addOpen} onOpenChange={setAddOpen} />
     </div>

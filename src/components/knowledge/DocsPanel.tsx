@@ -57,6 +57,10 @@ function updatedLabel(iso: string): string {
   return new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the grid shows the top few
+// cards and expands on demand, so Docs never becomes a long wall.
+const VISIBLE_DOCS = 8;
+
 export function DocsPanel() {
   const qc = useQueryClient();
   const confirm = useConfirm();
@@ -79,6 +83,7 @@ export function DocsPanel() {
   const [search, setSearch] = useState("");
   const [notionOpen, setNotionOpen] = useState(false);
   const [notionQuery, setNotionQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const selected = useQuery({
     queryKey: ["doc", selectedId],
@@ -409,123 +414,156 @@ export function DocsPanel() {
           />
         )
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-          {cards.map((d) => {
-            const open = openDocId === d.id;
-            return (
-              <div key={d.id} className="bento lift" style={{ padding: 0, overflow: "hidden" }}>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setOpenDocId(open ? null : d.id)}
-                  onDoubleClick={() => openEditor(d.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") setOpenDocId(open ? null : d.id);
-                  }}
-                  title="Click to preview · double-click to edit"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "14px 16px",
-                    width: "100%",
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
-                  <span
+        <>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}
+          >
+            {(showAll ? cards : cards.slice(0, VISIBLE_DOCS)).map((d) => {
+              const open = openDocId === d.id;
+              return (
+                <div key={d.id} className="bento lift" style={{ padding: 0, overflow: "hidden" }}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setOpenDocId(open ? null : d.id)}
+                    onDoubleClick={() => openEditor(d.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") setOpenDocId(open ? null : d.id);
+                    }}
+                    title="Click to preview · double-click to edit"
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
-                      background: "var(--soft-stone)",
-                      display: "inline-flex",
+                      display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      color: "var(--ink-subtle)",
-                      flexShrink: 0,
-                      fontSize: 15,
+                      gap: 12,
+                      padding: "14px 16px",
+                      width: "100%",
+                      textAlign: "left",
+                      cursor: "pointer",
                     }}
                   >
-                    {d.icon && d.icon !== "📄" ? d.icon : <FileText size={14} />}
-                  </span>
-                  <span style={{ flex: 1, minWidth: 0 }}>
                     <span
                       style={{
-                        display: "block",
-                        fontWeight: 500,
-                        fontSize: 13.5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        background: "var(--soft-stone)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "var(--ink-subtle)",
+                        flexShrink: 0,
+                        fontSize: 15,
                       }}
                     >
-                      {d.title || "Untitled"}
+                      {d.icon && d.icon !== "📄" ? d.icon : <FileText size={14} />}
                     </span>
-                    <span
-                      className="mono-label"
-                      style={{ fontSize: "var(--text-mono-floor)", marginTop: 1, display: "block" }}
-                    >
-                      doc · updated {updatedLabel(d.updated_at)}
-                    </span>
-                  </span>
-                  <button
-                    className="mono-label"
-                    style={{
-                      fontSize: "var(--text-mono-floor)",
-                      color: "var(--action-blue)",
-                      flexShrink: 0,
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditor(d.id);
-                    }}
-                  >
-                    edit
-                  </button>
-                  {open ? (
-                    <ChevronDown size={13} style={{ color: "var(--ink-faint)" }} />
-                  ) : (
-                    <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
-                  )}
-                </div>
-                {open ? (
-                  <div
-                    className="fade-up"
-                    style={{
-                      padding: "12px 16px 14px 60px",
-                      borderTop: "1px solid var(--hairline)",
-                      background: "var(--surface-1)",
-                    }}
-                  >
-                    {preview.isLoading || !previewDoc ? (
-                      <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
-                        loading…
-                      </span>
-                    ) : (
-                      <p
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span
                         style={{
+                          display: "block",
+                          fontWeight: 500,
                           fontSize: 13.5,
-                          color: "var(--ink-muted)",
-                          lineHeight: 1.6,
-                          fontFamily: "var(--font-display)",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        {excerptOf(previewDoc) || "Nothing written yet. Open the editor to start."}
-                      </p>
-                    )}
-                    <span
-                      className="mono-label"
-                      style={{ fontSize: "var(--text-mono-floor)", marginTop: 8, display: "block" }}
-                    >
-                      preview · double-click the card (or “edit”) to open the editor
+                        {d.title || "Untitled"}
+                      </span>
+                      <span
+                        className="mono-label"
+                        style={{
+                          fontSize: "var(--text-mono-floor)",
+                          marginTop: 1,
+                          display: "block",
+                        }}
+                      >
+                        doc · updated {updatedLabel(d.updated_at)}
+                      </span>
                     </span>
+                    <button
+                      className="mono-label"
+                      style={{
+                        fontSize: "var(--text-mono-floor)",
+                        color: "var(--action-blue)",
+                        flexShrink: 0,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditor(d.id);
+                      }}
+                    >
+                      edit
+                    </button>
+                    {open ? (
+                      <ChevronDown size={13} style={{ color: "var(--ink-faint)" }} />
+                    ) : (
+                      <ChevronRight size={13} style={{ color: "var(--ink-faint)" }} />
+                    )}
                   </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
+                  {open ? (
+                    <div
+                      className="fade-up"
+                      style={{
+                        padding: "12px 16px 14px 60px",
+                        borderTop: "1px solid var(--hairline)",
+                        background: "var(--surface-1)",
+                      }}
+                    >
+                      {preview.isLoading || !previewDoc ? (
+                        <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+                          loading…
+                        </span>
+                      ) : (
+                        <p
+                          style={{
+                            fontSize: 13.5,
+                            color: "var(--ink-muted)",
+                            lineHeight: 1.6,
+                            fontFamily: "var(--font-display)",
+                          }}
+                        >
+                          {excerptOf(previewDoc) ||
+                            "Nothing written yet. Open the editor to start."}
+                        </p>
+                      )}
+                      <span
+                        className="mono-label"
+                        style={{
+                          fontSize: "var(--text-mono-floor)",
+                          marginTop: 8,
+                          display: "block",
+                        }}
+                      >
+                        preview · double-click the card (or “edit”) to open the editor
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+          {cards.length > VISIBLE_DOCS ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-control)",
+                padding: "8px 14px",
+                marginTop: 12,
+              }}
+            >
+              {showAll ? "Show fewer" : `Show ${cards.length - VISIBLE_DOCS} more`}
+            </button>
+          ) : null}
+        </>
       )}
 
       {notionOpen && (

@@ -4,6 +4,7 @@
 // path), so a merge surfaces here automatically. Same server fn and grouping
 // logic as the legacy page; re-skinned in Obsidian tokens to match the rest
 // of Brain instead of the parchment bento rows the legacy page used.
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -35,9 +36,15 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Anti-scroll (founder ruling 2026-07-06 / PC-32): the groups show the top few
+// entries total (across every product group) and expand on demand, so
+// Changelog never becomes a long wall.
+const VISIBLE_ENTRIES = 8;
+
 export function ChangelogPanel() {
   const { activeWorkspace } = useWorkspace();
   const fChangelog = useServerFn(listChangelog);
+  const [showAll, setShowAll] = useState(false);
   const query = useQuery({
     queryKey: ["changelog", activeWorkspace?.id],
     queryFn: () => fChangelog({ data: { workspaceId: activeWorkspace?.id } }),
@@ -93,10 +100,26 @@ export function ChangelogPanel() {
     );
   }
 
+  // Cap the total rendered entries across every group (not per-group), since a
+  // single busy product could otherwise still fill the whole surface on its
+  // own. Group order and each group's internal (already-sorted) order stay
+  // intact; only the tail past the cap is trimmed.
+  let remaining = VISIBLE_ENTRIES;
+  const shownGroups = showAll
+    ? groups
+    : groups
+        .map((group) => {
+          if (remaining <= 0) return { ...group, entries: [] };
+          const take = group.entries.slice(0, remaining);
+          remaining -= take.length;
+          return { ...group, entries: take };
+        })
+        .filter((group) => group.entries.length > 0);
+
   return (
     <div>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {groups.map((group) => (
+        {shownGroups.map((group) => (
           <section key={group.label}>
             <MonoLabel style={{ marginBottom: 10, display: "block" }}>{group.label}</MonoLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -172,6 +195,27 @@ export function ChangelogPanel() {
           </section>
         ))}
       </div>
+
+      {entries.length > VISIBLE_ENTRIES ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          style={{
+            fontFamily: "var(--font-ui)",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "var(--text-muted)",
+            background: "transparent",
+            border: "1px solid var(--hairline-strong)",
+            borderRadius: "var(--radius-control)",
+            padding: "8px 14px",
+            marginTop: 16,
+          }}
+        >
+          {showAll ? "Show fewer" : `Show ${entries.length - VISIBLE_ENTRIES} more`}
+        </button>
+      ) : null}
 
       <div style={{ marginTop: 24 }}>
         <Link

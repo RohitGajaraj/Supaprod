@@ -35,6 +35,10 @@ export function GoalsPanel() {
   const fCreate = useServerFn(createGoal);
   const fStatus = useServerFn(setGoalStatus);
   const [title, setTitle] = useState("");
+  // Anti-scroll (founder ruling 2026-07-06): show the top few and expand on
+  // demand, same idiom as SignalFeed/AutoClustered.
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE_GOALS = 5;
 
   const goalsQ = useQuery({ queryKey: ["goals"], queryFn: () => fList() });
 
@@ -140,7 +144,7 @@ export function GoalsPanel() {
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {goals.map((g) => (
+          {(showAll ? goals : goals.slice(0, VISIBLE_GOALS)).map((g) => (
             <GoalCard
               key={g.id}
               goal={g}
@@ -148,6 +152,25 @@ export function GoalsPanel() {
               statusPending={setStatus.isPending}
             />
           ))}
+          {goals.length > VISIBLE_GOALS ? (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                fontWeight: 500,
+                color: "var(--text-muted)",
+                background: "transparent",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-control)",
+                padding: "8px 14px",
+              }}
+            >
+              {showAll ? "Show fewer" : `Show ${goals.length - VISIBLE_GOALS} more`}
+            </button>
+          ) : null}
         </div>
       )}
     </div>

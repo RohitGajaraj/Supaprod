@@ -617,7 +617,11 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       })
       .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
 
-    return { sessions };
+    // PC-32 (super light, engine underneath): the underlying queries feeding
+    // this (missions/proposed-missions fetches) are uncapped, so defensively
+    // bound the assembled array we actually return. 200 stays generous
+    // relative to the route's own ~8-visible-plus-reveal-door cap.
+    return { sessions: sessions.slice(0, 200) };
   });
 
 /**

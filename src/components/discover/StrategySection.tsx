@@ -6,7 +6,7 @@
 // built here. Reuses listTrackedEntities/listStrategyBriefs unchanged.
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button, MonoLabel } from "@/components/obsidian";
 import {
   listTrackedEntities,
@@ -162,6 +162,14 @@ function EntityRow({ entity, isLast }: { entity: TrackedEntity; isLast: boolean 
 export function StrategySection() {
   const fEntities = useServerFn(listTrackedEntities);
   const fBriefs = useServerFn(listStrategyBriefs);
+  // Anti-scroll (founder ruling 2026-07-06): each list shows the top few and
+  // expands on demand, so this section never becomes a long wall. Briefs and
+  // entities are independent lists, so each gets its own cap and its own
+  // showAll toggle (matches SignalFeed/AutoClustered's idiom).
+  const [showAllBriefs, setShowAllBriefs] = useState(false);
+  const VISIBLE_BRIEFS = 4;
+  const [showAllEntities, setShowAllEntities] = useState(false);
+  const VISIBLE_ENTITIES = 6;
   const entitiesQ = useQuery({
     queryKey: ["strategy-entities"],
     queryFn: () => withTimeout(fEntities()),
@@ -209,9 +217,30 @@ export function StrategySection() {
           </p>
         ) : (
           <div className="grid gap-3.5">
-            {briefs.map((b, i) => (
-              <BriefRow key={b.id} brief={b} isLast={i === briefs.length - 1} />
+            {(showAllBriefs ? briefs : briefs.slice(0, VISIBLE_BRIEFS)).map((b, i, shown) => (
+              <BriefRow key={b.id} brief={b} isLast={i === shown.length - 1} />
             ))}
+            {briefs.length > VISIBLE_BRIEFS ? (
+              <button
+                type="button"
+                onClick={() => setShowAllBriefs((v) => !v)}
+                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: "var(--text-muted)",
+                  background: "transparent",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "8px 14px",
+                }}
+              >
+                {showAllBriefs
+                  ? "Show fewer"
+                  : `Show ${briefs.length - VISIBLE_BRIEFS} more briefs`}
+              </button>
+            ) : null}
           </div>
         )}
       </PanelShell>
@@ -249,9 +278,33 @@ export function StrategySection() {
           </p>
         ) : (
           <div>
-            {entities.map((e, i) => (
-              <EntityRow key={e.id} entity={e} isLast={i === entities.length - 1} />
-            ))}
+            {(showAllEntities ? entities : entities.slice(0, VISIBLE_ENTITIES)).map(
+              (e, i, shown) => (
+                <EntityRow key={e.id} entity={e} isLast={i === shown.length - 1} />
+              ),
+            )}
+            {entities.length > VISIBLE_ENTITIES ? (
+              <button
+                type="button"
+                onClick={() => setShowAllEntities((v) => !v)}
+                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: "var(--text-muted)",
+                  background: "transparent",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "8px 14px",
+                  marginTop: "12px",
+                }}
+              >
+                {showAllEntities
+                  ? "Show fewer"
+                  : `Show ${entities.length - VISIBLE_ENTITIES} more entities`}
+              </button>
+            ) : null}
           </div>
         )}
       </PanelShell>

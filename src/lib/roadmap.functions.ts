@@ -82,7 +82,8 @@ export const getRoadmap = createServerFn({ method: "GET" })
       .from("opportunities")
       .select("*")
       .not("status", "in", "(shipped,dropped)")
-      .order("ice_score", { ascending: false });
+      .order("ice_score", { ascending: false })
+      .limit(300);
     if (error) throw new Error(error.message);
     const items: RoadmapItem[] = (data ?? []).map((o) => {
       const r = o as {
