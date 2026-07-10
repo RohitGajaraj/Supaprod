@@ -130,6 +130,7 @@ function TodaySpotlight({
   onRefreshBrief,
   refreshing,
   onOpenCall,
+  insightCount = 0,
 }: {
   callTitle: string | null;
   callKind: string | null;
@@ -139,6 +140,9 @@ function TodaySpotlight({
   refreshing: boolean;
   /** Dim 17: open the featured call's own detail from the spotlight line. */
   onOpenCall?: () => void;
+  /** PC-32: pushed insights waiting in the judgment lane — the all-quiet
+   *  line must never contradict a lane showing items (Love-Gate find). */
+  insightCount?: number;
 }) {
   const [fullOpen, setFullOpen] = React.useState(false);
   const monoLabel: React.CSSProperties = {
@@ -165,7 +169,7 @@ function TodaySpotlight({
     <SpotlightCard
       aria-label="Today's brief"
       role="region"
-      tone={callTitle ? "ember" : "moss"}
+      tone={callTitle || insightCount > 0 ? "ember" : "moss"}
       compact
       style={{ marginBottom: 12 }}
     >
@@ -207,10 +211,23 @@ function TodaySpotlight({
           </div>
         ) : (
           <div style={row}>
-            <span style={{ ...monoLabel, color: "var(--moss)" }}>All quiet</span>
-            <span style={{ color: "var(--text-muted)" }}>
-              Nothing needs your judgment right now.
-            </span>
+            {insightCount > 0 ? (
+              <>
+                <span style={{ ...monoLabel, color: "var(--ember-text)" }}>Waiting</span>
+                <span style={{ color: "var(--text-muted)" }}>
+                  {insightCount === 1
+                    ? "One pushed insight below needs your read."
+                    : `${insightCount} pushed insights below need your read.`}
+                </span>
+              </>
+            ) : (
+              <>
+                <span style={{ ...monoLabel, color: "var(--moss)" }}>All quiet</span>
+                <span style={{ color: "var(--text-muted)" }}>
+                  Nothing needs your judgment right now.
+                </span>
+              </>
+            )}
           </div>
         )}
         {provedOut ? (
@@ -425,10 +442,12 @@ function Dashboard() {
   // SW-5: the four-lane content model (Needs your judgment · What the swarm did ·
   // At risk/watch · Shipped and what it cost), each computed from real rows.
   const lanes = useQuery({ queryKey: ["today-lanes"], queryFn: () => fetchLanes() });
-  // PC-32 block 2 (PC-33): the product masthead's identity object.
+  // PC-32 block 2 (PC-33): the product masthead's identity object — scoped to
+  // the ACTIVE workspace (Love-Gate find: resolving the default workspace put
+  // "My workspace" on a screen labeled with the active product's name).
   const productContext = useQuery({
-    queryKey: ["product-context"],
-    queryFn: () => fetchProductContext({ data: {} }),
+    queryKey: ["product-context", activeWorkspace?.id ?? "default"],
+    queryFn: () => fetchProductContext({ data: { workspaceId: activeWorkspace?.id ?? null } }),
     staleTime: 5 * 60 * 1000,
   });
   const regenBrief = useMutation({
@@ -478,6 +497,11 @@ function Dashboard() {
   // gates are excluded server-side (they live in the quiet Expired group).
   const callCount = ny?.counts.liveCalls ?? 0;
   const expiredTotal = ny?.counts.expired ?? 0;
+  // PC-32 block 3 (Love-Gate find): pushed insights ARE judgment-lane items,
+  // so the hero, the glow field, and the spotlight speak the MERGED count —
+  // the old split had the hero declare "All clear" over a lane showing 2.
+  const insightCount = lanes.data?.lane1.count ?? 0;
+  const judgmentCount = callCount + insightCount;
 
   const [clearedSession, setClearedSession] = useState(0);
   const answered = () => setClearedSession((c) => c + 1);
@@ -1055,7 +1079,7 @@ function Dashboard() {
           <div
             aria-hidden="true"
             className="loom-glow-field"
-            data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
+            data-tone={needsYouLoaded && judgmentCount > 0 ? "ember" : undefined}
           />
         ) : null}
         {needsYouLoaded ? (
@@ -1063,14 +1087,14 @@ function Dashboard() {
             <Hero
               greeting={greeting.data?.greeting ?? "Hello"}
               userName={userName}
-              pendingCalls={callCount}
+              pendingCalls={judgmentCount}
             />
             {/* PC-32 block 6: the loop pulse folds into the hero zone as
                 compact pills — kept, shrunk, caption dropped. */}
             <LoopStrip
               compact
               counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
-              pendingCalls={callCount}
+              pendingCalls={judgmentCount}
               workingCount={workingCount}
               onGo={goSurface}
             />
@@ -1104,6 +1128,7 @@ function Dashboard() {
           <TodaySpotlight
             callTitle={featured?.props.title ?? null}
             callKind={featured?.props.kind ?? null}
+            insightCount={insightCount}
             provedOut={whatChangedItems[0]?.text ?? null}
             briefSummary={dash.data?.brief?.summary ?? null}
             onRefreshBrief={() => regenBrief.mutate()}
