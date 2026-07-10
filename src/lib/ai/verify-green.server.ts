@@ -236,13 +236,25 @@ export async function runVerifyCycleIfNeeded(
   // double-dispatch the same corrective cycle (the house claim-first rule,
   // same hazard mission-advance guards against). The loser sees zero rows
   // and simply defers — the winner's queued run keeps the mission alive.
-  const { data: claimed } = await supabase
+  //
+  // Pre-migration tolerant (the mission-advance hasRetryColumns posture):
+  // until 20260711003000 lands, verify_cycles does not exist and this update
+  // ERRORS. That must complete the mission normally — treating it as a lost
+  // claim would defer completion forever on a live DB without the column.
+  const { data: claimed, error: claimError } = await supabase
     .from("missions")
     .update({ verify_cycles: cycles + 1, updated_at: new Date().toISOString() } as never)
     .eq("id", mission.id)
     .eq("verify_cycles", cycles)
     .in("status", ["running", "in_progress"])
     .select("id");
+  if (claimError) {
+    console.error(
+      "verify-green: cycle claim failed (pre-migration or transient) — completing normally:",
+      claimError.message,
+    );
+    return "not_applicable";
+  }
   if (!claimed || claimed.length === 0) return "cycle_dispatched";
 
   const unmet = unmetClauses(plan);
