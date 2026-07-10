@@ -22,6 +22,32 @@ import {
 import { FigmaEmbed } from "./editor/FigmaEmbed";
 import { usePrompt } from "@/hooks/use-confirm";
 
+
+// Toolbar button component: factored out to module scope so buttons don't remount
+// on every keystroke (when useEditor triggers a parent re-render).
+function Btn({
+  on,
+  active,
+  children,
+  title,
+}: {
+  on: () => void;
+  active?: boolean;
+  children: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={on}
+      className={`h-8 w-8 inline-flex items-center justify-center rounded-md text-xs transition ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function DocEditor({
   initialContent,
   onChange,
@@ -77,26 +103,7 @@ export function DocEditor({
 
   if (!editor) return null;
 
-  const Btn = ({
-    on,
-    active,
-    children,
-    title,
-  }: {
-    on: () => void;
-    active?: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
-    <button
-      type="button"
-      title={title}
-      onClick={on}
-      className={`h-8 w-8 inline-flex items-center justify-center rounded-md text-xs transition ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"}`}
-    >
-      {children}
-    </button>
-  );
+
 
   function deleteSlashChar() {
     // Remove the "/" the user just typed before inserting the block.
