@@ -1,4 +1,4 @@
-# Research-sprint lane briefs — G18 (2026-07-10 research merge)
+                               # Research-sprint lane briefs — G18 (2026-07-10 research merge)
 
 > _Created: 2026-07-10 (the research-to-product merge session). Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10 decision 7 (25-day ship · provenance on every change · claims-based collision discipline · documentation minimalism · nothing-is-doctrine)._
 
