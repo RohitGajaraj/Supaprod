@@ -123,6 +123,7 @@ import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksHouseRulesTickRouteImport } from './routes/api/public/hooks/house-rules-tick'
 import { Route as ApiPublicHooksGoalTickRouteImport } from './routes/api/public/hooks/goal-tick'
 import { Route as ApiPublicHooksGithubWebhookRouteImport } from './routes/api/public/hooks/github-webhook'
+import { Route as ApiPublicHooksFanoutReconcileTickRouteImport } from './routes/api/public/hooks/fanout-reconcile-tick'
 import { Route as ApiPublicHooksEventReactorTickRouteImport } from './routes/api/public/hooks/event-reactor-tick'
 import { Route as ApiPublicHooksEvalTickRouteImport } from './routes/api/public/hooks/eval-tick'
 import { Route as ApiPublicHooksEvalSuiteTickRouteImport } from './routes/api/public/hooks/eval-suite-tick'
@@ -765,6 +766,12 @@ const ApiPublicHooksGithubWebhookRoute =
     path: '/api/public/hooks/github-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksFanoutReconcileTickRoute =
+  ApiPublicHooksFanoutReconcileTickRouteImport.update({
+    id: '/api/public/hooks/fanout-reconcile-tick',
+    path: '/api/public/hooks/fanout-reconcile-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksEventReactorTickRoute =
   ApiPublicHooksEventReactorTickRouteImport.update({
     id: '/api/public/hooks/event-reactor-tick',
@@ -1109,6 +1116,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1261,6 +1269,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1417,6 +1426,7 @@ export interface FileRoutesById {
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
+  '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1573,6 +1583,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/fanout-reconcile-tick'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1725,6 +1736,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/fanout-reconcile-tick'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1880,6 +1892,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
+    | '/api/public/hooks/fanout-reconcile-tick'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1969,6 +1982,7 @@ export interface RootRouteChildren {
   ApiPublicHooksEvalSuiteTickRoute: typeof ApiPublicHooksEvalSuiteTickRoute
   ApiPublicHooksEvalTickRoute: typeof ApiPublicHooksEvalTickRoute
   ApiPublicHooksEventReactorTickRoute: typeof ApiPublicHooksEventReactorTickRoute
+  ApiPublicHooksFanoutReconcileTickRoute: typeof ApiPublicHooksFanoutReconcileTickRoute
   ApiPublicHooksGithubWebhookRoute: typeof ApiPublicHooksGithubWebhookRoute
   ApiPublicHooksGoalTickRoute: typeof ApiPublicHooksGoalTickRoute
   ApiPublicHooksHouseRulesTickRoute: typeof ApiPublicHooksHouseRulesTickRoute
@@ -2809,6 +2823,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksGithubWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/fanout-reconcile-tick': {
+      id: '/api/public/hooks/fanout-reconcile-tick'
+      path: '/api/public/hooks/fanout-reconcile-tick'
+      fullPath: '/api/public/hooks/fanout-reconcile-tick'
+      preLoaderRoute: typeof ApiPublicHooksFanoutReconcileTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/event-reactor-tick': {
       id: '/api/public/hooks/event-reactor-tick'
       path: '/api/public/hooks/event-reactor-tick'
@@ -3318,6 +3339,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksEvalSuiteTickRoute: ApiPublicHooksEvalSuiteTickRoute,
   ApiPublicHooksEvalTickRoute: ApiPublicHooksEvalTickRoute,
   ApiPublicHooksEventReactorTickRoute: ApiPublicHooksEventReactorTickRoute,
+  ApiPublicHooksFanoutReconcileTickRoute:
+    ApiPublicHooksFanoutReconcileTickRoute,
   ApiPublicHooksGithubWebhookRoute: ApiPublicHooksGithubWebhookRoute,
   ApiPublicHooksGoalTickRoute: ApiPublicHooksGoalTickRoute,
   ApiPublicHooksHouseRulesTickRoute: ApiPublicHooksHouseRulesTickRoute,
