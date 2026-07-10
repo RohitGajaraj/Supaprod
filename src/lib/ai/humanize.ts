@@ -44,10 +44,7 @@ const STRIP_RE = new RegExp(
 const EXOTIC_SPACE_RE = new RegExp("[\\u00a0\\u202f\\u2002-\\u200a]", "g");
 
 // Regex patterns for dash normalization (hoisted to avoid recompilation in the hot path).
-const NUMERIC_RANGE_RE = new RegExp(
-  `(\\d)[ \\t]*[${DASH_CLASS}][ \\t]*(\\d)`,
-  "g",
-);
+const NUMERIC_RANGE_RE = new RegExp(`(\\d)[ \\t]*[${DASH_CLASS}][ \\t]*(\\d)`, "g");
 const SPACED_DASH_RE = new RegExp(`[ \\t]+[${DASH_CLASS}][ \\t]+`, "g");
 const ANY_DASH_RE = new RegExp(`[${DASH_CLASS}]`, "g");
 

@@ -226,10 +226,7 @@ export const createLinearIssuesFromTasks = createServerFn({ method: "POST" })
     const created: { taskId: string; issueId: string; url: string }[] = [];
     // Phase 1: Parallelize GraphQL issue creation (concurrency-capped at 5)
     const CONCURRENT_MUTATIONS = 5;
-    const mutationPromises: Promise<
-      | { taskId: string; issueId: string; url: string }
-      | null
-    >[] = [];
+    const mutationPromises: Promise<{ taskId: string; issueId: string; url: string } | null>[] = [];
     const syncMappingsToInsert: Array<{
       user_id: string;
       provider: string;

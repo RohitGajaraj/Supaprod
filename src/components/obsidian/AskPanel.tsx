@@ -74,6 +74,9 @@ function AskUserTurn({ content }: { content: string }) {
 function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatus | null }) {
   const [traceOpen, setTraceOpen] = React.useState(false);
   const thinking = !msg.content && !msg.error;
+  // Memoize citations array to prevent ChatMarkdown from re-parsing on every parent render.
+  // Hoisted above the early returns below — hooks must run unconditionally on every render.
+  const citations = React.useMemo(() => msg.meta?.sources.map((s) => s.n), [msg.meta?.sources]);
 
   if (msg.error) {
     return (
@@ -97,8 +100,6 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
   }
 
   const meta = msg.meta;
-  // Memoize citations array to prevent ChatMarkdown from re-parsing on every parent render.
-  const citations = React.useMemo(() => meta?.sources.map((s) => s.n), [meta?.sources]);
 
   return (
     <div>
@@ -304,7 +305,7 @@ export function AskPanel() {
         // Create a new AbortController for this request so we can cancel if panel closes
         const controller = new AbortController();
         abortControllerRef.current = controller;
-        
+
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: {
