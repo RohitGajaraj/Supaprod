@@ -11,6 +11,39 @@
 
 ---
 
+## 2026-07-10 - v13 "Proof Campaign" adopted as the campaign canon (group G17); the parallel-lane protocol with model split; the HyperAgent ruling; the one-liner
+
+**Context.** The founder's goal session ("act as the founder: design and build a future-proof, billion-dollar, agentic-first product OS"). Evidence: a 7-agent sweep (live DB, outside codebase audit, PM voices, competitors, frontier UX, market, HyperAgent) - persisted in [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) + [`../references/2026-07-10-launch-research-briefs.md`](../references/2026-07-10-launch-research-briefs.md); raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) (2026-07-10 v13 entry). The same-day launch-horizon reset (next entry below) is folded in: the campaign is written to the Launch-Month + gates-not-dates horizon.
+
+**Decisions made (binding).**
+1. **[`v13-proof-campaign.md`](./v13-proof-campaign.md) is the CURRENT campaign canon** under v11's direction: the engine is finished and verified (8 users, all internal - zero market contact against a warm engine), so **users, proof, and love now outrank engine depth**; when v13 and an older doc disagree on what to do next, v13 wins. Execution: [`../planning/v13-proof-campaign-plan.md`](../planning/v13-proof-campaign-plan.md), board group **G17** (27 rows PC-01..PC-27), ranked behind the OBS-PORT/SW-7 partials; SW-7's non-gated remainder folds into PC-22; PC-21 un-defers exactly BD-1/BD-2 of G13.
+2. **The parallel-lane protocol with an explicit model split** (founder directive): Lane A judgment on **Fable** (chokepoints, onboarding taste, trust, the YC application), Lane B build on **Sonnet**, Lane C GTM on **Sonnet**; worktree per lane, dashboard claims as the collision law, paste-ready lane briefs in the plan §3. This is the standing way the campaign builds.
+3. **Scope widened beyond PM** (founder mid-session): the product ORG's OS - the eng handoff (spec→PR receipts, BuildDriver GA slice), the design leg, the GTM tail; wedge audience stays the individual PM/founding PM; we feed the builders and judge results, never race them.
+4. **The one-liner:** "Cadence is Claude Code for the product lifecycle - agents do the product work end to end, you make the calls, and the ledger proves what worked." Formal category line unchanged (the decision and outcome OS, v11 1A). "AI PM tool" is banned vocabulary (graveyard pattern-match). The story spine: **the ledger is the compiler for judgment**.
+5. **Billing goes live via a merchant of record** (Paddle/LemonSqueezy recommended - dissolves the Stripe-India entity blocker); founder picks + provides the account; revenue is the first post-launch gate (G-REV).
+6. **HyperAgent $20k = arm's-length GTM/research compute only** - Airtable's ProductCentral is now a direct category competitor; never core orchestration, never product-data residency; verify grant expiry and front-load use.
+7. **The Love Gate with the dual bar** (from "world class product people love" + the enterprise+consumer ruling): no gate closes on green tests alone - a fresh production account must pass the felt-experience walkthrough.
+
+**Tradeoffs.** Registering 27 new rows drops the board tally from 97.3% to 89.3% strict - accepted as new scope, not regression (the established pattern). The Hermes-move and deeper moat rows sit behind launch-critical rows even though they are the long-term differentiator - the moat compounds only on real usage, so launch wins the rank fight.
+
+---
+
+## 2026-07-10 - Launch horizon reset: ~1 month to launch (demos + beta + YC application); no six-month planning anywhere; the documentation bar extended to chat-showcased analysis
+
+**Context.** During a PM-voice market-research session (evidence base: [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md)), the founder issued two mid-session rulings that are standing and cross-cutting, not task-local. Raw verbatim-close capture + reasoning: [`strategic-inputs-log.md`](./strategic-inputs-log.md) 2026-07-10 (the research entry).
+
+**Decisions made (binding).**
+1. **No six-month execution planning, anywhere.** "We are not planning anything for six month execution plan... we are launching in next one month." The launch month includes: product demos, showcasing, and rolling out to beta users. Any doc, plan, or recommendation framed for a multi-month future cycle is mis-framed by construction and gets re-mapped to the NOW horizon.
+2. **Y Combinator application is the target.** The product must present as **enterprise-capable/enterprise-grade AND consumer-grade, now** — both bars simultaneously, not sequenced. "We want everything to be built now. When I say built now, that's an explicit command."
+3. **Every strategic/research insight gets an immediate consumer.** The consumers are: the YC application (problem/market + competition/moat sections), the demo script, and the beta rollout trust surface. First application of this rule: the PM-voice research doc's §8 maps each finding to one of those three consumers; its §9 persists the skeptical-senior-PM read as demo-rehearsal + YC hostile-question prep.
+4. **The documentation bar extends to chat-showcased material.** "Everything needs to be detail documented — whatever you're showcasing in the chat as well." Chat-only analysis is an open loop: research findings, strategy analysis, positioning arguments, and persona reads shown in a chat window must land in the repo at comprehensive detail in the same session. This sharpens (does not replace) the 2026-06-19 documentation bar and does not re-enable the code-build doc loop — BUILD-ONLY MODE remains ACTIVE for build work.
+
+**Tradeoffs.** Compressing to a 1-month horizon means launch-gating only what the demo/beta/YC path actually needs (e.g., the connector-verification sequencing ruling from earlier the same day already follows this shape: unblock the cheap items, never let the expensive dependency hold the bundle hostage). The enterprise+consumer dual bar is accepted as a positioning requirement for YC, not a license to gold-plate — correctness gates stay as-is per AGENTS.md §3.
+
+**Spec / plan:** the NOW-horizon consumer mapping lives in [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §8-§9 · raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) 2026-07-10 · launch-scope sequencing against the feature dashboard is the next founder-facing planning conversation (not decided in this session).
+
+---
+
 ## 2026-07-04 - Loom (v4) adopted as the design contract; the visibility law; the production-readiness mission executed overnight
 
 **Context.** The founder's mission file (`docs/Readiness Audit & Consumer Production grade`) declared the final pre-ship transformation: audit everything against the LIVE app, recover homeless features, redesign beyond Obsidian v3 (explicitly "do not feel constrained by V3", never mimic v1/v2/v3), humanize all language, validate on production, to a Linear/Stripe/Vercel polish bar. Founder rulings added during the night: everything visible and logically bucketed (zero URL-only features), Today must triage (11 flat approvals was the symptom), a living Obsidian-style knowledge graph as the moat made visible, desktop-first canvas (v3 read mobile-sized), a gradient language done tastefully, single-product workspaces get progressive disclosure (the products concept only appears when a second product exists), renames where logical, and reuse of v3's good elements.

@@ -1,6 +1,6 @@
 # docs/ — Index
 
-> _Created: 2026-06-04 · Last updated: 2026-06-19_
+> _Created: 2026-06-04 · Last updated: 2026-07-10_
 
 > Parent index for everything under `docs/`. Every new doc added to this folder must be listed here so nothing lives in a silo. If you add a file and don't link it from this index (or its subfolder's index), the doc loop is open — close it in the same commit.
 >
@@ -157,6 +157,8 @@ Git-tracked rules every tool follows. One file per rule. Index + how to add: [`c
 | [`references/competitive-reference.md`](./archive/competitive-reference.md)                       | Competitive landscape notes (older).  |
 | [`references/idea-origination-inputs.md`](./archive/idea-origination-inputs.md)                   | Inputs that shaped the original idea. |
 | [`references/research-references-aakash-gupta.md`](./references/research-references-aakash-gupta.md) | PM-voice research references.         |
+| [`references/pm-voice-and-ai-tooling-research.md`](./references/pm-voice-and-ai-tooling-research.md) | **Jul-2026 sourced pain-point research** — real user voices (Reddit-adjacent/HN/G2/Capterra/Lenny's/Product Hunt) on incumbent PM tool complaints, AI-PM-tool sentiment (loved vs. gimmick), PM grunt work ranked, wishlist, fears/trust requirements, and cross-role handoff pain. 20-citation source table; every claim dated. |
+| [`references/2026-07-10-launch-research-briefs.md`](./references/2026-07-10-launch-research-briefs.md) | **Jul-2026 v13 evidence base (4 sourced briefs):** competitive landscape (grid + pricing + the confirmed empty white-space + ranked threats), frontier-agent UX patterns (Claude Code/Tag, Pulse, Jules, Hermes, Devin, Sierra), market sizing (TAM/SAM/SOM math + role-shift + pricing + distribution + frontier-survival precedents), and Airtable HyperAgent + the $20k credit ruling. Feeds [`strategy/v13-proof-campaign.md`](./strategy/v13-proof-campaign.md) and the YC application (PC-27). |
 | [`references/external-strategy-synthesis.md`](./references/external-strategy-synthesis.md) | **Synthesis (read first).** Fuses the two Google Cloud reports + the live market/WTP/investor research into the convergence thesis, validations, sharpening corrections, and the handoff to **v7**. |
 | [`references/ai-agent-trends-2026-gcp.md`](./references/ai-agent-trends-2026-gcp.md)                 | **Google Cloud + DeepMind "AI Agent Trends 2026"** (49 pp) — page-cited digest: the 5 enterprise shifts, all data points, frameworks (grounding · digital assembly line · A2A/MCP/AP2 · 5 Pillars), quotes, implications. Names the "Chief of Staff for AI" role we productize. |
 | [`references/future-of-ai-startups-2025-gcp.md`](./references/future-of-ai-startups-2025-gcp.md)     | **Google Cloud "Future of AI: Perspectives for Startups 2025"** (75 pp) — page-cited digest: 20+ VC/founder voices, the 15 takeaways, moat/last-mile/ambient-agent/budget-replacement frameworks, the quote bank, and our **fundraising spine**. |

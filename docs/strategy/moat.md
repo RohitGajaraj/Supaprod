@@ -2,6 +2,8 @@
 
 > _Created: 2026-06-19 · Last updated: 2026-06-25_
 
+> **🚀 2026-07-10 ripple check (v13):** [v13: The Proof Campaign](./v13-proof-campaign.md) is now the campaign canon (what to do next). The moat thesis here is UNCHANGED and freshly re-verified by the 2026-07-10 competitor sweep ([evidence](../references/2026-07-10-launch-research-briefs.md)): the white space is still empty on both axes (nobody reinforces ranking from outcomes; nobody spans signal→decision→build under one record); new facts folded into the map — Cycle → Atlassian, Kraftful → Amplitude, **Airtable ProductCentral is now a direct category competitor**, Linear Agent + Coding Sessions is the fastest-closing threat (12-18mo). Pricing/gating unchanged; §4's posture map stands.
+>
 > **⭐ Superseded for direction by [v11: The Guiding Star](./v11-guiding-star.md) (2026-06-23).** v11 reconciles the headline thesis (the moat is the **decision-and-outcome layer**: own the loop, sense continuously, keep the receipts; memory is one component, not the headline), and carries the current villain/defense pressure-test, the market/pricing section, and the agentic build plan (now in the [feature dashboard](../planning/feature-dashboard.md) as the ranked v11 build front). This doc remains the detailed moat-stack + competition map + YC objection-Q&A reference.
 >
 > **What this is.** The standing reference on what our moat is, who our competition is, why we win, and how the moat ripples into pricing, features, and the platform. Written for three uses: (1) the founder's Y Combinator application + interview prep, (2) the founder's day-to-day "what is our moat / who do we compete with" reference, (3) the canon every tool reads before any positioning, pricing, or feature-priority call.
