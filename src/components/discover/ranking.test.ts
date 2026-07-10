@@ -456,3 +456,99 @@ describe("outcome support in the comparator chain", () => {
     expect(ranked[0].rationale).not.toContain("outcomes on this theme");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Designation precedence boundary: rule 2 ("needs validation") vs rule 3 ("quick win")
+//
+// The designation rules evaluated in strict if-else order are:
+//   1. rank === 1                                  -> "best bet"
+//   2. !endorsed && impact >= 6                    -> "needs validation"
+//   3. ease >= 7 && impact >= 5                    -> "quick win"
+//   4. ease <= 3                                   -> "heavy lift"
+//   5. corroboration >= 3                          -> "watch this week"
+//   6. otherwise                                   -> null
+//
+// A bet that is NOT endorsed, has impact >= 6, AND has ease >= 7 satisfies both
+// rule 2 and rule 3 simultaneously. Because rule 2 is tested first in the
+// if-else chain, "needs validation" is the precedence winner and "quick win"
+// must never be returned for such a bet.
+//
+// These tests pin that boundary so a future refactor (e.g. reordering the
+// rules) cannot silently change visible behaviour.
+// ---------------------------------------------------------------------------
+describe("designation precedence boundary: needs validation beats quick win", () => {
+  // Convenience: build the minimal input that triggers the boundary.
+  // All variants keep rank > 1 (rank 1 short-circuits to "best bet" before
+  // either rule is reached) and verdict = PENDING (not endorsed).
+  function boundary(over: {
+    impact: number;
+    ease: number;
+  }): Parameters<typeof deriveDesignation>[0] {
+    return { rank: 2, verdict: "PENDING", corroboration: 0, ...over };
+  }
+
+  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=7 — both at exact thresholds)", () => {
+    // impact=6 satisfies rule 2 (>= 6); ease=7 satisfies rule 3 (>= 7).
+    // Rule 2 is first in the if-else chain, so "needs validation" wins.
+    expect(deriveDesignation(boundary({ impact: 6, ease: 7 }))).toBe("needs validation");
+  });
+
+  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=9 — both well above thresholds)", () => {
+    // Exceeding both thresholds still returns only one designation.
+    // Rule 2 fires first regardless of how far past the threshold the values are.
+    expect(deriveDesignation(boundary({ impact: 8, ease: 9 }))).toBe("needs validation");
+  });
+
+  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=7 — impact high, ease at threshold)", () => {
+    // impact=8 > 6 (rule 2 fires), ease=7 >= 7 (rule 3 would also fire).
+    // The precedence winner is rule 2.
+    expect(deriveDesignation(boundary({ impact: 8, ease: 7 }))).toBe("needs validation");
+  });
+
+  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=8 — impact at threshold, ease high)", () => {
+    // The symmetric case: impact is exactly at rule 2's threshold (6), ease
+    // exceeds rule 3's threshold (8 >= 7). Rule 2 still fires first.
+    expect(deriveDesignation(boundary({ impact: 6, ease: 8 }))).toBe("needs validation");
+  });
+
+  test("should return 'quick win' when impact drops below rule 2 threshold but ease still qualifies for rule 3 (impact=5, ease=7)", () => {
+    // impact=5 does NOT meet rule 2 (needs >= 6), so rule 2 is skipped.
+    // ease=7 and impact=5 DO meet rule 3 thresholds, so "quick win" wins.
+    // This confirms the boundary is sharp: one point below impact=6 flips the designation.
+    expect(deriveDesignation(boundary({ impact: 5, ease: 7 }))).toBe("quick win");
+  });
+
+  test("should return 'quick win' when endorsement is added — endorsed bets skip rule 2 and fall through to rule 3", () => {
+    // When the Critic endorses the bet (SHIP), !endorsed is false so rule 2 is
+    // bypassed entirely. ease >= 7 && impact >= 5 then makes rule 3 the winner.
+    // This tests that the not-endorsed gate is what causes the rule 2 / rule 3
+    // ambiguity in the first place.
+    expect(
+      deriveDesignation({ rank: 2, verdict: "SHIP", impact: 6, ease: 7, corroboration: 0 }),
+    ).toBe("quick win");
+  });
+
+  test("should return only 'needs validation' (not both designations) when both rules match — result is a single Designation, not an array", () => {
+    // Defensive sanity: deriveDesignation returns a scalar Designation, so it is
+    // structurally impossible to return two at once. This test confirms the return
+    // value is NOT an array and IS the rule-2 winner.
+    const result = deriveDesignation(boundary({ impact: 6, ease: 7 }));
+    expect(Array.isArray(result)).toBe(false);
+    expect(result).toBe("needs validation");
+  });
+
+  test("should propagate the precedence decision through rankOpportunities end-to-end", () => {
+    // Confirm the same precedence holds when designation is derived via the full
+    // ranking pipeline (not just deriveDesignation in isolation).
+    const opps = [
+      // rank 1 anchor — ensures the dual-qualifier bet lands at rank 2.
+      mk({ id: "anchor", ice_score: 9, critic_review: critic("ship") }),
+      // Dual-qualifier: not endorsed, impact=6 (rule 2), ease=8 (rule 3).
+      mk({ id: "dual", ice_score: 5, critic_review: null, impact: 6, ease: 8 }),
+    ];
+    const ranked = rankOpportunities(opps, noCorr);
+    const dual = ranked.find((r) => r.opp.id === "dual")!;
+    expect(dual.rank).toBe(2); // confirms it is not the best-bet short-circuit
+    expect(dual.designation).toBe("needs validation");
+  });
+});

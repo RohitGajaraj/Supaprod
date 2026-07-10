@@ -64,7 +64,7 @@ describe("fmtUsd", () => {
   });
 
   test("formats cents correctly with 2 decimal places", () => {
-    expect(fmtUsd(5.50)).toBe("$5.50");
+    expect(fmtUsd(5.5)).toBe("$5.50");
     expect(fmtUsd(0.99)).toBe("$0.99");
     expect(fmtUsd(123.45)).toBe("$123.45");
   });
@@ -90,25 +90,23 @@ describe("fmtUsd", () => {
     expect(fmtUsd(0.019)).toBe("$0.02");
   });
 
-  // BUG: Negative numbers
-  test("formats negative whole numbers with 2 decimal places (BUG: currently uses 4)", () => {
-    // Current behavior (BUG): fmtUsd(-5) returns "$-5.0000" (4 decimals)
-    // Expected behavior: "$-5.00" (2 decimals)
-    // The bug is in the condition: v < 0.01 is true for ALL negative numbers
-    // Fix needed: v > 0 && v < 0.01 instead of v < 0.01
+  // Negative numbers (FIXED: condition correctly gates 4-decimal formatting to positive values only)
+  test("formats negative whole numbers with 2 decimal places", () => {
+    // The condition v > 0 && v < 0.01 ensures that only positive values less than $0.01
+    // get 4-decimal formatting; negative numbers always receive 2 decimals
     const result = fmtUsd(-5);
     expect(result).toBe("$-5.00");
   });
 
   test("formats negative cents correctly with 2 decimal places", () => {
-    expect(fmtUsd(-0.50)).toBe("$-0.50");
+    expect(fmtUsd(-0.5)).toBe("$-0.50");
     expect(fmtUsd(-0.99)).toBe("$-0.99");
     expect(fmtUsd(-123.45)).toBe("$-123.45");
   });
 
-  test("formats negative amounts less than $0.01 with 2 decimal places (not 4)", () => {
-    // Bug: -0.001 currently returns "$-0.0010" (4 decimals)
-    // Expected: "$-0.00" (2 decimals, since negative should never use 4)
+  test("formats negative amounts less than $0.01 with 2 decimal places", () => {
+    // Negative amounts < $0.01 correctly receive 2-decimal formatting, not 4.
+    // This is because the v > 0 gate prevents negatives from entering the 4-decimal path.
     expect(fmtUsd(-0.001)).toBe("$-0.00");
     expect(fmtUsd(-0.0001)).toBe("$-0.00");
     expect(fmtUsd(-0.005)).toBe("$-0.01");

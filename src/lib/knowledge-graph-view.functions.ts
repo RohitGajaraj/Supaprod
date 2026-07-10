@@ -61,7 +61,7 @@ const LINEAGE_COLS = "id,parent_kind,parent_id,child_kind,child_id,relation,rati
 const LINEAGE_COLS_BITEMPORAL = `${LINEAGE_COLS},valid_to,inference`;
 
 /** A PostgREST "column does not exist" error (42703) - the pre-migration signal for `valid_to`. */
-function isMissingColumnError(
+export function isMissingColumnError(
   err: { code?: string; message?: string } | null | undefined,
 ): boolean {
   if (!err) return false;
@@ -87,7 +87,7 @@ export async function resolveLineageCols(supabase: SupabaseClient): Promise<stri
 
 /** Batch `.in()` id lists so a PostgREST URL can never run long, even at the node cap. */
 const IN_BATCH = 25;
-function chunk<T>(arr: T[], size: number): T[][] {
+export function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;

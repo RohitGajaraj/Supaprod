@@ -1,57 +1,64 @@
 {
-  "timestamp": "2026-07-08T21:39:20.497Z",
+  "timestamp": "2026-07-09T20:49:07.233Z",
   "mode": "headless",
   "workerType": "audit",
   "model": "haiku",
-  "durationMs": 66663,
-  "executionId": "audit_1783546693834_98u5p2",
+  "durationMs": 153710,
+  "executionId": "audit_1783629993523_ntm85m",
   "success": true,
   "findings": {
     "vulnerabilities": [
       {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 12,
-        "description": "Weak ID generation fallback. The `idFactory` uses `Math.random()` instead of cryptographically secure random when `crypto.randomUUID()` is unavailable. This produces predictable session IDs in older environments."
-      },
-      {
-        "severity": "medium",
+        "severity": "high",
         "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 28,
-        "description": "Token injection via global window object. `__IMPECCABLE_TOKEN__` and `__IMPECCABLE_PORT__` are read from window globals without verification of source. If a third-party script runs before this one, it could replace these values or read them."
+        "line": 22,
+        "description": "The live-mode auth token is read into a plain global (`window.__IMPECCABLE_TOKEN__`, injected by the server before this script loads) and held in module scope. Any script that executes in that page context — a third-party script, a bug elsewhere on the page, or an XSS payload — can read `window.__IMPECCABLE_TOKEN__` directly and replay it against the local live-mode server (localhost:PORT) to perform privileged live-edit actions. Prefer a scoped closure variable set once and not left on `window`, or a short-lived, single-use handshake token."
       },
       {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-dom.js",
-        "line": 46,
-        "description": "CSS ID escaping may be incomplete. The fallback regex in `cssId()` attempts to escape all special characters, but CSS parsing is complex and edge cases (e.g., null bytes, high Unicode) could bypass validation."
+        "severity": "medium",
+        "file": ".output/public/assets/AuthScaffold-BrIZ5H0V.js",
+        "line": 1,
+        "description": "The auth error-mapping function `w()` returns a distinct message for \"user already registered\" (\"An account already uses this email. Sign in instead.\") versus other signup failures. This lets an attacker enumerate which emails already have accounts by submitting signup attempts and reading the response message — classic account enumeration. Return a generic message for signup conflicts (or gate the distinction behind email-verification-first flows) so registered vs. unregistered emails aren't distinguishable from the response alone."
       },
       {
-        "severity": "low",
-        "file": ".output/public/assets/AnnouncementsPanel-D6JDEUc3.js",
-        "line": 23,
-        "description": "Opaque API handler references. API endpoints use hashed function references (`b('hash')`). Without seeing implementations, cannot verify these properly validate input, implement authorization, or sanitize output."
+        "severity": "medium",
+        "file": ".output/public/assets/ChatMarkdown-DMRbCSyL.js",
+        "line": 1,
+        "description": "The custom markdown `a` renderer passes `href` straight from parsed markdown into the anchor's `href` attribute with no scheme allowlist (`a:({children:e,href:o})=>jsx(\"a\",{href:o,...})`). React does not sanitize `javascript:` URIs on `href`. If any markdown rendered here can be influenced by untrusted or AI-generated content (RAG sources, tool output, prompt-injected text), a link like `[click](javascript:...)` executes on click. Allowlist `http:`/`https:`/`mailto:` schemes before rendering, or run parsed URLs through a sanitizer (e.g. reject anything not matching `/^https?:\\/\\//`)."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+        "line": 13,
+        "description": "Session identity, handled-state, and scroll-position tracking is persisted in plaintext `localStorage` (lines 15-17, writes at 51/76/88) with no encryption and no expiry beyond an unenforced TTL constant defined in the caller. Any script running on the host page (XSS, malicious extension, shared-machine access) can read or tamper with session state. If this session id is later trusted for anything beyond UI convenience, treat it as untrusted client state and revalidate server-side."
       },
       {
         "severity": "low",
         "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 33,
-        "description": "Sensitive session data in localStorage. Session state including checkpoint revisions and IDs persisted to localStorage. If the app ever handles sensitive user data in session, this is a risk under XSS attacks."
+        "line": 14,
+        "description": "Default `idFactory` uses `Math.random().toString(16).slice(2, 10)` — a non-cryptographic PRNG — to mint the session `owner` id. Same pattern repeated as a fallback in `live-browser-dom.js:69` (`id8()`). `Math.random()` output is predictable; if `owner` is ever used to decide who may act on a session (rather than purely for display/logging), it should be replaced with `crypto.randomUUID()` (already used elsewhere in `live-browser.js`) everywhere, including this fallback path."
+      },
+      {
+        "severity": "low",
+        "file": "N/A — coverage gap",
+        "line": 0,
+        "description": "SQL-injection risk and dependency CVEs could not be assessed: no `src/lib/*.functions.ts` (actual Supabase/query code) or `package.json`/lockfile was present in the reviewed context. Per project convention, DB access goes through Supabase's parameterized client and RLS-guarded server functions, which is the right pattern — but this claim should be verified directly against `src/lib/*.functions.ts` and `bun audit` / Supabase advisors rather than assumed clean from this partial review."
       }
     ],
-    "riskScore": 65,
+    "riskScore": 42,
     "recommendations": [
-      "Replace `Math.random()` fallback with `crypto.getRandomValues()` for secure ID generation (line 12, live-browser-session.js)",
-      "Wrap token injection in a `Object.freeze()` and read from a closure variable instead of window object to prevent tampering",
-      "Add `Secure` and `HttpOnly` flags to any cookies storing session tokens (verify in server config, not visible here)",
-      "Implement Content Security Policy (CSP) with `script-src 'self'` to prevent third-party script injection that could steal tokens",
-      "Verify API handlers in compiled assets implement: (1) input validation, (2) authorization checks, (3) output sanitization",
-      "For any sensitive data in localStorage, add integrity checks using HMAC and store encryption keys separately",
-      "Use `crypto.subtle.digest()` to validate CSS IDs against a whitelist rather than regex escaping",
-      "Add CSRF token validation to all state-changing API calls (check server implementation)",
-      "Review `.env` / wrangler secrets configuration to ensure no secrets in client-side bundles (not visible in provided files)"
+      "Stop exposing the live-mode token as a bare `window` global in live-browser.js — scope it to a closure or use a rotating handshake so page-level XSS can't harvest it.",
+      "Return a generic signup-conflict message instead of 'account already uses this email' to close the account-enumeration channel in AuthScaffold.",
+      "Allowlist URL schemes (http/https/mailto) in the ChatMarkdown `a` renderer before setting `href`, to block javascript: URI injection from AI/RAG-sourced markdown.",
+      "Replace all `Math.random()` fallbacks (live-browser-session.js:14, live-browser-dom.js:69) with `crypto.randomUUID()` for any identifier that could gate session/session-ownership logic.",
+      "Treat localStorage-persisted session state in live-browser-session.js as untrusted; enforce and verify the TTL server-side, not just client-side.",
+      "Run `bun audit` / check Supabase security advisors against the real dependency manifest — this review had no package.json/lockfile to check for known-CVE packages.",
+      "Directly review src/lib/*.functions.ts and supabase/migrations/ for actual query construction and RLS policies; the minified .output/public/assets bundles only show client-side call sites, not the server-side implementation.",
+      "Confirm the `.middleware([h])` auth guard seen on every TanStack server-function handler (AnnouncementsPanel, ApprovalsPanel, BudgetsPanel, ControlsPanel, etc.) enforces workspace-scoped authorization, not just 'is logged in' — verify against the middleware source.",
+      "Do not mistake the hex handler IDs in the bundled route calls (e.g. `handler(d(\"6f6c0d0a...\"))`) for leaked secrets — these are TanStack Start's compiled server-function route hashes, intentionally public, not credentials.",
+      "Add CSP headers restricting `script-src` on any host page the live-preview tool can be injected into, to reduce the blast radius of the token-exposure finding above."
     ]
   },
-  "rawOutputPreview": "# Security Analysis Report: Cadence V5 Codebase\n\nBased on analysis of the provided code snippets, here's my security assessment:\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 12,\n      \"description\": \"Weak ID generation fallback. The `idFactory` uses `Math.random()` instead of cryptographically secure random when `crypto.randomUUID()` is unavailable. This produces predictable session IDs in older environments.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 28,\n      \"description\": \"Token injection via global window object. `__IMPECCABLE_TOKEN__` and `__IMPECCABLE_PORT__` are read from window globals without verification of source. If a third-party script runs before this one, it could replace these values or read them.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-dom.js\",\n      \"line\": 46,\n      \"description\": \"CSS ID escaping may be incomplete. The fallback regex in `cssId()` attempts to escape all special characters, but CSS parsing is complex and edge cases (e.g., null bytes, high Unicode) could bypass validation.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".output/public/assets/AnnouncementsPanel-D6JDEUc3.js\",\n      \"line\": 23,\n      \"description\": \"Opaque API handler references. API endpoints use hashed function references (`b('hash')`). Without seeing implementations, cannot verify these properly validate input, implement authorization, or sanitize output.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 33,\n      \"description\": \"Sensitive session data in localStorage. Session state including checkpoint revisions and IDs persisted to localStorage. If the app ever handles sensitive user data in session, this is a risk under XSS attacks.\"\n    }",
-  "rawOutputLength": 4189
+  "rawOutputPreview": "Reviewed the pasted context (a subset of the repo: the `.kiro/skills/impeccable` live-preview dev tool and several minified `.output/public/assets` production bundles — not a full source scan). Note the scope limit up front: this is a partial-file review, not a repo-wide audit; I did not have access to `src/lib/*.functions.ts`, Supabase queries, migrations, or `package.json`, so SQL-injection and dependency-CVE checks are marked as coverage gaps rather than cleared.\n\n```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 22,\n      \"description\": \"The live-mode auth token is read into a plain global (`window.__IMPECCABLE_TOKEN__`, injected by the server before this script loads) and held in module scope. Any script that executes in that page context — a third-party script, a bug elsewhere on the page, or an XSS payload — can read `window.__IMPECCABLE_TOKEN__` directly and replay it against the local live-mode server (localhost:PORT) to perform privileged live-edit actions. Prefer a scoped closure variable set once and not left on `window`, or a short-lived, single-use handshake token.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".output/public/assets/AuthScaffold-BrIZ5H0V.js\",\n      \"line\": 1,\n      \"description\": \"The auth error-mapping function `w()` returns a distinct message for \\\"user already registered\\\" (\\\"An account already uses this email. Sign in instead.\\\") versus other signup failures. This lets an attacker enumerate which emails already have accounts by submitting signup attempts and reading the response message — classic account enumeration. Return a generic message for signup conflicts (or gate the distinction behind email-verification-first flows) so registered vs. unregistered emails aren't distinguishable from the response alone.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".output/public/assets/ChatMarkdown-DMRbCSyL.js\",\n      \"line\": 1,",
+  "rawOutputLength": 6907
 }
