@@ -26,6 +26,9 @@ const HouseRulesPanel = React.lazy(() =>
 const IncidentsPanel = React.lazy(() =>
   import("@/components/governance/IncidentsPanel").then((m) => ({ default: m.IncidentsPanel })),
 );
+const RoutinesPanel = React.lazy(() =>
+  import("./RoutinesPanel").then((m) => ({ default: m.RoutinesPanel })),
+);
 
 export function SafetyRoom({ view }: RoomBodyProps) {
   const navigate = useNavigate();
@@ -60,6 +63,13 @@ export function SafetyRoom({ view }: RoomBodyProps) {
     return (
       <React.Suspense fallback={<PanelPending />}>
         <IncidentsPanel />
+      </React.Suspense>
+    );
+  }
+  if (view === "routines") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <RoutinesPanel />
       </React.Suspense>
     );
   }

@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+// workspace_routine_prefs (PC-08, migration 20260710220000) predates the
+// last generated Supabase types.
+const routinesDb = supabaseAdmin as unknown as SupabaseClient;
 import { DEMO_FEED, autoTag, inferSentiment, tagSignalUpdate } from "@/lib/sensing/normalize";
 import { ingestGithubSignals } from "@/lib/connectors/providers/github-ingest.server";
 import { ingestPostHogAnalytics } from "@/lib/analytics-ingest.server";
@@ -77,6 +82,24 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
             return json({ ok: false, error: error.message }, 500);
           }
 
+          // PC-08: the "Overnight signal sweep" routine's per-workspace off
+          // switch. A workspace with an explicit disabled pref for
+          // "sense-sweep" is skipped even though auto_sense_enabled is on --
+          // the routines toggle is a second, more legible gate a workspace
+          // owner actually understands, layered on top of the original flag
+          // rather than replacing it.
+          const candidateIds = (workspaces ?? []).map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await routinesDb
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "sense-sweep")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           const results: Array<{
             workspace_id: string;
             tagged?: number;
@@ -101,6 +124,10 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
                 results.push({ workspace_id: ws.id, error: "no owner" });
                 continue;
               }
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, error: "routine disabled" });
+                continue;
+              }
               const tagged = await tagUntaggedSignals(ws.owner_id, ws.id);
               const seeded = await topUpDemoFeed(ws.owner_id, ws.id);
               const gh = await ingestGithubSignals(ws.owner_id, ws.id).catch(() => null);
@@ -121,6 +148,22 @@ export const Route = createFileRoute("/api/public/hooks/sense-tick")({
                 .from("workspaces")
                 .update({ last_auto_sense_at: new Date().toISOString() })
                 .eq("id", ws.id);
+              // PC-08: the routine's own "last run" receipt (best-effort --
+              // a missing pref row is fine, it just means "never toggled").
+              void routinesDb
+                .from("workspace_routine_prefs")
+                .upsert(
+                  {
+                    workspace_id: ws.id,
+                    routine_id: "sense-sweep",
+                    last_run_at: new Date().toISOString(),
+                  },
+                  { onConflict: "workspace_id,routine_id" },
+                )
+                .then(
+                  () => {},
+                  () => {},
+                );
               results.push({
                 workspace_id: ws.id,
                 tagged,

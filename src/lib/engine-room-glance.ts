@@ -159,6 +159,12 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       descriptor: "The standing rules you set for this workspace.",
     },
     {
+      id: "routines",
+      label: "Routines",
+      technical: "Background jobs",
+      descriptor: "What runs on its own, and your switch over each one.",
+    },
+    {
       id: "incidents",
       label: "What went wrong",
       technical: "Incidents",
