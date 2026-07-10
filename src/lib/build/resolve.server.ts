@@ -12,9 +12,14 @@
 import { normalizeBuildDriverId, type BuildDriver } from "./driver";
 import { nativeBuildDriver } from "./native.server";
 import { openHandsBuildDriver } from "./openhands.server";
+import { claudeSdkBuildDriver } from "./claude-sdk-driver.server";
 
 /** Adapters with a live implementation today (each still gated by its own `available()`). */
-const WIRED_BUILD_DRIVERS: readonly BuildDriver[] = [nativeBuildDriver, openHandsBuildDriver];
+const WIRED_BUILD_DRIVERS: readonly BuildDriver[] = [
+  nativeBuildDriver,
+  openHandsBuildDriver,
+  claudeSdkBuildDriver,
+];
 
 export function resolveBuildDriver(preferred?: string | null): BuildDriver {
   const id =
