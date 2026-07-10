@@ -1,4 +1,4 @@
-// PC-03 footer requirement — a security posture stub. Honest about beta
+// PC-03 footer requirement: a security posture stub. Honest about beta
 // stage: no false certification claims, real architecture facts only.
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/cadence/LegalPageShell";
@@ -48,7 +48,7 @@ function SecurityPage() {
       <LegalSection title="The merge gate">
         <p>
           Agents can draft, propose, and build, but nothing merges, ships, or takes an irreversible
-          outward action without a human approval through the real approval flow — this is a fixed
+          outward action without a human approval through the real approval flow. This is a fixed
           floor, not a setting that can be dialed away.
         </p>
       </LegalSection>
@@ -65,7 +65,7 @@ function SecurityPage() {
 
       <LegalSection title="Reporting a concern">
         <p>
-          If you find a security issue, tell us before you tell anyone else — reach us through the
+          If you find a security issue, tell us before you tell anyone else. Reach us through the
           contact address on your account. We will acknowledge real reports and keep you posted as
           we fix them.
         </p>
@@ -74,7 +74,7 @@ function SecurityPage() {
       <LegalSection title="What we are not claiming yet">
         <p>
           We do not currently hold a SOC 2 or ISO 27001 certification. If your evaluation needs one,
-          tell us — it tells us where to invest next, and we would rather hear it than have you
+          tell us. It tells us where to invest next, and we would rather hear it than have you
           assume otherwise.
         </p>
       </LegalSection>

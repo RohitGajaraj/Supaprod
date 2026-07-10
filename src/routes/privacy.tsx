@@ -1,4 +1,4 @@
-// PC-03 — plain-language privacy policy. Public, unauthenticated, required
+// PC-03: plain-language privacy policy. Public, unauthenticated, required
 // for Google OAuth verification. Honest specifics over boilerplate: names the
 // actual stack (Supabase Postgres + RLS, connector OAuth scopes, BYO keys)
 // rather than generic legal filler.
@@ -35,7 +35,7 @@ function PrivacyPage() {
       <LegalSection title="What we collect">
         <p>
           Account details you give us at signup (name, email, workspace name). Content you create in
-          Cadence — decisions, specs, opportunities, and their outcomes. Content from any source you
+          Cadence: decisions, specs, opportunities, and their outcomes. Content from any source you
           explicitly connect (GitHub, Slack, Linear, and similar), scoped to the permissions you
           grant at connect time and shown to you before you grant them. Usage data (page views,
           feature interactions) so we can tell what is working.
@@ -45,7 +45,7 @@ function PrivacyPage() {
       <LegalSection title="What we never touch">
         <p>
           Cadence never merges code, ships a release, or takes an irreversible action without your
-          explicit approval — the merge gate is always human-reviewed. We do not read sources you
+          explicit approval. The merge gate is always human-reviewed. We do not read sources you
           have not connected, and we do not expand a connection's scope without asking again.
         </p>
       </LegalSection>
@@ -70,7 +70,7 @@ function PrivacyPage() {
       <LegalSection title="Bring your own AI keys">
         <p>
           If you prefer, you can run Cadence against your own model provider key instead of ours.
-          Nothing about your data handling changes either way — this is a routing choice, not a
+          Nothing about your data handling changes either way. This is a routing choice, not a
           trust boundary.
         </p>
       </LegalSection>

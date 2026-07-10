@@ -1654,7 +1654,7 @@ function HeroSection() {
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/signup" className="btn btn-primary" style={{ textDecoration: "none" }}>
-                Tear down your pet feature — free
+                Tear down your pet feature (free)
               </a>
             </div>
           </div>
@@ -1803,14 +1803,14 @@ function ContrastSection() {
   );
 }
 
-// The data-trust answer, above the fold's fold — the 43% of PMs who name data
+// The data-trust answer, above the fold's fold: the 43% of PMs who name data
 // security as the #1 AI-adoption blocker (research) meet the honest answer
 // before they scroll past it, not on a buried policy page.
 const TRUST_ITEMS = [
   { label: "What we read", body: "Only the sources you connect, scoped to what you approve." },
   {
     label: "What we never touch",
-    body: "Nothing ships or merges without you — the merge gate is always human-reviewed.",
+    body: "Nothing ships or merges without you. The merge gate is always human-reviewed.",
   },
   { label: "One-click revoke", body: "Disconnect any source anytime. Access ends immediately." },
   { label: "Where it lives", body: "Your workspace's own Postgres, exportable in open formats." },
@@ -2056,7 +2056,7 @@ function MultiProductStrip() {
         }}
       >
         <span style={{ color: C.emberBright, fontWeight: 600 }}>One PM. Five products.</span> A
-        fleet that works while you sleep — and shows its receipts every morning.
+        fleet that works while you sleep, and shows its receipts every morning.
       </p>
     </div>
   );
@@ -2633,7 +2633,7 @@ function LedgerSection() {
           Illustrative. Your real ledger populates from live calls and outcomes.
         </p>
 
-        {/* Not a mockup — a real, live shared decision, the same page every Cadence
+        {/* Not a mockup: a real, live shared decision, the same page every Cadence
             account gets for its own calls. Reuses the d.$slug public-share route. */}
         <div
           style={{
@@ -2652,7 +2652,7 @@ function LedgerSection() {
           }}
         >
           <p style={{ fontSize: 12.5, color: C.muted, margin: 0, lineHeight: 1.55, maxWidth: 520 }}>
-            Not a mockup — here is a real decision, shared straight from a live workspace, receipts
+            Not a mockup. Here is a real decision, shared straight from a live workspace, receipts
             and all. We publish our own misses too; every call gets graded, not just the ones that
             worked.
           </p>

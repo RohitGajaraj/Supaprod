@@ -1,7 +1,7 @@
 // Shared chrome for the small standalone public pages (privacy, terms,
 // security, changelog) that sit off the homepage footer. Matches the
 // homepage's dark canvas so a footer click never feels like a different
-// site; kept deliberately plain — these are reference pages, not marketing.
+// site. Kept deliberately plain: these are reference pages, not marketing.
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { CadenceMark } from "@/components/cadence/Primitives";

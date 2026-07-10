@@ -1,4 +1,4 @@
-// PC-03 — plain-language terms of service. Public, unauthenticated, required
+// PC-03: plain-language terms of service. Public, unauthenticated, required
 // for Google OAuth verification.
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/cadence/LegalPageShell";
@@ -25,7 +25,7 @@ function TermsPage() {
     <LegalPageShell eyebrow="Legal" title="Terms of service" updated="July 10, 2026">
       <p>
         By creating a Cadence account or using cadence-flow-beta.lovable.app, you agree to these
-        terms. Cadence is in beta — features change quickly, and we will tell you when something
+        terms. Cadence is in beta. Features change quickly, and we will tell you when something
         material changes.
       </p>
 
@@ -48,7 +48,7 @@ function TermsPage() {
 
       <LegalSection title="Your content">
         <p>
-          You own what you put into Cadence and what it produces on your behalf — decisions, specs,
+          You own what you put into Cadence and what it produces on your behalf: decisions, specs,
           code, and the record of what happened. You grant us the license needed to store, process,
           and display it back to you and your workspace members, and nothing more.
         </p>
@@ -99,7 +99,7 @@ function TermsPage() {
       <LegalSection title="Limitation of liability">
         <p>
           Cadence proposes decisions and can execute work with your approval, but the accountable
-          call remains yours — that is the product's own thesis. We are not liable for outcomes of
+          call remains yours. That is the product's own thesis. We are not liable for outcomes of
           decisions you approved.
         </p>
       </LegalSection>

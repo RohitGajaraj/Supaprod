@@ -1,4 +1,4 @@
-// PC-03 footer requirement — a public, GitHub-style changelog. Curated real
+// PC-03 footer requirement: a public, GitHub-style changelog. Curated real
 // ships in plain language (no internal codenames), each dated from the
 // build log. PC-15 extends this page with a "you said, we changed" section
 // fed by product-pulse feedback; this is the honest starting shape.
