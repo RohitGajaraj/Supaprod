@@ -9,13 +9,21 @@
 //
 // Drill contract: detail state rides optional search params (?decision= ->
 // DecisionDetail, ?learning= -> LearningDetail, ?meeting= -> the calendar
-// meeting). The detail replaces ONLY the tab body; the hero, count strip and
-// tab row stay. setTab navigates with a fresh search object so EVERY drill
-// param (including ?meeting) clears on a tab switch.
-import { lazy, Suspense } from "react";
+// meeting). The detail replaces ONLY the tab body; the hero and count strip
+// stay in every state. setTab navigates with a fresh search object so EVERY
+// drill param (including ?meeting) clears on a tab switch.
+//
+// PC-34: the opening view is now the front door (ask + what changed +
+// volunteered insights) plus four lens doors (Identity/Judgment/Knowledge/
+// Capability) - no tab bar as the opener. An absent ?tab= renders the front
+// door; any tab value (old or new) renders that panel with a within-lens
+// sub-nav instead of the old flat 9-tab bar. Every previously reachable tab
+// stays reachable; this is a re-parenting, not a removal.
+import { lazy, Suspense, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
@@ -85,6 +93,14 @@ const ShipHistoryPanel = lazy(() =>
     default: m.ShipHistoryPanel,
   })),
 );
+const JudgmentTimeline = lazy(() =>
+  import("@/components/knowledge/JudgmentTimeline").then((m) => ({
+    default: m.JudgmentTimeline,
+  })),
+);
+const BrainFrontDoor = lazy(() =>
+  import("@/components/obsidian/BrainFrontDoor").then((m) => ({ default: m.BrainFrontDoor })),
+);
 
 type Tab =
   | "insights"
@@ -92,6 +108,7 @@ type Tab =
   | "memory"
   | "learnings"
   | "decisions"
+  | "judgment"
   | "brief"
   | "design"
   | "graph"
@@ -102,11 +119,58 @@ const TABS: Tab[] = [
   "memory",
   "learnings",
   "decisions",
+  "judgment",
   "brief",
   "design",
   "graph",
   "docs",
 ];
+
+// PC-34: the IA mirrors the memory model (Identity/Judgment/Knowledge/
+// Capability), not the storage tables. Every tab still lives somewhere real -
+// this only groups them; the flat 9-tab bar retires as the OPENING view, but
+// every tab stays one click away inside its lens. Graph is a shared member of
+// both Judgment and Knowledge (the spec: "the marquee within Judgment/
+// Knowledge... not a peer tab"), reachable from either. Capability is empty
+// until PC-30 lands its content here, per the coherence-cluster build order.
+type LensId = "identity" | "judgment" | "knowledge" | "capability";
+const LENS_ORDER: LensId[] = ["identity", "judgment", "knowledge", "capability"];
+const LENS_TABS: Record<LensId, Tab[]> = {
+  identity: ["brief", "design"],
+  judgment: ["judgment", "insights", "decisions", "learnings", "graph"],
+  knowledge: ["memory", "docs", "calendar", "graph"],
+  capability: [],
+};
+const LENS_LABEL: Record<LensId, string> = {
+  identity: "Identity",
+  judgment: "Judgment",
+  knowledge: "Knowledge",
+  capability: "Capability",
+};
+const LENS_ONE_LINER: Record<LensId, string> = {
+  identity: "What we are building, and why.",
+  judgment: "How belief moved: decisions, outcomes, what was learned.",
+  knowledge: "The evidence: signals, docs, meetings, everything gathered.",
+  capability: "What Cadence knows how to do. Landing with PC-30.",
+};
+function lensOf(tab: Tab): LensId {
+  for (const lens of LENS_ORDER) {
+    if (LENS_TABS[lens].includes(tab)) return lens;
+  }
+  return "judgment";
+}
+const TAB_LABEL: Record<Tab, string> = {
+  insights: "Insights & impact",
+  calendar: "Calendar",
+  memory: "Memory",
+  learnings: "Learnings",
+  decisions: "Decisions",
+  judgment: "Timeline",
+  brief: "Brief",
+  design: "Design",
+  graph: "Graph",
+  docs: "Docs & changelog",
+};
 
 // Deep-link honesty: every tab id that ever existed still lands somewhere
 // true. Impact folded into Insights; Changelog folded into Docs.
@@ -123,6 +187,8 @@ const TAB_DESC: Record<Tab, string> = {
   learnings:
     "What your team recorded: re-scored opportunities and outcome memos, each with a verdict.",
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
+  judgment:
+    "How belief moved: decisions and what replaced them, in one narrative timeline, plus how often the calls held up.",
   brief:
     "The workspace's standing strategic calls: vision, target user, positioning, and top bets. Every edit is versioned, never lost.",
   design:
@@ -156,6 +222,177 @@ function BrainTabRow({
       {desc?.[active] ? (
         <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>{desc[active]}</p>
       ) : null}
+    </div>
+  );
+}
+
+/** PC-34: the front door's four lens doors. Each opens its lens's first tab;
+ *  Capability has none yet (PC-30 lands its content here) so its card reads
+ *  honestly and does not navigate. */
+function LensCards({ onOpen }: { onOpen: (tab: Tab) => void }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+        gap: 14,
+        marginTop: 28,
+      }}
+    >
+      {LENS_ORDER.map((lens) => {
+        const primary = LENS_TABS[lens][0];
+        return (
+          <button
+            key={lens}
+            type="button"
+            disabled={!primary}
+            onClick={() => primary && onOpen(primary)}
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            style={{
+              textAlign: "left",
+              background: "var(--card)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "var(--radius-card)",
+              boxShadow: "var(--top-light)",
+              padding: "16px 18px",
+              opacity: primary ? 1 : 0.55,
+              cursor: primary ? "pointer" : "default",
+            }}
+          >
+            <MonoLabel style={{ display: "block", marginBottom: 6 }}>{LENS_LABEL[lens]}</MonoLabel>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
+              {LENS_ONE_LINER[lens]}
+            </p>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** PC-34: the within-lens sub-nav, replacing the old flat 9-tab bar. Shows
+ *  only the active lens's siblings (graph is a member of both Judgment and
+ *  Knowledge, so it appears in whichever lens the reader entered from) plus
+ *  a quiet way back to the front door. */
+function LensSubNav({
+  active,
+  onSet,
+  onBack,
+}: {
+  active: Tab;
+  onSet: (id: Tab) => void;
+  onBack: () => void;
+}) {
+  const lens = lensOf(active);
+  const tabs = LENS_TABS[lens].map((id) => ({ id, label: TAB_LABEL[id] }));
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <button
+        type="button"
+        onClick={onBack}
+        className="loom-press outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: 12.5,
+          color: "var(--glacier)",
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          marginBottom: 12,
+        }}
+      >
+        ← Brain
+      </button>
+      <BrainTabRow tabs={tabs} active={active} onSet={onSet} desc={TAB_DESC} />
+    </div>
+  );
+}
+
+/** PC-34: the recessed door. Raw substrate counts an agent cares about far
+ *  more than a human does, behind one collapsed disclosure (the same idiom
+ *  as EngineRoomDisclosure on Build) - never a new room, never hidden
+ *  entirely. Only ever shows numbers already fetched for the front door;
+ *  never fabricates a decay/embedding figure the codebase can't back yet. */
+function BrainMachineryDisclosure({
+  counts,
+}: {
+  counts: { label: string; value: string }[] | null;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!counts) return null;
+  return (
+    <div style={{ marginTop: 20 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="loom-press"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          width: "100%",
+          textAlign: "left",
+          padding: "6px 0",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {open ? (
+          <ChevronDown size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+        ) : (
+          <ChevronRight size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+        )}
+        <MonoLabel>Under the hood</MonoLabel>
+        {!open && (
+          <span
+            className="mono-label"
+            style={{
+              marginLeft: "auto",
+              fontSize: "var(--text-mono-floor)",
+              color: "var(--text-faint)",
+            }}
+          >
+            the raw substrate
+          </span>
+        )}
+      </button>
+      {open && (
+        <div
+          className="fade-up"
+          style={{
+            marginTop: 8,
+            borderRadius: "var(--radius-panel)",
+            overflow: "hidden",
+            background: "var(--surface-recessed)",
+            boxShadow: "var(--top-light)",
+            padding: "12px 16px",
+          }}
+        >
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 10px" }}>
+            The counts every agent reads before it acts. You never need these to use Brain; they
+            exist so a curious eye can see the substrate is real.
+          </p>
+          <div className="flex flex-wrap" style={{ gap: 16 }}>
+            {counts.map((c) => (
+              <span
+                key={c.label}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-floor)",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <strong className="tabular-nums" style={{ color: "var(--text-primary)" }}>
+                  {c.value}
+                </strong>{" "}
+                {c.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -228,17 +465,18 @@ export const Route = createFileRoute("/_authenticated/brain")({
   validateSearch: (
     search: Record<string, unknown>,
   ): {
-    tab: Tab;
+    tab?: Tab;
     meeting?: string;
     decision?: string;
     learning?: string;
     focusKind?: string;
     focusId?: string;
   } => {
+    // PC-34: an absent/empty/unrecognized ?tab= opens the front door (no
+    // default tab anymore) - every PREVIOUSLY valid tab value, and every
+    // legacy alias, still resolves to exactly the panel it always did.
     const raw = typeof search.tab === "string" ? search.tab : "";
-    const tab: Tab = (TABS as string[]).includes(raw)
-      ? (raw as Tab)
-      : (LEGACY_TABS[raw] ?? "insights");
+    const tab: Tab | undefined = (TABS as string[]).includes(raw) ? (raw as Tab) : LEGACY_TABS[raw];
     return {
       tab,
       meeting: typeof search.meeting === "string" ? search.meeting : undefined,
@@ -369,6 +607,9 @@ function BrainPage() {
   // version carried ?meeting across tabs).
   const setTab = (next: Tab) => navigate({ search: { tab: next } });
   const setMeeting = (m: string | undefined) => navigate({ search: { tab, meeting: m } });
+  // PC-34: clears every search param, including tab - the way back to the
+  // front door from inside any lens.
+  const goToFrontDoor = () => navigate({ search: {} });
 
   // The count strip: every number is a real head count for THIS workspace.
   const strip: { label: string; value: string; live?: boolean }[] | null =
@@ -483,75 +724,74 @@ function BrainPage() {
 
         <MemoryUpgradeNudge />
 
-        <BrainTabRow
-          tabs={[
-            { id: "insights", label: "Insights & impact" },
-            { id: "calendar", label: "Calendar" },
-            { id: "memory", label: "Memory" },
-            { id: "learnings", label: "Learnings" },
-            { id: "decisions", label: "Decisions" },
-            { id: "brief", label: "Brief" },
-            { id: "design", label: "Design" },
-            { id: "graph", label: "Graph" },
-            { id: "docs", label: "Docs & changelog" },
-          ]}
-          active={tab}
-          onSet={setTab}
-          desc={TAB_DESC}
-        />
-
-        <Suspense fallback={<TabSkeleton />}>
-          {tab === "insights" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              <section>
-                <InsightsPanel />
-              </section>
-              <section>
-                <SectionTitle>Your impact record</SectionTitle>
-                <ImpactLedgerPanel />
-              </section>
-            </div>
-          )}
-          {tab === "calendar" && <CalendarPanel meetingId={meeting} onMeetingChange={setMeeting} />}
-          {tab === "memory" && <MemoryList />}
-          {tab === "learnings" &&
-            (learning ? (
-              <LearningDetail id={learning} />
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {/* SW-3 (mission 3.8b): the compounding pass's human half -
-                    open playbook proposals render above the feed they
-                    compound from; the panel is invisible when none wait. */}
-                <PlaybookProposalsPanel />
-                <CompoundingPanel />
-              </div>
-            ))}
-          {tab === "decisions" &&
-            (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
-          {tab === "brief" && <BriefPanel />}
-          {tab === "design" && <DesignMemoryPanel />}
-          {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
-          {tab === "docs" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              <section>
-                <SectionTitle>Docs</SectionTitle>
-                <DocsPanel />
-              </section>
-              <section>
-                <SectionTitle>Announcements</SectionTitle>
-                <AnnouncementsPanel />
-              </section>
-              <section>
-                <SectionTitle>Changelog</SectionTitle>
-                <ChangelogPanel />
-              </section>
-              <section>
-                <SectionTitle>Ship history</SectionTitle>
-                <ShipHistoryPanel />
-              </section>
-            </div>
-          )}
-        </Suspense>
+        {!tab ? (
+          <>
+            <Suspense fallback={<TabSkeleton />}>
+              <BrainFrontDoor />
+            </Suspense>
+            <LensCards onOpen={setTab} />
+            <BrainMachineryDisclosure counts={strip} />
+          </>
+        ) : (
+          <>
+            <LensSubNav active={tab} onSet={setTab} onBack={goToFrontDoor} />
+            <Suspense fallback={<TabSkeleton />}>
+              {tab === "insights" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                  <section>
+                    <InsightsPanel />
+                  </section>
+                  <section>
+                    <SectionTitle>Your impact record</SectionTitle>
+                    <ImpactLedgerPanel />
+                  </section>
+                </div>
+              )}
+              {tab === "calendar" && (
+                <CalendarPanel meetingId={meeting} onMeetingChange={setMeeting} />
+              )}
+              {tab === "memory" && <MemoryList />}
+              {tab === "learnings" &&
+                (learning ? (
+                  <LearningDetail id={learning} />
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {/* SW-3 (mission 3.8b): the compounding pass's human half -
+                        open playbook proposals render above the feed they
+                        compound from; the panel is invisible when none wait. */}
+                    <PlaybookProposalsPanel />
+                    <CompoundingPanel />
+                  </div>
+                ))}
+              {tab === "decisions" &&
+                (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+              {tab === "judgment" && <JudgmentTimeline />}
+              {tab === "brief" && <BriefPanel />}
+              {tab === "design" && <DesignMemoryPanel />}
+              {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
+              {tab === "docs" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                  <section>
+                    <SectionTitle>Docs</SectionTitle>
+                    <DocsPanel />
+                  </section>
+                  <section>
+                    <SectionTitle>Announcements</SectionTitle>
+                    <AnnouncementsPanel />
+                  </section>
+                  <section>
+                    <SectionTitle>Changelog</SectionTitle>
+                    <ChangelogPanel />
+                  </section>
+                  <section>
+                    <SectionTitle>Ship history</SectionTitle>
+                    <ShipHistoryPanel />
+                  </section>
+                </div>
+              )}
+            </Suspense>
+          </>
+        )}
       </BrainSurface>
     </>
   );

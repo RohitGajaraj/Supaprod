@@ -130,11 +130,7 @@ function Frame({
   );
 }
 
-function ProductNamePreGate({
-  onDone,
-}: {
-  onDone: (name: string, oneLiner: string) => void;
-}) {
+function ProductNamePreGate({ onDone }: { onDone: (name: string, oneLiner: string) => void }) {
   const [productName, setProductName] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [saving, setSaving] = useState(false);
