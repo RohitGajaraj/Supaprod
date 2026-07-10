@@ -1295,8 +1295,11 @@ export async function callModel(
 
   // 0. Governance — kill-switch + mission caps (throws GovernanceHaltError on halt)
   try {
-    await checkKillSwitch(supabase, opts.workspaceId ?? null);
-    await checkMissionCaps(supabase, opts.runId ?? null);
+    // Parallelize both governance checks: neither depends on the other's result.
+    await Promise.all([
+      checkKillSwitch(supabase, opts.workspaceId ?? null),
+      checkMissionCaps(supabase, opts.runId ?? null),
+    ]);
   } catch (e) {
     if (e instanceof GovernanceHaltError) {
       await logGovernanceHalt(supabase, userId, opts, e);
@@ -1306,8 +1309,11 @@ export async function callModel(
   }
 
   // 1. Budget
-  await checkBudget(supabase, userId);
-  await checkSurfaceBudget(supabase, userId, opts.surface);
+  // Parallelize both budget checks: neither depends on the other's result.
+  await Promise.all([
+    checkBudget(supabase, userId),
+    checkSurfaceBudget(supabase, userId, opts.surface),
+  ]);
   // MODEL-AGNOSTIC effective-model resolution, in order:
   //  1. activeModelId   — route a deprecated model to its live replacement (no-op when none).
   //  2. capabilityRouted — Perplexity-style: pick the model best at the task ("auto" mode, a
@@ -1804,8 +1810,11 @@ export async function callModelStream(
 
   // 0. Governance — kill-switch + mission caps
   try {
-    await checkKillSwitch(supabase, opts.workspaceId ?? null);
-    await checkMissionCaps(supabase, opts.runId ?? null);
+    // Parallelize both governance checks: neither depends on the other's result.
+    await Promise.all([
+      checkKillSwitch(supabase, opts.workspaceId ?? null),
+      checkMissionCaps(supabase, opts.runId ?? null),
+    ]);
   } catch (e) {
     if (e instanceof GovernanceHaltError) {
       await logGovernanceHalt(supabase, userId, opts, e);
@@ -1815,8 +1824,11 @@ export async function callModelStream(
   }
 
   // 1. Budget
-  await checkBudget(supabase, userId);
-  await checkSurfaceBudget(supabase, userId, opts.surface);
+  // Parallelize both budget checks: neither depends on the other's result.
+  await Promise.all([
+    checkBudget(supabase, userId),
+    checkSurfaceBudget(supabase, userId, opts.surface),
+  ]);
   // MODEL-AGNOSTIC effective-model resolution, in order:
   //  1. activeModelId   — route a deprecated model to its live replacement (no-op when none).
   //  2. capabilityRouted — Perplexity-style: pick the model best at the task ("auto" mode, a
