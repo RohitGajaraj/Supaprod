@@ -45,6 +45,16 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 
 ## The one-liners bank
 
+**Narrative candidates added 2026-07-10 (additive — founder picks; ranked by instant relatability):**
+- **"What Cursor did for writing code, Cadence does for deciding what to build."**
+- **"Cursor for product managers — except it also proves which decisions were right."**
+- "Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."
+- "An AI product team you can actually hold accountable."
+- "One PM. Five products. A fleet that works while you sleep — and shows its receipts every morning."
+- "Your product org, running itself — with a ledger that proves what worked."
+
+**The original bank:**
+
 - "Agents do the work. You answer for it. Cadence is how you answer."
 - "The ledger is the compiler for judgment."
 - "Receipts or it didn't happen."

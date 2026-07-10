@@ -9,6 +9,8 @@
 | [**one-pager.md**](./one-pager.md) | You need the story: what Cadence is, how we're different, the controversial moves, what we can PROVE today vs what stays claim-on-wiring, the one-liners, the honest numbers. |
 | [**qa-bank.md**](./qa-bank.md) | You're prepping for hostile questions — investors, skeptical PMs/customers, engineers — each with the honest answer and its evidence pointer. |
 | [**demo-script.md**](./demo-script.md) | You're about to demo — the doctrine (receipts ON SCREEN, the loop closing live, the failure path shown on purpose) and the concrete walkthrough. |
+| [**yc/application-strategy.md**](./yc/application-strategy.md) | You're working on the YC application — partner psychology, the positioning ladder, field-by-field patterns/anti-patterns, interview prep, and the additive narrative candidates ("What Cursor did for writing code, Cadence does for deciding what to build"). |
+| [**yc/video-scripts.md**](./yc/video-scripts.md) | You're recording — the founder video (≤1 min, one take) and the product narrative video (≤3 min, the day-in-the-life arc with the rewind/miss-record beat that nobody else can film). |
 
 ## The routing doctrine (standing rule, founder 2026-07-10 — wired into CLAUDE.md + AGENTS.md)
 
