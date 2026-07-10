@@ -77,6 +77,8 @@ update public.app_settings set value='false'::jsonb, updated_at=now() where key=
 
 Balances are preserved; only the debit path stops. The in-process flag cache refreshes within 5 minutes (cold-starts immediately).
 
+> **Live-state update (2026-07-11, lane-A):** every repo migration through `20260711003000` is APPLIED to the live DB (via the Lovable MCP; the calendar-oauth one needed an existence guard — live drift from a 2026-07-09 ad hoc apply). Verified live: `apply_refund_clawback` + `credit_refunds` + `subscriptions/credit_topups.provider` + `missions.verify_cycles` all present, and the unfunded-account count is **0** (steps 2–3 are satisfied: `ensure_user_default_account` now self-funds and `backfill_account_credits` grants 750/3750/15000). The metering flip (step 4) remains OFF, deliberately — it waits on the founder's MoR decision.
+
 ## PC-05 additions (2026-07-10): the provider seam, the refund path, the automated checklist
 
 - **PaymentsProvider seam** (`src/lib/payments/provider.server.ts`): one interface (`createCheckout` / `verifyWebhook` / `grantFromEvent`), Stripe refactored into it (`stripe-provider.server.ts`), Paddle beside it (`paddle-provider.server.ts`). The grant/tier/top-up/refund money paths live once in `grant-core.server.ts` — adapters only translate events. The webhook URL gains `&provider=paddle` for the Paddle destination; Stripe registrations are unchanged.
