@@ -1,6 +1,6 @@
 # The YC interview prep — Fall 2026
 
-> _Created: 2026-07-10. If the application lands, the interview comes Aug–Sep: **10 minutes, Zoom, 2–4 partners, rapid fire (8–15+ questions), no slides, decision the same day** (acceptance by phone, rejection by email with feedback; occasionally a same-day second interview with different partners). Sources for all of this: [`research-findings.md`](./research-findings.md) §3.4 and https://www.ycombinator.com/interviews. Written answers live in [`../qa-bank.md`](../qa-bank.md); this file is the SPOKEN versions — say them out loud, don't memorize them word-for-word (memorized speeches are a named kill factor)._
+> _Created: 2026-07-10. Reviews are ROLLING — the interview invite can land any time after you submit, so be interview-ready the day the application goes in: **10 minutes, Zoom, 2–4 partners, rapid fire (8–15+ questions), no slides, decision the same day** (acceptance by phone, rejection by email with feedback; occasionally a same-day second interview with different partners; YC's posted outer bound is decisions by Aug 28). Sources: [`research-findings.md`](./research-findings.md) §3.4 and https://www.ycombinator.com/interviews. Written answers live in [`../qa-bank.md`](../qa-bank.md); this file is the SPOKEN versions — say them out loud, don't memorize them word-for-word (memorized speeches are a named kill factor). Answers with `[slots]` state whatever is TRUE on interview day — never a promised date._
 
 ## 1. The rules of the room
 
@@ -16,7 +16,7 @@
 
 - Build: [3,400+] commits in [8] weeks · [320] DB migrations · register [385] specced / [293] shipped · outside AI code audit held
 - Engine (live DB): [133] missions · [129] agent runs · [72] decisions with outcome checks · [2,162] AI events through one chokepoint
-- Users: [N] beta users since [date] · [M] discovery calls · week-2 return [X]% · launched publicly [Aug 4]
+- Users: [N] beta users since [date] · [M] discovery calls · week-2 return [X]% · launch status [true state that morning]
 - Money: revenue [$0 / first $X] · pricing: workspace subscription + usage credits · free tier 750 credits
 - Market: PM software ~$8B · AI dev tools ~$10B+ and merging · Devin $37M→$492M ARR in 12 months, Cursor $2B (why the build layer commoditizes)
 - Me: ~10 years product · ISRO at 21 · platform used by 200+ financial institutions in 70+ countries · solo, 100% equity, no investment, committing exclusively
@@ -27,7 +27,7 @@
 "It's Cursor for product managers. AI agents run the product lifecycle — read your customer signals, rank what's worth building, write the spec with evidence, hand the build to coding agents — and every action leaves a receipt, so you can always answer why a call was made and whether it was right."
 
 **"How many users? Revenue?"**
-"[N] beta users since [date], zero revenue — pricing tests start [date]. Launched publicly on [Aug 4]; here's the week-over-week since." _(Whatever is true that morning. Nothing else.)_
+"[N] beta users since [date], zero revenue — pricing tests start with the paid tier. [If launched: 'Public since [date]; here's the week-over-week since.' If not: 'Beta now, public listing within days.']" _(Whatever is true that morning. Nothing else.)_
 
 **"Who are your competitors?"**
 "The stitched stack: Linear or Jira, Notion, ChatPRD for specs, a coding agent, and the PM as the glue. Each makes doing the work faster. None of them records whether the call was right — that record is my product."
@@ -38,10 +38,10 @@
 **"Show me."** → §6.
 
 **"What's your growth rate?"**
-"[The real number] week over week since launch, off a small base — [N] to [M] in [x] weeks." _(If pre-launch at interview: "Launch was [date]; the honest number today is [N] beta users and [M] on the list. Ask me next week.")_
+"[The real number] week over week since launch, off a small base — [N] to [M] in [x] weeks." _(If pre-launch at interview: "The honest number today is [N] beta users and [M] on the list; the public listing ships within days. Ask me next week.")_
 
 **"How did you get your first users?"**
-"Discovery calls first — [M] of them. The ones who said 'can I have this today' became the beta. Then the launch: Show HN and Product Hunt on [dates]."
+"Discovery calls first — [M] of them. The ones who said 'can I have this today' became the beta. Then the public launch: Show HN and Product Hunt."
 
 **"Retention?"**
 "Too early to claim; the metric I watch is week-2 return. Right now it's [X] of [Y] users. The wedge feature — asking 'why did we decide X' and getting the receipt — is what brings people back."
@@ -53,7 +53,7 @@
 "Two things changed. Agents got good enough to actually do the work, not draft it — that's 18 months old. And once building got cheap, deciding what to build became the bottleneck. The record-keeping part nobody did because nobody wants to publish their misses; that's exactly why it's defensible."
 
 **"What's the biggest risk?"**
-"Distribution. I've proven I can build; the next 90 days prove I can get users. That's why everything since July 10 is launch: beta [date], public [Aug 4], and the register is public so people can check the receipts."
+"Distribution. I've proven I can build; the next 90 days prove I can get users. That's why everything since July 10 is launch: beta first, the public listing right behind it, and the register stays public so people can check the receipts."
 
 **"Who exactly is the user?"**
 "The person whose name is on the decision — a PM or founder running product on a small team, living across five tools. First beta users: [one true concrete example, e.g. 'a solo founder running two products']."
@@ -97,7 +97,7 @@
 ## 4. The twelve brutal ones (sourced to real objections — full citations in research-findings.md §3)
 
 1. **"You've had a working product for weeks and zero users. Why haven't you launched?"**
-"Fair — I over-built before opening the doors. I caught it, set a hard date, and reorganized everything around launch. It went public on [Aug 4]. [If pre-Aug-4: 'It goes public in [n] days — the listing is written and the beta is live.']"
+"Fair — I over-built before opening the doors. I caught it and reorganized the whole company around launch. [True state: 'It's public since [date]' / 'Beta is live and the public listing ships within days — it's written.']"
 
 2. **"Linear assigns issues to Cursor and Devin today. Why does a PM need your second system?"**
 "Linear dispatches the build; it doesn't decide what's worth building or check whether the decision paid off. I sit above the tracker — and I dispatch to those same agents. A Linear customer is a Cadence customer, not a lost one."
@@ -134,7 +134,7 @@
 
 ## 5. Between application and interview (the slope play)
 
-YC's guide: "the best way to get an edge is to work hard and have your startup improve between the time that you applied and the time that you interview." The interview is in Aug–Sep; the launch plan puts beta + public launch inside that window. Keep a one-line weekly delta log here from July 27 onward — users, return rate, shipped — and open the interview holding it. If invited to update the application before the interview, send three lines of new numbers, nothing else.
+YC's guide: "the best way to get an edge is to work hard and have your startup improve between the time that you applied and the time that you interview." Reviews are rolling, so treat every day after submission as possibly the day before the interview: keep a one-line daily delta log here from submission onward — users, return rate, shipped — and open the interview holding it. If invited to update the application before the interview, send three lines of new numbers, nothing else.
 
 ## 6. The 90-second screen-share path (rehearse until boring)
 
@@ -146,7 +146,7 @@ YC's guide: "the best way to get an edge is to work hard and have your startup i
 
 Before any interview: re-seed the demo workspace, check demo-account credits, load the tab, close everything else.
 
-## 7. Drills (start the week of Aug 4)
+## 7. Drills (start the week you submit — the invite can come any day)
 
 - Three mock interviews minimum: one with Badis/Asendia (they did this months ago), one with another founder, one self-recorded against the §3 list shuffled.
 - Drill the interrupt: have the mock partner cut you off mid-sentence; practice stopping instantly.

@@ -1,6 +1,6 @@
 # YC application research — findings and sources
 
-> _Compiled 2026-07-10 via five parallel research passes: (1) YC primary sources, (2) community anti-patterns incl. the "seven deadly sins" video, (3) batch landscape + interview format, (4) pre-traction acceptance playbook, (5) language forensics on accepted applications. This is the reference layer behind [`application.md`](./application.md), [`interview-prep.md`](./interview-prep.md), and [`video-scripts.md`](./video-scripts.md) — when tweaking any of those, check the claim here first. Every claim carries its source. Quotes are verbatim._
+> _Compiled 2026-07-10 via five parallel research passes: (1) YC primary sources, (2) community anti-patterns incl. the "seven deadly sins" video, (3) batch landscape + interview format, (4) pre-traction acceptance playbook, (5) language forensics on accepted applications. This is the reference layer behind [`fall-2026-application.md`](./fall-2026-application.md), [`interview-prep.md`](./interview-prep.md), and [`video-scripts.md`](./video-scripts.md) — when tweaking any of those, check the claim here first. Every claim carries its source. Quotes are verbatim._
 
 ## 1. The rules from YC itself
 
@@ -172,7 +172,7 @@ Airbnb "Book rooms with locals, rather than hotels." · Cruise "Self-driving car
 9. Kill AI cadence; add one true, slightly imperfect detail only you could know.
 10. One-liner: under 50 chars, noun-first, named user, zero buzzwords.
 
-## 6. What this means for Cadence (the synthesis applied in application.md)
+## 6. What this means for Cadence (the synthesis applied in fall-2026-application.md)
 
 1. **Lead the rollover with the delta** (§1.1 re-application signal) → the 8h "did anything change" field carries the momentum timeline.
 2. **True-on-submit-day law** (numbers verified; misrepresentation = disqualification) → bracketed slots, two variants for "are people using."

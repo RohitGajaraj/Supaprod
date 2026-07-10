@@ -1,14 +1,16 @@
 # The YC application — Fall 2026 (previous vs new, field by field)
 
-> _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Decisions by Aug 28; interviews Aug–Sep; batch Oct–Dec in San Francisco; $500K standard deal._
+> _Created: 2026-07-10. Deadline: **July 27, 2026, 8pm PT** (verified). Reviews are rolling — the 10-minute interview can land any time once the application is read, so interview-ready means ready the day you submit (YC's posted outer bound: decisions by Aug 28, batch Oct–Dec in San Francisco, $500K standard deal)._
 >
 > **How to use this file:** each field shows the PREVIOUS answer (from the rolled-over application), the NEW answer in a copy-paste block, and one line on why. Anything in `[square brackets]` is a slot you fill or confirm on submit day — never submit a bracket. The evidence behind every choice: [`research-findings.md`](./research-findings.md). Interview prep: [`interview-prep.md`](./interview-prep.md). Videos: [`video-scripts.md`](./video-scripts.md).
 
-## The three laws this application is written under
+## The five laws this application is written under
 
 1. **True on the day you hit submit, with zero outside users.** Plans appear as dated plans. Nothing depends on August going well. YC verifies numbers ("if you state numbers in the interview we may ask for verification").
-2. **Plain words.** No marketing-speak (PG: "We're immune to marketing-speak; to us it's just noise"), no AI cadence, short sentences, exact numbers however small. Full banned-words list at the bottom.
-3. **Lead with the delta.** YC's own FAQ: about half of each batch applied more than once, and "having made progress since your last application is a strong signal to us." This application's job is to make the progress impossible to miss in a 90-second skim.
+2. **The honesty dial (founder calibration, 2026-07-10).** Truthful is not the same as self-deprecating. Candor goes where the form asks (users, revenue, stage) and is stated as fact plus what happens next — never as apology, never volunteered in fields that don't ask. Exactly one vulnerability beat in the whole application (pricing, framed as the experiment it is). Everywhere else: PG's formidability bar, "justifiably confident."
+3. **Unconditional commitment (founder calibration, 2026-07-10).** No "if accepted, I'll…" framing anywhere. The company is happening full-time regardless; YC changes the speed and the zip code, never the decision. (This is also Close's seventh deadly sin inverted: neediness and contingency read as weakness.)
+4. **Plain words.** No marketing-speak (PG: "We're immune to marketing-speak; to us it's just noise"), no AI cadence, short sentences, exact numbers however small. Full banned-words list at the bottom.
+5. **Lead with the delta, land the scope.** YC's FAQ: progress since a prior application "is a strong signal" — make it impossible to miss in a 90-second skim. And "Cursor for product managers" is the door, not the room: the answers escalate to what this actually is, the operating system a whole product org runs on.
 
 **What a partner is scanning for, in order:** (1) do I get what this is in one sentence, (2) is there an earned insight, (3) is this founder formidable, (4) is anything real and live. Every answer below serves one of those four.
 
@@ -69,7 +71,7 @@ missions where a mistake is unrecoverable. The systems I worked on flew.
 - At Intellect (my current employer) I led product on the AI platform that 200+
   financial institutions across 70+ countries use to build their own AI products.
   I didn't write that code; I shipped the product.
-- [FILL: your IIM Bangalore venture — name + one line on what it did + URL if any.
+- [FILL: your IIM Bangalore venture: name + one line on what it did + URL if any.
   It's on your LinkedIn, so partners will see it either way; better to own it here.]
 ```
 
@@ -125,13 +127,13 @@ _[Update the commit/migration counts on submit day: `git rev-list --count HEAD` 
 
 **Previous:** `Cursor for PMs, the whole product org.` (39 chars)
 
-**New (recommended, 28 chars):**
+**New (recommended — KEEP the previous):**
 
 ```
-Cursor for product managers.
+Cursor for PMs, the whole product org.
 ```
 
-Why: the accepted-application pattern is noun-first, named user, one universal anchor (Dendron: "Superhuman for note taking"; Airbnb: "Book rooms with locals, rather than hotels"). "PMs" saves characters we don't need to save; "the whole product org" is a second idea, and the 50-char line only gets to have one. Keep the previous as fallback if you prefer the wider scope.
+Why: it does both jobs in one line — the instant anchor a tired reader gets in a second (the accepted pattern: Dendron's "Superhuman for note taking") plus the scope escalation ("the whole product org") that signals this is bigger than a PM copilot. Anchor-only fallback if ever needed: `Cursor for product managers.` (28 chars).
 
 ### 7c. Company URL
 
@@ -156,23 +158,27 @@ _[Before submit: log in with these exact credentials yourself, re-seed the demo 
 
 **Previous:** solid but long; some claims ahead of wiring; buries the receipts idea.
 
-**New (~160 words):**
+**New (~185 words — the anchor opens it, the real scope closes it):**
 
 ```
-Cadence is Cursor for product managers. You connect the tools where your product
-signals already live, and a team of AI agents runs the product lifecycle with
-you: they read the signals, cluster them into opportunities, argue against the
-weak ones before you commit, write the spec with the evidence attached, break it
-into tasks, and hand builds to coding agents. You approve the calls that matter.
+Cadence is where a product org runs when AI agents do the work. The shortest
+way to say it: Cursor for product managers, but it's one system for the whole
+lifecycle, not a copilot bolted onto one step. You connect the tools where
+your product signals live and the agents take it from there: they read the
+signals, cluster them into opportunities, argue against the weak bets before
+you commit, write the spec with the evidence attached, plan the work, and
+hand builds to coding agents. You approve the calls that matter.
 
-The part I care most about: every agent action leaves a receipt, and every
-decision gets checked later against what actually happened. So the system can
-answer "why did we decide this" in seconds, and it learns which of its calls
-were right. Agents earn autonomy from their track record, the way a new hire
-earns trust, and anything they produce can be rolled back with one key.
+The part that makes it a company: every agent action leaves a receipt, and
+every decision gets checked later against what actually happened. Cadence
+answers "why did we decide this" in seconds, learns which calls were right,
+and gets smarter about your product with every outcome it records. Agents
+earn autonomy from their track record, the way a new hire earns trust, and
+anything they produce rolls back with one key.
 
-The bet is simple. AI made building cheap, so deciding what to build is the
-scarce job now. Agents do the work. You answer for it. Cadence is how you answer.
+AI made building cheap. What a company runs on now is decisions and whether
+they were right. That's the layer I own. Agents do the work. You answer for
+it. Cadence is how you answer.
 ```
 
 ### 7g. "Where do you live now, and where would the company be based after YC?" + location explanation
@@ -200,10 +206,12 @@ I track the build in a public-style register: [385] features specced, [293]
 shipped. I had an outside AI code auditor review the codebase against that
 register, and it held.
 
-Outside users: none yet, and that's the current gap. Beta opens the week of
-[July 21] with people from the discovery calls I'm running now, and the public
-launch is set for [August 4].
+Everything until now was building the machine. Now I'm putting people in it:
+the beta is opening with the PMs and founders from my discovery calls, and
+the public launch follows in weeks, not months.
 ```
+
+_(Note the register: zero users is stated once, in 8e, where the form asks — not volunteered here as "the gap." Law 2.)_
 
 ### 8b. "How long have each of you been working on this? How much of that has been full-time?"
 
@@ -214,8 +222,9 @@ launch is set for [August 4].
 ```
 Forty-five days on this build at roughly sixteen hours a day, seven days a week;
 the repo shows about [3,400] commits over that stretch. Before that, about a
-month of nights and weekends on the prototype that became Cadence. This has all
-of me. If accepted, Cadence is my only job, and I'll be in San Francisco.
+month of nights and weekends on the prototype that became Cadence. I'm going
+full-time on Cadence regardless of anything. That decision is made. The batch
+changes where I sit, not whether I'm in.
 ```
 
 _[CONFIRM before submit: your one-line answer about your current role at Intellect, for the interview. It must match your LinkedIn ("Jun 2023 – Present"). Suggested honest line if asked: "I'm serving out my transition at [status]; Cadence gets 16 hours a day and my resignation is planned for [date] / already submitted." Decide the true version and rehearse it — do not improvise this one.]_
@@ -253,9 +262,10 @@ getting the receipt back. I use it daily myself to run Cadence's own roadmap.
 
 Variant B (not yet):
 ```
-Not outside users yet. I use it every day to run Cadence's own roadmap. The
-first beta users get access the week of [July 21], from [N] discovery
-conversations I've run with PMs and founders in the last month.
+The first beta users are getting access now, from the [N] discovery
+conversations I've run with PMs and founders this month. Until they're in,
+the daily user is me: Cadence runs its own roadmap, and its agents built
+most of it.
 ```
 
 ### 8f. "When will you have a version people can use?"
@@ -265,8 +275,8 @@ conversations I've run with PMs and founders in the last month.
 **New:**
 
 ```
-It's usable now — the link and demo login above. Self-serve signup is already
-on; the public launch (listing, docs, pricing) is set for [August 4].
+It's usable now: the link and demo login above. Self-serve signup is already
+on; the public launch is weeks away, not months.
 ```
 
 ### 8g. "Do you have revenue?"
@@ -280,13 +290,14 @@ on; the public launch (listing, docs, pricing) is set for [August 4].
 **New — this is now the single most valuable field on the form.** YC's FAQ: progress since the last application is "a strong signal."
 
 ```
-Same idea, one batch later — I submitted this application late in the previous
+Same idea, one batch later. I submitted this application late in the previous
 cycle and it rolled forward. Since then the product went from an early spine to
 working end to end: the autonomous engine is live ([133] missions, [129] agent
 runs), agents open real pull requests behind human gates, every decision now
-gets an outcome check that re-ranks what to build next, an outside AI code audit
-of the build register held up, and the public launch is set for [August 4].
-Roughly ten times the product in five weeks. That pace is the pitch.
+gets an outcome check that re-ranks what to build next, an outside AI code
+audit of the build register held up, beta is opening, and the public launch
+is weeks away. Roughly ten times the product in five weeks. That pace is the
+pitch.
 ```
 
 ### 8i. Incubator / accelerator
@@ -313,7 +324,7 @@ asks for a "Company Brain" and an "AI operating system for companies." That
 told me the itch I was scratching wasn't just mine.
 
 How I know people need it: I've spent the last month talking to PMs and
-founders and reading how they hand-roll this today — [N] discovery
+founders and reading how they hand-roll this today: [N] discovery
 conversations so far. The most upvoted thread I found in a PM community was
 literally someone asking how to answer "why did we decide X." And I need it
 myself, every single day.
@@ -360,12 +371,14 @@ workspace subscription plus usage credits for agent runs, so revenue grows
 with how much work the agents do, not with headcount. Land: solo founders and
 PMs on small teams, who feel this hardest and can start without procurement.
 Expand: teams and enterprises, where the audit trail is the thing they
-actually budget for. The money currently spent on this is split across Linear,
-Notion, a spec tool, a coding agent, and status meetings.
+actually budget for. The budget already exists. Today it's split across
+Linear, Notion, a spec tool, a coding agent, and status meetings.
 
-Honestly: pricing is unvalidated. It's one of the first things beta is for.
-If Cadence becomes the place a product org runs, it's a very large outcome;
-the version I can defend today is getting the first hundred teams to run on it.
+How big: every company that builds software is becoming a product org run
+this way: a few accountable people directing fleets. Cadence is the
+operating system that org runs on, and the system of record for its
+decisions. Systems of record are the biggest outcomes in software. Pricing
+gets its first real test in beta this month.
 ```
 
 ### 9d. "If you had any other ideas you considered applying with, please list them."
@@ -390,7 +403,7 @@ the version I can defend today is getting the first hundred teams to run on it.
 **New — the friends get named (verifiable beats vague):**
 
 ```
-Friends of mine just went through YC — Asendia AI. Badis and I overlapped at
+Friends of mine just went through YC: Asendia AI. Badis and I overlapped at
 TUM and later worked on the same team at the same company, and I watched their
 batch up close, from application to Demo Day. That settled it. Add that YC's
 own RFS keeps describing the company I'm building, and this felt like the

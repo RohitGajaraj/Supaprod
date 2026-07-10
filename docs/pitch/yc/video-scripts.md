@@ -15,7 +15,7 @@
 - The wall I hit: agents did MORE of my work, I could explain LESS of it — accountable for everything, able to prove nothing
 - So I built the layer that was missing: agents run the lifecycle, every action has a receipt, every decision gets checked against what happened
 - Proof: Cadence built itself — ~[3,400] commits in [8] weeks, one person directing the fleet, every change receipted
-- 16 hours a day for [45+] days; launching publicly [Aug 4]; going all the way in
+- 16 hours a day for [45+] days; beta opening now, public launch weeks away; going all the way in, full-time, regardless of anything
 - Close: "Agents do the work. You answer for it. Cadence is how you answer."
 
 **Delivery notes:** energy beats polish; smile once; if you go over 1:00, cut the resume bullet, never the wall story or the close. Say the numbers as numbers ("thirty-four hundred commits"), they carry the video.
