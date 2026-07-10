@@ -42,6 +42,17 @@ Sourced from the thread sorted by top comments (highest engagement = most invest
 
 **On rows 16, 22–25:** these handles surfaced in the same top-sorted comment pull but without a comment substantial enough to paraphrase here confidently. Before drafting a personalized line for any of them, re-read their actual comment on the thread (one click, receipts-first) rather than sending a generic message — that is the whole point of this being a hand-picked list, not a scraped one.
 
+## Live verification pass (2026-07-10, via the HyperAgent rig — PC-26)
+
+All 25 handles re-checked live (profile status, most recent activity, PM/founder signal) via public Reddit mirrors, no contact made. Full method + caveats: the HyperAgent thread transcript. This closes the row-16/22–25 "second-pass verify" gap above with real signal, and surfaces one send-blocker.
+
+- **Do not contact: u/southasianhero (row 3).** The mirror returns a persistent 403 on the profile listing (a 404 is what a deleted/renamed name shows; a 403 pattern-matches suspended/banned). Skip this row — do not draft or send.
+- **Strong PM/founder signal, confirmed:** akashkrr (row 1, "I'm a Product Manager"), cs862 (row 2, "strategy consulting → PM"), nyseans (row 4, PO/PM building an app), TheCorporateMajdoor (row 6, PM + "launching AI-startups"), All_the_young_Joes (row 7, "VP Product for a B2B company"), **GeorgeHarter (row 16 — resolved): bio reads "Product Management Trainer & Advisor, 20+ years in software PM, author of 'Build a Better Product Manager'"** — a strong, senior-voice target despite no recent visible posts, and **pinks85 (row 24 — resolved): self-identifies as "PO at a Fortune 500 company," discussed using Claude Code as a PM.**
+- **Moderate signal, confirmed:** V_Ster (row 12, PM-aspiring), Capable-Wildcard (row 18, PM but "jobless in 2026" — may be between roles, still worth a message), **tobolek (row 22 — resolved): PM per the thread itself, very light Reddit user (karma 2)**, **sarahburkhart (row 25 — resolved): PM per the thread; otherwise local Texas civic content.**
+- **No clear signal on Reddit, keep for the outreach angle anyway (the thread comment already carries the signal the profile doesn't show):** cardboard-kansio (row 9), diggyj1993 (row 8), whale_monkey (row 11), duncan_thaw69 (row 13), onethousandmonkey (row 20), **roshbakeer (row 23 — resolved): active but on unrelated topics, no PM signal found.**
+- **Accounts with no visible activity (mass-deleted or shadowbanned — send anyway, account exists, just do not expect a bio/recent-post hook to personalize around):** 1029394756abc (row 5), Linaran (row 10), FrequentShopper183 (row 15), Steve_the_Samurai (row 17), spacenglish (row 19), enrvuk (row 21).
+- **Verified still active and matches the original signal:** duncan_thaw69, ProperBangersAndMash (row 14).
+
 ## The design-twin cohort (RPT-10 addition — the design-side parallel)
 
 Research §13.4 names a second beta-pool angle: "the design-twin cohort around Meng To's audience for the design-memory angle." **Meng To himself is correctly NOT a target** — he sells courses and founded a competing-adjacent tool (Aura), so per §12.4's citation-integrity rule he's a reference point for direction, never someone to solicit or cite as authority. The actual targets are practitioners who independently hand-build the same design-memory pattern he describes — found via the same methodology as the PM cohort (a real, dated, organic build-log, not a scrape).
@@ -121,7 +132,8 @@ and tell me what's missing. 15 minutes, I'll just show you it live?
 
 ## Acceptance tracking (PC-13 + RPT-10)
 
-- [ ] 25 contacted — **0/26 sent** (25 PM-cohort + 1 design-twin; target list ready; founder approval required per message, per the standing outward-send rule)
+- [x] Target list fully live-verified — 24 sendable (25 PM-cohort minus 1 excluded: southasianhero, likely suspended) + 1 design-twin = **25 ready targets**, every one checked for active status, recent activity, and PM/founder signal via the HyperAgent rig (PC-26), 2026-07-10.
+- [ ] 25 contacted — **0/25 sent** (kit fully ready; founder approval required per message, per the standing outward-send rule)
 - [ ] ≥10 onboarded
 - [ ] feedback→signals live (manual bridge today; automated at PC-15)
 - [x] RPT-10 (design-twin cohort): u/Such-Book6849 identified and receipts-verified, 2026-07-10

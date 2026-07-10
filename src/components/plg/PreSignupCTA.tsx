@@ -9,10 +9,18 @@
  * new /pricing route never breaks the typecheck). Styling mirrors the public
  * share routes: `.bento` / `.btn` classes + inline CSS-var fallbacks, ember
  * reserved for the single primary CTA (the role-color law).
+ *
+ * `"proof"` (RPT-07/RPT-30) is the /proof Trust Ledger page — the same footer,
+ * a heading pointed at the calibration/receipts angle instead of one decision.
  */
 
-export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decision" }) {
-  const heading = sourceType === "teardown" ? "Tear down your own idea." : "Make your own calls.";
+export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decision" | "proof" }) {
+  const heading =
+    sourceType === "teardown"
+      ? "Tear down your own idea."
+      : sourceType === "proof"
+        ? "Get your own calibration score."
+        : "Make your own calls.";
 
   return (
     <div className="bento" style={{ marginTop: 28, padding: "22px 22px", textAlign: "center" }}>

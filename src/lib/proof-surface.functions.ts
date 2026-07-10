@@ -98,7 +98,8 @@ async function computeBabysittingTax(): Promise<BabysittingTax> {
   return { weeklyGated: buckets, trend: trendOf(recent, prior), tableReady: true };
 }
 
-async function computeSupersessionsCaught(): Promise<SupersessionsCaught> {
+/** Exported: reused by proof-share.functions.ts for the PUBLIC redacted scorecard (RPT-30). */
+export async function computeSupersessionsCaught(): Promise<SupersessionsCaught> {
   const since30 = new Date(Date.now() - 30 * DAY_MS).toISOString();
   const since60 = new Date(Date.now() - 60 * DAY_MS).toISOString();
   const { data, error } = await supabaseAdmin
@@ -128,7 +129,8 @@ async function computeSupersessionsCaught(): Promise<SupersessionsCaught> {
 // Reads workspace-wide via supabaseAdmin, matching this file's other two
 // metrics, and still degrades to "not enough data yet" on any error (a
 // pre-migration environment, or a future shape change) rather than throwing.
-async function computePredictionHitRate(): Promise<PredictionHitRate> {
+/** Exported: reused by proof-share.functions.ts for the PUBLIC redacted scorecard (RPT-30). */
+export async function computePredictionHitRate(): Promise<PredictionHitRate> {
   try {
     const { data, error } = await db
       .from("insights")

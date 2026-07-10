@@ -924,6 +924,15 @@
     border: 1px solid var(--hairline);
     border-radius: 12px;
   }
+  /* A clickable bento (e.g. a /proof decision-receipt link) lifts on hover —
+   * transform + border only, GPU-cheap, gated by the global reduced-motion rule. */
+  a.bento:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--ink, #1f1b16) 22%, var(--hairline));
+  }
+  a.bento:active {
+    transform: translateY(0) scale(0.99);
+  }
   .dark .bento {
     background-color: var(--surface-1);
     border-color: oklch(0.92 0.02 80 / 13%);

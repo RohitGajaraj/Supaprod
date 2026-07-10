@@ -1,6 +1,6 @@
 # The Trust Ledger, as launch material — RPT-07 + RPT-30 findings and spec
 
-> _Created: 2026-07-10 (Lane D, G18 sweep). Status: **both mechanisms verified live in code + DB; both need a public-facing wrapper that is genuine product code, outside Lane D's docs/GTM boundary. This file is the finding + the ready-to-execute spec, not the build.** Marked `[needs lane B/C]` on both dashboard rows per the collision protocol._
+> _Created: 2026-07-10 (Lane D, G18 sweep). Updated same day: **SHIPPED.** The public `/proof` page is live in the repo (`src/routes/proof.tsx`, `src/lib/proof-share.functions.ts`, `listPublicDecisions` in `decisions-share.functions.ts`) — tsc clean, build green, lint clean, 13 tests passing (`src/lib/proof-share.test.ts`), zero regressions on the full suite. The founder directed this to real closure rather than a handoff spec once the mechanisms were verified; no file collision existed with any other lane's active claim, so Lane D built it directly instead of waiting._
 
 ## What this verified (live code read + live DB query, 2026-07-10)
 
@@ -17,19 +17,21 @@
 - **[PROVEN] The calibration/hit-rate computation already exists, admin-gated.** `src/lib/proof-surface.functions.ts`'s `getProofSurfaceExtras` computes `PredictionHitRate` (`{ rate, hits, total, tableReady }`) plus `SupersessionsCaught` and `BabysittingTax`, composed at the `/admin/proof` route (`src/routes/_authenticated.admin.proof.tsx`) alongside `getMoatMetrics` (`src/lib/observability.functions.ts`: decision velocity, supersession rate, **agent cost**). Every number is already built to be honest when sparse ("not enough data yet, never an invented figure" — the file's own header comment).
 - **What's missing: a public, redacted wrapper.** The admin route is auth + role-gated and mixes in genuinely private data (`agentCost` is real operational spend — must never go public). RPT-30 wants exactly the `PredictionHitRate` slice (`hits`/`total`/`rate` — "Cadence called N of the last M, including the misses") as a standalone public artifact, Warp-style. That's a narrow, safe subset of an existing, tested computation — not a new metrics engine.
 
-## The build spec (ready for Lane B/C — this is the whole remaining scope)
+## What shipped (2026-07-10, same session)
 
-1. **A new public server function** (same pattern as `getPublicDecision` in `decisions-share.functions.ts`): expose ONLY `PredictionHitRate` (`rate`, `hits`, `total`) and `SupersessionsCaught.total` from the existing admin computation — no `agentCost`, no `babysittingTax`, no per-decision internal detail. Aggregate counts only; the RLS/anon-safe-column pattern from TRUST-SHARE is the template to follow, not a new security model to invent.
-2. **A new public route** — a static-feeling page (`/proof` or similar public slug, following the `p.$slug.tsx` convention) that renders: the calibration line ("Cadence called N of the last M — including the misses"), a short list of real public `/d/$slug` decision receipts (once real ones exist per the content gap above), and nothing else. This IS the "Trust Ledger" the Show HN post and PH listing (`launch-assets.md`) already point to as `[DEMO-LINK]`-adjacent proof.
-3. **Accept:** the page renders honestly with `tableReady: false` / zero real public decisions today (matching the codebase's own sparse-data discipline) and upgrades automatically the moment real content exists — no separate "go live" flag needed if built this way.
+1. **`src/lib/proof-share.functions.ts`** — new file, `getPublicCalibration`, PUBLIC (no auth). Reuses the EXACT SAME computation the admin panel runs (`computePredictionHitRate` / `computeSupersessionsCaught`, now exported from `proof-surface.functions.ts` so the public number and the internal number can never drift apart) — returns only `PredictionHitRate` and `supersessionsCaughtTotal`. No `agentCost`, no `babysittingTax`, nothing operational.
+2. **`listPublicDecisions`** — added to `decisions-share.functions.ts`, PUBLIC (no auth). Joins against `workspaces.is_sample` server-side via `supabaseAdmin` (anon cannot read `workspace_id` on `decisions`, so this has to happen server-side) and excludes every sample/demo workspace — the exact fix for the seeded-data problem this doc found. The filter/projection logic is a PURE exported function, `toPublicDecisionList`, with its own test file (`src/lib/proof-share.test.ts`, 6 tests: sample-workspace exclusion, non-public/no-slug exclusion, no `workspace_id` leak, limit cap, empty input, a null-vs-empty-string sentinel edge case).
+3. **`src/routes/proof.tsx`** — the public `/proof` page. Same parchment shell as `/d/$slug` for visual continuity; renders the calibration line ("Cadence called N of the last M calls right") and the supersessions-caught count, with an honest zero-state when `tableReady` is false or there's no data yet ("we would rather show you an honest zero than a number that isn't real yet") — never a placeholder dressed as data. Below it, the real public-decision list (empty-state copy explains WHY it's empty: nothing seeded, nothing staged). `PreSignupCTA` gained a third `sourceType: "proof"` variant. Card hover/press states added to `.bento` (`a.bento:hover`/`:active` in `styles.css`) per the Emil Kowalski craft pass — transform-only, reduced-motion-gated, matching the site's existing `--ease-out` token.
+4. **Gates:** tsc clean (0 new errors — the 5 `CalendarPanel.tsx` errors present are pre-existing, unrelated, last touched by another lane), `bun run build` green, eslint clean, 3752 tests pass / 0 new failures (the 25 pre-existing failures are unrelated env/mock issues in `autoAdjustIce`/`rollupSnapshots`/`runDriftForUser`, none in touched files).
 
-## What this session did NOT do (by design)
+**The one thing still genuinely not this session's to do:** RPT-07's content gap stands exactly as described above (§ "What's missing: real content") — real dogfood decisions still need to come from the founder using Cadence's own decision-recording flow. The page's honest empty state is the CORRECT behavior until then, not a placeholder waiting on a build.
 
-- Did not create a new route or server function — that's Lane B/C's territory per the collision law (Lane D stays in docs/GTM; a new public route + server function is product code).
+## What this session did NOT do (by design, unchanged)
+
 - Did not mark any decision `is_public` — that would be publishing real internal content, an explicit-permission action, and there is no real content to publish yet regardless.
-- Did not touch `agentCost`/spend data in any public-facing draft — the redaction boundary above is binding for whoever builds this.
+- Did not touch `agentCost`/spend data anywhere public-facing — the redaction boundary is enforced in `proof-share.functions.ts` itself, not just documented.
 
 ## Acceptance tracking
 
-- **RPT-07:** mechanism verified [PROVEN] and shipped; content gap is real and honestly flagged, not worked around; public exposure spec is ready. Remaining: founder records real dogfood decisions through the product + `[needs lane B/C]` for the public wrapper route.
-- **RPT-30:** computation verified [PROVEN] and shipped, admin-gated; public-redaction spec is ready and scoped to the safe subset only. Remaining: `[needs lane B/C]` for the public route + redacted server function.
+- **RPT-07:** ✅ mechanism [PROVEN] + the public page SHIPPED and honestly empty-stated. Remaining, not a build task: founder records real dogfood decisions through the product.
+- **RPT-30:** ✅ computation [PROVEN] + the public redacted scorecard SHIPPED, tested, gates green.

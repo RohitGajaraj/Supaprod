@@ -248,3 +248,73 @@ export const getPublicDecision = createServerFn({ method: "GET" })
       return null;
     }
   });
+
+export type PublicDecisionListItem = Pick<
+  PublicDecision,
+  "title" | "status" | "decided_by_agent_slug" | "created_at"
+> & { share_slug: string };
+
+type RawPublicDecisionRow = PublicDecision & {
+  share_slug: string | null;
+  workspace_id: string | null;
+  is_public?: boolean;
+};
+
+/**
+ * PURE. Drops rows that aren't genuinely public/shareable, drops anything
+ * belonging to a sample (seeded/demo) workspace so the /proof Trust Ledger
+ * page never shows fabricated content as real dogfood history
+ * (docs/pitch/trust-ledger-launch-plan.md), caps the result, and projects to
+ * the safe allow-list only — workspace_id never leaves this function.
+ */
+export function toPublicDecisionList(
+  rows: RawPublicDecisionRow[],
+  sampleWorkspaceIds: ReadonlySet<string>,
+  limit = 20,
+): PublicDecisionListItem[] {
+  return rows
+    .filter((r) => r.is_public && r.share_slug && !sampleWorkspaceIds.has(r.workspace_id ?? ""))
+    .slice(0, limit)
+    .map((r) => ({
+      title: r.title,
+      status: r.status,
+      decided_by_agent_slug: r.decided_by_agent_slug ?? null,
+      created_at: r.created_at,
+      share_slug: r.share_slug as string,
+    }));
+}
+
+/**
+ * PUBLIC (no auth) — the most recent real public decisions, for the /proof
+ * Trust Ledger page (RPT-07). Uses supabaseAdmin (not anonSupabase) ONLY to
+ * join against workspaces.is_sample — anon cannot read workspace_id on
+ * `decisions` (see the file header), so the sample-workspace filter has to
+ * happen server-side. Still returns the SAME safe allow-list as
+ * getPublicDecision.
+ */
+export const listPublicDecisions = createServerFn({ method: "GET" }).handler(
+  async (): Promise<PublicDecisionListItem[]> => {
+    try {
+      const { data: sampleRows } = await supabaseAdmin
+        .from("workspaces")
+        .select("id")
+        .eq("is_sample", true)
+        .limit(1000);
+      const sampleIds = new Set((sampleRows ?? []).map((w) => (w as { id: string }).id));
+
+      const { data, error } = await supabaseAdmin
+        .from("decisions")
+        // SAFE ALLOW-LIST ONLY — workspace_id is read here for the filter below, then dropped.
+        .select("title,status,decided_by_agent_slug,created_at,share_slug,workspace_id,is_public")
+        .eq("is_public", true)
+        .not("share_slug", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error || !data) return [];
+
+      return toPublicDecisionList(data as RawPublicDecisionRow[], sampleIds);
+    } catch {
+      return [];
+    }
+  },
+);
