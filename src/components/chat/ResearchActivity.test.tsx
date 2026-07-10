@@ -20,9 +20,7 @@ describe("parseResearchStatus", () => {
   });
 
   it("should return null for invalid phase", () => {
-    expect(
-      parseResearchStatus({ phase: "invalid", label: "test" })
-    ).toBeNull();
+    expect(parseResearchStatus({ phase: "invalid", label: "test" })).toBeNull();
   });
 
   it("should return null for missing phase", () => {
@@ -48,13 +46,7 @@ describe("parseResearchStatus", () => {
   });
 
   it("should accept all valid phases", () => {
-    const phases: ResearchStatus["phase"][] = [
-      "plan",
-      "search",
-      "read",
-      "workspace",
-      "synthesize",
-    ];
+    const phases: ResearchStatus["phase"][] = ["plan", "search", "read", "workspace", "synthesize"];
     for (const phase of phases) {
       const result = parseResearchStatus({ phase, label: "test" });
       expect(result).not.toBeNull();
@@ -114,9 +106,7 @@ describe("ResearchActivityLine", () => {
   });
 
   it("should render with single status", () => {
-    const statuses: ResearchStatus[] = [
-      { phase: "search", label: "Searching..." },
-    ];
+    const statuses: ResearchStatus[] = [{ phase: "search", label: "Searching..." }];
     const element = ResearchActivityLine({ statuses });
     expect(element).not.toBeNull();
   });
@@ -127,8 +117,12 @@ describe("ResearchActivityLine", () => {
       { phase: "search", label: "Searching for sources" },
     ];
     const element = ResearchActivityLine({ statuses });
-    // Verify the latest label appears in the rendered output
     expect(element).not.toBeNull();
+    // Verify the latest label appears in the span children (props.children[1])
+    const spans = element?.props?.children;
+    expect(spans).toBeDefined();
+    const labelSpan = spans?.[1]; // Second child is the label span
+    expect(labelSpan?.props?.children).toBe("Searching for sources");
   });
 
   it("should accumulate done phases in summary", () => {
@@ -138,8 +132,13 @@ describe("ResearchActivityLine", () => {
       { phase: "read", label: "Reading..." },
     ];
     const element = ResearchActivityLine({ statuses });
-    // Completed phases (first 2 searches + read) should appear in summary
     expect(element).not.toBeNull();
+    // Verify accumulated done phases (2 searches) appear in the summary (3rd child)
+    const spans = element?.props?.children;
+    const summarySpan = spans?.[2]; // Third child is the summary span (mono-label)
+    expect(summarySpan?.props?.className).toContain("mono-label");
+    // The summary should contain "Searched 2 queries" from the 2 completed searches
+    expect(summarySpan?.props?.children).toContain("Searched 2 queries");
   });
 
   it("should handle workspace in summary", () => {
@@ -152,9 +151,7 @@ describe("ResearchActivityLine", () => {
   });
 
   it("should render spinner and label styles", () => {
-    const statuses: ResearchStatus[] = [
-      { phase: "search", label: "Searching" },
-    ];
+    const statuses: ResearchStatus[] = [{ phase: "search", label: "Searching" }];
     const element = ResearchActivityLine({ statuses });
     // Component should have flex layout with appropriate styling
     expect(element?.props?.className).toContain("fade-up");
@@ -198,11 +195,7 @@ describe("ResearchSummaryRow", () => {
   it("should count web sources only", () => {
     const meta = {
       research: { mode: "both" as const, sub_queries: [] },
-      sources: [
-        { kind: "web" as const },
-        { kind: "web" as const },
-        { kind: "document" as const },
-      ],
+      sources: [{ kind: "web" as const }, { kind: "web" as const }, { kind: "document" as const }],
       workspace_chunks: 0,
     };
     const result = ResearchSummaryRow({ meta });
