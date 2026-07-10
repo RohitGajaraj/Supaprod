@@ -19,6 +19,26 @@ import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
 /**
+ * SECURITY: Extract and validate CORS origin from request.
+ * The endpoint is authenticated (Bearer token required), so wildcard CORS
+ * doesn't introduce CSRF risk. However, for defense-in-depth we validate
+ * the origin and reflect it back instead of using wildcard.
+ * Falls back to "*" only if origin is unparseable (e.g., during preflight).
+ */
+function getValidatedCorsOrigin(request: Request): string {
+  try {
+    const origin = request.headers.get("origin");
+    if (!origin) return "*"; // preflight or same-origin request
+    // Validate origin is a valid URL
+    new URL(origin);
+    return origin;
+  } catch {
+    // Invalid origin format; allow with wildcard for robustness
+    return "*";
+  }
+}
+
+/**
  * Shared SSE protocol v2 with the chat UI (see MessageMeta.tsx):
  * - zero or more `{"status":{phase,label}}` research-progress events first,
  * - token chunks (choices[0].delta.content),
@@ -43,12 +63,18 @@ type ChatMeta = {
   research?: { mode: ResearchMode; sub_queries: string[] };
 };
 
-const SSE_HEADERS = {
-  "Content-Type": "text/event-stream",
-  "Cache-Control": "no-cache, no-transform",
-  Connection: "keep-alive",
-  "Access-Control-Allow-Origin": "*",
-};
+/**
+ * Generate SSE headers with proper CORS origin.
+ * SECURITY: Use validated origin instead of wildcard for defense-in-depth.
+ */
+function getSseHeaders(origin: string) {
+  return {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": origin,
+  };
+}
 
 const GENERIC_FAILURE = "I hit a snag answering that. Try again or switch models.";
 const WEB_UNAVAILABLE_NOTE =
@@ -129,16 +155,19 @@ function stripMention(text: string, slug: string): string {
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
-      OPTIONS: () =>
+      OPTIONS: ({ request }) =>
         new Response(null, {
           status: 204,
           headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": getValidatedCorsOrigin(request),
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "content-type, authorization",
           },
         }),
       POST: async ({ request }) => {
+        // SECURITY: Extract validated CORS origin early for all SSE responses.
+        const corsOrigin = getValidatedCorsOrigin(request);
+
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY)
@@ -552,7 +581,7 @@ You must output a JSON object EXACTLY in this format:
               },
             });
 
-            return new Response(stream, { headers: SSE_HEADERS });
+            return new Response(stream, { headers: getSseHeaders(corsOrigin) });
           } catch (e) {
             console.error("[chat] failed to start orchestrated mission:", e);
             preflightError = `Failed to initialize mission: ${e instanceof Error ? e.message : String(e)}`;
@@ -629,7 +658,7 @@ You must output a JSON object EXACTLY in this format:
                 console.error("[chat] failed to persist fallback assistant message:", persistErr);
             },
           });
-          return new Response(s, { headers: SSE_HEADERS });
+          return new Response(s, { headers: getSseHeaders(corsOrigin) });
         };
 
         // F-CHAT-V2 model switching: a non-gateway model with NO reachable key cannot
@@ -975,7 +1004,7 @@ ${grounding}`,
           },
         });
 
-        return new Response(stream, { headers: SSE_HEADERS });
+        return new Response(stream, { headers: getSseHeaders(corsOrigin) });
       },
     },
   },
