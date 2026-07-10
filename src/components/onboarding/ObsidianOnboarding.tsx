@@ -444,7 +444,7 @@ export function ObsidianOnboarding() {
       const editedBelief =
         typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
 
-      let review = null;
+      let review: any = null;
       try {
         if (editedBelief) {
           const result = await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } });
