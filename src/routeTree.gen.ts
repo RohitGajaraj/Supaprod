@@ -42,7 +42,6 @@ import { Route as AuthenticatedPrdsRouteImport } from './routes/_authenticated.p
 import { Route as AuthenticatedOutcomeRouteImport } from './routes/_authenticated.outcome'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated.opportunities'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated.onboarding'
-import { Route as AuthenticatedObsidianSpecimenRouteImport } from './routes/_authenticated.obsidian-specimen'
 import { Route as AuthenticatedObserveRouteImport } from './routes/_authenticated.observe'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedMemoryRouteImport } from './routes/_authenticated.memory'
@@ -53,7 +52,6 @@ import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authent
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedImpactRouteImport } from './routes/_authenticated.impact'
 import { Route as AuthenticatedGuardrailsRouteImport } from './routes/_authenticated.guardrails'
-import { Route as AuthenticatedGovernanceRouteImport } from './routes/_authenticated.governance'
 import { Route as AuthenticatedGovernRouteImport } from './routes/_authenticated.govern'
 import { Route as AuthenticatedFleetRouteImport } from './routes/_authenticated.fleet'
 import { Route as AuthenticatedEvalsRouteImport } from './routes/_authenticated.evals'
@@ -132,7 +130,6 @@ import { Route as ApiPublicHooksCiPollTickRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksCalibrateTickRouteImport } from './routes/api/public/hooks/calibrate-tick'
 import { Route as ApiPublicHooksAssumptionWatchTickRouteImport } from './routes/api/public/hooks/assumption-watch-tick'
 import { Route as ApiPublicHooksApprovalsTickRouteImport } from './routes/api/public/hooks/approvals-tick'
-import { Route as ApiPublicHooksAgentTickRouteImport } from './routes/api/public/hooks/agent-tick'
 import { Route as ApiPublicHooksAdminExpiryTickRouteImport } from './routes/api/public/hooks/admin-expiry-tick'
 import { Route as ApiPublicArdSchemaRouteImport } from './routes/api/public/ard.schema'
 import { Route as ApiPublicA2aTasksRouteImport } from './routes/api/public/a2a.tasks'
@@ -326,12 +323,6 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedObsidianSpecimenRoute =
-  AuthenticatedObsidianSpecimenRouteImport.update({
-    id: '/obsidian-specimen',
-    path: '/obsidian-specimen',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedObserveRoute = AuthenticatedObserveRouteImport.update({
   id: '/observe',
   path: '/observe',
@@ -382,11 +373,6 @@ const AuthenticatedImpactRoute = AuthenticatedImpactRouteImport.update({
 const AuthenticatedGuardrailsRoute = AuthenticatedGuardrailsRouteImport.update({
   id: '/guardrails',
   path: '/guardrails',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGovernanceRoute = AuthenticatedGovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedGovernRoute = AuthenticatedGovernRouteImport.update({
@@ -819,11 +805,6 @@ const ApiPublicHooksApprovalsTickRoute =
     path: '/api/public/hooks/approvals-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksAgentTickRoute = ApiPublicHooksAgentTickRouteImport.update({
-  id: '/api/public/hooks/agent-tick',
-  path: '/api/public/hooks/agent-tick',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicHooksAdminExpiryTickRoute =
   ApiPublicHooksAdminExpiryTickRouteImport.update({
     id: '/api/public/hooks/admin-expiry-tick',
@@ -1005,7 +986,6 @@ export interface FileRoutesByFullPath {
   '/evals': typeof AuthenticatedEvalsRoute
   '/fleet': typeof AuthenticatedFleetRoute
   '/govern': typeof AuthenticatedGovernRoute
-  '/governance': typeof AuthenticatedGovernanceRoute
   '/guardrails': typeof AuthenticatedGuardrailsRoute
   '/impact': typeof AuthenticatedImpactRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -1016,7 +996,6 @@ export interface FileRoutesByFullPath {
   '/memory': typeof AuthenticatedMemoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
-  '/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
@@ -1067,7 +1046,6 @@ export interface FileRoutesByFullPath {
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
-  '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
@@ -1154,7 +1132,6 @@ export interface FileRoutesByTo {
   '/evals': typeof AuthenticatedEvalsRoute
   '/fleet': typeof AuthenticatedFleetRoute
   '/govern': typeof AuthenticatedGovernRoute
-  '/governance': typeof AuthenticatedGovernanceRoute
   '/guardrails': typeof AuthenticatedGuardrailsRoute
   '/impact': typeof AuthenticatedImpactRoute
   '/inbox': typeof AuthenticatedInboxRoute
@@ -1165,7 +1142,6 @@ export interface FileRoutesByTo {
   '/memory': typeof AuthenticatedMemoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/observe': typeof AuthenticatedObserveRoute
-  '/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/outcome': typeof AuthenticatedOutcomeRoute
@@ -1215,7 +1191,6 @@ export interface FileRoutesByTo {
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
-  '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
@@ -1305,7 +1280,6 @@ export interface FileRoutesById {
   '/_authenticated/evals': typeof AuthenticatedEvalsRoute
   '/_authenticated/fleet': typeof AuthenticatedFleetRoute
   '/_authenticated/govern': typeof AuthenticatedGovernRoute
-  '/_authenticated/governance': typeof AuthenticatedGovernanceRoute
   '/_authenticated/guardrails': typeof AuthenticatedGuardrailsRoute
   '/_authenticated/impact': typeof AuthenticatedImpactRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
@@ -1316,7 +1290,6 @@ export interface FileRoutesById {
   '/_authenticated/memory': typeof AuthenticatedMemoryRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/observe': typeof AuthenticatedObserveRoute
-  '/_authenticated/obsidian-specimen': typeof AuthenticatedObsidianSpecimenRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/outcome': typeof AuthenticatedOutcomeRoute
@@ -1367,7 +1340,6 @@ export interface FileRoutesById {
   '/api/public/a2a/tasks': typeof ApiPublicA2aTasksRoute
   '/api/public/ard/schema': typeof ApiPublicArdSchemaRoute
   '/api/public/hooks/admin-expiry-tick': typeof ApiPublicHooksAdminExpiryTickRoute
-  '/api/public/hooks/agent-tick': typeof ApiPublicHooksAgentTickRoute
   '/api/public/hooks/approvals-tick': typeof ApiPublicHooksApprovalsTickRoute
   '/api/public/hooks/assumption-watch-tick': typeof ApiPublicHooksAssumptionWatchTickRoute
   '/api/public/hooks/calibrate-tick': typeof ApiPublicHooksCalibrateTickRoute
@@ -1457,7 +1429,6 @@ export interface FileRouteTypes {
     | '/evals'
     | '/fleet'
     | '/govern'
-    | '/governance'
     | '/guardrails'
     | '/impact'
     | '/inbox'
@@ -1468,7 +1439,6 @@ export interface FileRouteTypes {
     | '/memory'
     | '/notifications'
     | '/observe'
-    | '/obsidian-specimen'
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
@@ -1519,7 +1489,6 @@ export interface FileRouteTypes {
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
-    | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
@@ -1606,7 +1575,6 @@ export interface FileRouteTypes {
     | '/evals'
     | '/fleet'
     | '/govern'
-    | '/governance'
     | '/guardrails'
     | '/impact'
     | '/inbox'
@@ -1617,7 +1585,6 @@ export interface FileRouteTypes {
     | '/memory'
     | '/notifications'
     | '/observe'
-    | '/obsidian-specimen'
     | '/onboarding'
     | '/opportunities'
     | '/outcome'
@@ -1667,7 +1634,6 @@ export interface FileRouteTypes {
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
-    | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
@@ -1756,7 +1722,6 @@ export interface FileRouteTypes {
     | '/_authenticated/evals'
     | '/_authenticated/fleet'
     | '/_authenticated/govern'
-    | '/_authenticated/governance'
     | '/_authenticated/guardrails'
     | '/_authenticated/impact'
     | '/_authenticated/inbox'
@@ -1767,7 +1732,6 @@ export interface FileRouteTypes {
     | '/_authenticated/memory'
     | '/_authenticated/notifications'
     | '/_authenticated/observe'
-    | '/_authenticated/obsidian-specimen'
     | '/_authenticated/onboarding'
     | '/_authenticated/opportunities'
     | '/_authenticated/outcome'
@@ -1818,7 +1782,6 @@ export interface FileRouteTypes {
     | '/api/public/a2a/tasks'
     | '/api/public/ard/schema'
     | '/api/public/hooks/admin-expiry-tick'
-    | '/api/public/hooks/agent-tick'
     | '/api/public/hooks/approvals-tick'
     | '/api/public/hooks/assumption-watch-tick'
     | '/api/public/hooks/calibrate-tick'
@@ -1902,7 +1865,6 @@ export interface RootRouteChildren {
   ApiPublicA2aTasksRoute: typeof ApiPublicA2aTasksRoute
   ApiPublicArdSchemaRoute: typeof ApiPublicArdSchemaRoute
   ApiPublicHooksAdminExpiryTickRoute: typeof ApiPublicHooksAdminExpiryTickRoute
-  ApiPublicHooksAgentTickRoute: typeof ApiPublicHooksAgentTickRoute
   ApiPublicHooksApprovalsTickRoute: typeof ApiPublicHooksApprovalsTickRoute
   ApiPublicHooksAssumptionWatchTickRoute: typeof ApiPublicHooksAssumptionWatchTickRoute
   ApiPublicHooksCalibrateTickRoute: typeof ApiPublicHooksCalibrateTickRoute
@@ -2190,13 +2152,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/obsidian-specimen': {
-      id: '/_authenticated/obsidian-specimen'
-      path: '/obsidian-specimen'
-      fullPath: '/obsidian-specimen'
-      preLoaderRoute: typeof AuthenticatedObsidianSpecimenRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/observe': {
       id: '/_authenticated/observe'
       path: '/observe'
@@ -2265,13 +2220,6 @@ declare module '@tanstack/react-router' {
       path: '/guardrails'
       fullPath: '/guardrails'
       preLoaderRoute: typeof AuthenticatedGuardrailsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/governance': {
-      id: '/_authenticated/governance'
-      path: '/governance'
-      fullPath: '/governance'
-      preLoaderRoute: typeof AuthenticatedGovernanceRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/govern': {
@@ -2820,13 +2768,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksApprovalsTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/agent-tick': {
-      id: '/api/public/hooks/agent-tick'
-      path: '/api/public/hooks/agent-tick'
-      fullPath: '/api/public/hooks/agent-tick'
-      preLoaderRoute: typeof ApiPublicHooksAgentTickRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/admin-expiry-tick': {
       id: '/api/public/hooks/admin-expiry-tick'
       path: '/api/public/hooks/admin-expiry-tick'
@@ -3089,7 +3030,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEvalsRoute: typeof AuthenticatedEvalsRoute
   AuthenticatedFleetRoute: typeof AuthenticatedFleetRoute
   AuthenticatedGovernRoute: typeof AuthenticatedGovernRoute
-  AuthenticatedGovernanceRoute: typeof AuthenticatedGovernanceRoute
   AuthenticatedGuardrailsRoute: typeof AuthenticatedGuardrailsRoute
   AuthenticatedImpactRoute: typeof AuthenticatedImpactRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
@@ -3100,7 +3040,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMemoryRoute: typeof AuthenticatedMemoryRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedObserveRoute: typeof AuthenticatedObserveRoute
-  AuthenticatedObsidianSpecimenRoute: typeof AuthenticatedObsidianSpecimenRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedOutcomeRoute: typeof AuthenticatedOutcomeRoute
@@ -3148,7 +3087,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedEvalsRoute: AuthenticatedEvalsRoute,
   AuthenticatedFleetRoute: AuthenticatedFleetRoute,
   AuthenticatedGovernRoute: AuthenticatedGovernRoute,
-  AuthenticatedGovernanceRoute: AuthenticatedGovernanceRoute,
   AuthenticatedGuardrailsRoute: AuthenticatedGuardrailsRoute,
   AuthenticatedImpactRoute: AuthenticatedImpactRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
@@ -3159,7 +3097,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMemoryRoute: AuthenticatedMemoryRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedObserveRoute: AuthenticatedObserveRoute,
-  AuthenticatedObsidianSpecimenRoute: AuthenticatedObsidianSpecimenRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedOutcomeRoute: AuthenticatedOutcomeRoute,
@@ -3219,7 +3156,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicA2aTasksRoute: ApiPublicA2aTasksRoute,
   ApiPublicArdSchemaRoute: ApiPublicArdSchemaRoute,
   ApiPublicHooksAdminExpiryTickRoute: ApiPublicHooksAdminExpiryTickRoute,
-  ApiPublicHooksAgentTickRoute: ApiPublicHooksAgentTickRoute,
   ApiPublicHooksApprovalsTickRoute: ApiPublicHooksApprovalsTickRoute,
   ApiPublicHooksAssumptionWatchTickRoute:
     ApiPublicHooksAssumptionWatchTickRoute,

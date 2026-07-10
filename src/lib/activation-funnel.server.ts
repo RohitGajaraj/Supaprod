@@ -4,7 +4,12 @@
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type { FunnelStage, FunnelMilestone, FunnelCohort, FunnelSnapshot } from "./activation-funnel.types";
+import type {
+  FunnelStage,
+  FunnelMilestone,
+  FunnelCohort,
+  FunnelSnapshot,
+} from "./activation-funnel.types";
 
 /**
  * Record a funnel milestone (signup, connected, first_teardown, etc.).
@@ -79,7 +84,15 @@ export async function getFunnelSnapshot(
     }
 
     if (!milestones || milestones.length === 0) {
-      return { asOfDate, cohorts: [], totalSignups: 0, conversionToConnected: 0, conversionToFirstTeardown: 0, conversionToFirstMission: 0, conversionToWeek2Return: 0 };
+      return {
+        asOfDate,
+        cohorts: [],
+        totalSignups: 0,
+        conversionToConnected: 0,
+        conversionToFirstTeardown: 0,
+        conversionToFirstMission: 0,
+        conversionToWeek2Return: 0,
+      };
     }
 
     // Build cohorts by signup date.
@@ -130,10 +143,14 @@ export async function getFunnelSnapshot(
       asOfDate,
       cohorts,
       totalSignups,
-      conversionToConnected: totalSignups > 0 ? Math.round((totalConnected / totalSignups) * 100) : 0,
-      conversionToFirstTeardown: totalConnected > 0 ? Math.round((totalFirstTeardown / totalConnected) * 100) : 0,
-      conversionToFirstMission: totalFirstTeardown > 0 ? Math.round((totalFirstMission / totalFirstTeardown) * 100) : 0,
-      conversionToWeek2Return: totalFirstMission > 0 ? Math.round((totalWeek2Return / totalFirstMission) * 100) : 0,
+      conversionToConnected:
+        totalSignups > 0 ? Math.round((totalConnected / totalSignups) * 100) : 0,
+      conversionToFirstTeardown:
+        totalConnected > 0 ? Math.round((totalFirstTeardown / totalConnected) * 100) : 0,
+      conversionToFirstMission:
+        totalFirstTeardown > 0 ? Math.round((totalFirstMission / totalFirstTeardown) * 100) : 0,
+      conversionToWeek2Return:
+        totalFirstMission > 0 ? Math.round((totalWeek2Return / totalFirstMission) * 100) : 0,
     };
   } catch (e) {
     console.error("[PC-06] getFunnelSnapshot failed:", e);

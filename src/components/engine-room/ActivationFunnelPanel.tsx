@@ -30,16 +30,18 @@ export function ActivationFunnelPanel() {
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const { data: snapshot, isLoading, error } = useQuery({
+  const {
+    data: snapshot,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["activation-funnel", activeProductId, today],
     queryFn: () => fGetFunnel(activeProductId, today, 30),
   });
 
   if (isLoading) {
     return (
-      <div style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>
-        Loading funnel...
-      </div>
+      <div style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>Loading funnel...</div>
     );
   }
 
@@ -60,9 +62,7 @@ export function ActivationFunnelPanel() {
     },
     {
       label: "Connected",
-      count: Math.round(
-        (snapshot.totalSignups * snapshot.conversionToConnected) / 100,
-      ),
+      count: Math.round((snapshot.totalSignups * snapshot.conversionToConnected) / 100),
       percentage: snapshot.conversionToConnected,
       bar: "🟦",
     },
