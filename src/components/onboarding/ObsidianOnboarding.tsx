@@ -23,6 +23,7 @@ import {
 import { listMySuiteConnections, startSuiteConnect } from "@/lib/calendar-connections.functions";
 import { connectAppUser } from "@/integrations/lovable/appUserConnectorClient";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
+import { upsertBriefItem } from "@/lib/briefs.functions";
 import {
   seedWorkspaceForTrack,
   completeOnboarding,
@@ -129,8 +130,13 @@ function Frame({
   );
 }
 
-function ProductNamePreGate({ onDone }: { onDone: (name: string) => void }) {
+function ProductNamePreGate({
+  onDone,
+}: {
+  onDone: (name: string, oneLiner: string) => void;
+}) {
   const [productName, setProductName] = useState("");
+  const [oneLiner, setOneLiner] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function save(e: React.FormEvent) {
@@ -141,7 +147,14 @@ function ProductNamePreGate({ onDone }: { onDone: (name: string) => void }) {
       return;
     }
     setSaving(true);
-    onDone(name);
+    // PC-33: the one-liner is captured here but written to the Brief only
+    // once a workspace is guaranteed to exist (ensureDefaultWorkspace's own
+    // doc comment: a brand-new user reaches this exact screen before their
+    // workspace_members row is reliable, so current_user_default_workspace()
+    // can return null here). The write fires from the parent's
+    // mSeedWorkspace.onSuccess instead, after seeding has resolved a real
+    // workspace, not from this component.
+    onDone(name, oneLiner.trim());
   }
 
   return (
@@ -176,6 +189,26 @@ function ProductNamePreGate({ onDone }: { onDone: (name: string) => void }) {
             color: "var(--text-primary)",
             fontSize: 13,
             marginTop: 20,
+            boxSizing: "border-box",
+          }}
+        />
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 20, lineHeight: 1.55 }}>
+          In one sentence, what does it do?
+        </p>
+        <input
+          placeholder="e.g. Turns customer conversations into a prioritized roadmap"
+          value={oneLiner}
+          onChange={(e) => setOneLiner(e.target.value)}
+          style={{
+            width: "100%",
+            minWidth: 0,
+            background: "var(--raised)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-control)",
+            padding: "11px 14px",
+            color: "var(--text-primary)",
+            fontSize: 13,
+            marginTop: 8,
             boxSizing: "border-box",
           }}
         />
@@ -325,7 +358,10 @@ export function ObsidianOnboarding() {
     const saved = window.sessionStorage.getItem("cadence.onboarding.startTime");
     if (!saved) {
       startTimeRef.current = Date.now();
-      window.sessionStorage.setItem("cadence.onboarding.startTime", startTimeRef.current.toString());
+      window.sessionStorage.setItem(
+        "cadence.onboarding.startTime",
+        startTimeRef.current.toString(),
+      );
     } else {
       startTimeRef.current = parseInt(saved, 10);
     }
@@ -344,6 +380,8 @@ export function ObsidianOnboarding() {
   }, []);
 
   const [productName, setProductName] = useState<string>("");
+  const [pendingOneLiner, setPendingOneLiner] = useState<string>("");
+  const fUpsertBrief = useServerFn(upsertBriefItem);
   const [belief, setBelief] = useState<string>(FALLBACK_BELIEF);
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
     null,
@@ -491,7 +529,8 @@ export function ObsidianOnboarding() {
 
   // PC-02: Helper to track funnel milestone (async, non-blocking)
   async function trackMilestone(
-    stage: "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
+    stage:
+      "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
     metadata?: Record<string, unknown>,
   ) {
     if (!activeWorkspace?.id) return;
@@ -568,6 +607,17 @@ export function ObsidianOnboarding() {
       qc.invalidateQueries({ queryKey: ["workspaces"] });
       // Track product_named milestone
       void trackMilestone("product_named", { productName });
+      // PC-33: capture the one-liner as the initial positioning brief now
+      // that seeding has resolved a real workspace. Best-effort only, same
+      // non-fatal pattern as trackMilestone above - a Brief write must
+      // never block or fail the onboarding flow.
+      if (pendingOneLiner) {
+        void fUpsertBrief({
+          data: { kind: "positioning", title: productName, body: pendingOneLiner },
+        }).catch((err) => {
+          console.error("[PC-33] Brief pre-seed failed (non-fatal):", err);
+        });
+      }
       // Move directly to data source selection, skipping explicit track choice
       setPhase("data");
     },
@@ -632,8 +682,8 @@ export function ObsidianOnboarding() {
             Judgment, with receipts.
           </p>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 12, maxWidth: 380 }}>
-            In the next 10 minutes: name your product, give Cadence one data point, and see what
-            it thinks. Receipts included.
+            In the next 10 minutes: name your product, give Cadence one data point, and see what it
+            thinks. Receipts included.
           </p>
           <div style={{ marginTop: 24 }}>
             <Button
@@ -653,8 +703,9 @@ export function ObsidianOnboarding() {
   if (phase === "product") {
     return (
       <ProductNamePreGate
-        onDone={(name) => {
+        onDone={(name, oneLiner) => {
           setProductName(name);
+          setPendingOneLiner(oneLiner);
           // Auto-seed workspace with default track ("solo") for new accounts
           setPendingTrack("solo");
           mSeedWorkspace.mutate("solo");
@@ -843,7 +894,9 @@ export function ObsidianOnboarding() {
               boxSizing: "border-box",
             }}
           />
-          <p style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 12, marginBottom: 0 }}>
+          <p
+            style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 12, marginBottom: 0 }}
+          >
             Cadence will show its work with receipts.
           </p>
           <div style={{ marginTop: 16 }}>
@@ -921,7 +974,10 @@ export function ObsidianOnboarding() {
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
-                    <div key={i} style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}>
+                    <div
+                      key={i}
+                      style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}
+                    >
                       • {risk}
                     </div>
                   ))}
@@ -1006,9 +1062,7 @@ export function ObsidianOnboarding() {
             </div>
           ) : (
             <div>
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                Critic review is loading…
-              </p>
+              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Critic review is loading…</p>
               <Button
                 variant="tertiary"
                 onClick={() => {

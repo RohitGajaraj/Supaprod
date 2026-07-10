@@ -23,6 +23,7 @@ import { getWorkspacePauseState } from "@/lib/governance.functions";
 import { getNeedsYou } from "@/lib/today.functions";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { renameWorkspace, deleteWorkspace, leaveWorkspace } from "@/lib/workspaces.functions";
+import { getWorkspacePortfolio } from "@/lib/product-context.functions";
 import { triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
 import { amIAdmin } from "@/lib/pricing.functions";
 import {
@@ -220,6 +221,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     refetchInterval: pollWhenVisible(60_000),
     enabled: !!activeWorkspaceId,
   });
+
+  // PC-33: the switcher becomes a portfolio -- one-liner + calls-waiting per
+  // workspace, keyed for O(1) lookup while rendering the dropdown rows below.
+  const portfolioFn = useServerFn(getWorkspacePortfolio);
+  const { data: workspacePortfolio } = useQuery({
+    queryKey: ["workspace-portfolio"],
+    queryFn: () => portfolioFn({}),
+    staleTime: 60_000,
+  });
+  const portfolioByWorkspaceId = new Map(
+    (workspacePortfolio ?? []).map((row) => [row.workspaceId, row]),
+  );
 
   const confirm = useConfirm();
   const prompt = usePrompt();
@@ -586,36 +599,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52" align="start">
+              <DropdownMenuContent className="w-72" align="start">
                 <DropdownMenuLabel className="mono-label">Switch workspace</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {workspaces.map((w) => (
-                  <DropdownMenuItem
-                    key={w.id}
-                    onClick={() => setActiveWorkspaceId(w.id)}
-                    className="flex items-center justify-between cursor-pointer"
-                  >
-                    <span className="flex min-w-0 items-center gap-[7px]">
-                      <span className="truncate font-medium">{w.name}</span>
-                      {w.is_sample ? (
+                {workspaces.map((w) => {
+                  const portfolioRow = portfolioByWorkspaceId.get(w.id);
+                  const oneLiner = portfolioRow?.oneLiner;
+                  return (
+                    <DropdownMenuItem
+                      key={w.id}
+                      onClick={() => setActiveWorkspaceId(w.id)}
+                      className="flex flex-col items-stretch gap-0.5 cursor-pointer"
+                    >
+                      <span className="flex items-center justify-between gap-[7px]">
+                        <span className="flex min-w-0 items-center gap-[7px]">
+                          <span className="truncate font-medium">{w.name}</span>
+                          {w.is_sample ? (
+                            <span
+                              style={{
+                                fontFamily: "var(--font-mono)",
+                                fontSize: "9.5px",
+                                letterSpacing: "0.05em",
+                                textTransform: "uppercase",
+                                color: "var(--blossom)",
+                              }}
+                            >
+                              Sample
+                            </span>
+                          ) : null}
+                        </span>
+                        {w.id === activeWorkspaceId && (
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
+                        )}
+                      </span>
+                      {oneLiner ? (
                         <span
-                          style={{
-                            fontFamily: "var(--font-mono)",
-                            fontSize: "9.5px",
-                            letterSpacing: "0.05em",
-                            textTransform: "uppercase",
-                            color: "var(--blossom)",
-                          }}
+                          className="truncate"
+                          style={{ fontSize: 11, color: "var(--text-subtle)" }}
                         >
-                          Sample
+                          {oneLiner}
+                          {portfolioRow.callsWaiting > 0
+                            ? ` · ${portfolioRow.callsWaiting} call${portfolioRow.callsWaiting === 1 ? "" : "s"} waiting`
+                            : ""}
                         </span>
                       ) : null}
-                    </span>
-                    {w.id === activeWorkspaceId && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
+                    </DropdownMenuItem>
+                  );
+                })}
                 {workspaces.length === 0 && (
                   <div className="px-2 py-1.5 text-xs text-ink-faint italic">No workspaces yet</div>
                 )}

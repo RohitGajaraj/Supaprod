@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
 import { RoadmapColumns } from "./RoadmapColumns";
 import { SpecComposer } from "./SpecComposer";
 import { SpecList } from "./SpecList";
@@ -92,6 +93,7 @@ export function PlanSurface({ view }: { view?: PlanView }) {
     >
       {/* Loom §2b glow field: the one ambient wash behind the hero. */}
       <div aria-hidden="true" className="loom-glow-field" />
+      <ProductMasthead />
       <div style={{ marginBottom: 28 }}>
         <h1
           style={{

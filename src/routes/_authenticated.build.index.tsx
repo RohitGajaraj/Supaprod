@@ -43,6 +43,7 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
+import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
 import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
@@ -537,6 +538,7 @@ function BuildPage() {
       >
         {/* Loom §2b glow field: the one ambient wash behind the hero. */}
         <div aria-hidden="true" className="loom-glow-field" />
+        <ProductMasthead />
         <div style={{ marginBottom: 22 }}>
           <h1
             style={{

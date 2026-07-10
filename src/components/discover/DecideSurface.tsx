@@ -1,4 +1,5 @@
 import { Info } from "lucide-react";
+import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
 import { OpportunityQueue } from "./OpportunityQueue";
 
 /**
@@ -24,6 +25,7 @@ export function DecideSurface() {
       {/* Loom §2b glow field: the one ambient wash behind the hero. */}
       <div aria-hidden="true" className="loom-glow-field" />
       <div style={{ maxWidth: "880px", marginInline: "auto" }}>
+        <ProductMasthead />
         <div className="flex items-start" style={{ gap: "10px" }}>
           <h1
             style={{

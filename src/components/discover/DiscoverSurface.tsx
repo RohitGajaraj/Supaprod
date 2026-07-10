@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
+import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listSignals } from "@/lib/discovery.functions";
 import {
@@ -121,6 +122,7 @@ export function DiscoverSurface() {
       {/* Loom §2b glow field: the one ambient wash behind the hero (default
           glacier, the machine surface light). */}
       <div aria-hidden="true" className="loom-glow-field" />
+      <ProductMasthead />
       <h1
         style={{
           fontFamily: "var(--font-serif)",

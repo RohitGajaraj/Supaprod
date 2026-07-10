@@ -58,6 +58,9 @@ const DecisionsPanel = lazy(() =>
 const DecisionDetail = lazy(() =>
   import("@/components/knowledge/DecisionDetail").then((m) => ({ default: m.DecisionDetail })),
 );
+const BriefPanel = lazy(() =>
+  import("@/components/knowledge/BriefPanel").then((m) => ({ default: m.BriefPanel })),
+);
 const DesignMemoryPanel = lazy(() =>
   import("@/components/knowledge/DesignMemoryPanel").then((m) => ({
     default: m.DesignMemoryPanel,
@@ -84,13 +87,22 @@ const ShipHistoryPanel = lazy(() =>
 );
 
 type Tab =
-  "insights" | "calendar" | "memory" | "learnings" | "decisions" | "design" | "graph" | "docs";
+  | "insights"
+  | "calendar"
+  | "memory"
+  | "learnings"
+  | "decisions"
+  | "brief"
+  | "design"
+  | "graph"
+  | "docs";
 const TABS: Tab[] = [
   "insights",
   "calendar",
   "memory",
   "learnings",
   "decisions",
+  "brief",
   "design",
   "graph",
   "docs",
@@ -111,6 +123,8 @@ const TAB_DESC: Record<Tab, string> = {
   learnings:
     "What your team recorded: re-scored opportunities and outcome memos, each with a verdict.",
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
+  brief:
+    "The workspace's standing strategic calls: vision, target user, positioning, and top bets. Every edit is versioned, never lost.",
   design:
     "Your workspace's design language, learned not configured: tokens, type, spacing, principles, voice, patterns. Every mockup binds to what you approve here.",
   graph:
@@ -476,6 +490,7 @@ function BrainPage() {
             { id: "memory", label: "Memory" },
             { id: "learnings", label: "Learnings" },
             { id: "decisions", label: "Decisions" },
+            { id: "brief", label: "Brief" },
             { id: "design", label: "Design" },
             { id: "graph", label: "Graph" },
             { id: "docs", label: "Docs & changelog" },
@@ -513,6 +528,7 @@ function BrainPage() {
             ))}
           {tab === "decisions" &&
             (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
+          {tab === "brief" && <BriefPanel />}
           {tab === "design" && <DesignMemoryPanel />}
           {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
           {tab === "docs" && (
