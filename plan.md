@@ -9,6 +9,8 @@
 
 > The canonical record of **what Cadence is built to be** (the full feature scope), **the order we build it**, and **what already exists to reuse**. Product framing: [`README.md`](./README.md). Operating rules: [`AGENTS.md`](./AGENTS.md). Architecture: [`architecture/`](./architecture/). UI contract: [`DESIGN.md`](./DESIGN.md).
 >
+> **🚀 THE CURRENT MILESTONE (2026-07-10): the v13 Proof Campaign — ship publicly in under 25 days.** The engine is finished (292/327 register rows done, outside-audited); the campaign converts it into users, proof, and love: a 3–4 day build sprint → beta wave → Show HN + Product Hunt → the YC application after launch. Canon: [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md); execution + lanes: [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (board group G17). This supersedes older sequencing in this file where they differ.
+>
 > **No MVP1/MVP2/MVP3 gating, no far-future phase deferral.** We build the full intended scope on the current stack ([`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md)) and ship continuously. This doc is written to be read straight into a coding session (Claude Code / Lovable) and acted on.
 
 ---

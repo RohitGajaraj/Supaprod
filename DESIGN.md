@@ -7,7 +7,15 @@ product: "Project Cadence — agentic product-operations platform"
 description: >
   SUPERSEDED for the product app on 2026-07-02 by DESIGN-OBSIDIAN.md (v3
   "Obsidian"). Remains the source of truth for the PUBLIC LANDING PAGE only,
-  plus the historical record. Was: THE source of truth for all Cadence design
+  plus the historical record. LANDING CONTENT RULING (2026-07-10, v13 Proof
+  Campaign, work package PC-03): the landing hero carries the v13 one-liner
+  ("Cadence is Claude Code for the product lifecycle - agents do the product
+  work end to end, you make the calls, and the ledger proves what worked"),
+  one CTA (the Critic teardown), live proof over claims, and a plain
+  data-trust answer above the fold's fold - content spec in
+  docs/strategy/v13-proof-campaign.md sec 8 + the PC-03 row in
+  docs/planning/v13-proof-campaign-plan.md; this file still owns the VISUAL
+  language it renders in. Was: THE source of truth for all Cadence design
   work, in any tool (Claude Code,
   Lovable, Cursor, design agents). Supersedes uploads/DESIGN-claude.md, which
   was an ANALYSIS of Claude.com used only as a craft reference — Cadence is

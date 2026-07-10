@@ -27,7 +27,7 @@ PROJECT: Cadence — B2B Enterprise Product Cockpit
 > **PRODUCT NAME: CADENCE.** The product is **Cadence**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `cadence`/`Cadence`.
 
 POSITIONING (one paragraph):
-Cadence is the B2B Enterprise Product Cockpit — an agent-native system of record and action where a swarm of specialist agents runs the entire product lifecycle (discover, define, plan, build, test, ship, GTM launch, support, cohort analytics, learning loop) continuously and in parallel, while a human governs the calls that matter. AGENTS EXECUTE. HUMANS GOVERN. It is not a PM tool with AI bolted on, and it is not a copilot. Agents are the operators. The human sets strategy and approves at governance gates. The platform runs continuously — it is never "done." Full thesis: README.md. Strategic positioning: docs/strategy/
+Cadence is the decision and outcome operating system for product teams — an AI operating system that owns the loop and an action system where the work is done. A swarm of governed agents runs the entire product lifecycle (sense, decide, define, build, ship, learn) continuously; the human sets intent and owns the calls that matter. AGENTS EXECUTE. HUMANS GOVERN. It is not a PM tool with AI bolted on, and it is not a copilot. The moat is the decision-and-outcome layer (own the loop, sense continuously, keep the receipts). The instant anchor: "Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked." Full thesis: README.md. CURRENT CAMPAIGN (2026-07-10): docs/strategy/v13-proof-campaign.md — ship publicly in under 25 days (build sprint → beta → Show HN → Product Hunt; YC after launch); execution: docs/planning/v13-proof-campaign-plan.md (board group G17).
 
 TARGET PERSONAS:
 - P1 — Enterprise VP of Product / Product Director (The Portfolio Governor)
@@ -65,7 +65,7 @@ FIRST SESSION OR WHEN CONTEXT IS STALE:
 
 3. docs/strategy/ (2 min — find latest version)
    — Open docs/strategy/README.md to find the current version
-   — docs/strategy/README.md is the arbiter of which doc to pick. CURRENT canon is layered: v10 governs build-next (what to build, how it looks/behaves, priority), v7 positioning, v8 structure/IA, v9 the decision wedge; wedge UX detail in v5; expansion/engine map in v4; personas in v3; superseded iterations in docs/strategy/archive/ and docs/planning/archive/
+   — docs/strategy/README.md is the arbiter of which doc to pick. CURRENT canon is layered: v13 (v13-proof-campaign.md, 2026-07-10) wins WHAT TO DO NOW (the 25-day ship, launch/beta/YC sequencing; execution in docs/planning/v13-proof-campaign-plan.md, board group G17); v11 wins direction (the decision-and-outcome-layer moat); v12 the learning depth; v10 build-next detail, v7 positioning detail, v8 structure/IA, v9 the decision wedge; wedge UX detail in v5; expansion/engine map in v4; personas in v3; superseded iterations in docs/strategy/archive/ and docs/planning/archive/
    — Go here when: you need the strategic USP, feature rationale, or personas
 
 4. plan.md section 1-3 (5 min read)
