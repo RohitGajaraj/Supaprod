@@ -35,7 +35,7 @@
 
 ### Repo root is reserved — do not add docs here
 
-Root holds **only**: AI-entry docs (`README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `ENTRY.md`, `Ai_Cofounder.md`), build/config (`package.json`, `vite.config.ts`, `wrangler.jsonc`, `tsconfig.json`, `eslint.config.js`, `components.json`, `bun.lock`, `bunfig.toml`, `.gitignore`, `.prettier*`, `.mcp.json`, `.lovable-config.txt`, `requirements.txt`, `.env*`), and the live cursors `plan.md` + `DESIGN-OBSIDIAN.md` (the app design contract, adopted 2026-07-02 per its handoff's repo-linking instructions) + `DESIGN.md` (landing page + design history). **Nothing else.** (The old root `active-task.md` was folded into [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) § 0 "The live cursor (NOW)" on 2026-06-19; do not recreate it at root.)
+Root holds **only**: AI-entry docs (`README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `ENTRY.md`, `Ai_Cofounder.md`), build/config (`package.json`, `vite.config.ts`, `wrangler.jsonc`, `tsconfig.json`, `eslint.config.js`, `components.json`, `bun.lock`, `bunfig.toml`, `.gitignore`, `.prettier*`, `.mcp.json`, `.lovable-config.txt`, `requirements.txt`, `.env*`), and the live cursors `plan.md` + `DESIGN-TEMPO.md` (THE v5 design contract for all surfaces, adopted 2026-07-10) + the retired design-history contracts (`DESIGN-LOOM.md`, `DESIGN-OBSIDIAN.md`, `DESIGN.md` — history only, never build from them). **Nothing else.** (The old root `active-task.md` was folded into [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) § 0 "The live cursor (NOW)" on 2026-06-19; do not recreate it at root.)
 
 ### Hard rules (the loop stays closed)
 

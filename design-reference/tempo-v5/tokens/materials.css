@@ -1,0 +1,89 @@
+/* Cadence Tempo v5 — materials (radii + fills + strokes + shadows), motion, z-index, sizes.
+   Source: vercel.com/geist/materials + extracted --ds-* values (both themes).
+   Materials encode ELEVATION ROLE — never hand-roll radius/stroke/shadow on a surface.
+   Surface (on the page): base/small/medium/large. Floating (above it): tooltip/menu/modal/fullscreen.
+   Pick the lowest elevation that still reads as elevated; never stack two materials. */
+
+:root {
+  /* Shadows — dark theme. Border is part of the material (ring + backdrop separation). */
+  --ds-shadow-background-border: 0 0 0 1px var(--ds-background-200);
+  --ds-shadow-border-base: 0 0 0 1px #ffffff25;
+  --ds-shadow-border-inset: inset 0 0 0 1px #ffffff1a;
+  --ds-shadow-border: var(--ds-shadow-border-base), var(--ds-shadow-background-border);
+  --ds-shadow-2xs: 0px 1px 1px #00000029;
+  --ds-shadow-xs: 0px 1px 2px #00000029;
+  --ds-shadow-small: 0px 1px 2px #00000029;
+  --ds-shadow-medium: 0px 2px 2px #00000052, 0px 8px 8px -8px #00000029;
+  --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
+  --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
+  --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
+  --ds-shadow-border-small: var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
+  --ds-shadow-border-medium: var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
+  --ds-shadow-border-large: var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
+  --ds-shadow-tooltip: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a, var(--ds-shadow-background-border);
+  --ds-shadow-menu: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-modal: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-fullscreen: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+
+  /* Radii — 6px everyday (base/small/tooltip/popover rows), 12px raised/floating, 16px takeovers */
+  --ds-radius-small: 6px;
+  --ds-radius-medium: 12px;
+  --ds-radius-large: 16px;
+
+  /* Motion — one springy easing family, two floating durations */
+  --ds-motion-timing-swift: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  --ds-motion-overlay-scale: 0.96;
+  --ds-motion-overlay-timing: var(--ds-motion-timing-swift);
+  --ds-motion-overlay-duration: 0.3s;
+  --ds-motion-popover-timing: var(--ds-motion-timing-swift);
+  --ds-motion-popover-duration: 0.2s;
+
+  /* Control sizes — the three heights every input/button/select snaps to */
+  --ds-size-small: 32px;
+  --ds-size-medium: 36px;
+  --ds-size-large: 40px;
+  --ds-control-decoration-size: 14px;
+
+  /* Popover anatomy */
+  --ds-popover-padding: 6px;
+  --ds-popover-row-height: 36px;
+  --ds-popover-row-radius: 6px;
+  --ds-popover-row-padding: 0 8px;
+
+  /* Layering */
+  --ds-z-drawer: 200;
+  --ds-z-modal: 300;
+  --ds-z-menu: 2001;
+  --ds-z-toast: 5000;
+  --ds-z-tooltip: 99999;
+
+  --ds-page-width: 1400px;
+  --ds-page-width-with-margin: calc(var(--ds-page-width) + calc(2 * 24px));
+}
+
+[data-theme='light'],
+.light-theme {
+  --ds-shadow-border-base: 0 0 0 1px #00000014;
+  --ds-shadow-border-inset: inset 0 0 0 1px #00000014;
+  --ds-shadow-2xs: 0px 1px 1px #0000000a;
+  --ds-shadow-xs: 0px 1px 2px #0000000a;
+  --ds-shadow-small: 0px 2px 2px #0000000a;
+  --ds-shadow-medium: 0px 2px 2px #0000000a, 0px 8px 8px -8px #0000000a;
+  --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
+  --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
+  --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
+  --ds-shadow-tooltip: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a, var(--ds-shadow-background-border);
+  --ds-shadow-menu: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-modal: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-fullscreen: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+}
+
+/* Material presets — the only sanctioned way to put chrome on a surface */
+.material-base { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border); }
+.material-small { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-small); }
+.material-medium { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-medium); }
+.material-large { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-large); }
+.material-tooltip { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-tooltip); }
+.material-menu { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-menu); }
+.material-modal { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-modal); }
+.material-fullscreen { border-radius: var(--ds-radius-large); background: var(--ds-background-100); box-shadow: var(--ds-shadow-fullscreen); }

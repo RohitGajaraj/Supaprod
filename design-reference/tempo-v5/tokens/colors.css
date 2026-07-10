@@ -1,0 +1,264 @@
+/* Cadence Tempo v5 — color tokens.
+   Source: vercel.com/geist/colors computed values (sRGB fallbacks; the site also ships P3
+   variants via @supports (color: color(display-p3 1 1 1)) — treat these hex values as canon).
+   Dark-first: :root IS the dark theme. Light is an override generated from the same names.
+   The ember scale is the ONE Cadence deviation — it replaces blue as the brand/interactive
+   accent role. Blue remains for informational links, per the contract. */
+
+:root,
+.dark-theme {
+  color-scheme: dark;
+
+  /* Backgrounds — 100 for pages/components, 200 sparingly for subtle differentiation */
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000;
+
+  /* Gray — 100-300 component bg (default/hover/active), 400-600 borders,
+     700-800 high-contrast bg, 900 secondary text, 1000 primary text */
+  --ds-gray-100: #1a1a1a;
+  --ds-gray-200: #1f1f1f;
+  --ds-gray-300: #292929;
+  --ds-gray-400: #2e2e2e;
+  --ds-gray-500: #454545;
+  --ds-gray-600: #878787;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #a0a0a0;
+  --ds-gray-1000: #ededed;
+
+  --ds-gray-alpha-100: #ffffff12;
+  --ds-gray-alpha-200: #ffffff17;
+  --ds-gray-alpha-300: #ffffff21;
+  --ds-gray-alpha-400: #ffffff24;
+  --ds-gray-alpha-500: #ffffff3d;
+  --ds-gray-alpha-600: #ffffff82;
+  --ds-gray-alpha-700: #ffffff8a;
+  --ds-gray-alpha-800: #ffffff78;
+  --ds-gray-alpha-900: #ffffff9c;
+  --ds-gray-alpha-1000: #ffffffeb;
+
+  /* Ember — the Cadence brand scale (same 10-step role model as every other scale) */
+  --ds-ember-100: #331206;
+  --ds-ember-200: #421808;
+  --ds-ember-300: #57200b;
+  --ds-ember-400: #66260d;
+  --ds-ember-500: #7f2f10;
+  --ds-ember-600: #ff6b2c;
+  --ds-ember-700: #f05a1a;
+  --ds-ember-800: #d94e12;
+  --ds-ember-900: #ff8f5e;
+  --ds-ember-1000: #ffefe6;
+
+  --ds-blue-100: #06193a;
+  --ds-blue-200: #022248;
+  --ds-blue-300: #002f62;
+  --ds-blue-400: #003771;
+  --ds-blue-500: #004287;
+  --ds-blue-600: #0090ff;
+  --ds-blue-700: #0071f6;
+  --ds-blue-800: #005fd8;
+  --ds-blue-900: #50a8ff;
+  --ds-blue-1000: #ebf6ff;
+
+  --ds-red-100: #330a11;
+  --ds-red-200: #440d13;
+  --ds-red-300: #5d0e17;
+  --ds-red-400: #6f101b;
+  --ds-red-500: #88151f;
+  --ds-red-600: #f32e40;
+  --ds-red-700: #f13242;
+  --ds-red-800: #e2162a;
+  --ds-red-900: #ff5e63;
+  --ds-red-1000: #ffeaed;
+
+  --ds-amber-100: #291800;
+  --ds-amber-200: #331b00;
+  --ds-amber-300: #4f2900;
+  --ds-amber-400: #573200;
+  --ds-amber-500: #6c4100;
+  --ds-amber-600: #e99c00;
+  --ds-amber-700: #ffb200;
+  --ds-amber-800: #f90;
+  --ds-amber-900: #f90;
+  --ds-amber-1000: #fff3d9;
+
+  --ds-green-100: #00250a;
+  --ds-green-200: #003110;
+  --ds-green-300: #003814;
+  --ds-green-400: #004616;
+  --ds-green-500: #00661d;
+  --ds-green-600: #009431;
+  --ds-green-700: #00ab3e;
+  --ds-green-800: #009335;
+  --ds-green-900: #00ca52;
+  --ds-green-1000: #daffe5;
+
+  --ds-teal-100: #00211b;
+  --ds-teal-200: #002922;
+  --ds-teal-300: #003b33;
+  --ds-teal-400: #003f35;
+  --ds-teal-500: #005f53;
+  --ds-teal-600: #009885;
+  --ds-teal-700: #00a794;
+  --ds-teal-800: #008d7d;
+  --ds-teal-900: #00c9b5;
+  --ds-teal-1000: #cefff5;
+
+  --ds-purple-100: #290c33;
+  --ds-purple-200: #341142;
+  --ds-purple-300: #47185e;
+  --ds-purple-400: #541a76;
+  --ds-purple-500: #642290;
+  --ds-purple-600: #9440d5;
+  --ds-purple-700: #9440d5;
+  --ds-purple-800: #7d2bba;
+  --ds-purple-900: #c472fb;
+  --ds-purple-1000: #faedff;
+
+  --ds-pink-100: #310d1e;
+  --ds-pink-200: #420c25;
+  --ds-pink-300: #571032;
+  --ds-pink-400: #5d0c34;
+  --ds-pink-500: #76063f;
+  --ds-pink-600: #b90056;
+  --ds-pink-700: #f12b82;
+  --ds-pink-800: #e6006e;
+  --ds-pink-900: #ff518d;
+  --ds-pink-1000: #ffeaf4;
+
+  --ds-black: #000;
+  --ds-white: #fff;
+  --ds-contrast-fg: #fff;
+
+  /* Focus ring — Geist structure, ember hue (theirs uses blue) */
+  --ds-focus-color: oklch(70.5% 0.19 41);
+  --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+
+  --ds-overlay-backdrop-color: #000;
+  --ds-overlay-backdrop-opacity: 0.8;
+}
+
+[data-theme='light'],
+.light-theme {
+  color-scheme: light;
+
+  --ds-background-100: #fff;
+  --ds-background-200: #fafafa;
+
+  --ds-gray-100: #f2f2f2;
+  --ds-gray-200: #ebebeb;
+  --ds-gray-300: #e6e6e6;
+  --ds-gray-400: #eaeaea;
+  --ds-gray-500: #c9c9c9;
+  --ds-gray-600: #a8a8a8;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #4d4d4d;
+  --ds-gray-1000: #171717;
+
+  --ds-gray-alpha-100: #0000000d;
+  --ds-gray-alpha-200: #00000015;
+  --ds-gray-alpha-300: #0000001a;
+  --ds-gray-alpha-400: #00000014;
+  --ds-gray-alpha-500: #00000036;
+  --ds-gray-alpha-600: #0000003d;
+  --ds-gray-alpha-700: #00000070;
+  --ds-gray-alpha-800: #00000082;
+  --ds-gray-alpha-900: #000000b3;
+  --ds-gray-alpha-1000: #000000e8;
+
+  --ds-ember-100: #fff1e9;
+  --ds-ember-200: #ffece2;
+  --ds-ember-300: #ffe3d3;
+  --ds-ember-400: #ffd3bb;
+  --ds-ember-500: #ffb28a;
+  --ds-ember-600: #ff8c52;
+  --ds-ember-700: #f05a1a;
+  --ds-ember-800: #d1440e;
+  --ds-ember-900: #a63508;
+  --ds-ember-1000: #431704;
+
+  --ds-blue-100: #f0f7ff;
+  --ds-blue-200: #eaf4ff;
+  --ds-blue-300: #e0efff;
+  --ds-blue-400: #cce7ff;
+  --ds-blue-500: #97ccff;
+  --ds-blue-600: #51aeff;
+  --ds-blue-700: #0070f7;
+  --ds-blue-800: #005edc;
+  --ds-blue-900: #0064e2;
+  --ds-blue-1000: #002453;
+
+  --ds-red-100: #ffeef0;
+  --ds-red-200: #ffe9ea;
+  --ds-red-300: #ffe4e5;
+  --ds-red-400: #ffd8d7;
+  --ds-red-500: #ffb5b6;
+  --ds-red-600: #ff6a6e;
+  --ds-red-700: #fc0035;
+  --ds-red-800: #e70022;
+  --ds-red-900: #d60020;
+  --ds-red-1000: #46000c;
+
+  --ds-amber-100: #fff6e1;
+  --ds-amber-200: #fff4d4;
+  --ds-amber-300: #fff1c8;
+  --ds-amber-400: #ffdd84;
+  --ds-amber-500: #ffc85e;
+  --ds-amber-600: #fa0;
+  --ds-amber-700: #ffb200;
+  --ds-amber-800: #f90;
+  --ds-amber-900: #a64f00;
+  --ds-amber-1000: #541c00;
+
+  --ds-green-100: #ecfdec;
+  --ds-green-200: #e5fce7;
+  --ds-green-300: #d3fad1;
+  --ds-green-400: #b9f5bc;
+  --ds-green-500: #82eb8d;
+  --ds-green-600: #4ce15e;
+  --ds-green-700: #28a948;
+  --ds-green-800: #279141;
+  --ds-green-900: #107d32;
+  --ds-green-1000: #00370d;
+
+  --ds-teal-100: #dffffb;
+  --ds-teal-200: #ddfef6;
+  --ds-teal-300: #ccf9f1;
+  --ds-teal-400: #b1f7ec;
+  --ds-teal-500: #52f0db;
+  --ds-teal-600: #00e2c4;
+  --ds-teal-700: #00a694;
+  --ds-teal-800: #008d7d;
+  --ds-teal-900: #007a6e;
+  --ds-teal-1000: #003d34;
+
+  --ds-purple-100: #f9f0ff;
+  --ds-purple-200: #f9f1ff;
+  --ds-purple-300: #f5e8ff;
+  --ds-purple-400: #f1d9ff;
+  --ds-purple-500: #dda9ff;
+  --ds-purple-600: #c77dff;
+  --ds-purple-700: #9f00f4;
+  --ds-purple-800: #8400cd;
+  --ds-purple-900: #7c00c9;
+  --ds-purple-1000: #2e004d;
+
+  --ds-pink-100: #ffeaf5;
+  --ds-pink-200: #ffeaf2;
+  --ds-pink-300: #ffe0eb;
+  --ds-pink-400: #ffd5e1;
+  --ds-pink-500: #fdb3cc;
+  --ds-pink-600: #f97ea7;
+  --ds-pink-700: #f22782;
+  --ds-pink-800: #e4106e;
+  --ds-pink-900: #c41562;
+  --ds-pink-1000: #460523;
+
+  --ds-contrast-fg: #fff;
+
+  --ds-focus-color: oklch(55% 0.19 41);
+  --ds-focus-ring: 0 0 0 2px var(--ds-background-100), 0 0 0 4px var(--ds-focus-color);
+  --ds-focus-ring-outline: 2px solid var(--ds-focus-color);
+}

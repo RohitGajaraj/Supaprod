@@ -5,9 +5,12 @@ updated: 2026-06-19
 name: cadence-ember-editorial
 product: "Project Cadence — agentic product-operations platform"
 description: >
-  SUPERSEDED for the product app on 2026-07-02 by DESIGN-OBSIDIAN.md (v3
-  "Obsidian"). Remains the source of truth for the PUBLIC LANDING PAGE only,
-  plus the historical record. LANDING CONTENT RULING (2026-07-10, v13 Proof
+  RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
+  (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces INCLUDING
+  the public landing page. Kept as history only; never build new surfaces
+  from this file. The v13 landing CONTENT ruling below (one-liner, one CTA,
+  live proof) remains valid as content spec -- only the visual system moved
+  to Geist. LANDING CONTENT RULING (2026-07-10, v13 Proof
   Campaign, work package PC-03): the landing hero carries the v13 one-liner
   ("Cadence is Claude Code for the product lifecycle - agents do the product
   work end to end, you make the calls, and the ledger proves what worked"),

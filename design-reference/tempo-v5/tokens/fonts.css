@@ -1,0 +1,57 @@
+/* Cadence Tempo v5 — self-hosted fonts.
+   Files: /public/fonts/geist/ (from the official `geist` npm package, vercel/geist-font,
+   SIL Open Font License 1.1 — LICENSE.txt ships alongside the woff2 files).
+   Variable fonts cover 100-900; the five Pixel faces are display-only single weights. */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/geist/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/geist/GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Pixel faces — brand moments only (heroes, launch/empty states, AI moments, numerals).
+   Square is the default brand face; the others are sanctioned alternates. */
+@font-face {
+  font-family: 'Geist Pixel Square';
+  src: url('/fonts/geist/GeistPixel-Square.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Circle';
+  src: url('/fonts/geist/GeistPixel-Circle.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Grid';
+  src: url('/fonts/geist/GeistPixel-Grid.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Line';
+  src: url('/fonts/geist/GeistPixel-Line.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Pixel Triangle';
+  src: url('/fonts/geist/GeistPixel-Triangle.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}

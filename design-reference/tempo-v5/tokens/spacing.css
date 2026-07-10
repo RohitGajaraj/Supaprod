@@ -1,0 +1,31 @@
+/* Cadence Tempo v5 — spacing ramp. Source: vercel.com --geist-space-* values.
+   4px base unit; gaps are the layout rhythm (24 section gap, 12 half, 8 quarter). */
+
+:root {
+  --geist-space: 4px;
+  --geist-space-2x: 8px;
+  --geist-space-3x: 12px;
+  --geist-space-4x: 16px;
+  --geist-space-6x: 24px;
+  --geist-space-8x: 32px;
+  --geist-space-10x: 40px;
+  --geist-space-16x: 64px;
+  --geist-space-24x: 96px;
+  --geist-space-32x: 128px;
+  --geist-space-48x: 192px;
+  --geist-space-64x: 256px;
+
+  --geist-gap: 24px;
+  --geist-gap-half: 12px;
+  --geist-gap-quarter: 8px;
+  --geist-gap-double: 40px;
+  --geist-gap-section: 32px;
+
+  --geist-space-negative: -4px;
+  --geist-space-2x-negative: -8px;
+  --geist-space-4x-negative: -16px;
+  --geist-space-8x-negative: -32px;
+  --geist-space-16x-negative: -64px;
+  --geist-space-24x-negative: -96px;
+  --geist-space-32x-negative: -128px;
+}

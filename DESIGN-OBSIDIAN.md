@@ -4,11 +4,11 @@ created: 2026-07-02
 updated: 2026-07-02 (repo amendments, see the Amendments section at the end;
   each clarification is sourced from this package's own tokens and prototype)
 name: cadence-obsidian
-status: the BASE layer of the app design contract. Since 2026-07-04 the
-  current contract is v4 "Loom" (/DESIGN-LOOM.md), ADDITIVE over this file --
-  where Loom speaks it wins, where it is silent this file still applies.
-  (This file supersedes the Ember Editorial parchment system for all
-  authenticated surfaces; the public landing page is out of scope.)
+status: RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
+  (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces. Kept as
+  history only; never build new surfaces from this file.
+  [Pre-retirement status: the BASE layer of the app contract under v4 Loom;
+  superseded the Ember parchment system for authenticated surfaces.]
 specimen: design-reference/obsidian-v3/design-reference/obsidian-specimen.html
   (the founder-approved visual specimen, committed in-repo; when in doubt about
   how something should look, open it. The full frozen handoff package incl.

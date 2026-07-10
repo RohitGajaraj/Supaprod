@@ -7,10 +7,24 @@ behave before implementing it in `src/`.
 
 > [!IMPORTANT]
 >
-> ## CURRENT: the v3 "Obsidian" system (adopted 2026-07-02)
+> ## CURRENT: the v5 "Tempo" system (adopted 2026-07-10)
 >
-> The design contract for ALL authenticated app surfaces is
-> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (repo root, the law). The full
+> The design contract for EVERY Cadence surface (app AND landing) is
+> [`/DESIGN-TEMPO.md`](../DESIGN-TEMPO.md) (repo root, the law): the base derived
+> from Vercel's Geist design system with Cadence's ember brand scale and identity
+> layer on top. The reference package is [`tempo-v5/`](./tempo-v5/): verbatim
+> `tokens/*.css` (both themes), `research/` (re-implementation-grade specs of every
+> Geist component + `_foundations.md` + `_public-sources.md`), and `patterns/`
+> (AI + enterprise workflow extensions). The agent entry point is the
+> **`cadence-tempo` skill** (`.claude/skills/cadence-tempo/`), invoked first on
+> every design task. Everything below this callout — the v3/v4 Obsidian/Loom
+> system and the parchment material — is RETIRED history (2026-07-10); never
+> build new surfaces from it.
+>
+> ## Retired: the v3 "Obsidian" system (2026-07-02 → 2026-07-10)
+>
+> The former contract for authenticated app surfaces was
+> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (retired). The full
 > frozen handoff package is committed at [`obsidian-v3/`](./obsidian-v3/):
 > its `README.md` read order, `tokens/*.css` custom properties (copy verbatim),
 > `components.md` anatomies, `implementation-notes.md` behaviors, the Butterfly

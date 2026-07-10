@@ -4,9 +4,13 @@ version: 4.0 "Loom" (design-system lineage: v1 tokens · v2 Ember Editorial parc
 created: 2026-07-04
 updated: 2026-07-07
 name: cadence-loom
-status: THE design contract for the product app. ADDITIVE over v3 Obsidian
-  (DESIGN-OBSIDIAN.md): where this file speaks, it wins; where it is silent,
-  v3's laws still apply. The public landing page stays on DESIGN.md (parchment).
+status: RETIRED 2026-07-10 (founder ruling) -- superseded by v5 "Tempo"
+  (/DESIGN-TEMPO.md + design-reference/tempo-v5/) for ALL surfaces. Kept as
+  history only; never build new surfaces from this file. Orthogonal laws
+  (humanized output, voice, Engine-Room doctrine, affordance/emphasis) carry
+  forward via DESIGN-TEMPO.md section 10.
+  [Pre-retirement status: THE design contract for the product app, additive
+  over v3 Obsidian; landing stayed on DESIGN.md.]
 origin: founder mission 2026-07-04 (docs/Readiness Audit & Consumer Production
   grade) + overnight rulings; quality baseline interfacecraft.dev +
   devouringdetails.com (the Puckett / Rauno Freiberg / Emil Kowalski school
