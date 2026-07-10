@@ -1,8 +1,50 @@
-                               # Research-sprint lane briefs — G18 (2026-07-10 research merge)
+# The lane briefs — four parallel sessions (G17 sprint + G18 research merge)
 
-> _Created: 2026-07-10 (the research-to-product merge session). Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10 decision 7 (25-day ship · provenance on every change · claims-based collision discipline · documentation minimalism · nothing-is-doctrine)._
+> _v2, 2026-07-10 late: unified four-lane protocol per the founder's directive (2 Fable + 2 Sonnet — the sprint's bottleneck is judgment, not typing). **Copy a fenced block below into a fresh Claude Code session verbatim.** Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10._
 
-**What this is.** Three paste-ready briefs, one per parallel Claude Code session, over dashboard group **G18** ([`feature-dashboard.md`](./feature-dashboard.md) rows **RPT-01..50**, ranks #328–#377): the merged, deduped product moves from the five research lanes (pm-voice research §16 RPT-01..14 · investor corpus §A · Aakash corpus · Lenny corpus · frontier corpus · new-age building research · the founder's upstream/downstream directive · the founder's self-improving-loop directive, RPT-50). 47 rows are **DECISIVE** (⬜ claimable); 3 are **FOUNDER-CALL** (⬜ Gated — RPT-20 outcome-priced SKU, RPT-22 BYOK metering bypass, RPT-34 paid pilots — each with its tension stated on the row; lanes NEVER pick these). Canon edits already applied this merge: pricing-strategy.md (Critic teardown into Free; value-metric evolution note; labor-budget anchor), moat.md (§1 research-corroboration note), v13-proof-campaign.md §8 (five evidence-ratified support lines, the fifth — "Cadence runs on Cadence" — stamped claim-on-wiring until RPT-50 runs).
+**Shared protocol (all four lanes):** `git pull origin main` first · own worktree (`git worktree add ../cadence-lane-<X> -b parallel/lane-<X>` or reuse a cadence-lane-N checkout) · claim before building (flip the dashboard row to `🔨 In Dev (lane<X>)` + `bash scripts/lane.sh claim <ID> lane<X> "<globs>"`, globs disjoint) · AGENTS.md §3 gates (tsc/build/tests) · commit with a WHY · `git push origin parallel/lane-<X>:main` · flip the row ✅ + one-line note · next row. NEVER pick Gated/FOUNDER-CALL rows. The Love Gate governs everything user-facing: enterprise-credible AND consumer-grade, verified on a fresh production account.
+
+## THE FOUR LANES (paste these)
+
+### Lane A — the coherence cluster (FABLE — judgment + taste, end to end)
+
+```
+git pull origin main. Read docs/planning/coherence-cluster-specs.md fully (the v2 cold-build specs), then docs/planning/v13-proof-campaign-plan.md sections 0-3.
+You are LANE A (Fable): the coherence cluster PC-32 -> PC-33 -> PC-28 -> PC-29 -> PC-30 -> PC-31, in exactly that order, maps AND applies together - one surface fully coherent before the next.
+The specs are decision-complete: build what they say; you may deepen with judgment but never silently skip or re-litigate a made decision. Bind to the audit facts cited in the specs (file:line) - verify each before editing.
+CLAIM: one PC row at a time per the shared protocol. Your exclusive files while In-Dev: the 7 surface route files, src/lib/nav-model.ts, src/lib/agent-vocabulary.ts, the today/* lane components. Chokepoints (loop.server.ts, runtime.server.ts) are LANE B's - if a step needs them, note it on the row and continue.
+Love Gate per surface: the 5-second "what do I look at?" test + the stranger test ("who works here, what did they just do, what can I hand them, how do I check it") on a fresh production account.
+Worktree: ../cadence-lane-A -b parallel/lane-A. Push each ship: git push origin parallel/lane-A:main.
+```
+
+### Lane B — the trust + chokepoint spine (FABLE — attended-grade engine work)
+
+```
+git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-4 (the 25-day ship + gates), then the row specs in section 2.
+You are LANE B (Fable): the chokepoint spine, in order: PC-05 (billing go-live pack - if the merchant-of-record account is not yet provided, build everything up to the live-key seam and mark the row [awaiting MoR account]) -> PC-07 (goal-until-verified missions; you own loop.server.ts - attended-grade care, adversarial self-review before commit) -> PC-12 (parallel fan-out to one review queue) -> PC-16 (judgment-memory hero moments) -> PC-27 DRAFT ONLY (assemble the YC application draft from docs/pitch/ + the strategy corpus; the founder submits post-launch, W27 batch).
+You are the ONLY lane allowed to edit src/lib/ai/loop.server.ts and src/lib/ai/runtime.server.ts. Every chokepoint edit gets an adversarial review pass before commit.
+CLAIM per the shared protocol. Worktree: ../cadence-lane-B -b parallel/lane-B. Push: git push origin parallel/lane-B:main.
+```
+
+### Lane C — launch-critical build (SONNET — well-specified product rows)
+
+```
+git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-2 (the 25-day ship; your rows' acceptance criteria live in section 2).
+You are LANE C (Sonnet): launch-critical build rows, in order: PC-03 (public homepage + positioning refresh - copy comes from docs/pitch/one-pager.md, the one-liner + the data-trust answer; parchment DESIGN.md contract) -> PC-04 (try-without-signup demo) -> PC-06 (activation funnel instrumentation) -> PC-08 (Routines productized) -> PC-10 (finish artifact rewind: UI wiring; note the roadmaps leg is deferred - see the row) -> PC-11 (confidence-gated execution) -> PC-15 (in-product feedback pulse) -> PC-22 (eng receipts chain; folds the SW-7 remainder).
+NEVER edit: loop.server.ts, runtime.server.ts (Lane B's), the 7 surface route files / nav-model.ts / agent-vocabulary.ts while Lane A has a cluster row In-Dev (check Active claims) - if your row needs one, mark the row [needs lane A/B] and continue to the next.
+CLAIM per the shared protocol. Worktree: ../cadence-lane-C -b parallel/lane-C. Push: git push origin parallel/lane-C:main.
+```
+
+### Lane D — GTM + the research sweep (SONNET — outward assets + G18 rows)
+
+```
+git pull origin main. Read docs/planning/v13-proof-campaign-plan.md sections 0-2 and 6, docs/pitch/README.md (the routing rule), then docs/planning/research-sprint-lane-briefs.md (this file) for the G18 pickup rules below.
+You are LANE D (Sonnet): GTM + research-derived rows, in order: PC-13 (design-partner program: the 25-target kit seeded from the research section-12 cohort; receipts-first outreach drafts - NOTHING sends without the founder) -> PC-14 (the listing assets: Show HN draft with no-signup demo path + honest-limitations list + the failure-path GIF plan; Product Hunt kit; every claim checked against docs/pitch/one-pager.md PROVEN tags) -> PC-26 (HyperAgent GTM rig per plan section 6) -> then the G18 sweep: rows tagged "lane B"/"lane C" in G18 comments, class DECISIVE, by rank - respecting the same file-collision rules as Lane C.
+Everything outward-facing follows docs/pitch/ (the routing rule): cite artifacts and companies, never gurus; claims carry PROVEN/WIRING/ROADMAP tags; founder approves every send/publish.
+CLAIM per the shared protocol. Worktree: ../cadence-lane-D -b parallel/lane-D. Push: git push origin parallel/lane-D:main.
+```
+
+---
 
 **Consolidation method (founder guardrail, 2026-07-10).** Research findings were treated as inputs, not verdicts: every adopted move passed an explicit fit test against Cadence's own frame — the product (a governed decision layer with outcome memory above agent fleets), the market (agent-era product orgs at launch-wedge scale), the consumer (the senior/founding PM and the one-person product runner), and the problem (product decisioning that is slow, undocumented, headcount-bound, and unaccountable). Each row therefore carries a one-line "Fits:" rationale alongside its evidence pointer; nothing was adopted because N sources said it. Where a popular pattern's fit was mixed it was classified FOUNDER-CALL with the tension stated in one line, and misfit patterns were rejected outright (list below).
 
@@ -20,6 +62,10 @@ Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans *
 - **Usage-multiplier pricing, credit volume discounts, billing surprises** — re-affirmed rejections (pricing-strategy §0/§1; research §16.2 anti-patterns).
 
 ---
+
+## SUPERSEDED (2026-07-10 late): the original three G18-only briefs
+
+> The four-lane prompts above replace these; kept for the G18 pickup-filter detail (row/lane tags) that Lane D still uses.
 
 ## Brief A — judgment lane (paste into a FABLE session)
 

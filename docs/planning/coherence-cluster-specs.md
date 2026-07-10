@@ -1,102 +1,107 @@
-# The coherence cluster — cold-build specs for PC-28..PC-32
+# The coherence cluster — cold-build specs v2 (PC-28..PC-33)
 
-> _Created: 2026-07-10 (the founder's evening directive run). **Purpose: a Sonnet-class lane picks any of these five rows cold and builds it without the authoring session's context.** Each spec states the strategy, exactly what to build, how it should look and behave, the UNDERLYING ASSUMPTIONS made explicit (founder ruling: nothing unwritten), the step order, acceptance, and the founder taste gates. A Fable lane may improve on these — but may not silently skip what's written. Board rows: G17 sprint additions in [`feature-dashboard.md`](./feature-dashboard.md); summary table: [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §2._
+> _v2, 2026-07-10 late. **Rewritten after the founder's pressure-test directive** ("nothing is gated on me; think it through; bind to reality") **and a three-agent code audit** (Today's composition, the agent-roster reality, the design/prototype machinery — file:line pointers throughout). Every decision here is MADE, not deferred. A Sonnet lane builds any section cold; a Fable lane may deepen but not silently skip. Board: G17 sprint rows; summaries: [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §2; lane prompts: [`research-sprint-lane-briefs.md`](./research-sprint-lane-briefs.md)._
 
-**Shared doctrine for all five (binding):** BUILD-ONLY gates (tsc/build/tests green, row flip + one-line note); the Love Gate (fresh production account walkthrough, enterprise-credible AND consumer-grade); claim-never-outruns-wiring; humanized output (zero AI-tells in UI strings); LOOM v4 is the design law (these specs change STRUCTURE and LANGUAGE, never tokens/colors); collision rule — Lane A produces the maps/designs (judgment), Lane B applies (build); within Lane B, apply passes serialize per surface (PC-32 structure first, then PC-28 labels, then PC-29 presence — one surface fully coherent before the next).
+**The cluster's single goal:** the founder's bar — *super light on the surface, an immense engine underneath, and unmistakably agentic-first.* Six rows, one re-experience, built in this order: **PC-32 structure → PC-33 context → PC-28 naming → PC-29 agency → PC-30 capability → PC-31 design station.** (Structure first because everything else needs the decluttered canvas; context before naming because the masthead is a naming surface; agency after both because bylines land in the new layout.)
 
-**Shared sequencing:** Lane A: PC-32 structure map → PC-28 naming map → PC-29 cast design → PC-30 capability IA → PC-31 prototype/kit design (each ~half a day; founder ratifies the first three async — lanes never block on the ratify, they proceed to the next map). Lane B applies in the same order behind Lane A. Lane C keeps the pitch room current with each landing.
+**Shared laws (binding):** BUILD-ONLY gates (tsc/build/tests, row flip + note) · the Love Gate (fresh prod account walkthrough; the 5-second test) · claim-never-outruns-wiring · humanized output · LOOM v4 tokens/visuals UNTOUCHED (this cluster changes structure, language, and presence — never the visual system) · one surface fully coherent before the next.
 
 ---
 
-## PC-32 — "Super light, engine underneath": the experience-structure pass
+## PC-32 — "Super light, engine underneath": the structure pass
 
-**Strategy.** The founder's honest read: good product, not great — overwhelming. The market's #1 death pattern for our category is exactly this (Productboard "too much"; Aha! <20% used). The fix is structural, not visual: every surface must answer ONE question instantly, and depth must be *available*, never *ambient*.
+**The audit's verdict (reality, not assumption):** Today is not a naive list dump — most lanes are bounded. The felt overwhelm is **~12 competing blocks in a two-column grid** (Hero, Spotlight, LoopStrip, TriageQueue+PushedInsights, SwarmActivityLane, ShippedLane, WatchLane, LoopHealthCard, DeskRail(6 sub-cards), StrategicBriefCard — `_authenticated.today.tsx` L1025-1307), eight sections answering eight different questions. Two genuinely unbounded data paths: **SwarmActivityLane's mission-group card count** (120 stage-events/24h, groups uncapped — `today-lanes.functions.ts` L384/L203) and **StrategicBriefCard's bets query** (`briefs.functions.ts` L138, no limit).
 
-**The per-surface question map (the spine of the whole pass):**
-| Surface | The ONE question it answers | The ≤3 things above the fold |
-| --- | --- | --- |
-| Today | "What needs ME right now?" | 1) The judgment lane: at most 3 calls needing the human (consequence-ranked), 2) the narrated brief (one paragraph, agent-bylined), 3) the "while you slept" receipts strip (one line per agent act, capped 5 + door) |
-| Discover | "What's new that matters?" | Top 3 themes/signals by consequence · one insight card · door to the full feed |
-| Decide | "Which bet is next, and why?" | The top ranked bet with its evidence + memory citation · the next 2 · door to the full queue |
-| Plan/Define | "What are we shaping now?" | Active spec(s) in flight, their contract state · door to the library |
-| Build | "What's moving, what's blocked?" | Running missions with agent bylines · anything waiting on a human · door to history |
-| Brain | "What do we know (and what changed)?" | What changed since you last looked · ask box · door to the graph/library |
-| Ledger (Trust) | "What can we prove?" | Latest receipts · calibration line ("called N of last M") · door to the full ledger |
+**Today v2 — the exact anatomy (ONE column, one 1440×900 viewport):**
+1. **Hero** (keep as-is — its dynamic line already answers the surface's one question: "N calls need your judgment today." / "All clear. The loop is running itself." `Hero.tsx` L37-76).
+2. **The product masthead line** (NEW, from PC-33): one quiet line — *"{Product} — {one-liner} · this quarter: {top bet}"* → click opens the Brief in Brain.
+3. **The judgment lane** = TodaySpotlight EVOLVED: the featured call + up to 2 more calls (TriageQueue's top items fold in; **PushedInsights merges INTO this lane** — it's the same job, "calls needing judgment"; today it renders as a parallel list and never shows its `agent_slug` even though the payload carries it, `TodayLanes.tsx` L101-174). Cap: 3 visible + the existing "N more" fold. The collapsible brief stays inside the Spotlight.
+4. **The receipts strip** ("While you slept" — NEW, replaces SwarmActivityLane's card grid): **max 5 rows**, one line each — `[AgentBadge] verb + object + time → receipt link` (e.g. "Maker · merged PR #18 · 2h — receipt"). Fold: "12 more acts → Activity". Fix the unbounded group query with a hard cap + server-side "top N missions by recency".
+5. **The doors row** (one quiet row of 4 text doors): **Desk** (DeskRail's 6 cards move into a slide-over — personal tools ≠ judgment) · **Activity** (full swarm history; lives on Build) · **Shipped** (ShippedLane → Brain, it's the record) · **Watch** (WatchLane; its CONSEQUENTIAL items already surface as judgment calls — the lane itself is reference).
+6. LoopStrip: fold into the Hero row as small pills (keep, shrink). LoopHealthCard: **remove from Today** (Engine Room already owns loop health). StrategicBriefCard: **replaced by the masthead** (full brief lives in Brain per PC-33); fix its unbounded query anyway.
 
-**Build (Lane B, after Lane A's map is ratified):**
-1. A shared `DensityBudget` layout primitive: a surface region that renders at most N items (default 3 primary / 5 list-preview) + an honest "N more" door (slide-over or sub-route). No `overflow: scroll` lists at page level anywhere.
-2. Refit Today first (the named worst offender): judgment lane (consequence-ranked: needs-human > irreversible-soon > highest-stakes > newest; the ranking inputs already exist — approval queue, ICE scores, outcome windows), the brief, the receipts strip. Everything else currently on Today moves behind doors or to its home surface.
-3. Sweep the other six surfaces to the question map. Reuse existing components (SpotlightCard, slide-overs, MonoLabel) — zero new visual language.
+**The relocation rule for every other surface** (apply after Today): each surface keeps its H1's one question (the sublines shipped by LOOM are already good — audit §3), enforces first-viewport = answer + ≤3 primary items + doors, page-level lists get caps + doors (lists inside doors/slide-overs may scroll). **Consequence ranking everywhere** (one shared helper): needs-human-now (open approval/gate) > irreversible-window-closing (outcome window, expiry) > stakes (ICE band/spend) > recency. All inputs exist on the queried rows.
 
-**Assumptions made explicit:** consequence-ranking needs no new scoring engine — compose existing fields (approval pending? reversible? ICE band? age). "One viewport" is measured at 1440×900 desktop (the LOOM canvas). Heavy-account test data comes from the demo seed. Lists inside doors may scroll; pages may not. If a surface has no content for its ≤3 slots, show the honest empty state with the agent's next scheduled run — never filler.
+**Accept:** Today renders ONE column ≤1 viewport with exactly blocks 1–5; the two unbounded queries are capped; the 5-second test passes on fresh + heavy accounts on all 7 surfaces; nothing removed is lost (every relocation has a door). Files: `_authenticated.today.tsx`, `today-lanes.functions.ts`, `today.functions.ts`, `briefs.functions.ts`, the lane components; then per-surface sweeps.
 
-**Accept:** the 5-second "what do I look at?" test passes on fresh AND heavy accounts for all seven surfaces; no page-level unbounded list remains; Love-Gate walkthrough green. **Founder gate:** ratify the question map (async, one read).
+---
+
+## PC-33 — The product context layer ("what is this all about")
+
+**Why:** a PM running 3–5 products must be re-grounded in each product's story at every switch; today the identity (vision/ICP/positioning/top bets — the Brief, `workspace_briefs`/`brief_items`, versioned, ALREADY injected into every agent prompt) is buried as a Settings tab + one Today card. The human should see what their agents see.
+
+**Build:** (1) **The identity object** = a `getProductContext(workspaceId)` read composing: product name, the Brief's positioning one-liner, north-star/top bet, stage — no new tables. (2) **The masthead line** on Today (PC-32 block 2) and as the eyebrow on Discover/Decide/Define/Design/Build (one shared `ProductMasthead` component, one quiet line, never a banner). (3) **The switcher becomes a portfolio**: the workspace/product switcher (AppShell header) renders identity cards — name · one-liner · current focus · "N calls waiting" (the existing badge count per workspace) — so switching = choosing which story to enter. (4) **The Brief's home moves to Brain** (a "Brief" lens beside the Design tab): read + edit-in-place; every edit = the existing versioned/supersedable machinery (JNY-02); Settings keeps a pointer row only. (5) **Onboarding captures it at birth**: PC-02's "What are you building?" gains north-star + one-liner fields writing the initial Brief (extend `ProductNamePreGate`, `ObsidianOnboarding.tsx` L111).
+
+**Accept:** on a two-product account, switching products visibly changes the masthead + portfolio card everywhere; the Brief edits from Brain with a receipt; a fresh onboarding writes it. **Pitch hook:** the portfolio switcher is a demo beat (one PM, five products — the force-multiplier claim rendered); add to `docs/pitch/demo-script.md` audience variants when shipped.
 
 ---
 
 ## PC-28 — The naming & voice pass
 
-**Strategy (the ruling, decided):** plain human outcome-language everywhere a user reads; industry terms demoted to quiet sublines/tooltips for recognition; warmth from honesty and delight, never jokey names. One grammar, applied everywhere: **surface = outcome noun · subline = what-it-does-for-you in one plain sentence · empty state = honest + next step · tagline = consistent with the v13 one-liner family** (see `docs/pitch/one-pager.md`).
+**The ruling (final):** the **D-family is the brand spine** — the audit shows it half-real already (THE LOOP: Today · Discover · Decide · Define · Build · Brain, `nav-model.ts` L38-45). Complete it: **insert `05 Design` between Define and Build** (route `/design`, PC-31's station) so the loop reads *Today · Discover · Decide · Define · Design · Build · Brain*. No invented nouns anywhere (the v1 "Signals/Shape" proposals are dead). Industry terms live only as subline whispers and inside Engine Room.
 
-**The starting map (Lane A refines, founder ratifies — these are the authoring session's working proposals, not final):**
-| Current | Proposed | Subline (the whisper) |
-| --- | --- | --- |
-| Today | Today | "What needs you — everything else is handled" |
-| Discover | Signals | "What your users and market are telling you" |
-| Decide | Decide | "The next bet, with the evidence and the record" |
-| Plan / PRDs | Shape | "From bet to buildable spec" (industry whisper: "PRDs · specs") |
-| Design (in Define) | Prototype | "Feel it before you build it" (per PC-31) |
-| Build | Build | "Missions running on your behalf" |
-| Brain | Brain | "Everything Cadence knows about your product" |
-| Trust Ledger | Ledger | "Every call, every receipt, every outcome" |
-| Engine Room | Engine Room | "The machinery, when you want to look" |
-| Settings→agents roster | Team | "Your agents, their skills, their track records" (per PC-29/30) |
-| Guardrails/Evals/Drift (in Engine Room) | Checks · Quality · Watch (bands) | industry whisper: "guardrails · evals · drift" |
+**What actually changes (the audit shows LOOM already fixed most headers — this pass is surgical):**
+1. Nav: add Design (numbering shifts 05 Build→06, 06 Brain→07); THE ENGINE group: "Trust Ledger" → **"Ledger"** with subline "every call, every receipt, every outcome" (drop the mechanism word "Trust" from the label — the ledger IS the trust).
+2. Mechanism-word sweep in user-facing copy (grep-driven, the audit's finds): "What the **swarm** did" → "While you slept" (PC-32's strip); `gateHeadline` copy audit; any surviving "mission/station/arc/eval/guardrail/drift" outside Engine Room becomes plain ("run", "step", "checks", "watch") — Engine Room keeps the technical names as its whispers.
+3. **The voice grammar** (documented at the top of `agent-vocabulary.ts` as code comment + in DESIGN-LOOM addendum): surfaces = outcome nouns (the D-family + Today/Build/Brain/Ledger); sublines = what-it-does-for-you (the shipped ones stand); buttons = verb + object, sentence case; empty states = honest + who acts next + when ("Nothing needs you. Cadence's next sweep is at 2am."); taglines derive from the one-liner family (`docs/pitch/one-pager.md` §one-liners) — never invent new slogans per surface.
+4. Docs sync: the naming map table (below) is the single reference; update DESIGN-LOOM's addendum + the pitch one-pager vocabulary if any label shifts.
 
-**Assumptions made explicit:** labels change; **route slugs do NOT move in this pass** (renames are presentation; URL moves ride the existing redirect machinery later — avoids breaking deep links during the sprint). The map covers: nav labels, page headers, sublines, empty states, button copy on those surfaces, the landing/onboarding vocabulary, and doc-facing names in `agent-vocabulary.ts`. Mechanism words (mission, station, arc) survive ONLY inside Engine Room. The voice reference: NotebookLM's grounded warmth + Linear's restraint; ui-voice.md still governs microcopy mechanics.
+**The map (current → final):** Today→Today · Discover→Discover · Decide→Decide · Define(Plan route)→Define · *(new)* Design · Build→Build · Brain→Brain · Trust Ledger→**Ledger** · Engine Room→Engine Room · Settings roster view→(PC-30's Capabilities home supersedes; roster stays in Engine Room Safety as the technical view). Route slugs do NOT move (labels only; `/plan` keeps serving Define; `/design` is the one new route).
 
-**Build:** Lane A: full current→proposed→why map as a PR to this file's table (audit every user-facing string via the routes + `agent-vocabulary.ts`). Founder ratifies. Lane B: apply in one pass + update DESIGN-LOOM examples, onboarding copy, the landing page vocabulary, and the docs that quote surface names (grep-driven); note on the dashboard row.
-
-**Accept:** zero mechanism-first names user-facing outside Engine Room; a stranger reads every nav label and knows what it does for them; docs match product.
+**Accept:** the loop nav reads the D-family; zero mechanism words user-facing outside Engine Room (grep proves it); empty states follow the grammar on all 7 surfaces; docs match.
 
 ---
 
 ## PC-29 — The felt agent layer (the honest "agentic platform" gate)
 
-**Strategy.** The engine is provably agentic; the EXPERIENCE is not — agents live in a settings list while the surfaces feel like dashboards. The market punishes hollow-agentic claims, and our accountability thesis REQUIRES visible actors ("you answer for it" implies you can see who did it). Industry basis: Linear's agent-as-assignee, Devin's named engineer, 11x's named workers — ours adds receipts. The claim "agentic platform" unlocks for homepage/listing copy only when this ships.
+**The audit changed this row from invention to repair-and-complete.** The canon exists (`docs/features/agent-experience.md`): 19 specialists → **6 stations as the spine ("phases, not personnel")** → a cast shown **only in motion** via the relay; components SHIPPED (`AgentMark`/`AgentBadge` in `src/components/agents/AgentMark.tsx`, `AgentRelay.tsx`) but wired into exactly one surface (mission detail). And **the roster seed was broken by two later migrations** (`20260709070000_...` is current): duplicate display names (engineer/builder, stakeholder/release, copilot/orchestrator collide via `agentDisplayName`, `agent-vocabulary.ts` L648-657) and three canon cast (`customer-insights`, `ux-architect`, `data-analyst`) never seeded.
 
-**The cast (working proposal — names are the founder's taste gate; the STRUCTURE is not):** ~7 visible cast members mapped to stations — **Scout** (Signals: sweeps sources, clusters themes), **Critic** (Decide: red-teams bets with precedent), **Scribe** (Shape: drafts specs/contracts from evidence), **Builder** (Build: runs missions to PR), **Herald** (Ship: release notes, launch kits, digests), **Historian** (Learn: outcome windows, learnings, calibration), **Steward** (the orchestrator: routes work, runs the morning brief). Everything else (sub-agents, tick workers) is invisible **crew** whose acts roll up under the responsible cast member. The existing `agents` table + `agent_slug` attribution carries this — the cast is a presentation grouping, not a schema change.
+**The identity model (final — supersedes v1's character parade):** three voices, zero new vocabulary:
+- **The accountable voice = Cadence** ("Cadence found 14 signals overnight") — the brief, digests, notifications, marketing.
+- **The working voice = the cast in motion** — the relay's own law: a named specialist appears WHILE acting and ON receipts ("Maker · merged PR #18"), never as a static character page. The canon's verb-style names stand (they're already in the shipped catalog).
+- **The spine = stations** — users navigate phases, never personnel.
 
-**The primitive (build once, wire everywhere):** `AgentByline` — [cast avatar/mark] + name + state ("working now" / "last acted 2h ago" / "next run 7am") + the one-line act + a receipt link (trace/ledger). Variants: chip (headers), byline (on artifacts: "Drafted by Scribe · reviewed by you"), strip row (the while-you-slept feed). Data: `agent_runs`, `missions`, `traces`, `artifact_lineage` — all existing.
+**Build (the 7-layer agentic-experience stack, each layer concrete):**
+1. **Repair the seed** (one migration): restore the canon roster from `20260618200000_agentexp_roster.sql` semantics — dedupe the colliding six (fold `engineer`→`builder`, `stakeholder`→`release`, `copilot`→`orchestrator` for NEW seeds; existing accounts get a data-fix that retags runs), seed the three missing cast. `agentDisplayName` gets a collision test.
+2. **Presence** — `PresenceChip` (extend `AgentBadge`): state from `agent_runs` (working now / last acted / next run from the cron map). One chip per station header on all 7 surfaces ("Cadence · discover — last swept 22:00").
+3. **Attribution** — render the fields that already exist and are never shown: `PushedInsight.action.agent_slug` (TodayLanes), `decisions.decided_by_agent_slug` (Decide cards), `artifact_lineage.created_by_agent` (specs/scaffolds: "Drafted by Scribe from 14 signals — receipt"), `learnings.recorded_by_agent_slug` (Brain).
+4. **Live narration** — generalize `AgentRelay` from mission-detail to a compact inline variant: any surface whose station has an active run shows the one-line relay ("Scribe · drafting the spec…" streaming from the run's latest step), expandable to the trace.
+5. **The proactive channel** — the brief + receipts strip (PC-32 block 4) speak in the two voices (Cadence narrates; cast bylines the acts). Every pushed insight carries who + why + evidence link.
+6. **Delegation verbs in context** — the biggest felt gap: one `AskInContext` menu component (verb set per station) on every primary card: signal → "Investigate" · theme → "Frame the bet" · bet → "Red-team this" (the Critic) · spec → "Build this" · shipped → "Explain what happened". Each dispatches the existing mission/loop machinery with the target as context (the dispatch fns exist — this is a UI affordance + intent mapping, not new engine).
+7. **The trust plane in place** — approvals render inline on the card they block (Build card shows its gate; the queue remains the aggregate view); the autonomy dial + track record live on PC-30's capability view; every byline links its receipt.
 
-**Assumptions made explicit:** no new agent runtime — this is presentation over existing attribution. Cast avatars are typographic marks in LOOM style (no illustration project). Where attribution is missing today (some crons write without an agent_slug), map each tick to its cast owner in one config (`cast-map.ts`) rather than migrating data. The Team page replaces the settings roster tab (redirect stays). Honest empty states are mandatory ("Scout hasn't run yet — first sweep tonight at 2am").
-
-**Build order:** Lane A: cast design + per-surface presence spec (which byline/chip goes where on the seven surfaces). Founder ratifies names. Lane B: the primitive → Today (pairs with PC-32's receipts strip) → the other surfaces → Team page.
-
-**Accept:** a fresh account sees, on every station, WHO works there, WHAT they last did, and the receipt; the Team page shows the cast with track records (approved X/Y · validated N/M — data exists from the trust ramp); the "agentic platform" claim ships in PC-03/PC-14 copy.
-
----
-
-## PC-30 — The agent capability layer: skills with receipts
-
-**Strategy.** The founder's question "where do skills/instructions live?" has today's honest answer: scattered and invisible — `house_rules` (+ weekly distill tick), `prompt_templates/versions/assignments` (+ optimize tick), playbooks (`playbook_runs` ranking exists), `agent_memory`, tool modes, the Strategic Brief injection. The industry: Replit rewrites its agent nightly but opaquely ("couldn't pinpoint what changed"); Hermes writes its own skills with no track record; Claude Code's skills are static files. **Ours: every capability is visible, versioned, outcome-tracked, and every change is a receipted ledger entry — skills with changelogs and win-rates.** This is the accountability thesis applied to the agents themselves, and the disruptive move nobody has.
-
-**The IA (per-agent page on Team, from PC-29):** five panels — **Instructions** (house rules scoped to this agent + the Brief injection preview: "what this agent is told every run"), **Skills** (playbooks it can run, each with uses + validated-outcome rate), **Memory highlights** (top precedents it recalls, importance-ranked), **Autonomy** (tool modes + arc + graduation history — exists), **History** (every capability change as a receipt: who/what/when/why + the outcome window after it).
-
-**The three learning inlets (wire, don't invent):** (1) human edit — editing an instruction/skill writes a supersedable decision + ledger receipt (reuse the decisions/supersession machinery — capability changes ARE decisions); (2) mission distillation — PC-18's Hermes move lands its drafted playbooks here for review; (3) the nightly self-improvement loop — RPT-50 routes prompt/policy change proposals as build-spine changesets that, when approved, land as receipts here. **Layer-2 public claims stay claim-on-wiring until RPT-50 runs.**
-
-**Assumptions made explicit:** NO new learning engine and no new storage — this is a unification VIEW + edit paths over existing tables, plus the receipt-on-change rule (one new lightweight `capability_events` table only if `artifact_lineage` can't carry it cleanly; prefer lineage). Editing guardrail-class instructions keeps the existing safety floors (a human can tighten always; loosening follows the trust-ramp rules). The Brief injection preview is read-only (its edit home stays the Brief).
-
-**Accept:** one instruction edited by a human and one skill distilled from a mission both visible with version + receipt + outcome window; the founder can answer "what does this agent know and who last changed it?" in one screen.
+**Accept (the stranger test, per station):** on every surface a stranger answers "who works here, what did they just do, what can I hand them, how do I check it" without leaving the screen. The duplicate-name bug is dead. The claim "agentic platform" unlocks for PC-03/PC-14 copy when all 7 stations pass.
 
 ---
 
-## PC-31 — The Prototype station + the Brand Kit
+## PC-30 — The capability layer: skills with receipts
 
-**Strategy.** Mockups are dead in the corpus ("prototypes over PRDs" — Claude Code's own origin; "the modern PRD is an eval"). The design stage renames to **Prototype** (PC-28's map) and its deliverable is something you can FEEL: a clickable prototype scaffold derived from the spec's flow + Outcome Contract. And nothing generated may be off-brand: **the Brand Kit** productizes `design_memory` (DSN-01 already stores workspace design language as supersedable decisions with URL-import) into a visible, versioned kit that every generated prototype, scaffold, and launch asset renders through — the Claude-style "inject your brand once" pattern, plus our receipts (kit changes are supersedable decisions).
+**Relocation (supersedes v1's Team page):** capabilities live in **Brain** — a "Capabilities" lens beside Brief and Design. Rationale: Brain is "everything Cadence knows about your product," and how-to knowledge IS knowledge; the 5-destinations law stays intact; Engine Room keeps the deep machinery (prompt templates, raw tool modes) as today.
 
-**Build:** Lane A design: the Prototype surface anatomy (spec → flow graph → generated clickable scaffold in a sandboxed preview → feedback loop back to the contract) + the Brand Kit surface (import via URL / tokens / pasted guidelines → the kit card: colors, type, voice, components → version history via supersession). Lane B: 1) Brand Kit = a presentation + edit layer over `design_memory` (import path EXISTS from DSN-01 — surface it); 2) prototype generation = extend `prd_scaffolds`/`generateDesignScaffold` to emit a self-contained HTML/React scaffold rendered in a sandboxed iframe, with kit tokens injected as CSS variables + into the generation prompt; 3) wire the DEF-04 drafted-mockup half behind this (its gated sandbox-provider half stays gated); 4) the prototype links back onto the PRD (lineage edge exists from DSN-03/AGT-03 patterns).
+**The Brain > Capabilities anatomy (per cast member, one card each):** what I do (purpose) · **Instructions** (house_rules scoped to the agent + the Brief injection preview, read-only preview of "what this agent is told every run") · **Skills** (playbooks it can run: uses + validated-outcome rate from `playbook_runs`) · **Autonomy** (arc + tool modes + graduation history — the trust-ramp data, read view) · **History** (capability changes as receipts). Edits: instructions and skill enable/disable edit in place; **every change writes the existing supersedable-decision machinery + a lineage receipt** (capability changes ARE decisions — reuse, don't invent; only add a thin `capability` artifact kind if lineage needs it).
 
-**Assumptions made explicit:** prototypes are throwaway artifacts (projections of the spec — the artifact-dead doctrine applies: regenerate over edit); the sandboxed iframe uses `sandbox` attrs + no external fetches (CSP-safe); Brand Kit v1 covers tokens + voice + component preferences, NOT logo asset management; if no kit exists, generation uses LOOM-neutral defaults and says so ("using Cadence neutral — import your brand to make this yours"); the existing `prototypes`/`prototype_files` tables are the storage (currently unexercised — this row exercises them).
+**The three learning inlets (wiring, all to existing tables):** human edit (above) · mission distillation (PC-18's playbook drafts land here for review) · the nightly self-improvement proposals (RPT-50's build-spine changesets, receipted on approve). Safety floors unchanged: tightening is always allowed; loosening follows the trust ramp; merge/revert/delegate stay pinned.
 
-**Accept:** a workspace imports a kit (URL import proves it), generates a prototype from a real spec, and the result visibly honors the kit; the surface reads "Prototype"; a second generation after a kit change shows the difference + both versions' receipts.
+**Accept:** the founder answers "what does this agent know, who last changed it, did the change work" in one screen; one human edit + one distilled skill both carry version + receipt + outcome window; Layer-2 self-improvement claims stay claim-on-wiring until RPT-50 runs.
+
+---
+
+## PC-31 — Design: the station (Prototype + Brand Kit inside)
+
+**Naming (founder correction, folded):** the surface is **Design** — completing the D-family — with **Prototype** and **Brand Kit** as what it contains.
+
+**The audit's gift: this is mostly assembly.** design_memory IS the Brand Kit engine (4 source kinds incl. url_import + pasted + learned-from-feedback; SSRF-guarded import; supersession via lineage; a Brain tab UI exists — `design-memory.functions.ts`, `DesignMemoryPanel.tsx`). Scaffolds are kit-bound self-contained HTML in sandboxed iframes with a Design Gate blocking Build and a taste write-back loop (`design-scaffold.functions.ts` L117-137, L538). The `prototypes` family (prototypes/files/messages/attachments + a LIVE public share viewer at `/p/$slug`) is orphaned — perfect storage for real prototypes, needs `workspace_id` (named in `workspace-scope.ts` L26 as the known gap).
+
+**Build:**
+1. **The `/design` route** (nav 05): two panes — **Brand Kit** (the DesignMemoryPanel content, re-presented as a kit: grouped tokens/type/voice/principles cards, source + status, version history via lineage, the import actions front and center: "Import from your site" / "Paste your guidelines" / "Start neutral") and **Prototypes** (per-spec: the scaffold preview + its flow + the Design Gate verdict + share link). Brain's Design tab becomes a pointer into `/design` (one home).
+2. **Prototype = clickable, multi-screen** (evolve, don't replace): `buildDesignScaffoldHtml` extends to render one screen per `prd_flows` step with **CSS-only `:target` navigation** between screens (no scripts — keeps the sandbox/CSP posture; the flow's edges become the clickable paths). Cap ~5 screens; single self-contained HTML stays the format.
+3. **Persist to the prototype family**: migration adds `workspace_id` (+ RLS) to the four tables; generation writes `prototypes` + `prototype_files`; the existing `/p/$slug` share viewer lights up as the **shareable prototype link** (a growth hook: every shared prototype is Cadence marketing — footer credit, per the citation-safe pattern).
+4. **Receipts:** kit changes already supersede via lineage; prototype generations write the flow→scaffold lineage (exists) + prototype row; the Design Gate verdict stays the gate to Build.
+
+**Accept:** a workspace imports a kit from its site URL, generates a prototype from a real spec, clicks through its screens (flow-driven), shares `/p/$slug` publicly, and a second generation after a kit edit visibly differs — with both kit versions' receipts on the Ledger. DEF-04's Cloudflare-sandbox half stays gated (spend) and is NOT needed for this.
+
+---
+
+## The build order & lanes (see `research-sprint-lane-briefs.md` for the paste-ready prompts)
+
+**Lane A (Fable) owns this cluster end-to-end** in the order at the top (32→33→28→29→30→31) — maps and applies together, one surface fully coherent before the next, because splitting judgment from application across sessions is how products end up incoherent. Lane B (Fable): the chokepoint spine (PC-05, PC-07, PC-12, PC-16, PC-27). Lane C (Sonnet): launch-critical build (PC-03, PC-04, PC-06, PC-08, PC-10, PC-11, PC-15, PC-22). Lane D (Sonnet): GTM + the G18 sweep (PC-13, PC-14, PC-26, then RPT rows by rank). Collision law: A owns the seven surface route files + nav-model + agent-vocabulary while its rows are In-Dev; C's rows touch functions/backends and non-cluster UI; B owns the pinned chokepoints; D touches docs/pitch/GTM only.
