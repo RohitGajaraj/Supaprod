@@ -138,7 +138,7 @@ Legend — **Model**: `Fable` = judgment-heavy, chokepoint-touching, taste-setti
 | Gate | Blocks | The ask | Recommendation |
 | --- | --- | --- | --- |
 | LOOM publish + 3 migrations | W1 floor (warm prod) | Publish pending build + apply migrations via Lovable | **Do first — today** |
-| Merchant of record | PC-05, G-W2, revenue | Choose Paddle/LemonSqueezy MoR vs Stripe entity; create the account | **Paddle as MoR** — days not months; revisit Stripe at scale |
+| Merchant of record | PC-05, G-W2, revenue | Choose Paddle/LemonSqueezy MoR vs Stripe entity; create the account | **Paddle as MoR** — days not months; revisit Stripe at scale. _Founder 2026-07-11: decision DEFERRED. Stripe remains the active default rail (sandbox-verified end to end); the Paddle adapter is built and inactive; both paths are config-only through the PC-05 PaymentsProvider seam._ |
 | Slack app registration | PC-09 | Register the Cadence Slack app (mentions + chat:write) | 30 minutes, do with PC-03 live |
 | Google verification | Connector depth for beta + the listing | Submit once PC-03 is live (homepage + privacy policy + domain verification); CASA only when a partner needs Gmail | Fast-track the day the homepage ships (sprint day 2–3); if not cleared by listing day, gate the Google tiles behind "request access" (the documented launch trap) |
 | 9 provider OAuth registrations | Connector breadth (Linear, Notion, Figma, Jira, Intercom, Stripe, Zendesk, Productboard, Microsoft) | Register apps (flows built) | Linear + Notion first (wedge users live there); 2/week |
