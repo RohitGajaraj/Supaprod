@@ -38,6 +38,7 @@ import { EngineRoomDisclosure } from "@/components/studio/EngineRoomDisclosure";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import type { Inspection } from "@/lib/ai/studio-inspection";
 import { CostPanel } from "@/components/studio/CostPanel";
+import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
 import { StatusChip, LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { fmtCost } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
@@ -45,13 +46,14 @@ import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestr
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { AutoChip } from "@/components/cadence/AutoChip";
 
-type Tab = "changes" | "pr" | "preview" | "cost";
-const TABS: Tab[] = ["changes", "pr", "preview", "cost"];
+type Tab = "changes" | "pr" | "preview" | "cost" | "receipts";
+const TABS: Tab[] = ["changes", "pr", "preview", "cost", "receipts"];
 const TAB_DISPLAY: [Tab, string][] = [
   ["changes", "Changes"],
   ["pr", "PR · Checks"],
   ["preview", "Preview"],
   ["cost", "Cost"],
+  ["receipts", "Receipts"],
 ];
 
 export const Route = createFileRoute("/_authenticated/build/$missionId")({
@@ -783,6 +785,7 @@ function BuildSessionPage() {
                 <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
               )}
               {tab === "cost" && <CostPanel runs={runs} total={totalCost} />}
+              {tab === "receipts" && <ReceiptsPanel missionId={missionId} />}
             </div>
           </div>
         )}

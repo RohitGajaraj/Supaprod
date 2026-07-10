@@ -1,0 +1,111 @@
+// PC-12: ONE review item carrying all three fan-out sections (draft, eval,
+// risks) plus a one-line synthesis, instead of three separate
+// notifications. Lives in the judgment lane next to ordinary approvals.
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { decideFanoutBatch, type FanoutBatch } from "@/lib/fanout.functions";
+
+const SECTION_LABELS: { key: "draft" | "eval" | "risks"; label: string }[] = [
+  { key: "draft", label: "Draft path" },
+  { key: "eval", label: "Honest eval" },
+  { key: "risks", label: "Real risks" },
+];
+
+export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
+  const qc = useQueryClient();
+  const fDecide = useServerFn(decideFanoutBatch);
+  const decide = useMutation({
+    mutationFn: (decision: "accepted" | "dismissed") =>
+      fDecide({ data: { batchId: batch.id, decision } }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["fanout-batches"] }),
+  });
+
+  if (batch.status !== "ready" || !batch.composite) return null;
+  const composite = batch.composite;
+
+  return (
+    <div
+      style={{
+        border: "1px solid var(--hairline)",
+        borderRadius: 12,
+        padding: "16px 18px",
+        background: "var(--surface-1, transparent)",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 10,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--text-faint)",
+          margin: "0 0 6px",
+        }}
+      >
+        Explored from all sides
+      </p>
+      <h3
+        style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 8px" }}
+      >
+        {batch.targetTitle}
+      </h3>
+      {composite.synthesis ? (
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--text-body)",
+            fontStyle: "italic",
+            margin: "0 0 14px",
+          }}
+        >
+          {composite.synthesis}
+        </p>
+      ) : null}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+        {SECTION_LABELS.map((s) => (
+          <div key={s.key}>
+            <p
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--text-subtle)",
+                margin: "0 0 3px",
+              }}
+            >
+              {s.label}
+            </p>
+            <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+              {composite[s.key] ?? "No response from this angle."}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button
+          type="button"
+          onClick={() => decide.mutate("accepted")}
+          disabled={decide.isPending}
+          className="btn btn-primary btn-sm"
+        >
+          Useful, thanks
+        </button>
+        <button
+          type="button"
+          onClick={() => decide.mutate("dismissed")}
+          disabled={decide.isPending}
+          style={{
+            fontSize: 12.5,
+            padding: "6px 14px",
+            borderRadius: 8,
+            border: "1px solid var(--hairline)",
+            background: "transparent",
+            color: "var(--text-muted)",
+            cursor: "pointer",
+          }}
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+  );
+}

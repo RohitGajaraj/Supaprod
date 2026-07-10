@@ -201,6 +201,17 @@ export const runSupportTriage = createServerFn({ method: "POST" })
       let quarantined = 0;
       const triagedAt = new Date().toISOString();
 
+      // Phase 1: Screen all clusters and prepare signal batches (deterministic, no I/O)
+      const signalInserts: Array<{
+        user_id: string;
+        workspace_id: string;
+        title: string;
+        content: string;
+        source: string;
+        tags: string[];
+      }> = [];
+      const ticketUpdateMappings: Array<{ ids: string[]; key: string; signalIdx: number }> = [];
+
       for (const cluster of clusters) {
         // SEC-INGEST-INJECTION (considerations #3, P0): screen the cluster's raw, untrusted
         // ticket text BEFORE it can become a trusted Discover signal that feeds agents. A
@@ -217,34 +228,60 @@ export const runSupportTriage = createServerFn({ method: "POST" })
 
         const payload = clusterToSignal(cluster);
         const tags = decision === "flag" ? [...payload.tags, INJECTION_REVIEW_TAG] : payload.tags;
-        const { data: sig, error: sigErr } = await sb
-          .from("signals")
-          .insert({
-            user_id: context.userId,
-            workspace_id: data.workspaceId,
-            title: payload.title,
-            content: payload.content,
-            source: payload.source,
-            tags,
-          })
-          .select("id")
-          .single();
-        if (sigErr) throw new Error(sigErr.message);
-        const signalId = (sig as { id: string }).id;
-        signalsEmitted++;
+        const signalIdx = signalInserts.length;
+        signalInserts.push({
+          user_id: context.userId,
+          workspace_id: data.workspaceId,
+          title: payload.title,
+          content: payload.content,
+          source: payload.source,
+          tags,
+        });
+        ticketUpdateMappings.push({
+          ids: cluster.tickets.map((t) => t.id),
+          key: cluster.key,
+          signalIdx,
+        });
+      }
 
-        const ids = cluster.tickets.map((t) => t.id);
-        const { error: updErr } = await sb
-          .from("support_tickets")
-          .update({
-            status: "triaged",
-            cluster_key: cluster.key,
-            signal_id: signalId,
-            triaged_at: triagedAt,
-          })
-          .in("id", ids);
-        if (updErr) throw new Error(updErr.message);
-        ticketsTriaged += ids.length;
+      if (signalInserts.length === 0) {
+        return { clusters: clusters.length, signalsEmitted: 0, ticketsTriaged: 0, quarantined };
+      }
+
+      // Phase 2: Batch-insert all signals at once (1 round trip instead of N)
+      const { data: insertedSignals, error: bulkSigErr } = await sb
+        .from("signals")
+        .insert(signalInserts)
+        .select("id");
+      if (bulkSigErr) throw new Error(bulkSigErr.message);
+
+      const signalIds = ((insertedSignals ?? []) as { id: string }[]).map((s) => s.id);
+      signalsEmitted = signalIds.length;
+
+      // Phase 3: Parallelize ticket updates (concurrency-capped at 10) to avoid overwhelming the DB
+      // Batch into groups of 10 to maintain stable concurrency without out-of-order Promise.race issues
+      const CONCURRENT_UPDATES = 10;
+
+      for (let i = 0; i < ticketUpdateMappings.length; i += CONCURRENT_UPDATES) {
+        const batch = ticketUpdateMappings.slice(i, i + CONCURRENT_UPDATES);
+        const updatePromises = batch.map((mapping) => {
+          const signalId = signalIds[mapping.signalIdx];
+          return sb
+            .from("support_tickets")
+            .update({
+              status: "triaged",
+              cluster_key: mapping.key,
+              signal_id: signalId,
+              triaged_at: triagedAt,
+            })
+            .in("id", mapping.ids)
+            .then(({ error: updErr }) => {
+              if (updErr) throw new Error(updErr.message);
+              ticketsTriaged += mapping.ids.length;
+            });
+        });
+
+        await Promise.all(updatePromises);
       }
 
       return { clusters: clusters.length, signalsEmitted, ticketsTriaged, quarantined };

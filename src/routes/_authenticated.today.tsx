@@ -25,6 +25,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
 import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
 import { getTodayLanes } from "@/lib/today-lanes.functions";
+import { listFanoutBatches } from "@/lib/fanout.functions";
+import { CompositeReviewCard } from "@/components/build/CompositeReviewCard";
 import { markInsightActioned } from "@/lib/brain-insights.functions";
 import { resolveApproval } from "@/lib/governance.functions";
 import { resolveAssumptionChallenge } from "@/lib/decisions.functions";
@@ -425,6 +427,7 @@ function Dashboard() {
   const fetchProjects = useServerFn(listProjects);
   const fetchGreeting = useServerFn(getGreeting);
   const fetchNeedsYou = useServerFn(getNeedsYou);
+  const fetchFanoutBatches = useServerFn(listFanoutBatches);
   const fetchLoopPulse = useServerFn(getLoopPulse);
   const fetchLearnings = useServerFn(listLearnings);
   const fetchRuns = useServerFn(listAgentRuns);
@@ -444,6 +447,14 @@ function Dashboard() {
 
   useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const needsYou = useQuery({ queryKey: ["needs-you"], queryFn: () => fetchNeedsYou() });
+  // PC-12: composite fan-out review batches (draft/eval/risks reconciled into
+  // one card). Dormant reads: an empty table when AGENT_FANOUT is off, so this
+  // never shows anything on a workspace that hasn't turned exploration on.
+  const fanoutBatches = useQuery({
+    queryKey: ["fanout-batches"],
+    queryFn: () => fetchFanoutBatches(),
+  });
+  const readyFanoutBatches = (fanoutBatches.data ?? []).filter((b) => b.status === "ready");
   const loopPulse = useQuery({ queryKey: ["loop-pulse"], queryFn: () => fetchLoopPulse() });
   const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fetchLearnings() });
   const runs = useQuery({ queryKey: ["runs"], queryFn: () => fetchRuns() });
@@ -1172,13 +1183,20 @@ function Dashboard() {
                     color: "var(--text-faint)",
                   }}
                 >
-                  {callCount + (lanesData?.lane1.count ?? 0)}
+                  {callCount + (lanesData?.lane1.count ?? 0) + readyFanoutBatches.length}
                 </span>
               ) : null}
               <div
                 style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
               />
             </div>
+            {readyFanoutBatches.length > 0 ? (
+              <div className="flex flex-col" style={{ gap: 10 }}>
+                {readyFanoutBatches.map((batch) => (
+                  <CompositeReviewCard key={batch.id} batch={batch} />
+                ))}
+              </div>
+            ) : null}
             {needsYou.isError ? (
               <div
                 style={{
@@ -1231,7 +1249,8 @@ function Dashboard() {
             ) : callCount === 0 &&
               expiredTotal === 0 &&
               !lanes.isPending &&
-              (lanesData?.lane1.count ?? 0) === 0 ? (
+              (lanesData?.lane1.count ?? 0) === 0 &&
+              readyFanoutBatches.length === 0 ? (
               <div
                 style={{
                   background: "var(--card)",

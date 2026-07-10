@@ -176,8 +176,16 @@ function citedComponents(valid: ReadonlySet<number>): Components {
  * styled code blocks with a hover copy button, external links.
  * Pass `citations` (the source ns from meta) to turn inline [n]
  * markers into clickable badges; without it, output is unchanged.
+ *
+ * Wrapped in React.memo to prevent re-parsing markdown AST during streaming.
  */
-export function ChatMarkdown({ content, citations }: { content: string; citations?: number[] }) {
+export const ChatMarkdown = React.memo(function ChatMarkdown({
+  content,
+  citations,
+}: {
+  content: string;
+  citations?: number[];
+}) {
   const comps = useMemo(() => {
     if (!citations || citations.length === 0) return components;
     return citedComponents(new Set(citations));
@@ -187,4 +195,4 @@ export function ChatMarkdown({ content, citations }: { content: string; citation
       <ReactMarkdown components={comps}>{content}</ReactMarkdown>
     </div>
   );
-}
+});
