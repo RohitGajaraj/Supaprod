@@ -20,8 +20,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   groupSameShapedLearnings,
   shapeProposal,
+  MIN_GROUP_SIZE,
   type CompoundLearning,
 } from "./learning-compound";
+import { tierFromSampleSize } from "@/lib/confidence";
 
 const LOOKBACK_DAYS = 90;
 const LEARNINGS_SCAN_LIMIT = 400;
@@ -143,6 +145,13 @@ export async function runLearningCompoundPass(
     const ownerId = ownerByWorkspace.get(group.workspaceId);
     if (!ownerId) continue;
     const draft = shapeProposal(group);
+    // PC-11: confidence-gated execution. The cheap self-assessment signal
+    // here is sample size -- a proposal compounded from more similar
+    // learnings is more trustworthy. `low` sits at exactly the group's own
+    // minimum-to-propose threshold; playbook_proposals already lands behind
+    // a human accept/dismiss review, so the tier's job is honesty (the chip
+    // on a thin group), not a new gate.
+    const confidence = tierFromSampleSize(group.learnings.length, MIN_GROUP_SIZE);
     const { error } = await db.from("playbook_proposals").insert({
       user_id: ownerId,
       workspace_id: group.workspaceId,
@@ -151,6 +160,7 @@ export async function runLearningCompoundPass(
       body: draft.body,
       status: "proposed",
       source_learning_ids: draft.sourceLearningIds,
+      confidence,
     });
     if (error) {
       // 23505 = the unique index caught a concurrent tick; benign.

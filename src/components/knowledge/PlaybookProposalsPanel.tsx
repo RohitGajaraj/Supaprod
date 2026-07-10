@@ -23,6 +23,7 @@ import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
 import { traceRef } from "@/components/discover/format";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import { ConfidenceChip } from "@/components/cadence/ConfidenceChip";
 
 /** Same "when" rhythm as the outcome feed below this panel. */
 function whenOf(iso: string): string {
@@ -56,6 +57,7 @@ function ProposalCard({
     >
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: 6 }}>
         <MonoLabel style={{ fontSize: "var(--text-mono-floor)" }}>Proposed playbook</MonoLabel>
+        <ConfidenceChip tier={p.confidence} />
         <span className="flex items-center" style={{ marginLeft: "auto", gap: 8 }}>
           <span
             style={{

@@ -162,10 +162,13 @@ export type PlaybookProposal = {
   decided_by: string | null;
   decided_at: string | null;
   created_at: string;
+  // PC-11: confidence-gated execution. New column, defaults 'medium' for
+  // rows written before this shipped.
+  confidence: "high" | "medium" | "low";
 };
 
 const PROPOSAL_COLUMNS =
-  "id,workspace_id,group_key,title,body,status,source_learning_ids,decided_by,decided_at,created_at";
+  "id,workspace_id,group_key,title,body,status,source_learning_ids,decided_by,decided_at,created_at,confidence";
 
 export type ListPlaybookProposalsResult = { proposals: PlaybookProposal[] };
 
