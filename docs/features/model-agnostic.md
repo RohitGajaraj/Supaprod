@@ -1,5 +1,7 @@
 # MODEL-AGNOSTIC (MA-1) — Model-agnostic AI backend + capability routing
 
+> _Created: 2026-06-30 · Last updated: 2026-07-03_
+
 > Status · Engine shipped 2026-06-30 (Lane 2) · runtime/chokepoint + catalog + Settings/chat UI · Owner: platform
 > Twin of BLD-04 / [`build-driver-and-dispatch.md`](../strategy/build-driver-and-dispatch.md) (the code-gen path). This doc is the **chat/AI chokepoint** path.
 > Reconciles WM-M9 — see [Governance](#governance--guardrails). Build log: [`../../plan.md`](../../plan.md) §4.

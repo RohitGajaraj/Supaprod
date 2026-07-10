@@ -1,5 +1,7 @@
 # BYO-P5: Managed End-to-End Runtime (Ops, Cost, and Security Plan)
 
+> _Created: 2026-07-01 · Last updated: 2026-07-03_
+
 Status: PLAN, founder-gated, produced 2026-07-01. P5a shipped same day. Hosting-provider alternatives researched 2026-07-02, and P5a-poc shipped the same day: a working, tested Deno Deploy adapter, live-verified end to end at $0. P5b (the hosting POC + admin UI) shipped 2026-07-02. See all three addenda below.
 
 ## Addendum, 2026-07-03: reviewed, explicitly parked (no code change)

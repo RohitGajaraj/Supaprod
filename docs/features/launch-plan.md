@@ -1,5 +1,7 @@
 # JNY-04 — Launch and GTM kit
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/prds/$id` (Launch tab) · Owner: Launch (`src/lib/launch-plan.functions.ts`)
 
 ## What it does

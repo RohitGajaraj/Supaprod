@@ -1,5 +1,7 @@
 # BLD-04 — Delegate-out to external coding agents (DelegateProvider seam)
 
+> _Created: 2026-06-21 · Last updated: 2026-07-01_
+
 > Status · ◐ Dormant `DelegateProvider` seam + OpenHands adapter shipped 2026-06-21 (lane 3); off by default, live on the founder configuring a BYO endpoint/key AND a registry-wiring increment · Route(s): none (runtime seam) · Owner: the Build / agent-loop lane
 
 ## What it does

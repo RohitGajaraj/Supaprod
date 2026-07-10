@@ -1,5 +1,7 @@
 # Parallel build report - Safety / Governance lane
 
+> _Created: 2026-06-19 · Last updated: 2026-06-21_
+
 > _Per-lane audit trail. The WM/overnight lane reports separately in `overnight-build-report.md`; do not write there._
 > Branch: `parallel/safety` · Worktree: `cadence-safety` (sibling of the repo) · Lane scope: this worktree's `.remember/LANE.md`
 

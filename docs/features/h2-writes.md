@@ -1,5 +1,7 @@
 # H2-WRITES — Outcome-roadmap governed writes
 
+> _Created: 2026-06-21 · Last updated: 2026-06-21_
+
 > Status: ◐ Governed commit path shipped 2026-06-21 (Lane 0). The governance rule + validation + gap surface are built, unit-verified, design-passed (`impeccable`), and gate-green; they render on the founder's publish. Remaining: the autonomous agent-commit wiring + a richer write surface.
 
 ## What it does (one paragraph)

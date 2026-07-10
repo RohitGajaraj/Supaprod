@@ -1,5 +1,7 @@
 # L2 — Customer announcements (backend + approval-to-publish governance)
 
+> _Created: 2026-06-21 · Last updated: 2026-06-22_
+
 > Status · ✅ Feature-complete 2026-06-22 (Lane 2). Backend + governance shipped 2026-06-21 (lane 3) and **live-verified on prod 2026-06-22 (lane 2, no drift)**; the **public announcement page shipped 2026-06-22 (lane 2)** on `/p/$slug`; the **in-app authoring UI (L2b-2) shipped 2026-06-22 (lane 2)** on Product > Releases. Only remaining is the visual live-render of the new authoring UI on the founder's next publish (standard for freshly-built UI). · Route(s): `/product?tab=releases` (authoring) · `/p/$slug` (public read; shared with prototype shares) · Owner: the Launch lane
 
 ## What it does

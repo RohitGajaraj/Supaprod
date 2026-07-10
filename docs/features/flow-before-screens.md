@@ -1,5 +1,7 @@
 # DSN-03 — Flow before screens
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/prds/$id` (Flow tab) · Owner: Define (`src/lib/flows.functions.ts`, `src/lib/design-scaffold.functions.ts`)
 
 ## What it does

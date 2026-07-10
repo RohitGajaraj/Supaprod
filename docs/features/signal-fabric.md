@@ -1,5 +1,7 @@
 # Signal Fabric & Sense Engine
 
+> _Created: 2026-06-30 · Last updated: 2026-07-07_
+
 > _Created 2026-06-30. Status: Phase 0 shipped (the `writeSignals` keystone). Phases 1-3 planned; the detailed phased plan is under refinement in Ultraplan and teleports back here when approved._
 
 The outside-in, always-on signal engine, the product's core USP. Cadence should continuously watch the market, competitors, tech shifts, and customer voice (not wait for a PM to search), then surface the one thing to focus on and build next. This doc is the canonical home for that subsystem.

@@ -1,6 +1,6 @@
 # Demo credentials
 
-> _Created: 2026-06-04 · Last updated: 2026-06-14_
+> _Created: 2026-06-04 · Last updated: 2026-07-10_
 
 Two pre-provisioned demo accounts ship with the database. Use them for YC / investor / customer demos, screen recordings, and any application that asks for a working login. Same password for both — easy to share, easy to remember.
 
@@ -10,6 +10,9 @@ Two pre-provisioned demo accounts ship with the database. Use them for YC / inve
 | 2   | `demo2@redcadence.app` | `Cadence!Demo2026` |
 
 Sign in at [`/login`](https://cadence-flow-beta.lovable.app/login) (or the preview URL).
+
+> [!WARNING]
+> **`demo@redcadence.app` credit balance is not guaranteed sufficient for a full live walkthrough — check/top-up before demoing.** During this ship-week's live testing the account repeatedly hit the cost guard (balance seen as low as 2 credits against a 32-credit projected action) before a manual grant of 1,000 standing credits was applied. Separately, on 2026-07-10 the platform-wide free-tier starter grant was raised from 500 to 750 credits for NEW signups (existing accounts were trued up +250) — that platform change is unrelated to, and does not substitute for, verifying this specific demo account's live balance. Check the account's actual balance before any demo/investor walkthrough; do not assume it is sufficient.
 
 > [!IMPORTANT]
 > **New comprehensive sample seed (SAMPLE-SEED, authored 2026-07-05).** A richer, two-product showcase seed supersedes the single Lumen narrative below for the demo accounts: **Prism** (a consumer money app, the deep hero) + **Trellis** (a warehouse-native product-analytics platform), covering every surface with rich business/product/stakeholder data, including a live outcome-driven **supersession** on both products (the moat proof). It ships as `supabase/migrations/20260705120000_sample_workspace_seed.sql` and, when applied via Lovable, **wipes the demo accounts' prior content and reseeds** them into an **"Explore workspace"** (a space to explore the product, renamed from the internal "sample" wording). Full coverage guide: [`../features/sample-workspace-seed.md`](../features/sample-workspace-seed.md). A ready-to-read under-3-minute founder demo script driven by this data: [`founder-demo-script.md`](./founder-demo-script.md). The Lumen section below is retained as the prior narrative until that migration is applied.
@@ -34,6 +37,9 @@ Each account lands in a fully populated **Demo workspace** seeded with the Lumen
 - 5 daily briefs
 
 Each account also gets an empty `My Workspace` alongside the Demo workspace, which you can use for clean experiments.
+
+> [!NOTE]
+> **Live drift on `demo@` (as of ship-week testing, 2026-07-10).** The `demo@redcadence.app` workspace has accumulated real production artifacts on top of the originally-seeded sample data over the course of live ship-week testing — a bound GitHub test repo, an active goal, an active loop, and several real/failed missions. Its current live contents are no longer purely the documented sample-seed narrative above. Anyone doing a clean demo should re-seed (see "Re-seeding" below) or otherwise account for this drift before relying on the account matching this doc exactly.
 
 ## How they were created
 

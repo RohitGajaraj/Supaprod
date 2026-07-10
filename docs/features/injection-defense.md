@@ -1,5 +1,7 @@
 # FND-0.7 — Prompt-injection defense (learned classifier + hard quarantine)
 
+> _Created: 2026-06-21 · Last updated: 2026-06-22_
+
 > Status · Classifier + hard-quarantine seam shipped 2026-06-21 (lane 3); **cross-chunk aggregation (FND-0.7-b)** + **reactor ingested-signal quarantine (FND-0.7-c)** shipped 2026-06-21 (lane 3); **operator governance card (FND-0.7-d) shipped 2026-06-22 (Lane 2)** on `/govern` > Guardrails. The runtime defense is feature-complete; only the visual live-render of the new card lands on the founder's next publish (the classifier it wraps is unit-verified). The remaining residuals (operator tuning, live activity telemetry) are deliberate non-goals / a separate larger follow-up — see Known limitations. · Route(s): runtime (RAG retriever + event reactor) + `/govern?tab=guardrails` (the operator card) · Owner: the AI runtime / RAG pipeline
 
 ## What it does

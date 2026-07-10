@@ -1,5 +1,7 @@
 # AGT-03 — Speculative reversible prep
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/prds/$id` (Design mockup panel) · Owner: Foundational (`src/lib/design-scaffold.functions.ts`)
 
 ## What it does

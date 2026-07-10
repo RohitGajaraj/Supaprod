@@ -30,7 +30,7 @@ these exact edits so every agent finds it first. One commit, message:
 
 ## 5. README.md · update the doc map row
 
-> | Design / UI / motion | [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (app, CURRENT) · [`DESIGN.md`](./DESIGN.md) (landing page + history) |
+> | Design / UI / motion | [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (app, CURRENT) · [`DESIGN.md`](../../DESIGN.md) (landing page + history) |
 
 ## 6. Optional but recommended
 

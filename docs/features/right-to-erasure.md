@@ -1,5 +1,7 @@
 # DATA-RETENTION-b — Right-to-be-forgotten erase cascade
 
+> _Created: 2026-06-21 · Last updated: 2026-06-21_
+
 > Status: ◐ Built dormant 2026-06-21 (Lane 0). The migration + the pure receipt module are gate-green (tsc + build + 398 tests), unit-verified, 4-lens-adversarially-reviewed (all must-fix folded), and zero-destruction-dry-run-verified on the live schema; the cascade is **dormant** (`right_to_erasure_enabled()` = false) and **service-role-only**, so nothing is ever deleted until an operator flips the flag and invokes it. The destructive FK-order dry-run (a workspace with rows) is a publish-verify step.
 
 ## What it does (one paragraph)

@@ -1,5 +1,7 @@
 # WM-F3: RBAC Enforcement (owner/admin/member/viewer roles)
 
+> _Created: 2026-06-19 · Last updated: 2026-06-19_
+
 **Status:** ◐ shipped cycle 37
 **Spec:** `docs/planning/workspace-tenancy-and-monetization-plan.md` (WM-F3)
 

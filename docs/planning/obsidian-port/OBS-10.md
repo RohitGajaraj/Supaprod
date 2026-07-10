@@ -1,5 +1,7 @@
 # OBS-10 · IA consolidation - every route folds into five destinations + one door
 
+> _Created: 2026-07-02 · Last updated: 2026-07-02_
+
 ## 1. Snapshot
 
 | Field | Value |

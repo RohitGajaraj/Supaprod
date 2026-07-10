@@ -1,6 +1,6 @@
 # Strategic Decisions Log
 
-> _Created: 2026-06-03 · Last updated: 2026-07-02_
+> _Created: 2026-06-03 · Last updated: 2026-07-10_
 
 > **What this is.** A running record of major strategic decisions, tradeoffs evaluated, and facts presented during development sessions. Not a transcript, only decisions that shaped the product direction, architecture, or operating model.
 >
@@ -119,7 +119,7 @@
 
 4. **WI3/WI5 completed the SAME session (founder authorized the attended chokepoint edit) → BYO-P3 ✅, superseding decision 2's "deferred."** WI3 was implemented as a minimal, reversible reuse of the existing `studio.pr.merge` gate rather than a new `studio.ship.confirm` tool + loop auto-queue machinery: the merge (the one decisive ship gate) becomes trust-graduated via `resolveApprovalMode("confirm", arc)` **behind a default-off `STUDIO_AUTO_SHIP` env flag** — so it is the single trust-graduated ship decision the plan called for, with zero production behavior change until the founder opts in, and the in-tool CI-green + eval gates still block a bad merge. WI5 turned out to be **emergent** (the merge tool's actionable `MergeBlocked` error + the loop's tool-error feedback already drive re-stage/re-commit), so it needed no risky loop code. A second adversarial review (loop-security lens) passed 5/5 with 0 defects. **The decision that is now the founder's is config, not build:** set `STUDIO_AUTO_SHIP=1` to enable autonomous merge at earned trust (mirrors the `credits_enabled` go-live pattern). Auto-merge is a deliberate security tradeoff, which is why it ships dormant.
 
-**Cross-references.** Plan: [`../planning/byo-build-implementation-plan.md`](../planning/byo-build-implementation-plan.md) Phase 3. Spec: [`byo-build-and-cadence-cloud.md`](./byo-build-and-cadence-cloud.md). Lifecycle seams: [`../features/lifecycle-gap-map.md`](../features/lifecycle-gap-map.md). Board: G11 / BYO-P3 in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
+**Cross-references.** Plan: [`../planning/byo-build-implementation-plan.md`](../planning/byo-build-implementation-plan.md) Phase 3. Spec: [`byo-build-and-cadence-cloud.md`](./byo-build-and-cadence-cloud.md). Lifecycle seams: [`../planning/lifecycle-gap-map.md`](../planning/lifecycle-gap-map.md). Board: G11 / BYO-P3 in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
 
 
 > **Cross-references.** Versioned positioning: [`archive/v2-positioning.md`](./archive/v2-positioning.md). Feature backlog: [`../planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md). Operating rules: [`../../AGENTS.md`](../../AGENTS.md).
@@ -148,7 +148,7 @@
 
 **Tradeoffs considered:** (a) All-Hands Cloud free plan — same auth limitation; plan tier is irrelevant to the auth model. (b) Local Docker + ngrok — valid for one-time tests but URL changes on every ngrok restart; not stable for Lovable env var. (c) Local Docker + Cloudflare Tunnel — stable but adds CF Tunnel setup complexity. (d) Railway.app — simple, stable, permanent URL, ~$5/month, auto-HTTPS; recommended. (e) Render.com — free tier available but cold starts; acceptable fallback.
 
-**Impact:** [`docs/features/bld04-delegate-out.md`](./bld04-delegate-out.md) §Immediate next step and §All-Hands Cloud findings updated. [`docs/operations/openhands-activation.md`](../operations/openhands-activation.md) rewritten with Railway/Render/DO options, model-agnostic LLM table, and delegation trigger guide. BLD-04 status remains ◐ (blocked on founder Railway deployment).
+**Impact:** [`docs/features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) §Immediate next step and §All-Hands Cloud findings updated. [`docs/operations/openhands-activation.md`](../operations/openhands-activation.md) rewritten with Railway/Render/DO options, model-agnostic LLM table, and delegation trigger guide. BLD-04 status remains ◐ (blocked on founder Railway deployment).
 
 ---
 
@@ -172,7 +172,7 @@
 
 **Tradeoffs considered:** (a) One model for all — forces enterprises to either self-host or share infrastructure; wrong for both. (b) BYO-only — eliminates the SMB segment that cannot afford Devin. (c) Hybrid (chosen) — serves all segments; the seam is already built for this; only the Cadence-managed hosting increment is deferred.
 
-**Impact:** [`docs/features/bld04-delegate-out.md`](./bld04-delegate-out.md) §Deployment model decision section (the two-segment / three-tier analysis). This informs the future BYO-P5 (managed runtime) sequencing — BYO-P5 becomes the hosting backbone for the "Cadence-managed OpenHands" tier.
+**Impact:** [`docs/features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) §Deployment model decision section (the two-segment / three-tier analysis). This informs the future BYO-P5 (managed runtime) sequencing — BYO-P5 becomes the hosting backbone for the "Cadence-managed OpenHands" tier.
 
 ---
 
@@ -350,7 +350,7 @@
 4. **The Decision Brain (H1) is TOPMOST; its supersession engine (`DBR-1.5`) is Build Sequence #1.** It was verified unbuilt in code and had no row (only prose). Added it + the loop-closers (`MOAT-VIS`, `MOAT-METRIC`, `W1-AUTO`, `H1-TASKS`, `F-IA-BRAIN-GRAPH`) + 2 BBI integrity fixes (`EMBED-CHOKEPOINT`, `FIRECRAWL-FLOOR`) + `DATA-RETENTION-b` as claimable rows. `O1`/`O3` reparented from Sense into the Decision Brain (DBR-1/DBR-3).
 5. **The real-time status-board discipline is now explicit** (AGENTS.md §3): pick → claim+mark `In Dev` → build → mark `✅`/`◐` in the same commit + recompute the tally → next, so the board is live truth for both the next agent and a human reviewer.
 
-**Why it matters.** Prevents wasted/colliding effort, points the autonomous lanes at the moat (the Decision Brain) instead of plumbing, and makes the pick-order mechanical (no per-cycle judgment). Tally recomputed 64/160 = 40.0% strict / 59.1% weighted (the old 149 headline was stale). Full edit set: feature-dashboard.md, SOURCE-OF-TRUTH.md, AGENTS.md, PARALLEL-BUILD.md, v10-master-blueprint.md §16, byo-build-implementation-plan.md.
+**Why it matters.** Prevents wasted/colliding effort, points the autonomous lanes at the moat (the Decision Brain) instead of plumbing, and makes the pick-order mechanical (no per-cycle judgment). Tally recomputed 64/160 = 40.0% strict / 59.1% weighted (the old 149 headline was stale). Full edit set: feature-dashboard.md, SOURCE-OF-TRUTH.md, AGENTS.md, docs/operations/parallel-build.md, v10-master-blueprint.md §16, byo-build-implementation-plan.md.
 
 ### 2026-06-20 · Frontend build protocol: the full design-skill toolkit on every FE build (standing instruction)
 **Decision:** Every front-end build now runs a standing "frontend build protocol" that uses the FULL design-skill toolkit (visual/taste + interaction/motion + system/patterns skills), not `impeccable` alone. Codified in [`../conventions/design-context.md`](../conventions/design-context.md) ("The frontend build protocol", 6 steps), made non-negotiable in [`../../AGENTS.md`](../../AGENTS.md) §3.0d, and wired into the loop's per-item Build step.
@@ -1858,5 +1858,119 @@ _This log is maintained as part of the closed documentation loop. Every session 
 **Decision.** Built RF-07 reusing `judge`, with zero edits to any of the 5 pinned chokepoint files (`runtime.server.ts`, `loop.server.ts`, `tools/registry.server.ts`, `cache.server.ts`, `memory.server.ts`) - confirmed via `git diff --stat` before commit. Ran a dedicated 3-lens adversarial review with the CallSurface-reuse decision itself as one of the three lenses (not just safety/correctness of the new code), specifically to stress-test whether the prior audit's "ill-fitting" instinct held up for THIS use case even if it didn't for RF-04/LRN-02. It confirmed the reuse is safe: every place `runtime.server.ts` actually branches behavior on the surface string (budget caps, guardrails, humanization, caching, provider fallback) is gated by a `CallOpts` field RF-07 already sets correctly, not by the surface literal itself. Two real-but-minor, pre-existing gaps surfaced and were accepted as inherited (not introduced by RF-07): the `judge` surface's per-user budget cap and the cost dashboard's by-surface rollup both key on the bare surface string, not `surface_ref`, so RF-07/RF-04/LRN-02/real-eval-grading spend cannot be broken out from each other in the built-in UI today.
 
 **The lesson worth keeping.** A dashboard row marked "gated: needs a new chokepoint literal" is a claim someone made at a point in time, not a permanent fact - the chokepoint-edit gate in this repo is a genuine safety mechanism, but the CLAIM that a specific piece of work requires it can be wrong, and the wrongness compounds silently if never re-checked (this is the second correction of this kind this session, after RF-04 itself independently discovering the same reuse-`judge` pattern hours earlier). Before treating a "needs a new CallSurface / needs chokepoint attendance" audit finding as settled, check whether a structurally similar AI call has ALREADY shipped reusing an existing surface - `grep -rn 'surface: "judge"'` (or `"eval"`) across `src/lib` costs a few minutes and can turn a founder-attended, higher-ceremony pick into a normal autonomous one. This does not weaken the chokepoint gate itself - AGT-03's structural blocker (no persisted scaffold row to point a second lineage edge at) was independently re-checked earlier this session and held up, and RF-06's own gate (a trust-arc chokepoint edit plus a separate autonomy-policy call) rests on a different, two-part reason not addressed by this correction - it only means each gated row's REASON should be re-examined on its own merits before assuming the gate applies, rather than pattern-matched from a prior audit's label.
+
+---
+
+## 2026-07-10: Google connector app split from the login app - two trust tiers, one deliberate boundary
+
+**Context.** SW-7's eleventh drive (founder-driven registrations, 2026-07-10) registered Cadence's own Google Cloud OAuth app ("Cadence") for the four Google connectors (Docs, Calendar, Gmail, Google Tasks), each requesting broad "bring your own data" scopes (Drive/Docs, Calendar, Gmail read, Tasks). This is a structurally different app from the one behind the existing "Continue with Google" signup/login button ("Cadence Login" in Google's own console), which requests only minimal identity scopes and is owned by Lovable's managed OAuth broker (@lovable.dev/cloud-auth-js), not Cadence.
+
+**Decision.** Keep the two Google OAuth surfaces permanently separate rather than consolidating onto one app. The connector app ("Cadence") carries every sensitive/restricted data scope and is the one gated behind Google's verification process (currently Testing/test-user-allowlist, see the verification-deferral entry below); the login app carries zero data scopes and is unaffected by that gate, so a user can always sign up and log in even while every connector stays unverified. This mirrors the credential-boundary pattern already used for GitHub (a separate GitHub App for repo access, no separate login credential needed) and keeps blast radius contained.
+
+**Why:** conflating login and data-access scopes onto one OAuth app would mean every new sensitive connector scope re-triggers Google's verification review for the LOGIN button too, putting the ability to sign up for Cadence at the mercy of the slowest-moving connector's verification status. Splitting them keeps login evergreen and demo-ready regardless of where connector verification stands.
+
+**Ties to:** docs/operations/connector-setup.md (Google verification caveat), the verification-deferral entry below, docs/planning/feature-dashboard.md row 7 (SW-7, eleventh drive), docs/operations/auth-backend-migration-runbook.md.
+
+## 2026-07-10: Continue with Google stays on Lovable's managed broker, not a Cadence-owned app
+
+**Context.** While registering Cadence's own Google connector app, the login path was separately investigated: should "Continue with Google" also move off Lovable's managed OAuth broker (used only in login.tsx/signup.tsx) onto a Cadence-owned Google app? The parked docs/operations/auth-backend-migration-runbook.md (2026-06-17, status DEFERRED) already scoped this exact move as its "Move 2 - own the Google sign-in."
+
+**Decision.** Leave it on Lovable's broker for now, a three-tier call: (1) connector data scopes live on Cadence's own app, deliberately gated/Testing for now; (2) login identity scope stays on Lovable's already-verified, already-public broker; (3) revisit login ownership only alongside the already-deferred full Lovable-Cloud-to-owned-Supabase migration, not in isolation. Founder's own call: the current login UX already works cleanly and is already open to anyone, and moving it would require a real code change (native supabase.auth.signInWithOAuth({provider:'google'}) replacing the broker call) against Lovable's own stated integration guidance, for no immediate benefit.
+
+**Why:** decoupling the login-migration decision from the connector-app work avoids a second simultaneous auth change during ship-week; the runbook already establishes the real trigger for owning auth outright is the Lovable-Cloud migration as a whole, not a standalone Google-app swap.
+
+**Ties to:** docs/operations/auth-backend-migration-runbook.md, the Google-app-split entry above, docs/planning/feature-dashboard.md row 7 (SW-7, eleventh drive).
+
+## 2026-07-10: Google Workspace connector verification deliberately deferred, not a bug
+
+**Context.** Live-tested 2026-07-10 with a real Google account not on the test-user allowlist: connecting Google Docs/Calendar/Gmail/Tasks throws Google's Error 403: access_denied ("has not completed the Google verification process"), because the Cadence connector app is still in OAuth Testing publish status (max 100 manually added test users).
+
+**Decision.** Stay in Testing and defer full verification until Cadence has a live public homepage and is ready to invest the effort, rather than treat this as a bug to fix now. Docs/Calendar/Tasks sit on Google's standard "sensitive" scope tier, needing a live privacy policy (already have one), a live public homepage (do not have one yet - the actual blocker), and domain verification in Search Console; turnaround is normally days once those exist. Gmail's gmail.readonly is a Google restricted scope on top of that, requiring a paid third-party CASA security assessment - ruled to pursue as its own separate later decision, not bundled with the Docs/Calendar/Tasks push.
+
+**Why:** starting Google's verification process before Cadence has a public homepage is not possible regardless of effort, and bundling Gmail's paid CASA assessment into the same push would add cost and lead time to a step that is not itself gated. Sequencing it separately keeps the smaller, cheaper Docs/Calendar/Tasks verification unblocked the moment the homepage exists.
+
+**Ties to:** docs/operations/connector-setup.md's Google verification caveat, docs/planning/feature-dashboard.md row 7 (SW-7, eleventh drive), the two Google-app entries above.
+
+## 2026-07-09/10: New accounts were born at 0 credits, killing autonomy on arrival; fixed, then raised to a 750 starter grant
+
+**Context.** SW-7's tenth drive (2026-07-09), a clean end-to-end rerun on a brand-new production account, surfaced a live incident: the one-time credits backfill was the ONLY grant path, so every account created since it ran materialized with 0 credits. Observed directly: the default signal.created pipeline crash-waved 12 halted reactor missions in the account's first 15 minutes, every one blocked on "balance (0) below projected cost." Autonomy was fully dead on arrival for any new signup.
+
+**Decision.** Fixed same-day: ensure_user_default_account, the single place account rows are born, now triggers the parity-guarded backfill grant whenever an account's monthly grant is still 0, closing the gap at its root. The next day (2026-07-10, founder ruling), raised the free-tier starter grant itself from 500 to 750 credits so exploring the product does not run the meter dry mid-first-loop; existing free accounts were trued up +250 live. Added a one-time post-onboarding welcome moment naming the real granted amount, and a quiet session-dismissable low-balance banner under 100 credits.
+
+**Why:** a cost guard that can starve every autonomous run on account zero is a correctness bug, not a monetization lever - fixed as a P0 the moment it was observed live, independent of the separate, considered call to raise the starter amount to 750 the next day for onboarding-experience reasons.
+
+**Ties to:** docs/planning/feature-dashboard.md row 7 (SW-7, tenth drive), docs/planning/mission-demo-week.md's ship-week findings, docs/strategy/session-decisions.md's 2026-06-26 pricing-model entry (credit dropdown baseline).
+
+## 2026-07-10: Recorded outcomes now move the Decide ranking, not just memory retrieval
+
+**Context.** RF-02 (shipped 2026-07-03) closed v12's "keystone" gap for memory RETRIEVAL - match_agent_memory reranks by outcome verdict. But the separate, deterministic Decide-queue ranking chain (ICE score, Critic verdict, corroboration, signal volume) still had zero memory input: a theme's own recorded track record never influenced its ranking the next time it was proposed, so the "accumulated memory improves future decisions" claim stayed unbuilt in the one place it is most visible to a user.
+
+**Decision.** Added a new comparator tier, placed after the Critic verdict and before raw signal volume: each theme's decisive outcome record (validated lifts and missed sinks, capped at 3 each side so memory advises the human's own scoring rather than overruling it). Wired into both consumers end to end - the Discover opportunity queue (reusing learnings it already fetches, zero new queries) and the server-side best-bet pick feeding Today's judgment lane - and stated honestly in the visible rationale text ("outcomes on this theme run proven / have missed"), never silently. Pure and deterministic, 7 new tests; the default callback keeps every other caller byte-identical.
+
+**Why:** capping at 3 each side and placing the tier after the Critic (not before it) keeps outcome memory as one advisory signal among several rather than letting a noisy early track record dominate the ranking outright - consistent with the standing "memory advises, never overrules the human" doctrine applied elsewhere (RF-06's missed-outcome trust-arc blocker, RF-02's own decay term).
+
+**Ties to:** docs/strategy/v12-self-improving-os.md section 3 (RF-02, "the keystone"), docs/planning/feature-dashboard.md (the RF-01 addendum trace), commit 50a3b8c0.
+
+---
+
+## 2026-07-04: BUILD-ONLY MODE - the doc loop suspended for builds, one line of trace per shipped item
+
+**Context.** Tokens and time were scarce with a large build backlog still open. The full documentation loop (SSOT updates, feature docs, plan.md logging, doc-closure ceremony) was consuming a real share of every build session's budget on bookkeeping rather than shipping.
+
+**Decision.** Founder ruling: suspend the full documentation loop for build work. While active, every shipped item gets exactly two traces: a commit message with a real one-line WHY, and a one-line feature-dashboard row status flip (with a short note). Everything else in the loop - plan.md entries, SOURCE-OF-TRUTH updates, feature docs, brand-feed captures, doc-closure - is deferred to a later, explicit, founder-triggered batch pass rather than done per-item. Exit condition stated up front: the founder says "re-enable the doc loop" or "do the documentation pass."
+
+**Why:** per-item documentation overhead scales with the number of shipped items regardless of their size, so during a high-velocity build stretch it becomes a larger and larger tax on the thing that actually matters (shipping correct, working code); batching the catch-up into one deliberate pass keeps the record eventually complete without paying the tax on every single cycle.
+
+**One-time documentation catch-up (founder exception, 2026-07-10) - BUILD-ONLY MODE remains ACTIVE; this was a single reconciliation pass, not a re-enable of the full doc loop.** This session-decisions.md entry, and the rest of this 2026-07-10 reconciliation batch, is that first deferred batch pass - explicitly a one-time exception the founder called, not the trigger condition itself firing. The trigger condition for a real, permanent exit is unchanged: it still requires the founder to say so.
+
+**Ties to:** AGENTS.md §3 "BUILD-ONLY MODE", CLAUDE.md "Behavioral guidelines" + "The closed documentation loop (SUSPENDED)" section, docs/planning/feature-dashboard.md (the one-line-trace convention every shipped row now follows).
+
+## 2026-07-07: BuildDriver BD-1 scope-limited to native + OpenHands adapters this ship-week
+
+**Context.** Ship-week's seam 2 (SW-2, the build/test/ship spine, mission.md section 3.5-3.7) needed a real spec to reach a real deployed URL. The full BuildDriver initiative (group G13, phases BD-1..BD-6: extract the driver interface, promote OpenHands, add a Claude Agent SDK adapter, add BYO Devin/Codex/Cursor adapters, per-driver metering, a driver-choice surface) was still founder-gated PROPOSAL as a whole, decided-but-not-started per the 2026-06-29 build-driver-and-dispatch.md entry.
+
+**Decision.** Promote only BD-1 this ship-week: extract the `BuildDriver` interface and wrap the existing native loop as the "native" adapter, with OpenHands (the already-live-verified `delegate.openhands` seam) as the second adapter. Explicitly do NOT build the Claude-Agent-SDK, Devin, Codex, or Cursor adapters (BD-3 and later) this week - they stay founder-gated and deferred exactly as already decided, not silently dropped or quietly built ahead of a founder greenlight.
+
+**Why:** BD-1 alone turns "which engine writes the code" into a config choice forever instead of a future rebuild, which is exactly what ship-week's build/test/ship spine needed to prove end to end - without expanding scope into the higher-ceremony, still-ungated adapters that were deliberately left for the founder to sequence later.
+
+**Ties to:** docs/strategy/build-driver-and-dispatch.md §14 (phases BD-1..BD-6), docs/planning/feature-dashboard.md row 2 (SW-2, closed 2026-07-09) and row 13 (BUILD-DRIVER, group G13, still Deferred), docs/planning/mission-demo-week.md.
+
+## 2026-07-09: Workspace tier default changed to team-tier for all workspaces - a pre-traction GTM call
+
+**Context.** Live connector credentials for HubSpot, Salesforce, Canny, and Slack had been configured as env secrets since 2026-07-01 but were silently never ingesting anything, because every workspace sat on the 'free' plan tier and `assertConnectorCapability` fails closed with no visible error in the product - the 2026-06-27 read/write tier split (Free: manual only, Pro: read connectors, Business: read+write) was working exactly as designed, just against an account state nobody had noticed.
+
+**Decision.** Changed the `workspaces.plan_tier` column default from 'free' to 'team' and backfilled every existing workspace to 'team'; also fixed `ensure_user_default_workspace` to bump every freshly created workspace to 'team' too, since the column default alone does not survive the billing-column protection trigger on a plain non-service-role signup. Explicitly temporary: the migration's own comment states the intent to reinstate tier-limited connectors once the product has real traction and paying customers. The gating LOGIC itself (`assertConnectorCapability`, `entitlementsFor`, the catalog's `minTier` rules) is untouched - only the default and the existing rows changed.
+
+**Why:** pre-traction, every account - real prospects trying the product and the founder's own testing alike - should see Cadence's full connector capability with zero plan-tier restrictions rather than hit a silent "requires Pro/Business" wall; monetization enforcement can wait for real revenue, but a broken first impression from an invisible tier gate cannot.
+
+**Ties to:** supabase/migrations/20260709100000_temp_all_workspaces_team_tier.sql, docs/planning/feature-dashboard.md row 7 (SW-7, eighth drive), docs/strategy/session-decisions.md's 2026-06-27 integration-tiering entry (the read/write split this temporarily supersedes in practice, not in code).
+
+## 2026-07-09: Delighted connector removed from the catalog entirely - Canny stays admin-token-only, not a regression
+
+**Context.** SW-7's eighth ship-week connector drive (2026-07-09) moved every native-OAuth-capable provider off the dead Lovable gateway onto real native OAuth. Two providers never had a third-party OAuth flow to migrate to: Canny (its API has no OAuth of its own) and Delighted (Qualtrics sunset the product on 2026-07-01 - there is no live product left behind the connector at all).
+
+**Decision.** Remove Delighted from the connector catalog entirely (`catalogEntryCount` stays at 19 in the same pass that added Gmail and Outlook Mail native OAuth, since removing Delighted offsets those two additions). Keep Canny in the catalog, admin-token-only (`CANNY_API_KEY` is the only path; nothing to register or migrate).
+
+**Why:** a catalog entry for a sunset vendor with no OAuth path and no live product behind it can only ever confuse a user into trying to connect something that no longer exists, so removal is the honest choice; Canny's admin-token-only status is a genuine, permanent constraint of Canny's own API, not a Cadence gap or a downgrade from some formerly-working OAuth state, so it correctly stays rather than being held to Delighted's removal bar.
+
+**Ties to:** docs/operations/connector-setup.md (both caveats), src/lib/connectors/catalog.test.ts (the 19-entry count + comment), docs/planning/feature-dashboard.md row 7 (SW-7, eighth drive).
+
+## 2026-07-09: Credit engine stays config-gated and dormant - free-at-launch is the deliberate default posture
+
+**Context.** The same ship-week pass that fixed the 0-credit-on-signup incident and raised the starter grant to 750 (see the entry above) also had to decide whether to flip the credit engine's debit/metering path live. The launch monetization posture had already been framed in mission-demo-week.md as a binary config choice: free at launch with metering off, or flip the credit engine live once the founder supplies live Stripe keys - the engine itself is fully built and dormant either way.
+
+**Decision.** Keep debit/metering OFF. Only the visible, honest parts ship live: the 750-credit starter grant, the once-only CreditsWelcome moment naming the real granted amount, and the session-dismissable low-balance banner under 100 credits (which only renders while metering is actually on). The debit/metering flip itself stays gated behind the founder's own config decision and live Stripe keys; no autonomous lane may flip it.
+
+**Why:** flipping metering live is a monetization/billing decision that needs the founder's own timing and Stripe keys, not a build-completeness call - staying free-at-launch keeps the product frictionless through the same pre-traction window as the same-day workspace-tier-default ruling, while leaving the metering mechanism fully proven and one config flip away from live the moment the founder is ready to charge.
+
+**Ties to:** docs/planning/mission-demo-week.md §3.12, the 2026-07-09/10 750-credit starter-grant entry above, the 2026-07-09 workspace-tier-default entry above, docs/strategy/session-decisions.md's 2026-06-29 BYOK-retired/credits-first entry (the credit engine's original activation model).
+
+## 2026-07-09: Open question - should a human-tightened tool mode be a floor the autonomy dial cannot loosen past?
+
+**Context.** Closing SW-7's step 10 (the trust-ramp graduation seam) live on production exercised `resolveApprovalMode` end to end for the first time on a real curve: a human can tighten a tool from `auto` to `review`/`confirm` via the Tool oversight card, but at the `trusted`/`ambient` arc stages the dial actively loosens a stored `confirm` back to `auto` (the existing founder rulings that encode the arc's autonomy curve). In practice a human's `confirm`-level tightening can get silently overridden back to `auto` purely by the agent's own trust arc advancing, with no further human involvement; only a `review`-level tightening is sticky at every arc.
+
+**Open question:** is that the correct, intended behavior (the arc is allowed to earn back autonomy the dial once gave up, even over a human's own prior tightening), or should a human-set mode act as a hard floor - the dial can tighten a tool further but never loosen it past what a human has explicitly set? This was surfaced deliberately rather than resolved unilaterally: `resolveApprovalMode` lives inside the pinned AI chokepoint (`loop.server.ts` / `trust.server.ts`), and changing its precedence rules is exactly the class of edit that needs a founder ruling before touching, per the AGT-01/AGT-02 chokepoint precedent (2026-07-03, earlier in this log).
+
+**Ties to:** docs/planning/feature-dashboard.md row 7 (SW-7, ninth drive), src/lib/ai/trust.server.ts (`resolveApprovalMode`), docs/strategy/session-decisions.md's 2026-07-03 AGT-01/AGT-02 entry (the chokepoint-edit precedent this question falls under).
 
 **Ties to:** [`v12-self-improving-os.md`](./v12-self-improving-os.md) §3.2, [`../features/prompt-optimization.md`](../features/prompt-optimization.md), [`../features/house-rules.md`](../features/house-rules.md) (the precedent), `plan.md` §4 (2026-07-03 entry), dashboard row 48.

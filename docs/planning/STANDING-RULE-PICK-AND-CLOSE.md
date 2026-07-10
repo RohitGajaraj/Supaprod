@@ -1,5 +1,7 @@
 # Standing Rule — Pick Correctly, Close Fully (mandatory for every session)
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 > **Created 2026-06-25. Every lane, every session, every tool must read this before picking any item.**
 > The founder's rule: "No room for partial or false done. When you touch an item, drive it to ✅ completely."
 

@@ -1,6 +1,6 @@
 # ENTRY.md — Where do I start?
 
-> _Created: 2026-06-03 · Last updated: 2026-06-19_
+> _Created: 2026-06-03 · Last updated: 2026-07-10_
 
 > You just opened Cadence. This file routes you. Cadence is the **B2B Enterprise Product Cockpit** — an agent-native system of record and action where a swarm of specialist agents runs the entire product lifecycle (discover → definition → plan → build → test → ship → GTM launch → support → cohort analytics → learning loop) and a human governs the calls that matter. Agents execute. Humans govern. Full thesis: [`README.md`](./README.md). Strategic positioning: [`docs/strategy/`](./docs/strategy/) — always read the latest version file there before any positioning, feature, or UX work.
 
@@ -49,7 +49,7 @@
 | Asking "what is Cadence?"                                  | [`README.md`](./README.md)                                                                                                                                                                                                                          |
 | The founding constitution (AI co-founder role + mandates)  | [`Ai_Cofounder.md`](./Ai_Cofounder.md) — posture, north star, mandates; its **Repo Concordance** maps its 13 mandated docs onto this doc system                                                                                                     |
 | About to build (any agent or human)                        | [`AGENTS.md`](./AGENTS.md). Claude Code: [`CLAUDE.md`](./CLAUDE.md). Antigravity/Gemini: [`GEMINI.md`](./GEMINI.md).                                                                                                                                |
-| Designing UI / motion / tokens                             | [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (app, CURRENT v3 contract) · [`DESIGN.md`](./DESIGN.md) (landing page + history)                                                                                                                       |
+| Designing UI / motion / tokens                             | [`DESIGN-LOOM.md`](./DESIGN-LOOM.md) (app, CURRENT v4 contract, additive over v3) · [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) (app, v3 base layer Loom builds on) · [`DESIGN.md`](./DESIGN.md) (public landing page only)                                                                                                                       |
 | Modifying the AI runtime                                   | [`architecture/runtime.md`](./architecture/runtime.md)                                                                                                                                                                                              |
 | Building the autonomous orchestration layer                | [`architecture/orchestration.md`](./architecture/orchestration.md)                                                                                                                                                                                  |
 | Auth, tenancy, governance, secrets                         | [`architecture/security.md`](./architecture/security.md)                                                                                                                                                                                            |
@@ -102,7 +102,9 @@ Cadence/
 ├── CLAUDE.md             <- Claude Code pointer to AGENTS.md
 ├── GEMINI.md             <- Antigravity + Gemini CLI pointer to AGENTS.md
 ├── plan.md               <- feature scope + granular catalog + build order + logs
-├── design.md             <- design system + AI UI contract
+├── DESIGN-LOOM.md        <- CURRENT v4 app design contract (additive over v3)
+├── DESIGN-OBSIDIAN.md    <- v3 app design contract (base layer Loom builds on)
+├── DESIGN.md             <- public landing page design only
 ├── architecture/
 │   ├── runtime.md        <- AI chokepoint contract
 │   ├── orchestration.md  <- missions, parallel agents/sessions, automation, multi-product

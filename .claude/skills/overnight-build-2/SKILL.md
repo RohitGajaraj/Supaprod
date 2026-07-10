@@ -26,4 +26,4 @@ First detect context: `WT="$(git rev-parse --show-toplevel)"`.
 
 **B. If you are NOT inside the lane worktree** (on `main`, etc.) - do NOT build and do NOT open a terminal window. Tell the founder to open Lane 2 in a VS Code integrated terminal (`Cmd+Shift+P` → Tasks: Run Task → **"Lane 2"**, or open `cadence-parallel.code-workspace` → right-click the Lane 2 folder → Open in Integrated Terminal) and start it there. Then stop.
 
-Full model, the atomic-claim ledger, and the folder-name migration: `PARALLEL-BUILD.md` (repo root) and `docs/operations/autonomous-build-loop.md` §15-16.
+Full model, the atomic-claim ledger, and the folder-name migration: `docs/operations/parallel-build.md` and `docs/operations/autonomous-build-loop.md` §15-16.

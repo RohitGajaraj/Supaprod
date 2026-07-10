@@ -1,5 +1,7 @@
 # Lane 0 — parallel build report
 
+> _Created: 2026-06-21 · Last updated: 2026-07-09_
+
 > Lane 0 (`cadence-lane-0`, branch `parallel/lane-0`) per-item run log. Preferred categories: Monetization, Credit, Foundational (soft; then roam). One row per claimed item. The WM-run history this file's name references lived in `overnight-build-report.md`; this is Lane 0's peer-lane log going forward.
 
 ## Cycles

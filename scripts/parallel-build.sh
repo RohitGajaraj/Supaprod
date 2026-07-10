@@ -6,7 +6,7 @@
 # Tasks: Run Task) or open cadence-parallel.code-workspace and right-click a lane
 # folder -> Open in Integrated Terminal, then type /loop with the lane cycle
 # prompt. This script (which pops a separate Terminal/iTerm window via osascript)
-# remains only for non-VS-Code use. See PARALLEL-BUILD.md.
+# remains only for non-VS-Code use. See docs/operations/parallel-build.md.
 #
 # Each lane runs the autonomous /loop in its own git worktree, scoped by that
 # worktree's .remember/LANE.md (docs/operations/autonomous-build-loop.md s15-16).

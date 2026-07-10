@@ -1,5 +1,7 @@
 # AGT-01 - Structured-output protocol upgrade
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Built, tested, adversarially reviewed 2026-07-03; SHIPPED DORMANT (activation is the founder's own `AGENT_NATIVE_TOOLCALLING=1` decision) · Route(s) - engine only, rides `executeLoop` (the agent core) · Owner: Foundational (`src/lib/ai/loop.server.ts`, `src/lib/ai/runtime.server.ts`)
 
 ## What it does

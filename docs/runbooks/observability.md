@@ -1,5 +1,7 @@
 # Observability Runbook (AFD)
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 > Single front-door for activating + operating the Analytics & Failure-Detection stack.
 > Plan: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md).
 

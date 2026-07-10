@@ -1,5 +1,7 @@
 # OBS-14 · Onboarding golden path (Arrival to Today in ten minutes)
 
+> _Created: 2026-07-02 · Last updated: 2026-07-02_
+
 > Self-contained build + implementation spec. Read [`README.md`](./README.md) (the hub) once for the shared canon, then build from here. Where a value below is quoted, it is copied verbatim from the hub, `DESIGN-OBSIDIAN.md`, `design-reference/obsidian-extensions.md`, or the frozen prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`. The prototype is the floor; additions only add.
 
 ## 1. Snapshot

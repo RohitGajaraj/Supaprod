@@ -1,5 +1,7 @@
 # DSN-01 — Design memory
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/knowledge?tab=design` · Owner: `src/lib/design-memory.functions.ts`
 
 ## What it does

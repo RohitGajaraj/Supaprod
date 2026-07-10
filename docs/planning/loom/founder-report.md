@@ -95,8 +95,10 @@ marks in [`brand/`](./brand/).
    Lovable MCP is authorized.
 6. **Custom domain** — og:url/og:image reference the lovable.app domain
    (correct today); swap at domain time.
-7. **PARALLEL-BUILD.md** — pre-existing docs-doctor FAIL (root stray),
-   predates tonight; recommend allowlisting or moving in the next docs pass.
+7. **`PARALLEL-BUILD.md`** — pre-existing docs-doctor FAIL (root stray),
+   predated tonight; resolved 2026-07-10 (one-time documentation catch-up,
+   founder exception) by relocating to
+   [`docs/operations/parallel-build.md`](../../operations/parallel-build.md).
 8. **founders@cadence.dev** was removed from the login page (unverified
    address); add a real support address when one exists.
 

@@ -1,5 +1,7 @@
 # FS-01 / FS-04 — Foresight generators + risk in the brief
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-02 (FS-01) / 2026-07-03 (FS-04) · Route(s): `/today` · Owner agent(s): the intelligence analyst (Haiku, `sense` surface)
 
 ## What it does

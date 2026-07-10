@@ -1,6 +1,6 @@
 # CLAUDE.md — Claude Code entry point
 
-> _Created: 2026-06-03 · Last updated: 2026-06-19_
+> _Created: 2026-06-03 · Last updated: 2026-07-10_
 
 > **Claude Code reads this file. The operating rules live in [`AGENTS.md`](./AGENTS.md) — read it first; it is the canonical, tool-agnostic manual.** This file holds only Claude-Code-specific overrides so we never duplicate (and drift) the rules.
 
@@ -96,7 +96,7 @@ Before writing code: **Think. State assumptions. Surface tradeoffs.**
 While coding: **Surgical changes only — every line traces to the task.**
 Goals: **Minimum code. Simplicity first. Nothing speculative.**
 Success: **Define success criteria upfront. Verify before declaring done.**
-Velocity: **Ship features fast. Per cycle, gate on correctness only (tsc + build + tests + runtime-fatal review). BUILD-ONLY MODE is active: skip all documentation overhead, dashboard updates, feature docs, plan.md logs. Just build the code, verify it compiles and works, commit with a WHY, push.** _(Founder ruling 2026-07-04; canonical: [`AGENTS.md`](./AGENTS.md) §3.)_
+Velocity: **Ship features fast. Per cycle, gate on correctness only (tsc + build + tests + runtime-fatal review). BUILD-ONLY MODE is active: skip all documentation overhead, dashboard updates, feature docs, plan.md logs. Just build the code, verify it compiles and works, commit with a WHY, push.** _(Founder ruling 2026-07-04; canonical: [`AGENTS.md`](./AGENTS.md) §3.)_ _(One-time documentation catch-up ran 2026-07-10 per explicit founder exception, reconciling plan.md/SOURCE-OF-TRUTH.md/feature-dashboard.md/session-decisions.md and several planning/ops docs to current state; BUILD-ONLY MODE remains ACTIVE afterward — a single reconciliation pass, not a re-enable.)_
 
 Full detail: [`AGENTS.md`](./AGENTS.md), section 4. These apply equally to Claude Code, Antigravity, Gemini, and Lovable.
 
@@ -107,6 +107,8 @@ If your work touches telemetry, error capture, uptime, on-call, or the public st
 ## The closed documentation loop (⏸️ SUSPENDED — BUILD-ONLY MODE active)
 
 > **BUILD-ONLY MODE is ACTIVE (founder ruling 2026-07-04).** The full doc loop is PAUSED. During builds: no plan.md log, no SSOT updates, no feature docs, no brand-feed captures, no doc-closure ceremony. The ONE trace: flip the feature-dashboard row status + a one-line note when something is built. Em/en dashes in .md docs are fine (docs are not consumer-facing). Code-level humanization (source files, UI strings, generated output) still applies. Full details: [`AGENTS.md`](./AGENTS.md) §3 "BUILD-ONLY MODE". To re-enable: the founder says so.
+>
+> **One-time documentation catch-up (founder exception, 2026-07-10):** a single reconciliation pass brought `plan.md`, `SOURCE-OF-TRUTH.md`, `feature-dashboard.md`, `session-decisions.md`, and several planning/ops docs back to true current state. BUILD-ONLY MODE remains ACTIVE afterward — this was a single reconciliation pass, not a re-enable of the full doc loop.
 
 ## Claude-Code-specific notes
 

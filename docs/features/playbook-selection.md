@@ -1,5 +1,7 @@
 # RF-05 — Playbook selection by win rate
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) none (engine-only, rides `mission.plan`) · Owner: Orchestrator (`src/lib/ai/tools/orchestrator.server.ts`)
 
 ## What it does

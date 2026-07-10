@@ -1,5 +1,7 @@
 # Stripe / monetization key-readiness
 
+> _Created: 2026-06-22 · Last updated: 2026-06-22_
+
 > Status · The monetization engine is **code-complete and key-ready** as of 2026-06-22 (Lane 2). The credit metering engine is already live (see [`credit-engine-golive.md`](./credit-engine-golive.md)); this doc covers the **Stripe checkout/subscription/top-up/voucher** layer — what is built, the defects fixed to make it work when keys are plugged in, and the founder's last-mile go-live checklist. **No live Stripe keys are in the build yet, by founder ruling.** · Owner: monetization
 
 ## The build state (audited 2026-06-22, 6-agent readiness sweep)

@@ -1,5 +1,7 @@
 # Alerting runbook (AFD)
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 > **Status:** DOCUMENTATION ONLY until **AFD-13** ships. See [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md) for the full initiative.
 
 ## Sev tiers

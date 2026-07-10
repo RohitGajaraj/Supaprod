@@ -1,5 +1,7 @@
 # SUBPROC-DISCLOSURE — Sub-processor disclosure registry
 
+> _Created: 2026-06-20 · Last updated: 2026-07-07_
+
 > Status: ✅ Backend shipped 2026-06-20 (overnight cycle 49); calm-front Settings UI wired 2026-06-20 (cycle 51); PUBLIC trust page shipped 2026-06-21 (Lane 1) and **LIVE-VERIFIED on the published app 2026-06-22** (Lane 1): `GET https://cadence-flow-beta.lovable.app/subprocessors` returns HTTP **200** and the SSR'd HTML carries the full registry — the infra entries (Lovable, Supabase, Cloudflare) plus the catalog-derived model providers (OpenAI, Anthropic, Google/Gemini), with "model provider" and "subprocessor" rendered throughout. The login-free enterprise/GDPR-Art-28 trust page works in production with no secret/tenant leak. Only the legal-reviewed copy/regions/DPA remain (founder/legal pass — a polish layer on the factual base, not a build gap).
 
 ## What it does (one paragraph)

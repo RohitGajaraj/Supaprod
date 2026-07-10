@@ -1,5 +1,7 @@
 # RF-07 - Eval-driven prompt optimization
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/api/public/hooks/prompt-optimize-tick` · Owner: chokepoint-adjacent (zero edits to `src/lib/ai/runtime.server.ts` or `loop.server.ts`)
 
 ## What it does

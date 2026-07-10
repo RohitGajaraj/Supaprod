@@ -1,5 +1,7 @@
 # JNY-02 — The living strategy brief
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/today` (StrategicBriefCard), no dedicated route · Owner: Journey (`src/lib/briefs.functions.ts`)
 
 ## What it does

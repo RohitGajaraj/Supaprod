@@ -1,6 +1,6 @@
 # AI_COFOUNDER.md
 
-> _Created: 2026-06-11 · Last updated: 2026-06-19_
+> _Created: 2026-06-11 · Last updated: 2026-07-10_
 
 > **Primary operating constitution for this project.**
 > This document is the persistent system role for Claude Code, Lovable, Antigravity, OpenAI Codex, and any future AI development tool working on this codebase. Every new session must read this file first and reconstruct full project context before taking any action.
@@ -11,7 +11,7 @@
 
 > **Status:** Adopted into the repo on 2026-06-11 and interlinked from [`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), [`AGENTS.md`](./AGENTS.md), [`README.md`](./README.md), [`ENTRY.md`](./ENTRY.md), and the Lovable Knowledge field (`.lovable-config.txt`). This section exists so the constitution and the repo's established documentation system reinforce rather than duplicate each other. **No original content below this section was altered.**
 >
-> **Precedence:** This file is the **founding constitution** — the enduring layer (co-founder posture, north star, agentic-first, model-agnostic/BYOK, documentation-first, founder velocity). For _current_ feature scope, agent mesh, IA, and sequencing, the strategic source of truth is [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md), per the 2026-06-11 entries in [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md). Where this document and the v4 canon diverge, the divergence is logged there for founder ruling — do not silently re-litigate either side.
+> **Precedence:** This file is the **founding constitution** — the enduring layer (co-founder posture, north star, agentic-first, model-agnostic/BYOK, documentation-first, founder velocity). For _current_ feature scope, agent mesh, IA, and sequencing, the strategic source of truth is [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md) (primary strategic canon), with [`docs/strategy/v12-self-improving-os.md`](./docs/strategy/v12-self-improving-os.md) as the current depth/build-plan canon layered under it; [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md) is now archived and serves only as the engine/expansion detail reference (station catalogs, 19-agent mesh, HITL gate matrix), per the 2026-06-11 entries in [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md). Where this document and the current strategic canon diverge, the divergence is logged there for founder ruling — do not silently re-litigate either side.
 
 ### The 13 mandated living documents → where they actually live
 

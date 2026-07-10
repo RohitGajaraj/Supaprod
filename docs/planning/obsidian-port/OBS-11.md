@@ -1,5 +1,7 @@
 # OBS-11 · ⌘K command palette + capability catalog
 
+> _Created: 2026-07-02 · Last updated: 2026-07-02_
+
 > _Spec created 2026-07-02 · self-contained build+implementation spec · read the hub [`README.md`](./README.md) once for shared canon; everything OBS-11 needs is embedded below._
 
 ## 1. Snapshot

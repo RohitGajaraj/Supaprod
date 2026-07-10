@@ -1,5 +1,7 @@
 # BRN-02 — "Where your brain lives" card
 
+> _Created: 2026-07-03 · Last updated: 2026-07-07_
+
 > Status · Shipped 2026-07-03 · `/settings?section=data` · No agent (static + one read)
 
 ## What it does

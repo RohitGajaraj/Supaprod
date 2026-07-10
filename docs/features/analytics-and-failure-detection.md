@@ -1,5 +1,7 @@
 # Analytics & Failure Detection (AFD) — feature spec
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 > **Status:** DOCUMENTATION ONLY (no build yet, founder-gated). Full doctrine + 14 task IDs in [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md).
 
 ## What it does (one paragraph)

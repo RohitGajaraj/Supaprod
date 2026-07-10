@@ -1,5 +1,7 @@
 # Parallel build — Lane 1 report
 
+> _Created: 2026-06-22 · Last updated: 2026-07-07_
+
 > Lane 1 (`parallel/lane-1`, worktree `cadence-lane-1`). Preferred: Cockpit, then Governance; roams the whole board. Driver: continuous `/loop` in this terminal. Full rules: `docs/operations/autonomous-build-loop.md` §15-16.
 
 ## 2026-06-25 (22:00) — M1/LRN-01 increment 2: Support signals UI shipped

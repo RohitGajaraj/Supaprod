@@ -1,5 +1,7 @@
 # Build status - LIVE (auto-generated; do not edit)
 
+> _Created: 2026-06-21 · Last updated: 2026-06-21_
+
 > **The real-time view of who is building what + what is next.** Regenerated every few seconds by the `com.cadence.active-claims-sync` watcher from the atomic claim ledger (`~/.cadence-parallel`, instant) and origin/main's register (read-only `git fetch`, no pull needed). **Git-ignored** - it never rots, never conflicts. Instant CLI view: `bash scripts/lane.sh board`.
 >
 > **Updated 2026-06-21 05:53:47** | active lanes: 1 | Tier items done: 0 | register source: origin/main

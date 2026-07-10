@@ -1,5 +1,7 @@
 # Observability façade — the one-file vendor seam
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 > **Status:** DOCUMENTATION ONLY. Will be built by **AFD-02** (see [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md) §7).
 >
 > Every vendor SDK import lives behind this façade. The rest of the codebase imports from `src/lib/observability` only.

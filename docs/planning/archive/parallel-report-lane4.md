@@ -1,5 +1,7 @@
 # Parallel build — Lane 4 report
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Lane 4 (`parallel/lane-4`, worktree `cadence-lane-4`). Preferred: Build, then Interop; roams the whole board. Driver: continuous `/loop` in this terminal. Full rules: `docs/operations/autonomous-build-loop.md` §15-16.
 
 ## 2026-07-03 (overnight) — CNV-03 → FS-04 → DSN-04 shipped; board dry, session closed

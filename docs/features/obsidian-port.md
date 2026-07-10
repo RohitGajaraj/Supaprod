@@ -1,5 +1,7 @@
 # OBS-PORT (G14) · The Obsidian v3 port: how to verify, per ID
 
+> _Created: 2026-07-02 · Last updated: 2026-07-07_
+
 > Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`../planning/obsidian-port-plan.md`](../planning/obsidian-port-plan.md)
 
 ## What it does

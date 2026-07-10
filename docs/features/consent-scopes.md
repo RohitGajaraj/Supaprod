@@ -1,5 +1,7 @@
 # AGT-02 - Consent scopes
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) - engine only, rides `executeLoop` (the agent core) · Owner: Foundational (`src/lib/ai/loop.server.ts`)
 
 ## What it does

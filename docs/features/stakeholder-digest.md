@@ -1,5 +1,7 @@
 # JNY-05 — The ambient stakeholder loop
 
+> _Created: 2026-07-03 · Last updated: 2026-07-07_
+
 > Status · ✅ Shipped (email leg + Slack write-back both code-complete) · 2026-07-03 · Settings > Notifications (email) + `/sync` Workspace bindings (Slack) · No new agent
 
 ## What it does

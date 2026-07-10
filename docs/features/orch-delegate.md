@@ -1,5 +1,7 @@
 # ORCH-DELEGATE: Build as orchestration, not codegen
 
+> _Created: 2026-06-25 · Last updated: 2026-06-25_
+
 **Status:** ◐ Linear-dispatch path shipped (lane 3, 2026-06-25). External coding-agent half (BLD-04) is founder-gated.
 
 ## What this is

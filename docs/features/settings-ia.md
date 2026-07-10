@@ -1,5 +1,7 @@
 # Settings IA — Account / Workspace / Personal rubric (WM-F7)
 
+> _Created: 2026-06-22 · Last updated: 2026-07-07_
+
 > Status · ✅ Rubric decided + documented 2026-06-22 (Lane 2). The Settings surface (`/settings`, `src/routes/_authenticated.settings.tsx`) is built + live-tested; this is the "clear rubric for where each setting lives" the WM-F7 row calls for, so a new setting always lands in the right scope and never drifts. · Owner: the tenancy lane
 
 ## The rubric (the one rule)

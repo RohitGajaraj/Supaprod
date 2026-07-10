@@ -1,5 +1,7 @@
 # Credit engine go-live — tested live 2026-06-22 (Lane 1)
 
+> _Created: 2026-06-22 · Last updated: 2026-06-22_
+
 > Status: ✅ The credit metering engine was taken LIVE on the published app and verified end-to-end. Metering is currently **ON**. The app has no public customers yet (build phase), so this was a safe full-path test (founder-authorized).
 
 ## What was done (the safe go-live sequence)

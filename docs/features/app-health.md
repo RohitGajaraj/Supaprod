@@ -1,5 +1,7 @@
 # APP-HEALTH — App-level health/readiness endpoint
 
+> _Created: 2026-06-20 · Last updated: 2026-06-25_
+
 > Status: ✅ Endpoint shipped 2026-06-20 (overnight cycle 50) and **LIVE-VERIFIED on the published app 2026-06-22** (Lane 1): `GET https://cadence-flow-beta.lovable.app/api/public/health` returns HTTP **200** `{"status":"ok","service":"cadence","checks":{"worker":"ok","database":"ok"}}` — the live DB reachability probe (previously not run unattended) works in production. The named deliverable (the endpoint a monitor/LB polls) is complete and proven live. Out of autonomous scope (founder/design follow-up, non-blocking): wiring an external uptime monitor to alert on 503, and a public status page.
 
 ## What it does (one paragraph)

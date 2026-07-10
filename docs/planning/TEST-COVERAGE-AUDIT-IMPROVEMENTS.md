@@ -1,5 +1,9 @@
 # Test Coverage Audit Improvements
 
+> _Created: 2026-07-07 · Last updated: 2026-07-07_
+>
+> One-time documentation catch-up (founder exception, 2026-07-10) — BUILD-ONLY MODE remains ACTIVE; this was a single reconciliation pass, not a re-enable of the full doc loop.
+
 **Session**: 2026-07-07 (continued from previous context)  
 **Status**: Complete ✅  
 **Tests**: 2516 passing (0 failures)  
@@ -306,7 +310,7 @@ If jsdom support added in future:
 
 1. **Review & Merge**: PR review of test coverage improvements
 2. **Security Remediation**: Separate PR for FigmaEmbed iframe sandbox fix (flagged in tests)
-3. **Documentation**: Update [`docs/conventions/testing.md`](../conventions/testing.md) with extraction pattern
+3. **Documentation**: Update `docs/conventions/testing.md` with extraction pattern
 4. **Continuous Integration**: Ensure coverage reports track pure-logic testing (not JSX inflation)
 
 ---

@@ -1,5 +1,7 @@
 # JNY-03 — The test station
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Build mission slide-over (`/build/$missionId`, the `?mission=` slide-over) · No new agent
 
 ## What it does

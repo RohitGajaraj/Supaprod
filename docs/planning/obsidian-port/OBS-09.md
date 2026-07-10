@@ -1,5 +1,7 @@
 # OBS-09 · Engine Room ported (one door, four rooms)
 
+> _Created: 2026-07-02 · Last updated: 2026-07-02_
+
 > Self-contained build + implementation spec. Pick this cold and build it. The shared design DNA, codebase map, and sequencing live in [`README.md`](./README.md) (the hub); everything you need to build THIS surface is embedded below. When this spec and the contract disagree, the contract wins; when a fine visual detail differs between the contract text and the runnable prototype, the prototype's rendering is the founder-approved outcome.
 
 ## 1. Snapshot

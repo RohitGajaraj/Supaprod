@@ -1,5 +1,7 @@
 # Parallel build — Lane 3 report
 
+> _Created: 2026-06-25 · Last updated: 2026-07-03_
+
 > Lane 3 (`parallel/lane-3`, worktree `cadence-lane-3`). Preferred: Governance, then Cockpit; roams the whole board. Driver: continuous `/loop` in this terminal. Full rules: `docs/operations/autonomous-build-loop.md` §15-16.
 
 ## 2026-06-25 — SANDBOX #23: ExecProvider seam made load-bearing (founder-directed pick)

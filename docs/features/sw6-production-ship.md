@@ -1,5 +1,7 @@
 # SW-6 — Production ship (failure floor, tenant safety, cold start, felt journey)
 
+> _Created: 2026-07-08 · Last updated: 2026-07-08_
+
 > _Ship-week seam 6. Mission `docs/planning/mission-demo-week.md` sections 3.12 + 3.13. Shipped 2026-07-07 (lane 1)._
 
 The seam that separates "great demo" from "shipped product": a stranger can sign up on the production URL, reach first value unassisted, is safe to let loose, and the founder can see it if any part breaks. This is functionality, not styling.

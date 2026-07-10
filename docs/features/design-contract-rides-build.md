@@ -1,5 +1,7 @@
 # DSN-04 — The design contract rides into Build
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s): none (dispatch-time + return-time only) · Owner agent(s): the Studio agent (`builder`)
 
 ## What it does

@@ -1,5 +1,7 @@
 # OpenHands Self-Host Activation Guide
 
+> _Created: 2026-06-29 · Last updated: 2026-06-29_
+
 > **BLD-04 status (2026-06-29):** Cadence code is complete and dormant. The seam, adapter, model-agnostic LLM resolver, poll/fold cycle, and `delegate_meta` persistence are all shipped and tested. This guide covers deploying a publicly accessible OpenHands instance and wiring 3 env vars in Lovable to activate delegation end-to-end.
 >
 > Cross-references: [`docs/features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) | [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29

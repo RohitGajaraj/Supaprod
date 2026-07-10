@@ -1,5 +1,7 @@
 # Parallel build report - Build / Studio lane
 
+> _Created: 2026-06-19 · Last updated: 2026-06-19_
+
 > _Per-lane audit trail. The WM/overnight lane reports separately in `overnight-build-report.md`; do not write there._
 > Branch: `parallel/build` · Worktree: `cadence-build` (sibling of the repo) · Lane scope: this worktree's `.remember/LANE.md`
 

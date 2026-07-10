@@ -1,5 +1,7 @@
 # RF-04 — House-rules distillation
 
+> _Created: 2026-07-03 · Last updated: 2026-07-03_
+
 > Status · Shipped 2026-07-03 · Route(s) `/govern?tab=house-rules` · `/api/public/hooks/house-rules-tick` · Owner: chokepoint (`src/lib/ai/loop.server.ts`)
 
 ## What it does
