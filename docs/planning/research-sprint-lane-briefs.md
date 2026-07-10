@@ -10,7 +10,7 @@
 
 ```
 git pull origin main. Read docs/planning/launch-sprint-specs.md (sections PC-05, PC-07, and "The lane cut"), then docs/planning/v13-proof-campaign-plan.md sections 0-1 and 4.
-You are LANE A (Fable): (1) PC-05 billing go-live pack - build to the live-key seam even if the merchant-of-record account is not yet provided (mark [awaiting MoR account] at that seam). (2) PC-07 goal-until-verified missions - you are the ONLY lane allowed to edit src/lib/ai/loop.server.ts / runtime.server.ts; adversarial self-review before every chokepoint commit. (3) Then you become the STANDING REVIEW GATE: after Lane B ships each surface, run its Love-Gate walkthrough on a fresh production account (the 5-second test + the stranger test) and fix-or-file what fails; review Lane C's PC-12 and PC-16 diffs before merge.
+You are LANE A (Fable): (0) FIRST build PC-32 on the Today surface ONLY - the reference implementation of 'super light' per coherence-cluster-specs.md sec PC-32 (the exact anatomy blocks 1-6); ship it, then hand the cluster to Lane B. (1) PC-05 billing go-live pack - build to the live-key seam even if the merchant-of-record account is not yet provided (mark [awaiting MoR account] at that seam). (2) PC-07 goal-until-verified missions - you are the ONLY lane allowed to edit src/lib/ai/loop.server.ts / runtime.server.ts; adversarial self-review before every chokepoint commit. (3) Then you become the STANDING REVIEW GATE: after Lane B ships each surface, run its Love-Gate walkthrough on a fresh production account (the 5-second test + the stranger test) and fix-or-file what fails; review Lane C's PC-12 and PC-16 diffs before merge.
 CLAIM per the shared protocol below. Worktree: ../cadence-lane-A -b parallel/lane-A. Push each ship: git push origin parallel/lane-A:main.
 ```
 
@@ -18,7 +18,7 @@ CLAIM per the shared protocol below. Worktree: ../cadence-lane-A -b parallel/lan
 
 ```
 git pull origin main. Read docs/planning/coherence-cluster-specs.md FULLY (v2 - decision-complete cold-build specs with file:line evidence), then docs/planning/v13-proof-campaign-plan.md sections 0-2.
-You are LANE B (Sonnet): the coherence cluster in exactly this order: PC-32 -> PC-33 -> PC-28 -> PC-29 -> PC-30 -> PC-31. The thinking is done in the spec: build what it says; verify each cited file:line before editing; where a genuine judgment fork appears that the spec does not answer, write the question + your recommendation on the dashboard row, take the reversible option, and continue - never block, never invent scope.
+You are LANE B (Sonnet): the coherence cluster in exactly this order: PC-32 (remaining surfaces - Today is Lane A's shipped reference; MATCH its bar) -> PC-33 -> PC-34 (the Brain restructure) -> PC-28 -> PC-29 -> PC-30 -> PC-31. The thinking is done in the spec: build what it says; verify each cited file:line before editing; where a genuine judgment fork appears that the spec does not answer, write the question + your recommendation on the dashboard row, take the reversible option, and continue - never block, never invent scope.
 Your exclusive files while a cluster row is In-Dev: the 7 surface route files, src/lib/nav-model.ts, src/lib/agent-vocabulary.ts, the today/* lane components. Chokepoints are Lane A's - if a step needs them, note it on the row and continue.
 After each surface ships, notify via the row note; Lane A runs the Love Gate on it.
 CLAIM per the shared protocol. Worktree: ../cadence-lane-B -b parallel/lane-B. Push: git push origin parallel/lane-B:main.

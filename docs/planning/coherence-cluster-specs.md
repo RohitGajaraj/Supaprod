@@ -2,7 +2,7 @@
 
 > _v2, 2026-07-10 late. **Rewritten after the founder's pressure-test directive** ("nothing is gated on me; think it through; bind to reality") **and a three-agent code audit** (Today's composition, the agent-roster reality, the design/prototype machinery — file:line pointers throughout). Every decision here is MADE, not deferred. A Sonnet lane builds any section cold; a Fable lane may deepen but not silently skip. Board: G17 sprint rows; summaries: [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §2; lane prompts: [`research-sprint-lane-briefs.md`](./research-sprint-lane-briefs.md)._
 
-**The cluster's single goal:** the founder's bar — *super light on the surface, an immense engine underneath, and unmistakably agentic-first.* Six rows, one re-experience, built in this order: **PC-32 structure → PC-33 context → PC-28 naming → PC-29 agency → PC-30 capability → PC-31 design station.** (Structure first because everything else needs the decluttered canvas; context before naming because the masthead is a naming surface; agency after both because bylines land in the new layout.)
+**The cluster's single goal:** the founder's bar — *super light on the surface, an immense engine underneath, and unmistakably agentic-first.* Seven rows, one re-experience, built in this order: **PC-32 structure → PC-33 context → PC-34 the Brain restructure → PC-28 naming → PC-29 agency → PC-30 capability → PC-31 design station.** (PC-34 before 30/33's Brain-homed pieces so they land INTO its structure, not beside it as more tabs.) (Structure first because everything else needs the decluttered canvas; context before naming because the masthead is a naming surface; agency after both because bylines land in the new layout.)
 
 **Shared laws (binding):** BUILD-ONLY gates (tsc/build/tests, row flip + note) · the Love Gate (fresh prod account walkthrough; the 5-second test) · claim-never-outruns-wiring · humanized output · LOOM v4 tokens/visuals UNTOUCHED (this cluster changes structure, language, and presence — never the visual system) · one surface fully coherent before the next.
 
@@ -33,6 +33,27 @@
 **Build:** (1) **The identity object** = a `getProductContext(workspaceId)` read composing: product name, the Brief's positioning one-liner, north-star/top bet, stage — no new tables. (2) **The masthead line** on Today (PC-32 block 2) and as the eyebrow on Discover/Decide/Define/Design/Build (one shared `ProductMasthead` component, one quiet line, never a banner). (3) **The switcher becomes a portfolio**: the workspace/product switcher (AppShell header) renders identity cards — name · one-liner · current focus · "N calls waiting" (the existing badge count per workspace) — so switching = choosing which story to enter. (4) **The Brief's home moves to Brain** (a "Brief" lens beside the Design tab): read + edit-in-place; every edit = the existing versioned/supersedable machinery (JNY-02); Settings keeps a pointer row only. (5) **Onboarding captures it at birth**: PC-02's "What are you building?" gains north-star + one-liner fields writing the initial Brief (extend `ProductNamePreGate`, `ObsidianOnboarding.tsx` L111).
 
 **Accept:** on a two-product account, switching products visibly changes the masthead + portfolio card everywhere; the Brief edits from Brain with a receipt; a fresh onboarding writes it. **Pitch hook:** the portfolio switcher is a demo beat (one PM, five products — the force-multiplier claim rendered); add to `docs/pitch/demo-script.md` audience variants when shipped.
+
+---
+
+## PC-34 — The Brain restructured: the moat made felt (not a filing cabinet)
+
+**The founder's read (correct):** 6–7 parallel tabs = storage buckets shown as navigation — high cognitive load, low insight. And unfixed, PC-30 (Capabilities) + PC-33 (Brief) would make it 8–9. **The principle: the Brain's IA mirrors the memory MODEL, not the storage tables.** This is the moat's home — the surface where "your Cadence knows your product" must be FELT — so it opens as an analyst, never as an archive.
+
+**The anatomy (one front door + four kinds of knowing + one recessed door):**
+1. **The front door (what you see first, the whole first viewport):** the ask box ("Ask your product's memory anything — why did we decide X?") + **"What changed since you last looked"** (3–5 lines, agent-bylined: new learnings, moved rankings, a superseded decision, a contradiction found) + up to 2 **volunteered insights** (the v11 §7 open ceiling: predictions, contradictions, cost-of-inaction — each with receipts and an act-on-it verb). The Brain GREETS you with intelligence; you never start by choosing a bucket.
+2. **Four lenses beneath (quiet cards, one row):**
+   - **Identity** — what we're building and why: the Brief (vision · ICP · positioning · top bets — PC-33's home, edit-in-place, versioned) + the product's learned taste summary (Brand Kit pointer → `/design`).
+   - **Judgment** — the moat record: decisions → evidence → outcome → superseded-by, as a narrative timeline ("how belief moved"), with the **calibration line** ("Cadence called N of the last M") and the **Learning thread** (what the RF loop learned this week, which rankings moved and why). Supersession renders as story ("replaced by X after the March outcome"), never graph jargon.
+   - **Knowledge** — the evidence corpus: themes/signals digests, docs, meetings, research briefs — grouped by what they're ABOUT (product areas), not by source table.
+   - **Capability** — PC-30's content (what Cadence knows how to do: instructions, skills with win-rates, autonomy, receipted change history).
+3. **The flagship visual stays:** the living knowledge graph is the marquee *within* Judgment/Knowledge (a "see it as a graph" toggle), not a peer tab.
+4. **Under the hood (one recessed door, or Engine Room):** raw memory rows, importance/decay mechanics, RAG chunks/indexer state, embeddings — the user NEVER needs these; agents do. Anything currently a tab that is machinery moves here.
+
+**What we hide (the founder's question, answered):** hide mechanisms (vectors, chunks, importance scores, decay, supersession edges as edges); NEVER hide outcomes, receipts, or what was learned — the moat is felt through derived intelligence, and trust dies if the record itself is obscured. Rule: **hide how it thinks, show what it knows and how sure it is.**
+
+**Build (Lane B, after PC-32/33):** verify-first: list Brain's current tabs + their components (`_authenticated.brain.tsx` Tab union). Then: the front-door section (compose existing: ask/chat fn, learnings + ice_adjustments for "what changed", the insight generators for volunteered items); regroup existing panels under the four lenses (mostly re-parenting, components exist); build the Judgment timeline view (decisions + lineage + outcomes joined — the supersession chain query exists in `governing-decision`); recess machinery tabs. PC-30/PC-33 specs land their content INTO Identity/Capability (their specs' placement lines defer to this section).
+**Accept:** Brain's first viewport = door #1 only (no tab bar as the opener); the four lenses + one recessed door replace the flat tabs; the 5-second test ("what do we know / what changed?") passes; the stranger finds "why did we decide X" in one action; nothing previously reachable is lost (doors, not deletions).
 
 ---
 
