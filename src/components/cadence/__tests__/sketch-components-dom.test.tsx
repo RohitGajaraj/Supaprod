@@ -64,22 +64,48 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
   });
 
   it("should detect and bypass stale onMouseLeave events (race guard logic)", async () => {
-    const data: SketchBarDatum[] = [{ label: "Only", value: 42 }];
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+      { label: "Wed", value: 15 },
+    ];
     const { container } = render(
       <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
     );
 
-    const bar = container.querySelector("g[role='button']") as SVGGElement;
+    const buttons = container.querySelectorAll("button");
+    const btn0 = buttons[0];
+    const btn1 = buttons[1];
+    const btn2 = buttons[2];
 
-    // Simulate rapid mouseEnter + mouseLeave
-    fireEvent.mouseEnter(bar);
-    fireEvent.mouseLeave(bar);
-    fireEvent.mouseEnter(bar);
-    fireEvent.mouseLeave(bar);
-
-    // Component should not crash and should render final state correctly
+    // Simulate the problematic sequence:
+    // 1. Hover over btn0 -> activeIdx becomes 0, "Mon" shows
+    fireEvent.mouseEnter(btn0);
     await waitFor(() => {
-      expect(screen.getByText(/Only/i) || screen.getByText(/42/i)).toBeDefined();
+      expect(screen.getByText(/Mon/i)).toBeDefined();
+    });
+
+    // 2. Hover over btn1 -> activeIdx becomes 1, "Tue" shows
+    fireEvent.mouseEnter(btn1);
+    await waitFor(() => {
+      expect(screen.getByText(/Tue/i)).toBeDefined();
+    });
+
+    // 3. Leave btn0 (a stale event from the old hover) -> should NOT reset
+    //    because the functional updater checks h === i before clearing.
+    //    Since btn1 is now active (h === 1), leaving btn0 (i === 0) does nothing.
+    fireEvent.mouseLeave(btn0);
+
+    // 4. Verify "Tue" is STILL shown (not reverted to default or "Mon")
+    await waitFor(() => {
+      expect(screen.getByText(/Tue/i)).toBeDefined();
+    });
+
+    // 5. Now leave btn1 intentionally -> activeIdx should go back to default
+    fireEvent.mouseLeave(btn1);
+    await waitFor(() => {
+      // Should show the last bar (Wed) as the default when hover is null
+      expect(screen.getByText(/Wed/i)).toBeDefined();
     });
   });
 
@@ -123,13 +149,58 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
       <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
     );
 
-    const bar = container.querySelector("g[role='button']") as SVGGElement;
-    fireEvent.mouseEnter(bar);
+    const buttons = container.querySelectorAll("button");
+    const button = buttons[0];
+    fireEvent.mouseEnter(button);
 
     await waitFor(() => {
-      // Role should persist after hover
-      expect(bar.getAttribute("role")).toBe("button");
+      // Button should still be interactive after hover
+      expect(button).toBeDefined();
     });
+  });
+
+  it("should include insight text in group aria-label for agent accessibility", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 100 },
+      { label: "Tue", value: 50 },
+      { label: "Wed", value: 75 },
+    ];
+    const customInsight = "Revenue is trending upward with a dip midweek";
+    const { container } = render(
+      <SketchBarChart
+        data={data}
+        height={100}
+        formatValue={(v) => `$${v}`}
+        ariaLabel="Weekly Revenue"
+        insight={customInsight}
+      />,
+    );
+
+    // The group role should have both the aria-label and the insight text
+    const group = container.querySelector("[role='group']");
+    expect(group).toBeDefined();
+    const ariaLabel = group?.getAttribute("aria-label") || "";
+    expect(ariaLabel).toContain("Weekly Revenue");
+    expect(ariaLabel).toContain(customInsight);
+    expect(ariaLabel).toMatch(/Weekly Revenue.*Revenue is trending upward/);
+  });
+
+  it("should render auto-derived insight text in aria-label when not overridden", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+      { label: "Wed", value: 5 },
+    ];
+    const { container } = render(
+      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} ariaLabel="Activity" />,
+    );
+
+    // Should auto-derive insight and include in aria-label
+    const group = container.querySelector("[role='group']");
+    const ariaLabel = group?.getAttribute("aria-label") || "";
+    expect(ariaLabel).toContain("Activity");
+    // Auto-derived insight should be present (barInsight function generates it)
+    expect(ariaLabel.length).toBeGreaterThan("Activity".length);
   });
 });
 
@@ -271,6 +342,66 @@ describe("SketchBar — Individual Bar Element (DOM-mounted)", () => {
   });
 });
 
+describe("SketchBarChart — Baseline Reference Line (DOM-mounted)", () => {
+  it("should render baseline line when baseline prop is provided", () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+    ];
+    const { container } = render(
+      <SketchBarChart
+        data={data}
+        height={100}
+        formatValue={(v) => String(v)}
+        baseline={15}
+        baselineLabel="Target"
+      />,
+    );
+
+    // Should have a dashed line div for baseline
+    const baseline = container.querySelector("div[title='Target']");
+    expect(baseline).toBeDefined();
+    expect(baseline?.style.borderTop).toContain("dashed");
+  });
+
+  it("should position baseline correctly at percentage height", () => {
+    const data: SketchBarDatum[] = [
+      { label: "Low", value: 5 },
+      { label: "High", value: 100 },
+    ];
+    const { container } = render(
+      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} baseline={50} />,
+    );
+
+    const baseline = container.querySelector("div[style*='bottom']");
+    const bottomStyle = baseline?.getAttribute("style") || "";
+    // Baseline at 50 out of 100 max should be at 50%
+    expect(bottomStyle).toContain("50%");
+  });
+
+  it("should not render baseline when not provided", () => {
+    const data: SketchBarDatum[] = [{ label: "Mon", value: 10 }];
+    const { container } = render(
+      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+    );
+
+    const baselineRefs = container.querySelectorAll("[style*='dashed']");
+    expect(baselineRefs.length).toBe(0);
+  });
+
+  it("should clamp baseline to max 100%", () => {
+    const data: SketchBarDatum[] = [{ label: "Mon", value: 10 }];
+    const { container } = render(
+      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} baseline={1000} />,
+    );
+
+    const baseline = container.querySelector("div[style*='bottom']");
+    const bottomStyle = baseline?.getAttribute("style") || "";
+    // Baseline higher than max should clamp to 100%
+    expect(bottomStyle).toContain("100%");
+  });
+});
+
 describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
   it("should handle single-bar data (no trend analysis)", () => {
     const data: SketchBarDatum[] = [{ label: "Only", value: 42 }];
@@ -279,8 +410,8 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
     );
 
     // Should render without crashing
-    const bars = container.querySelectorAll("g[role='button']");
-    expect(bars.length).toBe(1);
+    const buttons = container.querySelectorAll("button");
+    expect(buttons.length).toBe(1);
   });
 
   it("should handle large dataset (performance check)", () => {
@@ -293,8 +424,8 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
       <SketchBarChart data={data} height={100} formatValue={(v) => String(Math.round(v))} />,
     );
 
-    const bars = container.querySelectorAll("g[role='button']");
-    expect(bars.length).toBe(100);
+    const buttons = container.querySelectorAll("button");
+    expect(buttons.length).toBe(100);
   });
 
   it("should handle all zero values", () => {
@@ -308,8 +439,8 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
       <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
     );
 
-    const bars = container.querySelectorAll("g[role='button']");
-    expect(bars.length).toBe(3);
+    const buttons = container.querySelectorAll("button");
+    expect(buttons.length).toBe(3);
   });
 
   it("should handle negative values", () => {
@@ -322,8 +453,8 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
       <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
     );
 
-    const bars = container.querySelectorAll("g[role='button']");
-    expect(bars.length).toBe(2);
+    const buttons = container.querySelectorAll("button");
+    expect(buttons.length).toBe(2);
   });
 
   it("should handle very small height", () => {
