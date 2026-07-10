@@ -26,9 +26,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  */
 export const revertPrdToPrevious = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ prd_id: z.string().uuid() }).parse(i),
-  )
+  .inputValidator((i: unknown) => z.object({ prd_id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
@@ -40,11 +38,9 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
       .eq("id", data.prd_id)
       .single();
 
-    if (fetchErr || !prd)
-      throw new Error(`PRD not found: ${fetchErr?.message}`);
+    if (fetchErr || !prd) throw new Error(`PRD not found: ${fetchErr?.message}`);
 
-    if (!prd.snapshot_before)
-      throw new Error("This PRD has no previous snapshot to revert to.");
+    if (!prd.snapshot_before) throw new Error("This PRD has no previous snapshot to revert to.");
 
     // Restore from snapshot
     const revertedBodyMd = prd.snapshot_before as any;
@@ -90,9 +86,7 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
  */
 export const revertDecisionToPrevious = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ decision_id: z.string().uuid() }).parse(i),
-  )
+  .inputValidator((i: unknown) => z.object({ decision_id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
@@ -103,13 +97,10 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
       .eq("id", data.decision_id)
       .single();
 
-    if (fetchErr || !decision)
-      throw new Error(`Decision not found: ${fetchErr?.message}`);
+    if (fetchErr || !decision) throw new Error(`Decision not found: ${fetchErr?.message}`);
 
     if (!decision.snapshot_before)
-      throw new Error(
-        "This decision has no previous snapshot to revert to.",
-      );
+      throw new Error("This decision has no previous snapshot to revert to.");
 
     const revertedBody = decision.snapshot_before as any;
     const currentSnapshot = {
@@ -147,9 +138,7 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
  */
 export const revertRoadmapToPrevious = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z.object({ roadmap_id: z.string().uuid() }).parse(i),
-  )
+  .inputValidator((i: unknown) => z.object({ roadmap_id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
@@ -160,8 +149,7 @@ export const revertRoadmapToPrevious = createServerFn({ method: "POST" })
       .eq("id", data.roadmap_id)
       .single();
 
-    if (fetchErr || !roadmap)
-      throw new Error(`Roadmap not found: ${fetchErr?.message}`);
+    if (fetchErr || !roadmap) throw new Error(`Roadmap not found: ${fetchErr?.message}`);
 
     if (!roadmap.snapshot_before)
       throw new Error("This roadmap has no previous snapshot to revert to.");

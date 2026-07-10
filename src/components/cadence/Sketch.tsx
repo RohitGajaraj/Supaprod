@@ -88,21 +88,10 @@ export function SketchLine({
    *  data-motion="off" and reduced-motion (both render it fully drawn). */
   animate?: boolean;
 }) {
-  const { passA, passB, endX, endY, baseY } = useMemo(() => {
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const span = max - min || 1;
-    const px = (i: number) => 5 + i * ((w - 10) / Math.max(1, data.length - 1));
-    const py = (v: number) => h - 6 - ((v - min) / span) * (h - 12);
-    const pts: [number, number][] = data.map((v, i) => [px(i), py(v)]);
-    return {
-      passA: sketchPath(pts, mulberry32(seedOf(data, 1)), 1.7),
-      passB: sketchPath(pts, mulberry32(seedOf(data, 2)), 1.1),
-      endX: px(data.length - 1),
-      endY: py(data[data.length - 1]),
-      baseY: baseline != null && baseline >= min && baseline <= max ? py(baseline) : null,
-    };
-  }, [data, w, h, baseline]);
+  const { passA, passB, endX, endY, baseY } = useMemo(
+    () => sketchLineGeometry(data, w, h, baseline),
+    [data, w, h, baseline],
+  );
   if (data.length < 2) return null;
   return (
     <svg width={w} height={h} aria-hidden="true" style={{ display: "block", maxWidth: "100%" }}>
@@ -168,30 +157,11 @@ export function SketchBar({
   trackH?: number;
 }) {
   const W = 60; // nominal units; the svg stretches to the flex cell
-  const { outline, hatch } = useMemo(() => {
-    const rnd = mulberry32((seed * 2654435761) | 0);
-    const top = trackH - Math.max(3, (pct / 100) * (trackH - 2));
-    const corners: [number, number][] = [
-      [2, trackH],
-      [2, top],
-      [W - 2, top],
-      [W - 2, trackH],
-    ];
-    const outline = sketchPath(corners, rnd, 1.2, 9);
-    // Diagonal hatch — bottom-left to top-right, clipped by hand to the bar.
-    let hatch = "";
-    const gap = 8.5;
-    for (let x = 4 - trackH; x < W - 4; x += gap) {
-      const x0 = Math.max(3, x);
-      const y0 = trackH - 1 - Math.max(0, x0 - x);
-      const x1 = Math.min(W - 3, x + (trackH - top));
-      const y1 = top + 1 + Math.max(0, x + (trackH - top) - x1);
-      if (y0 <= top + 2 || x1 <= x0) continue;
-      const j = () => (rnd() - 0.5) * 1.6;
-      hatch += `M${(x0 + j()).toFixed(1)} ${(y0 + j()).toFixed(1)} L${(x1 + j()).toFixed(1)} ${(Math.max(top + 1, y1) + j()).toFixed(1)} `;
-    }
-    return { outline, hatch };
-  }, [pct, seed, trackH]);
+  const { outline, hatch } = useMemo(() => sketchBarGeometry(pct, seed, trackH), [
+    pct,
+    seed,
+    trackH,
+  ]);
   return (
     <svg
       width="100%"
@@ -231,6 +201,73 @@ export interface SketchBarDatum {
 
 export function capFirst(s: string): string {
   return s.length === 0 ? s : s[0]!.toUpperCase() + s.slice(1);
+}
+
+/* Extract geometry computation from SketchLine useMemo for testability. */
+export interface SketchLineGeometry {
+  passA: string;
+  passB: string;
+  endX: number;
+  endY: number;
+  baseY: number | null;
+}
+
+export function sketchLineGeometry(
+  data: number[],
+  w: number,
+  h: number,
+  baseline?: number,
+): SketchLineGeometry {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min || 1;
+  const px = (i: number) => 5 + i * ((w - 10) / Math.max(1, data.length - 1));
+  const py = (v: number) => h - 6 - ((v - min) / span) * (h - 12);
+  const pts: [number, number][] = data.map((v, i) => [px(i), py(v)]);
+  return {
+    passA: sketchPath(pts, mulberry32(seedOf(data, 1)), 1.7),
+    passB: sketchPath(pts, mulberry32(seedOf(data, 2)), 1.1),
+    endX: px(data.length - 1),
+    endY: py(data[data.length - 1]),
+    baseY:
+      baseline != null && baseline >= min && baseline <= max ? py(baseline) : null,
+  };
+}
+
+/* Extract geometry computation from SketchBar useMemo for testability. */
+export interface SketchBarGeometry {
+  outline: string;
+  hatch: string;
+}
+
+export function sketchBarGeometry(
+  pct: number,
+  seed: number,
+  trackH: number,
+): SketchBarGeometry {
+  const W = 60; // nominal units; the svg stretches to the flex cell
+  const rnd = mulberry32((seed * 2654435761) | 0);
+  const top = trackH - Math.max(3, (pct / 100) * (trackH - 2));
+  const corners: [number, number][] = [
+    [2, trackH],
+    [2, top],
+    [W - 2, top],
+    [W - 2, trackH],
+  ];
+  const outline = sketchPath(corners, rnd, 1.2, 9);
+  // Diagonal hatch — bottom-left to top-right, clipped by hand to the bar.
+  let hatch = "";
+  const gap = 8.5;
+  for (let x = 4 - trackH; x < W - 4; x += gap) {
+    const x0 = Math.max(3, x);
+    const y0 = trackH - 1 - Math.max(0, x0 - x);
+    const x1 = Math.min(W - 3, x + (trackH - top));
+    const y1 = top + 1 + Math.max(0, x + (trackH - top) - x1);
+    if (y0 <= top + 2 || x1 <= x0) continue;
+    const j = () => (rnd() - 0.5) * 1.6;
+    hatch += `M${(x0 + j()).toFixed(1)} ${(y0 + j()).toFixed(1)} L${(x1 + j()).toFixed(1)} ${(Math.max(top + 1, y1) + j()).toFixed(1)} `;
+  }
+  return { outline, hatch };
 }
 
 /* barInsight: a short, honest, plain-language takeaway derived from a bar

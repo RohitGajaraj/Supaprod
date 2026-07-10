@@ -109,6 +109,17 @@ export function truncateTitle(s: string, max = 26): string {
 }
 
 /**
+ * Compute whether motion should be reduced based on OS preference and
+ * in-product toggle. Pure function extracted for testability.
+ */
+export function computeReducedMotion(
+  mediaQueryMatches: boolean,
+  motionDataset: string | undefined,
+): boolean {
+  return mediaQueryMatches || motionDataset === "off";
+}
+
+/**
  * Motion is off when the OS asks for reduced motion OR the in-product toggle
  * (html[data-motion="off"]) is set. Watches both live, so flipping the toggle
  * switches the graph without a reload. SSR-safe (false until mounted).
@@ -119,7 +130,7 @@ export function usePrefersReducedMotion(): boolean {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compute = () =>
-      setReduced(mq.matches || document.documentElement.dataset.motion === "off");
+      setReduced(computeReducedMotion(mq.matches, document.documentElement.dataset.motion));
     compute();
     mq.addEventListener("change", compute);
     const observer = new MutationObserver(compute);
