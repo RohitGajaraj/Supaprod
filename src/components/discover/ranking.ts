@@ -193,9 +193,6 @@ function nextActionFor(opp: RankableOpportunity): string {
   const verdict = verdictFor(opp);
   if (verdict === "PENDING") return "Challenge with the Critic first";
   if (opp.status === "shipped") return "Review the outcome";
-  if (verdict === "SHIP" && (opp.status === "backlog" || opp.status === "now")) {
-    return "Draft the spec";
-  }
   return "Draft the spec";
 }
 

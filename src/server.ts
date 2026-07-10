@@ -105,7 +105,10 @@ export function withSecurityHeaders(response: Response, nonce?: string): Respons
     );
   }
 
-  return new Response(response.body, {
+  // Clone the response to avoid consuming the original body stream,
+  // then apply the security headers
+  const cloned = response.clone();
+  return new Response(cloned.body, {
     status: response.status,
     statusText: response.statusText,
     headers,

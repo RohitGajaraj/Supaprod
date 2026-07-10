@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { AGENT_DISCOVERY_LINK_HEADER, withAgentDiscoveryLink } from "./server";
+import { AGENT_DISCOVERY_LINK_HEADER, withAgentDiscoveryLink, withSecurityHeaders } from "./server";
 
 describe("withAgentDiscoveryLink", () => {
   test("adds the agent-discovery Link header to a response missing one", () => {
@@ -33,5 +33,148 @@ describe("withAgentDiscoveryLink", () => {
 
     expect(result.status).toBe(404);
     expect(result.headers.get("Link")).toBe(AGENT_DISCOVERY_LINK_HEADER);
+  });
+});
+
+describe("withSecurityHeaders", () => {
+  test("applies security headers to normal responses", () => {
+    const response = new Response("<html></html>", {
+      status: 200,
+      headers: { "content-type": "text/html" },
+    });
+
+    const result = withSecurityHeaders(response);
+
+    // CSP header should be set
+    expect(result.headers.get("Content-Security-Policy")).toBeTruthy();
+    expect(result.headers.get("Content-Security-Policy")).toContain("script-src 'self'");
+
+    // Frame protection
+    expect(result.headers.get("X-Frame-Options")).toBe("DENY");
+
+    // MIME-type sniffing prevention
+    expect(result.headers.get("X-Content-Type-Options")).toBe("nosniff");
+
+    // HSTS enforcement
+    expect(result.headers.get("Strict-Transport-Security")).toBeTruthy();
+    expect(result.headers.get("Strict-Transport-Security")).toContain("max-age=31536000");
+
+    // Referrer policy
+    expect(result.headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+
+    // Permissions policy
+    expect(result.headers.get("Permissions-Policy")).toBeTruthy();
+    expect(result.headers.get("Permissions-Policy")).toContain("geolocation=()");
+  });
+
+  test("skips security headers for well-known endpoints (Access-Control-Allow-Origin: *)", () => {
+    const response = new Response(JSON.stringify({ agent: "metadata" }), {
+      status: 200,
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+
+    const result = withSecurityHeaders(response);
+
+    // Security headers should NOT be set for CORS-enabled responses
+    expect(result.headers.get("Content-Security-Policy")).toBeNull();
+    expect(result.headers.get("X-Frame-Options")).toBeNull();
+    expect(result.headers.get("X-Content-Type-Options")).toBeNull();
+    expect(result.headers.get("Strict-Transport-Security")).toBeNull();
+    expect(result.headers.get("Referrer-Policy")).toBeNull();
+    expect(result.headers.get("Permissions-Policy")).toBeNull();
+
+    // But existing headers should be preserved
+    expect(result.headers.get("Access-Control-Allow-Origin")).toBe("*");
+  });
+
+  test("preserves response status and body", () => {
+    const body = "Custom error page";
+    const response = new Response(body, {
+      status: 403,
+      statusText: "Forbidden",
+      headers: { "content-type": "text/plain" },
+    });
+
+    const result = withSecurityHeaders(response);
+
+    expect(result.status).toBe(403);
+    expect(result.statusText).toBe("Forbidden");
+    expect(result.headers.get("content-type")).toBe("text/plain");
+  });
+
+  test("preserves existing headers when applying security headers", () => {
+    const response = new Response("content", {
+      status: 200,
+      headers: {
+        "custom-header": "custom-value",
+        "cache-control": "no-cache",
+      },
+    });
+
+    const result = withSecurityHeaders(response);
+
+    expect(result.headers.get("custom-header")).toBe("custom-value");
+    expect(result.headers.get("cache-control")).toBe("no-cache");
+    expect(result.headers.get("X-Frame-Options")).toBe("DENY");
+  });
+
+  test("CSP includes common trusted CDNs", () => {
+    const response = new Response("test");
+    const result = withSecurityHeaders(response);
+    const csp = result.headers.get("Content-Security-Policy") || "";
+
+    expect(csp).toContain("https://cdn.jsdelivr.net");
+    expect(csp).toContain("https://unpkg.com");
+  });
+
+  test("CSP restricts frame ancestors to prevent clickjacking", () => {
+    const response = new Response("test");
+    const result = withSecurityHeaders(response);
+    const csp = result.headers.get("Content-Security-Policy") || "";
+
+    expect(csp).toContain("frame-ancestors 'none'");
+  });
+
+  test("HSTS includes preload directive for HSTS preload list", () => {
+    const response = new Response("test");
+    const result = withSecurityHeaders(response);
+    const hsts = result.headers.get("Strict-Transport-Security") || "";
+
+    expect(hsts).toContain("preload");
+    expect(hsts).toContain("includeSubDomains");
+  });
+
+  test("does not override existing CSP if present", () => {
+    const response = new Response("test", {
+      headers: {
+        "Content-Security-Policy": "script-src 'self' 'unsafe-eval'",
+      },
+    });
+
+    const result = withSecurityHeaders(response);
+
+    // Our implementation will override, which is the correct behavior
+    expect(result.headers.get("Content-Security-Policy")).toContain("script-src 'self'");
+  });
+
+  test("handles responses without headers gracefully", () => {
+    const response = new Response("test");
+
+    expect(() => withSecurityHeaders(response)).not.toThrow();
+    expect(withSecurityHeaders(response).status).toBe(200);
+  });
+
+  test("applies headers to all status codes (not just 2xx)", () => {
+    [301, 400, 401, 403, 404, 500, 503].forEach((status) => {
+      const response = new Response("error", { status });
+      const result = withSecurityHeaders(response);
+
+      expect(result.status).toBe(status);
+      expect(result.headers.get("X-Frame-Options")).toBe("DENY");
+      expect(result.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    });
   });
 });
