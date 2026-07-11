@@ -244,13 +244,24 @@ export function EngineRoomGlance() {
           >
             While you worked
           </div>
-          <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
-            Cadence ran{" "}
-            <strong style={{ color: "var(--ember-text)" }}>{throughput.totalRuns}</strong>{" "}
-            {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
-          </p>
+          {/* Lead with this week's actions when there are any; a flat "ran 0 actions
+              this week" would undercut the amplifier framing, so a quiet week leads
+              with the to-date stats below instead. */}
+          {throughput.totalRuns > 0 ? (
+            <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
+              Cadence ran{" "}
+              <strong style={{ color: "var(--ember-text)" }}>{throughput.totalRuns}</strong>{" "}
+              {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
+            </p>
+          ) : null}
           {throughput.decisionsClosed > 0 || throughput.prsShipped > 0 ? (
-            <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "4px 0 0" }}>
+            <p
+              style={{
+                fontSize: throughput.totalRuns > 0 ? 12.5 : "var(--text-base)",
+                color: throughput.totalRuns > 0 ? "var(--text-subtle)" : "var(--text-primary)",
+                margin: throughput.totalRuns > 0 ? "4px 0 0" : 0,
+              }}
+            >
               {throughput.decisionsClosed}{" "}
               {throughput.decisionsClosed === 1 ? "decision" : "decisions"} closed to date ·{" "}
               {throughput.prsShipped} {throughput.prsShipped === 1 ? "PR" : "PRs"} shipped to date
