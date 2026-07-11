@@ -359,3 +359,236 @@ describe("FigmaEmbed.config.addCommands()", () => {
     expect((payload.attrs as { src?: string })?.src).toBe("");
   });
 });
+
+/**
+ * ★ Round-trip persistence tests (render → parse cycle)
+ *
+ * Verifies that the src attribute survives serialization cycles.
+ * These tests catch silent data-loss bugs where src might be dropped
+ * during the encode-serialize-parse workflow.
+ */
+describe("FigmaEmbed round-trip: render → parse cycle", () => {
+  test("preserves src attribute through HTMLAttributes during render", () => {
+    const originalSrc = "https://www.figma.com/file/abc123/My-Design";
+    const originalAttrs = { src: originalSrc };
+
+    // Step 1: Render the node to HTML
+    const rendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: originalAttrs,
+    });
+
+    // Step 2: Extract the rendered HTML structure
+    const [divTag, divAttrs, iframeNode] = rendered as [
+      string,
+      Record<string, unknown>,
+      [string, Record<string, unknown>],
+    ];
+
+    expect(divTag).toBe("div");
+    expect(divAttrs["data-figma-embed"]).toBe("true");
+
+    // Step 3: Verify the src is preserved in the div attributes (via mergeAttributes)
+    // The src should persist because renderHTML doesn't strip HTMLAttributes
+    expect((divAttrs as Record<string, unknown>).src).toBe(originalSrc);
+
+    // Step 4: Verify the iframe has the embed-wrapped URL
+    expect(iframeNode[0]).toBe("iframe");
+    expect(iframeNode[1].src).toContain("figma.com/embed");
+    expect(iframeNode[1].src).toContain(encodeURIComponent(originalSrc));
+  });
+
+  test("preserves src across multiple render cycles (stability)", () => {
+    const src = "https://www.figma.com/file/xyz789/Component-System";
+    let currentAttrs = { src };
+
+    // Render → extract → render (3 cycles) to detect degradation
+    for (let i = 0; i < 3; i++) {
+      const rendered = FigmaEmbed.config.renderHTML({
+        HTMLAttributes: currentAttrs,
+      });
+
+      const [, divAttrs] = rendered as [string, Record<string, unknown>];
+
+      // Verify src persists in div attributes
+      expect((divAttrs as Record<string, unknown>).src).toBe(src);
+
+      // Next cycle uses the preserved attributes
+      currentAttrs = divAttrs as { src: string };
+    }
+  });
+
+  test("handles already-embedded URLs without double-embedding", () => {
+    const embeddedSrc =
+      "https://www.figma.com/embed?embed_host=cadence&url=https%3A%2F%2Fwww.figma.com%2Ffile%2Fabc%2FDesign";
+    const attrs = { src: embeddedSrc };
+
+    const rendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: attrs,
+    });
+
+    const [, , iframeNode] = rendered as [
+      string,
+      Record<string, unknown>,
+      [string, Record<string, unknown>],
+    ];
+
+    // Should NOT wrap the embed URL again
+    expect(iframeNode[1].src).toBe(embeddedSrc);
+  });
+
+  test("preserves custom data attributes through render cycle", () => {
+    const attrs = {
+      src: "https://www.figma.com/file/abc/Design",
+      "data-custom": "value",
+      "data-id": "embed-1",
+    };
+
+    const rendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: attrs,
+    });
+
+    const [, divAttrs] = rendered as [string, Record<string, unknown>];
+
+    // All custom attributes should be preserved via mergeAttributes
+    expect((divAttrs as Record<string, unknown>).src).toBe(attrs.src);
+    expect((divAttrs as Record<string, unknown>)["data-custom"]).toBe("value");
+    expect((divAttrs as Record<string, unknown>)["data-id"]).toBe("embed-1");
+
+    // Re-render should maintain all attributes
+    const rerendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: divAttrs as Record<string, unknown>,
+    });
+
+    const [, rerenabledDivAttrs] = rerendered as [string, Record<string, unknown>];
+
+    expect((rerenabledDivAttrs as Record<string, unknown>)["data-custom"]).toBe("value");
+    expect((rerenabledDivAttrs as Record<string, unknown>)["data-id"]).toBe("embed-1");
+  });
+
+  test("handles empty src gracefully through render cycle", () => {
+    const attrs = { src: "" };
+
+    const rendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: attrs,
+    });
+
+    const [, divAttrs, iframeNode] = rendered as [
+      string,
+      Record<string, unknown>,
+      [string, Record<string, unknown>],
+    ];
+
+    // Empty src should be preserved
+    expect((divAttrs as Record<string, unknown>).src).toBe("");
+    expect(iframeNode[1].src).toBe("");
+
+    // Re-render should maintain empty src
+    const rerendered = FigmaEmbed.config.renderHTML({
+      HTMLAttributes: divAttrs as { src: string },
+    });
+
+    const [, , rerenabledIframe] = rerendered as [
+      string,
+      Record<string, unknown>,
+      [string, Record<string, unknown>],
+    ];
+
+    expect(rerenabledIframe[1].src).toBe("");
+  });
+});
+
+/**
+ * ★ CRITICAL GAP: Round-trip persistence through TipTap Editor
+ *
+ * These tests validate the full save-serialize-parse cycle:
+ * 1. Create an Editor with FigmaEmbed node
+ * 2. Serialize the document to HTML (renderHTML)
+ * 3. Parse the HTML back (parseHTML)
+ * 4. Verify the src attribute survives the round-trip
+ *
+ * This gap was discovered during coverage audit 2026-07-09:
+ * the parseHTML extraction of src from child iframe is never tested
+ * against a real TipTap Editor instance.
+ *
+ * DEPENDENCIES: bun:test + @tiptap/core + @tiptap/starter-kit
+ * SETUP: Instantiate Editor with FigmaEmbed extension + testee chains
+ */
+describe.skip("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () => {
+  /**
+   * SKELETON: Full editor round-trip test
+   *
+   * STEPS:
+   * 1. Import Editor from @tiptap/core and StarterKit
+   * 2. Create editor instance with FigmaEmbed extension
+   * 3. setContent to a document with figmaEmbed node (via setFigmaEmbed command)
+   * 4. Serialize to HTML via getHTML()
+   * 5. Verify HTML contains div[data-figma-embed] with child iframe
+   * 6. Create a fresh editor
+   * 7. setContent with the serialized HTML
+   * 8. Query the content and verify figmaEmbed node exists
+   * 9. Extract node attrs and confirm src is preserved
+   *
+   * ASSERTION TARGETS:
+   * - figmaEmbed node type persists in JSON
+   * - src attribute survives encode-serialize-parse cycle
+   * - iframe src in HTML is the embed URL (via toEmbedUrl)
+   * - parseHTML rule correctly extracts src from div[data-figma-embed] iframe child
+   */
+  test("preserves figmaEmbed node src through HTML serialization and re-parse", () => {
+    // TODO: Implement round-trip test
+    // 1. Create Editor with FigmaEmbed
+    // 2. Insert a figmaEmbed node with src = "https://www.figma.com/file/test123/Design"
+    // 3. Serialize to HTML
+    // 4. Verify HTML is: <div data-figma-embed="true" ...><iframe src="https://www.figma.com/embed?embed_host=cadence&url=..." /></div>
+    // 5. Create fresh editor and setContent(html)
+    // 6. Query document state and verify figmaEmbed node exists with original src
+    // 7. Assert node.attrs.src === "https://www.figma.com/file/test123/Design" (NOT the embed URL)
+  });
+
+  test("parseHTML correctly extracts src from iframe[src] child within div[data-figma-embed]", () => {
+    // TODO: Implement parseHTML extraction test
+    // Test the parseHTML rule directly by feeding it HTML with nested iframe
+    // STEPS:
+    // 1. Create test HTML: <div data-figma-embed="true"><iframe src="https://..." /></div>
+    // 2. Query parseHTML rule and invoke it (TipTap parseHTML rules have a getAttrs callback)
+    // 3. Verify getAttrs extracts the iframe src correctly
+    // 4. Assert extracted value matches the iframe[src] attribute
+    //
+    // EDGE CASES to test:
+    // - iframe src is empty string → should extract as ""
+    // - iframe src is malformed URL → should extract as-is
+    // - multiple iframes present → should extract first one
+    // - no iframe child → should return null or empty
+    // - iframe without src → should extract as ""
+  });
+
+  test("handles round-trip with query params and node-id fragments in figma URL", () => {
+    // TODO: Complex URL with proto mode parameters
+    // 1. Original URL: "https://www.figma.com/proto/abc123?node-id=1%3A2&scaling=min-zoom"
+    // 2. Serialize to HTML
+    // 3. Re-parse
+    // 4. Assert src is exactly the original (query params preserved)
+  });
+
+  test("survives multiple figmaEmbed nodes in same document", () => {
+    // TODO: Multi-embed persistence
+    // 1. Create editor with 2+ figmaEmbed nodes with different src values
+    // 2. Serialize to HTML
+    // 3. Re-parse and verify both nodes and their distinct src values are preserved
+  });
+
+  test("parseHTML fails gracefully if iframe has no src attribute", () => {
+    // TODO: Edge case: malformed HTML
+    // 1. HTML: <div data-figma-embed="true"><iframe /></div> (no src)
+    // 2. setContent with this HTML
+    // 3. Verify editor either extracts empty src or ignores the node
+    // 4. No crash/error
+  });
+
+  test("parseHTML fails gracefully if div[data-figma-embed] has no child iframe", () => {
+    // TODO: Edge case: empty embed div
+    // 1. HTML: <div data-figma-embed="true"></div> (no iframe child)
+    // 2. setContent with this HTML
+    // 3. Verify graceful handling (empty src or no node inserted)
+  });
+});

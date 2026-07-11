@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import { Button, PencilNote, VerdictChip } from "@/components/obsidian";
 import {
   DropdownMenu,
@@ -241,8 +241,11 @@ export interface OpportunityRowProps {
  * the standard for every object card: a tier-colored strength anchor, the
  * title as the primary read, quiet spaced meta, colored status and verdict
  * chips for state, a faint trace-and-time tail, and one primary action.
+ * Memoized to prevent re-renders when parent re-renders but props unchanged
+ * (OpportunityQueue.tsx renders one of these per opportunity in the ranked
+ * queue).
  */
-export function OpportunityRow({
+export const OpportunityRow = memo(function OpportunityRow({
   ice,
   title,
   sub,
@@ -517,9 +520,11 @@ export function OpportunityRow({
             </DropdownMenu>
           ) : null}
           {/* PC-29 layer 6: the one contextual delegation verb for a bet. */}
-          {id ? <AskInContext stationOrKind="opportunity" targetId={id} targetTitle={title} /> : null}
+          {id ? (
+            <AskInContext stationOrKind="opportunity" targetId={id} targetTitle={title} />
+          ) : null}
         </div>
       </div>
     </div>
   );
-}
+});

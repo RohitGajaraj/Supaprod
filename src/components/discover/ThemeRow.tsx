@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ArrowUpRight } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,9 +41,10 @@ const plural = (n: number) => (n === 1 ? "" : "s");
  * trailing overflow menu. The block leads with the explicit rank (the top one
  * in ember) over the signal count it is scored on. The whole row is a button
  * that opens `ThemeDetail`; the menu stops propagation so a menu press never
- * also opens the drawer.
+ * also opens the drawer. Memoized to prevent re-renders when parent re-renders
+ * but props unchanged.
  */
-export function ThemeRow({
+export const ThemeRow = memo(function ThemeRow({
   themeId,
   title,
   rank,
@@ -216,4 +218,4 @@ export function ThemeRow({
       <AskInContext stationOrKind="theme" targetId={themeId} targetTitle={title} />
     </div>
   );
-}
+});

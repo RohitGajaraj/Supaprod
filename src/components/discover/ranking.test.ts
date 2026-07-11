@@ -552,3 +552,148 @@ describe("designation precedence boundary: needs validation beats quick win", ()
     expect(dual.designation).toBe("needs validation");
   });
 });
+
+/**
+ * ★ CRITICAL GAP: nextActionFor verdict differentiation
+ *
+ * The nextActionFor function currently returns "Draft the spec" for all
+ * verdicts except PENDING and shipped status, treating SHIP/WATCH/REVISE/KILL
+ * identically. This was discovered during coverage audit 2026-07-09.
+ *
+ * ACTUAL BEHAVIOR (lines 187-192):
+ *   - PENDING → "Challenge with the Critic first"
+ *   - status === "shipped" → "Review the outcome"
+ *   - everything else (SHIP, WATCH, REVISE, KILL) → "Draft the spec"
+ *
+ * EXPECTED BEHAVIOR:
+ *   - PENDING → "Challenge with the Critic first"
+ *   - REVISE → Something like "Address the Critic's feedback" (fixable)
+ *   - KILL → Something like "Understand why this was rejected" (not fixable)
+ *   - SHIP → Something like "Start building" or "Begin execution"
+ *   - WATCH → Something like "Monitor and validate" or "Watch for progress"
+ *   - shipped status → "Review the outcome"
+ *
+ * These tests validate the fix once implemented.
+ */
+describe.skip("nextActionFor verdict differentiation (CRITICAL GAP)", () => {
+  /**
+   * SKELETON: Test that REVISE gets actionable feedback
+   *
+   * ASSERTION: nextActionFor should return a string that suggests
+   * fixing/improving the opportunity based on Critic feedback,
+   * NOT the generic "Draft the spec".
+   *
+   * This differentiates REVISE (fixable) from KILL (not fixable).
+   */
+  test("REVISE verdict returns action guiding user to address Critic feedback", () => {
+    // TODO: Implement
+    // 1. Create opp with status !== "shipped" and critic_review with verdict="revise"
+    // 2. Call nextActionFor(opp)
+    // 3. Assert result !== "Draft the spec"
+    // 4. Assert result suggests addressing/revising (e.g., includes "revise", "improve", "feedback", "address")
+    // 5. Assert result is a helpful imperative, not generic filler
+  });
+
+  /**
+   * SKELETON: Test that KILL gets rejection clarity
+   *
+   * ASSERTION: nextActionFor should return a string that acknowledges
+   * the bet was rejected and suggests understanding why,
+   * distinct from REVISE (which is fixable).
+   */
+  test("KILL verdict returns action guiding user to understand rejection", () => {
+    // TODO: Implement
+    // 1. Create opp with status !== "shipped" and critic_review with verdict="kill"
+    // 2. Call nextActionFor(opp)
+    // 3. Assert result !== "Draft the spec"
+    // 4. Assert result does NOT suggest fixing (unlike REVISE)
+    // 5. Assert result suggests understanding why or accepting the decision
+  });
+
+  /**
+   * SKELETON: Test that SHIP gets execution action
+   *
+   * ASSERTION: nextActionFor should return a string that suggests
+   * proceeding with building/implementation for endorsed bets,
+   * distinct from PENDING (needs more validation) or REVISE (needs fixing).
+   */
+  test("SHIP verdict returns action guiding user to begin execution", () => {
+    // TODO: Implement
+    // 1. Create opp with status !== "shipped" and critic_review with verdict="ship"
+    // 2. Call nextActionFor(opp)
+    // 3. Assert result !== "Draft the spec" (or if it is, that's OK as a default action)
+    // 4. Assert result suggests building, shipping, or executing (not just "Draft")
+    // 5. Compare with PENDING to confirm they are different actions
+  });
+
+  /**
+   * SKELETON: Test that WATCH gets monitoring action
+   *
+   * ASSERTION: nextActionFor should return a string that suggests
+   * monitoring progress or waiting for more evidence,
+   * distinct from SHIP (endorsed to proceed) or PENDING (needs validation).
+   */
+  test("WATCH verdict returns action guiding user to monitor and validate", () => {
+    // TODO: Implement
+    // 1. Create opp with status !== "shipped" and critic_review with verdict="watch"
+    // 2. Call nextActionFor(opp)
+    // 3. Assert result !== "Draft the spec"
+    // 4. Assert result suggests monitoring, watching, or gathering more evidence
+    // 5. Confirm it is distinct from SHIP (proceeding) and PENDING (validating)
+  });
+
+  /**
+   * SKELETON: Test that PENDING (no Critic review) gets validation action
+   *
+   * ASSERTION: nextActionFor("PENDING") should suggest challenging
+   * the opinion or getting Critic feedback, NOT defaulting to "Draft the spec".
+   *
+   * CURRENT BEHAVIOR: Already correct ("Challenge with the Critic first").
+   * This test confirms it stays differentiated when REVISE/KILL/SHIP are fixed.
+   */
+  test("PENDING verdict returns 'Challenge with the Critic first' (existing behavior)", () => {
+    const opp = mk({
+      id: "pending-opp",
+      status: "backlog",
+      critic_review: null, // No Critic review → PENDING
+    });
+
+    // TODO: Implement
+    // This test documents the CORRECT behavior that should stay in place.
+    // 1. Call nextActionFor(opp)
+    // 2. Assert result === "Challenge with the Critic first"
+    // 3. This is the baseline; REVISE/KILL/SHIP/WATCH must differ from it
+  });
+
+  /**
+   * SKELETON: Test that shipped status overrides verdict
+   *
+   * ASSERTION: nextActionFor should return "Review the outcome"
+   * regardless of the Critic verdict, when status === "shipped".
+   * This should already work correctly.
+   */
+  test("shipped status returns 'Review the outcome' (overrides verdict)", () => {
+    // TODO: Implement
+    // 1. Create opp with status="shipped" and various critic verdicts (SHIP, REVISE, KILL, or null)
+    // 2. Call nextActionFor for each
+    // 3. Assert ALL return "Review the outcome" (status takes precedence)
+    // 4. This already works; test confirms it stays stable when other verdicts are fixed
+  });
+
+  /**
+   * SKELETON: Comprehensive verdict comparison
+   *
+   * ASSERTION: All five verdict outcomes (SHIP, WATCH, REVISE, KILL, PENDING)
+   * return distinct, non-generic actions when status !== "shipped".
+   * This is a high-level integration test for the fix.
+   */
+  test("all five verdicts (SHIP/WATCH/REVISE/KILL/PENDING) return distinct actions", () => {
+    // TODO: Implement
+    // 1. Create opps for each verdict: SHIP, WATCH, REVISE, KILL, PENDING (critic_review: null)
+    // 2. Call nextActionFor for each
+    // 3. Store the results in a Set (to detect duplicates)
+    // 4. Assert Set.size === 5 (all actions are unique, no two verdicts share the same action)
+    // 5. Assert none are "Draft the spec" EXCEPT possibly SHIP (which could defensibly use "Draft the spec")
+    // 6. Assert each action is specific to its verdict (REVISE ≠ KILL ≠ SHIP ≠ WATCH ≠ PENDING)
+  });
+});

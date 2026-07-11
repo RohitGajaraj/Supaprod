@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ExternalLink, Radio } from "lucide-react";
 import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
@@ -45,8 +46,9 @@ export interface SignalCardProps {
  * quiet `⋯` action menu (promote / draft spec / provenance / delete). The
  * whole card is click-to-open (opens the signal's rich detail); the menu is
  * for secondary actions only and stops propagation so it never also opens the
- * detail. */
-export function SignalCard({
+ * detail. Memoized to prevent re-renders when parent re-renders but props
+ * unchanged. */
+export const SignalCard = memo(function SignalCard({
   src,
   when,
   quote,
@@ -240,4 +242,4 @@ export function SignalCard({
       ) : null}
     </div>
   );
-}
+});
