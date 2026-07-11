@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
@@ -222,6 +222,29 @@ export function OpportunityQueue() {
     onSettled: (_d, _e, { id }) => setBusy(id, false),
   });
 
+  // Stable callback handlers to prevent re-renders of memoized OpportunityRow children.
+  // These are stable across renders; the row-specific id is passed as a parameter.
+  const handleOpen = useCallback((id: string) => setOpenId(id), []);
+  const handleChallenge = useCallback((id: string) => challenge.mutate(id), [challenge]);
+  const handleDraftSpec = useCallback((id: string) => draftSpec.mutate(id), [draftSpec]);
+  const handleLineage = useCallback((id: string) => setLineageId(id), []);
+  const handleSetStatus = useCallback(
+    (id: string, status: OpportunityStatus) => setStatus.mutate({ id, status }),
+    [setStatus],
+  );
+  const handleDelete = useCallback(
+    async (id: string, title: string) => {
+      const ok = await confirm({
+        title: "Delete this opportunity?",
+        body: `This removes "${title}" permanently. Its lineage and any linked signals stay, but the opportunity itself is gone.`,
+        destructive: true,
+        confirmLabel: "Delete opportunity",
+      });
+      if (ok) del.mutate(id);
+    },
+    [confirm, del],
+  );
+
   if (opps.isLoading) {
     // Loom v4 §9: skeleton rows that match the loaded card layout (ICE
     // numeral block, title line, sub line), shimmering in the raised tone.
@@ -324,28 +347,20 @@ export function OpportunityQueue() {
               title={o.title}
               sub={sub}
               verdict={verdict}
-              onOpen={() => setOpenId(o.id)}
+              onOpen={() => handleOpen(o.id)}
               status={o.status}
               id={o.id}
               updatedAt={o.updated_at}
               precedentNote={citations.data?.citations[o.id] ?? null}
               criticConfidence={o.critic_review?.confidence ?? null}
-              onChallenge={() => challenge.mutate(o.id)}
+              onChallenge={() => handleChallenge(o.id)}
               challengePending={rowBusy && challenge.isPending}
               actionsPending={rowBusy}
-              onDraftSpec={() => draftSpec.mutate(o.id)}
+              onDraftSpec={() => handleDraftSpec(o.id)}
               draftPending={rowBusy && draftSpec.isPending}
-              onLineage={() => setLineageId(o.id)}
-              onSetStatus={(status) => setStatus.mutate({ id: o.id, status })}
-              onDelete={async () => {
-                const ok = await confirm({
-                  title: "Delete this opportunity?",
-                  body: `This removes "${o.title}" permanently. Its lineage and any linked signals stay, but the opportunity itself is gone.`,
-                  destructive: true,
-                  confirmLabel: "Delete opportunity",
-                });
-                if (ok) del.mutate(o.id);
-              }}
+              onLineage={() => handleLineage(o.id)}
+              onSetStatus={(status) => handleSetStatus(o.id, status)}
+              onDelete={() => handleDelete(o.id, o.title)}
             />
           );
         })

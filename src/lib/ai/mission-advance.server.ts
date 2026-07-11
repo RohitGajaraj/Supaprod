@@ -27,7 +27,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   enqueueHandoff,
   maybeCompleteMission,
-  resolveAgent,
   type HandoffPayload,
 } from "./handoff.server";
 import { recallMemoryRefs } from "./memory.server";
@@ -345,6 +344,22 @@ export async function dispatchReadySteps(
   const dispatched: { idx: number; agent_slug: string; run_id: string }[] = [];
   const failed: { idx: number; agent_slug: string; error: string }[] = [];
 
+  // Batch-resolve all agents upfront instead of one per step (N+1 fix).
+  // Collect unique slugs, query once with .in(), and build a Map for per-step lookup.
+  const uniqueSlugs = [...new Set(readyRows.map((r) => r.agent_slug))];
+  const { data: agentRows } = await supabase
+    .from("agents")
+    .select("id,slug,name")
+    .eq("user_id", mission.user_id)
+    .eq("enabled", true)
+    .in("slug", uniqueSlugs);
+  const agentBySlug = new Map(
+    (agentRows ?? []).map((a: { id: string; slug: string; name: string }) => [
+      a.slug,
+      a,
+    ]),
+  );
+
   for (const step of readyRows) {
     const attemptNo = (step.attempts ?? 0) + 1;
     // CAS claim: only the caller that flips planned→dispatched proceeds to
@@ -363,7 +378,12 @@ export async function dispatchReadySteps(
     if (!claimed?.length) continue;
 
     try {
-      const to = await resolveAgent(supabase, mission.user_id, { agent_slug: step.agent_slug });
+      const to = agentBySlug.get(step.agent_slug);
+      if (!to) {
+        throw new Error(
+          `Target agent '${step.agent_slug}' is disabled or not in the roster.`,
+        );
+      }
 
       // Thread memory relevant to THIS hop into the handoff + mark it used.
       let memoryRefs: { id: string; summary?: string }[] | undefined;

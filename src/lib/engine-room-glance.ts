@@ -182,6 +182,16 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
   ],
   record: [
     {
+      // RPT-31: the Agent Inbox, one manager-grade cockpit unifying pending
+      // approvals, the just-happened log, and every applied change to verify or
+      // roll back. Ordered first so the Record room opens on the cockpit.
+      id: "verify",
+      label: "What just happened",
+      technical: "Verification cockpit",
+      descriptor:
+        "Approvals waiting on you, the just-happened log, and every applied change to verify or roll back.",
+    },
+    {
       id: "traces",
       label: "Every run",
       technical: "Traces",

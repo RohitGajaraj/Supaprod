@@ -243,16 +243,14 @@ export function renderDesignMd(doc: DesignMemoryDocument): string {
 /**
  * Server function: import design.md and upsert to the memory graph.
  */
-export const importDesignMemory = createServerFn(
-  { method: "POST" },
-  async (
-    { markdown, workspaceId }: { markdown: string; workspaceId: string },
-    { serverPayload },
-  ) => {
-    const { supabase, session } = await requireSupabaseAuth(serverPayload);
-
+export const importDesignMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ markdown: z.string().max(200_000), workspaceId: z.string().uuid() }).parse(i),
+  )
+  .handler(async ({ data }) => {
     // Parse the markdown into structured memory.
-    const doc = parseDesignMd(markdown);
+    const doc = parseDesignMd(data.markdown);
 
     // TODO: wire to memory graph via memory.functions.ts
     // This is the hook point for upserting doc into decision_memory table,
@@ -263,16 +261,16 @@ export const importDesignMemory = createServerFn(
       parsed: doc,
       message: "Design memory imported",
     };
-  },
-);
+  });
 
 /**
  * Server function: export memory to design.md format.
  */
-export const exportDesignMemory = createServerFn(
-  { method: "POST" },
-  async ({ workspaceId }: { workspaceId: string }, { serverPayload }) => {
-    const { supabase, session } = await requireSupabaseAuth(serverPayload);
+export const exportDesignMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ workspaceId: z.string().uuid() }).parse(i))
+  .handler(async ({ context }) => {
+    const { userId } = context;
 
     // TODO: fetch the memory graph and assemble into DesignMemoryDocument
     // For now, return a sample doc.
@@ -312,7 +310,7 @@ export const exportDesignMemory = createServerFn(
         {
           timestamp: new Date().toISOString(),
           action: "export",
-          author: session.user.id,
+          author: userId,
           notes: "Exported from Design Memory",
         },
       ],
@@ -325,5 +323,4 @@ export const exportDesignMemory = createServerFn(
       markdown,
       filename: `design-memory-${new Date().toISOString().split("T")[0]}.md`,
     };
-  },
-);
+  });
