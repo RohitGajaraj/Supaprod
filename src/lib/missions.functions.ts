@@ -26,6 +26,25 @@ export type MissionDetail = {
     completed_at: string | null;
     /** D4-REPLAY: the mission this one was replayed from (null otherwise). */
     replayed_from_mission_id: string | null;
+    /**
+     * RPT-24: the accountable owner + dispatch origin, rendered on the mission
+     * receipt so accountability never silently transfers to the agent.
+     * `missions.user_id` is NOT NULL at the DB level (no default) — a mission
+     * literally cannot be created without an owning human, so this is never
+     * null in practice; it is typed nullable only so a resolution failure
+     * degrades to an honest "unknown" instead of a thrown page.
+     */
+    captain: {
+      owner_user_id: string;
+      owner_is_self: boolean;
+      /** From workspace_members_with_identity (own-row-only RLS on `profiles`
+       * otherwise blocks reading a teammate's name) — null if unresolved. */
+      owner_display_name: string | null;
+      owner_email: string | null;
+      /** true when a reactor/trigger tick auto-promoted this mission
+       * (`auto_trigger_source='auto'`) rather than a human clicking launch. */
+      auto_dispatched: boolean;
+    } | null;
   };
   /** Aggregated from ai_events over the mission's run traces (F-DESIGN-EMBER
    * screen 4: the detail hero's started/cost/tokens/trace stat row). */
@@ -231,6 +250,48 @@ export const getMission = createServerFn({ method: "POST" })
         ? ((rfRow as { replayed_from_mission_id?: string | null }).replayed_from_mission_id ?? null)
         : null;
 
+    // RPT-24 (captain on every dispatch): same error-tolerant separate-read
+    // pattern as D4-REPLAY above, so a schema hiccup never breaks the page.
+    // Resolves the owner's name via the existing membership-gated
+    // workspace_members_with_identity RPC (workspaces.functions.ts) rather
+    // than querying `profiles` directly — profiles RLS is own-row-only, so a
+    // teammate's row is invisible to a plain select from this RLS-scoped
+    // client.
+    const { data: captainRow, error: captainErr } = await supabase
+      .from("missions")
+      .select("user_id,workspace_id,auto_trigger_source")
+      .eq("id", data.missionId)
+      .maybeSingle();
+    let captain: MissionDetail["mission"]["captain"] = null;
+    if (!captainErr && captainRow?.user_id) {
+      const ownerId = captainRow.user_id as string;
+      const workspaceId = (captainRow as { workspace_id?: string | null }).workspace_id ?? null;
+      let ownerDisplayName: string | null = null;
+      let ownerEmail: string | null = null;
+      if (workspaceId) {
+        const { data: identity, error: identityErr } = await supabase.rpc(
+          "workspace_members_with_identity",
+          { _workspace_id: workspaceId },
+        );
+        if (!identityErr && Array.isArray(identity)) {
+          const match = (
+            identity as { user_id: string; display_name: string | null; email: string | null }[]
+          ).find((m) => m.user_id === ownerId);
+          ownerDisplayName = match?.display_name ?? null;
+          ownerEmail = match?.email ?? null;
+        }
+      }
+      captain = {
+        owner_user_id: ownerId,
+        owner_is_self: ownerId === context.userId,
+        owner_display_name: ownerDisplayName,
+        owner_email: ownerEmail,
+        auto_dispatched:
+          ((captainRow as { auto_trigger_source?: string | null }).auto_trigger_source ?? null) ===
+          "auto",
+      };
+    }
+
     // Pull trace_id from the first ai_events row per run (cheap, no join).
     const { data: runs } = await supabase
       .from("agent_runs")
@@ -340,7 +401,11 @@ export const getMission = createServerFn({ method: "POST" })
     }
 
     return {
-      mission: { ...mission, replayed_from_mission_id: replayedFrom } as MissionDetail["mission"],
+      mission: {
+        ...mission,
+        replayed_from_mission_id: replayedFrom,
+        captain,
+      } as MissionDetail["mission"],
       usage,
       hops: (runs ?? []).map((r) => {
         const cp = latestByRun.get(r.id);

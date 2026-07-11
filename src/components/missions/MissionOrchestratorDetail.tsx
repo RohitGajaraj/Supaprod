@@ -793,6 +793,27 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   const failedStep = stepRows.find((r) => r.status === "failed");
   const liveHop = hops.find((h) => ["running", "queued", "awaiting_review"].includes(h.status));
 
+  // RPT-24 (captain on every dispatch): the receipt's ownership line. Dispatcher
+  // and owner are the same person unless a reactor tick auto-promoted the
+  // mission — accountability stays with the owning human either way, never the
+  // agent.
+  const captain = data?.mission.captain ?? null;
+  const captainOwnerName = captain
+    ? captain.owner_is_self
+      ? "you"
+      : (captain.owner_display_name ?? captain.owner_email ?? "a teammate")
+    : null;
+  const captainLabel = captain
+    ? captain.auto_dispatched
+      ? `auto · owner ${captainOwnerName}`
+      : captainOwnerName
+    : "—";
+  const captainTitle = captain
+    ? captain.auto_dispatched
+      ? "A reactor tick auto-dispatched this mission; the owner below is still accountable for the outcome"
+      : `Dispatched and owned by ${captainOwnerName}`
+    : "Ownership could not be resolved";
+
   // Plan rows: mission_steps when orchestrated; fall back to the hops.
   const planRows =
     stepRows.length > 0
@@ -1059,6 +1080,19 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               </strong>
             </span>
           ))}
+          <span
+            className="mono-label"
+            style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
+            title={captainTitle}
+          >
+            captain{" "}
+            <strong
+              className="tabular-nums"
+              style={{ color: "var(--text-primary)", fontWeight: 600 }}
+            >
+              {captainLabel}
+            </strong>
+          </span>
           <span
             className="mono-label"
             style={{ color: "color-mix(in oklab, var(--text-primary) 55%, transparent)" }}
