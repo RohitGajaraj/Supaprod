@@ -8,12 +8,15 @@ import {
   FileCheck2,
   GitCommitVertical,
   Pencil,
+  ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Square,
   Upload,
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { gradeOutcomeContract, verifiabilityLabel } from "@/lib/outcome-contract-grade";
 import {
   compileContractOracles,
   draftContractFromPrd,
@@ -148,6 +151,65 @@ function ArdImportControl({
 }
 
 /**
+ * RPT-23: the owner-facing verifiability verdict. Reads the same grade the
+ * server gate enforces, so what the owner sees is exactly what the approve
+ * step will allow. A "hazy" contract (metrics present, none verifiable yet)
+ * shows a constructive block with the specific clauses to fix; a verifiable
+ * contract shows a calm confirmation that outcome day can check it.
+ */
+function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
+  const grade = gradeOutcomeContract(contract);
+  // Nothing to structure yet: the empty-state UI already covers this.
+  if (grade.verdict === "empty") return null;
+
+  if (grade.blocksApproval) {
+    return (
+      <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2.5">
+        <div className="flex items-start gap-2">
+          <ShieldAlert className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-destructive">
+              Not verifiable yet. This spec cannot be approved.
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
+            {grade.unverifiableClauses.length > 0 ? (
+              <ul className="mt-1.5 space-y-1">
+                {grade.unverifiableClauses.map((c) => (
+                  <li
+                    key={c.id}
+                    className="text-[11px] text-muted-foreground flex items-start gap-1.5"
+                  >
+                    <span className="mono-label text-[9px] mt-0.5 shrink-0 opacity-70">
+                      {c.pending ? "uncompiled" : "watched"}
+                    </span>
+                    <span className="min-w-0">{c.text}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const label = verifiabilityLabel(grade);
+  return (
+    <div className="mt-4 rounded-md border hairline bg-background/40 px-3 py-2 flex items-start gap-2">
+      <ShieldCheck
+        className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${
+          grade.verdict === "verifiable" ? "text-foreground" : "text-muted-foreground"
+        }`}
+      />
+      <div className="min-w-0">
+        <p className="text-xs font-medium">{label}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
+      </div>
+    </div>
+  );
+}
+
+/**
  * CNV-01 machine view: the typed Outcome Contract projection of a spec,
  * alongside the narrative Edit/Preview modes. Empty `intent` means this PRD
  * has never been structured — the lazy-migration entry point (v12: "AI
@@ -244,6 +306,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
           </button>
         </div>
         <ContractBody contract={draft} />
+        <VerifiabilityVerdict contract={draft} />
         <div className="mt-5 flex items-center gap-2">
           <button
             onClick={() => applyMut.mutate(draft)}

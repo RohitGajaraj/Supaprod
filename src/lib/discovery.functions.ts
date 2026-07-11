@@ -10,6 +10,7 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
+import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
@@ -898,6 +899,13 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
       () => {},
     );
 
+    // RPT-23: automatically compile contract oracles (eval twin) at creation time.
+    // Fire-and-forget: the human reviews the contract while the eval suite and
+    // assumptions are being prepared in the background. Never blocks the response.
+    void compileContractOracles({ id: prd.id })
+      .run()
+      .catch(() => {});
+
     return { prd, clarifying_questions: clarifyingQuestions };
   });
 
@@ -1227,12 +1235,31 @@ export const savePrd = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     // Capture prior status so we can detect a draft/review → approved transition
-    // and write a Decisions log entry exactly once.
+    // and write a Decisions log entry exactly once. `contract` is read too so the
+    // RPT-23 verifiability gate can grade the effective contract on approval.
     const { data: prior } = await supabase
       .from("prds")
-      .select("status,workspace_id,title,body_md")
+      .select("status,workspace_id,title,body_md,contract")
       .eq("id", id)
       .maybeSingle();
+
+    // RPT-23: an Outcome Contract that can never be checked on outcome day must
+    // not be signed off. On a first approve transition, grade the effective
+    // contract (the one being saved, else the one already on the spec); if it
+    // has metrics but none are verifiable ("hazy"), refuse the approval and tell
+    // the owner exactly what to fix. A spec with no contract at all is exempt so
+    // legacy specs still approve. This is the "receipts are the test suite of
+    // decision work, enforced at creation" gate.
+    if (rest.status === "approved" && (prior?.status ?? null) !== "approved") {
+      const rawContract = rest.contract ?? (prior as { contract?: unknown } | null)?.contract ?? null;
+      const parsed = OutcomeContractSchema.partial().safeParse(rawContract ?? {});
+      if (parsed.success && (parsed.data.intent ?? "").trim()) {
+        const grade = gradeOutcomeContract({ success_metrics: parsed.data.success_metrics ?? [] });
+        if (grade.blocksApproval) {
+          throw new Error(`Can't approve this spec yet. ${grade.reason}`);
+        }
+      }
+    }
 
     const patch: Record<string, unknown> = { ...rest, updated_at: new Date().toISOString() };
     if (rest.contract && rest.contract.intent.trim()) {
