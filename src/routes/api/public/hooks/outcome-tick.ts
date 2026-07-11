@@ -63,9 +63,25 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               else groups.set(key, [prd]);
             }
 
+            // PC-08: the "Outcome check" routine's per-workspace off switch.
+            const candidateIds = Array.from(groups.keys()).filter((id) => id !== null) as string[];
+            let disabledWorkspaceIds = new Set<string>();
+            if (candidateIds.length > 0) {
+              const { data: prefs } = await admin
+                .from("workspace_routine_prefs")
+                .select("workspace_id,enabled")
+                .eq("routine_id", "outcome-check")
+                .eq("enabled", false)
+                .in("workspace_id", candidateIds);
+              disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+            }
+
             let checked = 0;
             let shipped = 0;
             for (const [workspaceId, group] of groups) {
+              if (workspaceId && disabledWorkspaceIds.has(workspaceId)) {
+                continue;
+              }
               let gh: Awaited<ReturnType<typeof resolveGitHub>>;
               try {
                 gh = await resolveGitHub({ workspaceId, userId: null });

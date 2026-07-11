@@ -14,6 +14,7 @@ import { listChangelog } from "@/lib/changelog.functions";
 import { groupByProduct } from "@/lib/changelog";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { PanelSkeleton } from "./PanelSkeleton";
+import { ChangelogHeartbeat } from "@/components/changelog/ChangelogHeartbeat";
 
 function fmtDate(iso: string): string {
   const d = new Date(iso);
@@ -117,7 +118,11 @@ export function ChangelogPanel() {
         .filter((group) => group.entries.length > 0);
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* RPT-45: the changelog heartbeat leads the list. The weekly "what shipped /
+          changed / was decided" pulse, generated from the ledger (zero hand-writing),
+          so the surface opens with the self-accountability cadence before the raw feed. */}
+      {activeWorkspace?.id ? <ChangelogHeartbeat workspaceId={activeWorkspace.id} /> : null}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {shownGroups.map((group) => (
           <section key={group.label}>

@@ -79,8 +79,26 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
           const workspaces = (rawWorkspaces ?? []) as unknown as WsRow[];
           const results: Array<Record<string, unknown>> = [];
 
+          // PC-08: the "Market scout" routine's per-workspace off switch.
+          const candidateIds = workspaces.map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await db
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "scout")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           for (const ws of workspaces) {
             try {
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, skipped_routine: true });
+                continue;
+              }
+
               // Auto-seed all 6 WatchKind targets from workspace context for any
               // kind not yet in the watch list. Idempotent (no-op once seeded).
               if (ws.owner_id) {

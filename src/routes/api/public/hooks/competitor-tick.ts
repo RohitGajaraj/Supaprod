@@ -38,6 +38,20 @@ export const Route = createFileRoute("/api/public/hooks/competitor-tick")({
           if (wsErr) return json({ ok: false, error: wsErr.message }, 500);
 
           const db = supabaseAdmin as unknown as SupabaseClient;
+
+          // PC-08: the "Competitor watch" routine's per-workspace off switch.
+          const candidateIds = (workspaces ?? []).map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await db
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "competitor-watch")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           const results: Array<{
             workspace_id: string;
             competitor?: { raw: number; briefWritten: boolean };
@@ -47,6 +61,10 @@ export const Route = createFileRoute("/api/public/hooks/competitor-tick")({
 
           for (const ws of (workspaces ?? []) as Array<{ id: string; owner_id: string }>) {
             try {
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, error: "routine disabled" });
+                continue;
+              }
               const pass = await runStrategyBriefPass(db, ws.owner_id, ws.id);
               results.push({ workspace_id: ws.id, ...pass });
             } catch (e) {

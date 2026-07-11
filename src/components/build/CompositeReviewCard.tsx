@@ -1,9 +1,11 @@
 // PC-12: ONE review item carrying all three fan-out sections (draft, eval,
 // risks) plus a one-line synthesis, instead of three separate
 // notifications. Lives in the judgment lane next to ordinary approvals.
+// PC-15: Pulse feedback wired into composite reviews.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { decideFanoutBatch, type FanoutBatch } from "@/lib/fanout.functions";
+import { PulsePrompt } from "@/components/cadence/PulsePrompt";
 
 const SECTION_LABELS: { key: "draft" | "eval" | "risks"; label: string }[] = [
   { key: "draft", label: "Draft path" },
@@ -78,7 +80,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
         <button
           type="button"
           onClick={() => decide.mutate("accepted")}
@@ -103,6 +105,9 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
         >
           Dismiss
         </button>
+      </div>
+      <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12 }}>
+        <PulsePrompt surface="composite_review" targetId={batch.id} />
       </div>
     </div>
   );

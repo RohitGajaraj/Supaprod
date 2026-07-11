@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
 import { deriveAllInsights } from "@/lib/brain/derive-insights.server";
 import { runInsightPush } from "@/lib/brain/push-insights.server";
+
+// workspace_routine_prefs (PC-08, migration 20260710220000) predates the
+// last generated Supabase types.
+const routinesDb = supabaseAdmin as unknown as SupabaseClient;
 
 export const Route = createFileRoute("/api/public/hooks/derive-tick")({
   server: {
@@ -28,6 +33,19 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
             return json({ ok: false, error: error.message }, 500);
           }
 
+          // PC-08: the "Learnings synthesis" routine's per-workspace off switch.
+          const candidateIds = (workspaces ?? []).map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await routinesDb
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "learnings-synthesis")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           let totalDerived = 0;
           let totalPushed = 0;
           const results: Array<{
@@ -45,6 +63,10 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
             try {
               if (!ws.owner_id) {
                 results.push({ workspace_id: ws.id, error: "no owner" });
+                continue;
+              }
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, insights: 0, pushed: 0, note: "routine disabled" });
                 continue;
               }
               // SEAM-3 (mission 3.9): deterministic push detection rides the

@@ -2055,8 +2055,7 @@ function MultiProductStrip() {
           letterSpacing: "0.02em",
         }}
       >
-        <span style={{ color: C.emberBright, fontWeight: 600 }}>One PM. Five products.</span> A
-        fleet that works while you sleep, and shows its receipts every morning.
+        <span style={{ color: C.emberBright, fontWeight: 600 }}>The product-staff seat.</span> One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin). Cadence is the console for the product-staff seat.
       </p>
     </div>
   );

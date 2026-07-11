@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { withJobRun } from "@/lib/observability";
+
+// workspace_routine_prefs (PC-08, migration 20260710220000) predates the
+// last generated Supabase types.
+const routinesDb = supabaseAdmin as unknown as SupabaseClient;
 
 /**
  * F3 cluster-tick: re-cluster the owner's unclustered signals for every
@@ -40,11 +45,28 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
             return json({ ok: false, error: error.message }, 500);
           }
 
+          // PC-08: the "Signal clustering" routine's per-workspace off switch.
+          const candidateIds = (workspaces ?? []).map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await routinesDb
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "signal-clustering")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           const results: Array<{ workspace_id: string; themes?: number; error?: string }> = [];
           for (const ws of workspaces ?? []) {
             try {
               if (!ws.owner_id) {
                 results.push({ workspace_id: ws.id, error: "no owner" });
+                continue;
+              }
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, error: "routine disabled" });
                 continue;
               }
               const r = await clusterSignalsCore(supabaseAdmin, ws.owner_id, ws.id, null);
