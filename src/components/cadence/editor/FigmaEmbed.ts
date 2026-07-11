@@ -33,7 +33,19 @@ export const FigmaEmbed = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: "div[data-figma-embed]" }];
+    return [
+      {
+        tag: "div[data-figma-embed]",
+        getAttrs: (dom: HTMLElement) => {
+          // Extract the src from the child iframe's src attribute.
+          // The iframe is the rendered output of the parsed node;
+          // we need to reverse-engineer the original src for persistence.
+          const iframe = dom.querySelector("iframe");
+          const iframeSrc = iframe?.getAttribute("src") ?? "";
+          return { src: iframeSrc };
+        },
+      },
+    ];
   },
 
   renderHTML({ HTMLAttributes }) {
