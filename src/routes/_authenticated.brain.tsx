@@ -20,7 +20,7 @@
 // sub-nav instead of the old flat 9-tab bar. Every previously reachable tab
 // stays reachable; this is a re-parenting, not a removal.
 import { lazy, Suspense, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -74,11 +74,6 @@ const DecisionDetail = lazy(() =>
 );
 const BriefPanel = lazy(() =>
   import("@/components/knowledge/BriefPanel").then((m) => ({ default: m.BriefPanel })),
-);
-const DesignMemoryPanel = lazy(() =>
-  import("@/components/knowledge/DesignMemoryPanel").then((m) => ({
-    default: m.DesignMemoryPanel,
-  })),
 );
 const GraphPanel = lazy(() =>
   import("@/components/knowledge/GraphPanel").then((m) => ({ default: m.GraphPanel })),
@@ -798,7 +793,43 @@ function BrainPage() {
                 (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
               {tab === "judgment" && <JudgmentTimeline />}
               {tab === "brief" && <BriefPanel />}
-              {tab === "design" && <DesignMemoryPanel />}
+              {tab === "design" && (
+                <div
+                  style={{
+                    background: "var(--card)",
+                    border: "1px dashed var(--hairline)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "40px 24px",
+                    textAlign: "center",
+                  }}
+                >
+                  <MonoLabel style={{ display: "block", marginBottom: 8 }}>Moved</MonoLabel>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                      maxWidth: 440,
+                      margin: "0 auto 14px",
+                    }}
+                  >
+                    Design now has its own home: your Brand Kit and every prototype, in one place.
+                  </p>
+                  <Link
+                    to="/design"
+                    style={{
+                      display: "inline-block",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--hairline-strong)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "8px 16px",
+                    }}
+                  >
+                    Open Design
+                  </Link>
+                </div>
+              )}
               {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
               {tab === "docs" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
