@@ -158,12 +158,20 @@ export const updateRoadmapItem = createServerFn({ method: "POST" })
     // PC-10 capture-on-write (human move): snapshot the prior placement so this
     // move can be one-key Rewound, and clear roadmap_last_agent_slug (a human made
     // it, so a rewind writes no agent receipt). Mirrors roadmap.move's capture.
-    patch.roadmap_snapshot_before = {
-      bucket: prevRow.roadmap_bucket,
-      outcome: prevRow.roadmap_outcome,
-      measure: prevRow.roadmap_measure,
-    };
-    patch.roadmap_last_agent_slug = null;
+    // Finding-3 guard: only when a supplied field actually changes, so a same-value
+    // write never creates a phantom rewindable state.
+    const willChange =
+      (patch.roadmap_bucket !== undefined && patch.roadmap_bucket !== prevRow.roadmap_bucket) ||
+      (patch.roadmap_outcome !== undefined && patch.roadmap_outcome !== prevRow.roadmap_outcome) ||
+      (patch.roadmap_measure !== undefined && patch.roadmap_measure !== prevRow.roadmap_measure);
+    if (willChange) {
+      patch.roadmap_snapshot_before = {
+        bucket: prevRow.roadmap_bucket,
+        outcome: prevRow.roadmap_outcome,
+        measure: prevRow.roadmap_measure,
+      };
+      patch.roadmap_last_agent_slug = null;
+    }
 
     // RLS ("own opportunities all") scopes the write; the explicit user_id +
     // .select() makes a blocked or no-match update fail loudly instead of
@@ -251,21 +259,31 @@ export const commitRoadmapItem = createServerFn({ method: "POST" })
           roadmap_measure: string | null;
         }
       | undefined;
+    const nextOutcome = norm(data.outcome);
+    const nextMeasure = norm(data.measure);
+    // PC-10 Finding-3 guard: only snapshot when the placement actually changes, so
+    // re-saving the same outcome/bucket never creates a phantom rewindable state.
+    const commitChanged =
+      !prevCommit ||
+      data.bucket !== prevCommit.roadmap_bucket ||
+      nextOutcome !== prevCommit.roadmap_outcome ||
+      nextMeasure !== prevCommit.roadmap_measure;
+    const commitPayload: Record<string, unknown> = {
+      roadmap_bucket: data.bucket,
+      roadmap_outcome: nextOutcome,
+      roadmap_measure: nextMeasure,
+    };
+    if (commitChanged && prevCommit) {
+      commitPayload.roadmap_snapshot_before = {
+        bucket: prevCommit.roadmap_bucket,
+        outcome: prevCommit.roadmap_outcome,
+        measure: prevCommit.roadmap_measure,
+      };
+      commitPayload.roadmap_last_agent_slug = null;
+    }
     const { data: rows, error } = await context.supabase
       .from("opportunities")
-      .update({
-        roadmap_bucket: data.bucket,
-        roadmap_outcome: norm(data.outcome),
-        roadmap_measure: norm(data.measure),
-        roadmap_snapshot_before: prevCommit
-          ? {
-              bucket: prevCommit.roadmap_bucket,
-              outcome: prevCommit.roadmap_outcome,
-              measure: prevCommit.roadmap_measure,
-            }
-          : null,
-        roadmap_last_agent_slug: null,
-      })
+      .update(commitPayload)
       .eq("id", data.id)
       .eq("user_id", context.userId)
       .select("id, workspace_id");

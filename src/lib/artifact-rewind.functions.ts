@@ -93,7 +93,13 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (draftEdge?.created_by_agent) {
-      await db.from("agent_approvals").insert({
+      // PC-10 receipt-integrity fix: agent_approvals.user_id is NOT NULL with no
+      // default (verified against the live schema), so an insert without it fails
+      // the constraint; the prior code omitted user_id AND swallowed the error, so
+      // the rewind receipt silently never persisted for any artifact type. Set
+      // user_id, and surface a failure instead of hiding it.
+      const { error: receiptErr } = await db.from("agent_approvals").insert({
+        user_id: userId,
         workspace_id: prd.workspace_id,
         agent_slug: draftEdge.created_by_agent,
         tool_name: "artifact.rewind",
@@ -102,6 +108,18 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
         status: "rejected",
         rationale: `User rewound the PRD (${data.prd_id}) this agent drafted back to its previous state.`,
       });
+      if (receiptErr)
+        console.error("[PC-10] PRD rewind receipt insert failed:", receiptErr.message);
+
+      // PC-10 Finding-2 fix: the reverted body is no longer the agent's revision,
+      // so clear the agent attribution on the lineage edge. A second (toggle-back)
+      // rewind then finds no created_by_agent edge and files no receipt.
+      await db
+        .from("artifact_lineage")
+        .update({ created_by_agent: null })
+        .eq("child_kind", "prd")
+        .eq("child_id", data.prd_id)
+        .not("created_by_agent", "is", null);
     }
 
     return { success: true, prd_id: data.prd_id };
@@ -142,6 +160,11 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
       .update({
         rationale: revertedRationale,
         snapshot_before: decision.rationale,
+        // PC-10 Finding-2 fix: the reverted rationale is no longer the agent's
+        // work, so clear the agent attribution. A second (toggle-back) rewind
+        // then files no receipt -- re-applying the agent's version is not a
+        // rejection of it. The receipt above already used the pre-update value.
+        decided_by_agent_slug: null,
       })
       .eq("id", data.decision_id);
 
@@ -153,7 +176,10 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
     // PRD's lineage-derived attribution), not a hollow "approved" receipt on
     // 3 nonexistent columns. A human-made decision writes no receipt.
     if (decision.decided_by_agent_slug) {
-      await db.from("agent_approvals").insert({
+      // PC-10 receipt-integrity fix (see revertPrdToPrevious): user_id is required
+      // (NOT NULL, no default) and the error must not be swallowed.
+      const { error: receiptErr } = await db.from("agent_approvals").insert({
+        user_id: userId,
         workspace_id: decision.workspace_id,
         agent_slug: decision.decided_by_agent_slug,
         tool_name: "artifact.rewind",
@@ -162,6 +188,8 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
         status: "rejected",
         rationale: `User rewound the decision (${data.decision_id}) this agent made back to its previous state.`,
       });
+      if (receiptErr)
+        console.error("[PC-10] decision rewind receipt insert failed:", receiptErr.message);
     }
 
     return { success: true, decision_id: data.decision_id };
@@ -214,6 +242,10 @@ export const revertRoadmapItemToPrevious = createServerFn({ method: "POST" })
           outcome: opp.roadmap_outcome ?? null,
           measure: opp.roadmap_measure ?? null,
         },
+        // PC-10 Finding-2 fix: the restored placement is no longer the agent's
+        // move, so clear its attribution. A second (toggle-back) rewind then files
+        // no receipt. The receipt below already used the pre-update value.
+        roadmap_last_agent_slug: null,
       })
       .eq("id", data.opportunity_id)
       .eq("user_id", userId);
@@ -224,7 +256,10 @@ export const revertRoadmapItemToPrevious = createServerFn({ method: "POST" })
     // against that agent (roadmap_last_agent_slug, set by roadmap.move). A human
     // move clears the slug, so a human's own undo writes no agent receipt.
     if (opp.roadmap_last_agent_slug) {
-      await db.from("agent_approvals").insert({
+      // PC-10 receipt-integrity fix (see revertPrdToPrevious): user_id is required
+      // (NOT NULL, no default) and the error must not be swallowed.
+      const { error: receiptErr } = await db.from("agent_approvals").insert({
+        user_id: userId,
         workspace_id: opp.workspace_id,
         agent_slug: opp.roadmap_last_agent_slug,
         tool_name: "artifact.rewind",
@@ -233,6 +268,8 @@ export const revertRoadmapItemToPrevious = createServerFn({ method: "POST" })
         status: "rejected",
         rationale: `User rewound the roadmap placement (${data.opportunity_id}) this agent set back to its previous bucket.`,
       });
+      if (receiptErr)
+        console.error("[PC-10] roadmap rewind receipt insert failed:", receiptErr.message);
     }
 
     return { success: true, opportunity_id: data.opportunity_id };
