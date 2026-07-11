@@ -27,6 +27,7 @@ import { Route as ArdRouteImport } from './routes/ard'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TSlugRouteImport } from './routes/t.$slug'
+import { Route as PTeardownRouteImport } from './routes/p.teardown'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as DSlugRouteImport } from './routes/d.$slug'
@@ -89,6 +90,7 @@ import { Route as AuthenticatedMissionsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedBuildIndexRouteImport } from './routes/_authenticated.build.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
+import { Route as ApiPublicTeardownRouteImport } from './routes/api/public/teardown'
 import { Route as ApiPublicIngestSignalsRouteImport } from './routes/api/public/ingest-signals'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedTracesTraceIdRouteImport } from './routes/_authenticated.traces.$traceId'
@@ -253,6 +255,11 @@ const IndexRoute = IndexRouteImport.update({
 const TSlugRoute = TSlugRouteImport.update({
   id: '/t/$slug',
   path: '/t/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PTeardownRoute = PTeardownRouteImport.update({
+  id: '/p/teardown',
+  path: '/p/teardown',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PSlugRoute = PSlugRouteImport.update({
@@ -572,6 +579,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   id: '/api/stripe/webhook',
   path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTeardownRoute = ApiPublicTeardownRouteImport.update({
+  id: '/api/public/teardown',
+  path: '/api/public/teardown',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicIngestSignalsRoute = ApiPublicIngestSignalsRouteImport.update({
@@ -1087,6 +1099,7 @@ export interface FileRoutesByFullPath {
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
+  '/p/teardown': typeof PTeardownRoute
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1105,6 +1118,7 @@ export interface FileRoutesByFullPath {
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
+  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/build/': typeof AuthenticatedBuildIndexRoute
@@ -1242,6 +1256,7 @@ export interface FileRoutesByTo {
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
+  '/p/teardown': typeof PTeardownRoute
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1260,6 +1275,7 @@ export interface FileRoutesByTo {
   '/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
+  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/build': typeof AuthenticatedBuildIndexRoute
@@ -1401,6 +1417,7 @@ export interface FileRoutesById {
   '/d/$slug': typeof DSlugRoute
   '/join/$token': typeof JoinTokenRoute
   '/p/$slug': typeof PSlugRoute
+  '/p/teardown': typeof PTeardownRoute
   '/t/$slug': typeof TSlugRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -1419,6 +1436,7 @@ export interface FileRoutesById {
   '/_authenticated/traces/$traceId': typeof AuthenticatedTracesTraceIdRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/ingest-signals': typeof ApiPublicIngestSignalsRoute
+  '/api/public/teardown': typeof ApiPublicTeardownRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/build/': typeof AuthenticatedBuildIndexRoute
@@ -1560,6 +1578,7 @@ export interface FileRouteTypes {
     | '/d/$slug'
     | '/join/$token'
     | '/p/$slug'
+    | '/p/teardown'
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1578,6 +1597,7 @@ export interface FileRouteTypes {
     | '/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
+    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/admin/'
     | '/build/'
@@ -1715,6 +1735,7 @@ export interface FileRouteTypes {
     | '/d/$slug'
     | '/join/$token'
     | '/p/$slug'
+    | '/p/teardown'
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1733,6 +1754,7 @@ export interface FileRouteTypes {
     | '/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
+    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/admin'
     | '/build'
@@ -1873,6 +1895,7 @@ export interface FileRouteTypes {
     | '/d/$slug'
     | '/join/$token'
     | '/p/$slug'
+    | '/p/teardown'
     | '/t/$slug'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -1891,6 +1914,7 @@ export interface FileRouteTypes {
     | '/_authenticated/traces/$traceId'
     | '/api/public/health'
     | '/api/public/ingest-signals'
+    | '/api/public/teardown'
     | '/api/stripe/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/build/'
@@ -1985,11 +2009,13 @@ export interface RootRouteChildren {
   DSlugRoute: typeof DSlugRoute
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
+  PTeardownRoute: typeof PTeardownRoute
   TSlugRoute: typeof TSlugRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicIngestSignalsRoute: typeof ApiPublicIngestSignalsRoute
+  ApiPublicTeardownRoute: typeof ApiPublicTeardownRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiPublicA2aTasksRoute: typeof ApiPublicA2aTasksRoute
   ApiPublicArdSchemaRoute: typeof ApiPublicArdSchemaRoute
@@ -2177,6 +2203,13 @@ declare module '@tanstack/react-router' {
       path: '/t/$slug'
       fullPath: '/t/$slug'
       preLoaderRoute: typeof TSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/teardown': {
+      id: '/p/teardown'
+      path: '/p/teardown'
+      fullPath: '/p/teardown'
+      preLoaderRoute: typeof PTeardownRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/p/$slug': {
@@ -2611,6 +2644,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stripe/webhook'
       fullPath: '/api/stripe/webhook'
       preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/teardown': {
+      id: '/api/public/teardown'
+      path: '/api/public/teardown'
+      fullPath: '/api/public/teardown'
+      preLoaderRoute: typeof ApiPublicTeardownRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ingest-signals': {
@@ -3357,11 +3397,13 @@ const rootRouteChildren: RootRouteChildren = {
   DSlugRoute: DSlugRoute,
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,
+  PTeardownRoute: PTeardownRoute,
   TSlugRoute: TSlugRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicIngestSignalsRoute: ApiPublicIngestSignalsRoute,
+  ApiPublicTeardownRoute: ApiPublicTeardownRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiPublicA2aTasksRoute: ApiPublicA2aTasksRoute,
   ApiPublicArdSchemaRoute: ApiPublicArdSchemaRoute,
