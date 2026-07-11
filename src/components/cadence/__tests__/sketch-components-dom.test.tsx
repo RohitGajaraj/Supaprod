@@ -1,34 +1,54 @@
 import { describe, it, expect } from "bun:test";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SketchBarChart, SketchLine, SketchBar } from "../Sketch";
-import type { SketchBarDatum, SketchLineDatum } from "../Sketch";
+import type { SketchBarDatum } from "../Sketch";
 
 /**
  * DOM-MOUNTED TESTS FOR SKETCH COMPONENTS
  *
  * Gap 1 remediation: These tests render components into a real DOM (happy-dom)
- * and verify interactive behavior (state changes, event handling, CSS classes).
+ * and verify interactive behavior (state changes, event handling, styling).
  * Previous test suites used hand-rolled JSX mirrors that couldn't catch:
  *   - State swapping on hover (activeIdx tracking in SketchBarChart)
- *   - Race conditions in focus-blur handlers
- *   - CSS class application and styling
+ *   - Race conditions in hover-leave handlers
+ *   - Inline style application (glow spotlight, dimming of non-active bars)
  *   - Accessible attribute presence (aria-labels, roles)
  *
- * Strategy: Render component, fire user events (hover, blur), verify DOM updates.
+ * Real component contracts under test (see ../Sketch.tsx):
+ *   - SketchBarChart: bars are <button> elements labeled "label: value"; the
+ *     active bar's readout floats above it; hover/focus move the active index,
+ *     defaulting to the last bar.
+ *   - SketchLine: data is number[]; double jittered pencil pass, never filled;
+ *     dashed baseline only when inside the data range; null under 2 points.
+ *   - SketchBar: pct/seed/color/trackH; decorative svg (hatch + outline paths)
+ *     with deterministic seeded jitter.
+ *
+ * Note: React synthesizes onMouseEnter/onMouseLeave from native mouseover and
+ * mouseout, so tests fire mouseOver/mouseOut to drive the hover handlers.
  */
 
+/* The floating value readout (value + label above the active bar) is an
+   aria-hidden div. The optional baseline line, when present, is an earlier
+   aria-hidden div, so the readout is always the last one. */
+function getReadout(container: HTMLElement): HTMLElement {
+  const nodes = container.querySelectorAll("div[aria-hidden='true']");
+  return nodes[nodes.length - 1] as HTMLElement;
+}
+
 describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
-  it("should render bars with aria-label accessibility attributes", () => {
+  it("should render bars as buttons with aria-label accessibility attributes", () => {
     const data: SketchBarDatum[] = [
       { label: "Mon", value: 10 },
       { label: "Tue", value: 25 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
-    // Verify each bar has accessible labeling
-    const bars = container.querySelectorAll("g[role='button']");
+    // Each bar is a real <button> carrying "label: value" for screen readers
+    const bars = container.querySelectorAll("button[aria-label]");
     expect(bars.length).toBe(data.length);
+    expect(bars[0]?.getAttribute("aria-label")).toBe("Mon: 10");
+    expect(bars[1]?.getAttribute("aria-label")).toBe("Tue: 25");
   });
 
   it("should swap activeIdx on bar hover (state machine test)", async () => {
@@ -38,28 +58,25 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
       { label: "Wed", value: 15 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
-    // Find all bar groups (the interactive elements)
-    const bars = container.querySelectorAll("g[role='button']");
-    const firstBar = bars[0] as SVGGElement;
-    const secondBar = bars[1] as SVGGElement;
+    const buttons = container.querySelectorAll("button");
 
-    // Initial state: insight shows first bar
-    expect(screen.getByText(/Mon/i) || screen.getByText(/10/i)).toBeDefined();
+    // Initial state: no hover, the readout shows the LAST bar (default active)
+    expect(getReadout(container).textContent).toContain("Wed");
 
-    // Hover over second bar: activeIdx should change
-    fireEvent.mouseEnter(secondBar);
+    // Hover over the second bar: activeIdx should follow, readout shows Tue
+    fireEvent.mouseOver(buttons[1] as HTMLElement);
     await waitFor(() => {
-      // After hover, the insight text should change to reflect second bar
-      expect(screen.getByText(/Tue/i) || screen.getByText(/25/i)).toBeDefined();
+      expect(getReadout(container).textContent).toContain("Tue");
     });
+    expect(getReadout(container).textContent).toContain("25");
 
-    // Hover back to first bar
-    fireEvent.mouseEnter(firstBar);
+    // Hover back to the first bar
+    fireEvent.mouseOver(buttons[0] as HTMLElement);
     await waitFor(() => {
-      expect(screen.getByText(/Mon/i) || screen.getByText(/10/i)).toBeDefined();
+      expect(getReadout(container).textContent).toContain("Mon");
     });
   });
 
@@ -70,92 +87,97 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
       { label: "Wed", value: 15 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
     const buttons = container.querySelectorAll("button");
-    const btn0 = buttons[0];
-    const btn1 = buttons[1];
-    const btn2 = buttons[2];
+    const btn0 = buttons[0] as HTMLElement;
+    const btn1 = buttons[1] as HTMLElement;
 
     // Simulate the problematic sequence:
-    // 1. Hover over btn0 -> activeIdx becomes 0, "Mon" shows
-    fireEvent.mouseEnter(btn0);
+    // 1. Hover over btn0 -> activeIdx becomes 0, readout shows "Mon"
+    fireEvent.mouseOver(btn0);
     await waitFor(() => {
-      expect(screen.getByText(/Mon/i)).toBeDefined();
+      expect(getReadout(container).textContent).toContain("Mon");
     });
 
-    // 2. Hover over btn1 -> activeIdx becomes 1, "Tue" shows
-    fireEvent.mouseEnter(btn1);
+    // 2. Hover over btn1 -> activeIdx becomes 1, readout shows "Tue"
+    fireEvent.mouseOver(btn1);
     await waitFor(() => {
-      expect(screen.getByText(/Tue/i)).toBeDefined();
+      expect(getReadout(container).textContent).toContain("Tue");
     });
 
     // 3. Leave btn0 (a stale event from the old hover) -> should NOT reset
     //    because the functional updater checks h === i before clearing.
     //    Since btn1 is now active (h === 1), leaving btn0 (i === 0) does nothing.
-    fireEvent.mouseLeave(btn0);
+    fireEvent.mouseOut(btn0);
 
     // 4. Verify "Tue" is STILL shown (not reverted to default or "Mon")
     await waitFor(() => {
-      expect(screen.getByText(/Tue/i)).toBeDefined();
+      expect(getReadout(container).textContent).toContain("Tue");
     });
 
-    // 5. Now leave btn1 intentionally -> activeIdx should go back to default
-    fireEvent.mouseLeave(btn1);
+    // 5. Now leave btn1 intentionally -> activeIdx falls back to the default
+    fireEvent.mouseOut(btn1);
     await waitFor(() => {
-      // Should show the last bar (Wed) as the default when hover is null
-      expect(screen.getByText(/Wed/i)).toBeDefined();
+      // The default active bar is the last one (Wed) when hover is null
+      expect(getReadout(container).textContent).toContain("Wed");
     });
   });
 
-  it("should apply correct CSS classes on hover", async () => {
-    const data: SketchBarDatum[] = [{ label: "Mon", value: 10 }];
+  it("should spotlight the hovered bar and dim the others (inline styles)", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+    ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
-    const bar = container.querySelector("g[role='button']") as SVGGElement;
-    const rect = bar.querySelector("rect") as SVGRectElement;
+    const buttons = container.querySelectorAll("button");
+    const first = buttons[0] as HTMLElement;
+    const second = buttons[1] as HTMLElement;
 
-    // Default opacity
-    expect(rect.getAttribute("opacity")).toBeDefined();
+    // Default: the last bar is active (glow filter); nothing is dimmed yet
+    expect(second.style.filter).toContain("drop-shadow");
+    expect(first.style.filter).toBe("none");
+    expect(first.style.opacity).toBe("1");
+    expect(second.style.opacity).toBe("1");
 
-    // On hover, opacity should change
-    fireEvent.mouseEnter(bar);
+    // Hover the first bar: it takes the glow, the non-active bar dims
+    fireEvent.mouseOver(first);
     await waitFor(() => {
-      const newOpacity = rect.getAttribute("opacity");
-      expect(newOpacity).toBeDefined();
+      expect(first.style.filter).toContain("drop-shadow");
+      expect(second.style.opacity).toBe("0.42");
     });
   });
 
-  it("should render insight text and update on state change", async () => {
+  it("should render the auto-derived insight text using formatValue", () => {
     const data: SketchBarDatum[] = [
       { label: "Mon", value: 10 },
       { label: "Tue", value: 30 },
     ];
-    const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => `$${v}`} />,
-    );
+    render(<SketchBarChart data={data} trackH={100} formatValue={(v) => `$${v}`} />);
 
-    // Insight should reference formatted values
-    const insightText = screen.getByText(/\$/);
+    // barInsight derives "Up 200% since Mon; peak $30 on Tue." from the series;
+    // the peak value must come through the caller's formatter.
+    const insightText = screen.getByText(/Up 200% since Mon; peak \$30 on Tue/);
     expect(insightText).toBeDefined();
   });
 
   it("should maintain accessibility on hover (no role loss)", async () => {
     const data: SketchBarDatum[] = [{ label: "Test", value: 50 }];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
-    const buttons = container.querySelectorAll("button");
-    const button = buttons[0];
-    fireEvent.mouseEnter(button);
+    const button = container.querySelectorAll("button")[0] as HTMLElement;
+    fireEvent.mouseOver(button);
 
     await waitFor(() => {
-      // Button should still be interactive after hover
-      expect(button).toBeDefined();
+      // Still a labeled, interactive button after hover
+      expect(button.getAttribute("aria-label")).toBe("Test: 50");
+      expect(button.getAttribute("type")).toBe("button");
     });
   });
 
@@ -169,7 +191,7 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
     const { container } = render(
       <SketchBarChart
         data={data}
-        height={100}
+        trackH={100}
         formatValue={(v) => `$${v}`}
         ariaLabel="Weekly Revenue"
         insight={customInsight}
@@ -178,7 +200,7 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
 
     // The group role should have both the aria-label and the insight text
     const group = container.querySelector("[role='group']");
-    expect(group).toBeDefined();
+    expect(group).not.toBeNull();
     const ariaLabel = group?.getAttribute("aria-label") || "";
     expect(ariaLabel).toContain("Weekly Revenue");
     expect(ariaLabel).toContain(customInsight);
@@ -192,7 +214,7 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
       { label: "Wed", value: 5 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} ariaLabel="Activity" />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} ariaLabel="Activity" />,
     );
 
     // Should auto-derive insight and include in aria-label
@@ -205,140 +227,121 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
 });
 
 describe("SketchLine — Path Rendering (DOM-mounted)", () => {
-  it("should render SVG path element with correct data attribute", () => {
-    const data: SketchLineDatum[] = [
-      { x: 0, y: 10 },
-      { x: 1, y: 20 },
-      { x: 2, y: 15 },
-    ];
-    const { container } = render(<SketchLine data={data} width={100} height={50} color="blue" />);
+  it("should render the double pencil pass with the given stroke color", () => {
+    const { container } = render(<SketchLine data={[10, 20, 15]} w={100} h={50} color="blue" />);
 
-    const path = container.querySelector("path");
-    expect(path).toBeDefined();
-    expect(path?.getAttribute("d")).toBeDefined();
-    expect(path?.getAttribute("stroke")).toBe("blue");
+    const paths = container.querySelectorAll("path");
+    expect(paths.length).toBe(2);
+    for (const path of Array.from(paths)) {
+      expect(path.getAttribute("stroke")).toBe("blue");
+      const d = path.getAttribute("d") || "";
+      expect(d.startsWith("M")).toBe(true);
+      expect(d).not.toContain("NaN");
+    }
+    // Hand-set dot on the last point, with real coordinates
+    const dot = container.querySelector("circle");
+    expect(dot).not.toBeNull();
+    expect(dot?.getAttribute("fill")).toBe("blue");
+    expect(dot?.getAttribute("cy") || "").not.toContain("NaN");
   });
 
-  it("should apply fill property when specified", () => {
-    const data: SketchLineDatum[] = [
-      { x: 0, y: 10 },
-      { x: 1, y: 20 },
-    ];
-    const { container } = render(
-      <SketchLine data={data} width={100} height={50} color="blue" fill="rgba(0, 0, 255, 0.1)" />,
-    );
+  it("should keep both pencil passes unfilled (a line, never an area)", () => {
+    const { container } = render(<SketchLine data={[10, 20]} w={100} h={50} color="blue" />);
 
-    const path = container.querySelector("path");
-    expect(path?.getAttribute("fill")).toBe("rgba(0, 0, 255, 0.1)");
+    const paths = container.querySelectorAll("path");
+    expect(paths.length).toBe(2);
+    for (const path of Array.from(paths)) {
+      expect(path.getAttribute("fill")).toBe("none");
+    }
   });
 
-  it("should render as closed shape when area=true", () => {
-    const data: SketchLineDatum[] = [
-      { x: 0, y: 10 },
-      { x: 1, y: 20 },
-      { x: 2, y: 15 },
-    ];
-    const { container } = render(
-      <SketchLine data={data} width={100} height={50} color="blue" area={true} />,
-    );
+  it("should draw the dashed baseline only when it falls inside the data range", () => {
+    // Inside the range: a straight dashed hairline (the one non-sketch mark)
+    const inRange = render(<SketchLine data={[10, 20, 15]} w={100} h={50} baseline={15} />);
+    const line = inRange.container.querySelector("line");
+    expect(line).not.toBeNull();
+    expect(line?.getAttribute("stroke-dasharray")).toBe("3 3");
 
-    const path = container.querySelector("path");
-    // Area path should contain "Z" to close the shape
-    const pathData = path?.getAttribute("d") || "";
-    expect(pathData.includes("Z") || pathData.includes("z")).toBe(true);
+    // Outside the range: not drawn (reference Sparkline contract)
+    const outOfRange = render(<SketchLine data={[10, 20, 15]} w={100} h={50} baseline={99} />);
+    expect(outOfRange.container.querySelector("line")).toBeNull();
   });
 
-  it("should handle empty data gracefully", () => {
-    const { container } = render(<SketchLine data={[]} width={100} height={50} color="blue" />);
+  it("should render nothing for fewer than two points", () => {
+    // Empty series and a single point both have no line to sketch
+    const empty = render(<SketchLine data={[]} w={100} h={50} />);
+    expect(empty.container.querySelector("svg")).toBeNull();
 
-    // Should not crash; SVG container should still render
-    const svg = container.querySelector("svg");
-    expect(svg).toBeDefined();
+    const single = render(<SketchLine data={[10]} w={100} h={50} />);
+    expect(single.container.querySelector("svg")).toBeNull();
   });
 
-  it("should render stroke-width when specified", () => {
-    const data: SketchLineDatum[] = [{ x: 0, y: 10 }];
-    const { container } = render(
-      <SketchLine data={data} width={100} height={50} color="blue" strokeWidth={3} />,
-    );
+  it("should use the fixed pencil stroke weights (heavy pass + light pass)", () => {
+    const { container } = render(<SketchLine data={[10, 20]} w={100} h={50} />);
 
-    const path = container.querySelector("path");
-    expect(path?.getAttribute("stroke-width")).toBe("3");
+    const paths = container.querySelectorAll("path");
+    expect(paths[0]?.getAttribute("stroke-width")).toBe("1.3");
+    expect(paths[0]?.getAttribute("opacity")).toBe("0.85");
+    expect(paths[1]?.getAttribute("stroke-width")).toBe("0.9");
+    expect(paths[1]?.getAttribute("opacity")).toBe("0.45");
   });
 });
 
 describe("SketchBar — Individual Bar Element (DOM-mounted)", () => {
-  it("should render rect element with correct dimensions", () => {
-    const { container } = render(
-      <SketchBar x={10} y={20} width={30} height={40} fill="red" label="Bar" />,
-    );
+  it("should render an svg with hatch and outline paths at the track height", () => {
+    const { container } = render(<SketchBar pct={60} seed={1} trackH={72} />);
 
-    const rect = container.querySelector("rect");
-    expect(rect).toBeDefined();
-    expect(rect?.getAttribute("x")).toBe("10");
-    expect(rect?.getAttribute("y")).toBe("20");
-    expect(rect?.getAttribute("width")).toBe("30");
-    expect(rect?.getAttribute("height")).toBe("40");
-    expect(rect?.getAttribute("fill")).toBe("red");
+    const svg = container.querySelector("svg");
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute("height")).toBe("72");
+    expect(svg?.getAttribute("viewBox")).toBe("0 0 60 72");
+    expect(svg?.getAttribute("preserveAspectRatio")).toBe("none");
+    expect(container.querySelectorAll("path").length).toBe(2);
   });
 
-  it("should include accessible label", () => {
-    const { container } = render(
-      <SketchBar x={10} y={20} width={30} height={40} fill="red" label="MonthlyRevenue" />,
-    );
+  it("should be decorative: aria-hidden, labeling lives on the parent control", () => {
+    const { container } = render(<SketchBar pct={60} seed={1} />);
 
-    // Should have a title or aria-label for accessibility
-    const title = container.querySelector("title");
-    expect(title).toBeDefined();
+    const svg = container.querySelector("svg");
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  it("should apply opacity when provided", () => {
-    const { container } = render(
-      <SketchBar x={10} y={20} width={30} height={40} fill="red" label="Bar" opacity={0.5} />,
-    );
+  it("should apply the fixed pencil opacities (light hatch, heavy outline)", () => {
+    const { container } = render(<SketchBar pct={60} seed={1} />);
 
-    const rect = container.querySelector("rect");
-    expect(rect?.getAttribute("opacity")).toBe("0.5");
+    const paths = container.querySelectorAll("path");
+    expect(paths[0]?.getAttribute("opacity")).toBe("0.38");
+    expect(paths[1]?.getAttribute("opacity")).toBe("0.85");
   });
 
-  it("should render inside a group element", () => {
-    const { container } = render(
-      <SketchBar x={10} y={20} width={30} height={40} fill="red" label="Bar" />,
-    );
+  it("should forward the color prop to both strokes", () => {
+    const { container } = render(<SketchBar pct={60} seed={1} color="red" />);
 
-    const group = container.querySelector("g");
-    expect(group).toBeDefined();
-    const rect = group?.querySelector("rect");
-    expect(rect).toBeDefined();
+    const paths = container.querySelectorAll("path");
+    expect(paths[0]?.getAttribute("stroke")).toBe("red");
+    expect(paths[1]?.getAttribute("stroke")).toBe("red");
   });
 
-  it("should handle zero dimensions", () => {
-    const { container } = render(
-      <SketchBar x={0} y={0} width={0} height={0} fill="red" label="Empty" />,
-    );
+  it("should handle pct=0 without crashing", () => {
+    const { container } = render(<SketchBar pct={0} seed={1} />);
 
-    // Should render without crashing
-    const rect = container.querySelector("rect");
-    expect(rect).toBeDefined();
+    const outline = container.querySelectorAll("path")[1];
+    const d = outline?.getAttribute("d") || "";
+    expect(d.startsWith("M")).toBe(true);
+    expect(d).not.toContain("NaN");
   });
 
-  it("should render with border/stroke when specified", () => {
-    const { container } = render(
-      <SketchBar
-        x={10}
-        y={20}
-        width={30}
-        height={40}
-        fill="red"
-        label="Bar"
-        stroke="blue"
-        strokeWidth={2}
-      />,
-    );
+  it("should keep jitter deterministic: same seed same geometry, new seed new geometry", () => {
+    const dOf = (r: ReturnType<typeof render>) =>
+      r.container.querySelectorAll("path")[1]?.getAttribute("d") || "";
 
-    const rect = container.querySelector("rect");
-    expect(rect?.getAttribute("stroke")).toBe("blue");
-    expect(rect?.getAttribute("stroke-width")).toBe("2");
+    const a = render(<SketchBar pct={40} seed={3} />);
+    const b = render(<SketchBar pct={40} seed={3} />);
+    const c = render(<SketchBar pct={40} seed={4} />);
+
+    expect(dOf(a).length).toBeGreaterThan(0);
+    expect(dOf(b)).toBe(dOf(a));
+    expect(dOf(c)).not.toBe(dOf(a));
   });
 });
 
@@ -351,17 +354,20 @@ describe("SketchBarChart — Baseline Reference Line (DOM-mounted)", () => {
     const { container } = render(
       <SketchBarChart
         data={data}
-        height={100}
+        trackH={100}
         formatValue={(v) => String(v)}
         baseline={15}
         baselineLabel="Target"
       />,
     );
 
-    // Should have a dashed line div for baseline
-    const baseline = container.querySelector("div[title='Target']");
-    expect(baseline).toBeDefined();
-    expect(baseline?.style.borderTop).toContain("dashed");
+    // The baseline is a titled, positioned div. Note: happy-dom mangles the
+    // borderTop shorthand readback when it holds a CSS variable, so assert
+    // presence + position, not the dash style string.
+    const baseline = container.querySelector("div[title='Target']") as HTMLElement | null;
+    expect(baseline).not.toBeNull();
+    // baseline 15 of max 25 sits at 60% from the floor
+    expect(baseline?.style.bottom).toBe("60%");
   });
 
   it("should position baseline correctly at percentage height", () => {
@@ -370,35 +376,37 @@ describe("SketchBarChart — Baseline Reference Line (DOM-mounted)", () => {
       { label: "High", value: 100 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} baseline={50} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} baseline={50} />,
     );
 
-    const baseline = container.querySelector("div[style*='bottom']");
-    const bottomStyle = baseline?.getAttribute("style") || "";
+    // Unlabeled baselines carry the default "baseline" title
+    const baseline = container.querySelector("div[title='baseline']") as HTMLElement | null;
+    expect(baseline).not.toBeNull();
     // Baseline at 50 out of 100 max should be at 50%
-    expect(bottomStyle).toContain("50%");
+    expect(baseline?.style.bottom).toBe("50%");
   });
 
   it("should not render baseline when not provided", () => {
     const data: SketchBarDatum[] = [{ label: "Mon", value: 10 }];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
-    const baselineRefs = container.querySelectorAll("[style*='dashed']");
-    expect(baselineRefs.length).toBe(0);
+    // No titled baseline div exists in the chart at all
+    expect(container.querySelector("div[title]")).toBeNull();
   });
 
   it("should clamp baseline to max 100%", () => {
     const data: SketchBarDatum[] = [{ label: "Mon", value: 10 }];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} baseline={1000} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} baseline={1000} />,
     );
 
-    const baseline = container.querySelector("div[style*='bottom']");
-    const bottomStyle = baseline?.getAttribute("style") || "";
-    // Baseline higher than max should clamp to 100%
-    expect(bottomStyle).toContain("100%");
+    // A baseline above every bar becomes the scale max and sits at the top,
+    // never above 100%
+    const baseline = container.querySelector("div[title='baseline']") as HTMLElement | null;
+    expect(baseline).not.toBeNull();
+    expect(baseline?.style.bottom).toBe("100%");
   });
 });
 
@@ -406,7 +414,7 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
   it("should handle single-bar data (no trend analysis)", () => {
     const data: SketchBarDatum[] = [{ label: "Only", value: 42 }];
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
     // Should render without crashing
@@ -421,7 +429,7 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
     }));
 
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(Math.round(v))} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(Math.round(v))} />,
     );
 
     const buttons = container.querySelectorAll("button");
@@ -436,7 +444,7 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
     ];
 
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
     const buttons = container.querySelectorAll("button");
@@ -450,17 +458,17 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
     ];
 
     const { container } = render(
-      <SketchBarChart data={data} height={100} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
     );
 
     const buttons = container.querySelectorAll("button");
     expect(buttons.length).toBe(2);
   });
 
-  it("should handle very small height", () => {
+  it("should handle very small track height", () => {
     const data: SketchBarDatum[] = [{ label: "Tiny", value: 10 }];
     const { container } = render(
-      <SketchBarChart data={data} height={1} formatValue={(v) => String(v)} />,
+      <SketchBarChart data={data} trackH={1} formatValue={(v) => String(v)} />,
     );
 
     const svg = container.querySelector("svg");

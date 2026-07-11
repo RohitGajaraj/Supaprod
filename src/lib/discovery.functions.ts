@@ -902,9 +902,7 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
     // RPT-23: automatically compile contract oracles (eval twin) at creation time.
     // Fire-and-forget: the human reviews the contract while the eval suite and
     // assumptions are being prepared in the background. Never blocks the response.
-    void compileContractOracles({ id: prd.id })
-      .run()
-      .catch(() => {});
+    void compileContractOracles({ data: { id: prd.id } }).catch(() => {});
 
     return { prd, clarifying_questions: clarifyingQuestions };
   });
