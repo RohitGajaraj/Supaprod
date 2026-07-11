@@ -5,6 +5,7 @@
  * and nesting an interactive `<button>` inside another is invalid HTML, so the
  * quiet `⋯` trigger is a flex sibling rather than a fork of the primitive.
  */
+import { ExternalLink } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +18,81 @@ import { fmtCost } from "@/components/studio/studio-format";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { AskInContext } from "./AskInContext";
+import {
+  completionEvidence,
+  COMPLETION_EVIDENCE_LABEL,
+  COMPLETION_EVIDENCE_REASON,
+  COMPLETION_EVIDENCE_TONE,
+} from "@/lib/build/verification";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
+
+const EVIDENCE_COLOR: Record<"moss" | "ember" | "faint", string> = {
+  moss: "var(--moss)",
+  ember: "var(--ember)",
+  faint: "var(--text-faint)",
+};
+
+/** RPT-26: a small honest badge for the "done" claim's own evidence - never
+ *  reuses the SHIP/KILL verdict chip's slot, since that answers a different
+ *  question (the outcome, not whether it can be checked). */
+function CompletionEvidenceBadge({ session }: { session: StudioSessionListItem }) {
+  const rawStatus = session.run_status ?? session.status;
+  const status = studioToMissionRowStatus(rawStatus, session.pending_approvals);
+  const evidence = completionEvidence({
+    claimsDone: status === "done",
+    kind: session.kind,
+    changesetStatus: session.changeset?.status ?? null,
+    prUrl: session.changeset?.pr_url ?? null,
+  });
+  if (!evidence) return null;
+
+  const color = EVIDENCE_COLOR[COMPLETION_EVIDENCE_TONE[evidence]];
+  const label = COMPLETION_EVIDENCE_LABEL[evidence];
+  const reason = COMPLETION_EVIDENCE_REASON[evidence];
+
+  if (evidence === "verified" && session.changeset?.pr_url) {
+    return (
+      <a
+        href={session.changeset.pr_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={reason}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          flexShrink: 0,
+          fontFamily: "var(--font-mono)",
+          fontSize: 10.5,
+          letterSpacing: "0.04em",
+          color,
+          textDecoration: "none",
+          padding: "0 8px",
+        }}
+      >
+        {label}
+        <ExternalLink size={11} />
+      </a>
+    );
+  }
+
+  return (
+    <span
+      title={reason}
+      style={{
+        flexShrink: 0,
+        fontFamily: "var(--font-mono)",
+        fontSize: 10.5,
+        letterSpacing: "0.04em",
+        color,
+        padding: "0 8px",
+      }}
+    >
+      {label}
+    </span>
+  );
+}
 
 export function BuildMissionRow({
   session,
@@ -48,6 +123,7 @@ export function BuildMissionRow({
         traceLabel={`MIS·${traceRef(session.mission_id)}`}
         onOpen={onOpen}
       />
+      <CompletionEvidenceBadge session={session} />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
