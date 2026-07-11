@@ -39,6 +39,7 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   mission: "Build session",
   house_rule: "House rule",
   design_memory: "Design memory",
+  prototype: "Prototype",
 };
 
 function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: string | null }) {

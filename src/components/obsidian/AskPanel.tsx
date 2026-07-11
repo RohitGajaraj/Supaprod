@@ -614,8 +614,8 @@ export function AskPanel() {
                     color: "var(--text-muted)",
                   }}
                 >
-                  Ask about this screen. I read what is in front of you, so you can skip the
-                  setup. Most answers land in a few seconds.
+                  Ask about this screen. I read what is in front of you, so you can skip the setup.
+                  Most answers land in a few seconds.
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {suggestedAsksForContext(context).map((suggestion) => (
