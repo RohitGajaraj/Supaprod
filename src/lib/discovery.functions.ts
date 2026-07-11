@@ -11,6 +11,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
+import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
@@ -930,7 +931,7 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const { data: prd, error } = await supabase
       .from("prds")
       .select("contract")
@@ -961,6 +962,22 @@ export const supersedeContractClause = createServerFn({ method: "POST" })
       .maybeSingle();
     if (upErr) throw new Error(upErr.message);
     if (!updated) throw new Error("Spec not found");
+    // RPT-32: a human superseding an AGENT-drafted contract clause is a
+    // first-class "edit" gate signal (the human correcting the contract analyst's
+    // draft), the highest-signal correction data. Best-effort and awaited so it
+    // survives the Workers response teardown but can never break the edit
+    // (recordGateSignalCore never throws). Skipped when the contract was
+    // human-drafted, since editing your own draft is not a correction of an agent.
+    if (contract.drafted_by === "agent") {
+      await recordGateSignalCore(supabase, userId, {
+        gateType: "edit",
+        subjectType: "contract_clause",
+        subjectRef: data.clause_id,
+        agentSlug: "contract-analyst",
+        verdict: "edited",
+        diffSummary: `${data.section}: ${data.new_text}`.slice(0, 500),
+      });
+    }
     return { contract: updatedContract };
   });
 
