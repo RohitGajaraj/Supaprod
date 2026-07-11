@@ -67,7 +67,12 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 continue;
               }
               if (disabledWorkspaceIds.has(ws.id)) {
-                results.push({ workspace_id: ws.id, insights: 0, pushed: 0, note: "routine disabled" });
+                results.push({
+                  workspace_id: ws.id,
+                  insights: 0,
+                  pushed: 0,
+                  note: "routine disabled",
+                });
                 continue;
               }
               // PC-08: this routine scanned the workspace this tick -- leave a receipt.

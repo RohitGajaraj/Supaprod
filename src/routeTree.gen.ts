@@ -124,6 +124,7 @@ import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksHouseRulesTickRouteImport } from './routes/api/public/hooks/house-rules-tick'
 import { Route as ApiPublicHooksGoalTickRouteImport } from './routes/api/public/hooks/goal-tick'
 import { Route as ApiPublicHooksGithubWebhookRouteImport } from './routes/api/public/hooks/github-webhook'
+import { Route as ApiPublicHooksFunnelWeek2RouteImport } from './routes/api/public/hooks/funnel-week2'
 import { Route as ApiPublicHooksFanoutReconcileTickRouteImport } from './routes/api/public/hooks/fanout-reconcile-tick'
 import { Route as ApiPublicHooksEventReactorTickRouteImport } from './routes/api/public/hooks/event-reactor-tick'
 import { Route as ApiPublicHooksEvalTickRouteImport } from './routes/api/public/hooks/eval-tick'
@@ -773,6 +774,12 @@ const ApiPublicHooksGithubWebhookRoute =
     path: '/api/public/hooks/github-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksFunnelWeek2Route =
+  ApiPublicHooksFunnelWeek2RouteImport.update({
+    id: '/api/public/hooks/funnel-week2',
+    path: '/api/public/hooks/funnel-week2',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksFanoutReconcileTickRoute =
   ApiPublicHooksFanoutReconcileTickRouteImport.update({
     id: '/api/public/hooks/fanout-reconcile-tick',
@@ -1124,6 +1131,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
   '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
+  '/api/public/hooks/funnel-week2': typeof ApiPublicHooksFunnelWeek2Route
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1278,6 +1286,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
   '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
+  '/api/public/hooks/funnel-week2': typeof ApiPublicHooksFunnelWeek2Route
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1436,6 +1445,7 @@ export interface FileRoutesById {
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
   '/api/public/hooks/fanout-reconcile-tick': typeof ApiPublicHooksFanoutReconcileTickRoute
+  '/api/public/hooks/funnel-week2': typeof ApiPublicHooksFunnelWeek2Route
   '/api/public/hooks/github-webhook': typeof ApiPublicHooksGithubWebhookRoute
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
@@ -1594,6 +1604,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
     | '/api/public/hooks/fanout-reconcile-tick'
+    | '/api/public/hooks/funnel-week2'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1748,6 +1759,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
     | '/api/public/hooks/fanout-reconcile-tick'
+    | '/api/public/hooks/funnel-week2'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1905,6 +1917,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
     | '/api/public/hooks/fanout-reconcile-tick'
+    | '/api/public/hooks/funnel-week2'
     | '/api/public/hooks/github-webhook'
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
@@ -1996,6 +2009,7 @@ export interface RootRouteChildren {
   ApiPublicHooksEvalTickRoute: typeof ApiPublicHooksEvalTickRoute
   ApiPublicHooksEventReactorTickRoute: typeof ApiPublicHooksEventReactorTickRoute
   ApiPublicHooksFanoutReconcileTickRoute: typeof ApiPublicHooksFanoutReconcileTickRoute
+  ApiPublicHooksFunnelWeek2Route: typeof ApiPublicHooksFunnelWeek2Route
   ApiPublicHooksGithubWebhookRoute: typeof ApiPublicHooksGithubWebhookRoute
   ApiPublicHooksGoalTickRoute: typeof ApiPublicHooksGoalTickRoute
   ApiPublicHooksHouseRulesTickRoute: typeof ApiPublicHooksHouseRulesTickRoute
@@ -2844,6 +2858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksGithubWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/funnel-week2': {
+      id: '/api/public/hooks/funnel-week2'
+      path: '/api/public/hooks/funnel-week2'
+      fullPath: '/api/public/hooks/funnel-week2'
+      preLoaderRoute: typeof ApiPublicHooksFunnelWeek2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/fanout-reconcile-tick': {
       id: '/api/public/hooks/fanout-reconcile-tick'
       path: '/api/public/hooks/fanout-reconcile-tick'
@@ -3362,6 +3383,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksEventReactorTickRoute: ApiPublicHooksEventReactorTickRoute,
   ApiPublicHooksFanoutReconcileTickRoute:
     ApiPublicHooksFanoutReconcileTickRoute,
+  ApiPublicHooksFunnelWeek2Route: ApiPublicHooksFunnelWeek2Route,
   ApiPublicHooksGithubWebhookRoute: ApiPublicHooksGithubWebhookRoute,
   ApiPublicHooksGoalTickRoute: ApiPublicHooksGoalTickRoute,
   ApiPublicHooksHouseRulesTickRoute: ApiPublicHooksHouseRulesTickRoute,
