@@ -13,54 +13,28 @@ function createMockSupabase(config: {
   runError?: any;
 }): SupabaseClient {
   return {
-    from: (table: string) => {
-      return {
-        select: (...args: string[]) => ({
-          eq: (col: string, val: any) => {
-            if (table === "eval_suites") {
-              return {
-                then: (cb: any) => {
-                  return Promise.resolve({
-                    data: config.suites ?? [],
-                    error: config.suiteError,
-                  });
-                },
-              };
-            }
-            return {
-              then: (cb: any) => {
-                return Promise.resolve({ data: null, error: config.suiteError });
-              },
-            };
-          },
-          in: (col: string, vals: any[]) => {
-            if (table === "eval_runs") {
-              return {
-                order: (col2: string, opts?: any) => ({
-                  limit: (n?: number) => ({
-                    then: (cb: any) => {
-                      return Promise.resolve({
-                        data: config.runs ?? [],
-                        error: config.runError,
-                      });
-                    },
-                  }),
-                }),
-              };
-            }
-            return {
-              order: (col2: string, opts?: any) => ({
-                limit: (n?: number) => ({
-                  then: (cb: any) => {
-                    return Promise.resolve({ data: [], error: config.runError });
-                  },
-                }),
-              }),
-            };
-          },
+    from: (table: string) => ({
+      select: (..._args: string[]) => ({
+        // eval_suites: .select(...).eq("user_id", userId) — terminal, awaited directly.
+        eq: async (_col: string, _val: any) => {
+          if (table === "eval_suites") {
+            return { data: config.suites ?? [], error: config.suiteError ?? null };
+          }
+          return { data: null, error: config.suiteError ?? null };
+        },
+        // eval_runs: .select(...).in("suite_id", ids).order(...).limit(2000) — terminal on limit().
+        in: (_col: string, _vals: any[]) => ({
+          order: (_col2: string, _opts?: any) => ({
+            limit: async (_n?: number) => {
+              if (table === "eval_runs") {
+                return { data: config.runs ?? [], error: config.runError ?? null };
+              }
+              return { data: [], error: config.runError ?? null };
+            },
+          }),
         }),
-      };
-    },
+      }),
+    }),
   } as any as SupabaseClient;
 }
 
@@ -94,7 +68,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 95,
           fail_count: 5,
           errored: 0,
@@ -104,7 +78,7 @@ describe("eval-health.functions", () => {
         },
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 90,
           fail_count: 10,
           errored: 0,
@@ -128,7 +102,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 100,
           fail_count: 0,
           errored: 0,
@@ -146,52 +120,61 @@ describe("eval-health.functions", () => {
     });
 
     it("should compute per-suite flakiness (variance in pass rates)", async () => {
+      // eval_runs.status is written by the runner as "completed" | "error" (never "passed"/
+      // "failed") — see src/lib/evals/coverage.ts HEALTHY_RUN_STATUS. A suite is flaky when
+      // adjacent completed runs flip between fully-passed and not; alternate that here so the
+      // computation actually exercises the flip-counting logic instead of vacuously no-op'ing.
       const suites = [{ id: "suite1", name: "Flaky Tests", user_id: "u1" }];
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
-          pass_count: 95,
-          fail_count: 5,
+          status: "completed",
+          pass_count: 100,
+          fail_count: 0,
           errored: 0,
           total_cases: 100,
-          avg_score: 0.95,
-          created_at: "2026-07-10T10:00:00Z",
+          avg_score: 1.0,
+          created_at: "2026-07-08T10:00:00Z", // oldest — fully passed
         },
         {
           suite_id: "suite1",
-          status: "failed",
+          status: "completed",
           pass_count: 50,
           fail_count: 50,
           errored: 0,
           total_cases: 100,
           avg_score: 0.5,
-          created_at: "2026-07-09T10:00:00Z",
+          created_at: "2026-07-09T10:00:00Z", // middle — not fully passed (flip)
         },
         {
           suite_id: "suite1",
-          status: "passed",
-          pass_count: 98,
-          fail_count: 2,
+          status: "completed",
+          pass_count: 100,
+          fail_count: 0,
           errored: 0,
           total_cases: 100,
-          avg_score: 0.98,
-          created_at: "2026-07-08T10:00:00Z",
+          avg_score: 1.0,
+          created_at: "2026-07-10T10:00:00Z", // newest — fully passed again (flip)
         },
       ];
       const supabase = createMockSupabase({ suites, runs });
       const result = await getEvalHealthImpl(supabase, "u1");
 
       expect(result.health).toBeDefined();
-      expect(result.health).toHaveProperty("per_suite_flakiness");
+      expect(result.health).toHaveProperty("suites");
+      expect(result.health.suites[0]).toHaveProperty("flakiness");
+      // Two flips across three completed runs (100% -> 50% -> 100%) => flakiness = 1.0, flagged flaky.
+      expect(result.health.suites[0].flakiness).toBeGreaterThan(0);
+      expect(result.health.suites[0].flaky).toBe(true);
+      expect(result.health.flakySuites.length).toBeGreaterThan(0);
     });
 
-    it("should compute health metrics: pass_rate, error_rate, trend", async () => {
+    it("should compute health metrics: passRate, errorRate, trend", async () => {
       const suites = [{ id: "suite1", name: "Test Suite", user_id: "u1" }];
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 90,
           fail_count: 10,
           errored: 0,
@@ -203,22 +186,24 @@ describe("eval-health.functions", () => {
       const supabase = createMockSupabase({ suites, runs });
       const result = await getEvalHealthImpl(supabase, "u1");
 
-      expect(result.health).toHaveProperty("pass_rate");
-      expect(result.health).toHaveProperty("error_rate");
+      // EvalHealth (src/lib/evals/health.ts) is camelCase — matches every real consumer
+      // (e.g. src/components/engine-room/EngineRoomSurface.tsx reads health.passRate / .verdict).
+      expect(result.health).toHaveProperty("passRate");
+      expect(result.health).toHaveProperty("errorRate");
       expect(result.health).toHaveProperty("trend");
-      expect(result.health).toHaveProperty("trust_verdict");
+      expect(result.health).toHaveProperty("verdict");
 
       // Verify types
-      expect(typeof result.health.pass_rate).toBe("number");
-      expect(typeof result.health.error_rate).toBe("number");
+      expect(typeof result.health.passRate).toBe("number");
+      expect(typeof result.health.errorRate).toBe("number");
       expect(typeof result.health.trend).toBe("string");
-      expect(typeof result.health.trust_verdict).toBe("string");
+      expect(typeof result.health.verdict).toBe("string");
 
       // Verify ranges
-      expect(result.health.pass_rate).toBeGreaterThanOrEqual(0);
-      expect(result.health.pass_rate).toBeLessThanOrEqual(1);
-      expect(result.health.error_rate).toBeGreaterThanOrEqual(0);
-      expect(result.health.error_rate).toBeLessThanOrEqual(1);
+      expect(result.health.passRate).toBeGreaterThanOrEqual(0);
+      expect(result.health.passRate).toBeLessThanOrEqual(1);
+      expect(result.health.errorRate).toBeGreaterThanOrEqual(0);
+      expect(result.health.errorRate).toBeLessThanOrEqual(1);
     });
 
     it("should generate human-readable summary", async () => {
@@ -226,7 +211,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 85,
           fail_count: 15,
           errored: 0,
@@ -279,7 +264,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "errored",
+          status: "completed",
           pass_count: 0,
           fail_count: 0,
           errored: 1,
@@ -301,7 +286,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "errored",
+          status: "completed", // completed run, but most of its cases errored
           pass_count: 10,
           fail_count: 20,
           errored: 70, // Most runs errored
@@ -314,15 +299,19 @@ describe("eval-health.functions", () => {
       const result = await getEvalHealthImpl(supabase, "u1");
 
       expect(result.health).toBeDefined();
-      expect(result.health.error_rate).toBeGreaterThan(0);
+      expect(result.health.errorRate).toBeGreaterThan(0);
     });
 
-    it("should handle improving trend (pass_rate increasing over time)", async () => {
+    it("should handle improving trend (passRate increasing over time)", async () => {
+      // computeEvalHealth only derives a trend once there are >= 4 completed runs (it splits
+      // the chronological run list in half and compares pooled pass rate); 3 runs is one short
+      // and always yields "unknown" regardless of the data, so 4 are needed to genuinely
+      // exercise the "improving" branch instead of trivially satisfying a loose `toBeDefined()`.
       const suites = [{ id: "suite1", name: "Improving Suite", user_id: "u1" }];
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 95,
           fail_count: 5,
           errored: 0,
@@ -332,7 +321,7 @@ describe("eval-health.functions", () => {
         },
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 80,
           fail_count: 20,
           errored: 0,
@@ -342,19 +331,31 @@ describe("eval-health.functions", () => {
         },
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 60,
           fail_count: 40,
           errored: 0,
           total_cases: 100,
           avg_score: 0.6,
-          created_at: "2026-07-08T10:00:00Z", // Oldest (lowest pass rate)
+          created_at: "2026-07-08T10:00:00Z",
+        },
+        {
+          suite_id: "suite1",
+          status: "completed",
+          pass_count: 50,
+          fail_count: 50,
+          errored: 0,
+          total_cases: 100,
+          avg_score: 0.5,
+          created_at: "2026-07-07T10:00:00Z", // Oldest (lowest pass rate)
         },
       ];
       const supabase = createMockSupabase({ suites, runs });
       const result = await getEvalHealthImpl(supabase, "u1");
 
-      expect(result.health.trend).toBeDefined();
+      // Prior half (07-07, 07-08) pools to 55%; recent half (07-09, 07-10) pools to 87.5% —
+      // a >5pp gap, so this should land squarely on "improving".
+      expect(result.health.trend).toBe("improving");
     });
 
     it("should limit runs query to 2000 rows per user", async () => {
@@ -362,7 +363,7 @@ describe("eval-health.functions", () => {
       // Simulating 2000+ run history; query limits to 2000
       const runs = Array.from({ length: 50 }, (_, i) => ({
         suite_id: "suite1",
-        status: "passed",
+        status: "completed",
         pass_count: Math.floor(Math.random() * 100) + 50,
         fail_count: Math.floor(Math.random() * 50),
         errored: 0,
@@ -384,7 +385,7 @@ describe("eval-health.functions", () => {
       const runs = [
         {
           suite_id: "suite1",
-          status: "passed",
+          status: "completed",
           pass_count: 100,
           fail_count: 0,
           errored: 0,

@@ -21,84 +21,49 @@ function createMockSupabase(config: {
   alerts?: any[];
   error?: any;
 }): SupabaseClient {
-  return {
-    from: (table: string) => {
-      // Track the query chain for verification
-      const queryState = { table, error: config.error };
+  const err = config.error ?? null;
 
-      return {
-        select: (...args: string[]) => ({
-          eq: (col: string, val: any) => ({
-            maybeSingle: async () => {
-              if (table === "ai_budgets") {
-                return { data: config.global ?? null, error: config.error };
-              }
-              return { data: null, error: config.error };
-            },
-            order: (col: string, opts?: any) => ({
-              limit: (n?: number) => ({
-                then: (cb: any) => {
-                  if (table === "ai_budget_alerts") {
-                    return Promise.resolve({ data: config.alerts ?? [], error: config.error });
-                  }
-                  return Promise.resolve({ data: [], error: config.error });
-                },
-              }),
-              then: (cb: any) => {
-                if (table === "ai_surface_budgets") {
-                  return Promise.resolve({ data: config.surfaces ?? [], error: config.error });
-                }
-                return Promise.resolve({ data: [], error: config.error });
-              },
-            }),
-          }),
-          order: (col: string, opts?: any) => ({
-            limit: (n?: number) => ({
-              then: (cb: any) => {
-                if (table === "ai_budget_alerts") {
-                  return Promise.resolve({ data: config.alerts ?? [], error: config.error });
-                }
-                return Promise.resolve({ data: [], error: config.error });
-              },
-            }),
-          }),
-          then: (cb: any) => {
+  /** A chainable + directly-awaitable `.eq().eq()...` tail for update()/delete() calls,
+   * matching how real supabase-js PostgrestFilterBuilder is thenable at every step. */
+  function eqChain(result: { data: any; error: any }): any {
+    return {
+      eq: (_col: string, _val: any) => eqChain(result),
+      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+    };
+  }
+
+  return {
+    from: (table: string) => ({
+      select: (..._args: string[]) => ({
+        eq: (_col: string, _val: any) => ({
+          maybeSingle: async () => {
             if (table === "ai_budgets") {
-              return Promise.resolve({ data: config.global ?? null, error: config.error });
+              return { data: config.global ?? null, error: err };
             }
-            return Promise.resolve({ data: null, error: config.error });
+            return { data: null, error: err };
           },
-        }),
-        then: (cb: any) => {
-          if (table === "ai_budgets") {
-            return Promise.resolve({ data: config.global ?? null, error: config.error });
-          }
-          return Promise.resolve({ data: null, error: config.error });
-        },
-      };
-    },
-    update: (data: any) => ({
-      eq: (col: string, val: any) => ({
-        eq: (col2: string, val2: any) => ({
-          then: (cb: any) => {
-            return Promise.resolve({ data: null, error: config.error });
-          },
-        }),
-      }),
-    }),
-    delete: () => ({
-      eq: (col: string, val: any) => ({
-        eq: (col2: string, val2: any) => ({
-          then: (cb: any) => {
-            return Promise.resolve({ data: null, error: config.error });
+          order: (_col: string, _opts?: any) => {
+            const orderResult =
+              table === "ai_surface_budgets"
+                ? { data: config.surfaces ?? [], error: err }
+                : { data: [], error: err };
+            return {
+              limit: async (_n?: number) => {
+                if (table === "ai_budget_alerts") {
+                  return { data: config.alerts ?? [], error: err };
+                }
+                return { data: [], error: err };
+              },
+              then: (resolve: any, reject?: any) =>
+                Promise.resolve(orderResult).then(resolve, reject),
+            };
           },
         }),
       }),
-    }),
-    upsert: (data: any, opts?: any) => ({
-      then: (cb: any) => {
-        return Promise.resolve({ data: null, error: config.error });
-      },
+      update: (_data: any) => eqChain({ data: null, error: err }),
+      delete: () => eqChain({ data: null, error: err }),
+      insert: async (_data: any) => ({ data: null, error: err }),
+      upsert: async (_data: any, _opts?: any) => ({ data: null, error: err }),
     }),
   } as any as SupabaseClient;
 }

@@ -6,7 +6,16 @@ import { rollupSnapshots, detectIncidents, runDriftForUser } from "./drift.serve
  * Mock Supabase for rollupSnapshots.
  * Handles ai_events fetch, prompt_runs fetch, eval_case_results fetch, and drift_snapshots upsert.
  */
-function mockSupabaseForRollup(config: { events?: any[]; runs?: any[]; evals?: any[]; upsertError?: any }) {
+function mockSupabaseForRollup(config: {
+  events?: any[];
+  runs?: any[];
+  evals?: any[];
+  upsertError?: any;
+  /** detectIncidents' drift_baselines lookup, used by the runDriftForUser tests below.
+   * Defaults to disabled so detectIncidents short-circuits without needing drift_snapshots
+   * (select) / drift_incidents mocking that this rollup-focused mock doesn't implement. */
+  baseline?: any;
+}) {
   return {
     from: (table: string) => {
       if (table === "ai_events") {
@@ -15,7 +24,7 @@ function mockSupabaseForRollup(config: { events?: any[]; runs?: any[]; evals?: a
             eq: () => ({
               gte: () => ({
                 order: () => ({
-                  limit: () => async () => ({ data: config.events || [], error: null }),
+                  limit: async () => ({ data: config.events || [], error: null }),
                 }),
               }),
             }),
@@ -26,7 +35,7 @@ function mockSupabaseForRollup(config: { events?: any[]; runs?: any[]; evals?: a
         return {
           select: () => ({
             eq: () => ({
-              in: () => async () => ({ data: config.runs || [], error: null }),
+              in: async () => ({ data: config.runs || [], error: null }),
             }),
           }),
         };
@@ -35,14 +44,26 @@ function mockSupabaseForRollup(config: { events?: any[]; runs?: any[]; evals?: a
         return {
           select: () => ({
             eq: () => ({
-              in: () => async () => ({ data: config.evals || [], error: null }),
+              in: async () => ({ data: config.evals || [], error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "drift_baselines") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: config.baseline ?? { enabled: false },
+                error: null,
+              }),
             }),
           }),
         };
       }
       // drift_snapshots
       return {
-        upsert: () => async () => ({ data: null, error: config.upsertError }),
+        upsert: async () => ({ data: null, error: config.upsertError }),
       };
     },
   } as any as SupabaseClient;
@@ -200,9 +221,36 @@ describe("rollupSnapshots", () => {
   it("should track error_count and compute request_count", async () => {
     const supabase = mockSupabaseForRollup({
       events: [
-        { id: "evt1", surface: "x", model: "y", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-03T00:00:00Z" },
-        { id: "evt2", surface: "x", model: "y", latency_ms: 150, total_tokens: 120, est_cost_usd: 0.012, status: "error", created_at: "2026-07-03T00:00:00Z" },
-        { id: "evt3", surface: "x", model: "y", latency_ms: 200, total_tokens: 140, est_cost_usd: 0.014, status: "error", created_at: "2026-07-03T00:00:00Z" },
+        {
+          id: "evt1",
+          surface: "x",
+          model: "y",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-03T00:00:00Z",
+        },
+        {
+          id: "evt2",
+          surface: "x",
+          model: "y",
+          latency_ms: 150,
+          total_tokens: 120,
+          est_cost_usd: 0.012,
+          status: "error",
+          created_at: "2026-07-03T00:00:00Z",
+        },
+        {
+          id: "evt3",
+          surface: "x",
+          model: "y",
+          latency_ms: 200,
+          total_tokens: 140,
+          est_cost_usd: 0.014,
+          status: "error",
+          created_at: "2026-07-03T00:00:00Z",
+        },
       ],
       runs: [],
       evals: [],
@@ -215,8 +263,26 @@ describe("rollupSnapshots", () => {
   it("should join eval scores by ai_event_id", async () => {
     const supabase = mockSupabaseForRollup({
       events: [
-        { id: "evt1", surface: "eval", model: "m", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-04T00:00:00Z" },
-        { id: "evt2", surface: "eval", model: "m", latency_ms: 150, total_tokens: 120, est_cost_usd: 0.012, status: "success", created_at: "2026-07-04T00:00:00Z" },
+        {
+          id: "evt1",
+          surface: "eval",
+          model: "m",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-04T00:00:00Z",
+        },
+        {
+          id: "evt2",
+          surface: "eval",
+          model: "m",
+          latency_ms: 150,
+          total_tokens: 120,
+          est_cost_usd: 0.012,
+          status: "success",
+          created_at: "2026-07-04T00:00:00Z",
+        },
       ],
       runs: [],
       evals: [
@@ -230,7 +296,18 @@ describe("rollupSnapshots", () => {
 
   it("should handle null score values in eval_case_results", async () => {
     const supabase = mockSupabaseForRollup({
-      events: [{ id: "evt1", surface: "s", model: "m", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-05T00:00:00Z" }],
+      events: [
+        {
+          id: "evt1",
+          surface: "s",
+          model: "m",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-05T00:00:00Z",
+        },
+      ],
       runs: [],
       evals: [{ ai_event_id: "evt1", score: null }],
     });
@@ -241,8 +318,26 @@ describe("rollupSnapshots", () => {
   it("should support prompt_version_id linking via prompt_runs", async () => {
     const supabase = mockSupabaseForRollup({
       events: [
-        { id: "evt1", surface: "prompt", model: "m", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-06T00:00:00Z" },
-        { id: "evt2", surface: "prompt", model: "m", latency_ms: 120, total_tokens: 110, est_cost_usd: 0.011, status: "success", created_at: "2026-07-06T00:00:00Z" },
+        {
+          id: "evt1",
+          surface: "prompt",
+          model: "m",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-06T00:00:00Z",
+        },
+        {
+          id: "evt2",
+          surface: "prompt",
+          model: "m",
+          latency_ms: 120,
+          total_tokens: 110,
+          est_cost_usd: 0.011,
+          status: "success",
+          created_at: "2026-07-06T00:00:00Z",
+        },
       ],
       runs: [
         { event_id: "evt1", version_id: "pv-v1" },
@@ -257,8 +352,26 @@ describe("rollupSnapshots", () => {
   it("should use bucket_date (YYYY-MM-DD) as day key", async () => {
     const supabase = mockSupabaseForRollup({
       events: [
-        { id: "evt1", surface: "s", model: "m", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-10T00:00:00Z" },
-        { id: "evt2", surface: "s", model: "m", latency_ms: 120, total_tokens: 110, est_cost_usd: 0.011, status: "success", created_at: "2026-07-10T23:59:59Z" },
+        {
+          id: "evt1",
+          surface: "s",
+          model: "m",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-10T00:00:00Z",
+        },
+        {
+          id: "evt2",
+          surface: "s",
+          model: "m",
+          latency_ms: 120,
+          total_tokens: 110,
+          est_cost_usd: 0.011,
+          status: "success",
+          created_at: "2026-07-10T23:59:59Z",
+        },
       ],
       runs: [],
       evals: [],
@@ -298,8 +411,26 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 25 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 150, error_count: 0, request_count: 10 }, // recent window
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 150,
+          error_count: 0,
+          request_count: 10,
+        }, // recent window
       ],
       existingIncidents: [],
     });
@@ -313,8 +444,26 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, cost_pct_threshold: 10 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_cost_usd: 0, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_cost_usd: 0.05, error_count: 0, request_count: 10 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_cost_usd: 0,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_cost_usd: 0.05,
+          error_count: 0,
+          request_count: 10,
+        },
       ],
       existingIncidents: [],
     });
@@ -326,8 +475,26 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, score_pct_threshold: 5 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_eval_score: null, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_eval_score: null, error_count: 0, request_count: 10 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_eval_score: null,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_eval_score: null,
+          error_count: 0,
+          request_count: 10,
+        },
       ],
       existingIncidents: [],
     });
@@ -340,8 +507,24 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, error_rate_pct_threshold: 5 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, error_count: 1, request_count: 100 }, // 1%
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, error_count: 10, request_count: 100 }, // 10% — delta = (10-1)/1*100 = 900%
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          error_count: 1,
+          request_count: 100,
+        }, // 1%
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          error_count: 10,
+          request_count: 100,
+        }, // 10% — delta = (10-1)/1*100 = 900%
       ],
       existingIncidents: [],
     });
@@ -353,9 +536,27 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 25 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, error_count: 0, request_count: 10 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          error_count: 0,
+          request_count: 10,
+        },
         // 60% delta = mag 60, thr*2 = 50 → 60 > 50 → critical
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 160, error_count: 0, request_count: 10 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 160,
+          error_count: 0,
+          request_count: 10,
+        },
       ],
       existingIncidents: [],
     });
@@ -367,11 +568,36 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 25 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 160, error_count: 0, request_count: 10 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 160,
+          error_count: 0,
+          request_count: 10,
+        },
       ],
       existingIncidents: [
-        { id: "inc1", surface: "s", model: "m", prompt_version_id: null, metric: "avg_latency_ms", status: "open" },
+        {
+          id: "inc1",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          metric: "avg_latency_ms",
+          status: "open",
+        },
       ],
     });
     const result = await detectIncidents(supabase, "user1");
@@ -383,11 +609,36 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 25 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 110, error_count: 0, request_count: 10 }, // 10% — no breach
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 110,
+          error_count: 0,
+          request_count: 10,
+        }, // 10% — no breach
       ],
       existingIncidents: [
-        { id: "inc1", surface: "s", model: "m", prompt_version_id: null, metric: "avg_latency_ms", status: "open" },
+        {
+          id: "inc1",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          metric: "avg_latency_ms",
+          status: "open",
+        },
       ],
     });
     const result = await detectIncidents(supabase, "user1");
@@ -400,11 +651,43 @@ describe("detectIncidents", () => {
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 10 },
       snapshots: [
         // Baseline: (100*50 + 100*50) / 100 = 100ms
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, request_count: 50 },
-        { user_id: "u1", bucket_date: "2026-06-21", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, request_count: 50 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          request_count: 50,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-21",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          request_count: 50,
+        },
         // Recent: (120*80 + 120*20) / 100 = 120ms
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 120, request_count: 80 },
-        { user_id: "u1", bucket_date: "2026-07-06", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 120, request_count: 20 },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 120,
+          request_count: 80,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-06",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 120,
+          request_count: 20,
+        },
       ],
       existingIncidents: [],
     });
@@ -417,8 +700,26 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, score_pct_threshold: 10 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_eval_score: 0.8, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_eval_score: 0.7, error_count: 0, request_count: 10 }, // -12.5% — breach
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_eval_score: 0.8,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_eval_score: 0.7,
+          error_count: 0,
+          request_count: 10,
+        }, // -12.5% — breach
       ],
       existingIncidents: [],
     });
@@ -432,8 +733,26 @@ describe("detectIncidents", () => {
     const supabase = mockSupabaseForDetect({
       baseline: { enabled: true, window_days: 7, baseline_days: 14, latency_pct_threshold: 10 },
       snapshots: [
-        { user_id: "u1", bucket_date: "2026-06-20", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 100, error_count: 0, request_count: 10 },
-        { user_id: "u1", bucket_date: "2026-07-05", surface: "s", model: "m", prompt_version_id: null, avg_latency_ms: 150, error_count: 0, request_count: 10 }, // 50% > 10% critical
+        {
+          user_id: "u1",
+          bucket_date: "2026-06-20",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 100,
+          error_count: 0,
+          request_count: 10,
+        },
+        {
+          user_id: "u1",
+          bucket_date: "2026-07-05",
+          surface: "s",
+          model: "m",
+          prompt_version_id: null,
+          avg_latency_ms: 150,
+          error_count: 0,
+          request_count: 10,
+        }, // 50% > 10% critical
       ],
       existingIncidents: [],
     });
@@ -446,7 +765,18 @@ describe("detectIncidents", () => {
 describe("runDriftForUser", () => {
   it("should run rollupSnapshots then detectIncidents in sequence", async () => {
     const supabase = mockSupabaseForRollup({
-      events: [{ id: "evt1", surface: "s", model: "m", latency_ms: 100, total_tokens: 100, est_cost_usd: 0.01, status: "success", created_at: "2026-07-01T00:00:00Z" }],
+      events: [
+        {
+          id: "evt1",
+          surface: "s",
+          model: "m",
+          latency_ms: 100,
+          total_tokens: 100,
+          est_cost_usd: 0.01,
+          status: "success",
+          created_at: "2026-07-01T00:00:00Z",
+        },
+      ],
       runs: [],
       evals: [],
     });

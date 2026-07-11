@@ -19,96 +19,67 @@ function createMockSupabase(config: {
   recentIncidents?: any[];
   error?: any;
 }): SupabaseClient {
+  const err = config.error ?? null;
+
+  /** A real thenable (calls `resolve`, unlike a bare `{ then: (cb) => Promise.resolve(...) }`
+   * which never settles the outer `await` and hangs the test until timeout). */
+  function terminal(result: { data: any; error: any }): any {
+    return {
+      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+    };
+  }
+
+  /** Chainable + directly-awaitable `.eq().eq()...` tail for update() calls. */
+  function updateEqChain(result: { data: any; error: any }): any {
+    return {
+      eq: (_col: string, _val: any) => updateEqChain(result),
+      then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+    };
+  }
+
   return {
-    from: (table: string) => {
-      return {
-        select: (...args: string[]) => ({
-          eq: (col: string, val: any) => {
-            const chainState = { table, col, val };
-            return {
-              maybeSingle: async () => {
-                if (table === "drift_baselines") {
-                  return { data: config.baseline ?? null, error: config.error };
-                }
-                return { data: null, error: config.error };
-              },
-              eq: (col2: string, val2: any) => ({
-                order: (col3: string, opts?: any) => ({
-                  then: (cb: any) => {
-                    if (table === "drift_incidents" && col === "status" && val === "open") {
-                      return Promise.resolve({
-                        data: config.openIncidents ?? [],
-                        error: config.error,
-                      });
-                    }
-                    return Promise.resolve({ data: [], error: config.error });
-                  },
-                }),
-              }),
-              neq: (col2: string, val2: any) => ({
-                order: (col3: string, opts?: any) => ({
-                  limit: (n?: number) => ({
-                    then: (cb: any) => {
-                      if (table === "drift_incidents" && col2 === "status" && val2 === "open") {
-                        return Promise.resolve({
-                          data: config.recentIncidents ?? [],
-                          error: config.error,
-                        });
-                      }
-                      return Promise.resolve({ data: [], error: config.error });
-                    },
-                  }),
-                }),
-              }),
-              gte: (col2: string, val2: any) => ({
-                order: (col3: string, opts?: any) => ({
-                  then: (cb: any) => {
-                    if (table === "drift_snapshots") {
-                      return Promise.resolve({ data: config.snapshots ?? [], error: config.error });
-                    }
-                    return Promise.resolve({ data: [], error: config.error });
-                  },
-                }),
-              }),
-              order: (col2: string, opts?: any) => ({
-                then: (cb: any) => {
-                  if (table === "drift_incidents" && col === "status" && val === "open") {
-                    return Promise.resolve({
-                      data: config.openIncidents ?? [],
-                      error: config.error,
-                    });
-                  }
-                  return Promise.resolve({ data: [], error: config.error });
-                },
-              }),
-            };
+    from: (table: string) => ({
+      select: (..._args: string[]) => ({
+        eq: (_col: string, _val: any) => ({
+          maybeSingle: async () => {
+            if (table === "drift_baselines") {
+              return { data: config.baseline ?? null, error: err };
+            }
+            return { data: null, error: err };
           },
-          gte: (col: string, val: any) => ({
-            order: (col2: string, opts?: any) => ({
-              then: (cb: any) => {
-                if (table === "drift_snapshots") {
-                  return Promise.resolve({ data: config.snapshots ?? [], error: config.error });
+          // drift_incidents (open): .eq("user_id",..).eq("status","open").order(...)
+          eq: (col2: string, val2: any) => ({
+            order: (_col3: string, _opts?: any) => {
+              if (table === "drift_incidents" && col2 === "status" && val2 === "open") {
+                return terminal({ data: config.openIncidents ?? [], error: err });
+              }
+              return terminal({ data: [], error: err });
+            },
+          }),
+          // drift_snapshots: .eq("user_id",..).gte("bucket_date",..).order(...)
+          gte: (_col2: string, _val2: any) => ({
+            order: (_col3: string, _opts?: any) => {
+              if (table === "drift_snapshots") {
+                return terminal({ data: config.snapshots ?? [], error: err });
+              }
+              return terminal({ data: [], error: err });
+            },
+          }),
+          // drift_incidents (recent): .eq("user_id",..).neq("status","open").order(...).limit(50)
+          neq: (col2: string, val2: any) => ({
+            order: (_col3: string, _opts?: any) => ({
+              limit: async (_n?: number) => {
+                if (table === "drift_incidents" && col2 === "status" && val2 === "open") {
+                  return { data: config.recentIncidents ?? [], error: err };
                 }
-                return Promise.resolve({ data: [], error: config.error });
+                return { data: [], error: err };
               },
             }),
           }),
         }),
-      };
-    },
-    update: (data: any) => ({
-      eq: (col: string, val: any) => ({
-        eq: (col2: string, val2: any) => ({
-          then: (cb: any) => {
-            return Promise.resolve({ data: null, error: config.error });
-          },
-        }),
       }),
-    }),
-    upsert: (data: any, opts?: any) => ({
-      then: (cb: any) => {
-        return Promise.resolve({ data: null, error: config.error });
-      },
+      update: (_data: any) => updateEqChain({ data: null, error: err }),
+      upsert: async (_data: any, _opts?: any) => ({ data: null, error: err }),
     }),
   } as any as SupabaseClient;
 }
