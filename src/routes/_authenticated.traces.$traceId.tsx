@@ -60,8 +60,7 @@ type ToolCallRow = {
   created_at: string;
 };
 type HopRow =
-  | { kind: "event"; at: number; span: Span }
-  | { kind: "tool"; at: number; tool: ToolCallRow };
+  { kind: "event"; at: number; span: Span } | { kind: "tool"; at: number; tool: ToolCallRow };
 type GuardrailHit = { rule_name: string; action: string; side: string; matched: string | null };
 type EvalRow = {
   relevance: number | null;

@@ -27,6 +27,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   enqueueHandoff,
   maybeCompleteMission,
+  // Re-added 2026-07-11: the batched-resolution perf pass (7b3dcc20) removed
+  // this import while advanceMissionCore still resolves the orchestrator
+  // sender through it (single lookup outside the batched dispatch loop).
+  resolveAgent,
   type HandoffPayload,
 } from "./handoff.server";
 import { recallMemoryRefs } from "./memory.server";

@@ -13,10 +13,13 @@ import { getRecentExecutedUnattended } from "@/lib/today.functions";
 import { toolConsequence, REVERSIBILITY_LABEL, type Reversibility } from "@/lib/tool-consequences";
 import { MonoLabel } from "@/components/cadence/Primitives";
 
+// Token-traced, no hex fallbacks (accent restraint 2026-07-11) and the same
+// map as DecisionCard: the safe case stays gray, elevated risk wears the
+// warning/danger role tokens.
 const REVERSIBILITY_COLOR: Record<Reversibility, string> = {
-  reversible: "var(--emerald, #2f8f6b)",
-  partial: "var(--ink-subtle, #6b6457)",
-  irreversible: "var(--rose, #b4493f)",
+  reversible: "var(--ink-faint)",
+  partial: "var(--marigold)",
+  irreversible: "var(--rose)",
 };
 
 function timeAgo(iso: string): string {

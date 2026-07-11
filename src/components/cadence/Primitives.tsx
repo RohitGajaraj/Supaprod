@@ -272,19 +272,27 @@ export function TabRow({
 /* EmptyState — bento empty slate with icon tile, pixel title, single CTA.
    Ported from design-reference/cadence/loop.jsx (EmptyState); title face
    moved to Geist Pixel per DESIGN-TEMPO §3 (empty-state headlines are a
-   sanctioned brand moment). */
+   sanctioned brand moment). U7 (2026-07-11): the Pixel headline is a
+   VARIANT, on by default because an empty screen is usually the surface's
+   only brand moment, but a surface that already renders another Pixel
+   element (a hero numeral, a stat trio, a shimmer working word) MUST pass
+   pixel={false} to stay inside the one-Pixel-per-screen budget. */
 export function EmptyState({
   icon: Icon,
   title,
   body,
   cta,
   onCta,
+  pixel = true,
 }: {
   icon: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
   title: ReactNode;
   body: ReactNode;
   cta: ReactNode;
   onCta: () => void;
+  /** Geist Pixel headline (the brand-moment variant). Pass false when the
+   *  host screen already carries a Pixel element. */
+  pixel?: boolean;
 }) {
   return (
     <div className="bento" style={{ padding: 48, textAlign: "center" }}>
@@ -305,8 +313,15 @@ export function EmptyState({
       </span>
       {/* Titles stay a few words: Pixel is display-only, never multi-line copy.
           A surface showing EmptyState must not simultaneously render another
-          Pixel flourish (max 1 per screen). Body and CTA stay Geist Sans. */}
-      <h3 style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, fontSize: 19 }}>
+          Pixel flourish (max 1 per screen); opt out via pixel={false} if it
+          does. Body and CTA stay Geist Sans in both variants. */}
+      <h3
+        style={
+          pixel
+            ? { fontFamily: "var(--font-pixel)", fontWeight: 400, fontSize: 19 }
+            : { fontWeight: 600, fontSize: 16, letterSpacing: "-0.01em" }
+        }
+      >
         {title}
       </h3>
       <p

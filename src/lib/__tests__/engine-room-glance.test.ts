@@ -193,6 +193,8 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "incidents",
     ]);
     expect(ROOM_TAB_META.record.map((t) => t.id)).toEqual([
+      // RPT-31: the verification cockpit opens the Record room.
+      "verify",
       "traces",
       "approvals",
       "ledger",

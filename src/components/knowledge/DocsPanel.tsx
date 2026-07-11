@@ -406,6 +406,7 @@ export function DocsPanel() {
           </div>
         ) : (
           <EmptyState
+            pixel={false} /* BrainStatTrio above carries Brain's one Pixel moment */
             icon={FileText}
             title="No docs yet"
             body="Workspace pages live here. Import from Google Docs or Notion, or start blank. Everything you write joins the brain."

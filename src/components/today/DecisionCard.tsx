@@ -69,9 +69,12 @@ type Props = {
   isDeciding: boolean;
 };
 
+// Status hues on status semantics only (accent restraint 2026-07-11): the
+// safe case stays gray, elevated risk wears the warning/danger role tokens.
+// Ember never marks reversibility; it is reserved for the gate itself.
 const REVERSIBILITY_COLOR: Record<Reversibility, string> = {
   reversible: "var(--ink-faint)",
-  partial: "var(--ember)",
+  partial: "var(--marigold)",
   irreversible: "var(--rose)",
 };
 

@@ -1,10 +1,10 @@
 import * as React from "react";
 
 /**
- * PURE — the hero's two-part sentence. heroA is the one ember/moss italic
- * word per screen (README law: one italic emotional word max); heroB is the
- * plain tail. Exported standalone so the count->copy mapping is unit-tested
- * without mounting React (OBS-04.md §9, exact copy).
+ * PURE: the hero's two-part sentence. heroA is the one ember/moss emphasis
+ * phrase per screen (rendered in Geist Pixel, Today's one brand moment);
+ * heroB is the plain tail. Exported standalone so the count->copy mapping is
+ * unit-tested without mounting React (OBS-04.md §9, exact copy).
  */
 export function computeHero(pendingCalls: number): { heroA: string; heroB: string } {
   if (pendingCalls <= 0) {
@@ -32,17 +32,22 @@ export interface HeroProps {
   pendingCalls: number;
 }
 
-/** The Today ritual's opening line. Geist Sans heading (text-heading-32),
- * one ember (or moss at all-clear) italic word, the rest plain. */
+/** The Today ritual's opening line. Geist Sans heading (text-heading-32);
+ * the lead phrase renders in Geist Pixel with the ember (or moss at
+ * all-clear) role color, the rest plain. */
 export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
   const { heroA, heroB } = computeHero(pendingCalls);
   const allClear = pendingCalls <= 0;
-  // Tempo brand moment (DESIGN-TEMPO §3/§8): the pending-calls numeral is
-  // Today's ONE Geist Pixel element (pattern: MissionOrchestratorDetail's
-  // compounding count). Only leading digits pixelate; the ember word itself
-  // stays Geist Sans, so spelled counts (One/Two/Three) and the all-clear
-  // line carry no Pixel at all. LoopStrip counts stay Geist Mono.
-  const numeral = /^(\d+)([\s\S]*)$/.exec(heroA);
+  // Tempo brand moment (DESIGN-TEMPO §3/§8, U7 founder emphasis 2026-07-11):
+  // the hero's lead phrase (heroA) is Today's ONE Geist Pixel element, on
+  // EVERY state. The old digits-only rule left spelled counts (One/Two/Three)
+  // and the all-clear line with no Pixel at all, so the hero face was
+  // invisible most of the time; now the whole lead phrase pixelates and the
+  // plain tail (heroB) stays Geist Sans. Pixel is a fixed 400 display face
+  // with no italic, so the emphasis <em> keeps its role color (ember, moss
+  // at all-clear) but drops the slant. LoopStrip counts stay Geist Mono, and
+  // ColdStartOnramp (which replaces this hero on a cold workspace, never
+  // co-renders) carries the Pixel budget in that state instead.
   // Loom W2-TODAY: tightened vertical rhythm so the hero + the featured call
   // + the My-day strip + the machine pulse all land above the fold at 1440px
   // (DESIGN-LOOM §8b's 1.5-screen budget).
@@ -71,24 +76,16 @@ export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
           textWrap: "balance",
         }}
       >
-        <em style={{ fontStyle: "italic", color: allClear ? "var(--moss)" : "var(--ember)" }}>
-          {numeral ? (
-            <>
-              <span
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  fontWeight: 400,
-                  fontStyle: "normal",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {numeral[1]}
-              </span>
-              {numeral[2]}
-            </>
-          ) : (
-            heroA
-          )}
+        <em
+          style={{
+            fontFamily: "var(--font-pixel)",
+            fontWeight: 400,
+            fontStyle: "normal",
+            fontVariantNumeric: "tabular-nums",
+            color: allClear ? "var(--moss)" : "var(--ember)",
+          }}
+        >
+          {heroA}
         </em>
         {heroB}
       </h1>

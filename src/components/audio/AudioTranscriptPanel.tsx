@@ -246,8 +246,7 @@ export function AudioTranscriptPanel() {
   const extractMutation = useMutation({
     mutationFn: (transcriptId: string) => extractActionsFromTranscript({ data: { transcriptId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["audio-transcripts"] }),
-    onError: (e) =>
-      toast.error(e instanceof Error ? e.message : "Could not extract action items."),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not extract action items."),
   });
 
   const handleUpload = useCallback(

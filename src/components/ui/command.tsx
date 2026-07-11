@@ -15,7 +15,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+      "flex h-full w-full flex-col overflow-hidden rounded-md bg-(--ds-background-100) text-(--ds-gray-1000)",
       className,
     )}
     {...props}
@@ -27,12 +27,10 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0">
-        {/* Layout-only overrides. The old 48px input, py-3 rows, and 20px icons broke
-            the 32/36/40 control grid and the 16px icon law; heights, icon sizes, and
-            heading type now come from CommandInput/CommandItem/CommandGroup themselves. */}
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-item]]:px-2">
-          {children}
-        </Command>
+        {/* No layout overrides needed: heights, icon sizes, heading type, and the 6px
+            popover container padding all come from CommandInput/CommandList/
+            CommandGroup/CommandItem themselves per the popover anatomy law. */}
+        <Command>{children}</Command>
       </DialogContent>
     </Dialog>
   );
@@ -42,8 +40,9 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  <div className="flex items-center border-b border-(--ds-gray-400) px-3" cmdk-input-wrapper="">
+    {/* Leading search icon reads gray-700 per patterns/command-palette.md. */}
+    <Search className="mr-2 h-4 w-4 shrink-0 text-(--ds-gray-700)" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -63,7 +62,11 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    // 6px container padding: the shared popover anatomy (6px pad, 36px rows).
+    className={cn(
+      "max-h-[300px] overflow-y-auto overflow-x-hidden p-(--ds-popover-padding)",
+      className,
+    )}
     {...props}
   />
 ));
@@ -74,7 +77,11 @@ const CommandEmpty = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Empty>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
 >((props, ref) => (
-  <CommandPrimitive.Empty ref={ref} className="py-6 text-center text-sm" {...props} />
+  <CommandPrimitive.Empty
+    ref={ref}
+    className="py-6 text-center text-copy-13 text-(--ds-gray-900)"
+    {...props}
+  />
 ));
 
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
@@ -89,7 +96,7 @@ const CommandGroup = React.forwardRef<
       // Heading type matches SelectLabel/DropdownMenuLabel (text-label-12 + medium,
       // gray-700). text-label-12 is a plain CSS class, not a Tailwind utility, so it
       // cannot ride an arbitrary variant; text-[12px] leading-4 mirrors its 12px/16px.
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-(--ds-gray-700)",
+      "overflow-hidden text-(--ds-gray-1000) [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-(--ds-gray-700)",
       className,
     )}
     {...props}
@@ -104,7 +111,9 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 h-px bg-border", className)}
+    // -mx-1.5 bleeds the hairline through the 6px list padding, same as
+    // SelectSeparator/DropdownMenuSeparator.
+    className={cn("-mx-1.5 my-1 h-px bg-(--ds-gray-400)", className)}
     {...props}
   />
 ));

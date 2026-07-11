@@ -1,18 +1,17 @@
 import * as React from "react";
-import { rgba } from "@/components/obsidian/primitives";
 
 export type LoopSurface = "discover" | "today" | "define" | "build" | "brain";
 
 export type PillTone = "ember" | "glacier" | "quiet";
 
 const TONE_STYLE: Record<PillTone, { border: string; color: string; shadow: string }> = {
-  ember: {
-    border: rgba("#FF6B2C", 0.5),
-    color: "var(--ember)",
-    shadow: "0 0 14px rgba(255,107,44,0.15)",
-  },
-  // color-mix over the rgba() hex helper so the border follows the token
+  // color-mix over hex literals so both accents follow their tokens
   // (glacier was recalibrated 2026-07-11; literals would silently drift).
+  ember: {
+    border: "color-mix(in oklab, var(--ember) 50%, transparent)",
+    color: "var(--ember)",
+    shadow: "0 0 14px color-mix(in oklab, var(--ember) 15%, transparent)",
+  },
   glacier: {
     border: "color-mix(in oklab, var(--glacier) 35%, transparent)",
     color: "var(--glacier)",
@@ -25,6 +24,13 @@ const TONE_STYLE: Record<PillTone, { border: string; color: string; shadow: stri
  * reserved exclusively for the one attention queue). */
 export function decideTone(pendingCalls: number): PillTone {
   return pendingCalls > 0 ? "ember" : "quiet";
+}
+
+/** PURE: BUILD goes glacier only while missions actually run (color doctrine
+ * 2026-07-11: blue is a literal live-status hue, never an ambient AI tint;
+ * an idle BUILD pill is as quiet as its neighbors). */
+export function buildTone(workingCount: number): PillTone {
+  return workingCount > 0 ? "glacier" : "quiet";
 }
 
 function Pill({
@@ -64,16 +70,9 @@ function Pill({
       }}
     >
       {pulse && (
-        <span
-          aria-hidden="true"
-          style={{
-            width: 5,
-            height: 5,
-            borderRadius: "var(--radius-pill)",
-            background: "var(--glacier)",
-            animation: "cadPulse 2s ease-in-out infinite",
-          }}
-        />
+        /* The shared running-status dot class: token-traced live-blue with the
+           same pulse and reduced-motion gating as every other running dot. */
+        <span aria-hidden="true" className="dot dot-running" style={{ width: 5, height: 5 }} />
       )}
       {label}
     </button>
@@ -125,8 +124,8 @@ export function LoopStrip({ counts, pendingCalls, workingCount, onGo, compact }:
     {
       key: "build",
       label: `BUILD · ${workingCount}`,
-      tone: "glacier",
-      pulse: true,
+      tone: buildTone(workingCount),
+      pulse: workingCount > 0,
       title:
         workingCount > 0
           ? `${count(workingCount, "mission", "missions")} building right now`

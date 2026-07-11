@@ -784,21 +784,60 @@ function AskComposer({ value, onChange, onSend, model, onModelChange, tools }: A
   humanized-output law applies to every string an agent or the product produces, including
   gate-card body sentences, error messages, and suggestion-chip labels.
 
-## The AI-presence signature: the shimmering working word (founder ruling 2026-07-11)
+## The AI-presence signature: the shimmering working word (founder ruling 2026-07-11, refined same day)
 
 The platform-wide marker that an agent is present and working is ONE word (Working,
-Thinking, or the agent's name) set in Geist Pixel Square with the glacier-blue flowing
-shimmer gradient clipped to the text. It is a single sanctioned utility, not a recipe:
+Thinking, or the agent's name) set in Geist Pixel Square with the AI-presence blue
+flowing shimmer gradient clipped to the text. It is a single sanctioned utility, not a
+recipe:
 
-- Class: `.ai-working-word` in `src/styles.css` (Pixel face + the `agent-shimmer`
-  gradient, `background-clip: text`). Consume the class; never re-implement the gradient
-  inline, and never define a second shimmer.
-- Hue: the glacier family (`#84b3ec` and its ramp), per the 2026-07-11 blue-equals-glacier
-  ruling. Violet may remain only as a depth note inside the gradient stops.
+- Class: `.ai-working-word` in `src/styles.css` (Pixel face + the `--shimmer-gradient`
+  token, `background-clip: text`). Consume the class; never re-implement the gradient
+  inline, and never define a second shimmer. The gradient token itself lives with the
+  color tokens and is owned there, not by any surface.
+- Hue: the recalibrated blue role (`--ds-blue-*`, hue roughly 210 to 225), deliberately
+  richer and more luminous on black than the earlier chalky glacier verbatim; `--glacier`
+  is now an alias into that same blue role. **Purple/violet is retired from AI
+  treatments entirely** — no violet stop may appear in the shimmer gradient or any other
+  AI-presence styling. This refined doctrine supersedes the earlier glacier-verbatim
+  wording of the same-day ruling.
 - Motion: always gated. Under `prefers-reduced-motion` (or `data-motion="off"`) the word
-  falls back to static glacier text; the Pixel face alone still signals the AI moment.
+  falls back to static blue text (`--glacier`); the Pixel face alone still signals the
+  AI moment.
 - Budget: at most ONE shimmer per screen, and it counts as the screen's Pixel brand
   moment while visible. A streaming reply pairs it with the sanctioned `.stream-caret`,
   never an ad-hoc spinner or a second `LoadingDots`.
-- Role split: glacier shimmer = the machine is working. Ember stays reserved for
+- Role split: blue shimmer = the machine is working. Ember stays reserved for
   waiting-on-human moments (the approve CTA, a pending call), never for busy states.
+- Consumer note: `/chat` is a redirect stub into Today (OBS-12 folded chat into the Ask
+  panel), so the chat/AI hero moment lives in `AskPanel`. Its thinking line
+  (`ShimmerStatus`) still wears a mono-face inline shimmer and should migrate to
+  `.ai-working-word` when that surface is next touched; the top-bar `AiPulse` mark and
+  text sweeps are the other sanctioned shimmer consumers.
+
+## Pixel brand-moment inventory (U7, 2026-07-11)
+
+The §3/§8 budget is at most ONE Geist Pixel element per screen. Persistent chrome
+lockups — the rail's pixel "C" monogram in `AppShell` and the top-bar `AiPulse` pixel
+"C" mark — are logo usage, not brand moments, and do not consume a screen's budget.
+The audited in-canvas inventory:
+
+| Screen / surface        | The one Pixel element                                                              | Component                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Today (populated)       | Hero lead phrase (`One call`, `12 calls`, `All clear.`) in ember/moss               | `src/components/obsidian/today/Hero.tsx`             |
+| Today (cold workspace)  | Cold-start headline "Give your agents something to read." (replaces the hero)       | `src/components/today/ColdStartOnramp.tsx`           |
+| Command palette (⌘K)    | No-results headline "Nothing by that name" (overlay surface; header stays Sans)     | `src/components/cadence/CommandPalette.tsx`          |
+| Discover (empty)        | Empty-state headline "Nothing sensed yet"                                           | `src/components/discover/DiscoverSurface.tsx`        |
+| Build mission detail    | Compounding-count numeral                                                           | `src/components/missions/MissionOrchestratorDetail.tsx` |
+| Build index             | Stat numeral                                                                        | `src/routes/_authenticated.build.index.tsx`          |
+| Brain                   | Stat-trio numerals (one trio, one moment)                                           | `src/components/knowledge/BrainStatTrio.tsx`         |
+| Engine Room metrics     | Gauntlet score numeral                                                              | `src/components/observe/GauntletMetricsPanel.tsx`    |
+| Login / auth            | Auth scaffold display line                                                          | `src/components/cadence/AuthScaffold.tsx`            |
+| Onboarding              | Welcome display line                                                                | `src/components/onboarding/ObsidianOnboarding.tsx`   |
+| 404 / error boundary    | The 404 numeral                                                                     | `src/routes/__root.tsx`                              |
+| Any empty screen        | `EmptyState` headline (default Pixel; hosts already carrying a Pixel element pass `pixel={false}`) | `src/components/cadence/Primitives.tsx` |
+| Any screen, while an agent runs | The `.ai-working-word` shimmer word (counts as that screen's moment while visible) | `src/styles.css` utility                     |
+
+Rules the inventory enforces: never body copy, never dense UI, never inside tables,
+menus, or popover rows; a surface adding a new Pixel element must first remove or opt
+out the one it already has.

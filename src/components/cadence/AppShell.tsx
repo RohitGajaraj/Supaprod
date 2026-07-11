@@ -273,8 +273,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       const meta = u?.user_metadata as
-        | { display_name?: string; full_name?: string; name?: string }
-        | undefined;
+        { display_name?: string; full_name?: string; name?: string } | undefined;
       const name =
         meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "Account";
       setUserName(name);
@@ -592,11 +591,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     C
                   </span>
                   <span className="flex-1 min-w-0">
+                    {/* Wordmark: Geist Sans 600 with tight tracking, per the
+                        DESIGN-TEMPO §8 logo spec (600, not bolder). The pixel
+                        C to its left is the compact mark; the pair is the
+                        canonical monogram + wordmark lockup. */}
                     <span
                       className="block truncate"
                       style={{
                         fontSize: 13.5,
-                        fontWeight: 700,
+                        fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: "var(--text-primary)",
                       }}

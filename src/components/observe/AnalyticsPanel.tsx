@@ -4,7 +4,8 @@
 // per-row ember share bars and right-aligned mono spend. Production keeps the
 // per-SURFACE rollup as the top-level whole-spend view (every AI call, ink
 // labels); the reference's per-AGENT rollup sits underneath it as the
-// also-real layer of the 'agent' surface — orchid labels, rows drill to
+// also-real layer of the 'agent' surface: gray labels (the reference's
+// orchid tint is retired per accent restraint 2026-07-11), rows drill to
 // /govern?tab=analytics&agent=<slug> (AgentSpendDetail replaces the tab
 // body). Reference's "of $X cap" spend sub-line renders only where a real
 // cap exists (ai_budgets daily cap on 24h, monthly cap on 30d); the "ttft"

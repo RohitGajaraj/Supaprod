@@ -58,7 +58,9 @@ export const VerdictChip = React.forwardRef<HTMLSpanElement, VerdictChipProps>(
           padding: "3px 10px",
           // color-mix instead of the rgba() helper: the hues are now var()
           // references, which a hex parser cannot derive alphas from.
-          backgroundColor: hue ? `color-mix(in oklab, ${hue.color} 12%, transparent)` : "transparent",
+          backgroundColor: hue
+            ? `color-mix(in oklab, ${hue.color} 12%, transparent)`
+            : "transparent",
           // PENDING: spec says "faint hairline border" - --hairline-faint
           // (5%, doc-commented "faint dividers" in the token layer) is the
           // literal match for that word, not the general --hairline (7%).
