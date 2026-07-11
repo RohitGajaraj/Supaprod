@@ -143,7 +143,7 @@ export function MissionSlideOver({
       showToast(
         vars.decision === "approve"
           ? "Good call. The PR is open."
-          : "Sent back. It is revising now.",
+          : "Sent back. It is reworking it for your next look.",
       );
       qc.invalidateQueries({ queryKey: ["needs-you"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });

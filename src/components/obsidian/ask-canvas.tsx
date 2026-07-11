@@ -31,8 +31,13 @@ const RUN_STATUS_LABEL: Record<string, string> = {
   queued: "QUEUED",
   waiting_approval: "WAITING ON YOU",
   blocked: "WAITING ON YOU",
-  completed: "SHIPPED",
-  done: "SHIPPED",
+  // RPT-09 (amplifier voice): a loop that merely COMPLETED is not shipped -- run
+  // status here is agent_runs.status, not a merged changeset. "SHIPPED" asserted
+  // an autonomous ship the operator never called (the same false-ship class
+  // build-status.ts was hardened against). The legwork is done and prepared for
+  // your call; "SHIPPED" is reserved for a confirmed merge.
+  completed: "READY FOR YOU",
+  done: "READY FOR YOU",
   failed: "BLOCKED",
   halted: "BLOCKED",
   cancelled: "BLOCKED",

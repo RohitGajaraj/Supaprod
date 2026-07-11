@@ -27,7 +27,7 @@ import {
   listEventQueue,
   decideEventDispatch,
 } from "@/lib/reactor.functions";
-import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip, StepDot, type VerdictTone } from "@/components/cadence/Primitives";
 import { relTime, fmtUsd } from "@/components/product/format";
 import {
   CONSENT_PHILOSOPHY,
@@ -897,6 +897,9 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     borderBottom: i < events.length - 1 ? "1px solid var(--hairline)" : "none",
                   }}
                 >
+                  {/* RPT-09 (needs-human leads in ember): a confirm-mode row that waits
+                      on you leads with the ember gate dot, not the reject button. */}
+                  {isPending ? <StepDot status="gate" /> : null}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500 }}>
                       {e.event_type} → {e.target_agent_slug}

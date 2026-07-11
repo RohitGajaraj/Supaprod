@@ -21,6 +21,7 @@ import {
 import { sourceLabel, statusTone, supersedesPreview, willSupersede } from "@/lib/memory-candidates";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
 import { VerdictChip } from "@/components/obsidian/verdict";
+import { StepDot } from "@/components/cadence/Primitives";
 
 const CARD_STYLE: React.CSSProperties = {
   background: "var(--card)",
@@ -182,6 +183,10 @@ function CandidateRow({
   return (
     <div style={{ ...CARD_STYLE, padding: "13px 16px" }}>
       <div className="flex items-center" style={{ gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+        {/* RPT-09 (needs-human leads in ember): a pending consent decision leads with
+            the ember gate dot, matching the Approvals queue, so "your call" reads in
+            ember rather than the Supersedes caveat below (which is demoted to neutral). */}
+        {row.status === "pending" ? <StepDot status="gate" /> : null}
         <VerdictChip tone={statusTone(row.status)} />
         <span
           className="mono-label"
@@ -211,7 +216,7 @@ function CandidateRow({
         >
           <span
             className="mono-label"
-            style={{ fontSize: "var(--text-mono-micro)", color: "var(--ember)" }}
+            style={{ fontSize: "var(--text-mono-micro)", color: "var(--text-muted)" }}
           >
             Supersedes
           </span>

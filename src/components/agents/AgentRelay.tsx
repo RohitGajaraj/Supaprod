@@ -177,7 +177,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
         }}
       >
         <span className="dot dot-planned" />
-        All quiet. The loop runs itself.
+        All quiet. Nothing needs you right now.
       </div>
     );
   }
