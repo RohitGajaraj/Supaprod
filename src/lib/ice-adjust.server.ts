@@ -33,10 +33,15 @@ type AdjustResult =
 /**
  * Auto-adjust impact + confidence on an opportunity from its linked PostHog event.
  * `supabase` can be either the user-scoped client or supabaseAdmin.
+ * `admin` is the service-role client used for product_analytics / ice_adjustments
+ * (both tables only grant INSERT/SELECT to service_role — see
+ * 20260626230000_product_analytics.sql) — defaults to the module singleton so
+ * production behavior is unchanged; tests inject a mock here.
  */
 export async function autoAdjustIce(
   supabase: SupabaseClient,
   opportunityId: string,
+  admin: SupabaseClient = supabaseAdmin,
 ): Promise<AdjustResult> {
   // 1. Load the opportunity (needs posthog_event + current ICE).
   const { data: opp, error: oppErr } = await supabase
@@ -54,7 +59,7 @@ export async function autoAdjustIce(
   // 2. Aggregate product_analytics for this event (last 30 days).
   // product_analytics + ice_adjustments are not in generated types yet (new migration).
   const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-  const anyDb = supabaseAdmin as any;
+  const anyDb = admin as any;
   type AnalyticsRow = { cohort_date: string; distinct_users: number; event_count: number };
   const { data: rows, error: rowsErr } = (await anyDb
     .from("product_analytics")

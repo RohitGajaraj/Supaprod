@@ -1,52 +1,82 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { describe, it, expect } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { autoAdjustIce } from "./ice-adjust.server";
 
 /**
- * Mock builder for Supabase chainable query API.
- * Properly simulates the fluent API with chained .eq(), .gte(), .order(), etc.
+ * Mock builder for the primary Supabase client passed as `autoAdjustIce`'s
+ * first argument — only ever used for the `opportunities` table (select +
+ * eq + single, update + eq). Every chained method is a real async function
+ * (or an object whose terminal method is), so `await` always resolves to a
+ * concrete `{ data, error }` / `{ error }` value rather than a bare function
+ * or a non-thenable object.
  */
-function mockSupabase(config: { opp?: any; oppErr?: any; rows?: any; rowsErr?: any }) {
+function mockSupabase(config: { opp?: any; oppErr?: any }) {
   return {
     from: (table: string) => {
-      if (table === "opportunities") {
-        return {
-          select: () => ({
-            eq: (col: string, val: any) => ({
-              single: async () => ({ data: config.opp, error: config.oppErr }),
-            }),
-          }),
-          update: (data: any) => ({
-            eq: (col: string, val: any) => ({
-              async execute() {
-                return { error: null };
-              },
-            }),
-          }),
-        };
+      if (table !== "opportunities") {
+        throw new Error(`mockSupabase: unexpected table "${table}"`);
       }
-      // product_analytics
       return {
-        select: () => ({
-          eq: (col: string, val: any) => ({
-            eq: () => ({
-              gte: () => ({
-                order: (col: string, opts: any) => async () => {
-                  return { data: config.rows, error: config.rowsErr };
-                },
-              }),
-            }),
+        select: (_cols: string) => ({
+          eq: (_col: string, _val: any) => ({
+            single: async () => ({ data: config.opp, error: config.oppErr ?? null }),
           }),
+        }),
+        update: (_data: any) => ({
+          eq: async (_col: string, _val: any) => ({ error: null }),
         }),
       };
     },
   } as any as SupabaseClient;
 }
 
+/**
+ * Mock builder for the service-role admin client (`autoAdjustIce`'s third
+ * argument). `product_analytics` and `ice_adjustments` only grant
+ * INSERT/SELECT to service_role (20260626230000_product_analytics.sql), so
+ * production always reads/writes them through supabaseAdmin; tests inject
+ * this mock via the same parameter. Tracks inserted rows so provenance
+ * writes are assertable, not just assumed.
+ */
+function mockAdmin(config: { rows?: any; rowsErr?: any }) {
+  const inserted: any[] = [];
+  const client = {
+    __inserted: inserted,
+    from: (table: string) => {
+      if (table === "product_analytics") {
+        return {
+          select: (_cols: string) => ({
+            eq: (_col: string, _val: any) => ({
+              eq: (_col2: string, _val2: any) => ({
+                gte: (_col3: string, _val3: any) => ({
+                  order: async (_col4: string, _opts: any) => ({
+                    data: config.rows,
+                    error: config.rowsErr ?? null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "ice_adjustments") {
+        return {
+          insert: async (row: any) => {
+            inserted.push(row);
+            return { data: null, error: null };
+          },
+        };
+      }
+      throw new Error(`mockAdmin: unexpected table "${table}"`);
+    },
+  };
+  return client as any as SupabaseClient & { __inserted: any[] };
+}
+
 describe("autoAdjustIce", () => {
   describe("ICE scoring formula", () => {
     it("should compute impact = clamp(floor(log10(users+1)*3.5), 1, 10)", async () => {
-      // Test vector: 0 users → 1, 10 users ≈ 3.5, 100 users ≈ 7, 1000 users ≈ 10.5 → clamped 10
+      // 9 total users, 2 days → floor(log10(10)*3.5) = floor(3.5) = 3
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
@@ -56,21 +86,25 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: [
           { cohort_date: "2026-07-01", distinct_users: 0, event_count: 10 },
-          { cohort_date: "2026-07-02", distinct_users: 9, event_count: 15 }, // 9 users → log10(10)*3.5 ≈ 3.5
+          { cohort_date: "2026-07-02", distinct_users: 9, event_count: 15 },
         ],
       });
 
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
-        expect(result.newImpact).toBeGreaterThanOrEqual(1);
-        expect(result.newImpact).toBeLessThanOrEqual(10);
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newImpact).toBe(3);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=2 >= 1)");
       }
     });
 
     it("should compute confidence = clamp(round(min(days/14, 1)*10), 1, 10)", async () => {
+      // 70 total users, 7 days → round(min(7/14,1)*10) = 5
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
@@ -80,42 +114,57 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: Array.from({ length: 7 }, (_, i) => ({
           cohort_date: `2026-07-${String(i + 1).padStart(2, "0")}`,
           distinct_users: 10,
           event_count: 20,
-        })), // 7 days → min(7/14, 1)*10 = 5
+        })),
       });
 
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
-        expect(result.newConfidence).toBeGreaterThanOrEqual(1);
-        expect(result.newConfidence).toBeLessThanOrEqual(10);
+      // deltaImpact = |6-5| = 1 >= 1, so this is not skipped even though
+      // confidence itself is unchanged (5 -> 5).
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newConfidence).toBe(5);
+        expect(result.newImpact).toBe(6);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=1 >= 1)");
       }
     });
   });
 
   describe("delta threshold (≥1 point skip guard)", () => {
-    it("should skip update when deltaI < 1 and deltaC < 1", async () => {
+    it("should skip update when deltaImpact < 1 and deltaConfidence < 1", async () => {
+      // 10 users, 1 day → newImpact=3, newConfidence=1 — both equal to current.
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
           workspace_id: "ws1",
-          impact: 5,
-          confidence: 5,
+          impact: 3,
+          confidence: 1,
           ease: 5,
           posthog_event: "sign_up",
         },
-        rows: [{ cohort_date: "2026-07-01", distinct_users: 10, event_count: 20 }], // newImpact ≈ 3.5 → 4, newConfidence ≈ 0.7 → 1; deltas 1 and 4 — should NOT skip
+      });
+      const admin = mockAdmin({
+        rows: [{ cohort_date: "2026-07-01", distinct_users: 10, event_count: 20 }],
       });
 
-      const result = await autoAdjustIce(supabase, "opp1");
-      // Either adjusted or skipped is valid; test that it doesn't error
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
+      if (result.ok && "skipped" in result && result.skipped) {
+        expect(result.reason).toContain("delta < 1");
+      } else {
+        throw new Error("expected a skipped result (both deltas are 0)");
+      }
+      expect(admin.__inserted.length).toBe(0);
     });
 
-    it("should update when only impact changes ≥1", async () => {
+    it("should update when at least one delta is ≥ 1", async () => {
+      // 1400 total users, 14 days → newImpact=10, newConfidence=10.
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
@@ -125,28 +174,38 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: Array.from({ length: 14 }, (_, i) => ({
           cohort_date: `2026-06-${String(i + 17).padStart(2, "0")}`,
           distinct_users: 100,
           event_count: 50,
-        })), // 14 days, 100 users
+        })),
       });
 
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newImpact).toBe(10);
+        expect(result.newConfidence).toBe(10);
         expect(Math.abs(result.newImpact - result.oldImpact)).toBeGreaterThanOrEqual(1);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=7, deltaConfidence=5)");
       }
+      expect(admin.__inserted.length).toBe(1);
     });
   });
 
   describe("error handling", () => {
     it("should return error when opportunity not found", async () => {
-      const supabase = mockSupabase({ oppErr: { message: "not found" } });
-      const result = await autoAdjustIce(supabase, "nonexistent");
+      // No oppErr and no opp row → falls through to the "opportunity not
+      // found" fallback message (oppErr?.message ?? "opportunity not found").
+      const supabase = mockSupabase({});
+      const admin = mockAdmin({});
+      const result = await autoAdjustIce(supabase, "nonexistent", admin);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.reason).toContain("opportunity not found");
+        expect(result.reason).toBe("opportunity not found");
       }
     });
 
@@ -161,10 +220,13 @@ describe("autoAdjustIce", () => {
           posthog_event: null,
         },
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const admin = mockAdmin({});
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("skipped" in result && result.skipped) {
+      if (result.ok && "skipped" in result && result.skipped) {
         expect(result.reason).toContain("no posthog_event");
+      } else {
+        throw new Error("expected a skipped result (no posthog_event linked)");
       }
     });
 
@@ -178,12 +240,14 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
-        rows: [],
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const admin = mockAdmin({ rows: [] });
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("skipped" in result && result.skipped) {
+      if (result.ok && "skipped" in result && result.skipped) {
         expect(result.reason).toContain("no analytics data");
+      } else {
+        throw new Error("expected a skipped result (empty product_analytics rows)");
       }
     });
 
@@ -197,9 +261,9 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
-        rowsErr: { message: "Query timeout" },
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const admin = mockAdmin({ rowsErr: { message: "Query timeout" } });
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.reason).toContain("timeout");
@@ -218,15 +282,20 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: [
           { cohort_date: "2026-07-01", distinct_users: 0, event_count: 0 },
           { cohort_date: "2026-07-02", distinct_users: 0, event_count: 0 },
         ], // totalUsers = 0 → log10(1)*3.5 = 0 → clamped to 1
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
+      if (result.ok && "adjusted" in result && result.adjusted) {
         expect(result.newImpact).toBe(1);
+        expect(result.sampleUsers).toBe(0);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=4 >= 1)");
       }
     });
 
@@ -240,17 +309,26 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: [
           { cohort_date: "2026-07-01", distinct_users: null, event_count: null },
           { cohort_date: "2026-07-02", distinct_users: 5, event_count: 10 },
-        ], // null coerced to 0, then 5 → totalUsers = 5
+        ], // null coerced to 0, then 5 → totalUsers = 5, totalEvents = 10
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newImpact).toBe(2);
+        expect(result.sampleUsers).toBe(5);
+        expect(result.sampleEvents).toBe(10);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=3 >= 1)");
+      }
     });
 
     it("should use row count (not date uniqueness) as dataDays", async () => {
-      // If same date appears twice, it counts as 2 days (pure row count)
+      // If the same date appears twice, it counts as 2 days (pure row count).
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
@@ -260,21 +338,26 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
-        rows: Array.from({ length: 21 }, (_, i) => ({
+      });
+      const admin = mockAdmin({
+        rows: Array.from({ length: 21 }, () => ({
           cohort_date: "2026-07-01", // all same date
           distinct_users: 1,
           event_count: 1,
         })), // 21 rows → dataDays = 21 → min(21/14, 1)*10 = 10
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
+      if (result.ok && "adjusted" in result && result.adjusted) {
         expect(result.newConfidence).toBe(10);
+        expect(result.sampleUsers).toBe(21);
+      } else {
+        throw new Error("expected an adjusted result (deltaConfidence=5 >= 1)");
       }
     });
 
     it("should clamp newImpact to [1, 10] range", async () => {
-      // Very large user count should cap at 10
+      // Very large user count should cap at 10.
       const supabase = mockSupabase({
         opp: {
           id: "opp1",
@@ -284,12 +367,16 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: [{ cohort_date: "2026-07-01", distinct_users: 10000, event_count: 100000 }],
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
-        expect(result.newImpact).toBeLessThanOrEqual(10);
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newImpact).toBe(10);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=9 >= 1)");
       }
     });
 
@@ -303,16 +390,20 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: Array.from({ length: 30 }, (_, i) => ({
           cohort_date: `2026-06-${String(i + 1).padStart(2, "0")}`,
           distinct_users: 10,
           event_count: 20,
         })), // 30 days → min(30/14, 1)*10 = 10, then clamped
       });
-      const result = await autoAdjustIce(supabase, "opp1");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
       expect(result.ok).toBe(true);
-      if ("adjusted" in result && result.adjusted) {
-        expect(result.newConfidence).toBeLessThanOrEqual(10);
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.newConfidence).toBe(10);
+      } else {
+        throw new Error("expected an adjusted result (deltaConfidence=9 >= 1)");
       }
     });
   });
@@ -328,21 +419,38 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "sign_up",
         },
+      });
+      const admin = mockAdmin({
         rows: [
           { cohort_date: "2026-07-01", distinct_users: 100, event_count: 50 },
           { cohort_date: "2026-07-02", distinct_users: 150, event_count: 75 },
         ],
       });
-      const result = await autoAdjustIce(supabase, "opp1");
-      if ("adjusted" in result && result.adjusted) {
-        expect(result.ok).toBe(true);
-        expect(typeof result.oldImpact).toBe("number");
-        expect(typeof result.newImpact).toBe("number");
-        expect(typeof result.oldConfidence).toBe("number");
-        expect(typeof result.newConfidence).toBe("number");
-        expect(typeof result.sampleUsers).toBe("number");
-        expect(typeof result.sampleEvents).toBe("number");
+      const result = await autoAdjustIce(supabase, "opp1", admin);
+      expect(result.ok).toBe(true);
+      if (result.ok && "adjusted" in result && result.adjusted) {
+        expect(result.oldImpact).toBe(2);
+        expect(result.newImpact).toBe(8);
+        expect(result.oldConfidence).toBe(2);
+        expect(result.newConfidence).toBe(1);
+        expect(result.sampleUsers).toBe(250);
+        expect(result.sampleEvents).toBe(125);
         expect(typeof result.reason).toBe("string");
+        // Provenance row must actually be written to ice_adjustments.
+        expect(admin.__inserted.length).toBe(1);
+        expect(admin.__inserted[0]).toMatchObject({
+          opportunity_id: "opp1",
+          workspace_id: "ws1",
+          feature_event: "sign_up",
+          old_impact: 2,
+          new_impact: 8,
+          old_confidence: 2,
+          new_confidence: 1,
+          sample_users: 250,
+          sample_events: 125,
+        });
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=6 >= 1)");
       }
     });
 
@@ -356,16 +464,23 @@ describe("autoAdjustIce", () => {
           ease: 5,
           posthog_event: "demo_requested",
         },
+      });
+      const admin = mockAdmin({
         rows: [
           { cohort_date: "2026-07-01", distinct_users: 50, event_count: 100 },
           { cohort_date: "2026-07-02", distinct_users: 75, event_count: 150 },
         ],
       });
-      const result = await autoAdjustIce(supabase, "opp1");
-      if ("adjusted" in result && result.adjusted) {
+      const result = await autoAdjustIce(supabase, "opp1", admin);
+      expect(result.ok).toBe(true);
+      if (result.ok && "adjusted" in result && result.adjusted) {
         expect(result.reason).toContain("distinct users");
         expect(result.reason).toContain("days");
         expect(result.reason).toContain("demo_requested");
+        expect(result.reason).toContain("Impact 3→7");
+        expect(admin.__inserted[0].reason).toBe(result.reason);
+      } else {
+        throw new Error("expected an adjusted result (deltaImpact=4 >= 1)");
       }
     });
   });
