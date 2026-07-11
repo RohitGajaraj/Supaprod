@@ -2577,7 +2577,10 @@ const decisionRevise = def({
     if (!(decision.rationale ?? "").trim()) throw new Error("decision has no rationale to revise");
 
     const res = await callModel(supabase, userId, {
-      surface: "decision",
+      // No dedicated "decision" CallSurface exists (that union lives in the pinned
+      // runtime.server.ts); reuse "prd", the established artifact-revise surface
+      // prd.revise already uses, so both revise tools share one cost bucket.
+      surface: "prd",
       surface_ref: decision.id,
       model: DRAFT_MODEL,
       traceId: traceId ?? null,
@@ -2652,21 +2655,32 @@ const roadmapMove = def({
     if (!check.ok) throw new Error(check.reason);
 
     const norm = (s: string | null) => (s && s.trim().length > 0 ? s.trim() : null);
-    // PC-10 capture-on-write: snapshot the prior placement + attribute to the agent
-    // so the move is one-key rewindable and the rewind files against this agent.
+    const nextOutcome = norm(outcome);
+    const nextMeasure = norm(measure);
+    // PC-10 Finding-3 fix: only snapshot when the placement actually changes, so a
+    // no-op move (same bucket + outcome + measure) never creates a phantom
+    // rewindable state. On a real change, capture the prior placement + attribute
+    // to the agent so the move is one-key rewindable and files against this agent.
+    const changed =
+      a.bucket !== (opp.roadmap_bucket ?? null) ||
+      nextOutcome !== (opp.roadmap_outcome ?? null) ||
+      nextMeasure !== (opp.roadmap_measure ?? null);
+    const updatePayload: Record<string, unknown> = {
+      roadmap_bucket: a.bucket,
+      roadmap_outcome: nextOutcome,
+      roadmap_measure: nextMeasure,
+    };
+    if (changed) {
+      updatePayload.roadmap_snapshot_before = {
+        bucket: opp.roadmap_bucket ?? null,
+        outcome: opp.roadmap_outcome ?? null,
+        measure: opp.roadmap_measure ?? null,
+      };
+      updatePayload.roadmap_last_agent_slug = agentSlug ?? null;
+    }
     const { error: uErr } = await supabase
       .from("opportunities")
-      .update({
-        roadmap_bucket: a.bucket,
-        roadmap_outcome: norm(outcome),
-        roadmap_measure: norm(measure),
-        roadmap_snapshot_before: {
-          bucket: opp.roadmap_bucket ?? null,
-          outcome: opp.roadmap_outcome ?? null,
-          measure: opp.roadmap_measure ?? null,
-        },
-        roadmap_last_agent_slug: agentSlug ?? null,
-      })
+      .update(updatePayload)
       .eq("id", a.opportunity_id)
       .eq("user_id", userId);
     if (uErr) throw new Error(uErr.message);
