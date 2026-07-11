@@ -16,6 +16,8 @@ import { resolveProviderAuth } from "./resolve.server";
 import { tokenBearer } from "./providers/bearer.server";
 import { postMessage, type SlackPostResult } from "./providers/slack.server";
 import { loadNewestDecisionBrief } from "@/lib/stakeholder-pack.functions";
+import { loadOutcomeReceiptSnapshot } from "@/lib/stakeholder-update.functions";
+import { buildOutcomeReceipt } from "@/lib/stakeholder-update";
 import { composeStakeholderPack, renderPackMarkdown } from "@/lib/stakeholder-pack";
 
 const SLACK_DIGEST_DUE_MS = 20 * 60 * 60 * 1000; // ~daily, mirrors notifications.functions.ts's DAILY_DUE_MS
@@ -101,9 +103,22 @@ export async function postStakeholderDigestToSlack(
     return { posted: false, reason: "no decision to share yet" };
   }
 
+  // RPT-49: lead the shared-channel post with the same outcome receipt (what shipped, what it
+  // did, calibration). Workspace-scoped (no single user owns the shared-channel post, so userId
+  // is null and the decisions figure counts the whole workspace). Best-effort: a receipt failure
+  // or a quiet period just posts the decision pack alone.
+  let receiptText = "";
+  try {
+    const snapshot = await loadOutcomeReceiptSnapshot(supabase, null, workspaceId);
+    const receipt = buildOutcomeReceipt(snapshot);
+    if (receipt) receiptText = `${toSlackMrkdwn(receipt)}\n\n`;
+  } catch {
+    receiptText = "";
+  }
+
   const pack = composeStakeholderPack(loaded.brief, "exec");
   const markdown = renderPackMarkdown(pack, { asOf: new Date().toISOString().slice(0, 10) });
-  const text = toSlackMrkdwn(markdown);
+  const text = `${receiptText}${toSlackMrkdwn(markdown)}`;
 
   const result: SlackPostResult = await postMessage(token, resolved.binding.resourceId, text);
   if (!result.posted) {
