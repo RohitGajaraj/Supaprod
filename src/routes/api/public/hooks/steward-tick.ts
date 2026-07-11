@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { withJobRun } from "@/lib/observability";
+
+// workspace_routine_prefs (PC-08, migration 20260710220000) predates the
+// last generated Supabase types.
+const routinesDb = supabaseAdmin as unknown as SupabaseClient;
 
 /**
  * WM-S4: Workspace Steward agent — steward-tick hook.
@@ -56,6 +61,19 @@ export const Route = createFileRoute("/api/public/hooks/steward-tick")({
             return json({ ok: false, error: wsErr.message }, 500);
           }
 
+          // PC-08: the "Steward check" routine's per-workspace off switch.
+          const candidateIds = (workspaces ?? []).map((w) => w.id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await routinesDb
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "steward")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           const now = new Date();
           const cooldownCutoff = new Date(
             now.getTime() - NUDGE_COOLDOWN_HOURS * 3600_000,
@@ -77,6 +95,11 @@ export const Route = createFileRoute("/api/public/hooks/steward-tick")({
           for (const ws of workspaces ?? []) {
             try {
               const ownerId = ws.owner_id as string;
+
+              if (disabledWorkspaceIds.has(ws.id)) {
+                results.push({ workspace_id: ws.id, nudged: false, reason: "routine disabled" });
+                continue;
+              }
 
               // Rate limit: skip if a steward nudge was already inserted in the past 23h
               const { data: recentNudge } = await supabaseAdmin

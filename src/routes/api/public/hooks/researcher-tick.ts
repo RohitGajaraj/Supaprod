@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callModel } from "@/lib/ai/runtime.server";
@@ -6,6 +7,10 @@ import { webSearch } from "@/lib/ai/tools/firecrawl.server";
 import { withJobRun } from "@/lib/observability";
 import { writeSignals } from "@/lib/sources/sink.server";
 import { hashContent } from "@/lib/scout/diff";
+
+// workspace_routine_prefs (PC-08, migration 20260710220000) predates the
+// last generated Supabase types.
+const routinesDb = supabaseAdmin as unknown as SupabaseClient;
 
 /**
  * SEN-04: Researcher Watchtower — researcher-tick hook.
@@ -74,6 +79,19 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
             return json({ ok: false, error: briefErr.message }, 500);
           }
 
+          // PC-08: the "Researcher brief" routine's per-workspace off switch.
+          const candidateIds = (briefs ?? []).map((b) => b.workspace_id);
+          let disabledWorkspaceIds = new Set<string>();
+          if (candidateIds.length > 0) {
+            const { data: prefs } = await routinesDb
+              .from("workspace_routine_prefs")
+              .select("workspace_id,enabled")
+              .eq("routine_id", "researcher-brief")
+              .eq("enabled", false)
+              .in("workspace_id", candidateIds);
+            disabledWorkspaceIds = new Set((prefs ?? []).map((p) => p.workspace_id as string));
+          }
+
           const results: Array<{
             workspace_id: string;
             queries?: string[];
@@ -84,6 +102,10 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
 
           for (const brief of briefs ?? []) {
             try {
+              if (disabledWorkspaceIds.has(brief.workspace_id)) {
+                results.push({ workspace_id: brief.workspace_id, error: "routine disabled" });
+                continue;
+              }
               // Derive search queries
               const targets = (brief.researcher_targets ?? "").trim();
               let queries: string[];
