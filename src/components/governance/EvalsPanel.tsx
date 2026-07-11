@@ -30,7 +30,7 @@ import {
   getEvalScoreTrends,
   getEvalCoverage,
 } from "@/lib/evals.functions";
-import { EmptyState, MonoLabel } from "@/components/cadence/Primitives";
+import { EmptyState, MonoLabel, VerdictChip } from "@/components/cadence/Primitives";
 // One source of truth for the canonical surface×prompt targets (shared with the EVAL-COVERAGE
 // scorer), so the "new suite" picker and the coverage banner can never drift.
 import { EVAL_COVERAGE_TARGETS as SURFACE_KEYS } from "@/lib/evals/coverage";
@@ -386,6 +386,9 @@ export function EvalsPanel() {
                       >
                         {score}
                       </span>
+                      <VerdictChip tone={score >= s.pass_threshold ? "moss" : "madder"}>
+                        {score >= s.pass_threshold ? "pass" : "fail"}
+                      </VerdictChip>
                       {diff != null ? (
                         <span
                           className="mono-label"

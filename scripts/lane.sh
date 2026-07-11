@@ -420,7 +420,11 @@ cmd_next() {
     /^\| [0-9]+ \|/{
       r=$2; s=$3; id=$4; pr=$8;
       gsub(/^[ \t]+|[ \t]+$/,"",r); gsub(/^[ \t]+|[ \t]+$/,"",s); gsub(/^[ \t]+|[ \t]+$/,"",id); gsub(/^[ \t]+|[ \t]+$/,"",pr);
-      if ((s=="\342\254\234" || s=="\342\227\220") && (pr=="Tier 1" || pr=="Tier 3")) printf "%d\t%s\n", r, id;
+      # PREFIX match, not exact equality: a partial row is almost always annotated
+      # (e.g. "\342\227\220 [~75%]", "\342\227\220 (2026-07-10, ...)"), so an exact
+      # s=="glyph" check silently excluded every annotated \342\227\220 row from
+      # eligibility forever, regardless of tier or done-registry status.
+      if ((index(s, "\342\254\234")==1 || index(s, "\342\227\220")==1) && (pr=="Tier 1" || pr=="Tier 3")) printf "%d\t%s\n", r, id;
     }' | sort -n)
   if [ "$n" = 0 ]; then echo "BOARD DRY: no eligible Tier-1/Tier-3 ⬜/◐ item unclaimed + not done" >&2; return 2; fi
   return 0

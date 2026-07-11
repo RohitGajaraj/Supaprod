@@ -252,6 +252,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
               >
                 {score}
               </span>
+              <VerdictChip tone={below ? "madder" : "moss"}>{below ? "fail" : "pass"}</VerdictChip>
               <span
                 className="mono-label"
                 style={{ color: below ? "var(--madder)" : "var(--emerald)" }}
