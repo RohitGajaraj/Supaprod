@@ -12,6 +12,12 @@
 
 > [!IMPORTANT]
 >
+> ## 🌙 2026-07-12 — LANE 2 BOARD REVIEW + WAIT STATE (Lane C holding PC-30..34; most remaining work gated)
+>
+> **Lane 2 session (2026-07-12 00:15 UTC):** Resumed autonomous build loop from yesterday's close. Verified: tree green (tsc 0 / build ok / 4079 tests pass, 0 fail); synced rescue/lane2 with origin/main (3 PC-10 commits integrated via Lane 1). **Board assessment:** 305/387 done (78.8% strict); next eligible items per `lane.sh next` are PC-29 (◐ 85% with complex documented gaps), PC-37 (taste-gated), PC-13/14/17/18/19 (all GTM/gated/business), RPT-09 (copy pass), PC-24... **Holding pattern:** no immediately autonomous buildable code items available. Lane C holding PC-30..34 claims (658m old, awaiting potential release). Reviewed SW-7's three remaining verifications (trust-ramp 4/5, CI self-correct on real failure, ci-poll-tick re-verification) — all code complete, require production environment for verification. Awaiting: Lane C completion or founder unblocking of gated items. Tree clean + pushed.
+>
+> [!IMPORTANT]
+>
 > ## 🌙 2026-07-11 — LANE C RUNNING CONTINUOUS AUTONOMOUS (founder asleep, standing goal: clean the board by morning)
 >
 > **Founder directive (2026-07-11, late):** Lane C runs the ranked list end to end while the founder sleeps — top-ranked unclaimed first, then partial `◐` items, closing each fully (build, gate, review, commit, push to `main`, migrations applied live via Lovable MCP where needed) before moving on. Anything genuinely founder-gated gets marked as such on its [dashboard](./feature-dashboard.md) row with findings + why, so no other lane re-picks it. This block is updated periodically (not every row) as items close. **Closed so far:** PC-12 ✅ (parallel fan-out → one review queue), PC-31 ✅ (Design station — Brand Kit + Prototypes, zero new migration). **Flagged blocked, not skipped:** PC-30 `[needs lane B]` — real schema need (agent-scoped instructions table) conflicts with PC-29's live `supabase/migrations/**` claim; re-pickable once PC-29 releases. Continuing.
