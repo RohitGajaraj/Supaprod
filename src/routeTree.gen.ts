@@ -111,6 +111,7 @@ import { Route as ApiPublicHooksUptimeTickRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
 import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/public/hooks/steward-tick'
 import { Route as ApiPublicHooksSenseTickRouteImport } from './routes/api/public/hooks/sense-tick'
+import { Route as ApiPublicHooksSelfImproveTickRouteImport } from './routes/api/public/hooks/self-improve-tick'
 import { Route as ApiPublicHooksScoutTickRouteImport } from './routes/api/public/hooks/scout-tick'
 import { Route as ApiPublicHooksRetentionTickRouteImport } from './routes/api/public/hooks/retention-tick'
 import { Route as ApiPublicHooksResumeRunsRouteImport } from './routes/api/public/hooks/resume-runs'
@@ -697,6 +698,12 @@ const ApiPublicHooksSenseTickRoute = ApiPublicHooksSenseTickRouteImport.update({
   path: '/api/public/hooks/sense-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSelfImproveTickRoute =
+  ApiPublicHooksSelfImproveTickRouteImport.update({
+    id: '/api/public/hooks/self-improve-tick',
+    path: '/api/public/hooks/self-improve-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksScoutTickRoute = ApiPublicHooksScoutTickRouteImport.update({
   id: '/api/public/hooks/scout-tick',
   path: '/api/public/hooks/scout-tick',
@@ -1129,6 +1136,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
+  '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
@@ -1282,6 +1290,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
+  '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
@@ -1439,6 +1448,7 @@ export interface FileRoutesById {
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
+  '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
@@ -1596,6 +1606,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
     | '/api/public/hooks/scout-tick'
+    | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
@@ -1749,6 +1760,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
     | '/api/public/hooks/scout-tick'
+    | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
@@ -1905,6 +1917,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
     | '/api/public/hooks/scout-tick'
+    | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
     | '/api/public/hooks/trigger-tick'
@@ -1995,6 +2008,7 @@ export interface RootRouteChildren {
   ApiPublicHooksResumeRunsRoute: typeof ApiPublicHooksResumeRunsRoute
   ApiPublicHooksRetentionTickRoute: typeof ApiPublicHooksRetentionTickRoute
   ApiPublicHooksScoutTickRoute: typeof ApiPublicHooksScoutTickRoute
+  ApiPublicHooksSelfImproveTickRoute: typeof ApiPublicHooksSelfImproveTickRoute
   ApiPublicHooksSenseTickRoute: typeof ApiPublicHooksSenseTickRoute
   ApiPublicHooksStewardTickRoute: typeof ApiPublicHooksStewardTickRoute
   ApiPublicHooksTriggerTickRoute: typeof ApiPublicHooksTriggerTickRoute
@@ -2739,6 +2753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksSenseTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/self-improve-tick': {
+      id: '/api/public/hooks/self-improve-tick'
+      path: '/api/public/hooks/self-improve-tick'
+      fullPath: '/api/public/hooks/self-improve-tick'
+      preLoaderRoute: typeof ApiPublicHooksSelfImproveTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/scout-tick': {
       id: '/api/public/hooks/scout-tick'
       path: '/api/public/hooks/scout-tick'
@@ -3353,6 +3374,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksResumeRunsRoute: ApiPublicHooksResumeRunsRoute,
   ApiPublicHooksRetentionTickRoute: ApiPublicHooksRetentionTickRoute,
   ApiPublicHooksScoutTickRoute: ApiPublicHooksScoutTickRoute,
+  ApiPublicHooksSelfImproveTickRoute: ApiPublicHooksSelfImproveTickRoute,
   ApiPublicHooksSenseTickRoute: ApiPublicHooksSenseTickRoute,
   ApiPublicHooksStewardTickRoute: ApiPublicHooksStewardTickRoute,
   ApiPublicHooksTriggerTickRoute: ApiPublicHooksTriggerTickRoute,
