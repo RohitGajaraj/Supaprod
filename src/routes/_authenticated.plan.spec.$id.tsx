@@ -39,6 +39,7 @@ import { DecisionCurrencyBanner } from "@/components/decision/DecisionCurrencyBa
 import { CitationsCard, type Citation } from "@/components/product/CitationsCard";
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
 import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
+import { SpecProjectionsPanel } from "@/components/product/SpecProjectionsPanel";
 import { FlowDiagram } from "@/components/product/FlowDiagram";
 import { LaunchPlanPanel } from "@/components/product/LaunchPlanPanel";
 import { listTasks } from "@/lib/tasks.functions";
@@ -52,7 +53,7 @@ import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 
-const MODE_TABS = ["contract", "edit", "preview", "flow", "launch"] as const;
+const MODE_TABS = ["contract", "projections", "edit", "preview", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
 
 const MODE_DISPLAY: { id: ModeTab; label: string; hint?: string }[] = [
@@ -60,6 +61,11 @@ const MODE_DISPLAY: { id: ModeTab; label: string; hint?: string }[] = [
     id: "contract",
     label: "CONTRACT",
     hint: "The typed Outcome Contract, the machine's view of this spec",
+  },
+  {
+    id: "projections",
+    label: "PROJECTIONS",
+    hint: "PRD, FRD, status, and one-pager generated fresh from the contract, stamped with drift-state",
   },
   { id: "edit", label: "EDIT" },
   { id: "preview", label: "PREVIEW" },
@@ -936,6 +942,17 @@ function SpecEditorPage() {
             bodyMd={body}
             contract={(prd as { contract?: OutcomeContract | null }).contract}
             invalidateKey={["prd", id]}
+          />
+        ) : mode === "projections" ? (
+          <SpecProjectionsPanel
+            title={prd.title}
+            status={prd.status}
+            updatedAt={prd.updated_at}
+            contract={(prd as { contract?: OutcomeContract | null }).contract}
+            bodyMd={body}
+            citations={((prd as { citations?: Citation[] | null }).citations ?? []).map((c) => ({
+              label: c.title?.trim() || c.source_kind,
+            }))}
           />
         ) : mode === "flow" ? (
           <FlowDiagram prdId={id} />

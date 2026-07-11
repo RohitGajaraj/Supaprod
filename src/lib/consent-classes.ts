@@ -20,7 +20,7 @@ import {
 } from "@/lib/tool-consequences";
 
 /** The memorable line the panel leads with. Cadence drafts, the human releases. */
-export const CONSENT_PHILOSOPHY = "Even OpenAI PMs don't auto-send. Cadence drafts, you release.";
+export const CONSENT_PHILOSOPHY = "Cadence drafts. You release. Nothing stakeholder-facing sends itself.";
 
 /** The four consequence classes, floor (safest) to ceiling (widest blast radius). */
 export type ConsequenceClassId = "read-only" | "internal-write" | "stakeholder" | "repo-write";

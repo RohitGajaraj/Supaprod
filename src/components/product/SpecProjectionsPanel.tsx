@@ -48,21 +48,28 @@ export function SpecProjectionsPanel({
 }: Props) {
   const [active, setActive] = useState<SpecProjectionKind>("prd");
   const [copied, setCopied] = useState(false);
+  // RPT-43: pin the generation timestamp once per mount so the "Generated"
+  // stamp stays stable across renders that do not change contract content
+  // (e.g. live body edits when this panel is fed the editor's body state).
+  const [generatedAt] = useState(() => new Date().toISOString());
 
   // Deterministic: composed purely from the contract already on the page.
   // Re-stamped only when an input actually changes, so switching tabs never
   // moves the generation date.
   const set = useMemo(
     () =>
-      composeSpecProjections({
-        title,
-        status,
-        updatedAt,
-        contract: contract ?? null,
-        bodyMd,
-        citations: citations ?? null,
-      }),
-    [title, status, updatedAt, contract, bodyMd, citations],
+      composeSpecProjections(
+        {
+          title,
+          status,
+          updatedAt,
+          contract: contract ?? null,
+          bodyMd,
+          citations: citations ?? null,
+        },
+        generatedAt,
+      ),
+    [title, status, updatedAt, contract, bodyMd, citations, generatedAt],
   );
 
   const current = set.projections.find((p) => p.kind === active) ?? set.projections[0] ?? null;

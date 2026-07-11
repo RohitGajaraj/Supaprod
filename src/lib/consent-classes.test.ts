@@ -106,6 +106,8 @@ describe("groupToolsByConsequenceClass", () => {
   });
 
   test("philosophy line is present and auto-send-safe", () => {
-    expect(CONSENT_PHILOSOPHY).toContain("Cadence drafts, you release");
+    expect(CONSENT_PHILOSOPHY).toContain("You release");
+    // No unverifiable claim about a named competitor in user-facing copy.
+    expect(CONSENT_PHILOSOPHY).not.toContain("OpenAI");
   });
 });

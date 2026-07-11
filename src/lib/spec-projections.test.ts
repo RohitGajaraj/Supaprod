@@ -52,7 +52,7 @@ function input(over: Partial<SpecProjectionInput> = {}): SpecProjectionInput {
 
 const GEN = "2026-06-24T09:00:00Z";
 
-describe("composeSpecProjections — the four named views", () => {
+describe("composeSpecProjections: the four named views", () => {
   it("produces exactly the PRD, FRD, status, and one-pager projections", () => {
     const set = composeSpecProjections(input(), GEN);
     expect(set.projections.map((p) => p.kind)).toEqual([...PROJECTION_KINDS]);
@@ -123,7 +123,7 @@ describe("composeSpecProjections — the four named views", () => {
   });
 });
 
-describe("assessDrift — spine currency", () => {
+describe("assessDrift: spine currency", () => {
   it("reports current when the contract was drafted at or after the last spec edit", () => {
     const d = assessDrift(input({ updatedAt: "2026-06-10T00:00:00Z" }));
     expect(d.state).toBe("current");
@@ -147,7 +147,7 @@ describe("assessDrift — spine currency", () => {
   });
 });
 
-describe("composeSpecProjections — honest degradation", () => {
+describe("composeSpecProjections: honest degradation", () => {
   it("states missing intent, metrics, budget, and policy plainly rather than inventing them", () => {
     const sparse = contract({
       intent: "",
@@ -181,7 +181,7 @@ describe("composeSpecProjections — honest degradation", () => {
   });
 });
 
-describe("renderProjectionMarkdown — artifact", () => {
+describe("renderProjectionMarkdown: artifact", () => {
   it("stamps the markdown with the generation date, drift label, and drift detail", () => {
     const set = composeSpecProjections(input({ updatedAt: "2026-06-20T00:00:00Z" }), GEN);
     const md = renderProjectionMarkdown(set.projections[0], {

@@ -33,6 +33,7 @@ import { AutoChip } from "@/components/cadence/AutoChip";
 import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
 import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
 import { PanelSkeleton } from "./PanelSkeleton";
+import { ContradictionAuditSection } from "./ContradictionAuditSection";
 
 function copyDecisionLink(slug: string) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/d/${slug}`;
@@ -546,6 +547,12 @@ export function DecisionDetail({ id }: { id: string }) {
             </div>
           </DetailSection>
         ) : null}
+
+        {/* RPT-25: the contradiction auditor. Drift pointed inward: re-reads the
+            workspace's prior decisions on demand and flags the ones that
+            disagree with this call, then lets the operator propose a real
+            supersession edge. Mounted after the Critic/Evidence sections. */}
+        <ContradictionAuditSection decisionId={d.id} />
 
         {/* Precedent: last time we reasoned this way, here is what happened.
             Outcome-weighted learnings via the Ambient Precedent recall; serving

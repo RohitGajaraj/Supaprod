@@ -1,5 +1,5 @@
 /**
- * SPEC-PROJECTIONS (RPT-43) — PURE deterministic projections of a spec's
+ * SPEC-PROJECTIONS (RPT-43): PURE deterministic projections of a spec's
  * Outcome Contract spine.
  *
  * The thesis: artifacts are projections; the ledger is the source. A PRD, an
