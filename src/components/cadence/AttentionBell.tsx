@@ -51,7 +51,7 @@ export function AttentionBell() {
 
   return (
     <a
-      href="/govern?tab=attention"
+      href="/engine-room?room=record&view=verify"
       title={label}
       aria-label={label}
       style={{

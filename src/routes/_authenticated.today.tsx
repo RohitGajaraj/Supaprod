@@ -1344,7 +1344,7 @@ function Dashboard() {
                     });
                   const kind = ins.action?.kind;
                   if (kind === "rerank_bets") {
-                    navigate({ to: "/decide" });
+                    navigate({ to: "/discover", search: { tab: "queue" } as never });
                   } else if (kind === "open_decision") {
                     navigate({ to: "/brain", search: { tab: "decisions" } as never });
                   } else {

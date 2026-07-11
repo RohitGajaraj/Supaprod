@@ -315,6 +315,10 @@ export type CallSurface =
   | "embed"
   | "scheduler"
   | "sense"
+  // Decision-record work (rationale revision via the registry tool); its own
+  // cost bucket, added 2026-07-11 when the tool landed without extending
+  // this union (the chokepoint contract requires the literal to live here).
+  | "decision"
   | "test";
 
 export type CallOpts = {

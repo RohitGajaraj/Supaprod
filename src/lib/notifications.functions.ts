@@ -90,7 +90,7 @@ export const getNotifications = createServerFn({ method: "GET" })
           severity: "action",
           title: `Approval needed: ${tool}`,
           detail: (a.rationale as string | null) ?? `${who} is waiting on your decision.`,
-          href: "/govern?tab=approvals",
+          href: "/engine-room?room=record&view=verify",
           created_at: (a.created_at as string | null) ?? null,
         });
       }
@@ -112,7 +112,7 @@ export const getNotifications = createServerFn({ method: "GET" })
           severity: "warning",
           title: `${stalled} run${stalled === 1 ? "" : "s"} stalled`,
           detail: `In flight past the ${STALL_MINUTES}-minute window. The loop may need a nudge.`,
-          href: "/govern?tab=gauntlet",
+          href: "/engine-room?room=quality&view=proof",
           created_at: null,
         });
       }
@@ -138,7 +138,7 @@ export const getNotifications = createServerFn({ method: "GET" })
               severity: "warning",
               title: `${label} spend cap reached`,
               detail: `$${u.toFixed(2)} of $${c.toFixed(2)}. Over-cap AI calls are blocked.`,
-              href: "/govern?tab=budgets",
+              href: "/engine-room?room=spend&view=caps",
               created_at: null,
             });
           } else if (u >= (c * pct) / 100) {
@@ -148,7 +148,7 @@ export const getNotifications = createServerFn({ method: "GET" })
               severity: "info",
               title: `Approaching ${label.toLowerCase()} spend cap`,
               detail: `$${u.toFixed(2)} of $${c.toFixed(2)} (alert at ${pct}%).`,
-              href: "/govern?tab=budgets",
+              href: "/engine-room?room=spend&view=caps",
               created_at: null,
             });
           }
