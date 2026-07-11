@@ -34,6 +34,7 @@ import { SourceLink, OBS_STATUS_TONE } from "./DecisionsPanel";
 import { displayWho, hasSource, SOURCE_LABEL } from "./decisions-shared";
 import { PanelSkeleton } from "./PanelSkeleton";
 import { ContradictionAuditSection } from "./ContradictionAuditSection";
+import { RewindButton } from "@/components/decisions/RewindButton";
 
 function copyDecisionLink(slug: string) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/d/${slug}`;
@@ -631,6 +632,13 @@ export function DecisionDetail({ id }: { id: string }) {
           style={{ gap: "10px", paddingTop: "15px", borderTop: "1px solid var(--hairline)" }}
         >
           <ShareDecisionButton id={d.id} />
+          {/* PC-10: one-key rewind of an agent- or human-revised decision. Self-hides
+              when there is no prior snapshot, so it only appears once a revision exists. */}
+          <RewindButton
+            decisionId={d.id}
+            hasSnapshot={!!d.snapshot_before}
+            onReverted={() => qc.invalidateQueries({ queryKey: ["decisions"] })}
+          />
         </div>
       </div>
     </div>

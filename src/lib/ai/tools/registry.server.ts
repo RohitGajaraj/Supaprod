@@ -33,6 +33,9 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { recordLineageSafe } from "@/lib/lineage.functions";
+import { buildAuditInsert } from "@/lib/roadmap-audit";
+import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 
 export type ToolCtx = {
@@ -2469,6 +2472,227 @@ const prdDraft = def({
 });
 
 /**
+ * prd.revise — Define stage.
+ * Revises an EXISTING spec's body in place from a revision instruction, and
+ * captures the prior body as a rewindable snapshot (PC-10 capture-on-write) plus
+ * a provenance edge so the rewind can be filed against the reviser on the Trust
+ * Ledger. Use to fold feedback into a spec; use prd.draft to create a new one.
+ */
+const prdRevise = def({
+  name: "prd.revise",
+  description:
+    "Revise an existing spec in place from a revision instruction. Reads the current spec body, applies ONLY the requested change, and overwrites it -- capturing the prior body so the owner can one-key Rewind this edit (the rewind also lands on the Trust Ledger). Use to fold in feedback or update an existing spec; use prd.draft to create a new one.",
+  category: "write",
+  argsSchema: z.object({
+    prd_id: z.string().uuid(),
+    instruction: z.string().min(1).max(2000),
+  }),
+  preview: (a) =>
+    `Revise spec ${a.prd_id.slice(0, 8)}: "${a.instruction.slice(0, 60)}${a.instruction.length > 60 ? "..." : ""}"`,
+  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
+    const { data: prd, error: pErr } = await supabase
+      .from("prds")
+      .select("id,title,body_md,workspace_id,status,opportunity_id")
+      .eq("id", a.prd_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!prd) throw new Error("spec not found");
+    if (!(prd.body_md ?? "").trim()) throw new Error("spec has no body to revise");
+
+    const res = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: prd.id,
+      model: DRAFT_MODEL,
+      traceId: traceId ?? null,
+      runId: runId ?? null,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a senior product manager revising an EXISTING spec. Apply only the requested change; preserve the spec's structure, sections, and everything the change does not touch. Return the FULL revised spec in Markdown, not a diff or a fragment. Do not invent metrics.",
+        },
+        {
+          role: "user",
+          content: `Current spec:\n\n${prd.body_md}\n\nRequested change:\n${a.instruction}`,
+        },
+      ],
+    });
+    const body = res.output?.trim();
+    if (!body) throw new Error("model returned empty revised spec");
+
+    // PC-10 capture-on-write: snapshot the prior body BEFORE overwriting so the
+    // owner can one-key Rewind this agent edit. snapshot_before is the bare prior
+    // body string -- the exact shape revertPrdToPrevious reads back.
+    const { error: uErr } = await supabase
+      .from("prds")
+      .update({ body_md: body, snapshot_before: prd.body_md, updated_at: new Date().toISOString() })
+      .eq("id", a.prd_id)
+      .eq("user_id", userId);
+    if (uErr) throw new Error(uErr.message);
+
+    // Attribution for the rewind's Trust Ledger receipt: revertPrdToPrevious
+    // reads the artifact_lineage edge whose child is this spec + created_by_agent
+    // to file the rewind as a REJECTED judgment against the reviser. prd.draft
+    // writes no such edge, so record a 'revised' edge here (idempotent per
+    // relation; fail-soft, since the spec write already succeeded).
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: prd.opportunity_id ? "opportunity" : "prd",
+      parent_id: prd.opportunity_id ?? prd.id,
+      child_kind: "prd",
+      child_id: prd.id,
+      relation: "revised",
+      created_by_agent: agentSlug ?? null,
+    });
+    return { prd_id: prd.id, title: prd.title, revised: true };
+  },
+});
+
+/**
+ * decision.revise — Decide stage.
+ * Revises an EXISTING decision's rationale in place from a revision instruction,
+ * capturing the prior rationale as a rewindable snapshot (PC-10) and attributing
+ * the change to the acting agent so a rewind files against it on the Trust Ledger
+ * (decisions attribute via decided_by_agent_slug directly, not a lineage edge).
+ */
+const decisionRevise = def({
+  name: "decision.revise",
+  description:
+    "Revise an existing decision's rationale in place from a revision instruction (e.g. to fold in new evidence). Reads the current rationale, applies ONLY the requested change, and overwrites it -- capturing the prior rationale so the owner can one-key Rewind this edit (the rewind also lands on the Trust Ledger). Does not change the decision's status.",
+  category: "write",
+  argsSchema: z.object({
+    decision_id: z.string().uuid(),
+    instruction: z.string().min(1).max(2000),
+  }),
+  preview: (a) =>
+    `Revise decision ${a.decision_id.slice(0, 8)}: "${a.instruction.slice(0, 60)}${a.instruction.length > 60 ? "..." : ""}"`,
+  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
+    const { data: decision, error: dErr } = await supabase
+      .from("decisions")
+      .select("id,title,rationale,workspace_id")
+      .eq("id", a.decision_id)
+      .maybeSingle();
+    if (dErr) throw new Error(dErr.message);
+    if (!decision) throw new Error("decision not found");
+    if (!(decision.rationale ?? "").trim()) throw new Error("decision has no rationale to revise");
+
+    const res = await callModel(supabase, userId, {
+      surface: "decision",
+      surface_ref: decision.id,
+      model: DRAFT_MODEL,
+      traceId: traceId ?? null,
+      runId: runId ?? null,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a senior product manager revising the rationale of an EXISTING decision. Apply only the requested change; preserve everything the change does not touch. Return the FULL revised rationale as plain prose, not a diff or a fragment.",
+        },
+        {
+          role: "user",
+          content: `Decision: ${decision.title}\n\nCurrent rationale:\n${decision.rationale}\n\nRequested change:\n${a.instruction}`,
+        },
+      ],
+    });
+    const rationale = res.output?.trim();
+    if (!rationale) throw new Error("model returned empty revised rationale");
+
+    // PC-10 capture-on-write: snapshot the prior rationale BEFORE overwriting, and
+    // attribute the decision to the acting agent so revertDecisionToPrevious files
+    // the rewind as a REJECTED judgment against it. Bare-string snapshot -- the
+    // exact shape revertDecisionToPrevious reads back.
+    const { error: uErr } = await supabase
+      .from("decisions")
+      .update({
+        rationale,
+        snapshot_before: decision.rationale,
+        decided_by_agent_slug: agentSlug ?? null,
+      })
+      .eq("id", a.decision_id);
+    if (uErr) throw new Error(uErr.message);
+    return { decision_id: decision.id, title: decision.title, revised: true };
+  },
+});
+
+/**
+ * roadmap.move — Plan stage.
+ * Moves an opportunity to a Now/Next/Later roadmap bucket (or back to backlog),
+ * the AI counterpart to the human drag board. A Now/Next/Later commitment must
+ * carry a declared outcome AND measure (the H2 governance rule). Captures the
+ * prior placement (PC-10) so the move can be one-key Rewound, and attributes it
+ * to the acting agent so a rewind files against it on the Trust Ledger.
+ */
+const roadmapMove = def({
+  name: "roadmap.move",
+  description:
+    "Move an opportunity to a Now/Next/Later roadmap bucket (or back to the backlog with bucket=null). A Now/Next/Later commitment must carry a declared outcome AND measure. Captures the prior placement so the move can be one-key Rewound, and attributes it to you so a rewind lands on the Trust Ledger. Use to commit a researched, ranked opportunity to the roadmap.",
+  category: "write",
+  argsSchema: z.object({
+    opportunity_id: z.string().uuid(),
+    bucket: z.enum(["now", "next", "later"]).nullable(),
+    outcome: z.string().max(500).nullable().optional(),
+    measure: z.string().max(500).nullable().optional(),
+  }),
+  preview: (a) => `Move opportunity ${a.opportunity_id.slice(0, 8)} to ${a.bucket ?? "backlog"}`,
+  run: async (a, { supabase, userId, agentSlug }) => {
+    const { data: opp, error: oErr } = await supabase
+      .from("opportunities")
+      .select("id,title,workspace_id,roadmap_bucket,roadmap_outcome,roadmap_measure")
+      .eq("id", a.opportunity_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (oErr) throw new Error(oErr.message);
+    if (!opp) throw new Error("opportunity not found");
+
+    // Fall back to the already-declared outcome/measure so a pure bucket move
+    // does not silently drop them; governance then checks the effective pair.
+    const outcome = a.outcome ?? opp.roadmap_outcome ?? null;
+    const measure = a.measure ?? opp.roadmap_measure ?? null;
+    const check = validateCommitment({ bucket: a.bucket, outcome, measure });
+    if (!check.ok) throw new Error(check.reason);
+
+    const norm = (s: string | null) => (s && s.trim().length > 0 ? s.trim() : null);
+    // PC-10 capture-on-write: snapshot the prior placement + attribute to the agent
+    // so the move is one-key rewindable and the rewind files against this agent.
+    const { error: uErr } = await supabase
+      .from("opportunities")
+      .update({
+        roadmap_bucket: a.bucket,
+        roadmap_outcome: norm(outcome),
+        roadmap_measure: norm(measure),
+        roadmap_snapshot_before: {
+          bucket: opp.roadmap_bucket ?? null,
+          outcome: opp.roadmap_outcome ?? null,
+          measure: opp.roadmap_measure ?? null,
+        },
+        roadmap_last_agent_slug: agentSlug ?? null,
+      })
+      .eq("id", a.opportunity_id)
+      .eq("user_id", userId);
+    if (uErr) throw new Error(uErr.message);
+
+    // H2-AUDIT: record the move in the governance trail, same as the human board.
+    // Best-effort: the move already landed, an audit hiccup must not fail the tool.
+    try {
+      await supabase.from("roadmap_audit").insert(
+        buildAuditInsert({
+          opportunityId: a.opportunity_id,
+          workspaceId: opp.workspace_id ?? null,
+          action: a.bucket === opp.roadmap_bucket ? "commit" : "move",
+          fromBucket: opp.roadmap_bucket ?? null,
+          toBucket: a.bucket,
+          outcome: norm(outcome),
+          measure: norm(measure),
+        }),
+      );
+    } catch {
+      // governance trail is additive; never blocks the move
+    }
+    return { opportunity_id: a.opportunity_id, title: opp.title, bucket: a.bucket };
+  },
+});
+
+/**
  * backlog.prioritize — Plan stage.
  * Re-scores backlog opportunities (ICE) using AI grounded in supporting-signal
  * counts/recency. Updates rows in place; returns the new ranked list.
@@ -2965,6 +3189,9 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     prdLinkIssue,
     researchSynthesize,
     prdDraft,
+    prdRevise,
+    decisionRevise,
+    roadmapMove,
     backlogPrioritize,
     agentHandoff,
     agentSpawn,

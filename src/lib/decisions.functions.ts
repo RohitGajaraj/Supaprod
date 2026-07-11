@@ -18,6 +18,9 @@ export type DecisionRow = {
   mission_id: string | null;
   prd_id: string | null;
   decided_by_agent_slug: string | null;
+  // PC-10: the prior rationale captured before the last in-place edit (agent or
+  // human). Non-null = the decision was revised and can be one-key Rewound.
+  snapshot_before: string | null;
   created_at: string;
   source_label?: string | null;
 };
@@ -40,7 +43,7 @@ export const listDecisions = createServerFn({ method: "GET" })
     let q = supabase
       .from("decisions")
       .select(
-        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,created_at",
+        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at",
       )
       .order("created_at", { ascending: false })
       .limit(data?.limit ?? 100);

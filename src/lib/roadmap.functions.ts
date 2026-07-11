@@ -68,6 +68,8 @@ export type RoadmapItem = {
   measure: string | null;
   /** Dim 17: the bet's last-changed time, for the card's trace-and-time tail. */
   updated_at: string | null;
+  /** PC-10: true when a prior placement was captured, so a one-key Rewind applies. */
+  hasSnapshot: boolean;
 };
 
 export const getRoadmap = createServerFn({ method: "GET" })
@@ -93,6 +95,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
         roadmap_bucket?: string | null;
         roadmap_outcome?: string | null;
         roadmap_measure?: string | null;
+        roadmap_snapshot_before?: unknown;
         updated_at?: string | null;
       };
       const bucket =
@@ -107,6 +110,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
         outcome: r.roadmap_outcome ?? null,
         measure: r.roadmap_measure ?? null,
         updated_at: r.updated_at ?? null,
+        hasSnapshot: r.roadmap_snapshot_before != null,
       };
     });
     // H2-WRITES: surface how many commitments sit in a bucket without a declared
@@ -150,6 +154,16 @@ export const updateRoadmapItem = createServerFn({ method: "POST" })
         }
       | undefined;
     if (!prevRow) throw new Error("Opportunity not found");
+
+    // PC-10 capture-on-write (human move): snapshot the prior placement so this
+    // move can be one-key Rewound, and clear roadmap_last_agent_slug (a human made
+    // it, so a rewind writes no agent receipt). Mirrors roadmap.move's capture.
+    patch.roadmap_snapshot_before = {
+      bucket: prevRow.roadmap_bucket,
+      outcome: prevRow.roadmap_outcome,
+      measure: prevRow.roadmap_measure,
+    };
+    patch.roadmap_last_agent_slug = null;
 
     // RLS ("own opportunities all") scopes the write; the explicit user_id +
     // .select() makes a blocked or no-match update fail loudly instead of
@@ -222,12 +236,35 @@ export const commitRoadmapItem = createServerFn({ method: "POST" })
     // Normalize blanks to null so an "all whitespace" field is not stored as a
     // phantom declared outcome (and keeps the governance read honest).
     const norm = (s: string | null) => (s && s.trim().length > 0 ? s.trim() : null);
+    // PC-10 capture-on-write (human commit): read the prior placement so this
+    // commit is one-key rewindable, same as the drag-board move above.
+    const { data: prevCommitRows } = await context.supabase
+      .from("opportunities")
+      .select("roadmap_bucket, roadmap_outcome, roadmap_measure")
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .limit(1);
+    const prevCommit = prevCommitRows?.[0] as
+      | {
+          roadmap_bucket: RoadmapBucket | null;
+          roadmap_outcome: string | null;
+          roadmap_measure: string | null;
+        }
+      | undefined;
     const { data: rows, error } = await context.supabase
       .from("opportunities")
       .update({
         roadmap_bucket: data.bucket,
         roadmap_outcome: norm(data.outcome),
         roadmap_measure: norm(data.measure),
+        roadmap_snapshot_before: prevCommit
+          ? {
+              bucket: prevCommit.roadmap_bucket,
+              outcome: prevCommit.roadmap_outcome,
+              measure: prevCommit.roadmap_measure,
+            }
+          : null,
+        roadmap_last_agent_slug: null,
       })
       .eq("id", data.id)
       .eq("user_id", context.userId)

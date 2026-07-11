@@ -19,6 +19,10 @@ export interface BetCardProps {
   onMoveTo: (bucket: RoadmapBucket) => void;
   onEditOutcome: (values: { outcome: string; measure: string }) => void;
   editPending?: boolean;
+  /** PC-10: shown only when a prior placement was captured (an agent or human move). */
+  canRewind?: boolean;
+  onRewind?: () => void;
+  rewindPending?: boolean;
 }
 
 // LOOM W2: v4 card treatment (DESIGN-LOOM §2) — every raised bet card
@@ -95,6 +99,9 @@ function BetCardComponent({
   onMoveTo,
   onEditOutcome,
   editPending = false,
+  canRewind = false,
+  onRewind,
+  rewindPending = false,
 }: BetCardProps) {
   const style = COLUMN_STYLE[column];
   const measureText = measure && measure.trim().length > 0 ? measure : null;
@@ -305,6 +312,31 @@ function BetCardComponent({
             {hasOutcome ? "EDIT OUTCOME" : "+ OUTCOME"}
           </button>
           <RoadmapHistory opportunityId={id} />
+          {canRewind && onRewind ? (
+            <button
+              type="button"
+              disabled={rewindPending}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRewind();
+              }}
+              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                ...QUIET_MONO_STYLE,
+                color: "var(--text-subtle)",
+                cursor: rewindPending ? "not-allowed" : "pointer",
+                opacity: rewindPending ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!rewindPending) e.currentTarget.style.color = "var(--text-body)";
+              }}
+              onMouseLeave={(e) => {
+                if (!rewindPending) e.currentTarget.style.color = "var(--text-subtle)";
+              }}
+            >
+              {rewindPending ? "REWINDING…" : "REWIND"}
+            </button>
+          ) : null}
         </span>
       )}
 

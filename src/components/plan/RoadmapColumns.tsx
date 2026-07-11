@@ -14,6 +14,7 @@ import {
 import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { stripAutoPrefix } from "./format";
 import { BetCard } from "./BetCard";
+import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
 
 const COLUMNS: { key: RoadmapBucket; label: string; color: string }[] = [
@@ -44,6 +45,7 @@ export function RoadmapColumns() {
   const fUpdate = useServerFn(updateRoadmapItem);
   const fCommit = useServerFn(commitRoadmapItem);
   const fBulk = useServerFn(bulkUpdateRoadmapItems);
+  const fRewind = useServerFn(revertRoadmapItemToPrevious);
   const roadmap = useQuery({ queryKey: ["roadmap"], queryFn: () => fRoadmap() });
   const [ceremonyBet, setCeremonyBet] = useState<CommitCeremonyBet | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -71,6 +73,17 @@ export function RoadmapColumns() {
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: ["roadmap"] });
       toast.success(`Moved to ${v.bucket === "next" ? "Next" : "Later"}.`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // PC-10: one-key rewind of the last placement change (agent roadmap.move or a
+  // human move/commit). The button only shows when hasSnapshot is true.
+  const rewind = useMutation({
+    mutationFn: (v: { opportunity_id: string }) => fRewind({ data: v }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["roadmap"] });
+      toast.success("Reverted to the previous placement. The change is on the Trust Ledger.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -341,6 +354,9 @@ export function RoadmapColumns() {
                       editOutcome.mutate({ id: item.id, bucket: col.key, ...values })
                     }
                     editPending={editOutcome.isPending && editOutcome.variables?.id === item.id}
+                    canRewind={item.hasSnapshot}
+                    onRewind={() => rewind.mutate({ opportunity_id: item.id })}
+                    rewindPending={rewind.isPending && rewind.variables?.opportunity_id === item.id}
                   />
                 ))}
                 {colItems.length > VISIBLE_ITEMS ? (
