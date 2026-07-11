@@ -440,3 +440,23 @@ Picked a strong, self-contained capability in the Interop lane (skipped the IA/U
 **Founder-gated / open (do NOT close autonomously):** KI-39 (schedule sense/cluster crons = recurring AI spend); EVENT-REACTOR new event types (migration, was migration-locked); LOOP-PROVE (DBR-engine verification); the IA/UX-heavy #9-#14 (STITCH-LOOP, CORE-UX-TRUST/FELT, IA-NAV, SETTINGS-SEGREGATE, CONNECTORS) better as a coordinated/design cycle; INTEROP WRITE/A2A surface (scopes/audit founder call); the AI "open analyst" ceiling for BRAIN-UX (chokepoint).
 
 **Next picks (autonomous, by rank):** continue BRAIN-UX floor (per-decision why + unresolved lenses) or other clean migration-free capability rows. Goal: close every autonomously-buildable item by morning.
+
+---
+
+## 2026-07-11 (overnight, founder /goal directive, resuming after a disk-full interruption)
+
+**Shipped this session:**
+- **PC-29** (◐→ closed to ~85%): recovered a disk-full-interrupted "felt agent layer" build. Roster-seed collision fix, PresenceChip + station AgentRelay on 5 surfaces, attribution wiring, AskInContext delegation verbs. A 3-lens 9-agent adversarial review caught and fixed 2 real cross-workspace data leaks (getSwarmHud/getAgentFleet missing workspace_id scoping) before ship. Documented remainder: Decide-card attribution (no clean join exists), layer-7 inline approvals (real sub-feature), silent-failure UX (low severity).
+- **PC-30** (◐, read side shipped): the agent capability layer. Real per-workspace skill win-rates from playbook_runs, wired into Brain's Capability lens exactly where PC-34 left the placeholder. Found and fixed a real bug: `context.workspaceId` didn't exist on the auth middleware at all - every call was silently querying with an undefined workspace. Documented remainder: instructions wiring, history/lineage receipts, the 3 learning inlets.
+- **RPT-04** ✅: "designed wrongness" - live-schema-verified via Lovable MCP that the rewind receipt insert targeted 3 nonexistent columns (silently failing every time) AND was marked `status: "approved"` instead of `"rejected"` (backwards from the row's own intent - a correction should count against the agent, not for it). Fixed both.
+- **RPT-12** ✅: claim-level citations. The stakeholder pack's "backed by N pieces of evidence" was a bare count; wired the existing `receiptEdgeRows` to produce real numbered citations + a Sources section, surviving export.
+- **RPT-17** ✅: named per-agent trust ladder. Additive labeling layer (`trust-ladder.ts`) over the existing Arc enum + TrustDial.tsx UI - no new tables.
+- **RPT-18** ✅: eval-depth rigor block. Two independently-dispatched agents built complementary halves (inline calibration in "Right now" + a dedicated "By surface" tab); merged cleanly into one commit. Honest gap flagged: mild IA redundancy between the two views, worth a consolidation pass later.
+- Fixed 2 real pre-existing bugs found along the way: CalendarPanel.tsx's `oauthIntervalRef` (a genuine tsc-breaking ReferenceError-on-unmount bug, previously just "confirmed pre-existing via stash-compare" and carried forward across 2+ dashboard rows rather than fixed) and a null-narrowing bug in mcp.functions.ts (RPT-16's outcome_history).
+- Finished a leftover perf-memoization pass (SignalCard/ThemeRow/OpportunityRow) and an interval-leak fix in AccountConnectionsSection.tsx, recovered twice after a rebase silently dropped them as "empty" commits.
+
+**Skipped cleanly (founder-gated / taste-only, not built):** RPT-03 (needs a founder call on public-surface rate-limit/spend policy), RPT-09/RPT-11/RPT-19 (Fable/voice-taste passes with no prior Fable ruling to build against), RPT-21 (removing a spend cap is a founder financial-policy decision).
+
+**Operational lesson learned the hard way, twice:** a `git pull --rebase` can silently drop a commit as "empty" if conflict resolution makes its net diff equal to the target - with NO warning, deleting new files from disk with no trace in git status/stash/reflog if the work was never committed first. New discipline adopted mid-session: commit immediately after every confirmed-good edit, before running slow builds/tests that compete for resources with 4-5 other concurrently-running lanes tonight (multiple `bun run build` calls got killed outright from resource contention). Always re-verify `git diff origin/main HEAD --stat` is non-empty after every rebase before trusting a push.
+
+**Parallel-agent pattern that worked well:** dispatching 2 independent background agents on disjoint dashboard rows (verified via `lane.sh` glob reservations) roughly doubled throughput with no collisions. Continuing this pattern for the remainder of the run.
