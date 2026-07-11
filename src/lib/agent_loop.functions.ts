@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop, executeApproval, type Json } from "@/lib/ai/loop.server";
+import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 
 const RunSchema = z.object({
   agentSlug: z.string().min(1).max(60),
@@ -75,6 +76,19 @@ export const decideApproval = createServerFn({ method: "POST" })
   .inputValidator((input) => DecideSchema.parse(input))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    // Read the prior state first: it gives the agent/tool attribution AND lets
+    // the RPT-32 gate signal fire only on a genuine first decision.
+    const { data: prior } = await supabase
+      .from("agent_approvals")
+      .select("status,agent_slug,tool_name")
+      .eq("id", data.approvalId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    const priorRow = prior as {
+      status?: string | null;
+      agent_slug?: string | null;
+      tool_name?: string | null;
+    } | null;
     const status = data.decision === "approve" ? "approved" : "rejected";
     const { error } = await supabase
       .from("agent_approvals")
@@ -86,6 +100,23 @@ export const decideApproval = createServerFn({ method: "POST" })
       .eq("id", data.approvalId)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
+    // RPT-32: log the human at this gate. Recorded ONLY when this is a real
+    // first decision on an existing pending approval, so a missing/foreign
+    // approvalId (no prior row) or a re-decide (prior already approved/rejected)
+    // never injects a phantom or duplicate signal that would skew the per-agent
+    // correction rate. AWAITED (not fire-and-forget) so the write survives the
+    // Cloudflare Workers response teardown; recordGateSignalCore never throws,
+    // so awaiting it can never block or break the approve/reject decision.
+    if (priorRow?.status === "pending") {
+      await recordGateSignalCore(supabase, userId, {
+        gateType: data.decision === "approve" ? "approval" : "rejection",
+        subjectType: "tool_call",
+        subjectRef: data.approvalId,
+        agentSlug: priorRow.agent_slug ?? null,
+        toolName: priorRow.tool_name ?? null,
+        verdict: status,
+      });
+    }
     if (status === "approved" && data.execute !== false) {
       const result = await executeApproval(supabase, userId, data.approvalId);
       return { ok: true, executed: true, result: result as Json };
