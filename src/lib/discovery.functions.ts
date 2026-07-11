@@ -1312,6 +1312,14 @@ export const savePrd = createServerFn({ method: "POST" })
     if (rest.contract && rest.contract.intent.trim()) {
       patch.contract_migrated_at = new Date().toISOString();
     }
+    // PC-10 capture-on-write (human edit): when the body actually changes,
+    // snapshot the prior body so the owner can one-key Rewind their own in-place
+    // edit too, not only agent revisions. Bare-string shape, matching
+    // revertPrdToPrevious; skipped on a pure status/title save (no body change)
+    // so a snapshot is never a no-op copy of the current body.
+    if (rest.body_md !== undefined && prior && rest.body_md !== prior.body_md) {
+      patch.snapshot_before = prior.body_md;
+    }
 
     const { data: row, error } = await supabase
       .from("prds")

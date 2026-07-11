@@ -33,6 +33,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { recordLineageSafe } from "@/lib/lineage.functions";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
 
 export type ToolCtx = {
@@ -2469,6 +2470,83 @@ const prdDraft = def({
 });
 
 /**
+ * prd.revise — Define stage.
+ * Revises an EXISTING spec's body in place from a revision instruction, and
+ * captures the prior body as a rewindable snapshot (PC-10 capture-on-write) plus
+ * a provenance edge so the rewind can be filed against the reviser on the Trust
+ * Ledger. Use to fold feedback into a spec; use prd.draft to create a new one.
+ */
+const prdRevise = def({
+  name: "prd.revise",
+  description:
+    "Revise an existing spec in place from a revision instruction. Reads the current spec body, applies ONLY the requested change, and overwrites it -- capturing the prior body so the owner can one-key Rewind this edit (the rewind also lands on the Trust Ledger). Use to fold in feedback or update an existing spec; use prd.draft to create a new one.",
+  category: "write",
+  argsSchema: z.object({
+    prd_id: z.string().uuid(),
+    instruction: z.string().min(1).max(2000),
+  }),
+  preview: (a) =>
+    `Revise spec ${a.prd_id.slice(0, 8)} — "${a.instruction.slice(0, 60)}${a.instruction.length > 60 ? "…" : ""}"`,
+  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
+    const { data: prd, error: pErr } = await supabase
+      .from("prds")
+      .select("id,title,body_md,workspace_id,status,opportunity_id")
+      .eq("id", a.prd_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!prd) throw new Error("spec not found");
+    if (!(prd.body_md ?? "").trim()) throw new Error("spec has no body to revise");
+
+    const res = await callModel(supabase, userId, {
+      surface: "prd",
+      surface_ref: prd.id,
+      model: DRAFT_MODEL,
+      traceId: traceId ?? null,
+      runId: runId ?? null,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a senior product manager revising an EXISTING spec. Apply only the requested change; preserve the spec's structure, sections, and everything the change does not touch. Return the FULL revised spec in Markdown, not a diff or a fragment. Do not invent metrics.",
+        },
+        {
+          role: "user",
+          content: `Current spec:\n\n${prd.body_md}\n\nRequested change:\n${a.instruction}`,
+        },
+      ],
+    });
+    const body = res.output?.trim();
+    if (!body) throw new Error("model returned empty revised spec");
+
+    // PC-10 capture-on-write: snapshot the prior body BEFORE overwriting so the
+    // owner can one-key Rewind this agent edit. snapshot_before is the bare prior
+    // body string -- the exact shape revertPrdToPrevious reads back.
+    const { error: uErr } = await supabase
+      .from("prds")
+      .update({ body_md: body, snapshot_before: prd.body_md, updated_at: new Date().toISOString() })
+      .eq("id", a.prd_id)
+      .eq("user_id", userId);
+    if (uErr) throw new Error(uErr.message);
+
+    // Attribution for the rewind's Trust Ledger receipt: revertPrdToPrevious
+    // reads the artifact_lineage edge whose child is this spec + created_by_agent
+    // to file the rewind as a REJECTED judgment against the reviser. prd.draft
+    // writes no such edge, so record a 'revised' edge here (idempotent per
+    // relation; fail-soft, since the spec write already succeeded).
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: prd.opportunity_id ? "opportunity" : "prd",
+      parent_id: prd.opportunity_id ?? prd.id,
+      child_kind: "prd",
+      child_id: prd.id,
+      relation: "revised",
+      created_by_agent: agentSlug ?? null,
+    });
+    return { prd_id: prd.id, title: prd.title, revised: true };
+  },
+});
+
+/**
  * backlog.prioritize — Plan stage.
  * Re-scores backlog opportunities (ICE) using AI grounded in supporting-signal
  * counts/recency. Updates rows in place; returns the new ranked list.
@@ -2965,6 +3043,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     prdLinkIssue,
     researchSynthesize,
     prdDraft,
+    prdRevise,
     backlogPrioritize,
     agentHandoff,
     agentSpawn,
