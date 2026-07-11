@@ -108,7 +108,16 @@ export type Entitlements = {
   approvalLanes: boolean;
 
   // --- Decision-layer capabilities ---
-  /** Critic red-teams every spec and bet, not only on request (paid). */
+  /**
+   * Display-only signal for the pricing page's upgrade narrative (pricing-
+   * strategy.md §7.1: Critic gets deeper/more customizable per tier - custom
+   * red-team profiles on Business, approved-model lists on Enterprise).
+   * RPT-13 (2026-07-11): the Critic teardown itself has NO code tier-gate -
+   * runCritic() fires unconditionally on every PRD/opportunity for every tier
+   * (discovery.functions.ts), metered only by the normal per-call credit
+   * charge through the callModel chokepoint. This flag does not enforce
+   * anything; do not gate access on it.
+   */
   criticEverywhere: boolean;
   /** Shareable decision links. Live for every tier today. */
   shareLinks: boolean;
