@@ -23,7 +23,7 @@ import {
   MultiSelectTrigger,
   MultiSelectContent,
   MultiSelectRow,
-} from '@vercel/geistcn/components';
+} from "@vercel/geistcn/components";
 ```
 
 - **`MultiSelectRoot`** — top-level wrapper/provider; no props observed being passed in any example (state is fully lifted to the consumer via `useState<Set<string>>`).
@@ -45,23 +45,21 @@ No `MultiSelectItem`, `MultiSelectValue`, `MultiSelectSearch`/filter subcomponen
 ### Usage pattern (canonical shape used by all 3 examples)
 
 ```tsx
-import { useState } from 'react';
+import { useState } from "react";
 import {
   MultiSelectRoot,
   MultiSelectTrigger,
   MultiSelectContent,
   MultiSelectRow,
-} from '@vercel/geistcn/components';
+} from "@vercel/geistcn/components";
 
 const items = [
-  { id: 'design', name: 'Design System', count: 42 },
+  { id: "design", name: "Design System", count: 42 },
   // ...
 ];
 
 function Component() {
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(
-    new Set(['design']),
-  );
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set(["design"]));
 
   const handleItemToggle = (id: string) => {
     const next = new Set(selectedItems);
@@ -69,16 +67,15 @@ function Component() {
     setSelectedItems(next);
   };
   const handleSelectOnly = (id: string) => setSelectedItems(new Set([id]));
-  const handleSelectAll = () =>
-    setSelectedItems(new Set(items.map((i) => i.id)));
+  const handleSelectAll = () => setSelectedItems(new Set(items.map((i) => i.id)));
 
   return (
     <MultiSelectRoot>
       <MultiSelectTrigger>
         {selectedItems.size === 0
-          ? 'No items selected'
+          ? "No items selected"
           : selectedItems.size === items.length
-            ? 'All items selected'
+            ? "All items selected"
             : `${selectedItems.size} items selected`}
       </MultiSelectTrigger>
       <MultiSelectContent align="start">
@@ -114,24 +111,29 @@ Note the `items` array shape carries a `count` field (`{ id, name, count }`) in 
 Bulk actions (Clear All, and two named presets) are implemented as plain `Link` components (also from `@vercel/geistcn/components`) placed outside the `MultiSelectRoot`, each with `type="highlight"` and an `onClick` that calls `setSelectedItems` directly — there is no dedicated "bulk actions" subcomponent.
 
 ```tsx
-<Link type="highlight" onClick={handleClearAll}>Clear All</Link>
+<Link type="highlight" onClick={handleClearAll}>
+  Clear All
+</Link>
 ```
 
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Multi Select when someone needs to pick more than one value out of a known, bounded list (e.g. regions, scopes, tags).
 - If only one value can be picked from a short list, use `Select` instead.
 - If typing-to-filter matters more than seeing the whole option set at a glance, use `Combobox` instead.
 - Don't use Multi Select for a single boolean setting — that's what `Toggle` is for.
 
 **Behavior**
+
 - The trigger should summarize the selection as a count ("3 regions selected") once more than one item is picked, but show the single item's name when exactly one is picked.
 - Prefer controlled mode whenever the selection needs to live in the URL or sync to a server, so the trigger label and the stored value can't drift apart.
 - Keep the two focus tracks (row checkbox vs. row action button) distinct: vertical arrow keys should always move between rows, horizontal arrow keys should always move between the checkbox and the button within a row.
 - When a filtered/searched list comes up empty, show a specific message that echoes the query (`No {items} match "{query}"`) rather than a generic "No results."
 
 **Accessibility**
+
 - Every row's checkbox needs its own descriptive `aria-label` (e.g. "Select us-east-1") — a bare "Select" gives screen reader users no anchor to what they're selecting.
 - The trigger needs a stable accessible name even at zero selections; don't lean on placeholder text alone to carry that meaning.
 - Focus should be trapped inside the open menu, and returned to the trigger when the menu closes.

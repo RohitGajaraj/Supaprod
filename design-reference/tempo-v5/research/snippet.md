@@ -32,8 +32,8 @@ Props observed across the examples:
 ### Minimal usage
 
 ```tsx
-import { Snippet } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Snippet } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <Snippet text="npm init next-app" width="300px" />;
@@ -52,7 +52,7 @@ export function Component(): JSX.Element {
 
 ```tsx
 export function Component(): JSX.Element {
-  return <Snippet text={['cd project', 'now']} width="100%" />;
+  return <Snippet text={["cd project", "now"]} width="100%" />;
 }
 ```
 
@@ -69,11 +69,7 @@ export function Component(): JSX.Element {
 ```tsx
 export function Component(): JSX.Element {
   return (
-    <Snippet
-      onCopy={() => alert('You copied the text!')}
-      text="npm init next-app"
-      width="300px"
-    />
+    <Snippet onCopy={() => alert("You copied the text!")} text="npm init next-app" width="300px" />
   );
 }
 ```
@@ -95,11 +91,11 @@ export function Component(): JSX.Element {
 ### Controlled copied state, composed with ContextCardTrigger
 
 ```tsx
-'use client';
+"use client";
 
-import { useCallback, useRef, useState } from 'react';
-import { Snippet, ContextCardTrigger } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { useCallback, useRef, useState } from "react";
+import { Snippet, ContextCardTrigger } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 const COPY_TEXT = `# About
 Template for a full-featured Next.js AI chatbot
@@ -120,11 +116,7 @@ export function Component(): JSX.Element {
 
   return (
     <ContextCardTrigger
-      content={
-        <div className="text-copy-13-mono w-96 whitespace-pre-line">
-          {COPY_TEXT}
-        </div>
-      }
+      content={<div className="text-copy-13-mono w-96 whitespace-pre-line">{COPY_TEXT}</div>}
       side="top"
     >
       {/* <div> since we don't want to wrap a button around a button */}
@@ -134,19 +126,14 @@ export function Component(): JSX.Element {
         aria-label="copy content"
         onClick={handleCopy}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             handleCopy();
           }
         }}
         className="cursor-pointer"
       >
-        <Snippet
-          copied={copied}
-          text="Copy install prompt"
-          prompt={false}
-          width="300px"
-        />
+        <Snippet copied={copied} text="Copy install prompt" prompt={false} width="300px" />
       </div>
     </ContextCardTrigger>
   );

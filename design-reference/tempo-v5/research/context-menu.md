@@ -32,37 +32,49 @@ No `ContextMenuSeparator`, `ContextMenuLabel`, `ContextMenuCheckboxItem`, `Conte
 ### Usage snippets
 
 Default:
+
 ```tsx
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@vercel/geistcn/components';
+} from "@vercel/geistcn/components";
 
 <ContextMenu>
   <ContextMenuTrigger>
-    <div className="text-copy-14" style={{ width: 300, padding: '45px 0', border: '1px var(--ds-gray-alpha-600) dashed', borderRadius: 4, textAlign: 'center' }}>
+    <div
+      className="text-copy-14"
+      style={{
+        width: 300,
+        padding: "45px 0",
+        border: "1px var(--ds-gray-alpha-600) dashed",
+        borderRadius: 4,
+        textAlign: "center",
+      }}
+    >
       Right click here
     </div>
   </ContextMenuTrigger>
   <ContextMenuContent>
-    <ContextMenuItem onClick={(): void => console.log('value')} value="hello">
+    <ContextMenuItem onClick={(): void => console.log("value")} value="hello">
       Item one
     </ContextMenuItem>
     {/* ...Item Two, Item Three, Item Four */}
   </ContextMenuContent>
-</ContextMenu>
+</ContextMenu>;
 ```
 
 Disabled items (middle two items disabled):
+
 ```tsx
-<ContextMenuItem disabled onClick={(): void => console.log('value')} value="hello">
+<ContextMenuItem disabled onClick={(): void => console.log("value")} value="hello">
   Item Two
 </ContextMenuItem>
 ```
 
 Link items:
+
 ```tsx
 <ContextMenuItem href="/" value="hello">
   Item one
@@ -70,37 +82,44 @@ Link items:
 ```
 
 Prefix and suffix (two menus side by side, icon from `@vercel/geistcn-assets/logos`):
+
 ```tsx
-import { LogoIconVercelCircleSvg } from '@vercel/geistcn-assets/logos';
+import { LogoIconVercelCircleSvg } from "@vercel/geistcn-assets/logos";
 
 <ContextMenuItem href="/" prefix={<LogoIconVercelCircleSvg />} value="hello">
   Item one
-</ContextMenuItem>
-{/* second menu, same items but suffix instead of prefix */}
+</ContextMenuItem>;
+{
+  /* second menu, same items but suffix instead of prefix */
+}
 <ContextMenuItem href="/" suffix={<LogoIconVercelCircleSvg />} value="hello">
   Item one
-</ContextMenuItem>
+</ContextMenuItem>;
 ```
 
 ## Best practices
 
 **When to use**
+
 - Reserve ContextMenu for power-user shortcuts triggered by right-click or long-press on a row, file, or canvas object — not as a primary UI surface.
 - Never make it the sole way to reach an action; every item must also exist as a visible `Menu` trigger or row button, so mouse-only and keyboard-only users have equal access.
 - Pick the right menu for the job: a global command palette is `CommandMenu`; a menu opened from a visible button trigger is `Menu`; ContextMenu is specifically for the right-click/long-press case.
 
 **Behavior**
+
 - Bind opening to right-click on desktop and long-press on touch.
 - Suppress the native OS/browser context menu only over the trigger's own hit area, never globally on the page.
 - Anchor the menu to the pointer position; if it would run off-screen, flip it horizontally first, then vertically, before resorting to clipping.
 - Dismiss on selecting an item, on Escape, and on an outside click. Do not dismiss just because the pointer moves off the menu (no close-on-hover-out).
 
 **Content**
+
 - Item labels follow the same convention as `Menu`: Title Case, Verb + Noun phrasing ("Open in New Tab", "Copy URL", "Delete Deployment"). A bare verb alone is not acceptable.
 - Append an ellipsis only when the action opens a follow-up dialog before completing ("Rename…", "Move to Folder…").
 - Cluster destructive actions at the bottom of the list, separated by a divider, and keep them to the same Verb + Noun phrasing — a lone "Delete" label is never acceptable on its own.
 
 **Accessibility**
+
 - Support the OS-level "open context menu" keyboard shortcut (Shift+F10 on Windows/Linux, or the dedicated menu key / platform equivalent) as an alternate way to open the same menu without a right-click.
 - Arrow keys (Up/Down) move item focus; Enter or Space activates the focused item; Escape closes the menu and returns focus to the originating row/element.
 - Keep destructive actions at the top level of the menu — avoid nesting them inside submenus, since one level of depth is what keeps keyboard navigation predictable.

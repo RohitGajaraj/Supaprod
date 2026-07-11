@@ -13,14 +13,16 @@ Source: https://vercel.com/geist/relative-time-card (fetched 2026-07-10/11, page
 ## API — component + props + composition
 
 Import path:
+
 ```tsx
-import { Button, RelativeTimeCard } from '@vercel/geistcn/components';
+import { Button, RelativeTimeCard } from "@vercel/geistcn/components";
 ```
 
 Full minimal usage example (the only JSX example on the page, captured verbatim from the flight payload's raw code string):
+
 ```tsx
-import { Button, RelativeTimeCard } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button, RelativeTimeCard } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const date = new Date();
@@ -35,6 +37,7 @@ export function Component(): JSX.Element {
 ```
 
 Observed API surface (only what's visible in the one example — no other props/enums are demonstrated on this page):
+
 - **`<RelativeTimeCard>`** (single component, no documented subcomponents like `.Trigger`/`.Content` — it wraps its child directly, Radix-popover-style)
   - `date: number` — required. Pass epoch/Unix milliseconds (`date.getTime()`), not a `Date` object and not a pre-formatted string. This is called out explicitly in Best Practices: "Pass date as a number (Unix ms or epoch)."
   - `side?: "top" | ...` — positions the popover relative to the trigger; only `"top"` is shown in the example. Given this is presumably built on a Radix Popover/HoverCard primitive, treat `side` as very likely accepting the standard Radix `side` union (`"top" | "right" | "bottom" | "left"`) even though only `"top"` appears in the captured markup — flag this as inferred, not confirmed on-page.

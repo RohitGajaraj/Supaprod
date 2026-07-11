@@ -19,36 +19,40 @@ Source: https://vercel.com/geist/book (Vercel Geist Design System)
 ## API
 
 Import:
+
 ```tsx
-import { Book } from '@vercel/geistcn/components';
+import { Book } from "@vercel/geistcn/components";
 ```
 
 Optional companion imports seen in examples:
+
 ```tsx
-import { LogoIconVercel, LogoIconNext, LogoIconReact } from '@vercel/geistcn-assets/logos';
+import { LogoIconVercel, LogoIconNext, LogoIconReact } from "@vercel/geistcn-assets/logos";
 ```
 
 ### `<Book />` props (inferred from usage across all examples)
 
-| Prop | Type | Values seen | Notes |
-|---|---|---|---|
-| `title` | `string` | e.g. "The user experience of the Frontend Cloud" | Required in every example; the cover's label text. |
-| `variant` | `"simple" \| "stripe"` | `simple`, `stripe` (default appears to be `stripe` — omitted in the Default demo and it renders the striped look) | Controls cover treatment: `stripe` = accent stripe/spine detail, `simple` = flat title-only cover. |
-| `color` | `string` (hex or CSS color) | `"#9D2127"`, `"#7DC1C1"`, `"#FED954"` | Overrides the cover's base/accent color. Best-practice guidance says prefer design tokens (`var(--ds-blue-700)`) over raw hex in production. |
-| `textColor` | `string` (hex, named color, or token) | `"white"`, `"#ece4db"`, `"#9d3b05"` | Overrides the title text color; paired with `color` for contrast when using a custom cover color. |
-| `icon` | `ReactNode` | e.g. `<LogoIconVercel />` | Renders a small logo/icon badge on the cover face. |
-| `illustration` | `ReactNode` | custom components (`<Lines />`, `<Icon />`) | Renders a larger illustration on/in the cover; affects layout (examples use `items-stretch` on the wrapping flex row when illustration is present, implying variable cover height). |
-| `width` | `number \| { sm?: number; md?: number; lg?: number; ... }` | `300`, `200`, `150`, `196`, or `{ sm: 150, md: 196 }` | Numeric = fixed px width. Object = responsive width map keyed by breakpoint token (Tailwind-style `sm`/`md` shown). Height presumably derives from width to preserve book aspect ratio. |
-| `textured` | `boolean` | `true` | Adds a textured/paper-grain finish to the cover surface. |
+| Prop           | Type                                                       | Values seen                                                                                                       | Notes                                                                                                                                                                                   |
+| -------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`        | `string`                                                   | e.g. "The user experience of the Frontend Cloud"                                                                  | Required in every example; the cover's label text.                                                                                                                                      |
+| `variant`      | `"simple" \| "stripe"`                                     | `simple`, `stripe` (default appears to be `stripe` — omitted in the Default demo and it renders the striped look) | Controls cover treatment: `stripe` = accent stripe/spine detail, `simple` = flat title-only cover.                                                                                      |
+| `color`        | `string` (hex or CSS color)                                | `"#9D2127"`, `"#7DC1C1"`, `"#FED954"`                                                                             | Overrides the cover's base/accent color. Best-practice guidance says prefer design tokens (`var(--ds-blue-700)`) over raw hex in production.                                            |
+| `textColor`    | `string` (hex, named color, or token)                      | `"white"`, `"#ece4db"`, `"#9d3b05"`                                                                               | Overrides the title text color; paired with `color` for contrast when using a custom cover color.                                                                                       |
+| `icon`         | `ReactNode`                                                | e.g. `<LogoIconVercel />`                                                                                         | Renders a small logo/icon badge on the cover face.                                                                                                                                      |
+| `illustration` | `ReactNode`                                                | custom components (`<Lines />`, `<Icon />`)                                                                       | Renders a larger illustration on/in the cover; affects layout (examples use `items-stretch` on the wrapping flex row when illustration is present, implying variable cover height).     |
+| `width`        | `number \| { sm?: number; md?: number; lg?: number; ... }` | `300`, `200`, `150`, `196`, or `{ sm: 150, md: 196 }`                                                             | Numeric = fixed px width. Object = responsive width map keyed by breakpoint token (Tailwind-style `sm`/`md` shown). Height presumably derives from width to preserve book aspect ratio. |
+| `textured`     | `boolean`                                                  | `true`                                                                                                            | Adds a textured/paper-grain finish to the cover surface.                                                                                                                                |
 
 ### Composition patterns
 
 Single book:
+
 ```tsx
 <Book title="The user experience of the Frontend Cloud" />
 ```
 
 Variant comparison:
+
 ```tsx
 <div className="flex flex-row items-baseline justify-start gap-8 flex-initial">
   <Book title="The user experience of the Frontend Cloud" variant="simple" width={196} />
@@ -57,6 +61,7 @@ Variant comparison:
 ```
 
 Custom color + text color:
+
 ```tsx
 <Book color="#9D2127" title="How Vercel improves your website's search engine ranking" />
 <Book color="#7DC1C1" textColor="white" title="Design Engineering at Vercel" variant="simple" />
@@ -64,6 +69,7 @@ Custom color + text color:
 ```
 
 Custom icon (brand logos):
+
 ```tsx
 <Book icon={<LogoIconVercel />} title="Vercel Platform Guide" />
 <Book icon={<LogoIconNext />} title="Next.js Documentation" />
@@ -71,19 +77,26 @@ Custom icon (brand logos):
 ```
 
 Custom illustration:
+
 ```tsx
 <div className="flex flex-row items-stretch justify-start gap-8 flex-initial">
   <Book illustration={<Lines />} title="The user experience of the Frontend Cloud" />
-  <Book illustration={<Icon />} title="The user experience of the Frontend Cloud" variant="simple" />
+  <Book
+    illustration={<Icon />}
+    title="The user experience of the Frontend Cloud"
+    variant="simple"
+  />
 </div>
 ```
 
 Responsive width:
+
 ```tsx
 <Book title="The user experience of the Frontend Cloud" width={{ sm: 150, md: 196 }} />
 ```
 
 Fixed widths:
+
 ```tsx
 <Book title="The user experience of the Frontend Cloud" width={300} />
 <Book title="The user experience of the Frontend Cloud" width={200} />
@@ -91,6 +104,7 @@ Fixed widths:
 ```
 
 Textured, both variants:
+
 ```tsx
 <div className="flex flex-row items-baseline justify-start gap-8 flex-initial">
   <Book color="#7DC1C1" textured title="Design Engineering at Vercel" />
@@ -109,16 +123,19 @@ No standalone subcomponents were shown — `Book` is used as a single, self-cont
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Book on marketing pages, docs landing covers, and changelog hero moments — anywhere the "labeled volume" metaphor fits the content.
 - Don't use it for in-product cards or repeated dashboard rows; it's a decorative/editorial component, not a list-item primitive — use `Card` there instead.
 - Choose `simple` when the title text alone should carry the design; choose `stripe` when you want an icon or color accent to add a visual hierarchy or category signal.
 
 **Behavior**
+
 - Drive the `color` prop from design tokens (e.g. `var(--ds-blue-700)`, `var(--ds-amber-600)`) rather than raw hex, so covers adapt automatically between light and dark themes.
 - Save the `textured` treatment for a single hero/featured book — in a row of several books the texture fights with the title for attention.
 - Use the responsive (breakpoint-object) form of `width` to keep the cover's proportions consistent across screen sizes; don't let it stretch/squash, since a distorted aspect ratio undermines the book illusion.
 
 **Accessibility**
+
 - Treat the cover art as decorative chrome; expose the actual title through a real heading element underneath/alongside it so screen readers don't announce the text twice.
 - Illustrations inside the cover only need alt text if they convey information the title doesn't already state — otherwise mark them `aria-hidden`.
 - If a Book is wrapped in a link, put the focus ring on the link element itself, not the decorative cover, so keyboard users get an accurate focus target.

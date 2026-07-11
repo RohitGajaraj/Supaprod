@@ -26,7 +26,8 @@ export const TRANSITION_ROLES: Record<string, WorkspaceRole[]> = {
 };
 
 export type TransitionResult =
-  { ok: true; next: AnnouncementStatus } | { ok: false; reason: string };
+  | { ok: true; next: AnnouncementStatus }
+  | { ok: false; reason: string };
 
 /**
  * Validate a desired status transition for an actor's role. Total: every input

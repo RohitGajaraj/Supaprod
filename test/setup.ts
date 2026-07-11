@@ -1,20 +1,21 @@
 // Test environment setup for Bun + React Testing Library
 // This file is preloaded by bunfig.toml [test] section before running tests.
-// Bun has built-in DOM support via WebKit, so minimal setup is needed.
+// Bun test has NO built-in DOM; happy-dom registers document/window globals
+// so DOM-mounted component tests (render, fireEvent, queries) actually run.
+//
+// ORDER MATTERS: static ESM imports are hoisted, so RTL must be loaded via
+// dynamic import AFTER GlobalRegistrator.register() has created `document`.
+// RTL binds its `screen` queries to the global document at module eval time.
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-import { afterEach } from "bun:test";
-import { getDefaultExportFromCjs } from "@testing-library/react";
+GlobalRegistrator.register();
 
-// Stub getDefaultExportFromCjs if needed (workaround for ESM/CJS mismatch)
-if (typeof (global as any).getDefaultExportFromCjs === "undefined") {
-  (global as any).getDefaultExportFromCjs = (m: any) => m?.default ?? m;
-}
+const { afterEach } = await import("bun:test");
+const { cleanup } = await import("@testing-library/react");
 
-// Clean up after each test to prevent state leakage
+// Clean up after each test to prevent state leakage between tests
 afterEach(() => {
-  if (typeof document !== "undefined") {
-    document.body.textContent = "";
-  }
+  cleanup();
   if (typeof window !== "undefined" && window.localStorage) {
     window.localStorage.clear();
   }

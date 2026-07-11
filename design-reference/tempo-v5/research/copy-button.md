@@ -19,8 +19,8 @@ Related/adjacent component in the same nav group (not this page, listed for cont
 Import path shown in the code sample:
 
 ```tsx
-import { CopyButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { CopyButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <CopyButton textToCopy="lipsum" label="copy text" />;

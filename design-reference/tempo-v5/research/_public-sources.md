@@ -56,8 +56,8 @@
 - **The live docs page's own code samples import from `@vercel/geistcn`, not `@vercel/geist`.**
   `vercel.com/geist/introduction` shows:
   ```tsx
-  import { Button, Modal, Toggle } from '@vercel/geistcn/components';
-  import { IconPencilEdit } from '@vercel/geistcn-assets/icons';
+  import { Button, Modal, Toggle } from "@vercel/geistcn/components";
+  import { IconPencilEdit } from "@vercel/geistcn-assets/icons";
   ```
   Both `@vercel/geistcn` and `@vercel/geistcn-assets` were checked directly against
   `registry.npmjs.org` and both return **HTTP 404** — neither is publicly installable either.
@@ -71,7 +71,7 @@
   a Next.js + Fumadocs documentation site in Vercel's docs style (MDX authoring, AI chat, i18n,
   feedback widgets). Confirmed in use by the public `vercel/components.build` repo (a `geistdocs.tsx`
   config file at its root wires the docs-site branding/nav/search). Useful only if Cadence ever
-  wants a *docs site* that looks like Vercel's docs shell — irrelevant to the in-app component
+  wants a _docs site_ that looks like Vercel's docs shell — irrelevant to the in-app component
   system.
 - **`vercel/components.build`** (github.com/vercel/components.build, MIT, 775 stars, not
   archived): a **separate, unrelated open specification** — "an open-source standard for
@@ -116,7 +116,7 @@
   this as a dependency.
 - Net: `design-reference/tempo-v5`'s existing approach — extracting token values by hand from the
   live site and re-implementing components on React 19 + Tailwind v4 + Radix — is not just the
-  legally safe choice, it's also currently the *only* way to get the current-generation look; no
+  legally safe choice, it's also currently the _only_ way to get the current-generation look; no
   shortcut clone exists yet.
 
 ## 5. Is the `vercel.com/geist` docs site itself public?
@@ -125,8 +125,8 @@
   is not inside `vercel/examples`, and there is no standalone public repo under the `vercel` org
   matching that name/purpose.
 - **What is public and adjacent**: `@vercel/geistdocs`, the Next.js + Fumadocs-based framework/CLI
-  used to scaffold docs sites *in Vercel's docs style* generally (see §3) — proven in use by the
-  public `vercel/components.build` repo. So the docs-site *shell/framework* is reusable software;
+  used to scaffold docs sites _in Vercel's docs style_ generally (see §3) — proven in use by the
+  public `vercel/components.build` repo. So the docs-site _shell/framework_ is reusable software;
   the actual `vercel.com/geist` page content, component demos, and token source are not published
   anywhere found.
 
@@ -135,15 +135,17 @@
 ## VERDICT
 
 **(a) Take directly — with proper attribution/license file:**
+
 - The **`geist` npm package** (v1.7.2, SIL Open Font License 1.1): Geist Sans, Geist Mono, and
   all five Geist Pixel variants (Circle/Grid/Line/Square/Triangle) as TTF/WOFF2/variable fonts,
   plus the Next.js `font.js` loaders. This is exactly what `tempo-v5/tokens/fonts.css` already
   self-hosts from `/public/fonts/geist/` — correct call, keep doing it, no reason to touch a
   third-party font mirror (`non.geist`, `@fontsource/geist`, etc.) instead.
-- (Situational) **`@vercel/geistdocs`** if Cadence ever needs a standalone public *docs site*
+- (Situational) **`@vercel/geistdocs`** if Cadence ever needs a standalone public _docs site_
   matching Vercel's docs-site shell — not applicable to the in-app design system today.
 
 **(b) Re-implement — and why:**
+
 - **Every component** (buttons, modals, tables, menus, etc.) — because the actual component
   library (`@vercel/geist` / `@vercel/geistcn`) has never been published to the public npm
   registry (confirmed 404 for both), and there is no legitimate access path; it appears to live
@@ -157,6 +159,7 @@
   public, so this would mean pattern-matching visually, not forking code.
 
 **(c) Do-not-copy:**
+
 - **`@vercel/geistcn` / `@vercel/geistcn-assets`** — these names leak in the public docs page's
   own code samples, but the packages 404 on the public registry and are almost certainly gated on
   Vercel's private registry. That is proprietary Vercel-internal code; do not attempt to probe,

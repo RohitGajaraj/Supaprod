@@ -16,49 +16,51 @@ Source: https://vercel.com/geist/tabs (Vercel Geist Design System)
 ## API
 
 Import:
+
 ```tsx
-import { Tabs } from '@vercel/geistcn/components';
+import { Tabs } from "@vercel/geistcn/components";
 ```
 
 Component: **`Tabs`** (single exported component, no separate `TabsList`/`TabsTrigger`/`TabsContent` subcomponents shown — Geist's `Tabs` is a self-contained tab-strip control, not a compound-component pattern like Radix's).
 
 ### Props observed
 
-| Prop | Type (inferred) | Notes |
-|---|---|---|
-| `selected` | `string` | currently active tab's `value`, externally controlled |
-| `setSelected` | `(value: string) => void` | callback invoked with the clicked tab's `value`; wire to `useState` |
-| `tabs` | `Array<{ title, value, icon?, disabled?, tooltip? }>` | ordered list of tab definitions |
-| `disabled` | `boolean` | top-level — disables the entire control |
-| `variant` | `"secondary"` (enum, default presumably `"primary"`) | only `"secondary"` value shown in examples |
+| Prop          | Type (inferred)                                       | Notes                                                               |
+| ------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| `selected`    | `string`                                              | currently active tab's `value`, externally controlled               |
+| `setSelected` | `(value: string) => void`                             | callback invoked with the clicked tab's `value`; wire to `useState` |
+| `tabs`        | `Array<{ title, value, icon?, disabled?, tooltip? }>` | ordered list of tab definitions                                     |
+| `disabled`    | `boolean`                                             | top-level — disables the entire control                             |
+| `variant`     | `"secondary"` (enum, default presumably `"primary"`)  | only `"secondary"` value shown in examples                          |
 
 ### `tabs[]` entry shape
 
-| Field | Type | Notes |
-|---|---|---|
-| `title` | `string` | visible label, Title Case per best practices |
-| `value` | `string` | identity used by `selected` / `setSelected` |
-| `icon` | `ReactNode` (optional) | e.g. `<LogoIconGithubSvg />`, `<LogoIconBitbucket colored />` — icon components imported from `@vercel/geistcn-assets/logos` |
-| `disabled` | `boolean` (optional) | disables just this one tab |
-| `tooltip` | `string` (optional) | shown on hover for a disabled tab, explaining the constraint |
+| Field      | Type                   | Notes                                                                                                                        |
+| ---------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `title`    | `string`               | visible label, Title Case per best practices                                                                                 |
+| `value`    | `string`               | identity used by `selected` / `setSelected`                                                                                  |
+| `icon`     | `ReactNode` (optional) | e.g. `<LogoIconGithubSvg />`, `<LogoIconBitbucket colored />` — icon components imported from `@vercel/geistcn-assets/logos` |
+| `disabled` | `boolean` (optional)   | disables just this one tab                                                                                                   |
+| `tooltip`  | `string` (optional)    | shown on hover for a disabled tab, explaining the constraint                                                                 |
 
 ### Usage snippets (as shown, minimal each)
 
 **Default:**
+
 ```tsx
-import { Tabs } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Tabs } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
-  const [selected, setSelected] = useState('apple');
+  const [selected, setSelected] = useState("apple");
   return (
     <Tabs
       selected={selected}
       setSelected={(t) => setSelected(t)}
       tabs={[
-        { title: 'Apple', value: 'apple' },
-        { title: 'Orange', value: 'orange' },
-        { title: 'Mango', value: 'mango' },
+        { title: "Apple", value: "apple" },
+        { title: "Orange", value: "orange" },
+        { title: "Mango", value: "mango" },
       ]}
     />
   );
@@ -66,59 +68,62 @@ export function Component(): JSX.Element {
 ```
 
 **Disabled (whole control):**
+
 ```tsx
 <Tabs
   disabled
   selected={selected}
   setSelected={(t) => setSelected(t)}
   tabs={[
-    { title: 'Apple', value: 'apple' },
-    { title: 'Orange', value: 'orange' },
-    { title: 'Mango', value: 'mango' },
+    { title: "Apple", value: "apple" },
+    { title: "Orange", value: "orange" },
+    { title: "Mango", value: "mango" },
   ]}
 />
 ```
 
 **Disable specific tab + tooltip:**
+
 ```tsx
 <Tabs
   selected={selected}
   setSelected={(t) => setSelected(t)}
   tabs={[
-    { title: 'Apple', value: 'apple' },
-    { title: 'Orange', value: 'orange' },
+    { title: "Apple", value: "apple" },
+    { title: "Orange", value: "orange" },
     {
-      title: 'Mango',
-      value: 'mango',
+      title: "Mango",
+      value: "mango",
       disabled: true,
-      tooltip: 'Mangos are not allowed',
+      tooltip: "Mangos are not allowed",
     },
   ]}
 />
 ```
 
 **With icons:**
+
 ```tsx
-import { Tabs } from '@vercel/geistcn/components';
+import { Tabs } from "@vercel/geistcn/components";
 import {
   LogoIconBitbucket,
   LogoIconGithubSvg,
   LogoIconGitlabSvg,
-} from '@vercel/geistcn-assets/logos';
-import { useState, type JSX } from 'react';
+} from "@vercel/geistcn-assets/logos";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
-  const [git, setGit] = useState('github');
+  const [git, setGit] = useState("github");
   return (
     <Tabs
       selected={git}
       setSelected={(t) => setGit(t)}
       tabs={[
-        { title: 'GitHub', value: 'github', icon: <LogoIconGithubSvg /> },
-        { title: 'GitLab', value: 'gitlab', icon: <LogoIconGitlabSvg /> },
+        { title: "GitHub", value: "github", icon: <LogoIconGithubSvg /> },
+        { title: "GitLab", value: "gitlab", icon: <LogoIconGitlabSvg /> },
         {
-          title: 'Bitbucket',
-          value: 'bitbucket',
+          title: "Bitbucket",
+          value: "bitbucket",
           icon: <LogoIconBitbucket colored />,
         },
       ]}
@@ -128,14 +133,15 @@ export function Component(): JSX.Element {
 ```
 
 **Secondary variant:**
+
 ```tsx
 <Tabs
   selected={git}
   setSelected={(t) => setGit(t)}
   tabs={[
-    { title: 'GitHub', value: 'github' },
-    { title: 'GitLab', value: 'gitlab' },
-    { title: 'Bitbucket', value: 'bitbucket', disabled: true },
+    { title: "GitHub", value: "github" },
+    { title: "GitLab", value: "gitlab" },
+    { title: "Bitbucket", value: "bitbucket", disabled: true },
   ]}
   variant="secondary"
 />
@@ -144,21 +150,25 @@ export function Component(): JSX.Element {
 ## Best practices
 
 **When to use**
+
 - Use Tabs to switch between sibling views that live inside one page and share the same scope/URL parent/data model (e.g. Overview / Logs / Settings on one entity's detail page).
 - Don't use Tabs for navigation between genuinely unrelated pages — that's what a sub-menu is for; Tabs implies shared context, not just visual grouping.
 - Keep a Tabs row to at most 5-7 items on desktop and 3-4 on mobile; beyond that, consolidate views or move the long tail into a `Menu`.
 
 **Behavior**
+
 - Tab switches must feel instant — no network round-trip confirmation, no toast, on tab change.
 - Sync the active tab into the URL (query param or path segment) so a deep link or a page refresh restores the previously selected tab.
 - Only disable an individual tab for a real permission or empty-state reason, and always pair a disabled tab with a tooltip naming the constraint (never disable silently).
 
 **Content**
+
 - `tabs[].title` is Title Case, one to two words, and names the destination as a noun (Overview, Logs, Settings) — verbs belong on buttons, not tabs (e.g. "View Logs" is wrong for a tab label).
 - `tabs[].tooltip` is sentence case and explains the constraint causing the disabled state (e.g. "Only visible to project owners"), not a restatement of what the tab does.
 - Don't bolt a count onto the title (e.g. "Logs (12)"); use a dedicated badge slot instead, and hide the badge entirely at zero.
 
 **Accessibility**
+
 - Left/Right arrow keys move focus across the tab strip; Enter/Space activates the focused tab — don't override this with app-level global shortcuts.
 - Give the tablist an `aria-label` (e.g. `aria-label="Sections"`) whenever there's no visible heading directly above it.
 - Keep a visible focus ring on the active/focused tab at all times; never strip focus styling purely for visual cleanliness.

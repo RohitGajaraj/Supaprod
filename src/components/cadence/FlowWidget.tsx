@@ -48,7 +48,7 @@ function Pill({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-md border px-2 py-1 text-[11.5px] transition",
+        "rounded-md border px-2 py-1 text-[11.5px] transition duration-150 ease-(--ds-motion-timing-swift)",
         active
           ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
           : "border-transparent text-ink-subtle hover:text-foreground hover:bg-foreground/[0.03]",
@@ -114,7 +114,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
       aria-label="Flow mode"
       title={isFlowMode ? "Flow mode on" : "Flow mode"}
       className={cn(
-        "flex items-center gap-1.5 rounded-md px-1 py-0.5 transition",
+        "flex items-center gap-1.5 rounded-md px-1 py-0.5 transition duration-150 ease-(--ds-motion-timing-swift)",
         isFlowMode
           ? "text-foreground ring-1 ring-foreground/20"
           : "text-ink-subtle hover:text-foreground",
@@ -141,7 +141,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
               aria-label="End focus"
               title="End focus"
               onClick={() => exitFlow()}
-              className="flex p-0.5 text-ink-subtle hover:text-foreground transition"
+              className="flex p-0.5 text-ink-subtle hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
             >
               <X className="h-[12px] w-[12px]" strokeWidth={1.75} />
             </button>
@@ -205,7 +205,7 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
                         setConfig({ timerMin: min });
                       }}
                       className={cn(
-                        "w-full rounded-md border px-2 py-1 text-[11.5px] transition",
+                        "w-full rounded-md border px-2 py-1 text-[11.5px] transition duration-150 ease-(--ds-motion-timing-swift)",
                         config.timerMin === min && customStr === ""
                           ? "border-foreground/30 bg-foreground/[0.06] text-foreground"
                           : "border-transparent text-ink-subtle hover:text-foreground hover:bg-foreground/[0.03]",

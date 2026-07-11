@@ -56,10 +56,9 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
       <button
         type="button"
         onClick={dismiss}
+        className="text-button-12"
         style={{
           marginTop: 10,
-          fontFamily: "var(--font-ui)",
-          fontSize: 12,
           color: "var(--text-muted)",
           background: "transparent",
           border: "none",

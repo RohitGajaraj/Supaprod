@@ -146,12 +146,13 @@ export function TracesPanel() {
               <Link
                 to="/traces/$traceId"
                 params={{ traceId: t.trace_id }}
-                className="mono-label"
+                className="mono-label transition-opacity hover:opacity-70"
                 style={{ color: "var(--action-blue)", textAlign: "left" }}
               >
                 {t.trace_id.slice(0, 8)}
               </Link>
               <button
+                className="hover:underline"
                 style={{
                   fontWeight: 500,
                   textAlign: "left",

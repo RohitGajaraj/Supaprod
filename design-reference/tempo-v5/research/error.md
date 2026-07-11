@@ -16,10 +16,11 @@ Source: https://vercel.com/geist/error — package `@vercel/geistcn/components`,
 ## API
 
 Import:
+
 ```tsx
-import { Error } from '@vercel/geistcn/components';
+import { Error } from "@vercel/geistcn/components";
 // aliasable on import, e.g.:
-import { Error as GeistError } from '@vercel/geistcn/components';
+import { Error as GeistError } from "@vercel/geistcn/components";
 ```
 
 ### Props (as observed across examples)
@@ -42,17 +43,17 @@ import { Error as GeistError } from '@vercel/geistcn/components';
 - `error` — structured object, alternative to `children`, shaped as:
   ```ts
   {
-    message: string;   // e.g. 'The request failed.'
-    action: string;    // label for the recovery action/link, e.g. 'Contact Us'
-    link: string;      // URL the action points to
+    message: string; // e.g. 'The request failed.'
+    action: string; // label for the recovery action/link, e.g. 'Contact Us'
+    link: string; // URL the action points to
   }
   ```
   ```tsx
   <Error
     error={{
-      message: 'The request failed.',
-      action: 'Contact Us',
-      link: 'https://vercel.com/contact',
+      message: "The request failed.",
+      action: "Contact Us",
+      link: "https://vercel.com/contact",
     }}
   />
   ```
@@ -68,16 +69,19 @@ import { Error as GeistError } from '@vercel/geistcn/components';
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Use `Error` as a block-level surface for a failed section or page-level resource: a panel, a dashboard card, a route boundary — not for one-off transient failures.
 - Don't use it for transient action failures (use a toast, e.g. `toasts.error()`, for things like a failed save) and don't use it for field-level validation (use the `error` prop on `Input` instead). Error is a block replacement for those, not a stand-in.
 - For platform/system failures, always surface a stable identifier (request ID, deployment ID, run ID, trace ID) so the user can reference it in support. Validation/permission errors are user-state, not system state, and don't need an ID.
 
 **Behavior**
+
 - Always give the user something concrete to do: a retry action (e.g. "Try Again") when the operation is safely retryable, or a specific named action (e.g. "Reconnect GitHub", "Update Payment Method") when it isn't just a retry.
 - Never silently auto-retry in the background — the user landed on this surface to make a decision, so let them make it.
 - For full-page route-level errors (e.g. a framework's `error.tsx` boundary), move focus to the primary recovery action as soon as it renders, so keyboard users don't have to hunt for it.
 
 **Content**
+
 - Lead with what happened, then what to do about it — that order, no exceptions. Skip apologetic filler ("Unfortunately", "Oops", "We're sorry").
 - Match the verb to the error's source: "Couldn't" / "Can't" for user-state failures, "Failed to" for system/infra failures that mirror CLI-style output. Never use "Unable to" — it's explicitly disallowed.
 - Avoid a generic "Something Went Wrong" title; name the specific resource that failed instead (e.g. "Couldn't Load Page", "Couldn't Load Deployments").
@@ -85,6 +89,7 @@ import { Error as GeistError } from '@vercel/geistcn/components';
 - Keep the tone straight, never jokey — someone hitting an error is already frustrated, and levity reads as dismissive.
 
 **Accessibility**
+
 - When the error shows up asynchronously (e.g. after a failed fetch), wrap it in a polite live region (`aria-live="polite"`) so assistive tech announces it without interrupting whatever the user is doing.
 - Reserve an assertive live region (`aria-live="assertive"`) only for genuinely blocking errors that must interrupt current input.
 

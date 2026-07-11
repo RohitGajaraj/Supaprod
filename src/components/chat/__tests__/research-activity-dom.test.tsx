@@ -336,8 +336,10 @@ describe("ResearchSummaryRow — DOM Rendering & Chip Layout", () => {
     };
     render(<ResearchSummaryRow meta={meta} />);
 
-    // Should be singular "Workspace" rendered as uppercase
-    expect(screen.getByText(/WORKSPACE/)).toBeDefined();
+    // Singular "Workspace" in the DOM; uppercasing is CSS text-transform,
+    // which styles glyphs without changing textContent.
+    expect(screen.getByText(/Workspace/)).toBeDefined();
+    expect(screen.queryByText(/Workspaces/)).toBeNull();
   });
 
   it("should handle internal mode workspace detection", () => {
@@ -383,9 +385,10 @@ describe("ResearchSummaryRow — DOM Rendering & Chip Layout", () => {
     const chips = container.querySelectorAll(".inline-flex");
     const texts = Array.from(chips).map((c) => c.textContent);
 
-    // Order: Searched, Read, Workspace
-    expect(texts[0]).toContain("SEARCHED");
-    expect(texts[1]).toContain("READ");
-    expect(texts[2]).toContain("WORKSPACE");
+    // Order: Searched, Read, Workspace. textContent keeps source casing;
+    // the uppercase look comes from CSS text-transform.
+    expect(texts[0]).toContain("Searched");
+    expect(texts[1]).toContain("Read");
+    expect(texts[2]).toContain("Workspace");
   });
 });

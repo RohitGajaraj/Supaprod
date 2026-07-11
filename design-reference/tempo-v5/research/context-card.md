@@ -17,41 +17,29 @@ No other demo sections (no Types, Sizes, States, or edge-case blocks) are presen
 Single exported component: **`ContextCardTrigger`**, imported from `@vercel/geistcn/components`.
 
 ```tsx
-import { ContextCardTrigger } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ContextCardTrigger } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-row items-stretch justify-around flex-initial">
       <div className="flex flex-col items-center justify-center flex-initial">
-        <ContextCardTrigger
-          content="The Evil Rabbit Jumped over the Fence"
-          side="top"
-        >
+        <ContextCardTrigger content="The Evil Rabbit Jumped over the Fence" side="top">
           <span>Top</span>
         </ContextCardTrigger>
       </div>
       <div className="flex flex-col items-center justify-center flex-initial">
-        <ContextCardTrigger
-          content="The Evil Rabbit Jumped over the Fence"
-          side="bottom"
-        >
+        <ContextCardTrigger content="The Evil Rabbit Jumped over the Fence" side="bottom">
           <span>Bottom</span>
         </ContextCardTrigger>
       </div>
       <div className="flex flex-col items-center justify-center flex-initial">
-        <ContextCardTrigger
-          content="The Evil Rabbit Jumped over the Fence"
-          side="left"
-        >
+        <ContextCardTrigger content="The Evil Rabbit Jumped over the Fence" side="left">
           <span>Left</span>
         </ContextCardTrigger>
       </div>
       <div className="flex flex-col items-center justify-center flex-initial">
-        <ContextCardTrigger
-          content="The Evil Rabbit Jumped over the Fence"
-          side="right"
-        >
+        <ContextCardTrigger content="The Evil Rabbit Jumped over the Fence" side="right">
           <span>Right</span>
         </ContextCardTrigger>
       </div>
@@ -61,8 +49,8 @@ export function Component(): JSX.Element {
 ```
 
 ```tsx
-import { ContextCardTrigger, Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ContextCardTrigger, Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -96,6 +84,7 @@ export function Component(): JSX.Element {
 ### Props observed (from the two code examples — this is the full documented surface)
 
 `ContextCardTrigger`:
+
 - `content: string` — required. The panel body. Both examples pass a plain string, not a JSX node, so the documented API is text-first (metadata-row markup, per Best Practices, would presumably go here as richer children/markup, but the demo page only shows a plain string).
 - `side: "top" | "bottom" | "left" | "right"` — placement of the panel relative to the trigger. Same enum shape as a standard Radix `Popover`/`Tooltip` `side` prop.
 - `align: "start" | "center" | "end"` — alignment along the cross-axis of the chosen side. Same enum shape as a standard Radix `align` prop.
@@ -108,21 +97,25 @@ No `open`/`onOpenChange` (controlled-state), `delayDuration`, `sideOffset`, or `
 Paraphrased from the page's four Best Practices subsections:
 
 **When to use**
+
 - Use it to surface entity metadata (user, deployment, project, API key, etc.) on hover/focus — typically triggered from a name link or avatar inside dense data (tables, lists).
 - If you only need a single line of "why" text with no structured metadata, use Tooltip instead. If the content is long-form, editable, or needs to persist, route to a Drawer or a full detail page instead.
 - Never put destructive actions inside it — since it can dismiss the moment the cursor leaves, a user could lose track of a destructive action before committing to it.
 
 **Behavior**
+
 - Opens on hover and keyboard focus; closes on cursor exit or blur. Keep roughly a 150ms open delay so it doesn't flash during a fast mouse sweep across a table/list.
 - Limit interactive content to a single primary action (e.g. "View Project", "Open Settings"). More than one CTA turns it into a menu — use the Menu component for that case instead.
 - Don't nest a Context Card inside a Tooltip or another Context Card — the second overlay layer will steal focus and trap keyboard users.
 
 **Content**
+
 - Lead with the entity name as a Title Case heading, with one identifying line underneath in sentence case (team slug, owner, deployment URL).
 - Follow with 2 to 4 metadata rows shaped as `Label: value`. Labels are Title Case noun phrases ("Last Active", "Created", "Plan"); values follow standard table-cell formatting rules. Use an em dash (—) for unknown values — never "N/A" or "null".
 - Don't repeat information the trigger already displays (e.g. don't re-show a deployment URL as the card's first line if the row it's attached to already shows it).
 
 **Accessibility**
+
 - The trigger must keep its own accessible name — the card is supplementary, not a replacement for it.
 - Card content must be reachable by keyboard once the trigger has focus. Escape closes the card and returns focus to the trigger.
 

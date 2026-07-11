@@ -40,8 +40,9 @@ function Btn({
     <button
       type="button"
       title={title}
+      aria-label={title}
       onClick={on}
-      className={`h-8 w-8 inline-flex items-center justify-center rounded-md text-xs transition ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"}`}
+      className={`h-8 w-8 inline-flex items-center justify-center rounded-md text-xs transition-colors duration-150 ease-(--ds-motion-timing-swift) ${active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"}`}
     >
       {children}
     </button>
@@ -309,7 +310,7 @@ export function DocEditor({
         <>
           <div className="fixed inset-0 z-20" onClick={() => setSlash(null)} />
           <div
-            className="fixed z-30 w-56 rounded-lg border hairline bg-background/95 backdrop-blur-xl shadow-xl p-1"
+            className="material-menu fixed z-30 w-56 p-1"
             style={{ left: slash.x, top: slash.y }}
           >
             <div className="px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">

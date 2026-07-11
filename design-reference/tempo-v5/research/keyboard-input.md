@@ -7,7 +7,7 @@ Source: https://vercel.com/geist/keyboard-input (fetched via headless curl, SSR 
 ## Sections documented
 
 - **Modifiers** — three separate `<Kbd>` pills shown side by side, each holding one bare modifier glyph with no accompanying key: a blank/space pill, `⇧` (Shift), `⌥` (Option/Alt), `⌃` (Control). Demonstrates that each modifier renders as its own glyph span and that a `Kbd` can be rendered with only a modifier and no `children` key.
-- **Combination** — a single `<Kbd>` pill containing two `<span>` children: an empty/space span followed by `⇧`. Demonstrates that when a key is combined with a modifier, the modifier and the key render as multiple `<span>`s *inside one* `<Kbd>` element (one visual pill for the whole combo), not as separate adjacent `Kbd`s.
+- **Combination** — a single `<Kbd>` pill containing two `<span>` children: an empty/space span followed by `⇧`. Demonstrates that when a key is combined with a modifier, the modifier and the key render as multiple `<span>`s _inside one_ `<Kbd>` element (one visual pill for the whole combo), not as separate adjacent `Kbd`s.
 - **Small** — a single `<Kbd>` pill at the compact size, containing one span with `/`. Demonstrates the `small` size variant for dense UI (e.g. this exact demo — a `/` key — mirrors the "focus search" shortcut hint pattern used in the page's own header search button).
 - **Best Practices** — prose accordion covering when/how to use `Kbd`: use inside prose/menus/button suffixes vs. spelling shortcuts out in long-form docs; passing modifiers as boolean props; `children` contract (single key/digit/named key); the `small` size for dense surfaces; punctuation placement outside the element.
 
@@ -18,12 +18,14 @@ Note: the page footer also lists two nav-adjacent affordances ("Was this helpful
 Component: **`Kbd`** (rendered DOM tag: `<kbd data-geist-kbd="" data-version="v1">`).
 
 Live usage snippet actually quoted on the page (Best Practices prose — verbatim):
+
 ```jsx
 <Kbd>Cmd+K</Kbd>              {/* ANTI-PATTERN: called out as wrong — hardcodes the glyph */}
 Press <Kbd meta>K</Kbd> to open the command menu.
 ```
 
 Reconstructed minimal usage per demo section (props inferred from rendered markup — not verbatim source):
+
 ```jsx
 // Modifiers — bare modifier glyphs, no key
 <Kbd />
@@ -42,6 +44,7 @@ Reconstructed minimal usage per demo section (props inferred from rendered marku
 ```
 
 Props surfaced by the Best Practices text and the rendered markup:
+
 - `meta` (boolean) — Cmd on macOS, swaps to "Ctrl" glyph/label on Windows/Linux automatically.
 - `shift` (boolean)
 - `alt` (boolean) — renders `⌥`.
@@ -50,6 +53,7 @@ Props surfaced by the Best Practices text and the rendered markup:
 - `children` — exactly one key: a single letter/digit (`K`, `7`) or one named key (`Enter`, `Esc`). Explicitly disallowed: lowercasing it, spelling a modifier out inside children, or packing a sentence/phrase into the element.
 
 Composition/authoring rules called out explicitly:
+
 - Modifiers are boolean props, not part of `children` — never author `<Kbd>Cmd+K</Kbd>` as a literal string.
 - Punctuation (period, comma, "or") stays in the surrounding prose/JSX text node, outside `<Kbd>`, e.g. `Press <Kbd meta>K</Kbd> to open the command menu.` (period sits after the closing tag).
 - For narrative long-form docs that need to survive copy-to-plain-text, write the shortcut as plain prose ("the ⌘ K shortcut") instead of using the component, so the rendered text and the copied text match.

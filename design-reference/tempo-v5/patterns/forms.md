@@ -40,12 +40,12 @@ group** (optional, for related fields) → **Field** → **Control**.
 
 **Field anatomy, named:**
 
-| Slot | Element | Notes |
-| --- | --- | --- |
-| Label | `<label>` (Radix `Label`) | One line, `text-label-14`, `gray-1000`. Optional fields append a trailing `(optional)` in `text-label-13`/`gray-700`; required fields carry no marker (required is the default assumption — see Do/Don't). |
-| Control | input / textarea / select trigger / checkbox / radio / switch | The interactive element. Box-shaped controls (input, textarea, select trigger) snap to the 32/36/40px height ladder. Checkbox and switch are fixed-size glyphs (see States) and align to the label's line via `items-center`. |
-| Description | `<p>` (maps to Geist's `Description` component's `content` role, used inline rather than as a key/value pair) | `text-copy-14`, `gray-900`. Explains format, constraints, or consequence ("Visible to teammates in this workspace only."). Hidden the instant an error replaces it. |
-| Error | `<p role="alert">` or field-level error slot | `text-label-13`, `red-900`, prefixed with a 16px `CircleAlert` (lucide, 1.5px stroke, `red-900`). Replaces the description in place — never stacks above/below it. |
+| Slot        | Element                                                                                                       | Notes                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label       | `<label>` (Radix `Label`)                                                                                     | One line, `text-label-14`, `gray-1000`. Optional fields append a trailing `(optional)` in `text-label-13`/`gray-700`; required fields carry no marker (required is the default assumption — see Do/Don't).                    |
+| Control     | input / textarea / select trigger / checkbox / radio / switch                                                 | The interactive element. Box-shaped controls (input, textarea, select trigger) snap to the 32/36/40px height ladder. Checkbox and switch are fixed-size glyphs (see States) and align to the label's line via `items-center`. |
+| Description | `<p>` (maps to Geist's `Description` component's `content` role, used inline rather than as a key/value pair) | `text-copy-14`, `gray-900`. Explains format, constraints, or consequence ("Visible to teammates in this workspace only."). Hidden the instant an error replaces it.                                                           |
+| Error       | `<p role="alert">` or field-level error slot                                                                  | `text-label-13`, `red-900`, prefixed with a 16px `CircleAlert` (lucide, 1.5px stroke, `red-900`). Replaces the description in place — never stacks above/below it.                                                            |
 
 **Field group** wraps a `<fieldset>` with a `<legend>` whenever two or more controls
 represent one logical question (a checkbox cluster, a radio set, a related toggle group).
@@ -63,6 +63,7 @@ the Button contract: more than two sibling actions become a Menu/Split Button).
 ## Variants — every sanctioned variant and when to use each
 
 **Layout**
+
 - **Single-column field** — the default. Every field with no natural pairing gets its own
   full-width row.
 - **Paired short fields (2-column grid)** — only for fields that read as one unit split in
@@ -74,6 +75,7 @@ the Button contract: more than two sibling actions become a Menu/Split Button).
   colon (per `checkbox.md`).
 
 **Validation timing**
+
 - **Inline (field-level), the default** — validate on blur for the first pass; once an
   error is showing, re-validate on every change so it clears the moment the field becomes
   valid. Never flash an error while the user is still typing their first pass at a field.
@@ -91,6 +93,7 @@ the Button contract: more than two sibling actions become a Menu/Split Button).
   `error.md`'s content rules (lead with what happened, then what to do; never "Unable to").
 
 **Persistence**
+
 - **Autosave field** — a single, self-contained control (a switch, a color pick, a
   one-field rename) commits on change/blur with no visible Save button. Shows a transient
   inline confirmation (a small `CircleCheck` + "Saved" in `text-label-12`/`gray-900`,
@@ -107,6 +110,7 @@ the Button contract: more than two sibling actions become a Menu/Split Button).
   security setting — see Do/Don't for the full contract.
 
 **Locked fields**
+
 - **Read-only/disabled field** — value shown, interaction blocked, always paired with a
   `Tooltip` on the control (or a static description line) naming the reason ("Only a
   workspace owner can change the billing email."). An unexplained greyed-out field reads
@@ -122,28 +126,28 @@ past `checkbox`/`description`/`error`/`clearable-input`); the states below are i
 directly from the contract's role-model ladder (§2) rather than a captured spec, and
 should be reconciled once `research/input.md` / `research/select.md` land.
 
-| State | bg | border | text/placeholder | notes |
-| --- | --- | --- | --- | --- |
-| Default | `--ds-background-100` | 1px `--ds-gray-400` | text `--ds-gray-1000`, placeholder `--ds-gray-700` | |
-| Hover | `--ds-background-100` (unchanged) | `--ds-gray-500` | unchanged | border-only bump; no bg fill change on a text-entry control |
-| Focus / active (typing) | unchanged | `--ds-gray-1000` | unchanged | plus `box-shadow: var(--ds-focus-ring)` (2px bg + 2px ember ring) — the ring color stays the universal ember ring even on an error field; the border carries the error signal instead |
-| Disabled | `--ds-gray-100` | `--ds-gray-400` | text `--ds-gray-700` | `cursor: not-allowed`; pair with a Tooltip |
-| Error | unchanged | `--ds-red-700` | unchanged | error text/icon below use `--ds-red-900` for accessible contrast, distinct from the more vivid `--ds-red-700` border |
-| Loading (async validation, e.g. checking availability) | unchanged | unchanged | unchanged | small spinner in the trailing-icon slot, same slot a `ClearableInput` uses for its clear button — never both at once |
-| Empty | unchanged | unchanged | placeholder visible in `--ds-gray-700` | not a distinct visual state, just the placeholder-shown case of Default |
+| State                                                  | bg                                | border              | text/placeholder                                   | notes                                                                                                                                                                                 |
+| ------------------------------------------------------ | --------------------------------- | ------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default                                                | `--ds-background-100`             | 1px `--ds-gray-400` | text `--ds-gray-1000`, placeholder `--ds-gray-700` |                                                                                                                                                                                       |
+| Hover                                                  | `--ds-background-100` (unchanged) | `--ds-gray-500`     | unchanged                                          | border-only bump; no bg fill change on a text-entry control                                                                                                                           |
+| Focus / active (typing)                                | unchanged                         | `--ds-gray-1000`    | unchanged                                          | plus `box-shadow: var(--ds-focus-ring)` (2px bg + 2px ember ring) — the ring color stays the universal ember ring even on an error field; the border carries the error signal instead |
+| Disabled                                               | `--ds-gray-100`                   | `--ds-gray-400`     | text `--ds-gray-700`                               | `cursor: not-allowed`; pair with a Tooltip                                                                                                                                            |
+| Error                                                  | unchanged                         | `--ds-red-700`      | unchanged                                          | error text/icon below use `--ds-red-900` for accessible contrast, distinct from the more vivid `--ds-red-700` border                                                                  |
+| Loading (async validation, e.g. checking availability) | unchanged                         | unchanged           | unchanged                                          | small spinner in the trailing-icon slot, same slot a `ClearableInput` uses for its clear button — never both at once                                                                  |
+| Empty                                                  | unchanged                         | unchanged           | placeholder visible in `--ds-gray-700`             | not a distinct visual state, just the placeholder-shown case of Default                                                                                                               |
 
 **Checkbox / radio** — follow `research/checkbox.md`'s documented recipe exactly (Radio
 shares the same recipe per the contract's "match anatomy/variants/states exactly" rule,
 substituting a circular glyph for the square):
 
-| State | bg | border |
-| --- | --- | --- |
-| Unchecked, enabled | `--ds-background-100` | `--ds-gray-700` |
-| Hover (unchecked, enabled) | `--ds-gray-200` | unchanged |
-| Focus-visible | `--ds-gray-200` bump + `box-shadow: var(--ds-focus-ring)` | unchanged |
-| Checked, enabled | `--ds-gray-1000` | `--ds-gray-1000` |
-| Checked, disabled | `--ds-gray-600` | `--ds-gray-600` |
-| Unchecked, disabled | `--ds-gray-100` | `--ds-gray-500` |
+| State                      | bg                                                        | border           |
+| -------------------------- | --------------------------------------------------------- | ---------------- |
+| Unchecked, enabled         | `--ds-background-100`                                     | `--ds-gray-700`  |
+| Hover (unchecked, enabled) | `--ds-gray-200`                                           | unchanged        |
+| Focus-visible              | `--ds-gray-200` bump + `box-shadow: var(--ds-focus-ring)` | unchanged        |
+| Checked, enabled           | `--ds-gray-1000`                                          | `--ds-gray-1000` |
+| Checked, disabled          | `--ds-gray-600`                                           | `--ds-gray-600`  |
+| Unchecked, disabled        | `--ds-gray-100`                                           | `--ds-gray-500`  |
 
 **Switch** — same fixed-glyph family as checkbox; treat it as sharing the checked/unchecked
 enabled/disabled recipe above until its own spec lands, rendered as a pill instead of a
@@ -152,6 +156,7 @@ square. Use Switch, never a lone Checkbox, for a single standalone boolean setti
 single boolean setting").
 
 **Form-level states**
+
 - **Loading (submitting)** — the Save button shows its `loading` prop (spinner replaces
   nothing else in the label, button stays focusable per `button.md`); all fields in the
   form become disabled for the duration to prevent a double-submit race.
@@ -163,28 +168,30 @@ single boolean setting").
 ## Interaction model — pointer, keyboard, screen reader, motion
 
 **Pointer**
+
 - Click/tap anywhere on a label activates its associated control (native `<label
-  for>`/`htmlFor` — never break this with a custom wrapper, per `checkbox.md`).
+for>`/`htmlFor` — never break this with a custom wrapper, per `checkbox.md`).
 - Clicking the trailing clear icon on a `ClearableInput` resets the value and fires
   `onClear` as a distinct event from `onChange` (`clearable-input.md`).
 
 **Keyboard**
 
-| Key | Behavior |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Moves focus field to field in visual/DOM order: label is never a stop (it's not focusable), only the control is. Submit row order is Cancel then Save, left to right, matching visual order. |
-| `Enter` | Submits the form from a single-line text input (native behavior). Inside a `textarea`, inserts a newline instead; use `Cmd/Ctrl+Enter` to submit from a multiline field. |
-| `Escape` | On a `ClearableInput`, resets to empty (built into the component, don't add a redundant handler). Inside a modal/drawer-hosted form, triggers Cancel; if the form is dirty, confirm before discarding (see Do/Don't). |
-| `Space` | Toggles a focused checkbox, radio, or switch. |
-| `Arrow keys` | Move selection within a native radio group; open/navigate a Select or Combobox trigger's option list (Radix default behavior). |
-| `Cmd/Ctrl+Enter` | Submits from within a multiline field without leaving the textarea. |
+| Key                 | Behavior                                                                                                                                                                                                              |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab` | Moves focus field to field in visual/DOM order: label is never a stop (it's not focusable), only the control is. Submit row order is Cancel then Save, left to right, matching visual order.                          |
+| `Enter`             | Submits the form from a single-line text input (native behavior). Inside a `textarea`, inserts a newline instead; use `Cmd/Ctrl+Enter` to submit from a multiline field.                                              |
+| `Escape`            | On a `ClearableInput`, resets to empty (built into the component, don't add a redundant handler). Inside a modal/drawer-hosted form, triggers Cancel; if the form is dirty, confirm before discarding (see Do/Don't). |
+| `Space`             | Toggles a focused checkbox, radio, or switch.                                                                                                                                                                         |
+| `Arrow keys`        | Move selection within a native radio group; open/navigate a Select or Combobox trigger's option list (Radix default behavior).                                                                                        |
+| `Cmd/Ctrl+Enter`    | Submits from within a multiline field without leaving the textarea.                                                                                                                                                   |
 
 **Screen reader**
+
 - Every control gets `aria-describedby` pointing at its description id, and additionally
   its error id once one exists (`aria-describedby="{id}-description {id}-error"` when
   invalid, description only otherwise) — this is exactly what `src/components/ui/form.tsx`'s
   `FormControl` already computes (`!error ? formDescriptionId : "${formDescriptionId}
-  ${formMessageId}"`).
+${formMessageId}"`).
 - `aria-invalid="true"` on the control while its error is showing (also already computed
   in `FormControl`).
 - Fieldset/legend gives assistive tech the group context before each option inside it.
@@ -193,6 +200,7 @@ single boolean setting").
   error surfaced mid-interaction, per `error.md`'s accessibility guidance.
 
 **Motion**
+
 - Error/description swap under a field: a height/opacity transition ≤ 200ms on
   `--ds-motion-timing-swift`; under `prefers-reduced-motion`, snap instantly with no
   transition, the text change is still fully legible without animation.
@@ -237,37 +245,37 @@ single boolean setting").
 
 ## Tokens used
 
-| Token | Used for |
-| --- | --- |
-| `--ds-background-100` | Page/control background, form container background |
-| `--ds-gray-100` | Disabled box-control background |
-| `--ds-gray-200` | Checkbox/radio hover and focus-visible background bump |
-| `--ds-gray-400` | Box-control default border; submit-row divider |
-| `--ds-gray-500` | Box-control hover border; disabled checkbox/radio border |
-| `--ds-gray-600` | Disabled checkbox/radio checked background/border |
-| `--ds-gray-700` | Placeholder text; disabled control text; checkbox/radio unchecked-enabled border |
-| `--ds-gray-900` | Description/helper text; secondary label text |
-| `--ds-gray-1000` | Label text; primary control text; focused box-control border; checkbox/radio checked fill |
-| `--ds-red-700` | Error-state box-control border |
-| `--ds-red-900` | Error message text and icon |
-| `--ds-ember-*` (via `--ds-focus-color`) | Universal focus ring hue |
-| `--ds-focus-ring` | Focus box-shadow on every focusable control |
-| `--ds-focus-ring-outline` | Non-box-shadow focus fallback (e.g. native `<select>`) |
-| `--ds-contrast-fg` | Text on solid/error/warning button fills |
-| `--ds-radius-small` | Box-control corner radius (6px, everyday radius) |
-| `--ds-shadow-menu` | Select/Combobox dropdown elevation |
-| `--ds-shadow-modal` | `DestructiveActionModal` elevation |
-| `--geist-space` / `-2x` / `-4x` | 4/8/16px internal field and paired-column gaps |
-| `--geist-gap` / `-quarter` / `-section` | 24px inter-field gap, 8px legend-to-field gap, 32px section/submit-row gap |
-| `--ds-size-small/medium/large` | 32/36/40px control height ladder |
-| `--ds-motion-timing-swift` | Error/description swap, saved-confirmation fade |
-| `--ds-motion-popover-duration` / `-timing` | Select/Combobox open/close |
-| `text-heading-20` | Form section heading |
-| `text-label-14` | Field label |
-| `text-label-13` | Optional-tag, checkbox/radio inline label, single-line error text |
-| `text-label-12` | Autosave "Saved" confirmation |
-| `text-copy-14` | Field description/helper text, section helper copy |
-| `text-copy-13` | Multi-line error text, space-premium helper text |
+| Token                                      | Used for                                                                                  |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `--ds-background-100`                      | Page/control background, form container background                                        |
+| `--ds-gray-100`                            | Disabled box-control background                                                           |
+| `--ds-gray-200`                            | Checkbox/radio hover and focus-visible background bump                                    |
+| `--ds-gray-400`                            | Box-control default border; submit-row divider                                            |
+| `--ds-gray-500`                            | Box-control hover border; disabled checkbox/radio border                                  |
+| `--ds-gray-600`                            | Disabled checkbox/radio checked background/border                                         |
+| `--ds-gray-700`                            | Placeholder text; disabled control text; checkbox/radio unchecked-enabled border          |
+| `--ds-gray-900`                            | Description/helper text; secondary label text                                             |
+| `--ds-gray-1000`                           | Label text; primary control text; focused box-control border; checkbox/radio checked fill |
+| `--ds-red-700`                             | Error-state box-control border                                                            |
+| `--ds-red-900`                             | Error message text and icon                                                               |
+| `--ds-ember-*` (via `--ds-focus-color`)    | Universal focus ring hue                                                                  |
+| `--ds-focus-ring`                          | Focus box-shadow on every focusable control                                               |
+| `--ds-focus-ring-outline`                  | Non-box-shadow focus fallback (e.g. native `<select>`)                                    |
+| `--ds-contrast-fg`                         | Text on solid/error/warning button fills                                                  |
+| `--ds-radius-small`                        | Box-control corner radius (6px, everyday radius)                                          |
+| `--ds-shadow-menu`                         | Select/Combobox dropdown elevation                                                        |
+| `--ds-shadow-modal`                        | `DestructiveActionModal` elevation                                                        |
+| `--geist-space` / `-2x` / `-4x`            | 4/8/16px internal field and paired-column gaps                                            |
+| `--geist-gap` / `-quarter` / `-section`    | 24px inter-field gap, 8px legend-to-field gap, 32px section/submit-row gap                |
+| `--ds-size-small/medium/large`             | 32/36/40px control height ladder                                                          |
+| `--ds-motion-timing-swift`                 | Error/description swap, saved-confirmation fade                                           |
+| `--ds-motion-popover-duration` / `-timing` | Select/Combobox open/close                                                                |
+| `text-heading-20`                          | Form section heading                                                                      |
+| `text-label-14`                            | Field label                                                                               |
+| `text-label-13`                            | Optional-tag, checkbox/radio inline label, single-line error text                         |
+| `text-label-12`                            | Autosave "Saved" confirmation                                                             |
+| `text-copy-14`                             | Field description/helper text, section helper copy                                        |
+| `text-copy-13`                             | Multi-line error text, space-premium helper text                                          |
 
 ## Implementation guidance
 
@@ -327,10 +335,7 @@ function ProfileForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit((values) => saveProfile.mutate(values))}>
-        <FormSection
-          heading="Profile"
-          helper="This is what teammates see across the workspace."
-        >
+        <FormSection heading="Profile" helper="This is what teammates see across the workspace.">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -409,7 +414,11 @@ function RotateKeyAction({ keyName }: { keyName: string }) {
         open={open}
         title="Rotate key"
         confirmLabel="Rotate key"
-        description={<>The current key for <strong>{keyName}</strong> stops working immediately.</>}
+        description={
+          <>
+            The current key for <strong>{keyName}</strong> stops working immediately.
+          </>
+        }
         irreversibleDescription={`Rotating ${keyName} cannot be undone.`}
         verificationLabel="key name"
         verificationPhrase={keyName}
@@ -464,6 +473,7 @@ function WeeklyDigestToggle({ enabled }: { enabled: boolean }) {
 ## Do / Don't
 
 **Do**
+
 - Do keep gray carrying ≥90% of every form; red, amber, and ember appear only with
   meaning (error, warning, focus/brand), never as decoration.
 - Do use `Button variant="default"` (the neutral high-contrast fill) for the ordinary
@@ -482,6 +492,7 @@ function WeeklyDigestToggle({ enabled }: { enabled: boolean }) {
   and needs no marker.
 
 **Don't**
+
 - Don't use the block-level `Error` component for a field-level mistake — that's what the
   field's own error slot is for; `Error` is reserved for a failed section/page/resource.
 - Don't let a destructive action (delete, revoke, disable a security setting) skip the

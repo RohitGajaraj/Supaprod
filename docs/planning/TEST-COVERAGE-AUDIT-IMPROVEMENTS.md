@@ -310,11 +310,11 @@ If jsdom support added in future:
 | Test files          | 193    | 199          | +6 new files               |
 | Test cases          | ~2460  | ~2530+       | +70+ new cases             |
 | Critical logic gaps | 8      | 0            | ✅ Closed                  |
-| Code coverage %     | 59.90% | ~60.0%*      | (pure logic, not inflated) |
+| Code coverage %     | 59.90% | ~60.0%\*     | (pure logic, not inflated) |
 | Build time          | --     | ~458ms       | Fast (bun:test)            |
 | All tests pass      | --     | ✅ 2516/2516 | No regressions             |
 
-*Coverage unchanged because extracted functions are pure logic (already counted in original coverage math); tests improve confidence, not percentages.
+\*Coverage unchanged because extracted functions are pure logic (already counted in original coverage math); tests improve confidence, not percentages.
 
 ---
 

@@ -19,7 +19,7 @@ Each demo has a collapsible "Show code" toggle exposing the exact JSX shown belo
 Single component: **`ClearableInput`**, imported as:
 
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
+import { ClearableInput } from "@vercel/geistcn/components";
 ```
 
 Props observed across the five demos (composed from a standard text-input-like API):
@@ -36,13 +36,14 @@ Props observed across the five demos (composed from a standard text-input-like A
 Full usage snippets (decoded from the page's embedded code blocks):
 
 **Default:**
+
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { ClearableInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   return (
     <ClearableInput
       aria-label="Demo clearable input"
@@ -57,13 +58,14 @@ export function Component(): JSX.Element {
 ```
 
 **With Label:**
+
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { ClearableInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   return (
     <ClearableInput
       label="Email"
@@ -78,13 +80,14 @@ export function Component(): JSX.Element {
 ```
 
 **With Cmdk:**
+
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { ClearableInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   return (
     <ClearableInput
       aria-label="Search with cmdk"
@@ -100,13 +103,14 @@ export function Component(): JSX.Element {
 ```
 
 **Disabled:**
+
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { ClearableInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('Some text');
+  const [value, setValue] = useState("Some text");
   return (
     <ClearableInput
       aria-label="Disabled clearable input"
@@ -122,13 +126,14 @@ export function Component(): JSX.Element {
 ```
 
 **With Clear Callback:**
+
 ```tsx
-import { ClearableInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { ClearableInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const [clearCount, setClearCount] = useState(0);
   return (
     <div className="flex flex-col gap-2">

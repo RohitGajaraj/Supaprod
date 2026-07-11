@@ -76,15 +76,15 @@ Row anatomy (every row, read or unread, grouped or single):
 
 ## Variants
 
-**The severity ladder** — pick by asking two questions: *did the user just cause this?*
-and *does it belong to the whole page, or one thing on it?*
+**The severity ladder** — pick by asking two questions: _did the user just cause this?_
+and _does it belong to the whole page, or one thing on it?_
 
-| Surface | Caused by the user? | Scope | Lifetime | Use for |
-| --- | --- | --- | --- | --- |
-| **Toast** | Yes, almost always | Global (floats above everything) | Transient — auto-dismisses (see Interaction model) | Confirming an action the user just took: saved, sent, connected, deleted-with-Undo. |
-| **Inline note** | Sometimes | One section, form, or card | Persistent until the underlying condition changes or the user dismisses it | A fact tied to the thing it sits next to: "This connector needs re-authorization," a field-level validation summary, a stale-data caveat under a chart. |
-| **Banner** | No | The whole page, or a whole section of it | Persistent — no auto-dismiss, no per-item close (see Design source note below) | A condition every visitor to this page should know: an incident, a maintenance window, a plan-limit warning, a product announcement. |
-| **Inbox** | No, usually something async (an agent run, a teammate, a schedule) | Account/workspace-wide, independent of the current screen | Durable — persists across sessions until read/acted on | Anything the user should be able to come back to: approval requests, run completions they weren't watching, mentions, digest summaries. |
+| Surface         | Caused by the user?                                                | Scope                                                     | Lifetime                                                                       | Use for                                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Toast**       | Yes, almost always                                                 | Global (floats above everything)                          | Transient — auto-dismisses (see Interaction model)                             | Confirming an action the user just took: saved, sent, connected, deleted-with-Undo.                                                                     |
+| **Inline note** | Sometimes                                                          | One section, form, or card                                | Persistent until the underlying condition changes or the user dismisses it     | A fact tied to the thing it sits next to: "This connector needs re-authorization," a field-level validation summary, a stale-data caveat under a chart. |
+| **Banner**      | No                                                                 | The whole page, or a whole section of it                  | Persistent — no auto-dismiss, no per-item close (see Design source note below) | A condition every visitor to this page should know: an incident, a maintenance window, a plan-limit warning, a product announcement.                    |
+| **Inbox**       | No, usually something async (an agent run, a teammate, a schedule) | Account/workspace-wide, independent of the current screen | Durable — persists across sessions until read/acted on                         | Anything the user should be able to come back to: approval requests, run completions they weren't watching, mentions, digest summaries.                 |
 
 Geist's own Banner page ships exactly one variant with no size/type/state matrix (see
 `research/banner.md`) — do not invent a `variant="warning"` Banner prop or a stackable
@@ -94,18 +94,19 @@ a signal to consolidate into one message, not to stack a second Banner.
 **Toast variants** (severity communicated by leading icon + text color, never fill color —
 see States):
 
-| Variant | Icon color | When |
-| --- | --- | --- |
-| Neutral | `--ds-gray-900` | Generic confirmation with no positive/negative charge ("Copied," "Settings saved") |
-| Success | `--ds-green-900` | The action completed as intended |
-| Warning | `--ds-amber-900` | Completed, but with a caveat the user should register |
-| Error | `--ds-red-900` | The action failed |
+| Variant | Icon color        | When                                                                                                                 |
+| ------- | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Neutral | `--ds-gray-900`   | Generic confirmation with no positive/negative charge ("Copied," "Settings saved")                                   |
+| Success | `--ds-green-900`  | The action completed as intended                                                                                     |
+| Warning | `--ds-amber-900`  | Completed, but with a caveat the user should register                                                                |
+| Error   | `--ds-red-900`    | The action failed                                                                                                    |
 | Loading | spinner, no color | A promise-backed toast tracking an in-flight action (see Interaction model); resolves into Success or Error in place |
 
 **Inline note variants** — same five-way palette as Toast (Neutral/Success/Warning/Error,
 plus Loading only rarely — most inline notes are static facts, not progress trackers).
 
 **Inbox variants**:
+
 - **Popover panel** (default) — opened from the bell trigger in the top nav/rail; `material-menu`,
   closes on outside click or Escape, does not change the route.
 - **Full inbox route** (`/inbox` or equivalent) — same header/list/row anatomy, no panel
@@ -118,24 +119,25 @@ plus Loading only rarely — most inline notes are static facts, not progress tr
 
 ## States
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default | Toast/Note surface | `--ds-background-100` fill, `material-small` (Toast, Inbox panel rows use `--ds-popover-row-radius`) |
-| Default | Banner surface | `--ds-background-100` fill, `--ds-shadow-border-small` (1px border via shadow, per `research/banner.md`) |
-| Hover | Inbox row | background `--ds-gray-100` → the popover-row hover convention (matches `--ds-popover-row-height`/`radius`) |
-| Hover | Toast/Note/Banner inline action (text link or `tertiary` button) | per `research/button.md`'s tertiary hover: background `--ds-gray-alpha-200` |
-| Active | Inbox row (pressed) | background `--ds-gray-200` |
-| Focus | Any interactive element inside these surfaces (dismiss X, action button/link, row, bell trigger) | `--ds-focus-ring` (never removed; see Accessibility) |
-| Disabled | Toast/Note action mid-request | Button's own disabled treatment (`research/button.md`); the toast itself never disables as a whole — only its action does |
-| Loading | Toast (promise-backed) | Spinner replaces the severity icon; description text may update in place ("Deploying…" → "Deployed") without the toast re-entering (no re-animated entrance) |
-| Empty | Inbox panel/route, zero notifications | One `EmptyState` composition (`research/empty-state.md`): icon + title ("You are all caught up.") + description; no CTA needed unless the workspace has zero notification sources connected yet, in which case add the one relevant secondary action (e.g. "Connect a source") |
-| Error | Inbox failing to load | Inline load-failure treatment inside the panel body: text `--ds-red-900`, one-line message, a `tertiary` "Retry" action — do not collapse the whole panel or silently show stale data |
-| Unread (Inbox row only) | Row not yet opened/acknowledged | Background wash `--ds-gray-100`; title text `--ds-gray-1000` (up from the read state's `--ds-gray-900`) rendered `<strong>`; a small (6px) solid `--ds-gray-1000` dot leading the row. **Deliberately neutral, not ember** — see Do/Don't for why. |
-| Read (Inbox row) | Row opened/acknowledged | No background wash; title `--ds-gray-900`, regular weight; no leading dot |
+| State                   | Applies to                                                                                       | Tokens                                                                                                                                                                                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Default                 | Toast/Note surface                                                                               | `--ds-background-100` fill, `material-small` (Toast, Inbox panel rows use `--ds-popover-row-radius`)                                                                                                                                                                           |
+| Default                 | Banner surface                                                                                   | `--ds-background-100` fill, `--ds-shadow-border-small` (1px border via shadow, per `research/banner.md`)                                                                                                                                                                       |
+| Hover                   | Inbox row                                                                                        | background `--ds-gray-100` → the popover-row hover convention (matches `--ds-popover-row-height`/`radius`)                                                                                                                                                                     |
+| Hover                   | Toast/Note/Banner inline action (text link or `tertiary` button)                                 | per `research/button.md`'s tertiary hover: background `--ds-gray-alpha-200`                                                                                                                                                                                                    |
+| Active                  | Inbox row (pressed)                                                                              | background `--ds-gray-200`                                                                                                                                                                                                                                                     |
+| Focus                   | Any interactive element inside these surfaces (dismiss X, action button/link, row, bell trigger) | `--ds-focus-ring` (never removed; see Accessibility)                                                                                                                                                                                                                           |
+| Disabled                | Toast/Note action mid-request                                                                    | Button's own disabled treatment (`research/button.md`); the toast itself never disables as a whole — only its action does                                                                                                                                                      |
+| Loading                 | Toast (promise-backed)                                                                           | Spinner replaces the severity icon; description text may update in place ("Deploying…" → "Deployed") without the toast re-entering (no re-animated entrance)                                                                                                                   |
+| Empty                   | Inbox panel/route, zero notifications                                                            | One `EmptyState` composition (`research/empty-state.md`): icon + title ("You are all caught up.") + description; no CTA needed unless the workspace has zero notification sources connected yet, in which case add the one relevant secondary action (e.g. "Connect a source") |
+| Error                   | Inbox failing to load                                                                            | Inline load-failure treatment inside the panel body: text `--ds-red-900`, one-line message, a `tertiary` "Retry" action — do not collapse the whole panel or silently show stale data                                                                                          |
+| Unread (Inbox row only) | Row not yet opened/acknowledged                                                                  | Background wash `--ds-gray-100`; title text `--ds-gray-1000` (up from the read state's `--ds-gray-900`) rendered `<strong>`; a small (6px) solid `--ds-gray-1000` dot leading the row. **Deliberately neutral, not ember** — see Do/Don't for why.                             |
+| Read (Inbox row)        | Row opened/acknowledged                                                                          | No background wash; title `--ds-gray-900`, regular weight; no leading dot                                                                                                                                                                                                      |
 
 ## Interaction model
 
 **Pointer**
+
 - **Toast**: appears without requiring a click; hovering (or focusing, via keyboard) any
   toast in the stack pauses its auto-dismiss timer for every visible toast, resuming on
   mouseleave/blur. Clicking an action button executes it, then the toast dismisses.
@@ -186,18 +188,19 @@ required decision extends past its severity default):
 
 **Keyboard**
 
-| Key | Surface | Effect |
-| --- | --- | --- |
-| `Tab` | Toast stack | Moves focus into the newest toast's first actionable element only if the user tabs toward it in natural document order; toasts never steal focus on appear |
-| `Escape` | Toast (focused) | Dismisses the focused toast |
-| `Escape` | Inbox panel (open) | Closes the panel, focus returns to the bell trigger |
-| `Enter` / `Space` | Bell trigger | Opens/closes the panel |
-| `↑` / `↓` | Inbox panel (open) | Moves the active-row highlight through the row list, wrapping at the top/bottom of the loaded list (not across into the header/footer) |
-| `Enter` | Inbox row (active) | Opens/acts on that row, same as a click |
-| `→` | Inbox digest row (active) | Expands the group (mirrors `Collapse`'s own Enter/Space toggle — arrow-right added as an inbox-specific convenience since these rows are inside an already-arrow-navigable list) |
-| `Tab` | Inbox row (active) | Moves into that row's `DotsMenu`, not to the next row — arrow keys own row-to-row movement inside the panel, Tab owns drilling into one row's controls |
+| Key               | Surface                   | Effect                                                                                                                                                                           |
+| ----------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab`             | Toast stack               | Moves focus into the newest toast's first actionable element only if the user tabs toward it in natural document order; toasts never steal focus on appear                       |
+| `Escape`          | Toast (focused)           | Dismisses the focused toast                                                                                                                                                      |
+| `Escape`          | Inbox panel (open)        | Closes the panel, focus returns to the bell trigger                                                                                                                              |
+| `Enter` / `Space` | Bell trigger              | Opens/closes the panel                                                                                                                                                           |
+| `↑` / `↓`         | Inbox panel (open)        | Moves the active-row highlight through the row list, wrapping at the top/bottom of the loaded list (not across into the header/footer)                                           |
+| `Enter`           | Inbox row (active)        | Opens/acts on that row, same as a click                                                                                                                                          |
+| `→`               | Inbox digest row (active) | Expands the group (mirrors `Collapse`'s own Enter/Space toggle — arrow-right added as an inbox-specific convenience since these rows are inside an already-arrow-navigable list) |
+| `Tab`             | Inbox row (active)        | Moves into that row's `DotsMenu`, not to the next row — arrow keys own row-to-row movement inside the panel, Tab owns drilling into one row's controls                           |
 
 **Screen-reader behavior**
+
 - Toast container: `aria-live="polite"`, `role="status"` for Neutral/Success/Warning/Loading;
   `aria-live="assertive"`, `role="alert"` for Error and for a destructive-confirmation Undo
   toast (the one case where an assertive interruption is earned — the window to act is
@@ -205,7 +208,7 @@ required decision extends past its severity default):
 - Inline note: `role="status"` (Neutral/Success/Warning) or `role="alert"` (Error) matching
   its color variant.
 - Banner: `role="region"` with an `aria-label` naming its purpose (e.g. `aria-label="Product
-  announcement"`) — it's persistent chrome, not a live-region interruption.
+announcement"`) — it's persistent chrome, not a live-region interruption.
 - Inbox bell trigger: `aria-haspopup="dialog"` (or `"menu"` if implemented on a menu
   primitive), `aria-expanded`, and an `aria-label` that includes the live count, e.g.
   `aria-label="Notifications, 3 unread"` — never rely on the visual Badge number alone.
@@ -214,6 +217,7 @@ required decision extends past its severity default):
   keep row semantics consistent, don't mix dialog and menu roles in the same tree).
 
 **Motion**
+
 - Toast enter/exit: slides in along its stack axis (from the edge it's anchored to) while
   fading in, timed with `--ds-motion-popover-timing` over `--ds-motion-popover-duration`
   (0.2s) — Toast is a floating, momentary surface so it uses the popover timing pair, not
@@ -280,42 +284,43 @@ required decision extends past its severity default):
 
 ## Tokens used
 
-| Token | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Toast/Note/Banner/Inbox-panel fill |
-| `--ds-gray-100` | Inbox row hover background; unread row wash |
-| `--ds-gray-200` | Inbox row active/pressed background |
-| `--ds-gray-alpha-200` | Toast/Note/Banner inline tertiary-action hover background |
-| `--ds-gray-900` | Read-row title text; neutral toast/note icon and secondary text |
-| `--ds-gray-1000` | Unread-row title text (`<strong>`); unread indicator dot fill |
-| `--ds-gray-700` | Digest group header text (e.g. "Today," "Earlier") |
-| `--ds-blue-900` | (Reserved — informational-only content inside a note/banner message, e.g. a plain link; not a Toast/Note severity color in this pattern's default five-way palette) |
-| `--ds-green-900` | Success toast/note icon + text |
-| `--ds-amber-900` | Warning toast/note icon + text |
-| `--ds-red-900` | Error toast/note icon + text; inbox load-failure text |
-| `--ds-red-100` / `--ds-red-200` | Error/warning subtle background wash, when a tinted note/banner background is used (badge "subtle" pattern) |
-| `--ds-shadow-border-small` | Banner's 1px border-as-shadow; Toast surface elevation (`material-small`) |
-| `--ds-shadow-menu` | Inbox panel elevation (`material-menu`) |
-| `--ds-radius-small` | Toast/Note corner radius (`material-small`) |
-| `--ds-radius-medium` | Inbox panel corner radius (`material-menu`) |
-| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` | Inbox panel internal list rhythm |
-| `--ds-z-toast` (5000) | Toast stacking context — above Modal/Sheet/Drawer, exempt from the one-floating-surface rule |
-| `--ds-z-menu` (2001) | Inbox popover stacking context |
-| `--ds-focus-ring` | Focus state on every interactive element across all four surfaces |
-| `--ds-motion-timing-swift` | Shared easing for every transition in this pattern |
-| `--ds-motion-popover-duration` (0.2s) | Toast enter/exit; Inbox panel open/close |
-| `--ds-motion-overlay-scale` (0.96) | Inbox panel entrance scale-from value |
-| `text-heading-16` | Inbox panel header title ("Notifications") |
-| `text-label-14` | Toast/Note title; Inbox row title |
-| `text-copy-14` / `text-copy-13` | Toast/Note/Banner description; Inbox row supporting detail |
-| `text-label-12` | Digest group header; Inbox row timestamp (paired with `text-label-12-mono` for the numeral-heavy relative time, e.g. "2m") |
-| `text-button-14` | Toast/Note/Banner/Inbox-row inline text actions |
-| `--geist-gap-quarter` (8px) | Icon-to-text gap inside a Toast/Note/Banner/row |
-| `--geist-gap-half` (12px) | Inter-element gap inside a Toast body (title-to-description, description-to-actions) |
+| Token                                                                          | Role in this pattern                                                                                                                                                |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                          | Toast/Note/Banner/Inbox-panel fill                                                                                                                                  |
+| `--ds-gray-100`                                                                | Inbox row hover background; unread row wash                                                                                                                         |
+| `--ds-gray-200`                                                                | Inbox row active/pressed background                                                                                                                                 |
+| `--ds-gray-alpha-200`                                                          | Toast/Note/Banner inline tertiary-action hover background                                                                                                           |
+| `--ds-gray-900`                                                                | Read-row title text; neutral toast/note icon and secondary text                                                                                                     |
+| `--ds-gray-1000`                                                               | Unread-row title text (`<strong>`); unread indicator dot fill                                                                                                       |
+| `--ds-gray-700`                                                                | Digest group header text (e.g. "Today," "Earlier")                                                                                                                  |
+| `--ds-blue-900`                                                                | (Reserved — informational-only content inside a note/banner message, e.g. a plain link; not a Toast/Note severity color in this pattern's default five-way palette) |
+| `--ds-green-900`                                                               | Success toast/note icon + text                                                                                                                                      |
+| `--ds-amber-900`                                                               | Warning toast/note icon + text                                                                                                                                      |
+| `--ds-red-900`                                                                 | Error toast/note icon + text; inbox load-failure text                                                                                                               |
+| `--ds-red-100` / `--ds-red-200`                                                | Error/warning subtle background wash, when a tinted note/banner background is used (badge "subtle" pattern)                                                         |
+| `--ds-shadow-border-small`                                                     | Banner's 1px border-as-shadow; Toast surface elevation (`material-small`)                                                                                           |
+| `--ds-shadow-menu`                                                             | Inbox panel elevation (`material-menu`)                                                                                                                             |
+| `--ds-radius-small`                                                            | Toast/Note corner radius (`material-small`)                                                                                                                         |
+| `--ds-radius-medium`                                                           | Inbox panel corner radius (`material-menu`)                                                                                                                         |
+| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` | Inbox panel internal list rhythm                                                                                                                                    |
+| `--ds-z-toast` (5000)                                                          | Toast stacking context — above Modal/Sheet/Drawer, exempt from the one-floating-surface rule                                                                        |
+| `--ds-z-menu` (2001)                                                           | Inbox popover stacking context                                                                                                                                      |
+| `--ds-focus-ring`                                                              | Focus state on every interactive element across all four surfaces                                                                                                   |
+| `--ds-motion-timing-swift`                                                     | Shared easing for every transition in this pattern                                                                                                                  |
+| `--ds-motion-popover-duration` (0.2s)                                          | Toast enter/exit; Inbox panel open/close                                                                                                                            |
+| `--ds-motion-overlay-scale` (0.96)                                             | Inbox panel entrance scale-from value                                                                                                                               |
+| `text-heading-16`                                                              | Inbox panel header title ("Notifications")                                                                                                                          |
+| `text-label-14`                                                                | Toast/Note title; Inbox row title                                                                                                                                   |
+| `text-copy-14` / `text-copy-13`                                                | Toast/Note/Banner description; Inbox row supporting detail                                                                                                          |
+| `text-label-12`                                                                | Digest group header; Inbox row timestamp (paired with `text-label-12-mono` for the numeral-heavy relative time, e.g. "2m")                                          |
+| `text-button-14`                                                               | Toast/Note/Banner/Inbox-row inline text actions                                                                                                                     |
+| `--geist-gap-quarter` (8px)                                                    | Icon-to-text gap inside a Toast/Note/Banner/row                                                                                                                     |
+| `--geist-gap-half` (12px)                                                      | Inter-element gap inside a Toast body (title-to-description, description-to-actions)                                                                                |
 
 ## Implementation guidance
 
 **Toast**
+
 - Already wired: `src/components/ui/sonner.tsx` wraps the `sonner` package — this is the
   sanctioned queueing/stacking engine (it owns the stack cap, pause-on-hover, and promise
   API already; don't hand-roll a second toast queue). Restyle its `toastOptions.classNames`
@@ -332,6 +337,7 @@ required decision extends past its severity default):
   duration/action shape without re-deriving it per feature.
 
 **Inline note**
+
 - Restyle `src/components/ui/alert.tsx` (currently a generic shadcn `Alert` with
   `border-destructive`/`bg-background` Tailwind defaults) into the Tempo Note: swap its
   `variant` CVA map to the five-way severity palette above (icon + text color per variant,
@@ -341,6 +347,7 @@ required decision extends past its severity default):
   `role="status"` swap for non-error variants per Accessibility above.
 
 **Banner**
+
 - New file: `src/components/ui/banner.tsx`. Match Geist's flat prop surface exactly —
   `children` (message, with `<strong>` for the bold lead-in, not a bespoke kicker
   subcomponent) and an optional `action: { href: string; label: string }` (renamed from
@@ -353,6 +360,7 @@ required decision extends past its severity default):
   icon-only chevron).
 
 **Inbox / notification center**
+
 - New directory: `src/components/notifications/` — `notification-bell.tsx` (trigger: icon
   button + `Badge` for the unread count, `variant="inverted"` or a plain solid `--ds-gray-1000`
   fill per the Badge color matrix, sized `sm`), `notification-panel.tsx` (the popover shell,
@@ -376,6 +384,7 @@ required decision extends past its severity default):
   the page background already provides the surface).
 
 **Where these compose with existing Cadence code**
+
 - Destructive `Button` → confirming Toast is already a named cross-component contract
   (contract §7); any new destructive, undo-able action wires through
   `showUndoToast` above rather than a bespoke inline confirmation.

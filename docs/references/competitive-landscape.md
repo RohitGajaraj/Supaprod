@@ -70,7 +70,7 @@ Strongest external validation of our thesis: **airfocus-by-Lucid research (June 
 - **Sequoia "Services: the new software"**: agents sell completed work, not tool access; ~$400B software market vs **$10T+ labor market** ([analysis](https://linas.substack.com/p/sequoiathesis)).
 - **a16z**: "AI will eat application software"; moats shift to workflow ownership, data, distribution.
 - **YC RFS**: companies that "don't sell software - they sell the work."
-- AI took ~50% of global VC in 2025 ($202.3B). PM-software TAM $6.3-8.4B (2025) → $13-23B by 2034; honest framing is PM *labor* (hundreds of thousands of PMs at $150k+ loaded cost), not PM tooling.
+- AI took ~50% of global VC in 2025 ($202.3B). PM-software TAM $6.3-8.4B (2025) → $13-23B by 2034; honest framing is PM _labor_ (hundreds of thousands of PMs at $150k+ loaded cost), not PM tooling.
 - **Consolidation signal**: Atlassian×Cycle, Lucid×airfocus - incumbents buy rather than build. Window is open but shrinking.
 
 ## 7. PM pain points (the design ground truth)

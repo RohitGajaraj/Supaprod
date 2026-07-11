@@ -150,7 +150,6 @@ Collision law unchanged (B owns the 7 surface routes/nav/vocabulary; A owns chok
 - **F. Voice (phased).** Phase 1 (this row): mic input on the ask box — browser speech-to-text dictation — plus an optional read-aloud toggle on answers. Phase 2 (post-launch gate, registered but NOT in this row's acceptance): full duplex realtime voice conversation; needs model/cost decisions at the chokepoint, so it is a founder-gated follow-up, claim-on-wiring.
 - **The frame: Ask is the conversational layer of Cadence, not a window.** One engine, one block vocabulary; the panel (Cmd+J) is its first surface, and the same typed blocks become embeddable on entity pages later. Design every block as a reusable component, not panel-internal markup.
 
-
 ---
 
 ## PC-37 — The density pass: compact, world-class shell (founder ruling 2026-07-10)
@@ -160,6 +159,7 @@ Collision law unchanged (B owns the 7 surface routes/nav/vocabulary; A owns chok
 **Current state (audited 2026-07-10):** `src/styles.css` is the Tailwind v4 token layer (462 CSS vars: colors, radius) with NO spacing/typography/density scale — components hardcode paddings and font sizes (e.g., AskPanel inline `fontSize` 10–13, cards `p-6`, generous section gaps). That is why the fix is a TOKEN pass, not 200 file edits.
 
 **The one-pass, token-led method:**
+
 1. **Add density tokens to `styles.css`:** `--page-gutter: 24px` (from ~32) · `--card-pad: 16px` (from 24) · `--section-gap: 16px` (from 24) · `--control-h: 32px` (from 40) · `--row-h: 38px` (from ~48) · type ramp: body 14→13px, secondary 13→12px, mono metadata stays 10–11px (existing Loom law), page titles 24→20px, card titles 16→14px. These exact values are the starting proposal; any dispute on a value is a Fable fork, not a lane debate.
 2. **Apply through shared primitives ONLY:** Card/SpotlightCard/AuroraCard paddings, PageHeader, shell (header height, rail paddings, main gutter), table row heights, shadcn button/input size defaults. Then one sweep for hardcoded `p-6|p-8|h-10|text-base` in `src/components/` that overrides the primitives, folding them onto the tokens.
 3. **Never touch:** hairline weights, the 4-tier button hierarchy, spotlight/aurora treatments, role colors — Loom §0.1 is unchanged by this pass.

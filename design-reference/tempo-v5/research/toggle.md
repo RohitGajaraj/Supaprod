@@ -36,9 +36,10 @@ Each demo section has a "Show code" expander revealing the exact JSX used to bui
 ### Usage snippets (verbatim, minimal API demonstrations)
 
 Default:
+
 ```tsx
-import { Toggle } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Toggle } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [checked, setChecked] = useState(false);
@@ -67,9 +68,10 @@ export function Component(): JSX.Element {
 ```
 
 Disabled:
+
 ```tsx
-import { Toggle } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Toggle } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -87,9 +89,10 @@ export function Component(): JSX.Element {
 ```
 
 Sizes:
+
 ```tsx
-import { Toggle } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Toggle } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -107,13 +110,11 @@ export function Component(): JSX.Element {
 ```
 
 Custom Color:
+
 ```tsx
-import { Toggle } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
-import {
-  IconLockClosedSmall,
-  IconLockOpenSmall,
-} from '@vercel/geistcn-assets/icons';
+import { Toggle } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
+import { IconLockClosedSmall, IconLockOpenSmall } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   const [checked, setChecked] = useState(false);
@@ -179,13 +180,11 @@ export function Component(): JSX.Element {
 ```
 
 With Label:
+
 ```tsx
-import { Toggle } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
-import {
-  IconLockClosedSmall,
-  IconLockOpenSmall,
-} from '@vercel/geistcn-assets/icons';
+import { Toggle } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
+import { IconLockClosedSmall, IconLockOpenSmall } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   const [checked, setChecked] = useState(false);
@@ -205,11 +204,7 @@ export function Component(): JSX.Element {
         </Toggle>
       </div>
       <div className="flex flex-row items-stretch justify-start gap-4 flex-initial">
-        <Toggle
-          checked={checked}
-          onChange={(): void => setChecked(!checked)}
-          size="large"
-        >
+        <Toggle checked={checked} onChange={(): void => setChecked(!checked)} size="large">
           Enable Firewall
         </Toggle>
         <Toggle

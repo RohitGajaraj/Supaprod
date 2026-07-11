@@ -71,7 +71,7 @@ The proof gauntlet (v7 section 8) requires paying PMs. M-C names "plan tier + me
 
 ## Configuration (founder, when ready to charge)
 
-> _Reconciled 2026-06-21 against shipped code: the env block below now lists the live `payments.functions.ts` rail (via the Lovable connector gateway), not the dead `STRIPE_SECRET_KEY` / `STRIPE_PRICE_*` / `STRIPE_WEBHOOK_SECRET` / `api/stripe/webhook.ts` set. Stripe is live-capable but currently unconfigured (sandbox/test mode; the `PaymentTestModeBanner` reflects the state)._
+> _Reconciled 2026-06-21 against shipped code: the env block below now lists the live `payments.functions.ts` rail (via the Lovable connector gateway), not the dead `STRIPE_SECRET_KEY` / `STRIPE_PRICE_\*`/`STRIPE*WEBHOOK_SECRET`/`api/stripe/webhook.ts`set. Stripe is live-capable but currently unconfigured (sandbox/test mode; the`PaymentTestModeBanner` reflects the state).*
 
 Set these (server-side secrets never carry the `VITE_` prefix). Price tiers resolve via `lookup_keys` in `src/lib/billing-tier.ts`, not env-pinned price ids.
 

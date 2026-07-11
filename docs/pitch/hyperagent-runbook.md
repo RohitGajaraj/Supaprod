@@ -4,7 +4,7 @@
 
 ## The grant, verified live (2026-07-10, hyperagent.com/settings/billing)
 
-**The plan's "$20k grant" is NOT already active — it is gated behind a $200/year subscription the founder hasn't taken yet.** Exact page text: *"Welcome to the Founding 500. You're getting $20,000 in promotional credits. Sign up for our special plan for $200/year, and the credits will be added to your account."* This corrects plan §6's "unverified, treat as time-bound" flag with a real answer: it isn't time-bound in the sense of an offer that decays while sitting in the account — it simply hasn't been claimed yet.
+**The plan's "$20k grant" is NOT already active — it is gated behind a $200/year subscription the founder hasn't taken yet.** Exact page text: _"Welcome to the Founding 500. You're getting $20,000 in promotional credits. Sign up for our special plan for $200/year, and the credits will be added to your account."_ This corrects plan §6's "unverified, treat as time-bound" flag with a real answer: it isn't time-bound in the sense of an offer that decays while sitting in the account — it simply hasn't been claimed yet.
 
 **What IS already active, right now, no further action needed:** a **$1,000 bonus credit block, expires 2026-11-29, $0.00 used, $1,000.00 remaining.** Current plan: Pay As You Go, $0/month.
 
@@ -25,6 +25,7 @@
 **Budget:** ~$50-100/week, ongoing through the Launch Month.
 
 **First-week task list (ready to run the day access exists):**
+
 1. Cross-check the 25 design-partner handles in [`design-partner-kit.md`](./design-partner-kit.md) for recent activity (still active accounts, still posting) — a cheap freshness check before the founder spends a message on a dead account.
 2. Set up HN/PH/Reddit keyword monitors for "Cadence" + the exact Show HN title (once fixed, see [`launch-assets.md`](./launch-assets.md)) so the founder sees every mention the moment PC-14 goes live, not hours later.
 3. Build the outreach-cadence tracker: one row per target, contacted-date/reply-status columns only — read-only reference for the founder, not a place any product data lives.

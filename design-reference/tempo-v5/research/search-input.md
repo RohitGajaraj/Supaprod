@@ -17,12 +17,12 @@ No "Best Practices" (When to use / Behavior / Accessibility) accordion is render
 Import path: `@vercel/geistcn/components`. Icons (for prefix overrides) come from `@vercel/geistcn-assets/icons`.
 
 ```tsx
-import { SearchInput } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { SearchInput } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { useState } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   return (
     <SearchInput
       aria-label="Search"
@@ -76,7 +76,7 @@ Loading state (spinner replaces the clear button):
 Custom leading icon via `prefix`:
 
 ```tsx
-import { IconSparkles } from '@vercel/geistcn-assets/icons';
+import { IconSparkles } from "@vercel/geistcn-assets/icons";
 
 <SearchInput
   aria-label="Search"
@@ -84,21 +84,21 @@ import { IconSparkles } from '@vercel/geistcn-assets/icons';
   placeholder="Enter some text..."
   prefix={<IconSparkles />}
   value={value}
-/>
+/>;
 ```
 
 **Props observed across all examples:**
 
-| Prop | Type | Notes |
-|---|---|---|
-| `aria-label` | `string` | Required in every example — the underlying `<input>` has no visible `<label>`, so this is the accessible name. |
-| `value` | `string` | Controlled value. |
-| `onChange` | `(e: ChangeEvent<HTMLInputElement>) => void` | Standard controlled-input handler; reads `e.target.value`. |
-| `placeholder` | `string` | Rendered on the native `<input placeholder>`. |
-| `cmdk` | `boolean` | Adds the trailing `Esc` / `⌘K` keyboard-badge pair (a command-menu affordance), replacing/joining the clear button slot. |
-| `disabled` | `boolean` | Standard disabled state; composes with `cmdk`. |
-| `loading` | `boolean` | Swaps the trailing slot for a 12-dot spinner with `sr-only` "Loading..." text; suppresses the clear button. |
-| `prefix` | `ReactNode` | Overrides the default leading magnifying-glass icon (e.g. swap in `IconSparkles`). No `suffix` prop was exercised in any demo — the trailing slot is owned internally by the component (clear button / cmdk badge / spinner are mutually exclusive states it manages). |
+| Prop          | Type                                         | Notes                                                                                                                                                                                                                                                                  |
+| ------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aria-label`  | `string`                                     | Required in every example — the underlying `<input>` has no visible `<label>`, so this is the accessible name.                                                                                                                                                         |
+| `value`       | `string`                                     | Controlled value.                                                                                                                                                                                                                                                      |
+| `onChange`    | `(e: ChangeEvent<HTMLInputElement>) => void` | Standard controlled-input handler; reads `e.target.value`.                                                                                                                                                                                                             |
+| `placeholder` | `string`                                     | Rendered on the native `<input placeholder>`.                                                                                                                                                                                                                          |
+| `cmdk`        | `boolean`                                    | Adds the trailing `Esc` / `⌘K` keyboard-badge pair (a command-menu affordance), replacing/joining the clear button slot.                                                                                                                                               |
+| `disabled`    | `boolean`                                    | Standard disabled state; composes with `cmdk`.                                                                                                                                                                                                                         |
+| `loading`     | `boolean`                                    | Swaps the trailing slot for a 12-dot spinner with `sr-only` "Loading..." text; suppresses the clear button.                                                                                                                                                            |
+| `prefix`      | `ReactNode`                                  | Overrides the default leading magnifying-glass icon (e.g. swap in `IconSparkles`). No `suffix` prop was exercised in any demo — the trailing slot is owned internally by the component (clear button / cmdk badge / spinner are mutually exclusive states it manages). |
 
 No `size` prop appears in any Search Input example (unlike sibling components such as Select, which expose `small`/`default`/`large`). Search Input renders at one fixed size only in this page's demos.
 

@@ -177,4 +177,4 @@ Two guardrails so the ambition stays buildable and honest:
 - [`../features/lifecycle-gap-map.md`](../planning/lifecycle-gap-map.md) - the Build/Deploy/Review/Ship capture gaps this builds on.
 - [`README.md`](./README.md) - strategy doc role map (link this in when committed).
 - Engine-Room Doctrine ([`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md)) - the calm-front law D3/Section 4 implement.
-- [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) - operationalizes Section 5.5 (account-level billing, managed-credits-default with BYOK optional, memory-persistence as the charge) into the Account > Workspace > Product tenancy + the WM-* build items.
+- [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) - operationalizes Section 5.5 (account-level billing, managed-credits-default with BYOK optional, memory-persistence as the charge) into the Account > Workspace > Product tenancy + the WM-\* build items.

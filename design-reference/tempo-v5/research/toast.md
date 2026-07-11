@@ -25,14 +25,18 @@ Every demo section has a "Show code" toggle revealing the exact JSX used to prod
 **Hook-based API** — no `<Toast>` JSX component is rendered directly by consumers; instead a hook returns an imperative toasts controller.
 
 ```tsx
-import { Button, useToasts } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button, useToasts } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const toasts = useToasts();
 
   return (
-    <Button onClick={(): void => { toasts.message({ text: '...' }); }}>
+    <Button
+      onClick={(): void => {
+        toasts.message({ text: "..." });
+      }}
+    >
       Show Toast
     </Button>
   );
@@ -53,16 +57,17 @@ export function Component(): JSX.Element {
 ### Full captured JSX examples (verbatim, one per demo)
 
 1. Default:
+
 ```tsx
-import { Button, useToasts } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button, useToasts } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const toasts = useToasts();
   return (
     <Button
       onClick={(): void => {
-        toasts.message({ text: 'The Evil Rabbit jumped over the fence.' });
+        toasts.message({ text: "The Evil Rabbit jumped over the fence." });
       }}
     >
       Show Toast
@@ -74,12 +79,12 @@ export function Component(): JSX.Element {
 2. Multi-line (same shape, long repeated sentence as `text` to force wrap).
 
 3. With jsx:
+
 ```tsx
 toasts.message({
   text: (
     <>
-      <span className="text-heading-14">The Evil Rabbit</span> jumped
-      over the fence.
+      <span className="text-heading-14">The Evil Rabbit</span> jumped over the fence.
     </>
   ),
   preserve: true,
@@ -87,16 +92,16 @@ toasts.message({
 ```
 
 4. With a link:
+
 ```tsx
-import { Button, useToasts } from '@vercel/geistcn/components';
-import { Link } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button, useToasts } from "@vercel/geistcn/components";
+import { Link } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 toasts.message({
   text: (
     <>
-      The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over
-      the{' '}
+      The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over the{" "}
       <Link data-zone="same" href="/geist" isDifferentZone={false}>
         fence again
       </Link>
@@ -108,42 +113,48 @@ toasts.message({
 ```
 
 5. Preserve:
+
 ```tsx
 toasts.message({
-  text: 'The Evil Rabbit jumped over the fence.',
+  text: "The Evil Rabbit jumped over the fence.",
   preserve: true,
 });
 ```
 
 6. Action:
+
 ```tsx
 toasts.message({
-  text: 'The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over the fence again.',
-  action: 'Undo',
+  text: "The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over the fence again.",
+  action: "Undo",
 });
 ```
 
 7. Undo:
+
 ```tsx
 toasts.message({
-  text: 'The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over the fence again.',
+  text: "The Evil Rabbit jumped over the fence. The Evil Rabbit jumped over the fence again.",
   onUndoAction: () => 0,
 });
 ```
 
 8. Success:
+
 ```tsx
-toasts.success('The Evil Rabbit jumped over the fence.');
+toasts.success("The Evil Rabbit jumped over the fence.");
 ```
 
 9. Warning:
+
 ```tsx
-toasts.warning('The Evil Rabbit jumped over the fence.');
+toasts.warning("The Evil Rabbit jumped over the fence.");
 ```
 
 10. Error:
+
 ```tsx
-toasts.error('The Evil Rabbit jumped over the fence.');
+toasts.error("The Evil Rabbit jumped over the fence.");
 ```
 
 ### Composition pattern
@@ -155,25 +166,29 @@ toasts.error('The Evil Rabbit jumped over the fence.');
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Use a toast for a lightweight, non-blocking confirmation that something the user just triggered actually happened (their example nouns: domain added, project archived, deployment canceled).
 - Don't rely on a toast alone for anything the user must act on to recover (billing failure, permission denial, a build failure needing triage). Keep the toast very short (their guidance: 6 words or fewer, e.g. "Build failed") and put the real recovery step in a persistent, addressable UI element (a row with a stable id), not in the transient toast.
 - Field-level validation errors belong inline on the `Input` itself, not in a toast. Longer-lived configuration warnings belong in a `Note` or `Banner`, not a toast.
 - Choose which method to call (`message` vs `success` vs `warning` vs `error`) based on how the event felt to the user, not the HTTP status code behind it. A user-initiated cancellation should read as a neutral `message()`, not a `success()`. A partial/degraded outcome (e.g., some routes skipped) should be a `warning()`, not silently treated as a full success.
 
 **Behavior**
+
 - Default toasts auto-dismiss on a timer; only opt into `preserve` when the message truly needs to be read or acted on before disappearing — don't make everything persistent by default.
 - When pairing an undo action with a toast, keep it visible for roughly 5-10 seconds and give it exactly one action button labeled for the undo, not several actions.
 - Don't chain multiple toasts to narrate the steps of one async operation — only fire the single terminal toast (the final success or error), not a play-by-play.
 
 **Content**
+
 - Keep it to one sentence, sentence case, and drop the trailing period on single-sentence toasts.
 - Completion messages follow a "{Noun} {past participle}" shape (e.g. "Blob deleted", "Domain added", "Environment variable saved") and should never contain the word "successfully" — the past-tense verb already implies success.
 - Error toasts get two full sentences with periods, and the second sentence is always the recovery step (e.g. "Couldn't verify domain. Try again.").
-- Use "Couldn't ___" phrasing for errors caused by user/account state, and "Failed to ___" for system/infrastructure errors — pick one register and don't mix it mid-flow with whatever copy is already shipped nearby.
+- Use "Couldn't **_" phrasing for errors caused by user/account state, and "Failed to _**" for system/infrastructure errors — pick one register and don't mix it mid-flow with whatever copy is already shipped nearby.
 - Make the toast verb match the button verb that triggered it 1:1 (clicking "Delete Project" should produce "Project deleted", never a different verb like "Project removed").
 - Undo actions must use the literal word "Undo" — never "Restore", "Bring Back", or "Cancel" — and this pattern should only be offered when the rollback is actually safe to perform.
 
 **Accessibility**
+
 - The toast region should announce politely (`aria-live="polite"`) by default; reserve the more interruptive `assertive` announcement level only for blocking errors that must interrupt whatever the user is doing.
 - Never put primary navigation controls inside a toast — it's a transient, easily-missed surface, and keyboard users in particular may not reach it before it's gone.
 

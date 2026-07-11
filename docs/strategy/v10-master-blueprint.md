@@ -217,7 +217,7 @@ _Owns: `billing.functions.ts`, `entitlements.ts`, onboarding, `_authenticated.se
 
 - **`W6` (persona onboarding)** ⬜ · **P0/P1 (also enables the wedge)** — _What:_ per-track onboarding (Solo PM / Founding PM / Tech Founder) with sample data + first-win. _Pain:_ #8. _How:_ a new user picks a track, gets seeded data, reaches the teardown first-win fast. _Build accept:_ a signed-up PM reaches first-win without hand-holding. _Files:_ onboarding flow + seed data.
 - **`PLG` (funnel)** ⬜ · **P1** — _What:_ public onboarding → first-win → upgrade. _Pain:_ growth. _Depends:_ W6, F-SHARE-TEARDOWN.
-- **`M-C-PRICE` (switch-on)** ◐ · **P1 (founder secrets)** — _What:_ flip billing live. _How:_ set Stripe secrets + price IDs; webhook updates plan_tier. _Build accept:_ a real upgrade changes plan_tier.
+- **`M-C-PRICE` (switch-on)** ◐ · **P1 (founder secrets)** — _What:_ flip billing live. _How:_ set Stripe secrets + price IDs; webhook updates plan*tier. \_Build accept:* a real upgrade changes plan_tier.
 - **`M-C-EXPIRY` (memory-expiry flip)** ⏸ · **P1** — _What:_ enable free-tier 14-day expiry (the paid pull). _How:_ flip `memory_expiry_enabled()` once first-win is reliable.
 
 ### Lane F - INTEROP / the neutral brain

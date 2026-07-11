@@ -552,7 +552,7 @@ export function GauntletMetricsPanel() {
           </p>
           <button
             type="button"
-            className="uppercase cursor-pointer"
+            className="uppercase cursor-pointer transition-opacity hover:opacity-70"
             onClick={() => {
               void acceptQ.refetch();
               void autonomyQ.refetch();

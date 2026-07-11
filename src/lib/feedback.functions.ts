@@ -49,8 +49,8 @@ async function applyRetrievalFeedback(
   // Parallelize RPC calls: bump all memory IDs concurrently
   await Promise.all(
     Array.from(new Set(rows.map((r) => r.memory_id))).map((memoryId) =>
-      supabase.rpc("bump_memory_importance", { p_memory_id: memoryId, p_delta: delta })
-    )
+      supabase.rpc("bump_memory_importance", { p_memory_id: memoryId, p_delta: delta }),
+    ),
   );
 }
 

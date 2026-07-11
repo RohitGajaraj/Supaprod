@@ -548,15 +548,12 @@ export function AskPanel() {
           onEscapeKeyDown={(e) => {
             if (paletteOpenRef.current) e.preventDefault();
           }}
-          className="fixed inset-y-0 right-0 flex flex-col outline-none"
+          className="material-large fixed inset-y-0 right-0 flex flex-col outline-none"
           style={{
             zIndex: 71,
             width: 420,
             maxWidth: "92vw",
-            backgroundColor: "#101013",
-            borderLeft: "1px solid var(--hairline-strong)",
-            boxShadow: "-30px 0 60px rgba(0,0,0,0.5)",
-            animation: "cadSlideIn 240ms var(--ease)",
+            animation: "cadSlideIn 300ms var(--ds-motion-timing-swift)",
           }}
         >
           <DialogPrimitive.Title className="sr-only">Ask</DialogPrimitive.Title>

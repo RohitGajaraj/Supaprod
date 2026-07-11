@@ -35,6 +35,7 @@ import { IconShield } from '@vercel/geistcn-assets/icons';
 ```
 
 **Props observed:**
+
 - `variant`: `"gray" | "blue" | "purple" | "amber" | "red" | "pink" | "green" | "teal" | "inverted" | "trial" | "turbo"`
 - `contrast`: `"low"` — applied alongside a color `variant` to produce the "-subtle" tone (no `contrast="low"` shown for `inverted` / `trial` / `turbo`)
 - `size`: `"sm" | "md" | "lg"`
@@ -103,6 +104,7 @@ import { Link } from '@vercel/microfrontends/next/client';
 (Note: the raw class dump shows two different `md`-ish rows — a 24px/12px row and a 32px/text-sm row — consistent with `sm`/`md`/`lg` all differing in height, font-size, padding, gap and icon size simultaneously, not just height.)
 
 **Color tokens (all via Geist CSS custom properties, `--ds-*` design-system scale):**
+
 - Solid `variant="blue"`: `bg-(--ds-blue-800)` + `text-(--ds-contrast-fg)` (white/near-white text for contrast on saturated fill).
 - Subtle `variant="blue" contrast="low"`: `bg-(--ds-blue-200)` + `text-(--ds-blue-900)` (light tint fill, dark-tint text — the "-subtle" pattern: fill drops from the 800 step to the 200 step, text moves to the 900 step of the same hue).
 - `variant="gray"` (default/solid-ish neutral in the size demo): `bg-(--ds-gray-200)` + `text-(--ds-gray-1000)`.

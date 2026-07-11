@@ -150,7 +150,48 @@ export function LoopsPanel() {
       </div>
 
       {loopsQ.isLoading ? (
-        <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>Loading loops…</p>
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span className="sr-only">Loading loops…</span>
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="material-base"
+              style={{ height: 64, opacity: 0.4 }}
+            />
+          ))}
+        </div>
+      ) : loopsQ.isError ? (
+        <div
+          style={{
+            padding: 24,
+            background: "var(--surface-card-deep)",
+            borderRadius: "var(--radius-panel)",
+          }}
+        >
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+            COULDN'T LOAD LOOPS
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            {(loopsQ.error as Error)?.message}
+          </p>
+          <button
+            type="button"
+            onClick={() => loopsQ.refetch()}
+            className="hover:[color:var(--text-primary)]"
+            style={{
+              marginTop: 14,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-body)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Retry · reloads loops
+          </button>
+        </div>
       ) : loops.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
           No loops yet. Start one above: it runs on its cadence and every run shows up here with its

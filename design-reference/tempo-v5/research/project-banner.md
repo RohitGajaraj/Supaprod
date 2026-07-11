@@ -19,34 +19,34 @@ Each of the four demo sections has a "Show code" toggle revealing the exact JSX 
 ### Import
 
 ```tsx
-import { ProjectBanner } from '@vercel/geistcn/components';
-import type { ProjectBannerProps } from '@vercel/geistcn/components';
-import { IconShieldCheck } from '@vercel/geistcn-assets/icons';
+import { ProjectBanner } from "@vercel/geistcn/components";
+import type { ProjectBannerProps } from "@vercel/geistcn/components";
+import { IconShieldCheck } from "@vercel/geistcn-assets/icons";
 ```
 
 ### Component: `ProjectBanner`
 
 Props observed in the code examples:
 
-| Prop | Type / shape | Notes |
-|---|---|---|
-| `variant` | `'success' \| 'warning' \| 'error'` (+ `'gray'` per prose, the implied default when omitted) | Declared in examples as `ProjectBannerProps['variant']`. Maps directly to a severity/role, see Design notes. |
-| `icon` | `JSX.Element` | A leading icon element, e.g. `<IconShieldCheck className="shrink-0" />`, `<IconRotateCounterClockwise />`, `<IconWarning />`. Passed as a rendered node, not a component reference. |
-| `label` | `JSX.Element \| ReactNode` | The banner's message body. Can be a plain fragment (`<>text</>`) or rich content composing other Geist components inline (seen: `Tooltip` wrapping an `@mention`). |
-| `callToAction` | `{ label: string; href?: string } \| { label: string; onClick?: () => void }` | The action affordance at the end of the banner. Either link-style (`href`) or button-style (`onClick`). Only one of `href`/`onClick` is used per example; the type appears to be a union/optional pair rather than both being present simultaneously. |
+| Prop           | Type / shape                                                                                 | Notes                                                                                                                                                                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`      | `'success' \| 'warning' \| 'error'` (+ `'gray'` per prose, the implied default when omitted) | Declared in examples as `ProjectBannerProps['variant']`. Maps directly to a severity/role, see Design notes.                                                                                                                                          |
+| `icon`         | `JSX.Element`                                                                                | A leading icon element, e.g. `<IconShieldCheck className="shrink-0" />`, `<IconRotateCounterClockwise />`, `<IconWarning />`. Passed as a rendered node, not a component reference.                                                                   |
+| `label`        | `JSX.Element \| ReactNode`                                                                   | The banner's message body. Can be a plain fragment (`<>text</>`) or rich content composing other Geist components inline (seen: `Tooltip` wrapping an `@mention`).                                                                                    |
+| `callToAction` | `{ label: string; href?: string } \| { label: string; onClick?: () => void }`                | The action affordance at the end of the banner. Either link-style (`href`) or button-style (`onClick`). Only one of `href`/`onClick` is used per example; the type appears to be a union/optional pair rather than both being present simultaneously. |
 
 ### Minimal usage (Default demo)
 
 ```tsx
-import { ProjectBanner } from '@vercel/geistcn/components';
-import { IconShieldCheck } from '@vercel/geistcn-assets/icons';
-import type { JSX } from 'react';
+import { ProjectBanner } from "@vercel/geistcn/components";
+import { IconShieldCheck } from "@vercel/geistcn-assets/icons";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <ProjectBanner
       callToAction={{
-        label: 'Disable',
+        label: "Disable",
         href: `/`,
       }}
       icon={<IconShieldCheck className="shrink-0" />}
@@ -61,11 +61,11 @@ export function Component(): JSX.Element {
 All three variant demos follow the same composition pattern: build a typed array of the one variant being shown, `.map` over it, and render inside a `flex flex-col` wrapper — a docs-site convention for looping over variant values, not something an app would do for a single real banner.
 
 ```tsx
-import type { ProjectBannerProps } from '@vercel/geistcn/components';
-import { ProjectBanner } from '@vercel/geistcn/components';
-import { IconShieldCheck } from '@vercel/geistcn-assets/icons';
+import type { ProjectBannerProps } from "@vercel/geistcn/components";
+import { ProjectBanner } from "@vercel/geistcn/components";
+import { IconShieldCheck } from "@vercel/geistcn-assets/icons";
 
-const ProjectBannerVariants: ProjectBannerProps['variant'][] = ['success'];
+const ProjectBannerVariants: ProjectBannerProps["variant"][] = ["success"];
 
 export function Component(): JSX.Element {
   return (
@@ -74,7 +74,7 @@ export function Component(): JSX.Element {
         <div key={variant} className="flex flex-col items-stretch justify-start gap-2 flex-initial">
           <div className="flex flex-col items-stretch justify-start gap-2 flex-initial">
             <ProjectBanner
-              callToAction={{ label: 'Disable', href: `/` }}
+              callToAction={{ label: "Disable", href: `/` }}
               icon={<IconShieldCheck className="shrink-0" />}
               label={<>Attack Challenge Mode is enabled for this project</>}
               variant={variant}
@@ -90,11 +90,11 @@ export function Component(): JSX.Element {
 ### Warning demo — button CTA + rich label with Tooltip
 
 ```tsx
-import type { ProjectBannerProps } from '@vercel/geistcn/components';
-import { ProjectBanner, Tooltip } from '@vercel/geistcn/components';
-import { IconRotateCounterClockwise } from '@vercel/geistcn-assets/icons';
+import type { ProjectBannerProps } from "@vercel/geistcn/components";
+import { ProjectBanner, Tooltip } from "@vercel/geistcn/components";
+import { IconRotateCounterClockwise } from "@vercel/geistcn-assets/icons";
 
-const ProjectBannerVariants: ProjectBannerProps['variant'][] = ['warning'];
+const ProjectBannerVariants: ProjectBannerProps["variant"][] = ["warning"];
 
 export function Component(): JSX.Element {
   return (
@@ -104,15 +104,15 @@ export function Component(): JSX.Element {
           <div className="flex flex-col items-stretch justify-start gap-2 flex-initial">
             <ProjectBanner
               callToAction={{
-                label: 'Undo Rollback',
+                label: "Undo Rollback",
                 onClick: () => {
-                  alert('Button clicked');
+                  alert("Button clicked");
                 },
               }}
               icon={<IconRotateCounterClockwise />}
               label={
                 <>
-                  This project was rolled back by{' '}
+                  This project was rolled back by{" "}
                   <Tooltip
                     className="underline decoration-dashed underline-offset-[5px]"
                     text="Yesterday for project marketing-website"
@@ -134,11 +134,11 @@ export function Component(): JSX.Element {
 ### Error demo — long wrapping label
 
 ```tsx
-import type { ProjectBannerProps } from '@vercel/geistcn/components';
-import { ProjectBanner } from '@vercel/geistcn/components';
-import { IconWarning } from '@vercel/geistcn-assets/icons';
+import type { ProjectBannerProps } from "@vercel/geistcn/components";
+import { ProjectBanner } from "@vercel/geistcn/components";
+import { IconWarning } from "@vercel/geistcn-assets/icons";
 
-const ProjectBannerVariants: ProjectBannerProps['variant'][] = ['error'];
+const ProjectBannerVariants: ProjectBannerProps["variant"][] = ["error"];
 
 export function Component(): JSX.Element {
   return (
@@ -148,15 +148,12 @@ export function Component(): JSX.Element {
           <div className="flex flex-col items-stretch justify-start gap-2 flex-initial">
             <ProjectBanner
               callToAction={{
-                label: 'Add Credit Card',
+                label: "Add Credit Card",
                 href: `/$`,
               }}
               icon={<IconWarning />}
               label={
-                <>
-                  Payment failed, update credit card information before your
-                  account is shut down
-                </>
+                <>Payment failed, update credit card information before your account is shut down</>
               }
               variant="error"
             />
@@ -171,16 +168,19 @@ export function Component(): JSX.Element {
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Project Banner only for a project-wide condition that genuinely needs resolving — overdue billing, an in-progress rollback, active attack mitigation, a trial expiry that is blocking deploys. It is not a general-purpose announcement bar.
 - Don't reuse it for smaller-scoped or lower-stakes messaging: a single field/card gets a `Note`, a fire-and-forget acknowledgment gets a `Toast`, a confirmation gets a `Modal`.
 - Pick the `variant` to match how serious the state is: `error` for anything blocking or actively damaging (payment failures, downtime), `warning` for an unusual state that needs eventual but not urgent action, `success` for a temporary protective measure that's working correctly, `gray` for a routine/neutral project-wide notice with no urgency attached.
 
 **Behavior**
+
 - The banner cannot be dismissed by the user — that's a deliberate constraint, not a missing feature. If a message could be closed without the underlying problem being fixed, it doesn't belong in this component; use `Note` instead.
 - Only ever show one at a time. Multiple simultaneous banners bury the one that actually matters most.
 - Every banner must ship with a working `callToAction` that leads somewhere useful. A banner that names a problem but gives the user nowhere to go to fix it is considered broken UX.
 
 **Content / copy rules**
+
 - `label` is a single sentence, sentence case, and states the actual impact directly (e.g. "Your Pro trial expires in 3 days") — no throat-clearing openers like "Heads up" and no apologizing.
 - `callToAction.label` is Title Case in a Verb + Noun shape and names the fix, not the feature (e.g. "Update Payment Method", "Reactivate Project", "Review Tokens").
 - If which project is affected isn't already obvious from where the banner is rendered, name it explicitly in the copy (e.g. "Production deployments are paused on my-project").

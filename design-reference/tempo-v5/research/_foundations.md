@@ -1,6 +1,7 @@
 # Geist Foundations
 
 Source pages (fetched headlessly via curl, cached in `research/.cache/`):
+
 - https://vercel.com/geist/introduction
 - https://vercel.com/geist/colors
 - https://vercel.com/geist/typography
@@ -16,6 +17,7 @@ All prose below is paraphrased; quoted strings and class/value names are copied 
 The Geist site (`vercel.com/geist/*`) is Vercel's public design-system reference. The homepage (`/geist/introduction`) carries the H1 "Geist Design System" with the tagline "Vercel design system for building consistent web experiences," and the shared page `<meta>` description across all five pages reads "Vercel's design system called Geist. Made for building consistent and delightful web experiences."
 
 **Left sidebar taxonomy.** The nav is grouped into three labeled sections, in this order:
+
 1. **Foundations** — Introduction, Colors, Typography, Materials (the four pages this doc covers; there is no separate "Icons" entry — see § 5).
 2. **Brands** — sub-brand themes layered on the same system: Vercel, Turbo, v0, eve, AI SDK.
 3. **Components** — roughly 70 component reference pages (Avatar, Badge, Banner, Book, Breadcrumbs, Browser, Button, Calendar, Card, Checkbox, Choicebox, Clearable Input, Code, Code Block, Collapse, Combobox, Command Menu, Context Card, Context Menu, Copy Button, Description, Destructive Action Modal, Dots Menu, Drawer, Empty State, Entity, Error, Error Card, Feedback, Fieldset, File Tree, Gauge, Grid, Input, JSON View, Keyboard Input, Label, Load More Button, Loading Dots, Menu, MiddleTruncate, Modal, Multi Select, Note, Pagination, Phone, Progress, Project Banner, Radio, Relative Time Card, Scroller, Search Input, Select, Separator, Sheet, Show More, Skeleton, Slider, Snippet, Spinner, Split Button, Status Dot, Switch, Table, Tabs, Text With Copy Button, Textarea, Theme Switcher, Toast, Toggle, Tooltip, Video, and more).
@@ -72,11 +74,11 @@ The Colors page H1 reads "Colors" with the subtitle "Learn how to work with our 
 The Typography page H1 reads "Typography" with the subtitle "Rules of typesetting throughout the system." Its "Usage" section explains the delivery mechanism: "Our typography styles can be consumed as Tailwind classes. The classes below pre-set a combination of font-size, line-height, letter-spacing, and font-weight for you based on the Geist Core Figma system" — i.e. each class name is a single atomic Tailwind utility that bakes in all four typographic properties at once, so authors never hand-tune them individually.
 
 **The Subtle / Strong `<strong>` modifier convention.** Several classes carry a documented "modifier" (subtle or strong) that is triggered purely by markup, not by a separate class: "To make use of the Subtle and Strong modifiers, all you have to do is use the `<strong>` element nested as the descendant of a given typography class," e.g.:
+
 ```html
-<p className="text-copy-16">
-  Copy 16 <strong>with Strong</strong>
-</p>
+<p className="text-copy-16">Copy 16 <strong>with Strong</strong></p>
 ```
+
 So the parent element carries the size class (e.g. `text-copy-16`), and any inline text wrapped in `<strong>` automatically picks up that class's heavier ("Strong") or dimmer ("Subtle") weight variant — no extra utility class needed.
 
 **Tabular numbers.** Called out specifically on `text-label-13`: "Tabular is used when conveying numbers for consistent spacing" — i.e. the label-13 class has a tabular-figures variant reserved for numeric strings (timestamps, counters) so digits keep a fixed width and don't jitter as they change.
@@ -138,13 +140,15 @@ The Materials page H1 reads "Materials" with the subtitle "Presets for radii, fi
 
 **Every preset, with its documented radius and elevation semantics**, grouped exactly as the page groups them:
 
-*Surface* ("On the page."):
+_Surface_ ("On the page."):
+
 - `material-base` — "Everyday use. Radius 6px."
 - `material-small` — "Slightly raised. Radius 6px."
 - `material-medium` — "Further raised. Radius 12px."
 - `material-large` — "Further raised. Radius 12px."
 
-*Floating* ("Above the page."):
+_Floating_ ("Above the page."):
+
 - `material-tooltip` — "Lightest shadow. Corner 6px. Tooltips will be the only floating element with a triangular stem."
 - `material-menu` — "Lift from page. Radius 12px."
 - `material-modal` — "Further lift. Radius 12px."
@@ -154,17 +158,20 @@ So there are eight presets total across two families: four "Surface" (on-page, r
 
 **Best-practice rules** (the page organizes them under three headers — When to use, Behavior, Accessibility — each paraphrased below):
 
-*When to use:*
+_When to use:_
+
 - Reach for a Material instead of hand-assembling radius/fill/stroke/shadow yourself — the preset name itself encodes the element's elevation role.
 - Choose the preset by where the element sits in the layered hierarchy: `base` for resting cards, `small`–`large` for progressively raised content, `tooltip`/`menu` for floating popovers, `modal` for dialogs, `fullscreen` for full takeovers.
 - Never stack two Materials on the same element; if a child needs more elevation than its parent, give the child its own Material at a higher step instead.
 
-*Behavior:*
+_Behavior:_
+
 - Keep the elevation choice aligned with the element's z-index band, so (for example) a `tooltip`-typed surface never visually sits below a `base` card.
 - Prefer the lowest elevation that still reads as raised against its background — over-elevating is called out as a common source of visual noise.
 - Let the Material preset drive the chrome (radius/fill/stroke/shadow) and use ordinary layout spacing for positioning, rather than overriding shadows ad hoc on the same element.
 
-*Accessibility:*
+_Accessibility:_
+
 - Materials are purely decorative chrome; the actual semantics (e.g. `role="dialog"` on a modal, `role="tooltip"` on a tooltip) belong on the role-bearing wrapper element, not the Material itself.
 - Don't rely on shadow alone to signal elevation — pair it with a matching focus-visible ring on any focusable children inside.
 - Test Materials in both light and dark themes: shadow contrast reads weaker on dark backgrounds than on light, so separation needs to be reconfirmed there.
@@ -180,6 +187,7 @@ So there are eight presets total across two families: four "Surface" (on-page, r
 **Distribution / package name.** No npm package name, install command, or GitHub link is shown anywhere on the fetched pages for the icon set specifically (the one `npx create-next-app` snippet present in the page markup is a generic "get started with Next.js" snippet used elsewhere on the site, unrelated to icon installation). Based on what's actually rendered in these five pages, **there is no publicly documented install path for the icon set** — it is used natively throughout vercel.com/geist (every inline icon across all five fetched pages, including the Geist wordmark itself, is tagged `data-slot="geist-icon"`), but that internal usage is not the same as a published, installable package, and this fetch found no evidence of one.
 
 **Sizing / stroke conventions (inferred from every icon instance actually rendered across the five pages):**
+
 - All 44+ sampled `data-slot="geist-icon"` SVGs share the same internal coordinate grid: `viewBox="0 0 16 16"` — icons are authored on a 16x16 unit grid.
 - Display size varies by placement (the header logo mark renders at 27x27, one instance at 20x20, everything else at the native 16x16) while keeping that same 16-unit viewBox — i.e. icons scale cleanly rather than being redrawn per size.
 - Every sampled icon is a **solid/filled** glyph (`<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="...">`) inheriting `currentColor` for tinting — there is no `stroke`/`stroke-width` attribute on any sampled icon, so this is a filled icon system, not an outlined/line-icon system.

@@ -7,6 +7,7 @@
 ## Summary
 
 Remediated test coverage gaps for React components by:
+
 1. **Gap 1**: Introduced 60+ new DOM-mounted tests using @testing-library/react + happy-dom
 2. **Gap 2**: Enhanced existing ResearchActivity.test.tsx with proper DOM rendering and screen queries
 3. **Impact**: Shift from hand-rolled JSX tree inspection to behavioral verification
@@ -18,6 +19,7 @@ Remediated test coverage gaps for React components by:
 #### `src/components/cadence/__tests__/sketch-components-dom.test.tsx` (400+ lines)
 
 **Why this was needed**: Previous test suites used hand-rolled `buildSketchLine()` and `buildSketchBar()` JSX mirror functions that inspected props trees without rendering to DOM. This missed:
+
 - State swapping on hover (activeIdx changes in SketchBarChart)
 - Race conditions in focus-blur handlers (stale onMouseLeave guards)
 - CSS class application (fade-up, opacity changes)
@@ -96,6 +98,7 @@ Remediated test coverage gaps for React components by:
 #### `src/components/chat/ResearchActivity.test.tsx` (MODIFIED)
 
 **Before**: Hand-rolled JSX tree inspection
+
 ```typescript
 // OLD: Tautological assertion
 const labelSpan = spans?.[1];
@@ -103,6 +106,7 @@ expect(labelSpan?.props?.children).toBe("Searching for sources");
 ```
 
 **After**: Real DOM rendering with screen queries
+
 ```typescript
 // NEW: Actual text verification
 render(<ResearchActivityLine statuses={statuses} />);
@@ -112,6 +116,7 @@ expect(screen.queryByText("Planning")).toBeNull();
 ```
 
 **Changes**:
+
 - Added `import { render, screen } from "@testing-library/react"`
 - Converted ResearchActivityLine tests (6→10 tests, +70 lines)
   - DOM structure verification (.fade-up, .spinner)
@@ -128,27 +133,29 @@ expect(screen.queryByText("Planning")).toBeNull();
 
 ## Test Statistics
 
-| Metric | Before | After | Δ |
-|--------|--------|-------|-----|
-| Component DOM tests | 0 | 60+ | +60 |
-| ResearchActivityLine tests | 6 | 10 | +4 |
-| ResearchSummaryRow tests | 7 | 12 | +5 |
-| Sketch-related tests | 313 (duplicate Sketch.test.ts) | 313 + 30 (new) | +30 |
-| Hand-rolled JSX mirrors | ~400 LOC | 0 (replaced) | -400 |
-| Real DOM assertions | 0 | ~80 | +80 |
-| Total test file size | ResearchActivity: 259 LOC | 400+ LOC | +150 |
+| Metric                     | Before                         | After          | Δ    |
+| -------------------------- | ------------------------------ | -------------- | ---- |
+| Component DOM tests        | 0                              | 60+            | +60  |
+| ResearchActivityLine tests | 6                              | 10             | +4   |
+| ResearchSummaryRow tests   | 7                              | 12             | +5   |
+| Sketch-related tests       | 313 (duplicate Sketch.test.ts) | 313 + 30 (new) | +30  |
+| Hand-rolled JSX mirrors    | ~400 LOC                       | 0 (replaced)   | -400 |
+| Real DOM assertions        | 0                              | ~80            | +80  |
+| Total test file size       | ResearchActivity: 259 LOC      | 400+ LOC       | +150 |
 
 ---
 
 ## Gap 3 Status: Duplicate Test Consolidation
 
 **Finding**: Duplicate test suites exist:
+
 - `Sketch.test.ts` (313 lines) + `Sketch.test.tsx` (491 lines) + `__tests__/sketch-helpers.test.ts`
 - `ResearchActivity.test.tsx` (259 lines) now also has `research-activity-dom.test.tsx`
 - `ship-format.test.ts` + `__tests__/ship-format.test.ts` (near-identical)
 - `graph-visual.test.ts` + `__tests__/graph-visual.test.ts` (with divergence)
 
 **Recommendation**: Post-Gap-1/2, consolidate by:
+
 1. Keeping `__tests__/` versions as canonical (matches project structure)
 2. Merging hand-rolled + DOM tests into one file per component
 3. Removing sibling duplicates at repo root
@@ -161,15 +168,15 @@ expect(screen.queryByText("Planning")).toBeNull();
 
 Pure function coverage remains **exceptional** and needs no changes:
 
-| Function | Coverage | Notes |
-|----------|----------|-------|
-| barInsight | 100% | Edge cases: upward/downward/flat trends, single bar |
-| fmtUsd | 100% | Negative numbers, sub-cent precision ($0.01), zero |
-| withTimeout (rejection path) | 100% | Timeout rejection tested |
-| signalCleanBody | 100% | Depth-bounded recursion edge cases |
-| deriveDesignation | 100% | Full boundary matrix (5 rules × 4 inputs each) |
-| summarySegments | 100% | All combinations tested |
-| parseResearchStatus | 100% | Type validation, null handling |
+| Function                     | Coverage | Notes                                               |
+| ---------------------------- | -------- | --------------------------------------------------- |
+| barInsight                   | 100%     | Edge cases: upward/downward/flat trends, single bar |
+| fmtUsd                       | 100%     | Negative numbers, sub-cent precision ($0.01), zero  |
+| withTimeout (rejection path) | 100%     | Timeout rejection tested                            |
+| signalCleanBody              | 100%     | Depth-bounded recursion edge cases                  |
+| deriveDesignation            | 100%     | Full boundary matrix (5 rules × 4 inputs each)      |
+| summarySegments              | 100%     | All combinations tested                             |
+| parseResearchStatus          | 100%     | Type validation, null handling                      |
 
 **No changes needed** to these test suites.
 

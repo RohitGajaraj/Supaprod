@@ -17,7 +17,7 @@
 Import path: `@vercel/geistcn/components`.
 
 ```tsx
-import { Progress } from '@vercel/geistcn/components';
+import { Progress } from "@vercel/geistcn/components";
 ```
 
 ### `Progress` props observed in examples

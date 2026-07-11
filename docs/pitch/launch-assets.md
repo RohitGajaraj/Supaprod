@@ -19,7 +19,7 @@
 Show HN: Cadence – an AI product team with a ledger that proves what worked
 ```
 
-*Alt, if the above reads too close to "AI product tool" (v13's own ban list) — pick on submit day by reading both aloud:*
+_Alt, if the above reads too close to "AI product tool" (v13's own ban list) — pick on submit day by reading both aloud:_
 
 ```
 Show HN: I built the thing this year's top r/ProductManagement post describes,
@@ -95,6 +95,7 @@ NOT built yet — I'd rather tell you than have you find out.
 ```
 
 **Gallery shot list (5 assets, in this order — receipts before claims, per the doctrine):**
+
 1. The Today judgment lane — the ≤3 calls needing a human, byline + receipt link visible.
 2. The teardown (Critic red-teaming a real bet) — evidence chain visible, not a chat bubble.
 3. A real merged PR with CI green, opened by the mission, under the merge gate.

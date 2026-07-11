@@ -24,15 +24,16 @@ import { Separator } from '@vercel/geistcn/components';
 
 ### Props observed across all examples
 
-| Prop | Values seen | Notes |
-|---|---|---|
-| `orientation` | `"horizontal"` (implicit default — omitted in the first two examples), `"vertical"` | Explicit `orientation="horizontal"` also shown once (Orientation Variants section), confirming horizontal is both the default and settable explicitly. |
-| `decorative` | (omitted = default true/decorative), `decorative` (shorthand boolean true), `decorative={false}` | Controls whether the separator is `aria-hidden`/purely visual (default, decorative) vs. exposed as a semantic `role="separator"` boundary (`decorative={false}`). |
-| `className` | e.g. `"bg-blue-500"`, `"h-2"`, `"bg-red-500 w-0.5"`, `"bg-green-500 w-2"` | Standard Tailwind class merge/override — background color changes the rule's fill color, `h-*` changes horizontal-rule thickness, `w-*` changes vertical-rule thickness. |
+| Prop          | Values seen                                                                                      | Notes                                                                                                                                                                    |
+| ------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `orientation` | `"horizontal"` (implicit default — omitted in the first two examples), `"vertical"`              | Explicit `orientation="horizontal"` also shown once (Orientation Variants section), confirming horizontal is both the default and settable explicitly.                   |
+| `decorative`  | (omitted = default true/decorative), `decorative` (shorthand boolean true), `decorative={false}` | Controls whether the separator is `aria-hidden`/purely visual (default, decorative) vs. exposed as a semantic `role="separator"` boundary (`decorative={false}`).        |
+| `className`   | e.g. `"bg-blue-500"`, `"h-2"`, `"bg-red-500 w-0.5"`, `"bg-green-500 w-2"`                        | Standard Tailwind class merge/override — background color changes the rule's fill color, `h-*` changes horizontal-rule thickness, `w-*` changes vertical-rule thickness. |
 
 ### Minimal usage snippets
 
 **Default (horizontal), between two content blocks:**
+
 ```tsx
 <div>
   <h3 className="text-label-16">Section 1</h3>
@@ -46,6 +47,7 @@ import { Separator } from '@vercel/geistcn/components';
 ```
 
 **Vertical, inline in a flex row (nav-style):**
+
 ```tsx
 <div className="flex h-8 items-center space-x-4">
   <p className="text-copy-14 text-gray-1000">Home</p>
@@ -59,6 +61,7 @@ import { Separator } from '@vercel/geistcn/components';
 ```
 
 **Explicit orientation prop + vertical row:**
+
 ```tsx
 <div>
   <h4 className="mb-2 text-label-14">Horizontal Separators</h4>
@@ -82,6 +85,7 @@ import { Separator } from '@vercel/geistcn/components';
 ```
 
 **Accessibility variants (decorative vs. semantic):**
+
 ```tsx
 <div>
   <h4 className="mb-2 text-label-14">Decorative Separator (default)</h4>
@@ -99,6 +103,7 @@ import { Separator } from '@vercel/geistcn/components';
 ```
 
 **Custom styling (color, thickness, vertical variants):**
+
 ```tsx
 <div>
   <h4 className="mb-2 text-label-14">Default Separator</h4>

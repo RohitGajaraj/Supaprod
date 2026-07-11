@@ -27,20 +27,20 @@ Three exported components appear across the examples: **`Button`**, **`ButtonLin
 
 ### `Button` props observed in code examples
 
-| Prop | Values seen | Notes |
-|---|---|---|
-| `size` | `"tiny"`, `"small"`, (default/unset = medium), `"large"` | `"tiny"` only appears on icon-only (`svgOnly`) buttons in the Shapes demo; text buttons only show `small` / default / `large`. |
-| `variant` | `"default"`, `"error"`, `"warning"`, `"secondary"`, `"tertiary"` | Visual variant — this is the prop name used in the JSX examples. |
-| `shape` | `"square"`, `"circle"`, `"rounded"` | `"square"`/`"circle"` used with `svgOnly` icon buttons; `"rounded"` used with the `shadow` prop for marketing-page buttons. |
-| `svgOnly` | boolean flag | Icon-only rendering; MUST be paired with `aria-label` (Best Practices calls this validator-enforced — "the validator throws without them"). |
-| `aria-label` | string | Required alongside `svgOnly`; should name the action + target (e.g. `"Copy deployment URL"`), not the icon (not just `"Copy"`). Must NOT be set on a button that already has visible text (creates a screen-reader mismatch). |
-| `prefix` | JSX node (icon) | Leading icon, e.g. `prefix={<IconArrowLeft />}`. |
-| `suffix` | JSX node (icon) | Trailing icon, e.g. `suffix={<IconArrowRight />}`. Can combine with `prefix` on the same button. |
-| `shadow` | boolean flag | Combined with `shape="rounded"` for marketing-style buttons. |
-| `loading` | boolean flag | Per Best Practices: pass `loading` instead of manually swapping in a spinner, so the button stays focusable and announces busy state to assistive tech. |
-| `disabled` | boolean flag | Per Best Practices: only disable when the action is impossible right now (missing input, insufficient permission); pair with a Tooltip explaining why. |
-| `className` | string | Standard passthrough (e.g. layout classes on wrapper `div`s in examples, not on `Button` itself in these samples). |
-| children | text or icon | Button label. |
+| Prop         | Values seen                                                      | Notes                                                                                                                                                                                                                         |
+| ------------ | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `size`       | `"tiny"`, `"small"`, (default/unset = medium), `"large"`         | `"tiny"` only appears on icon-only (`svgOnly`) buttons in the Shapes demo; text buttons only show `small` / default / `large`.                                                                                                |
+| `variant`    | `"default"`, `"error"`, `"warning"`, `"secondary"`, `"tertiary"` | Visual variant — this is the prop name used in the JSX examples.                                                                                                                                                              |
+| `shape`      | `"square"`, `"circle"`, `"rounded"`                              | `"square"`/`"circle"` used with `svgOnly` icon buttons; `"rounded"` used with the `shadow` prop for marketing-page buttons.                                                                                                   |
+| `svgOnly`    | boolean flag                                                     | Icon-only rendering; MUST be paired with `aria-label` (Best Practices calls this validator-enforced — "the validator throws without them").                                                                                   |
+| `aria-label` | string                                                           | Required alongside `svgOnly`; should name the action + target (e.g. `"Copy deployment URL"`), not the icon (not just `"Copy"`). Must NOT be set on a button that already has visible text (creates a screen-reader mismatch). |
+| `prefix`     | JSX node (icon)                                                  | Leading icon, e.g. `prefix={<IconArrowLeft />}`.                                                                                                                                                                              |
+| `suffix`     | JSX node (icon)                                                  | Trailing icon, e.g. `suffix={<IconArrowRight />}`. Can combine with `prefix` on the same button.                                                                                                                              |
+| `shadow`     | boolean flag                                                     | Combined with `shape="rounded"` for marketing-style buttons.                                                                                                                                                                  |
+| `loading`    | boolean flag                                                     | Per Best Practices: pass `loading` instead of manually swapping in a spinner, so the button stays focusable and announces busy state to assistive tech.                                                                       |
+| `disabled`   | boolean flag                                                     | Per Best Practices: only disable when the action is impossible right now (missing input, insufficient permission); pair with a Tooltip explaining why.                                                                        |
+| `className`  | string                                                           | Standard passthrough (e.g. layout classes on wrapper `div`s in examples, not on `Button` itself in these samples).                                                                                                            |
+| children     | text or icon                                                     | Button label.                                                                                                                                                                                                                 |
 
 **Important nuance from Best Practices prose (not the JSX samples):** the prose refers to a `type` prop (not `variant`) for semantic role — `type="secondary"` for supporting actions, `type="error"` for destructive confirmations, default/unset `type` = primary — and explicitly says `primary`, `success`, `ghost`, and `violet` are NOT valid `type` values. It also references `typeName="submit"` for HTML form-submit wiring, clarifying that the native HTML `type` attribute is exposed via a prop called `typeName`, because `type` itself is reserved for the visual variant. This is a naming mismatch vs. the code samples (which use `variant`, not `type`) — likely the docs prose uses an older/alternate prop name than the current JSX examples, or `type` is an alias for `variant`. Flag this for verification against the actual `@vercel/geistcn` source before implementing; on our stack we'd standardize on one prop name (e.g. `variant`) and expose `type="submit"|"button"|"reset"` natively for form semantics as React does by default.
 
@@ -49,11 +49,11 @@ Three exported components appear across the examples: **`Button`**, **`ButtonLin
 Same prop surface as `Button` ("same props as `Button`" per docs copy), renders an anchor tag. Only prop combination shown:
 
 ```tsx
-import { ButtonLink } from '@vercel/geistcn/components';
+import { ButtonLink } from "@vercel/geistcn/components";
 
 <ButtonLink className="w-fit" href="#">
   Sign Up
-</ButtonLink>
+</ButtonLink>;
 ```
 
 `href` is the anchor destination; `className` passthrough confirmed here.
@@ -61,28 +61,28 @@ import { ButtonLink } from '@vercel/geistcn/components';
 ### `CustomButton` props observed
 
 ```tsx
-import { CustomButton } from '@vercel/geistcn/components';
+import { CustomButton } from "@vercel/geistcn/components";
 
 <CustomButton
   active={{
-    foreground: '#fff',
-    background: 'var(--ds-blue-700)',
-    border: 'var(--ds-blue-700)',
+    foreground: "#fff",
+    background: "var(--ds-blue-700)",
+    border: "var(--ds-blue-700)",
   }}
   hover={{
-    foreground: '#fff',
-    background: '#0B7BFE',
-    border: 'var(--ds-blue-700)',
+    foreground: "#fff",
+    background: "#0B7BFE",
+    border: "var(--ds-blue-700)",
   }}
   normal={{
-    foreground: '#fff',
-    background: 'var(--ds-blue-700)',
-    border: 'var(--ds-blue-700)',
+    foreground: "#fff",
+    background: "var(--ds-blue-700)",
+    border: "var(--ds-blue-700)",
   }}
   width={160}
 >
   Upgrade to Pro
-</CustomButton>
+</CustomButton>;
 ```
 
 - `normal` / `hover` / `active`: each an object `{ foreground, background, border }` (CSS color strings — raw hex or `var(--ds-*)` tokens both accepted).
@@ -92,9 +92,10 @@ import { CustomButton } from '@vercel/geistcn/components';
 ### Full JSX usage snippets (as shown in demos)
 
 **Sizes:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -108,19 +109,30 @@ export function Component(): JSX.Element {
 ```
 
 **All Types and Sizes in comparison:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <Button size="small" variant="default">Upload</Button>
-        <Button size="small" variant="error">Upload</Button>
-        <Button size="small" variant="warning">Upload</Button>
-        <Button size="small" variant="secondary">Upload</Button>
-        <Button size="small" variant="tertiary">Upload</Button>
+        <Button size="small" variant="default">
+          Upload
+        </Button>
+        <Button size="small" variant="error">
+          Upload
+        </Button>
+        <Button size="small" variant="warning">
+          Upload
+        </Button>
+        <Button size="small" variant="secondary">
+          Upload
+        </Button>
+        <Button size="small" variant="tertiary">
+          Upload
+        </Button>
       </div>
       <div className="flex items-center gap-3">
         <Button variant="default">Upload</Button>
@@ -130,11 +142,21 @@ export function Component(): JSX.Element {
         <Button variant="tertiary">Upload</Button>
       </div>
       <div className="flex items-center gap-3">
-        <Button size="large" variant="default">Upload</Button>
-        <Button size="large" variant="error">Upload</Button>
-        <Button size="large" variant="warning">Upload</Button>
-        <Button size="large" variant="secondary">Upload</Button>
-        <Button size="large" variant="tertiary">Upload</Button>
+        <Button size="large" variant="default">
+          Upload
+        </Button>
+        <Button size="large" variant="error">
+          Upload
+        </Button>
+        <Button size="large" variant="warning">
+          Upload
+        </Button>
+        <Button size="large" variant="secondary">
+          Upload
+        </Button>
+        <Button size="large" variant="tertiary">
+          Upload
+        </Button>
       </div>
     </div>
   );
@@ -142,118 +164,167 @@ export function Component(): JSX.Element {
 ```
 
 **Shapes (icon-only):**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { IconArrowUp } from '@vercel/geistcn-assets/icons';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { IconArrowUp } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
-      <Button aria-label="Upload" shape="square" size="tiny" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="square" size="small" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="square" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="square" size="large" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="circle" size="tiny" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="circle" size="small" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="circle" svgOnly><IconArrowUp /></Button>
-      <Button aria-label="Upload" shape="circle" size="large" svgOnly><IconArrowUp /></Button>
+      <Button aria-label="Upload" shape="square" size="tiny" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="square" size="small" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="square" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="square" size="large" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="circle" size="tiny" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="circle" size="small" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="circle" svgOnly>
+        <IconArrowUp />
+      </Button>
+      <Button aria-label="Upload" shape="circle" size="large" svgOnly>
+        <IconArrowUp />
+      </Button>
     </div>
   );
 }
 ```
 
 **Prefix and suffix:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import { IconArrowLeft, IconArrowRight } from '@vercel/geistcn-assets/icons';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { IconArrowLeft, IconArrowRight } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
       <Button prefix={<IconArrowLeft />}>Upload</Button>
       <Button suffix={<IconArrowRight />}>Upload</Button>
-      <Button prefix={<IconArrowLeft />} suffix={<IconArrowRight />}>Upload</Button>
+      <Button prefix={<IconArrowLeft />} suffix={<IconArrowRight />}>
+        Upload
+      </Button>
     </div>
   );
 }
 ```
 
 **Rounded (marketing style):**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
-      <Button shadow shape="rounded" size="small" variant="secondary">Upload</Button>
-      <Button shadow shape="rounded" variant="secondary">Upload</Button>
-      <Button shadow shape="rounded" size="large" variant="secondary">Upload</Button>
+      <Button shadow shape="rounded" size="small" variant="secondary">
+        Upload
+      </Button>
+      <Button shadow shape="rounded" variant="secondary">
+        Upload
+      </Button>
+      <Button shadow shape="rounded" size="large" variant="secondary">
+        Upload
+      </Button>
     </div>
   );
 }
 ```
 
 **Loading:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
-      <Button loading size="small">Upload</Button>
+      <Button loading size="small">
+        Upload
+      </Button>
       <Button loading>Upload</Button>
-      <Button loading size="large">Upload</Button>
+      <Button loading size="large">
+        Upload
+      </Button>
     </div>
   );
 }
 ```
 
 **Disabled:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
-      <Button disabled size="small">Upload</Button>
+      <Button disabled size="small">
+        Upload
+      </Button>
       <Button disabled>Upload</Button>
-      <Button disabled size="large">Upload</Button>
+      <Button disabled size="large">
+        Upload
+      </Button>
     </div>
   );
 }
 ```
 
 **Disabled variants:**
+
 ```tsx
-import { Button } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Button } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-col md:flex-row items-start gap-4 flex-initial">
       <Button disabled>Default</Button>
-      <Button disabled variant="secondary">Secondary</Button>
-      <Button disabled variant="tertiary">Tertiary</Button>
-      <Button disabled variant="error">Error</Button>
-      <Button disabled variant="warning">Warning</Button>
+      <Button disabled variant="secondary">
+        Secondary
+      </Button>
+      <Button disabled variant="tertiary">
+        Tertiary
+      </Button>
+      <Button disabled variant="error">
+        Error
+      </Button>
+      <Button disabled variant="warning">
+        Warning
+      </Button>
     </div>
   );
 }
 ```
 
 **Link:**
+
 ```tsx
-import { ButtonLink } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ButtonLink } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
-    <ButtonLink className="w-fit" href="#">Sign Up</ButtonLink>
+    <ButtonLink className="w-fit" href="#">
+      Sign Up
+    </ButtonLink>
   );
 }
 ```

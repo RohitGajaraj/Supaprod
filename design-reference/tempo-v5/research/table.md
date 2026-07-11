@@ -17,6 +17,7 @@
 Package: `@vercel/geistcn/components`
 
 ### Components / subcomponents (import list, observed across all examples)
+
 - `TableRoot` — outermost wrapper (referred to in prose as `<Table>` at the top level, but the actual export wrapping everything is `TableRoot`).
 - `Table` — the semantic `<table>` element wrapper, nested directly inside `TableRoot`.
 - `TableColgroup` — wraps `TableCol` children; optional, only used when explicit column widths are needed.
@@ -30,6 +31,7 @@ Package: `@vercel/geistcn/components`
 - `ShowMore` — a separate, standalone component (not a `Table.*` subcomponent) used to progressively reveal virtualized rows. Props observed: `expanded` (boolean), `noBorder` (boolean), `onClick`, `className`.
 
 ### `TableBody` boolean modifier props (each independent, combinable)
+
 - `striped` — zebra-stripe rows.
 - `bordered` — draw borders around cells/rows.
 - `interactive` — hover/active row affordance (row acts like a clickable target).
@@ -40,6 +42,7 @@ Multiple modifiers combine freely, e.g. `<TableBody interactive striped>` and `<
 ### Composition patterns (minimal usage snippets)
 
 Basic:
+
 ```tsx
 import {
   Table,
@@ -49,7 +52,7 @@ import {
   TableBody,
   TableCell,
   TableRoot,
-} from '@vercel/geistcn/components';
+} from "@vercel/geistcn/components";
 
 export function Component(): JSX.Element {
   return (
@@ -77,6 +80,7 @@ export function Component(): JSX.Element {
 ```
 
 Striped / bordered / interactive — identical shape, only the `TableBody` prop changes:
+
 ```tsx
 <TableBody striped>…</TableBody>
 <TableBody bordered>…</TableBody>
@@ -84,6 +88,7 @@ Striped / bordered / interactive — identical shape, only the `TableBody` prop 
 ```
 
 Full featured (columns + computed rows + footer):
+
 ```tsx
 import {
   Table,
@@ -96,19 +101,19 @@ import {
   TableCell,
   TableFooter,
   TableRoot,
-} from '@vercel/geistcn/components';
+} from "@vercel/geistcn/components";
 
-const formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
+const formatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
   maximumFractionDigits: 2,
-  currency: 'usd',
+  currency: "usd",
 });
 function formatCurrency(amount: number): string {
   return formatter.format(amount);
 }
 
 const items = [
-  { product: 'Brake Pads Set', usage: '100 sets', price: '$50 per set', charge: 5000 },
+  { product: "Brake Pads Set", usage: "100 sets", price: "$50 per set", charge: 5000 },
   // ...more rows...
 ];
 
@@ -157,8 +162,9 @@ export function Component(): JSX.Element {
 ```
 
 Virtualized (client component, windowed rows + progressive reveal):
+
 ```tsx
-'use client';
+"use client";
 
 import {
   ShowMore,
@@ -171,8 +177,8 @@ import {
   TableBody,
   TableCell,
   TableRoot,
-} from '@vercel/geistcn/components';
-import { memo, useState, type JSX } from 'react';
+} from "@vercel/geistcn/components";
+import { memo, useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [expanded, setExpanded] = useState(false);
@@ -196,7 +202,7 @@ export function Component(): JSX.Element {
       {expanded ? null : (
         <div className="from-background-100 pointer-events-none absolute bottom-0 left-0 h-[30%] w-full rounded bg-linear-to-t to-transparent opacity-80" />
       )}
-      <div className={expanded ? 'h-16' : 'h-4'} />
+      <div className={expanded ? "h-16" : "h-4"} />
       <div className="pointer-events-none absolute bottom-0 left-0 flex h-[calc(100%-160px)] w-full flex-col justify-end">
         <ShowMore
           className="pointer-events-auto sticky bottom-4 mb-4"
@@ -224,17 +230,20 @@ const Row = memo(function Row({ item }: { item: (typeof items)[number] }): JSX.E
 ## Best practices
 
 **When to use**
+
 - Reach for `Table` when rows share a uniform shape and at least one column needs to be sortable or compared across rows — it's for genuinely tabular, multi-column data.
 - If you just need one row of descriptive text plus a single action (a membership row, an integration row), use the `Entity` component instead of forcing it into a table.
 - For a key/value metadata block on a detail page, use the `Description` component rather than faking it with a two-column table.
 
 **Behavior**
+
 - Don't render an empty `<TableBody>` when the underlying list is empty (cleared filter, nothing created yet) — show the dedicated `Empty State` component outside the table instead.
 - Missing/inapplicable values in a cell should render as an em dash (`—`), never `N/A`, `null`, or a blank string.
 - Column-header sort controls are real buttons, not decorative text — keep the visible label in Title Case, treat the sort arrow as decorative, and let the button itself announce the next sort direction to assistive tech (i.e. don't rely on the arrow icon alone for a11y).
 - Numeric columns should use tabular figures (`tabular-nums` or Geist Mono) so digits line up vertically for comparison across rows.
 
 **Content**
+
 - Column headers are Title Case noun phrases (`Last Used`, `Requests (7d)`, `Created`, `Status`) — never full sentences.
 - Use short relative-time strings in cells (`2m ago`, `5h ago`) and switch to an absolute date (`Mar 14, 2026`) once the value is older than 7 days; pair with the `Relative Time Card` component for the hover/detail treatment.
 - Pagination controls read `Previous` / `Next`; page-count copy is `Page 2 of 7` or a ranged form like `21–40 of 142` using an en dash inside the range.

@@ -16,27 +16,29 @@
 ## API
 
 Import:
+
 ```tsx
-import { Tooltip } from '@vercel/geistcn/components';
+import { Tooltip } from "@vercel/geistcn/components";
 ```
 
 Composable helper components used alongside it in examples: `Button`, `Badge`, `Spinner`, `Kbd` (all from the same `@vercel/geistcn/components` package).
 
 ### Props observed (all on `<Tooltip>`)
 
-| Prop | Type / values seen | Default (inferred) | Effect |
-|---|---|---|---|
-| `text` | `string \| ReactNode` (JSX fragment with inline `<b>`/`<i>`/`<Kbd>` allowed) | — (required) | The tooltip body content. |
-| `position` | `"top" \| "bottom" \| "left" \| "right"` | `"top"` (omitted in the first "Top" example) | Which side of the trigger the tooltip renders on. |
-| `boxAlign` | `"left" \| "right"` (omitted = center) | center | Aligns the tooltip box along the axis perpendicular to `position` (e.g. for `position="bottom"`, `boxAlign="left"` shifts the box to align its left edge, `boxAlign="right"` to the right, omitted = centered). |
-| `delay` | `boolean` | `true` (default entry delay active) | `delay={false}` removes the default hover-open delay so the tooltip appears immediately. |
-| `type` | `"success" \| "error" \| "warning"` (+ implied default/neutral) | default/neutral | Recolors the tooltip to communicate semantic status. |
-| `tip` | `boolean` | `true` | `tip={false}` hides the small pointer/caret indicator connecting the tooltip box to the trigger. |
-| `center` | `boolean` | `true` | `center={false}` changes text alignment/box centering behavior, used for longer tooltip strings. |
+| Prop       | Type / values seen                                                           | Default (inferred)                           | Effect                                                                                                                                                                                                          |
+| ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`     | `string \| ReactNode` (JSX fragment with inline `<b>`/`<i>`/`<Kbd>` allowed) | — (required)                                 | The tooltip body content.                                                                                                                                                                                       |
+| `position` | `"top" \| "bottom" \| "left" \| "right"`                                     | `"top"` (omitted in the first "Top" example) | Which side of the trigger the tooltip renders on.                                                                                                                                                               |
+| `boxAlign` | `"left" \| "right"` (omitted = center)                                       | center                                       | Aligns the tooltip box along the axis perpendicular to `position` (e.g. for `position="bottom"`, `boxAlign="left"` shifts the box to align its left edge, `boxAlign="right"` to the right, omitted = centered). |
+| `delay`    | `boolean`                                                                    | `true` (default entry delay active)          | `delay={false}` removes the default hover-open delay so the tooltip appears immediately.                                                                                                                        |
+| `type`     | `"success" \| "error" \| "warning"` (+ implied default/neutral)              | default/neutral                              | Recolors the tooltip to communicate semantic status.                                                                                                                                                            |
+| `tip`      | `boolean`                                                                    | `true`                                       | `tip={false}` hides the small pointer/caret indicator connecting the tooltip box to the trigger.                                                                                                                |
+| `center`   | `boolean`                                                                    | `true`                                       | `center={false}` changes text alignment/box centering behavior, used for longer tooltip strings.                                                                                                                |
 
 ### Usage snippets
 
 Basic four-position usage:
+
 ```tsx
 <Tooltip text="The Evil Rabbit Jumped over the Fence">
   <span>Top</span>
@@ -53,6 +55,7 @@ Basic four-position usage:
 ```
 
 No delay:
+
 ```tsx
 <Tooltip delay={false} text="The Evil Rabbit Jumped over the Fence">
   <span>Top</span>
@@ -63,6 +66,7 @@ No delay:
 ```
 
 Box align (3x3 matrix, pattern repeats for `position="left"` and `position="right"`):
+
 ```tsx
 <Tooltip boxAlign="left" position="bottom" text="The Evil Rabbit Jumped over the Fence">
   <span>Bottom/Left</span>
@@ -76,6 +80,7 @@ Box align (3x3 matrix, pattern repeats for `position="left"` and `position="righ
 ```
 
 Custom content (rich JSX `text`):
+
 ```tsx
 <Tooltip
   text={
@@ -89,6 +94,7 @@ Custom content (rich JSX `text`):
 ```
 
 Custom type:
+
 ```tsx
 <Tooltip text="The Evil Rabbit Jumped over the Fence" type="success">
   <span>Top</span>
@@ -102,6 +108,7 @@ Custom type:
 ```
 
 Composed with other components (trigger and/or body):
+
 ```tsx
 import { Badge, Button, Spinner, Tooltip, Kbd } from '@vercel/geistcn/components';
 
@@ -127,6 +134,7 @@ import { Badge, Button, Spinner, Tooltip, Kbd } from '@vercel/geistcn/components
 ```
 
 No tip / no center:
+
 ```tsx
 <Tooltip text="The Evil Rabbit Jumped over the Fence" tip={false}>
   No tip indicator
@@ -139,29 +147,33 @@ No tip / no center:
 ## Best practices (paraphrased)
 
 **When to use**
-- A tooltip explains *why* something exists or a constraint on it, not *what* it is — the visible label already names the thing; the tooltip adds the limit, scope, or rule.
+
+- A tooltip explains _why_ something exists or a constraint on it, not _what_ it is — the visible label already names the thing; the tooltip adds the limit, scope, or rule.
 - If you need an entity preview with structured metadata (avatar + a few facts + an optional action), reach for a Context Card instead of overloading a Tooltip.
 - If the content is long-form or needs to persist (survive a mouse-leave), use a Drawer or navigate to a page rather than cramming it into a Tooltip.
 - Lifecycle badges (Alpha / Experimental / Beta / Early Access) should use a Tooltip to spell out the concrete limits attached to that stage — API stability, SLA, support commitment, pricing, data retention — not just restate the badge word.
 
 **Behavior**
+
 - Opens on both mouse hover and keyboard focus (not hover-only) — this is required for keyboard accessibility.
 - Default open delay is about 150ms; keep it, since a delay-less tooltip flickers annoyingly as a mouse sweeps across the screen (the `delay={false}` variant should be an intentional exception, not the default).
 - Never wrap a labeled form Input directly in a Tooltip — the hover/focus target ends up being the `<label>` element, not the input, and the tooltip text collides with the label for assistive tech. Instead attach the Tooltip to a separate icon-button placed next to the field.
 - Keep any primary/critical action outside of a Tooltip's hover-only surface — touch-only users have no hover state and can never reach it.
 
 **Content**
+
 - Keep it to one short sentence or fragment; use sentence case; drop the trailing period if it's a single fragment.
 - Don't restate the visible label (e.g. a "Rate Limit" button doesn't need a tooltip that just says "Rate Limit") and don't describe the interaction itself (e.g. "Click to override").
 - Lifecycle tooltips follow the template `{Label}: {one-line meaning}. {Specific limit}.` — and if a feature is both a lifecycle stage and paid, fold both facts into one tooltip rather than stacking two separate badges.
 
 **Accessibility**
+
 - An icon-only trigger must still carry its own `aria-label` naming the action — the Tooltip's visible text is supplementary context, it is not a substitute for the accessible name.
 - Escape dismisses the open tooltip and returns keyboard focus to the trigger element.
 
 ## Design notes
 
-- No raw `--ds-*` CSS custom-property names or `material-*` classnames appear anywhere in the rendered markup or the code examples for this page — the demo markup only uses plain Tailwind-style utility classes (`flex relative min-w-px max-w-full flex-row flex-wrap flex-1`, etc.) for the *layout scaffolding* around each demo, not for the Tooltip component's own internals, so no token values could be recovered this way (page renders the compiled component as a black box, not its internal class names/styles).
+- No raw `--ds-*` CSS custom-property names or `material-*` classnames appear anywhere in the rendered markup or the code examples for this page — the demo markup only uses plain Tailwind-style utility classes (`flex relative min-w-px max-w-full flex-row flex-wrap flex-1`, etc.) for the _layout scaffolding_ around each demo, not for the Tooltip component's own internals, so no token values could be recovered this way (page renders the compiled component as a black box, not its internal class names/styles).
 - Positions are the four cardinal directions only: `top` (default), `bottom`, `left`, `right` — no diagonal/corner placements.
 - `boxAlign` (`left`/center/`right`) is only demonstrated combined with `bottom`, `left`, and `right` positions (a 3x3 matrix in the page), implying it's most meaningful perpendicular to the anchor's placement axis; not shown paired with `position="top"` in the examples (may still be valid).
 - `type` semantic variants confirmed in code: `success`, `error`, `warning` (plus an implicit default/neutral gray/black tooltip used in every other demo that doesn't pass `type`).

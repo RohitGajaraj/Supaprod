@@ -178,6 +178,7 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
     ]);
     expect(ROOM_TAB_META.quality.map((t) => t.id)).toEqual([
       "score",
+      "calibration",
       "suites",
       "drift",
       "prompts",
@@ -188,6 +189,7 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "controls",
       "team",
       "house-rules",
+      "routines",
       "incidents",
     ]);
     expect(ROOM_TAB_META.record.map((t) => t.id)).toEqual([

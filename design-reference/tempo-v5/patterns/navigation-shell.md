@@ -54,26 +54,26 @@ Named parts:
 
 **Rail nav row** (a 36px `--ds-size-medium` control; treat it exactly like the shared popover-row anatomy: `--ds-popover-row-radius` 6px, `--ds-popover-row-padding` horizontal 8px):
 
-| State | Background | Border | Text / icon |
-| --- | --- | --- | --- |
-| Default | transparent | none | `--ds-gray-900` (icon and label both secondary) |
-| Hover | `--ds-gray-100` -> `--ds-gray-200` on continued hover | none | `--ds-gray-1000` |
-| Active (selected route) | `--ds-gray-100` (persistent, not just on hover) | none | `--ds-gray-1000` text, icon tinted `--ds-ember-600` (the one chromatic mark of "you are here") |
-| Focus-visible | as default/hover | `--ds-focus-ring-outline` (2px, ember) | unchanged |
-| Disabled (rare: a destination gated pre-onboarding) | transparent | none | `--ds-gray-700`, `cursor: not-allowed`, paired with a `Tooltip` explaining the gate |
-| Loading (workspace list still resolving) | `--ds-gray-100` skeleton bar | none | Geist `Skeleton`, not a spinner, not an empty row |
+| State                                               | Background                                            | Border                                 | Text / icon                                                                                    |
+| --------------------------------------------------- | ----------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Default                                             | transparent                                           | none                                   | `--ds-gray-900` (icon and label both secondary)                                                |
+| Hover                                               | `--ds-gray-100` -> `--ds-gray-200` on continued hover | none                                   | `--ds-gray-1000`                                                                               |
+| Active (selected route)                             | `--ds-gray-100` (persistent, not just on hover)       | none                                   | `--ds-gray-1000` text, icon tinted `--ds-ember-600` (the one chromatic mark of "you are here") |
+| Focus-visible                                       | as default/hover                                      | `--ds-focus-ring-outline` (2px, ember) | unchanged                                                                                      |
+| Disabled (rare: a destination gated pre-onboarding) | transparent                                           | none                                   | `--ds-gray-700`, `cursor: not-allowed`, paired with a `Tooltip` explaining the gate            |
+| Loading (workspace list still resolving)            | `--ds-gray-100` skeleton bar                          | none                                   | Geist `Skeleton`, not a spinner, not an empty row                                              |
 
 **Engine Room door** shares the row anatomy above but never carries the ember active tint on its icon even when a child surface (traces, drift, budgets) is open; instead the row itself gets the `active` background so the door reads "you are inside it" without borrowing the brand color reserved for the five primary destinations.
 
 **Workspace switcher / user chip (`Entity`)**:
 
-| State | Treatment |
-| --- | --- |
-| Default | `--ds-background-100` row background, `--ds-gray-900` secondary line |
-| Hover | `--ds-gray-alpha-100` wash over the whole row (both are `as="button"` rows) |
+| State               | Treatment                                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Default             | `--ds-background-100` row background, `--ds-gray-900` secondary line                                                               |
+| Hover               | `--ds-gray-alpha-100` wash over the whole row (both are `as="button"` rows)                                                        |
 | Open (menu showing) | row background pinned to `--ds-gray-100` while `material-menu` is open, chevron rotates 180deg over `--ds-motion-popover-duration` |
-| Focus-visible | `--ds-focus-ring-outline` around the row |
-| Loading | `Entity`'s documented Skeleton composition (one full-width line + three short pills) in place of `EntityContent` |
+| Focus-visible       | `--ds-focus-ring-outline` around the row                                                                                           |
+| Loading             | `Entity`'s documented Skeleton composition (one full-width line + three short pills) in place of `EntityContent`                   |
 
 **Badge on a nav row** (unread/needs-you counts): `variant="ember" contrast="low"` (bg `--ds-ember-200`(light)/`--ds-ember-100`(dark) equivalent low tone, text `--ds-ember-900`) for something the user must act on; plain `variant="gray"` for a neutral count. Never a second ember badge on the same screen as the header's primary action, per the one-brand-mark-per-view discipline — a count is information, not a second call to action.
 
@@ -91,18 +91,18 @@ Named parts:
 
 **Keyboard** (full map):
 
-| Key | Effect |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Move focus through the rail in visual order: workspace switcher -> five destination rows -> Engine Room door -> Settings -> user chip -> topbar breadcrumb -> Ask button -> page content |
-| `Arrow Down` / `Arrow Up` | While focus is inside the destination-row list, move between rows without leaving the list (roving tabindex) |
-| `Home` / `End` | Jump to the first / last row in the focused list |
-| `Enter` / `Space` | Activate the focused row (navigate) or open the focused menu trigger |
-| `Escape` | Close whatever popover, menu, or mobile sheet is open and return focus to its trigger |
+| Key                                     | Effect                                                                                                                                                                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`                     | Move focus through the rail in visual order: workspace switcher -> five destination rows -> Engine Room door -> Settings -> user chip -> topbar breadcrumb -> Ask button -> page content                                                                                          |
+| `Arrow Down` / `Arrow Up`               | While focus is inside the destination-row list, move between rows without leaving the list (roving tabindex)                                                                                                                                                                      |
+| `Home` / `End`                          | Jump to the first / last row in the focused list                                                                                                                                                                                                                                  |
+| `Enter` / `Space`                       | Activate the focused row (navigate) or open the focused menu trigger                                                                                                                                                                                                              |
+| `Escape`                                | Close whatever popover, menu, or mobile sheet is open and return focus to its trigger                                                                                                                                                                                             |
 | `1`...`5` (bare key press, no modifier) | Jump straight to Today / Discover / Plan / Build / Brain, in that order. Suppressed while focus is in an `input`, `textarea`, or `contentEditable` element, while any modifier key is held, or while a modal dialog is open, so typing into a form or a dialog is never hijacked. |
-| `g` (bare key press) | Open the Engine Room door directly |
-| `Cmd/Ctrl+B` | Toggle the rail between expanded and icon-rail (desktop only) |
-| `Cmd/Ctrl+K` | Open the global Command Menu (jump-to-anything search); its trigger lives in the topbar, not the rail |
-| `Cmd/Ctrl+J` | Summon or dismiss the Ask panel from anywhere in the app, including while typing in most fields (a modifier chord, unlike the bare `1`-`5`/`g` rail shortcuts) |
+| `g` (bare key press)                    | Open the Engine Room door directly                                                                                                                                                                                                                                                |
+| `Cmd/Ctrl+B`                            | Toggle the rail between expanded and icon-rail (desktop only)                                                                                                                                                                                                                     |
+| `Cmd/Ctrl+K`                            | Open the global Command Menu (jump-to-anything search); its trigger lives in the topbar, not the rail                                                                                                                                                                             |
+| `Cmd/Ctrl+J`                            | Summon or dismiss the Ask panel from anywhere in the app, including while typing in most fields (a modifier chord, unlike the bare `1`-`5`/`g` rail shortcuts)                                                                                                                    |
 
 **Screen reader**: the rail is a `<nav aria-label="Primary">` landmark; the five destinations plus the Engine Room door render as a `role="list"` of links, with the active one carrying `aria-current="page"`. The workspace switcher and user chip are buttons with `aria-haspopup="menu"` and `aria-expanded`. The mobile drawer is a Radix `Dialog` (`role="dialog"`, `aria-modal="true"`, labelled by an accessible-only "Navigation" title) so focus is trapped and restored to the trigger on close. The Ask button announces its shortcut in its accessible name ("Ask, keyboard shortcut Command J").
 
@@ -125,49 +125,49 @@ Named parts:
 
 ## Tokens used
 
-| Token | Used for |
-| --- | --- |
-| `--ds-background-100` | Rail, topbar, and page background |
-| `--ds-background-200` | Rare subtle differentiation (for example the mobile sheet's own backdrop panel if distinguished from the page) |
-| `--ds-gray-100` / `--ds-gray-200` | Row hover/active backgrounds |
-| `--ds-gray-400` | Rail-to-content divider border (via `--ds-shadow-border-base`) |
-| `--ds-gray-700` | Disabled row text |
-| `--ds-gray-900` | Default row/breadcrumb/description text |
-| `--ds-gray-1000` | Active row/breadcrumb text, primary labels |
-| `--ds-gray-alpha-100`/`--ds-gray-alpha-200` | Hover wash on `Entity` rows over the page background |
-| `--ds-ember-600` / `--ds-ember-700` | Active destination icon tint (dark/light theme respectively) |
-| `--ds-ember-100`/`--ds-ember-200`/`--ds-ember-900` | Ember-subtle nav badge (fill/text pair) |
-| `--ds-focus-ring` / `--ds-focus-ring-outline` | Focus states on every interactive rail/topbar element |
-| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity` | Mobile drawer scrim |
-| `--ds-radius-small` (6px) | Nav row radius, popover row radius |
-| `--ds-radius-medium` (12px) | `material-menu` popovers (workspace switcher, user chip, dots menus) |
-| `--ds-radius-large` (16px) | The mobile sheet's leading edge (`material-fullscreen`-adjacent takeover) |
-| `--ds-shadow-border` / `--ds-shadow-border-small` | Rail/topbar hairline separation from the page |
-| `--ds-shadow-menu` | `material-menu` popovers |
-| `--ds-shadow-tooltip` | Icon-rail hover tooltips |
-| `.material-menu` | Workspace switcher, user-chip menu, row `DotsMenu`s |
-| `.material-tooltip` | Collapsed-rail row labels |
-| `.material-large` / `.material-fullscreen` | The mobile off-canvas sheet |
-| `--ds-motion-timing-swift` | Every eased transition in this pattern |
-| `--ds-motion-popover-duration` (200ms) | Rail expand/collapse, menu open/close, chevron rotation |
-| `--ds-motion-overlay-duration` (300ms) / `--ds-motion-overlay-scale` (0.96) | Mobile sheet open/close |
-| `--ds-size-medium` (36px) | Nav row height, topbar control height |
-| `--ds-size-small` (32px) | Collapse toggle, mobile menu trigger |
-| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` / `--ds-popover-row-padding` | Shared anatomy between rail rows and every popover row in this pattern |
-| `--geist-space` / `--geist-space-2x` / `--geist-space-3x` | Icon-to-label gaps, row internal padding |
-| `--geist-gap-quarter` (8px) | Tight gaps within a row |
-| `--geist-gap-half` (12px) | Gap between the topbar's clustered controls |
-| `--geist-gap` (24px) | Gap between rail groups (destinations / Engine Room / footer), gap above/below the page header |
-| `--ds-page-width` (1400px) | Max width of the page body inside the content column |
-| `--ds-z-drawer` | Mobile sheet z-index |
-| `--ds-z-menu` | Workspace switcher / user chip / dots menus |
-| `--ds-z-tooltip` | Icon-rail tooltips |
-| `text-label-14` | Rail row labels, breadcrumb items |
-| `text-label-13` / `text-label-12-mono` | User chip secondary line; the `Cmd J` shortcut hint |
-| `text-heading-24` / `text-heading-20` | Page header title |
-| `text-copy-14` | Page header description |
-| `text-button-14` | Topbar and page-header action buttons |
-| `--font-sans` | Every string in this pattern (no Mono, no Pixel — see Do/Don't) |
+| Token                                                                                                       | Used for                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                                                       | Rail, topbar, and page background                                                                              |
+| `--ds-background-200`                                                                                       | Rare subtle differentiation (for example the mobile sheet's own backdrop panel if distinguished from the page) |
+| `--ds-gray-100` / `--ds-gray-200`                                                                           | Row hover/active backgrounds                                                                                   |
+| `--ds-gray-400`                                                                                             | Rail-to-content divider border (via `--ds-shadow-border-base`)                                                 |
+| `--ds-gray-700`                                                                                             | Disabled row text                                                                                              |
+| `--ds-gray-900`                                                                                             | Default row/breadcrumb/description text                                                                        |
+| `--ds-gray-1000`                                                                                            | Active row/breadcrumb text, primary labels                                                                     |
+| `--ds-gray-alpha-100`/`--ds-gray-alpha-200`                                                                 | Hover wash on `Entity` rows over the page background                                                           |
+| `--ds-ember-600` / `--ds-ember-700`                                                                         | Active destination icon tint (dark/light theme respectively)                                                   |
+| `--ds-ember-100`/`--ds-ember-200`/`--ds-ember-900`                                                          | Ember-subtle nav badge (fill/text pair)                                                                        |
+| `--ds-focus-ring` / `--ds-focus-ring-outline`                                                               | Focus states on every interactive rail/topbar element                                                          |
+| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity`                                             | Mobile drawer scrim                                                                                            |
+| `--ds-radius-small` (6px)                                                                                   | Nav row radius, popover row radius                                                                             |
+| `--ds-radius-medium` (12px)                                                                                 | `material-menu` popovers (workspace switcher, user chip, dots menus)                                           |
+| `--ds-radius-large` (16px)                                                                                  | The mobile sheet's leading edge (`material-fullscreen`-adjacent takeover)                                      |
+| `--ds-shadow-border` / `--ds-shadow-border-small`                                                           | Rail/topbar hairline separation from the page                                                                  |
+| `--ds-shadow-menu`                                                                                          | `material-menu` popovers                                                                                       |
+| `--ds-shadow-tooltip`                                                                                       | Icon-rail hover tooltips                                                                                       |
+| `.material-menu`                                                                                            | Workspace switcher, user-chip menu, row `DotsMenu`s                                                            |
+| `.material-tooltip`                                                                                         | Collapsed-rail row labels                                                                                      |
+| `.material-large` / `.material-fullscreen`                                                                  | The mobile off-canvas sheet                                                                                    |
+| `--ds-motion-timing-swift`                                                                                  | Every eased transition in this pattern                                                                         |
+| `--ds-motion-popover-duration` (200ms)                                                                      | Rail expand/collapse, menu open/close, chevron rotation                                                        |
+| `--ds-motion-overlay-duration` (300ms) / `--ds-motion-overlay-scale` (0.96)                                 | Mobile sheet open/close                                                                                        |
+| `--ds-size-medium` (36px)                                                                                   | Nav row height, topbar control height                                                                          |
+| `--ds-size-small` (32px)                                                                                    | Collapse toggle, mobile menu trigger                                                                           |
+| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` / `--ds-popover-row-padding` | Shared anatomy between rail rows and every popover row in this pattern                                         |
+| `--geist-space` / `--geist-space-2x` / `--geist-space-3x`                                                   | Icon-to-label gaps, row internal padding                                                                       |
+| `--geist-gap-quarter` (8px)                                                                                 | Tight gaps within a row                                                                                        |
+| `--geist-gap-half` (12px)                                                                                   | Gap between the topbar's clustered controls                                                                    |
+| `--geist-gap` (24px)                                                                                        | Gap between rail groups (destinations / Engine Room / footer), gap above/below the page header                 |
+| `--ds-page-width` (1400px)                                                                                  | Max width of the page body inside the content column                                                           |
+| `--ds-z-drawer`                                                                                             | Mobile sheet z-index                                                                                           |
+| `--ds-z-menu`                                                                                               | Workspace switcher / user chip / dots menus                                                                    |
+| `--ds-z-tooltip`                                                                                            | Icon-rail tooltips                                                                                             |
+| `text-label-14`                                                                                             | Rail row labels, breadcrumb items                                                                              |
+| `text-label-13` / `text-label-12-mono`                                                                      | User chip secondary line; the `Cmd J` shortcut hint                                                            |
+| `text-heading-24` / `text-heading-20`                                                                       | Page header title                                                                                              |
+| `text-copy-14`                                                                                              | Page header description                                                                                        |
+| `text-button-14`                                                                                            | Topbar and page-header action buttons                                                                          |
+| `--font-sans`                                                                                               | Every string in this pattern (no Mono, no Pixel — see Do/Don't)                                                |
 
 ## Implementation guidance
 
@@ -196,7 +196,11 @@ export function TodayPage() {
       header={{
         title: "Today",
         description: "What needs you, what changed, and what to push next.",
-        action: <Button variant="primary" size="medium">Review calls</Button>,
+        action: (
+          <Button variant="primary" size="medium">
+            Review calls
+          </Button>
+        ),
       }}
     >
       {/* page body */}
@@ -219,7 +223,11 @@ export function TodayPage() {
         background: active ? "var(--ds-gray-100)" : "transparent",
       }}
     >
-      <CompassIcon size={16} strokeWidth={1.5} color={active ? "var(--ds-ember-600)" : "var(--ds-gray-900)"} />
+      <CompassIcon
+        size={16}
+        strokeWidth={1.5}
+        color={active ? "var(--ds-ember-600)" : "var(--ds-gray-900)"}
+      />
     </Link>
   </TooltipTrigger>
   <TooltipContent className="material-tooltip text-label-13">Discover</TooltipContent>
@@ -239,7 +247,10 @@ function MobileTopbar() {
     <div className="flex h-[48px] items-center gap-[var(--geist-gap-half)] px-[var(--geist-space-4x)]">
       <Sheet>
         <SheetTrigger asChild>
-          <button aria-label="Open navigation" className="flex h-[32px] w-[32px] items-center justify-center">
+          <button
+            aria-label="Open navigation"
+            className="flex h-[32px] w-[32px] items-center justify-center"
+          >
             <MenuIcon size={16} strokeWidth={1.5} />
           </button>
         </SheetTrigger>
@@ -248,7 +259,10 @@ function MobileTopbar() {
         </SheetContent>
       </Sheet>
       <span className="text-label-14 flex-1 truncate">Build</span>
-      <button onClick={summon} className="text-label-12-mono flex items-center gap-[var(--geist-gap-quarter)]">
+      <button
+        onClick={summon}
+        className="text-label-12-mono flex items-center gap-[var(--geist-gap-quarter)]"
+      >
         Ask <kbd className="text-label-12-mono">Cmd J</kbd>
       </button>
     </div>

@@ -23,44 +23,44 @@ Note: the page nav/sidebar (scraped from the surrounding shell, not the componen
 
 ### `<Input>` — observed props (from all code examples)
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `aria-labelledby` | string | used in nearly every undecorated example instead of a visible label |
-| `label` | string | renders a built-in associated label (`"Label"` example); best-practices notes it requires `id` when passed as a string (see below) |
-| `placeholder` | string | example value, never an instruction (content rule) |
-| `value` | string | controlled value, shown even while `disabled` |
-| `size` | `"small"` \| default (medium, no prop) \| `"large"` | affects error demo and default demo |
-| `disabled` | boolean | combines with placeholder, value, prefix, suffix |
-| `error` | string | error message text; presence of the prop triggers the error visual state |
-| `prefix` | `ReactNode` (icon component) or `string` | e.g. `<IconArrowCircleUp />`, `"https://"`, `"vercel/"`, `"www."` |
-| `suffix` | `ReactNode` (icon component) or `string` | e.g. `<IconArrowCircleUp />`, `".com"` |
-| `prefixStyling` | boolean (default true) | `false` strips the chrome/background styling from the prefix slot |
-| `suffixStyling` | boolean (default true) | `false` strips the chrome/background styling from the suffix slot |
-| `suffixContainer` | boolean (default true) | `false` removes the suffix's wrapping container entirely (seen combined with `suffixStyling={false}`) |
-| `rounded` | boolean | applies a rounded/pill treatment to the prefix/suffix segments |
+| Prop              | Type / values seen                                  | Notes                                                                                                                              |
+| ----------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `aria-labelledby` | string                                              | used in nearly every undecorated example instead of a visible label                                                                |
+| `label`           | string                                              | renders a built-in associated label (`"Label"` example); best-practices notes it requires `id` when passed as a string (see below) |
+| `placeholder`     | string                                              | example value, never an instruction (content rule)                                                                                 |
+| `value`           | string                                              | controlled value, shown even while `disabled`                                                                                      |
+| `size`            | `"small"` \| default (medium, no prop) \| `"large"` | affects error demo and default demo                                                                                                |
+| `disabled`        | boolean                                             | combines with placeholder, value, prefix, suffix                                                                                   |
+| `error`           | string                                              | error message text; presence of the prop triggers the error visual state                                                           |
+| `prefix`          | `ReactNode` (icon component) or `string`            | e.g. `<IconArrowCircleUp />`, `"https://"`, `"vercel/"`, `"www."`                                                                  |
+| `suffix`          | `ReactNode` (icon component) or `string`            | e.g. `<IconArrowCircleUp />`, `".com"`                                                                                             |
+| `prefixStyling`   | boolean (default true)                              | `false` strips the chrome/background styling from the prefix slot                                                                  |
+| `suffixStyling`   | boolean (default true)                              | `false` strips the chrome/background styling from the suffix slot                                                                  |
+| `suffixContainer` | boolean (default true)                              | `false` removes the suffix's wrapping container entirely (seen combined with `suffixStyling={false}`)                              |
+| `rounded`         | boolean                                             | applies a rounded/pill treatment to the prefix/suffix segments                                                                     |
 
 Type name referenced in Best Practices/Accessibility copy: `InputPropsWithStringLabelAndId` — a union member of the `Input` prop types that requires `id` whenever `label` is passed as a plain string (so the label element can be associated for screen readers). Implies the full prop type is a discriminated union keyed on how the label is supplied (string+id vs. custom label node vs. `aria-labelledby`).
 
 ### `<SearchInput>` — observed props
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `value` | string | controlled |
-| `onChange` | `(e) => void` | standard change handler, reads `e.target.value` |
-| `placeholder` | string | e.g. `"Enter some text..."` |
-| `cmdk` | boolean | toggles the ⌘K palette-style affordance/shortcut hint |
+| Prop          | Type / values seen | Notes                                                 |
+| ------------- | ------------------ | ----------------------------------------------------- |
+| `value`       | string             | controlled                                            |
+| `onChange`    | `(e) => void`      | standard change handler, reads `e.target.value`       |
+| `placeholder` | string             | e.g. `"Enter some text..."`                           |
+| `cmdk`        | boolean            | toggles the ⌘K palette-style affordance/shortcut hint |
 
 ### Minimal usage snippets (as documented)
 
 ```tsx
 // Sizes
-import { Input } from '@vercel/geistcn/components';
+import { Input } from "@vercel/geistcn/components";
 
 <div className="flex flex-col md:flex-row items-start justify-between gap-4 flex-initial">
   <Input aria-labelledby="Demo input" placeholder="Small" size="small" />
   <Input aria-labelledby="Demo input" placeholder="Default" />
   <Input aria-labelledby="Demo input" placeholder="Large" size="large" />
-</div>
+</div>;
 ```
 
 ```tsx
@@ -109,15 +109,15 @@ import { IconArrowCircleUp } from '@vercel/geistcn-assets/icons';
 
 ```tsx
 // Search
-import { SearchInput } from '@vercel/geistcn/components';
-import { useState } from 'react';
+import { SearchInput } from "@vercel/geistcn/components";
+import { useState } from "react";
 
-const [value, setValue] = useState('');
+const [value, setValue] = useState("");
 <SearchInput
   onChange={(e) => setValue(e.target.value)}
   placeholder="Enter some text..."
   value={value}
-/>
+/>;
 ```
 
 ```tsx
@@ -169,24 +169,28 @@ const [value, setValue] = useState('');
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Use `Input` for a single line of free-form text (names, domains, tokens).
 - Move to `Textarea` as soon as the value could wrap across multiple lines.
 - Move to `Combobox` when the value should come from a known, filterable list rather than open text.
 - For an inline search box, use the dedicated `search`-style variant (i.e. `SearchInput`) with a placeholder scoped to what's being searched (e.g. "Search projects") — don't repurpose it for an unrelated form field.
 
 **Behavior**
+
 - Validate on blur rather than on every keystroke, and surface the failure by passing a message string to `error`.
 - Trim leading/trailing whitespace before submit so equivalent values (`" example.com"` vs `"example.com"`) don't diverge.
 - Keep the field focusable while an async save is in flight; only reach for `disabled` when input is genuinely impossible, and pair it with a loading indicator.
 - Don't wrap a labelled `Input` in a tooltip for extra explanation — put that explainer on a separate, adjacent icon button so the field's accessible label isn't obscured.
 
 **Content**
+
 - Labels are short, Title Case nouns ("Project Name", "Domain", "Environment Variable Name").
 - Placeholders show a realistic example value ("my-awesome-project", "example.com") — never an instruction like "Enter your project name".
 - Helper text is one sentence, sentence case, ending in a period, rendered as a sibling element wired via `aria-describedby`.
 - Validation messages name the field and the specific constraint, end in a period, and avoid softening language like "please" (e.g. "Project name is required.", "Code must be 6 digits.").
 
 **Accessibility**
+
 - If you pass `label` as a plain string, you must also pass `id` — the type system enforces this (the `InputPropsWithStringLabelAndId` union won't compile otherwise) because without it screen readers can't associate the label with the field.
 - For an icon-only affordance living next to an input, use a circular icon button with an explicit `aria-label` rather than a bare unlabeled icon.
 - A `SearchInput`'s placeholder should name its scope (e.g. "Search projects") so its purpose is clear without relying on surrounding visual context.

@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { ProviderId } from "@/lib/connectors/registry";
 import { trustCopyFor } from "@/lib/connect-trust";
@@ -37,9 +43,7 @@ export function ConnectTrustDialog({
   onContinue: () => void;
   busy: boolean;
 }) {
-  const copy = provider
-    ? trustCopyFor(provider)
-    : { weRead: "", weNeverRead: "" };
+  const copy = provider ? trustCopyFor(provider) : { weRead: "", weNeverRead: "" };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

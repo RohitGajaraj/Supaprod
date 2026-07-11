@@ -109,51 +109,51 @@ Pixel numeral        Ember completion glow       Springy palette settle
 
 **Icon variants**
 
-| Variant | When to use |
-| --- | --- |
-| **Labeled icon** (icon + text, same color) | The default pairing — nav items, buttons with visible text, list-row leading icons, card metadata. |
-| **Standalone decorative icon** | An icon that reinforces meaning already carried by adjacent text (a chevron on a disclosure row, a small status glyph in a table cell) and needs no independent announcement — mark it `aria-hidden`. |
-| **Icon-only control** | A control whose action is unambiguous from context and space is tight (toolbar buttons, a close affordance, a card's overflow trigger). Always a real `Button`/`ButtonLink` with `svgOnly` + `aria-label`, never a bare `<svg onClick>`. |
-| **Icon chip** | The 32px icon inside a tinted/background tile, used once per `EmptyState` (`EmptyStateIcon`'s own canonical sizing) or inside `AvatarWithIcon` (14px icon, `iconBackground`, `color="gray-900"`) for a system-generated "avatar." Never invent a second chip treatment — reuse whichever of these two the surface already is. |
-| **Status icon** | A small (12 to 14px) icon colored by status role — green for success, red for error, amber for warning — used only where the icon *is* the status (a run's outcome glyph in a timeline), never as color-for-decoration on an otherwise-neutral icon. |
+| Variant                                    | When to use                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Labeled icon** (icon + text, same color) | The default pairing — nav items, buttons with visible text, list-row leading icons, card metadata.                                                                                                                                                                                                                            |
+| **Standalone decorative icon**             | An icon that reinforces meaning already carried by adjacent text (a chevron on a disclosure row, a small status glyph in a table cell) and needs no independent announcement — mark it `aria-hidden`.                                                                                                                         |
+| **Icon-only control**                      | A control whose action is unambiguous from context and space is tight (toolbar buttons, a close affordance, a card's overflow trigger). Always a real `Button`/`ButtonLink` with `svgOnly` + `aria-label`, never a bare `<svg onClick>`.                                                                                      |
+| **Icon chip**                              | The 32px icon inside a tinted/background tile, used once per `EmptyState` (`EmptyStateIcon`'s own canonical sizing) or inside `AvatarWithIcon` (14px icon, `iconBackground`, `color="gray-900"`) for a system-generated "avatar." Never invent a second chip treatment — reuse whichever of these two the surface already is. |
+| **Status icon**                            | A small (12 to 14px) icon colored by status role — green for success, red for error, amber for warning — used only where the icon _is_ the status (a run's outcome glyph in a timeline), never as color-for-decoration on an otherwise-neutral icon.                                                                          |
 
 **Illustration composition variants**
 
-| Variant | When to use |
-| --- | --- |
-| **Micro composition** (~48 to 64px) | Inline beside a stat, a card header, or a small panel — a hint of the grid language, not a scene. |
-| **Compact composition** (~96 to 160px) | The default empty-state illustration; sized to sit where `EmptyStateIcon` would otherwise sit, but as a small grid-born fragment instead of a single glyph-in-a-chip when the moment deserves more presence (first-run, a cleared queue). |
-| **Feature composition** (~240 to 400px) | Launch screens, feature-announcement panels, onboarding hero moments — the only case where the grid-born recipe is allowed to take up serious canvas, and still capped at one per screen. |
+| Variant                                 | When to use                                                                                                                                                                                                                               |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Micro composition** (~48 to 64px)     | Inline beside a stat, a card header, or a small panel — a hint of the grid language, not a scene.                                                                                                                                         |
+| **Compact composition** (~96 to 160px)  | The default empty-state illustration; sized to sit where `EmptyStateIcon` would otherwise sit, but as a small grid-born fragment instead of a single glyph-in-a-chip when the moment deserves more presence (first-run, a cleared queue). |
+| **Feature composition** (~240 to 400px) | Launch screens, feature-announcement panels, onboarding hero moments — the only case where the grid-born recipe is allowed to take up serious canvas, and still capped at one per screen.                                                 |
 
 **Logo & wordmark variants**
 
-| Variant | When to use |
-| --- | --- |
-| **Monogram only** | Collapsed nav rail, favicon, browser tab, a loading/splash moment, anywhere the full wordmark would not fit or would repeat a wordmark already on screen. |
-| **Horizontal lockup** (monogram + wordmark) | Expanded nav rail header, marketing/landing header, the sign-in screen, any first-touch surface that should say the product's name once. |
-| **Wordmark only** | Rare — dense text contexts (a legal footer line, an email signature) where the monogram would add width without adding recognition. Only sanctioned lockup shapes are these three; do not invent a stacked/vertical lockup without a founder decision (see Do/Don't). |
+| Variant                                     | When to use                                                                                                                                                                                                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monogram only**                           | Collapsed nav rail, favicon, browser tab, a loading/splash moment, anywhere the full wordmark would not fit or would repeat a wordmark already on screen.                                                                                                             |
+| **Horizontal lockup** (monogram + wordmark) | Expanded nav rail header, marketing/landing header, the sign-in screen, any first-touch surface that should say the product's name once.                                                                                                                              |
+| **Wordmark only**                           | Rare — dense text contexts (a legal footer line, an email signature) where the monogram would add width without adding recognition. Only sanctioned lockup shapes are these three; do not invent a stacked/vertical lockup without a founder decision (see Do/Don't). |
 
 **Personality-touch variants** (pick at most one per surface)
 
-| Variant | When to use |
-| --- | --- |
-| **Pixel numeral** | A single number is the moment's whole point — an onboarding step count, a big milestone figure, an empty-state "0" that will become a real count. Render that one numeral in Geist Pixel Square; everything around it stays Geist Sans. |
-| **Ember completion glow** | A run, build, or job just finished successfully and the surface wants one beat of warmth to mark it — a soft ember-tinted glow at the edge of the card that reported it, never a full ember fill. |
-| **Springy palette settle** | Any floating surface's open transition (command palette, a spotlight-style search, a launch dialog) — the swift easing's built-in slight overshoot on `--ds-motion-overlay-scale`, not a separate bespoke bounce. |
+| Variant                    | When to use                                                                                                                                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pixel numeral**          | A single number is the moment's whole point — an onboarding step count, a big milestone figure, an empty-state "0" that will become a real count. Render that one numeral in Geist Pixel Square; everything around it stays Geist Sans. |
+| **Ember completion glow**  | A run, build, or job just finished successfully and the surface wants one beat of warmth to mark it — a soft ember-tinted glow at the edge of the card that reported it, never a full ember fill.                                       |
+| **Springy palette settle** | Any floating surface's open transition (command palette, a spotlight-style search, a launch dialog) — the swift easing's built-in slight overshoot on `--ds-motion-overlay-scale`, not a separate bespoke bounce.                       |
 
 ## States — default/hover/active/focus/disabled/loading/empty/error
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| **Default** | Labeled/standalone icon | Color inherits its pairing's text color: `--ds-gray-900` (secondary text pairing) or `--ds-gray-1000` (primary text pairing); stroke `1.5px`; size `16px` (`20px` in headers/nav). |
-| **Default (brand/active)** | An icon marking the active nav item, a selected row, or a brand moment | Color `--ds-ember-600` (dark) / `--ds-ember-700` (light) — the only case an icon may take the brand hue. |
-| **Hover** | Icon-only control | Inherits the underlying `Button` variant's own hover fill/border step (see `button.md`); the glyph itself never changes color or weight on hover, only its container does. |
-| **Active (pressed)** | Icon-only control | Inherits the underlying `Button` variant's active step; same rule — the container moves, the glyph does not. |
-| **Focus** | Icon-only control, any focusable lockup that doubles as a home link | `--ds-focus-ring` (2px background + 2px ember ring) on the control box, never drawn around the bare glyph. |
-| **Disabled** | Icon-only control | Inherits the underlying `Button`'s disabled treatment (reduced-contrast fill/text per `button.md`); pair with a `Tooltip` explaining why, per the cross-component contract in DESIGN-TEMPO.md §7. |
-| **Loading** | A grid-born composition standing in for content that has not arrived yet | Do not animate the gridlines or pixel glyphs as a skeleton — a static composition is itself the "nothing here yet" signal. If the surface needs a loading state, use the ordinary `Skeleton` primitive instead and hold the illustration for the true empty/zero state that follows. |
-| **Empty** | Grid-born composition inside an `EmptyState` | One composition per whole empty state (never one per row/tile within it); paired with plain-words `title`/`description` per `empty-state.md`'s own content rules. |
-| **Error** | Icon inside an error/status row | Status icon recolored to `--ds-red-700`/`-800`/`-900` per theme, paired with the error text — never the grid-born illustration recipe, which is reserved for empty/first-run/celebratory moments, not failure. |
+| State                      | Applies to                                                               | Tokens                                                                                                                                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Default**                | Labeled/standalone icon                                                  | Color inherits its pairing's text color: `--ds-gray-900` (secondary text pairing) or `--ds-gray-1000` (primary text pairing); stroke `1.5px`; size `16px` (`20px` in headers/nav).                                                                                                   |
+| **Default (brand/active)** | An icon marking the active nav item, a selected row, or a brand moment   | Color `--ds-ember-600` (dark) / `--ds-ember-700` (light) — the only case an icon may take the brand hue.                                                                                                                                                                             |
+| **Hover**                  | Icon-only control                                                        | Inherits the underlying `Button` variant's own hover fill/border step (see `button.md`); the glyph itself never changes color or weight on hover, only its container does.                                                                                                           |
+| **Active (pressed)**       | Icon-only control                                                        | Inherits the underlying `Button` variant's active step; same rule — the container moves, the glyph does not.                                                                                                                                                                         |
+| **Focus**                  | Icon-only control, any focusable lockup that doubles as a home link      | `--ds-focus-ring` (2px background + 2px ember ring) on the control box, never drawn around the bare glyph.                                                                                                                                                                           |
+| **Disabled**               | Icon-only control                                                        | Inherits the underlying `Button`'s disabled treatment (reduced-contrast fill/text per `button.md`); pair with a `Tooltip` explaining why, per the cross-component contract in DESIGN-TEMPO.md §7.                                                                                    |
+| **Loading**                | A grid-born composition standing in for content that has not arrived yet | Do not animate the gridlines or pixel glyphs as a skeleton — a static composition is itself the "nothing here yet" signal. If the surface needs a loading state, use the ordinary `Skeleton` primitive instead and hold the illustration for the true empty/zero state that follows. |
+| **Empty**                  | Grid-born composition inside an `EmptyState`                             | One composition per whole empty state (never one per row/tile within it); paired with plain-words `title`/`description` per `empty-state.md`'s own content rules.                                                                                                                    |
+| **Error**                  | Icon inside an error/status row                                          | Status icon recolored to `--ds-red-700`/`-800`/`-900` per theme, paired with the error text — never the grid-born illustration recipe, which is reserved for empty/first-run/celebratory moments, not failure.                                                                       |
 
 ## Interaction model — pointer, keyboard, screen-reader, motion
 
@@ -172,11 +172,11 @@ Pixel numeral        Ember completion glow       Springy palette settle
 
 **Keyboard** (full map)
 
-| Key | Where | Effect |
-| --- | --- | --- |
-| `Tab` / `Shift+Tab` | Page | Reaches every icon-only control as one stop (it is a real `Button`); reaches the monogram/wordmark lockup as one stop when it is a home link; skips standalone decorative icons and grid-born illustrations entirely — they are not in the tab order. |
-| `Enter` / `Space` | A focused icon-only control or lockup-as-link | Activates it. |
-| `Escape` | N/A to this pattern directly | No illustration/icon in this pattern owns its own dismiss behavior; escape handling belongs to whatever overlay a personality touch might be riding inside (e.g. the command palette itself — see `command-palette.md`). |
+| Key                 | Where                                         | Effect                                                                                                                                                                                                                                                |
+| ------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab` | Page                                          | Reaches every icon-only control as one stop (it is a real `Button`); reaches the monogram/wordmark lockup as one stop when it is a home link; skips standalone decorative icons and grid-born illustrations entirely — they are not in the tab order. |
+| `Enter` / `Space`   | A focused icon-only control or lockup-as-link | Activates it.                                                                                                                                                                                                                                         |
+| `Escape`            | N/A to this pattern directly                  | No illustration/icon in this pattern owns its own dismiss behavior; escape handling belongs to whatever overlay a personality touch might be riding inside (e.g. the command palette itself — see `command-palette.md`).                              |
 
 **Screen reader**
 
@@ -263,31 +263,31 @@ Pixel numeral        Ember completion glow       Springy palette settle
 
 ## Tokens used
 
-| Token / class | Role in this pattern |
-| --- | --- |
-| `--ds-gray-400` | Grid-born illustration gridlines (1px). |
-| `--ds-gray-900` | Default icon color (secondary-text pairing); pixel-glyph color in illustrations; empty-state description text. |
-| `--ds-gray-1000` | Primary icon color (primary-text pairing); pixel-glyph color where the glyph is the emphasis; wordmark text color. |
-| `--ds-gray-alpha-100`…`-400` | Optional icon-chip background wash where a chip sits over an unknown surface (mirrors `AvatarWithIcon`'s own `iconBackground`). |
-| `--ds-ember-600` / `-700` | The one sanctioned chromatic accent: active/brand-state icon color (dark/light), the single accent mark in a grid-born composition, the ember completion glow's tint. |
-| `--ds-ember-800` / `-900` | Ember glow's stronger inner tone where a two-stop gradient-free tint needs a second step (still capped to the glow region only, never a fill). |
-| `--ds-red-700`/`-800`/`-900`, `--ds-green-700`/`-800`/`-900`, `--ds-amber-700`/`-800` | Status-icon color, paired with status text only — never used for decoration or as a chart/series color (see `dashboards-stat-cards.md`'s own reservation rule). |
-| `--ds-focus-ring` | Focus state on any icon-only control or home-linking lockup. |
-| `--font-sans` | Wordmark text, all icon-adjacent labels. |
-| `--font-pixel` (Geist Pixel Square) | Monogram glyph; pixel-glyph marks inside grid-born illustrations; the pixel-numeral personality touch. |
-| `.text-heading-*` sizes (32/40/48/56/64/72) | Borrow the nearest size for a pixel numeral's font-size/line-height so it sits on the same vertical rhythm as headings, applying `--font-pixel` as the family override rather than inventing a new size (see Implementation guidance — no `.text-pixel-*` class exists yet). |
-| `--geist-space-2x` (8px) | Gap between an icon and its paired label. |
-| `--geist-space-4x` / `-6x` (16px / 24px) | Grid-cell rhythm inside a grid-born illustration canvas. |
-| `--ds-size-small`/`-medium`/`-large` (32/36/40px) | Icon-only control box, mobile bumping to `-large` for tap-target comfort. |
-| `material-base` / `material-small` | Icon-chip container background, where a chip is used outside `EmptyStateIcon`'s own built-in treatment. |
-| `--ds-motion-timing-swift` | Ember glow fade; the palette settle's easing (inherited from the overlay it rides). |
-| `--ds-motion-overlay-scale` / `-timing` / `-duration` | The springy palette settle (0.96 → 1, 300ms). |
-| `--ds-motion-popover-duration` (200ms) | Ember completion glow's fade timing. |
+| Token / class                                                                         | Role in this pattern                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-gray-400`                                                                       | Grid-born illustration gridlines (1px).                                                                                                                                                                                                                                      |
+| `--ds-gray-900`                                                                       | Default icon color (secondary-text pairing); pixel-glyph color in illustrations; empty-state description text.                                                                                                                                                               |
+| `--ds-gray-1000`                                                                      | Primary icon color (primary-text pairing); pixel-glyph color where the glyph is the emphasis; wordmark text color.                                                                                                                                                           |
+| `--ds-gray-alpha-100`…`-400`                                                          | Optional icon-chip background wash where a chip sits over an unknown surface (mirrors `AvatarWithIcon`'s own `iconBackground`).                                                                                                                                              |
+| `--ds-ember-600` / `-700`                                                             | The one sanctioned chromatic accent: active/brand-state icon color (dark/light), the single accent mark in a grid-born composition, the ember completion glow's tint.                                                                                                        |
+| `--ds-ember-800` / `-900`                                                             | Ember glow's stronger inner tone where a two-stop gradient-free tint needs a second step (still capped to the glow region only, never a fill).                                                                                                                               |
+| `--ds-red-700`/`-800`/`-900`, `--ds-green-700`/`-800`/`-900`, `--ds-amber-700`/`-800` | Status-icon color, paired with status text only — never used for decoration or as a chart/series color (see `dashboards-stat-cards.md`'s own reservation rule).                                                                                                              |
+| `--ds-focus-ring`                                                                     | Focus state on any icon-only control or home-linking lockup.                                                                                                                                                                                                                 |
+| `--font-sans`                                                                         | Wordmark text, all icon-adjacent labels.                                                                                                                                                                                                                                     |
+| `--font-pixel` (Geist Pixel Square)                                                   | Monogram glyph; pixel-glyph marks inside grid-born illustrations; the pixel-numeral personality touch.                                                                                                                                                                       |
+| `.text-heading-*` sizes (32/40/48/56/64/72)                                           | Borrow the nearest size for a pixel numeral's font-size/line-height so it sits on the same vertical rhythm as headings, applying `--font-pixel` as the family override rather than inventing a new size (see Implementation guidance — no `.text-pixel-*` class exists yet). |
+| `--geist-space-2x` (8px)                                                              | Gap between an icon and its paired label.                                                                                                                                                                                                                                    |
+| `--geist-space-4x` / `-6x` (16px / 24px)                                              | Grid-cell rhythm inside a grid-born illustration canvas.                                                                                                                                                                                                                     |
+| `--ds-size-small`/`-medium`/`-large` (32/36/40px)                                     | Icon-only control box, mobile bumping to `-large` for tap-target comfort.                                                                                                                                                                                                    |
+| `material-base` / `material-small`                                                    | Icon-chip container background, where a chip is used outside `EmptyStateIcon`'s own built-in treatment.                                                                                                                                                                      |
+| `--ds-motion-timing-swift`                                                            | Ember glow fade; the palette settle's easing (inherited from the overlay it rides).                                                                                                                                                                                          |
+| `--ds-motion-overlay-scale` / `-timing` / `-duration`                                 | The springy palette settle (0.96 → 1, 300ms).                                                                                                                                                                                                                                |
+| `--ds-motion-popover-duration` (200ms)                                                | Ember completion glow's fade timing.                                                                                                                                                                                                                                         |
 
 ## Implementation guidance
 
 - **Radix primitive mapping**: none of the four families needs its own Radix primitive —
-  icons and illustrations are leaf presentational content composed *inside* components
+  icons and illustrations are leaf presentational content composed _inside_ components
   that already have their primitives (`Button` on `@radix-ui/react-slot` /native button,
   `EmptyState`'s own composition, `Popover`/`Dialog` for whatever surface a personality
   touch rides). Do not wrap a plain icon in a new interactive primitive; if it needs to be
@@ -346,7 +346,7 @@ import { Bell } from "lucide-react";
 <div className="flex items-center gap-2">
   <Icon icon={Bell} className="text-[var(--ds-gray-900)]" />
   <span className="text-label-14">Notification preferences</span>
-</div>
+</div>;
 ```
 
 **2. An icon-only overflow control on a card (icon-only, accessible)**
@@ -356,14 +356,9 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { MoreHorizontal } from "lucide-react";
 
-<Button
-  variant="tertiary"
-  size="small"
-  svgOnly
-  aria-label="More actions for this mission"
->
+<Button variant="tertiary" size="small" svgOnly aria-label="More actions for this mission">
   <Icon icon={MoreHorizontal} />
-</Button>
+</Button>;
 ```
 
 **3. A first-run empty state with a compact grid-born illustration**
@@ -376,15 +371,11 @@ import { GridIllustration } from "@/components/brand/grid-illustration";
   title="No missions yet"
   description="Start your first mission to see it appear here."
   icon={
-    <GridIllustration
-      size="compact"
-      glyphs={[{ x: 1, y: 1, char: "M" }]}
-      accent={{ x: 2, y: 2 }}
-    />
+    <GridIllustration size="compact" glyphs={[{ x: 1, y: 1, char: "M" }]} accent={{ x: 2, y: 2 }} />
   }
 >
   <Button>Start a mission</Button>
-</EmptyState>
+</EmptyState>;
 ```
 
 **4. A nav rail header lockup, collapsing on mobile**
@@ -398,14 +389,14 @@ import { LogoLockup } from "@/components/brand/logo-lockup";
   asChild
 >
   <Link to="/today" />
-</LogoLockup>
+</LogoLockup>;
 ```
 
 **5. A finished-run card with the ember completion glow, and a pixel-numeral step count elsewhere on the same screen (not both — one touch per surface)**
 
 ```tsx
 // Runs list — the glow lives here.
-<RunCard status="succeeded" glow />
+<RunCard status="succeeded" glow />;
 
 // Onboarding header on a DIFFERENT surface — a pixel numeral, its own budget.
 import { PixelNumeral } from "@/components/brand/pixel-numeral";
@@ -413,7 +404,7 @@ import { PixelNumeral } from "@/components/brand/pixel-numeral";
 <div className="flex items-center gap-3">
   <PixelNumeral value={2} scale={48} />
   <span className="text-copy-16">of 4 steps</span>
-</div>
+</div>;
 ```
 
 ## Do / Don't

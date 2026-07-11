@@ -13,8 +13,8 @@ Source: https://vercel.com/geist/code (fetched 2026-07-10). This is one of Geist
 Package: `@vercel/geistcn/components`
 
 ```tsx
-import { Code } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Code } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 const codeExampleTsx = `import { Snippet } from '@vercel/geistcn/components';
 import type { JSX } from 'react';
@@ -33,7 +33,7 @@ export function Component(): JSX.Element {
   - children — the raw code string to render (a plain JS template-literal string, not JSX-wrapped lines); the component owns tokenizing/coloring internally.
   - No `width`, `title`, `filename`, `showLineNumbers`, or copy-button props are demonstrated on this page (contrast with `Snippet`, which does show a `width` prop in the example content, and with the separate `Code Block` component which is the likely home for filename/line-number/toolbar chrome — see `/geist/code-block`, not covered by this fetch).
 
-Composition pattern shown: `Code` wrapping a multi-line string is the full API surface demonstrated; no nesting with other Geist components beyond referencing `Snippet` as example *content*, not as a child.
+Composition pattern shown: `Code` wrapping a multi-line string is the full API surface demonstrated; no nesting with other Geist components beyond referencing `Snippet` as example _content_, not as a child.
 
 ## Best practices
 
@@ -41,7 +41,7 @@ Not documented on this page — no "When to use" / "Behavior" / "Accessibility" 
 
 ## Design notes
 
-- Rendered as a `<pre data-language="tsx" data-theme="light|dark"><code data-language="tsx" data-theme="light|dark">…</code></pre>` structure via `rehype-pretty-code` (marked with `data-rehype-pretty-code-fragment` on the wrapping div) — i.e. Geist's docs site renders the *documentation's own code sample* through the same highlighter convention as the rest of the site; this is the MDX pipeline's styling, not necessarily the shipped `Code` component's internal DOM (the component's actual rendered markup wasn't captured — only the docs' own syntax-highlighted presentation of the example source was).
+- Rendered as a `<pre data-language="tsx" data-theme="light|dark"><code data-language="tsx" data-theme="light|dark">…</code></pre>` structure via `rehype-pretty-code` (marked with `data-rehype-pretty-code-fragment` on the wrapping div) — i.e. Geist's docs site renders the _documentation's own code sample_ through the same highlighter convention as the rest of the site; this is the MDX pipeline's styling, not necessarily the shipped `Code` component's internal DOM (the component's actual rendered markup wasn't captured — only the docs' own syntax-highlighted presentation of the example source was).
 - Two color themes present line-by-line as inline `style={{color: "#HEX"}}` spans — this is the docs site's own light/dark token pair for syntax highlighting, not exposed as customizable design tokens on this page:
   - Light theme: keywords `#D73A49`, plain text `#24292E`, strings `#032F62`, types/components `#6F42C1`, identifiers/component names `#005CC5`.
   - Dark theme: keywords `#F97583`, plain text `#E1E4E8`, strings `#9ECBFF`, types/components `#B392F0`, identifiers/component names `#79B8FF`.

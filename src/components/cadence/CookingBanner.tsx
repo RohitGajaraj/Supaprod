@@ -93,7 +93,7 @@ export function CookingBanner() {
         type="button"
         onClick={dismiss}
         aria-label="Dismiss banner"
-        className="flex text-ink-faint hover:text-foreground transition"
+        className="flex text-ink-faint hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
       >
         <X size={11} strokeWidth={2} />
       </button>
@@ -112,7 +112,7 @@ export function ConstructionPill() {
         type="button"
         aria-label="Dismiss"
         onClick={dismiss}
-        className="flex p-[3px] text-ink-faint hover:text-foreground transition"
+        className="flex p-[3px] text-ink-faint hover:text-foreground transition-colors duration-150 ease-(--ds-motion-timing-swift)"
       >
         <X size={10} strokeWidth={2} />
       </button>

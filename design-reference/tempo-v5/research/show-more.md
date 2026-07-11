@@ -18,6 +18,7 @@ No separate "Sizes", "Types", or "States" sections are documented for this compo
 Component: **`ShowMore`** (default export from `@vercel/geistcn/components`).
 
 Props observed in the example code:
+
 - `expanded: boolean` — controlled flag for the current disclosure state. Consumer owns the state (`useState`) and flips it in the `onClick` handler; the component itself does not manage expand/collapse state internally.
 - `onClick: () => void` — click handler on the trigger; typical usage toggles the boolean (`() => setExpanded(!expanded)`).
 - `noBorder?: boolean` — when present, removes the component's default top border/divider.
@@ -26,22 +27,20 @@ Usage patterns (verbatim minimal examples from the docs):
 
 ```tsx
 // Default — controlled toggle
-import { ShowMore } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { ShowMore } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [expanded, setExpanded] = useState(false);
 
-  return (
-    <ShowMore expanded={expanded} onClick={() => setExpanded(!expanded)} />
-  )
+  return <ShowMore expanded={expanded} onClick={() => setExpanded(!expanded)} />;
 }
 ```
 
 ```tsx
 // Expanded — forced-open state for visual reference
-import { ShowMore } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ShowMore } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <ShowMore expanded />;
@@ -50,8 +49,8 @@ export function Component(): JSX.Element {
 
 ```tsx
 // No border — drop the divider when the parent container already frames the list
-import { ShowMore } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ShowMore } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <ShowMore noBorder />;

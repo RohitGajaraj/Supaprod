@@ -17,8 +17,8 @@ No "Best Practices" (When to use / Behavior / Accessibility) accordion exists on
 Single import, no subcomponents:
 
 ```tsx
-import { ErrorCard } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ErrorCard } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -31,6 +31,7 @@ export function Component(): JSX.Element {
 ```
 
 **Props observed (only two, both string):**
+
 - `title: string` — short heading (example: `"No credits left"`).
 - `message: string` — longer descriptive body text (example: `"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod"`).
 

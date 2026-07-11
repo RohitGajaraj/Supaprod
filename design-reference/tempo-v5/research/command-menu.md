@@ -16,6 +16,7 @@ No "Sizes", "Types", "States", or additional layout sections are present for thi
 ## API
 
 ### Components
+
 - `CommandMenu` — root overlay/dialog. Props seen: `open: boolean`, `setOpen: (open: boolean) => void` (controlled open state, matches a `useState<boolean>` pair in every example).
 - `CommandMenuInput` — the search/filter text field inside the menu. Props seen: `placeholder: string` (e.g. `"What do you need?"`).
 - `CommandMenuList` — wraps all rows/groups/dividers; the scrollable results container.
@@ -27,6 +28,7 @@ No "Sizes", "Types", "States", or additional layout sections are present for thi
 ### Composition patterns
 
 Minimal usage (Default demo):
+
 ```tsx
 import {
   CommandMenu,
@@ -35,8 +37,8 @@ import {
   CommandMenuList,
   CommandMenuGroup,
   CommandMenuItem,
-} from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+} from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [open, setOpen] = useState(false);
@@ -55,17 +57,11 @@ export function Component(): JSX.Element {
             <CommandMenuItem callback={callback}>Figma Import</CommandMenuItem>
           </CommandMenuGroup>
           <CommandMenuGroup heading="Commands">
-            <CommandMenuItem callback={callback}>
-              Import Extension
-            </CommandMenuItem>
-            <CommandMenuItem callback={callback}>
-              Manage Extensions
-            </CommandMenuItem>
+            <CommandMenuItem callback={callback}>Import Extension</CommandMenuItem>
+            <CommandMenuItem callback={callback}>Manage Extensions</CommandMenuItem>
           </CommandMenuGroup>
           <CommandMenuGroup heading="Collaboration">
-            <CommandMenuItem callback={callback}>
-              Flags Explorer
-            </CommandMenuItem>
+            <CommandMenuItem callback={callback}>Flags Explorer</CommandMenuItem>
           </CommandMenuGroup>
         </CommandMenuList>
       </CommandMenu>
@@ -75,6 +71,7 @@ export function Component(): JSX.Element {
 ```
 
 Ungrouped items + divider + group (With divider demo):
+
 ```tsx
 import {
   Button,
@@ -84,8 +81,8 @@ import {
   CommandMenuInput,
   CommandMenuItem,
   CommandMenuList,
-} from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+} from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [open, setOpen] = useState(false);
@@ -105,12 +102,8 @@ export function Component(): JSX.Element {
           <CommandMenuDivider />
           <CommandMenuItem callback={callback}>Item 3</CommandMenuItem>
           <CommandMenuGroup heading="Group 1">
-            <CommandMenuItem callback={callback}>
-              Grouped Item 1
-            </CommandMenuItem>
-            <CommandMenuItem callback={callback}>
-              Grouped Item 2
-            </CommandMenuItem>
+            <CommandMenuItem callback={callback}>Grouped Item 1</CommandMenuItem>
+            <CommandMenuItem callback={callback}>Grouped Item 2</CommandMenuItem>
           </CommandMenuGroup>
         </CommandMenuList>
       </CommandMenu>
@@ -120,6 +113,7 @@ export function Component(): JSX.Element {
 ```
 
 Item `suffix` (text label or icon) (With suffix demo):
+
 ```tsx
 import {
   Button,
@@ -128,9 +122,9 @@ import {
   CommandMenuInput,
   CommandMenuItem,
   CommandMenuList,
-} from '@vercel/geistcn/components';
-import { IconCheckCircle } from '@vercel/geistcn-assets/icons';
-import { useState, type JSX } from 'react';
+} from "@vercel/geistcn/components";
+import { IconCheckCircle } from "@vercel/geistcn-assets/icons";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [open, setOpen] = useState(false);
@@ -172,10 +166,7 @@ export function Component(): JSX.Element {
             >
               Austria
             </CommandMenuItem>
-            <CommandMenuItem
-              callback={callback}
-              suffix={<IconCheckCircle color="gray-700" />}
-            >
+            <CommandMenuItem callback={callback} suffix={<IconCheckCircle color="gray-700" />}>
               Switzerland
             </CommandMenuItem>
             <CommandMenuItem
@@ -197,24 +188,28 @@ Every example follows the same shape: a `Button` toggles `open` via local `useSt
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for `CommandMenu` when you need one global, keyboard-first palette that both finds resources and runs actions anywhere in the app — not scoped to a single visible control.
 - If the menu is triggered from a specific control tied to one resource (a button/icon that opens a small options list), use `Menu` instead.
 - If the menu is triggered by a right-click on a table/list row, use `ContextMenu` instead.
 - Once a flat list would grow past roughly 30 items, or spans genuinely different resource types, split it into pages (e.g. a "Projects" page vs a "Team Settings" page) rather than one long scroll.
 
 **Behavior**
+
 - Wire the global open shortcut to Cmd+K on macOS and Ctrl+K elsewhere; don't let any other in-page search/filter field reuse that binding — it must stay a global, singular shortcut.
 - Always reopen to the root page. If the user drills into a sub-page and backs out, restore whatever they'd already typed rather than clearing the query.
 - While open, trap keyboard focus inside the overlay; on close, return focus to whatever element had it before the menu opened.
 - When the input is empty, don't show a blank list — populate it with recent items or a sensible default set so the menu is immediately useful pre-typing.
 
 **Content / copy rules**
+
 - `CommandMenuItem` labels are Title Case verb phrases describing an action ("Deploy Project", "Invite Team Member") — never navigation phrasing like "Go to project page"; the menu performs actions, it doesn't browse.
 - A `CommandMenuPage`'s `label` is Title Case and simply names the scope it represents ("Projects", "Team Settings").
 - A `CommandMenuPage`'s `placeholder` is sentence case, names what's being searched, is action-oriented, and ends in an ellipsis ("Search projects…", "Type a command or search…") — a bare "Search…" doesn't say what's being searched and is considered wrong.
 - `CommandMenuGroup` headings are Title Case and short (1-2 words: "Actions", "Recent").
 
 **Accessibility**
+
 - Put `aria-live="polite"` on the results count so screen reader users hear the list narrow as they type.
 - Standard list-navigation keymap: Up/Down moves the highlighted item, Enter activates it, Escape closes the whole menu, and Backspace on an empty input pops back one page in the page stack.
 - Render each item's keyboard shortcut using a `Kbd` slot so it's both visually discoverable and announced as a label to assistive tech (not just baked into plain text).

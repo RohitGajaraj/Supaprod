@@ -18,9 +18,11 @@ Source: https://vercel.com/geist/entity
 Package: `@vercel/geistcn/components`
 
 ### `<Entity>`
+
 Root row container.
 
 Props observed:
+
 - `left?: ReactNode` — arbitrary content for the left column (Avatar, icon, Checkbox, etc.)
 - `leftClassName?: string` — className applied to the left column wrapper (e.g. for custom border/padding framing)
 - `right?: ReactNode` — arbitrary content for the right column (buttons, status text, etc.)
@@ -30,14 +32,17 @@ Props observed:
 - children — typically one or more `EntityContent` elements, or a custom layout (e.g. the Skeleton example)
 
 ### `<EntityContent>`
+
 Center content block (title + description).
 
 Props observed:
+
 - `title?: string`
 - `description?: string | ReactNode`
 - `fill?: boolean` — makes this content block expand/fill available row width (seen paired with a second non-fill `EntityContent` to show the contrast)
 
 ### `<EntityList>`
+
 Wraps multiple `Entity` rows (renders as a list container; child `Entity`s use `as="li"` when semantic list markup is wanted).
 
 No additional props observed beyond children.
@@ -45,22 +50,18 @@ No additional props observed beyond children.
 ### Composition patterns (minimal usage)
 
 ```tsx
-import { Avatar, Entity, EntityContent } from '@vercel/geistcn/components';
+import { Avatar, Entity, EntityContent } from "@vercel/geistcn/components";
 
 <Entity
   left={<Avatar size={32} username="evilrabbit" />}
   right={<p className="text-copy-14 text-gray-900">Connected 1h ago</p>}
 >
-  <EntityContent
-    description="Glenn Hitchcock (@gln)"
-    fill
-    title="Evil Rabbit"
-  />
-</Entity>
+  <EntityContent description="Glenn Hitchcock (@gln)" fill title="Evil Rabbit" />
+</Entity>;
 ```
 
 ```tsx
-import { Entity, Skeleton } from '@vercel/geistcn/components';
+import { Entity, Skeleton } from "@vercel/geistcn/components";
 
 <Entity>
   <div className="flex flex-col items-stretch justify-start gap-2 flex-1">
@@ -71,11 +72,11 @@ import { Entity, Skeleton } from '@vercel/geistcn/components';
       <Skeleton height={20} width={68} />
     </div>
   </div>
-</Entity>
+</Entity>;
 ```
 
 ```tsx
-import { Button, Entity, EntityList, EntityContent } from '@vercel/geistcn/components';
+import { Button, Entity, EntityList, EntityContent } from "@vercel/geistcn/components";
 
 <EntityList>
   <Entity
@@ -86,27 +87,26 @@ import { Button, Entity, EntityList, EntityContent } from '@vercel/geistcn/compo
       </Button>
     }
   >
-    <EntityContent
-      description="Last used just now"
-      title="GitHub Desktop on MacBook Pro"
-    />
+    <EntityContent description="Last used just now" title="GitHub Desktop on MacBook Pro" />
   </Entity>
   {/* ...repeated for VS Code on Windows 11 / Terminal on Ubuntu 24.04 */}
-</EntityList>
+</EntityList>;
 ```
 
 ```tsx
-import { useState } from 'react';
-import { Checkbox, Entity, EntityList, EntityContent } from '@vercel/geistcn/components';
+import { useState } from "react";
+import { Checkbox, Entity, EntityList, EntityContent } from "@vercel/geistcn/components";
 
 const items = [
-  { id: 'github', title: 'GitHub Desktop on MacBook Pro', description: 'Last used just now' },
-  { id: 'vscode', title: 'VS Code on Windows 11', description: 'Last used 10min ago' },
-  { id: 'terminal', title: 'Terminal on Ubuntu 24.04', description: 'Last used 25min ago' },
+  { id: "github", title: "GitHub Desktop on MacBook Pro", description: "Last used just now" },
+  { id: "vscode", title: "VS Code on Windows 11", description: "Last used 10min ago" },
+  { id: "terminal", title: "Terminal on Ubuntu 24.04", description: "Last used 25min ago" },
 ];
 
 const [checkedStates, setCheckedStates] = useState<Record<string, boolean>>({
-  github: true, vscode: false, terminal: false,
+  github: true,
+  vscode: false,
+  terminal: false,
 });
 
 const handleCheckboxChange = (id: string): void => {
@@ -130,22 +130,22 @@ const handleCheckboxChange = (id: string): void => {
       <EntityContent description={item.description} title={item.title} />
     </Entity>
   ))}
-</EntityList>
+</EntityList>;
 ```
 
 ```tsx
-import { Entity, EntityContent, EntityList } from '@vercel/geistcn/components';
+import { Entity, EntityContent, EntityList } from "@vercel/geistcn/components";
 
 <EntityList>
   <Entity>
     <EntityContent fill description="This is a simple description" />
     <EntityContent description="This is a simple description" />
   </Entity>
-</EntityList>
+</EntityList>;
 ```
 
 ```tsx
-import { Avatar, Entity, EntityContent, EntityList } from '@vercel/geistcn/components';
+import { Avatar, Entity, EntityContent, EntityList } from "@vercel/geistcn/components";
 
 <EntityList>
   <Entity
@@ -156,22 +156,25 @@ import { Avatar, Entity, EntityContent, EntityList } from '@vercel/geistcn/compo
   >
     <EntityContent description="Entity with dashed borders" />
   </Entity>
-</EntityList>
+</EntityList>;
 ```
 
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for `Entity` when you need a row of descriptive content paired with one or two controls — think member rows, integration rows, domain rows.
 - If the data is tabular with sortable columns and every row shares the same shape, use `Table` instead.
 - If you just need a static key/value metadata block on a detail page (not an interactive row), use `Description` instead.
 
 **Behavior**
+
 - Keep the right column to at most one or two controls; if a row needs more actions, tuck the extras into a `Dots Menu` rather than crowding the row.
 - For multi-select rows, the leading `Checkbox` should carry an `aria-label` in the form `"Select {entity name}"` so the row is operable without depending on the sighted label text.
 - Show the Skeleton variant while data is loading instead of rendering an empty row; swap it for real content once the fetch resolves.
 
 **Content**
+
 - Lead the left column with something scannable: an `Avatar` or icon, then a Title Case label, then sentence-case secondary metadata (e.g. "Member since Mar 14, 2026").
 - Word right-column buttons as Verb + Noun ("Remove Member", "Resend Invite") rather than a bare verb ("Remove", "Confirm") — a bare verb loses its context once the row scrolls out of view.
 

@@ -107,6 +107,7 @@ export function GoalsPanel() {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            aria-label="What outcome should Cadence keep working?"
             placeholder='State the outcome, like "grow activation 15% this quarter". Cadence re-plans against it.'
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();
@@ -134,7 +135,48 @@ export function GoalsPanel() {
       </div>
 
       {goalsQ.isLoading ? (
-        <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>Loading goals…</p>
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span className="sr-only">Loading goals…</span>
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="material-base"
+              style={{ height: 64, opacity: 0.4 }}
+            />
+          ))}
+        </div>
+      ) : goalsQ.isError ? (
+        <div
+          style={{
+            padding: 24,
+            background: "var(--surface-card-deep)",
+            borderRadius: "var(--radius-panel)",
+          }}
+        >
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+            COULDN'T LOAD GOALS
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+            {(goalsQ.error as Error)?.message}
+          </p>
+          <button
+            type="button"
+            onClick={() => goalsQ.refetch()}
+            className="outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              marginTop: 14,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-body)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Retry · reloads goals
+          </button>
+        </div>
       ) : goals.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
           No standing goals yet. Set one above and Cadence starts working it immediately.
@@ -233,7 +275,11 @@ function GoalCard({
         >
           {goal.recent_opportunities.map((o) => (
             <li key={o.id} style={{ fontSize: 12.5 }}>
-              <Link to="/decide" style={{ color: "var(--glacier)", textDecoration: "none" }}>
+              <Link
+                to="/decide"
+                className="outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                style={{ color: "var(--glacier)", textDecoration: "none" }}
+              >
                 {o.title}
               </Link>
             </li>

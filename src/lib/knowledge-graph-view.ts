@@ -515,7 +515,10 @@ export function computeContradictionDrift(graph: KnowledgeGraph): ContradictionD
 
 /** How a supersession edge reads relative to the SELECTED node. */
 export type SupersessionDirection =
-  "superseded-by" | "contradicted-by" | "supersedes" | "contradicts";
+  | "superseded-by"
+  | "contradicted-by"
+  | "supersedes"
+  | "contradicts";
 
 // Plain words on every user-facing chip (Loom W3, quality register: no
 // "superseded/supersession" jargon in the UI; the relation values themselves

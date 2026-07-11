@@ -38,20 +38,20 @@ A workflow builder is one `WorkflowCanvas` region (the pannable/zoomable 2D surf
 
 **Named parts:**
 
-| Part | Built from | Notes |
-| --- | --- | --- |
-| Canvas ground | New (no Geist primitive) | Full-bleed `--ds-background-100` (or `--ds-background-200` when the surface wants subtle separation from a docked rail beside it) with a repeating dot pattern in `--ds-gray-400` at a `--geist-gap` (24px) pitch, scaling with zoom. Reinterprets Geist Grid's guide-mesh idea: Grid renders a *line* mesh because it is a layout-visualization primitive; a flow canvas already has its own lines (the connectors), so a dot mesh reads as ground texture without competing for the eye's attention. Purely decorative: `aria-hidden="true"`. |
-| Node card (step) | `Card` (`border` + `shadow`, always paired per `card.md`) | `material-small` shell (6px radius), fixed width (240 to 280px), variable height. Header row: type icon chip, editable title (`text-label-14`, `gray-1000`), trailing Dots Menu. Body: one to two lines of config summary (`text-copy-13`, `gray-900`). Optional footer strip: Status Dot + relative duration, mono, once the node has run at least once. |
-| Node card (trigger / terminal) | Same `Card` base, `rounded-full` shell | Pill-shaped instead of the rectangular step shell, so entry points and end states read at a glance without a label. |
-| Node card (decision) | Same `Card` base as step | Keeps the rectangular shell for text legibility (a rotated diamond card would clip its own label); a small diamond glyph (`Diamond`, 14px, `gray-900`) sits before the title instead, and its two or more outgoing connectors carry short branch labels ("yes" / "no", or the matched condition). |
-| Group / frame | `Card` (`secondary` variant) | A muted, dashed-border region behind a cluster of nodes, non-interactive except its own header label and a collapse toggle. Sits at a lower stacking position than any node or connector it contains. |
-| Ports | New (no Geist primitive) | Small circular attachment points on a node's edges (left/right for horizontal flows, top/bottom for vertical ones): `1px solid gray-600` ring, `background-100` fill, `8px` diameter. A connectable port under drag-hover gets the shared `--ds-focus-ring-outline` treatment (it is already ember-hued by token, so this needs no new color decision) rather than inventing a second "connectable" affordance. |
-| Connector (edge) | New (no Geist primitive) | An SVG path between two ports, arrowhead at the terminal end. Idle: `2px`, `gray-600`. See States for the full state set (hover, selected, drawing, executing, blocked, error). |
-| Validation badge | `Badge` (`red`/`amber`, `contrast="low"`) | A small chip anchored to a node's top-right corner, overlapping the card edge slightly (notification-dot placement). Opens a `Tooltip` (`material-tooltip`) naming the specific problem on hover/focus. |
-| Canvas toolbar | New composition, `material-menu` shell | Floating pill, bottom-center or bottom-left: zoom out / zoom level (`text-tabular`) / zoom in / fit-to-view, then the primary "+ Add step" action. Controls snap to `--ds-size-small` (32px) icon buttons in a row, `--ds-popover-padding` (6px) internal padding, matching the shared popover anatomy. |
-| Validation summary | `Banner`-derived composition | A compact "N issues" chip or thin banner at the toolbar's trailing edge; clicking it pans/zooms to and selects the first flagged node rather than only describing the count. |
-| Minimap (optional) | New, `material-small` shell | Bottom-right corner, a scaled bird's-eye view of the whole canvas with a viewport rectangle; toggled by a small icon button in the toolbar. |
-| Side panel | `PropertyPanel` (`property-panels.md`, unmodified) | Opens docked (desktop), overlay drawer (tablet), or full-screen sheet (mobile) exactly per that pattern's own Variants section. This pattern supplies node-typed fields into `PropertySection`/`PropertyRow`; it does not re-implement the shell. |
+| Part                           | Built from                                                | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canvas ground                  | New (no Geist primitive)                                  | Full-bleed `--ds-background-100` (or `--ds-background-200` when the surface wants subtle separation from a docked rail beside it) with a repeating dot pattern in `--ds-gray-400` at a `--geist-gap` (24px) pitch, scaling with zoom. Reinterprets Geist Grid's guide-mesh idea: Grid renders a _line_ mesh because it is a layout-visualization primitive; a flow canvas already has its own lines (the connectors), so a dot mesh reads as ground texture without competing for the eye's attention. Purely decorative: `aria-hidden="true"`. |
+| Node card (step)               | `Card` (`border` + `shadow`, always paired per `card.md`) | `material-small` shell (6px radius), fixed width (240 to 280px), variable height. Header row: type icon chip, editable title (`text-label-14`, `gray-1000`), trailing Dots Menu. Body: one to two lines of config summary (`text-copy-13`, `gray-900`). Optional footer strip: Status Dot + relative duration, mono, once the node has run at least once.                                                                                                                                                                                       |
+| Node card (trigger / terminal) | Same `Card` base, `rounded-full` shell                    | Pill-shaped instead of the rectangular step shell, so entry points and end states read at a glance without a label.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Node card (decision)           | Same `Card` base as step                                  | Keeps the rectangular shell for text legibility (a rotated diamond card would clip its own label); a small diamond glyph (`Diamond`, 14px, `gray-900`) sits before the title instead, and its two or more outgoing connectors carry short branch labels ("yes" / "no", or the matched condition).                                                                                                                                                                                                                                               |
+| Group / frame                  | `Card` (`secondary` variant)                              | A muted, dashed-border region behind a cluster of nodes, non-interactive except its own header label and a collapse toggle. Sits at a lower stacking position than any node or connector it contains.                                                                                                                                                                                                                                                                                                                                           |
+| Ports                          | New (no Geist primitive)                                  | Small circular attachment points on a node's edges (left/right for horizontal flows, top/bottom for vertical ones): `1px solid gray-600` ring, `background-100` fill, `8px` diameter. A connectable port under drag-hover gets the shared `--ds-focus-ring-outline` treatment (it is already ember-hued by token, so this needs no new color decision) rather than inventing a second "connectable" affordance.                                                                                                                                 |
+| Connector (edge)               | New (no Geist primitive)                                  | An SVG path between two ports, arrowhead at the terminal end. Idle: `2px`, `gray-600`. See States for the full state set (hover, selected, drawing, executing, blocked, error).                                                                                                                                                                                                                                                                                                                                                                 |
+| Validation badge               | `Badge` (`red`/`amber`, `contrast="low"`)                 | A small chip anchored to a node's top-right corner, overlapping the card edge slightly (notification-dot placement). Opens a `Tooltip` (`material-tooltip`) naming the specific problem on hover/focus.                                                                                                                                                                                                                                                                                                                                         |
+| Canvas toolbar                 | New composition, `material-menu` shell                    | Floating pill, bottom-center or bottom-left: zoom out / zoom level (`text-tabular`) / zoom in / fit-to-view, then the primary "+ Add step" action. Controls snap to `--ds-size-small` (32px) icon buttons in a row, `--ds-popover-padding` (6px) internal padding, matching the shared popover anatomy.                                                                                                                                                                                                                                         |
+| Validation summary             | `Banner`-derived composition                              | A compact "N issues" chip or thin banner at the toolbar's trailing edge; clicking it pans/zooms to and selects the first flagged node rather than only describing the count.                                                                                                                                                                                                                                                                                                                                                                    |
+| Minimap (optional)             | New, `material-small` shell                               | Bottom-right corner, a scaled bird's-eye view of the whole canvas with a viewport rectangle; toggled by a small icon button in the toolbar.                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Side panel                     | `PropertyPanel` (`property-panels.md`, unmodified)        | Opens docked (desktop), overlay drawer (tablet), or full-screen sheet (mobile) exactly per that pattern's own Variants section. This pattern supplies node-typed fields into `PropertySection`/`PropertyRow`; it does not re-implement the shell.                                                                                                                                                                                                                                                                                               |
 
 ## Variants
 
@@ -64,35 +64,35 @@ A workflow builder is one `WorkflowCanvas` region (the pannable/zoomable 2D surf
 
 ## States
 
-| Part / state | Trigger | Tokens |
-| --- | --- | --- |
-| Node, idle/draft | default, never run | Border `--ds-gray-400`, fill `--ds-background-100`, title `--ds-gray-1000`, body `--ds-gray-900` |
-| Node, hover | pointer over node, not selected | Border brightens to `--ds-gray-500`; Dots Menu fades from `opacity: 0` to `opacity: 1` |
-| Node, dragging | pointer-down + move | Border unchanged; a `--ds-shadow-medium` lift is added for the drag duration only (removed on drop) so the dragged card visibly separates from the ground plane |
-| Node, selected | click, or reached via keyboard and activated | 2px ring `--ds-ember-600` (`box-shadow`, not a border swap, so content never reflows) plus a subtle `--ds-ember-100` fill replacing `--ds-background-100` on the card, mirroring the selected-row treatment in `tables-data-grids.md` |
-| Node, focus-visible (keyboard, not yet selected) | roving-tabindex focus lands on the node | `--ds-focus-ring` layered outside whatever selection ring is already present, exactly as a table row layers hover-over-selected |
-| Node, running | an execution has reached this node and not yet left it | Border `--ds-blue-400` (informational, in-progress); footer Status Dot `--ds-blue-600` with a gentle opacity pulse gated on `prefers-reduced-motion` (falls back to a static solid dot) |
-| Node, completed | the run passed through and finished cleanly | Border reverts to `--ds-gray-400` (no lingering chrome); footer Status Dot `--ds-green-600`, no checkmark glyph layered on top (color + label already carry the meaning, per `badge.md`'s no-redundant-iconography rule) |
-| Node, failed | the run errored at this node | Border `--ds-red-400` (this is the one status that keeps a colored border, since a failed step is exactly the thing an operator must not miss); footer Status Dot `--ds-red-600`; validation-style Badge chip optional if the failure needs a specific message beyond the status label |
-| Node, waiting on approval | an HITL gate is paused at this node | Footer Status Dot `--ds-amber-600`; border stays neutral `--ds-gray-400` (a pending gate is a request for attention, not yet a warning) |
-| Node, skipped/blocked | upstream branch not taken, or upstream failed | Card at reduced opacity (`~0.5`), Status Dot `--ds-gray-600`, no interactive hover lift |
-| Node, disabled (viewer lacks edit permission) | read-only mode | No hover/drag affordance at all; Dots Menu shows only non-mutating actions ("View config"), paired with a `Tooltip` naming the reason, per the disabled-control-explaining-Tooltip contract |
-| Node, validation error | a required field is missing or invalid | Small `red`/`amber` `Badge` (`contrast="low"`) anchored top-right of the card; hover/focus opens a `Tooltip` (`material-tooltip`) with the specific message |
-| Port, idle | default | `1px solid gray-600` ring, `background-100` fill |
-| Port, hover/connectable target | dragging a connector toward it | `--ds-focus-ring-outline` (2px, ember-hued by the existing focus token, not a new color decision) |
-| Port, connected | at least one edge attached | Fill switches to `--ds-gray-900` so an occupied port is visually denser than an empty one |
-| Connector, idle | default, not yet part of any run | `2px`, `--ds-gray-600` |
-| Connector, hover | pointer over the path | `--ds-gray-900`, cursor `pointer` |
-| Connector, selected | clicked | Same ring treatment as a selected node (`--ds-ember-600`), thickened to `3px` |
-| Connector, being drawn | dragging from a port, not yet dropped | Dashed, `--ds-focus-color` (ember-hued), follows the pointer with no easing (1:1 tracking, not animated) |
-| Connector, executing | live run currently traversing this edge | `--ds-blue-600`, animated dash offset (marching flow) or a single traveling dot, gated on `prefers-reduced-motion` (falls back to a static solid `--ds-blue-600` stroke, no motion) |
-| Connector, already traversed | the run has passed through and moved on | `--ds-gray-900` (a shade denser than idle, so a glance shows "this path already fired") |
-| Connector, blocked | downstream of a skipped/failed branch | Dashed, `--ds-gray-600` at reduced opacity, matching the skipped node it feeds |
-| Connector, error | a condition/edge itself is misconfigured | `--ds-red-600`, dashed, paired with the same Tooltip contract as a node validation error |
-| Toolbar control, default/hover/active/focus | standard icon-button states | Same as the button/icon-button contract: `--ds-gray-900` icon at rest, `--ds-gray-100` hover fill, `--ds-gray-200` active fill, `--ds-focus-ring` on keyboard focus |
-| Canvas, loading | canvas data is being fetched | Ground and toolbar render immediately; nodes/edges are replaced by 3 to 5 skeleton cards at representative positions, `--ds-gray-200` fill, pulse gated on `prefers-reduced-motion` |
-| Canvas, empty (no steps yet) | a brand-new pipeline | Centered instruction copy ("Add a trigger to start this pipeline.") plus the toolbar's "+ Add step" action; at most one small geometric composition above the copy, per the identity layer's empty-state budget |
-| Canvas, error | the pipeline failed to load | The actual `Error` composition (title, message, mono request id, "Try again") replaces the canvas body entirely; the toolbar stays visible so "+ Add step" still reads as reachable once the retry succeeds |
+| Part / state                                     | Trigger                                                | Tokens                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node, idle/draft                                 | default, never run                                     | Border `--ds-gray-400`, fill `--ds-background-100`, title `--ds-gray-1000`, body `--ds-gray-900`                                                                                                                                                                                       |
+| Node, hover                                      | pointer over node, not selected                        | Border brightens to `--ds-gray-500`; Dots Menu fades from `opacity: 0` to `opacity: 1`                                                                                                                                                                                                 |
+| Node, dragging                                   | pointer-down + move                                    | Border unchanged; a `--ds-shadow-medium` lift is added for the drag duration only (removed on drop) so the dragged card visibly separates from the ground plane                                                                                                                        |
+| Node, selected                                   | click, or reached via keyboard and activated           | 2px ring `--ds-ember-600` (`box-shadow`, not a border swap, so content never reflows) plus a subtle `--ds-ember-100` fill replacing `--ds-background-100` on the card, mirroring the selected-row treatment in `tables-data-grids.md`                                                  |
+| Node, focus-visible (keyboard, not yet selected) | roving-tabindex focus lands on the node                | `--ds-focus-ring` layered outside whatever selection ring is already present, exactly as a table row layers hover-over-selected                                                                                                                                                        |
+| Node, running                                    | an execution has reached this node and not yet left it | Border `--ds-blue-400` (informational, in-progress); footer Status Dot `--ds-blue-600` with a gentle opacity pulse gated on `prefers-reduced-motion` (falls back to a static solid dot)                                                                                                |
+| Node, completed                                  | the run passed through and finished cleanly            | Border reverts to `--ds-gray-400` (no lingering chrome); footer Status Dot `--ds-green-600`, no checkmark glyph layered on top (color + label already carry the meaning, per `badge.md`'s no-redundant-iconography rule)                                                               |
+| Node, failed                                     | the run errored at this node                           | Border `--ds-red-400` (this is the one status that keeps a colored border, since a failed step is exactly the thing an operator must not miss); footer Status Dot `--ds-red-600`; validation-style Badge chip optional if the failure needs a specific message beyond the status label |
+| Node, waiting on approval                        | an HITL gate is paused at this node                    | Footer Status Dot `--ds-amber-600`; border stays neutral `--ds-gray-400` (a pending gate is a request for attention, not yet a warning)                                                                                                                                                |
+| Node, skipped/blocked                            | upstream branch not taken, or upstream failed          | Card at reduced opacity (`~0.5`), Status Dot `--ds-gray-600`, no interactive hover lift                                                                                                                                                                                                |
+| Node, disabled (viewer lacks edit permission)    | read-only mode                                         | No hover/drag affordance at all; Dots Menu shows only non-mutating actions ("View config"), paired with a `Tooltip` naming the reason, per the disabled-control-explaining-Tooltip contract                                                                                            |
+| Node, validation error                           | a required field is missing or invalid                 | Small `red`/`amber` `Badge` (`contrast="low"`) anchored top-right of the card; hover/focus opens a `Tooltip` (`material-tooltip`) with the specific message                                                                                                                            |
+| Port, idle                                       | default                                                | `1px solid gray-600` ring, `background-100` fill                                                                                                                                                                                                                                       |
+| Port, hover/connectable target                   | dragging a connector toward it                         | `--ds-focus-ring-outline` (2px, ember-hued by the existing focus token, not a new color decision)                                                                                                                                                                                      |
+| Port, connected                                  | at least one edge attached                             | Fill switches to `--ds-gray-900` so an occupied port is visually denser than an empty one                                                                                                                                                                                              |
+| Connector, idle                                  | default, not yet part of any run                       | `2px`, `--ds-gray-600`                                                                                                                                                                                                                                                                 |
+| Connector, hover                                 | pointer over the path                                  | `--ds-gray-900`, cursor `pointer`                                                                                                                                                                                                                                                      |
+| Connector, selected                              | clicked                                                | Same ring treatment as a selected node (`--ds-ember-600`), thickened to `3px`                                                                                                                                                                                                          |
+| Connector, being drawn                           | dragging from a port, not yet dropped                  | Dashed, `--ds-focus-color` (ember-hued), follows the pointer with no easing (1:1 tracking, not animated)                                                                                                                                                                               |
+| Connector, executing                             | live run currently traversing this edge                | `--ds-blue-600`, animated dash offset (marching flow) or a single traveling dot, gated on `prefers-reduced-motion` (falls back to a static solid `--ds-blue-600` stroke, no motion)                                                                                                    |
+| Connector, already traversed                     | the run has passed through and moved on                | `--ds-gray-900` (a shade denser than idle, so a glance shows "this path already fired")                                                                                                                                                                                                |
+| Connector, blocked                               | downstream of a skipped/failed branch                  | Dashed, `--ds-gray-600` at reduced opacity, matching the skipped node it feeds                                                                                                                                                                                                         |
+| Connector, error                                 | a condition/edge itself is misconfigured               | `--ds-red-600`, dashed, paired with the same Tooltip contract as a node validation error                                                                                                                                                                                               |
+| Toolbar control, default/hover/active/focus      | standard icon-button states                            | Same as the button/icon-button contract: `--ds-gray-900` icon at rest, `--ds-gray-100` hover fill, `--ds-gray-200` active fill, `--ds-focus-ring` on keyboard focus                                                                                                                    |
+| Canvas, loading                                  | canvas data is being fetched                           | Ground and toolbar render immediately; nodes/edges are replaced by 3 to 5 skeleton cards at representative positions, `--ds-gray-200` fill, pulse gated on `prefers-reduced-motion`                                                                                                    |
+| Canvas, empty (no steps yet)                     | a brand-new pipeline                                   | Centered instruction copy ("Add a trigger to start this pipeline.") plus the toolbar's "+ Add step" action; at most one small geometric composition above the copy, per the identity layer's empty-state budget                                                                        |
+| Canvas, error                                    | the pipeline failed to load                            | The actual `Error` composition (title, message, mono request id, "Try again") replaces the canvas body entirely; the toolbar stays visible so "+ Add step" still reads as reachable once the retry succeeds                                                                            |
 
 ## Interaction model
 
@@ -109,21 +109,21 @@ A workflow builder is one `WorkflowCanvas` region (the pannable/zoomable 2D surf
 
 **Keyboard** (full key map)
 
-| Key | Context | Effect |
-| --- | --- | --- |
-| `Tab` / `Shift+Tab` | Anywhere on the surface | Enters/leaves the canvas as one stop (roving `tabindex`, same model as `tables-data-grids.md`'s data-grid pattern), then moves through the toolbar controls, then into the side panel if one is open. |
-| `Arrow keys` | A node has roving focus | Moves focus to the next connected node in graph order (following outgoing connectors first, then siblings) — not raw visual proximity, so keyboard traversal follows the pipeline's actual logic. |
-| `Shift+Arrow keys` | A node has focus | Nudges the focused node's position by one `--geist-space` (4px) increment, for keyboard-only fine placement. |
-| `Enter` / `Space` | A node has focus | Selects it and opens `PropertyPanel`, exactly as clicking would. |
-| `F2` | A node is selected | Enters inline title-edit mode on the node's header label. |
-| `Delete` / `Backspace` | One or more nodes or a connector selected | Deletes the selection (a destructive action; per the contract's destructive-action rule this pairs with a confirming `Toast` offering Undo rather than a blocking dialog, since it is reversible for a few seconds). |
-| `Cmd/Ctrl+D` | A node selected | Duplicates it, placed with a small position offset so the copy is immediately visible and re-draggable. |
-| `Cmd/Ctrl+A` | Canvas focused | Selects every node (not connectors), opening `PropertyPanel` in bulk mode. |
-| `Cmd/Ctrl+C` / `Cmd/Ctrl+V` | Node(s) selected / canvas focused | Copies and pastes nodes, including their internal config, excluding connectors to nodes outside the copied set. |
-| `Escape` | Any selection or open panel | Clears the current selection; if the side panel is an overlay/sheet, closes it and returns focus to the canvas per `property-panels.md`'s own Escape contract. |
-| `+` / `-` (or `Cmd/Ctrl` `+`/`-`) | Canvas focused | Zooms in/out by one step. |
-| `Cmd/Ctrl+0` | Canvas focused | Resets zoom to 100%. |
-| `Shift+1` | Canvas focused | Fit-to-view (frames every node in the current viewport). |
+| Key                               | Context                                   | Effect                                                                                                                                                                                                               |
+| --------------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`               | Anywhere on the surface                   | Enters/leaves the canvas as one stop (roving `tabindex`, same model as `tables-data-grids.md`'s data-grid pattern), then moves through the toolbar controls, then into the side panel if one is open.                |
+| `Arrow keys`                      | A node has roving focus                   | Moves focus to the next connected node in graph order (following outgoing connectors first, then siblings) — not raw visual proximity, so keyboard traversal follows the pipeline's actual logic.                    |
+| `Shift+Arrow keys`                | A node has focus                          | Nudges the focused node's position by one `--geist-space` (4px) increment, for keyboard-only fine placement.                                                                                                         |
+| `Enter` / `Space`                 | A node has focus                          | Selects it and opens `PropertyPanel`, exactly as clicking would.                                                                                                                                                     |
+| `F2`                              | A node is selected                        | Enters inline title-edit mode on the node's header label.                                                                                                                                                            |
+| `Delete` / `Backspace`            | One or more nodes or a connector selected | Deletes the selection (a destructive action; per the contract's destructive-action rule this pairs with a confirming `Toast` offering Undo rather than a blocking dialog, since it is reversible for a few seconds). |
+| `Cmd/Ctrl+D`                      | A node selected                           | Duplicates it, placed with a small position offset so the copy is immediately visible and re-draggable.                                                                                                              |
+| `Cmd/Ctrl+A`                      | Canvas focused                            | Selects every node (not connectors), opening `PropertyPanel` in bulk mode.                                                                                                                                           |
+| `Cmd/Ctrl+C` / `Cmd/Ctrl+V`       | Node(s) selected / canvas focused         | Copies and pastes nodes, including their internal config, excluding connectors to nodes outside the copied set.                                                                                                      |
+| `Escape`                          | Any selection or open panel               | Clears the current selection; if the side panel is an overlay/sheet, closes it and returns focus to the canvas per `property-panels.md`'s own Escape contract.                                                       |
+| `+` / `-` (or `Cmd/Ctrl` `+`/`-`) | Canvas focused                            | Zooms in/out by one step.                                                                                                                                                                                            |
+| `Cmd/Ctrl+0`                      | Canvas focused                            | Resets zoom to 100%.                                                                                                                                                                                                 |
+| `Shift+1`                         | Canvas focused                            | Fit-to-view (frames every node in the current viewport).                                                                                                                                                             |
 
 **Screen reader**
 
@@ -152,7 +152,7 @@ A free-form 2D drag canvas has no standardized accessible pattern; rather than i
 
 ## Accessibility
 
-- The canvas is `role="group"` with a descriptive `aria-label`, never `role="application"` — see the Screen reader section above for why, and never ship the canvas as the *only* way to reach a pipeline's actions; the List view toggle is mandatory, not optional polish, matching the contract's standing rule that no interaction is reachable through exactly one gesture-only path.
+- The canvas is `role="group"` with a descriptive `aria-label`, never `role="application"` — see the Screen reader section above for why, and never ship the canvas as the _only_ way to reach a pipeline's actions; the List view toggle is mandatory, not optional polish, matching the contract's standing rule that no interaction is reachable through exactly one gesture-only path.
 - Focus order: toolbar (zoom, fit, add-step) → List-view toggle → canvas nodes in graph order (roving `tabindex`) → side panel, when open, per `property-panels.md`'s own internal order.
 - Every status signal (node border, Status Dot, connector color) ships with a paired text label somewhere in the accessible tree — the footer duration string, the node's accessible name, or the List view's status column — never color alone, per `badge.md`'s standing rule.
 - Contrast: node title text stays `--ds-gray-1000`; body/description text stays `--ds-gray-900` at minimum; a failed node's `--ds-red-400` border and a running node's `--ds-blue-400` border are both drawn from the border-role step (400 to 600), never the text-role steps, so they read as chrome rather than being mistaken for body copy.
@@ -161,48 +161,48 @@ A free-form 2D drag canvas has no standardized accessible pattern; rather than i
 
 ## Tokens used
 
-| Token / class | Used for |
-| --- | --- |
-| `--ds-background-100` | Canvas ground fill; node/port default fill |
-| `--ds-background-200` | Optional subtle canvas-vs-rail differentiation |
-| `--ds-gray-100` | Toolbar control hover fill |
-| `--ds-gray-200` | Toolbar control active fill; loading-skeleton node fill |
-| `--ds-gray-400` | Dot-grid ground dots; idle node border; idle port ring |
-| `--ds-gray-500` | Node border on hover |
-| `--ds-gray-600` | Idle connector stroke; skipped-node Status Dot; idle port ring alternate step |
-| `--ds-gray-900` | Node body/description text; hovered/selected connector stroke; connected-port fill; already-traversed connector stroke; toolbar icon default |
-| `--ds-gray-1000` | Node title text |
-| `--ds-focus-color` / `--ds-focus-ring` / `--ds-focus-ring-outline` | Keyboard focus on nodes, ports, toolbar controls; connectable-port drag-hover highlight; connector-being-drawn stroke |
-| `--ds-ember-100` | Selected-node fill wash |
-| `--ds-ember-600` | Selected-node ring; selected-connector stroke |
-| `--ds-blue-400` | Running-node border |
-| `--ds-blue-600` | Running-node Status Dot; executing-connector stroke |
-| `--ds-green-600` | Completed-node Status Dot |
-| `--ds-amber-600` | Waiting-on-approval Status Dot |
-| `--ds-red-400` | Failed-node border; error-connector stroke's paired node border |
-| `--ds-red-600` | Failed-node Status Dot; error-connector stroke |
-| `text-label-14` | Node title |
-| `text-copy-13` | Node config-summary body text |
-| `text-label-13-mono` / `text-label-12-mono` | Node duration/id, toolbar zoom-percentage readout |
-| `text-button-14` | Toolbar buttons, "+ Add step" action |
-| `text-tabular` | Zoom-percentage number, running-node duration |
-| `material-small` | Node card shell; minimap shell |
-| `material-menu` | Canvas toolbar pill; Context Menu / Dots Menu popover |
-| `material-tooltip` | Validation-error and disabled-control explainer tooltips |
-| `material-modal` / `material-fullscreen` | Inherited unmodified for the `PropertyPanel` overlay/sheet variants |
-| `--ds-radius-small` | Node card, toolbar pill, minimap corner radius |
-| `--ds-size-small` | Toolbar icon-button height; port hit target |
-| `--ds-size-medium` | Inline node-title edit input |
-| `--geist-space` (4px) | Node drag-drop grid-alignment increment |
-| `--geist-space-3x` / `--geist-space-4x` | Node internal padding |
-| `--geist-gap` (24px) | Dot-grid pitch; canvas-to-panel gutter |
-| `--geist-gap-quarter` | Toolbar internal control spacing |
-| `--ds-motion-timing-swift` | Every transition in this pattern |
-| `--ds-motion-popover-duration` | Zoom/fit-to-view transitions; connector-completion settle |
-| `--ds-motion-overlay-duration` / `--ds-motion-overlay-scale` | Inherited for the `PropertyPanel` drawer/sheet variants |
-| `--ds-z-menu` | Context Menu / Dots Menu stacking |
-| `--ds-z-drawer` | Inherited for the tablet overlay `PropertyPanel` |
-| `--ds-z-tooltip` | Validation tooltip stacking |
+| Token / class                                                      | Used for                                                                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                              | Canvas ground fill; node/port default fill                                                                                                   |
+| `--ds-background-200`                                              | Optional subtle canvas-vs-rail differentiation                                                                                               |
+| `--ds-gray-100`                                                    | Toolbar control hover fill                                                                                                                   |
+| `--ds-gray-200`                                                    | Toolbar control active fill; loading-skeleton node fill                                                                                      |
+| `--ds-gray-400`                                                    | Dot-grid ground dots; idle node border; idle port ring                                                                                       |
+| `--ds-gray-500`                                                    | Node border on hover                                                                                                                         |
+| `--ds-gray-600`                                                    | Idle connector stroke; skipped-node Status Dot; idle port ring alternate step                                                                |
+| `--ds-gray-900`                                                    | Node body/description text; hovered/selected connector stroke; connected-port fill; already-traversed connector stroke; toolbar icon default |
+| `--ds-gray-1000`                                                   | Node title text                                                                                                                              |
+| `--ds-focus-color` / `--ds-focus-ring` / `--ds-focus-ring-outline` | Keyboard focus on nodes, ports, toolbar controls; connectable-port drag-hover highlight; connector-being-drawn stroke                        |
+| `--ds-ember-100`                                                   | Selected-node fill wash                                                                                                                      |
+| `--ds-ember-600`                                                   | Selected-node ring; selected-connector stroke                                                                                                |
+| `--ds-blue-400`                                                    | Running-node border                                                                                                                          |
+| `--ds-blue-600`                                                    | Running-node Status Dot; executing-connector stroke                                                                                          |
+| `--ds-green-600`                                                   | Completed-node Status Dot                                                                                                                    |
+| `--ds-amber-600`                                                   | Waiting-on-approval Status Dot                                                                                                               |
+| `--ds-red-400`                                                     | Failed-node border; error-connector stroke's paired node border                                                                              |
+| `--ds-red-600`                                                     | Failed-node Status Dot; error-connector stroke                                                                                               |
+| `text-label-14`                                                    | Node title                                                                                                                                   |
+| `text-copy-13`                                                     | Node config-summary body text                                                                                                                |
+| `text-label-13-mono` / `text-label-12-mono`                        | Node duration/id, toolbar zoom-percentage readout                                                                                            |
+| `text-button-14`                                                   | Toolbar buttons, "+ Add step" action                                                                                                         |
+| `text-tabular`                                                     | Zoom-percentage number, running-node duration                                                                                                |
+| `material-small`                                                   | Node card shell; minimap shell                                                                                                               |
+| `material-menu`                                                    | Canvas toolbar pill; Context Menu / Dots Menu popover                                                                                        |
+| `material-tooltip`                                                 | Validation-error and disabled-control explainer tooltips                                                                                     |
+| `material-modal` / `material-fullscreen`                           | Inherited unmodified for the `PropertyPanel` overlay/sheet variants                                                                          |
+| `--ds-radius-small`                                                | Node card, toolbar pill, minimap corner radius                                                                                               |
+| `--ds-size-small`                                                  | Toolbar icon-button height; port hit target                                                                                                  |
+| `--ds-size-medium`                                                 | Inline node-title edit input                                                                                                                 |
+| `--geist-space` (4px)                                              | Node drag-drop grid-alignment increment                                                                                                      |
+| `--geist-space-3x` / `--geist-space-4x`                            | Node internal padding                                                                                                                        |
+| `--geist-gap` (24px)                                               | Dot-grid pitch; canvas-to-panel gutter                                                                                                       |
+| `--geist-gap-quarter`                                              | Toolbar internal control spacing                                                                                                             |
+| `--ds-motion-timing-swift`                                         | Every transition in this pattern                                                                                                             |
+| `--ds-motion-popover-duration`                                     | Zoom/fit-to-view transitions; connector-completion settle                                                                                    |
+| `--ds-motion-overlay-duration` / `--ds-motion-overlay-scale`       | Inherited for the `PropertyPanel` drawer/sheet variants                                                                                      |
+| `--ds-z-menu`                                                      | Context Menu / Dots Menu stacking                                                                                                            |
+| `--ds-z-drawer`                                                    | Inherited for the tablet overlay `PropertyPanel`                                                                                             |
+| `--ds-z-tooltip`                                                   | Validation tooltip stacking                                                                                                                  |
 
 ## Implementation guidance
 
@@ -257,17 +257,32 @@ No canvas/graph-layout library is currently a project dependency (`package.json`
   <NodeCard type="terminal" title="Mission complete" />
 
   <ConnectorLayer edges={mission.edges} activeEdgeId={mission.currentEdgeId} />
-  <CanvasToolbar zoom={zoom} onZoomChange={setZoom} onFitToView={fitToView} onAddStep={openAddStepMenu} />
-</WorkflowCanvas>
+  <CanvasToolbar
+    zoom={zoom}
+    onZoomChange={setZoom}
+    onFitToView={fitToView}
+    onAddStep={openAddStepMenu}
+  />
+</WorkflowCanvas>;
 
-{selectedNodeId && (
-  <PropertyPanel placement="docked" entity={{ type: "Step", name: selectedNode.title }}>
-    <PropertySection title="Overview" static>
-      <PropertyRow label="Tool" value={selectedNode.tool} control={{ kind: "select", options: TOOL_OPTIONS }} />
-      <PropertyRow label="Timeout" value={selectedNode.timeoutLabel} control={{ kind: "select", options: TIMEOUT_OPTIONS }} />
-    </PropertySection>
-  </PropertyPanel>
-)}
+{
+  selectedNodeId && (
+    <PropertyPanel placement="docked" entity={{ type: "Step", name: selectedNode.title }}>
+      <PropertySection title="Overview" static>
+        <PropertyRow
+          label="Tool"
+          value={selectedNode.tool}
+          control={{ kind: "select", options: TOOL_OPTIONS }}
+        />
+        <PropertyRow
+          label="Timeout"
+          value={selectedNode.timeoutLabel}
+          control={{ kind: "select", options: TIMEOUT_OPTIONS }}
+        />
+      </PropertySection>
+    </PropertyPanel>
+  );
+}
 ```
 
 **2. Automations builder — a BYO-source trigger/action pipeline with a misconfigured step**
@@ -282,7 +297,12 @@ No canvas/graph-layout library is currently a project dependency (`package.json`
   />
   <ConnectorLayer edges={automation.edges} />
   <ValidationSummary issues={automation.issues} onSelectFirstIssue={selectFirstFlaggedNode} />
-  <CanvasToolbar zoom={zoom} onZoomChange={setZoom} onFitToView={fitToView} onAddStep={openAddStepMenu} />
+  <CanvasToolbar
+    zoom={zoom}
+    onZoomChange={setZoom}
+    onFitToView={fitToView}
+    onAddStep={openAddStepMenu}
+  />
 </WorkflowCanvas>
 ```
 
@@ -295,9 +315,17 @@ No canvas/graph-layout library is currently a project dependency (`package.json`
       {pipeline.nodes.map((node) => (
         <TableRow key={node.id}>
           <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">{node.title}</TableCell>
-          <TableCell><StatusBadge status={node.status} /></TableCell>
+          <TableCell>
+            <StatusBadge status={node.status} />
+          </TableCell>
           <TableCell className="text-right">
-            <DotsMenu items={[{ label: "View config" }, { label: "Duplicate step" }, { label: "Delete step" }]} />
+            <DotsMenu
+              items={[
+                { label: "View config" },
+                { label: "Duplicate step" },
+                { label: "Delete step" },
+              ]}
+            />
           </TableCell>
         </TableRow>
       ))}

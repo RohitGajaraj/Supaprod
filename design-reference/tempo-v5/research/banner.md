@@ -17,12 +17,12 @@ Notably absent from this component's page (unlike most other Geist components): 
 ### `Banner` (default export from `@vercel/geistcn/components`)
 
 ```tsx
-import { Banner } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Banner } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
-    <Banner button={{ href: '#', content: 'Read more' }} className="p-4">
+    <Banner button={{ href: "#", content: "Read more" }} className="p-4">
       <b>Big News</b> – New components finally available
     </Banner>
   );
@@ -44,7 +44,7 @@ No subcomponents are documented (no `Banner.Icon`, `Banner.Action`, etc. — eve
 Banner is used as a single self-closing-content component, not a compound/slot pattern:
 
 ```tsx
-<Banner button={{ href: '#', content: 'Read more' }} className="p-4">
+<Banner button={{ href: "#", content: "Read more" }} className="p-4">
   <b>Big News</b> – New components finally available
 </Banner>
 ```
@@ -81,7 +81,7 @@ Captured from the live SSR markup of the "Default" demo on the docs page (this i
   - Disabled/aria-disabled states swap to `--ds-gray-700` text on `--ds-gray-100` background and drop the border variable.
 - **Compact/mobile pill variant**: same button styling primitives (`rounded-full`, `h-[32px]`) but content is truncated: `<span class="truncate inline-block px-1.5">` wraps the bolded message so it can ellipsis on narrow viewports, with the trailing chevron icon appended after via a second `<span>` (`ml-1 shrink-0 mr-0.5`).
 - **Section chrome around the demo** (docs-site scaffolding, not part of Banner itself): the preview sits inside `rounded-lg border border-gray-alpha-400 bg-background-100`, with the code block below toggled via a "Show code" control, and the raw JSX rendered through a syntax highlighter using GitHub-light-ish token colors (`#D73A49` keywords, `#22863A`/`#9ECBFF` strings, `#24292E` body — light theme; `#F97583` keywords, `#9ECBFF` strings, `#E1E4E8` body — dark theme). These are the shared code-block theme tokens, not Banner-specific.
-- **No literal `.banner`/`data-geist-banner` class or attribute was found** in the captured HTML — the actual `@vercel/geistcn` `Banner` component itself is client-rendered from a bundled chunk (`I[…]` reference in the RSC flight payload) rather than emitting a stable, greppable class name in this docs-page SSR; the styling observed above comes from the *docs-site's own* full-width banner using the same visual language, and should be treated as a faithful stand-in for the real component's classes, not a literal export.
+- **No literal `.banner`/`data-geist-banner` class or attribute was found** in the captured HTML — the actual `@vercel/geistcn` `Banner` component itself is client-rendered from a bundled chunk (`I[…]` reference in the RSC flight payload) rather than emitting a stable, greppable class name in this docs-page SSR; the styling observed above comes from the _docs-site's own_ full-width banner using the same visual language, and should be treated as a faithful stand-in for the real component's classes, not a literal export.
 
 ## Notes on capture
 

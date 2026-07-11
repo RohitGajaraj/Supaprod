@@ -43,10 +43,7 @@ export function TopBar({ crumbs, actions }: { crumbs: string[]; actions?: ReactN
       }}
     >
       <div className="min-w-0 flex flex-col justify-center" style={{ overflow: "hidden" }}>
-        <span
-          className="truncate"
-          style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}
-        >
+        <span className="text-heading-14 truncate" style={{ color: "var(--text-primary)" }}>
           {title}
         </span>
         {subtitle && (

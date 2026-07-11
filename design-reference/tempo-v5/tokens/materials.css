@@ -17,13 +17,24 @@
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
   --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
-  --ds-shadow-border-small: var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
-  --ds-shadow-border-medium: var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
-  --ds-shadow-border-large: var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
-  --ds-shadow-tooltip: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a, var(--ds-shadow-background-border);
-  --ds-shadow-menu: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-modal: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-fullscreen: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-border-small:
+    var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
+  --ds-shadow-border-medium:
+    var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
+  --ds-shadow-border-large:
+    var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
+  --ds-shadow-tooltip:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a,
+    var(--ds-shadow-background-border);
+  --ds-shadow-menu:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
+    0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-modal:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
+    0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-fullscreen:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
+    0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
 
   /* Radii — 6px everyday (base/small/tooltip/popover rows), 12px raised/floating, 16px takeovers */
   --ds-radius-small: 6px;
@@ -61,7 +72,7 @@
   --ds-page-width-with-margin: calc(var(--ds-page-width) + calc(2 * 24px));
 }
 
-[data-theme='light'],
+[data-theme="light"],
 .light-theme {
   --ds-shadow-border-base: 0 0 0 1px #00000014;
   --ds-shadow-border-inset: inset 0 0 0 1px #00000014;
@@ -72,18 +83,58 @@
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
   --ds-shadow-xl: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --ds-shadow-2xl: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f;
-  --ds-shadow-tooltip: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a, var(--ds-shadow-background-border);
-  --ds-shadow-menu: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-modal: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-fullscreen: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-tooltip:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a,
+    var(--ds-shadow-background-border);
+  --ds-shadow-menu:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
+    0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-modal:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
+    0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-fullscreen:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
+    0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
 }
 
 /* Material presets — the only sanctioned way to put chrome on a surface */
-.material-base { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border); }
-.material-small { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-small); }
-.material-medium { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-medium); }
-.material-large { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-large); }
-.material-tooltip { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-tooltip); }
-.material-menu { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-menu); }
-.material-modal { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-modal); }
-.material-fullscreen { border-radius: var(--ds-radius-large); background: var(--ds-background-100); box-shadow: var(--ds-shadow-fullscreen); }
+.material-base {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border);
+}
+.material-small {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-small);
+}
+.material-medium {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-medium);
+}
+.material-large {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-large);
+}
+.material-tooltip {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-tooltip);
+}
+.material-menu {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-menu);
+}
+.material-modal {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-modal);
+}
+.material-fullscreen {
+  border-radius: var(--ds-radius-large);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-fullscreen);
+}

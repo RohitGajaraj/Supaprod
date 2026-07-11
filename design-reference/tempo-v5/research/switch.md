@@ -43,9 +43,10 @@ Icons (optional, for icon controls): `@vercel/geistcn-assets/icons`
 ### Usage snippets
 
 Default:
+
 ```tsx
-import { Switch, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Switch, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -60,9 +61,10 @@ export function Component(): JSX.Element {
 ```
 
 Disabled:
+
 ```tsx
-import { Switch, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Switch, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -77,9 +79,10 @@ export function Component(): JSX.Element {
 ```
 
 Sizes:
+
 ```tsx
-import { Switch, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Switch, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -110,19 +113,15 @@ export function Component(): JSX.Element {
 ```
 
 Full width:
+
 ```tsx
-import { Switch, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Switch, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
-    <Switch name="full-width" style={{ width: '100%' }}>
-      <SwitchControl
-        defaultChecked
-        label="Source"
-        size="large"
-        value="source"
-      />
+    <Switch name="full-width" style={{ width: "100%" }}>
+      <SwitchControl defaultChecked label="Source" size="large" value="source" />
       <SwitchControl label="Output" size="large" value="output" />
     </Switch>
   );
@@ -130,30 +129,20 @@ export function Component(): JSX.Element {
 ```
 
 Tooltip:
+
 ```tsx
-import { Switch, Tooltip, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Switch, Tooltip, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex relative min-w-px max-w-full flex-col items-start flex-1">
       <Switch name="view-mode">
         <Tooltip desktopOnly text="View Source">
-          <SwitchControl
-            defaultChecked
-            label="Source"
-            name="tooltip"
-            size="large"
-            value="source"
-          />
+          <SwitchControl defaultChecked label="Source" name="tooltip" size="large" value="source" />
         </Tooltip>
         <Tooltip desktopOnly text="View Output">
-          <SwitchControl
-            label="Output"
-            name="tooltip"
-            size="large"
-            value="output"
-          />
+          <SwitchControl label="Output" name="tooltip" size="large" value="output" />
         </Tooltip>
       </Switch>
     </div>
@@ -162,46 +151,32 @@ export function Component(): JSX.Element {
 ```
 
 Icon:
+
 ```tsx
-import { Switch, SwitchControl } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import {
-  IconGridSquare,
-  IconListUnordered,
-} from '@vercel/geistcn-assets/icons';
+import { Switch, SwitchControl } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { IconGridSquare, IconListUnordered } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex relative min-w-px max-w-full flex-col lg:flex-row lg:flex-wrap flex-1">
       <div className="flex relative min-w-px max-w-full flex-col items-start flex-1">
         <Switch name="icons-small" size="small">
-          <SwitchControl
-            defaultChecked
-            icon={<IconGridSquare />}
-            value="source"
-          />
+          <SwitchControl defaultChecked icon={<IconGridSquare />} value="source" />
           <SwitchControl icon={<IconListUnordered />} value="output" />
         </Switch>
       </div>
 
       <div className="flex relative min-w-px max-w-full flex-col items-start flex-1">
         <Switch name="icons-default">
-          <SwitchControl
-            defaultChecked
-            icon={<IconGridSquare />}
-            value="source"
-          />
+          <SwitchControl defaultChecked icon={<IconGridSquare />} value="source" />
           <SwitchControl icon={<IconListUnordered />} value="output" />
         </Switch>
       </div>
 
       <div className="flex relative min-w-px max-w-full flex-col items-start flex-1">
         <Switch name="icons-large" size="large">
-          <SwitchControl
-            defaultChecked
-            icon={<IconGridSquare />}
-            value="source"
-          />
+          <SwitchControl defaultChecked icon={<IconGridSquare />} value="source" />
           <SwitchControl icon={<IconListUnordered />} value="output" />
         </Switch>
       </div>

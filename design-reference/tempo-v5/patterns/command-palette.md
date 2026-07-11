@@ -185,8 +185,8 @@ Named parts:
 ### No matches (post-type, nothing scores above the cutoff in any group)
 
 - Render the shared `EmptyState` in place of the result list: `title` = `No Commands
-  Match Your Search`, `description` repeats the query in curly quotes, e.g. `No commands
-  match "delete billing". Try a different term.` Always keep the input itself editable
+Match Your Search`, `description` repeats the query in curly quotes, e.g. `No commands
+match "delete billing". Try a different term.` Always keep the input itself editable
   and focused underneath, this is not a dead end.
 - Wrap the swap in `aria-live="polite"` so it announces without stealing focus, same as
   `search-filtering.md`'s no-results guidance (this pattern and that one share the same
@@ -217,30 +217,30 @@ Every row is one of three kinds; the kind decides what selecting it does, never 
 group it happens to sit in (a Create-kind row could in principle surface inside a
 query-scoped group too, if it scores high enough):
 
-| Kind | Example labels | On select |
-| --- | --- | --- |
-| **Action** | "Deploy Project", "Approve request", "Invite team member" | Runs immediately and closes the palette. Label is a Title Case verb phrase naming the action, never how it works. |
-| **Navigation** | "Today", "Discover", "Plan", "Build", "Brain" | Routes to that destination and closes the palette. Label names the destination itself, never "Go to {X}" as the label text (the group heading "Go to" already supplies that verb, so the row itself just says "Today"). |
-| **Create** | "New mission", "New PRD" | Closes the palette, then opens that domain's existing creation entry point (the same one its own "New X" button already uses elsewhere in the product — never a second, parallel creation path). |
-| **Drill-in** | "Switch workspace", "Assign to…" | Pushes a new page onto the stack; the palette stays open, focus stays in the input, the input clears and its placeholder updates to the new page's scope. |
+| Kind           | Example labels                                            | On select                                                                                                                                                                                                               |
+| -------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Action**     | "Deploy Project", "Approve request", "Invite team member" | Runs immediately and closes the palette. Label is a Title Case verb phrase naming the action, never how it works.                                                                                                       |
+| **Navigation** | "Today", "Discover", "Plan", "Build", "Brain"             | Routes to that destination and closes the palette. Label names the destination itself, never "Go to {X}" as the label text (the group heading "Go to" already supplies that verb, so the row itself just says "Today"). |
+| **Create**     | "New mission", "New PRD"                                  | Closes the palette, then opens that domain's existing creation entry point (the same one its own "New X" button already uses elsewhere in the product — never a second, parallel creation path).                        |
+| **Drill-in**   | "Switch workspace", "Assign to…"                          | Pushes a new page onto the stack; the palette stays open, focus stays in the input, the input clears and its placeholder updates to the new page's scope.                                                               |
 
 ### Keyboard
 
-| Key | Effect |
-| --- | --- |
-| `Cmd+K` / `Ctrl+K` | Opens the root palette from anywhere. Reserved globally — no page-level search field, filter bar, or scoped palette may reuse this binding (contract already enforces this for the `search-filtering.md` global search variant; it is the same shortcut). |
-| Typing | Narrows the current page's rows. Client-side groups (Create, Go to, Recent) filter instantly; server-backed entity groups debounce 150 to 250ms, matching `search-filtering.md`. |
-| `↑` / `↓` | Moves the highlighted row within the current page, clamped at the first/last row (no wraparound). |
-| `Enter` | Activates the highlighted row per its kind, above. |
-| `Backspace` on an empty input | Pops back one page. At the true root (or at a scoped instance's own first page) this has no effect, since there is nothing to pop back to. |
-| `Esc` | Closes the whole palette outright, from any page, and returns focus to the trigger. It never just pops one page, matching Geist's own documented behavior. |
-| `1`-`9` (optional acceleration) | May jump straight to the first through ninth visible row without arrowing down to it, mirroring a convention some fast command palettes use for their default pre-query suggestions. Sanctioned but optional; if implemented, restrict it to the pre-query Recent/Create/Go to rows only, so it never collides with typing a literal digit into a search query. |
+| Key                                           | Effect                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Cmd+K` / `Ctrl+K`                            | Opens the root palette from anywhere. Reserved globally — no page-level search field, filter bar, or scoped palette may reuse this binding (contract already enforces this for the `search-filtering.md` global search variant; it is the same shortcut).                                                                                                                                                       |
+| Typing                                        | Narrows the current page's rows. Client-side groups (Create, Go to, Recent) filter instantly; server-backed entity groups debounce 150 to 250ms, matching `search-filtering.md`.                                                                                                                                                                                                                                |
+| `↑` / `↓`                                     | Moves the highlighted row within the current page, clamped at the first/last row (no wraparound).                                                                                                                                                                                                                                                                                                               |
+| `Enter`                                       | Activates the highlighted row per its kind, above.                                                                                                                                                                                                                                                                                                                                                              |
+| `Backspace` on an empty input                 | Pops back one page. At the true root (or at a scoped instance's own first page) this has no effect, since there is nothing to pop back to.                                                                                                                                                                                                                                                                      |
+| `Esc`                                         | Closes the whole palette outright, from any page, and returns focus to the trigger. It never just pops one page, matching Geist's own documented behavior.                                                                                                                                                                                                                                                      |
+| `1`-`9` (optional acceleration)               | May jump straight to the first through ninth visible row without arrowing down to it, mirroring a convention some fast command palettes use for their default pre-query suggestions. Sanctioned but optional; if implemented, restrict it to the pre-query Recent/Create/Go to rows only, so it never collides with typing a literal digit into a search query.                                                 |
 | A "go to" row's own chord (e.g. `G` then `T`) | A sequential two-key shortcut, distinct from a simultaneous chord like `⌘K`: press `G`, release, then press the destination's letter. Only wire this for the static Go to group's own rows, shown in the row's `Kbd` suffix exactly as the two keys in sequence. This is a judgment call carried over from Linear's convention, paraphrased; it is optional polish, not required for the pattern to be correct. |
 
 ### Screen reader
 
 - The overlay is `role="dialog"` `aria-modal="true"` (or the palette's underlying `cmdk`
-  + Radix Dialog composition, which already provides this).
+  - Radix Dialog composition, which already provides this).
 - The input is `role="combobox"`, `aria-expanded="true"` while open, `aria-controls`
   pointing at the list, `aria-activedescendant` tracking the highlighted row's id. Real
   DOM focus stays on the input at all times; arrow keys move the virtual highlight, they
@@ -316,39 +316,39 @@ query-scoped group too, if it scores high enough):
 
 ## Tokens used
 
-| Token / class | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Overlay surface fill, input fill. |
-| `--ds-gray-100` | Hovered/keyboard-highlighted row background; loading placeholder blocks; disabled row (no bg change, listed for completeness of the role band). |
-| `--ds-gray-200` | Momentary pressed-row background. |
-| `--ds-gray-400` / `--ds-gray-500` | Input ring, default/hover. |
-| `--ds-gray-700` | Placeholder text, leading search/back icon, disabled row text and icon. |
-| `--ds-gray-900` | Group heading text, secondary row description, matched-substring base color (bolded, not recolored). |
-| `--ds-gray-1000` | Primary row label text, typed input value. |
-| `--ds-gray-alpha-300` | Optional background wash behind a matched substring in very dense result groups only (mirrors `search-filtering.md`'s rule). |
-| `--ds-ember-900` | Selected/current-item checkmark on a nested single-select page only. |
-| `--ds-red-900` | Error-row text and retry affordance. |
-| `--ds-focus-ring` / `--ds-focus-color` | Input's visible focus ring. |
-| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity` | Backdrop behind the overlay (0.8). |
-| `--ds-shadow-border-small` | Input ring. |
-| `material-modal` / `--ds-shadow-modal` | Overlay shell, desktop/tablet. |
-| `material-fullscreen` / `--ds-shadow-fullscreen` | Overlay shell, mobile. |
-| `--ds-radius-small` | Row corner radius (`--ds-popover-row-radius`). |
-| `--ds-radius-medium` | Overlay corner radius (via `material-modal`). |
-| `--ds-motion-timing-swift` | Every transition in this pattern. |
-| `--ds-motion-overlay-scale` / `-timing` / `-duration` | Overlay open/close (0.96 scale, 300ms). |
-| `--ds-motion-popover-timing` / `-duration` | Page push/pop crossfade (200ms). |
-| `--ds-size-large` (40px) | Input row height. |
-| `--ds-popover-padding` / `-row-height` / `-row-radius` / `-row-padding` | List interior padding and each row's box model (6px padding, 36px rows, 6px radius, 8px horizontal row padding). |
-| `--ds-z-modal` | Overlay stacking context. |
-| `--geist-gap-quarter` (8px) | Icon-to-label gap inside a row; row-to-suffix gap. |
-| `--geist-gap-half` (12px) | Gap between the footer bar's key-hint groups. |
-| `text-label-14` | Row primary label. |
-| `text-label-13` | Group heading. |
-| `text-label-12` | Footer key-hint copy. |
-| `text-label-13-mono` / `text-label-12-mono` | Relative timestamps and `Kbd` shortcut glyphs in a row's suffix or the footer. |
-| `text-copy-13` | Row secondary description line; no-matches description. |
-| `text-button-14` | Any `Button` composed into this pattern (mobile "Cancel," a retry button, a scoped trigger). |
+| Token / class                                                           | Role in this pattern                                                                                                                            |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                   | Overlay surface fill, input fill.                                                                                                               |
+| `--ds-gray-100`                                                         | Hovered/keyboard-highlighted row background; loading placeholder blocks; disabled row (no bg change, listed for completeness of the role band). |
+| `--ds-gray-200`                                                         | Momentary pressed-row background.                                                                                                               |
+| `--ds-gray-400` / `--ds-gray-500`                                       | Input ring, default/hover.                                                                                                                      |
+| `--ds-gray-700`                                                         | Placeholder text, leading search/back icon, disabled row text and icon.                                                                         |
+| `--ds-gray-900`                                                         | Group heading text, secondary row description, matched-substring base color (bolded, not recolored).                                            |
+| `--ds-gray-1000`                                                        | Primary row label text, typed input value.                                                                                                      |
+| `--ds-gray-alpha-300`                                                   | Optional background wash behind a matched substring in very dense result groups only (mirrors `search-filtering.md`'s rule).                    |
+| `--ds-ember-900`                                                        | Selected/current-item checkmark on a nested single-select page only.                                                                            |
+| `--ds-red-900`                                                          | Error-row text and retry affordance.                                                                                                            |
+| `--ds-focus-ring` / `--ds-focus-color`                                  | Input's visible focus ring.                                                                                                                     |
+| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity`         | Backdrop behind the overlay (0.8).                                                                                                              |
+| `--ds-shadow-border-small`                                              | Input ring.                                                                                                                                     |
+| `material-modal` / `--ds-shadow-modal`                                  | Overlay shell, desktop/tablet.                                                                                                                  |
+| `material-fullscreen` / `--ds-shadow-fullscreen`                        | Overlay shell, mobile.                                                                                                                          |
+| `--ds-radius-small`                                                     | Row corner radius (`--ds-popover-row-radius`).                                                                                                  |
+| `--ds-radius-medium`                                                    | Overlay corner radius (via `material-modal`).                                                                                                   |
+| `--ds-motion-timing-swift`                                              | Every transition in this pattern.                                                                                                               |
+| `--ds-motion-overlay-scale` / `-timing` / `-duration`                   | Overlay open/close (0.96 scale, 300ms).                                                                                                         |
+| `--ds-motion-popover-timing` / `-duration`                              | Page push/pop crossfade (200ms).                                                                                                                |
+| `--ds-size-large` (40px)                                                | Input row height.                                                                                                                               |
+| `--ds-popover-padding` / `-row-height` / `-row-radius` / `-row-padding` | List interior padding and each row's box model (6px padding, 36px rows, 6px radius, 8px horizontal row padding).                                |
+| `--ds-z-modal`                                                          | Overlay stacking context.                                                                                                                       |
+| `--geist-gap-quarter` (8px)                                             | Icon-to-label gap inside a row; row-to-suffix gap.                                                                                              |
+| `--geist-gap-half` (12px)                                               | Gap between the footer bar's key-hint groups.                                                                                                   |
+| `text-label-14`                                                         | Row primary label.                                                                                                                              |
+| `text-label-13`                                                         | Group heading.                                                                                                                                  |
+| `text-label-12`                                                         | Footer key-hint copy.                                                                                                                           |
+| `text-label-13-mono` / `text-label-12-mono`                             | Relative timestamps and `Kbd` shortcut glyphs in a row's suffix or the footer.                                                                  |
+| `text-copy-13`                                                          | Row secondary description line; no-matches description.                                                                                         |
+| `text-button-14`                                                        | Any `Button` composed into this pattern (mobile "Cancel," a retry button, a scoped trigger).                                                    |
 
 ## Implementation guidance
 
@@ -535,13 +535,9 @@ function WorkspaceListPage({ workspaces, currentId, onSelect }: WorkspacePagePro
           <Circle size={16} className="text-gray-900" />
           <span className="text-label-14">
             {workspace.name}
-            {workspace.id === currentId && (
-              <span className="text-gray-900"> (current)</span>
-            )}
+            {workspace.id === currentId && <span className="text-gray-900"> (current)</span>}
           </span>
-          {workspace.id === currentId && (
-            <Check size={16} className="ml-auto text-ember-900" />
-          )}
+          {workspace.id === currentId && <Check size={16} className="ml-auto text-ember-900" />}
         </CommandItem>
       ))}
     </CommandGroup>
@@ -570,11 +566,7 @@ function MissionActionsPalette({ mission }: { mission: Mission }) {
       <Button variant="tertiary" size="small" onClick={() => setOpen(true)}>
         Actions
       </Button>
-      <Command.Dialog
-        open={open}
-        onOpenChange={setOpen}
-        className="material-modal"
-      >
+      <Command.Dialog open={open} onOpenChange={setOpen} className="material-modal">
         <CommandInput placeholder={`Search actions for ${mission.name}…`} />
         <CommandList>
           <CommandGroup heading="Mission actions">

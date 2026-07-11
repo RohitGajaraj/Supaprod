@@ -32,64 +32,65 @@ Icons used in examples come from a separate package: `@vercel/geistcn-assets/ico
 
 ### `Avatar` props observed
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `username` | string | Drives fetched avatar image (GitHub-style handle in all examples: `evilrabbit`, `rauchg`, etc.) |
-| `size` | number (px) — `24`, `32`, `48`, `90` seen | Sets both width and height via `--size` CSS var |
-| `letter` | string, 2 chars, uppercase (`"SL"`, `"EK"`, `"CK"`) | Initials fallback rendered when there's no resolved image |
-| `placeholder` | boolean | Forces the permanent loading-shimmer shell (used standalone, or paired with `letter` to show initials over/instead of the shimmer treatment in the demo) |
+| Prop          | Type / values seen                                  | Notes                                                                                                                                                    |
+| ------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `username`    | string                                              | Drives fetched avatar image (GitHub-style handle in all examples: `evilrabbit`, `rauchg`, etc.)                                                          |
+| `size`        | number (px) — `24`, `32`, `48`, `90` seen           | Sets both width and height via `--size` CSS var                                                                                                          |
+| `letter`      | string, 2 chars, uppercase (`"SL"`, `"EK"`, `"CK"`) | Initials fallback rendered when there's no resolved image                                                                                                |
+| `placeholder` | boolean                                             | Forces the permanent loading-shimmer shell (used standalone, or paired with `letter` to show initials over/instead of the shimmer treatment in the demo) |
 
 ### `AvatarGroup` props observed
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `members` | array of `{ username: string }` | The list of people to stack |
-| `size` | number (px) — `16`, `24`, `32`, `48` seen | Applied to every member avatar |
-| `limit` | number (e.g. `4`) | Caps visible avatars; remaining members collapse into a "+N" overflow indicator |
-| `reverse` | boolean | Flips which member is stacked on top (z-index order), not the left-to-right layout |
-| `overlap` | `"auto"` \| number (px) — `10`, `6`, `0` seen | `"auto"` scales overlap with `size`; a literal number pins the overlap in pixels |
+| Prop      | Type / values seen                            | Notes                                                                              |
+| --------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `members` | array of `{ username: string }`               | The list of people to stack                                                        |
+| `size`    | number (px) — `16`, `24`, `32`, `48` seen     | Applied to every member avatar                                                     |
+| `limit`   | number (e.g. `4`)                             | Caps visible avatars; remaining members collapse into a "+N" overflow indicator    |
+| `reverse` | boolean                                       | Flips which member is stacked on top (z-index order), not the left-to-right layout |
+| `overlap` | `"auto"` \| number (px) — `10`, `6`, `0` seen | `"auto"` scales overlap with `size`; a literal number pins the overlap in pixels   |
 
 ### `AvatarWithIcon` props observed
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `icon` | JSX element, e.g. `<IconArrowCircleDown size={14} color="gray-900" />` | The icon rendered centered in the avatar shape |
-| `size` | number (px) — `32` seen | Outer avatar size |
-| `iconBackground` | boolean (present/absent) | Adds a background fill behind the icon |
+| Prop             | Type / values seen                                                     | Notes                                          |
+| ---------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
+| `icon`           | JSX element, e.g. `<IconArrowCircleDown size={14} color="gray-900" />` | The icon rendered centered in the avatar shape |
+| `size`           | number (px) — `32` seen                                                | Outer avatar size                              |
+| `iconBackground` | boolean (present/absent)                                               | Adds a background fill behind the icon         |
 
 ### `GitHubAvatar` / `GitLabAvatar` / `BitbucketAvatar` props observed
 
-| Prop | Type / values seen |
-|---|---|
-| `username` | string |
-| `size` | number (px) — `32` seen |
+| Prop       | Type / values seen      |
+| ---------- | ----------------------- |
+| `username` | string                  |
+| `size`     | number (px) — `32` seen |
 
 ### Minimal usage snippets (from "Show code")
 
 **Group (basic + overflow via `limit`):**
+
 ```tsx
-import { AvatarGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { AvatarGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex items-center gap-4">
       <AvatarGroup
         members={[
-          { username: 'evilrabbit' },
-          { username: 'severinlandolt' },
-          { username: 'rauchg' },
+          { username: "evilrabbit" },
+          { username: "severinlandolt" },
+          { username: "rauchg" },
         ]}
         size={32}
       />
       <AvatarGroup
         limit={4}
         members={[
-          { username: 'christopherkindl' },
-          { username: 'rauno' },
-          { username: 'shuding' },
-          { username: 'skllcrn' },
-          { username: 'almonk' },
+          { username: "christopherkindl" },
+          { username: "rauno" },
+          { username: "shuding" },
+          { username: "skllcrn" },
+          { username: "almonk" },
         ]}
         size={32}
       />
@@ -99,15 +100,16 @@ export function Component(): JSX.Element {
 ```
 
 **Stacking order (`reverse`):**
+
 ```tsx
-import { AvatarGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { AvatarGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const members = [
-    { username: 'evilrabbit' },
-    { username: 'severinlandolt' },
-    { username: 'rauchg' },
+    { username: "evilrabbit" },
+    { username: "severinlandolt" },
+    { username: "rauchg" },
   ];
 
   return (
@@ -120,15 +122,16 @@ export function Component(): JSX.Element {
 ```
 
 **Overlap (`"auto"` across sizes):**
+
 ```tsx
-import { AvatarGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { AvatarGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const members = [
-    { username: 'evilrabbit' },
-    { username: 'severinlandolt' },
-    { username: 'rauchg' },
+    { username: "evilrabbit" },
+    { username: "severinlandolt" },
+    { username: "rauchg" },
   ];
 
   return (
@@ -143,15 +146,16 @@ export function Component(): JSX.Element {
 ```
 
 **Fixed overlap (literal pixel values):**
+
 ```tsx
-import { AvatarGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { AvatarGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   const members = [
-    { username: 'evilrabbit' },
-    { username: 'severinlandolt' },
-    { username: 'rauchg' },
+    { username: "evilrabbit" },
+    { username: "severinlandolt" },
+    { username: "rauchg" },
   ];
 
   return (
@@ -165,9 +169,10 @@ export function Component(): JSX.Element {
 ```
 
 **Size (plain `Avatar`):**
+
 ```tsx
-import { Avatar } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Avatar } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -181,13 +186,10 @@ export function Component(): JSX.Element {
 ```
 
 **Git (provider-branded avatars):**
+
 ```tsx
-import {
-  GitHubAvatar,
-  GitLabAvatar,
-  BitbucketAvatar,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { GitHubAvatar, GitLabAvatar, BitbucketAvatar } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -201,14 +203,15 @@ export function Component(): JSX.Element {
 ```
 
 **With custom icon:**
+
 ```tsx
-import { AvatarWithIcon } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { AvatarWithIcon } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 import {
   IconArrowCircleDown,
   IconCheckCircleFill,
   IconClockDashed,
-} from '@vercel/geistcn-assets/icons';
+} from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   return (
@@ -234,9 +237,10 @@ export function Component(): JSX.Element {
 ```
 
 **Letter (initials placeholder):**
+
 ```tsx
-import { Avatar } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Avatar } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -250,9 +254,10 @@ export function Component(): JSX.Element {
 ```
 
 **Placeholder (bare loading shell):**
+
 ```tsx
-import { Avatar } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Avatar } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <Avatar placeholder size={90} />;
@@ -270,6 +275,7 @@ export function Component(): JSX.Element {
 ## Design notes
 
 **Base avatar shape/box** (applies to `Avatar`, and each member inside `AvatarGroup`):
+
 - Root element is an inline `<span>`, sized via a CSS custom property: `w-[var(--size)] h-[var(--size)]`, with `--size` set inline per instance (e.g. `style="--size:32px"`).
 - Always `rounded-full` (a perfect circle) plus `shrink-0 inline-block overflow-hidden leading-0 align-top relative`.
 - Background-color transitions are animated: `transition-[background] duration-200 ease-in-out`.
@@ -279,14 +285,17 @@ export function Component(): JSX.Element {
 - Root carries `data-geist-avatar=""`, `data-mask="true|false"`, `data-resolved="true|false"`, `data-version="v1"`, and `role="img"` with an `aria-label` like `"Avatar for {username}"` or `"Placeholder Avatar"`.
 
 **Loading / unresolved state** (`data-resolved="false"`):
+
 - A `before` pseudo-element renders a shimmering gradient bar: `bg-gradient-to-r from-[var(--accents-1)] via-[var(--accents-2)] to-[var(--accents-1)]`, stretched to `bg-[length:400%_100%]` and animated with a Tailwind `animate-loading` keyframe (sweeping highlight).
 - Uses the neutral `--accents-1` / `--accents-2` scale tokens, not brand color — this is the same shimmer for both "still loading" and permanent `placeholder` avatars.
 
 **Letter/initials fallback:**
+
 - Rendered as an inner `<span class="flex justify-center items-center h-full font-medium text-white opacity-50 bg-[var(--accents-6)]">` containing the literal letters (e.g. `SL`).
 - Background token is `--accents-6` (a mid/dark neutral, not the loading gradient tokens); text is white at `opacity-50` (a muted, not pure-white, initials treatment); font weight is `medium`.
 
 **`AvatarGroup` composition:**
+
 - Wrapper: `<div class="flex items-center" style="--avatar-overlap:{N}px">` — the resolved overlap value (auto or fixed) is threaded down as a single CSS variable consumed by every child.
 - Each member: `<span class="relative nth-[n+2]:ml-[calc(-1*var(--avatar-overlap,10px))] inline-flex items-center rounded-full shadow-[0_0_0_1px_var(--geist-background)]" style="z-index:{N}">` wrapping the base avatar span.
   - `nth-[n+2]:ml-[...]` — only the 2nd-and-later members get the negative left margin, so the first avatar keeps its full box and everything after it slides left underneath.
@@ -297,20 +306,22 @@ export function Component(): JSX.Element {
 **Overlap values (`overlap="auto"`), observed per size** — auto-overlap is roughly 29-31% of `size`, not a fixed ratio table lookup with hard-coded stops:
 
 | `size` | resolved `--avatar-overlap` |
-|---|---|
-| 16px | 5px |
-| 24px | 7px |
-| 32px | 10px |
-| 48px | 14px |
+| ------ | --------------------------- |
+| 16px   | 5px                         |
+| 24px   | 7px                         |
+| 32px   | 10px                        |
+| 48px   | 14px                        |
 
 **Fixed overlap** (`overlap={10|6|0}` at `size=24`) maps 1:1 — the number passed is used verbatim as the `--avatar-overlap` pixel value, with `0` producing edge-to-edge (non-overlapping) avatars.
 
 **Provider-brand badge** (`GitHubAvatar` / `GitLabAvatar` / `BitbucketAvatar`):
+
 - Rendered as a small badge absolutely positioned over the bottom-left corner of the base avatar: `style="left:-3px;bottom:-5px"`, `rounded-full overflow-hidden`, `bg-white border border-white` (light theme) flipping to `dark-theme:border-black dark-theme:bg-black` (and specifically `dark-theme:data-[git-type=github]:bg-black` for the GitHub mark, plus `[&[data-git-type=github]_svg]:fill-black` to recolor the GitHub glyph for dark mode).
 - Badge box is `14x14` (`height="14" width="14"` on the inner `svg`), carries `data-git-type="github|gitlab|bitbucket"` and `data-icon-background="true"`.
 - The brand SVG is scaled inside the circular badge per-provider to visually balance differently-shaped marks: `[&[data-git-type=bitbucket]_svg]:scale-65` and `[&[data-git-type=gitlab]_svg]:scale-75` (GitHub renders at full/100% scale within the 14px box).
 
 **Tokens referenced directly in markup:**
+
 - `--ds-gray-alpha-400` — the avatar ring border color.
 - `--geist-background` — used as the overlap-separator "ring" shadow color (matches page background so overlapped avatars read as cut out from the one behind).
 - `--accents-1`, `--accents-2` — loading-shimmer gradient stops (neutral scale).

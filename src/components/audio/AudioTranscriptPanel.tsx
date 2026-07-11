@@ -23,6 +23,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/lib/notify";
 import {
   submitAudioForTranscription,
   pollTranscriptionStatus,
@@ -102,9 +103,11 @@ function ChunkView({ chunks }: { chunks: TranscriptChunk[] }) {
 function TranscriptCard({
   transcript,
   onExtract,
+  extracting,
 }: {
   transcript: AudioTranscript;
   onExtract: (id: string) => void;
+  extracting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -182,10 +185,15 @@ function TranscriptCard({
               variant="outline"
               size="sm"
               onClick={() => onExtract(transcript.id)}
+              disabled={extracting}
               className="gap-1.5 text-xs"
             >
-              <Sparkles className="h-3 w-3" />
-              Extract action items
+              {extracting ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="h-3 w-3" />
+              )}
+              {extracting ? "Extracting..." : "Extract action items"}
             </Button>
           )}
         </CardContent>
@@ -219,11 +227,15 @@ export function AudioTranscriptPanel() {
     mutationFn: ({ transcriptId }: { transcriptId: string }) =>
       pollTranscriptionStatus({ data: { transcriptId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["audio-transcripts"] }),
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Could not refresh transcript status."),
   });
 
   const extractMutation = useMutation({
     mutationFn: (transcriptId: string) => extractActionsFromTranscript({ data: { transcriptId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["audio-transcripts"] }),
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Could not extract action items."),
   });
 
   const handleUpload = useCallback(
@@ -329,6 +341,7 @@ export function AudioTranscriptPanel() {
             key={t.id}
             transcript={t}
             onExtract={(id) => extractMutation.mutate(id)}
+            extracting={extractMutation.isPending && extractMutation.variables === t.id}
           />
         ))}
       </div>
@@ -344,7 +357,8 @@ export function AudioTranscriptPanel() {
                 .filter((t) => t.status === "processing")
                 .forEach((t) => pollMutation.mutate({ transcriptId: t.id }));
             }}
-            className="underline hover:text-slate-600"
+            disabled={pollMutation.isPending}
+            className="underline hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Refresh now
           </button>

@@ -16,25 +16,25 @@ Only these two live demo blocks exist on the page (confirmed via the two `Previe
 Import path:
 
 ```tsx
-import { TextWithCopyButton } from '@vercel/geistcn/components';
+import { TextWithCopyButton } from "@vercel/geistcn/components";
 ```
 
 Single component, no documented subcomponents. Props observed across both demos:
 
-| Prop | Type (inferred) | Example value | Notes |
-|---|---|---|---|
-| `ellipsis` | boolean (flag) | `ellipsis` | Truncates the displayed text with an ellipsis when it overflows its container; used in both demos. |
-| `successMessage` | string | `"Copied to clipboard"` / `"Copied hashed digest to clipboard"` | Text shown (likely as a toast/tooltip swap) after a successful copy. Demo 2 shows it's meant to be customized per-context ("Copied hashed digest to clipboard" — reflects what was actually copied). |
-| `textLabel` | string | `"Copy"` / `"Copy config digest"` | The accessible/visible label for the copy action itself — also customized per-context in demo 2, implying this is the button's accessible name (not just decorative). |
-| `textToCopy` | string | `"lipsum"` / `"edgeConfigData.digest"` | The actual string value that gets written to the clipboard when the button is pressed — distinct from what may be visually displayed as truncated text. |
+| Prop             | Type (inferred) | Example value                                                   | Notes                                                                                                                                                                                                |
+| ---------------- | --------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ellipsis`       | boolean (flag)  | `ellipsis`                                                      | Truncates the displayed text with an ellipsis when it overflows its container; used in both demos.                                                                                                   |
+| `successMessage` | string          | `"Copied to clipboard"` / `"Copied hashed digest to clipboard"` | Text shown (likely as a toast/tooltip swap) after a successful copy. Demo 2 shows it's meant to be customized per-context ("Copied hashed digest to clipboard" — reflects what was actually copied). |
+| `textLabel`      | string          | `"Copy"` / `"Copy config digest"`                               | The accessible/visible label for the copy action itself — also customized per-context in demo 2, implying this is the button's accessible name (not just decorative).                                |
+| `textToCopy`     | string          | `"lipsum"` / `"edgeConfigData.digest"`                          | The actual string value that gets written to the clipboard when the button is pressed — distinct from what may be visually displayed as truncated text.                                              |
 
 No `size` or `variant` prop literal was visible in the JSX examples themselves (the "With Small and Tertiary" demo's title implies a `size="small"` and `variant="tertiary"`-style API, consistent with other Geist button-family components, but the actual prop names/enum values were not present in the two captured code snippets — likely defaulted/omitted in the shown example or set via a wrapping context not part of the minimal usage snippet).
 
 ### Minimal usage — Default
 
 ```tsx
-import { TextWithCopyButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { TextWithCopyButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -51,8 +51,8 @@ export function Component(): JSX.Element {
 ### Minimal usage — With Small and Tertiary
 
 ```tsx
-import { TextWithCopyButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { TextWithCopyButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (

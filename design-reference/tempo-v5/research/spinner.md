@@ -18,7 +18,7 @@ Every demo section on the page has a "Show code" toggle backed by a raw `tsx` so
 Single component, imported from the shared Geist component package:
 
 ```tsx
-import { Spinner } from '@vercel/geistcn/components';
+import { Spinner } from "@vercel/geistcn/components";
 ```
 
 ### Props observed in the examples
@@ -30,9 +30,10 @@ import { Spinner } from '@vercel/geistcn/components';
 ### Usage snippets (verbatim from "Show code")
 
 **Default:**
+
 ```tsx
-import { Spinner } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Spinner } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <Spinner />;
@@ -40,9 +41,10 @@ export function Component(): JSX.Element {
 ```
 
 **Sizes:**
+
 ```tsx
-import { Spinner } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Spinner } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -60,9 +62,10 @@ export function Component(): JSX.Element {
 ```
 
 **Colors:**
+
 ```tsx
-import { Spinner } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Spinner } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -96,16 +99,19 @@ export function Component(): JSX.Element {
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Spinner on short, indeterminate, single-action waits — roughly 1-3 seconds: form submits, an inline icon-triggered refresh, a single row's retry action.
 - Let `Button`'s `loading` prop own the spinner for submit buttons rather than hand-placing a `Spinner` inside button markup — it keeps size and busy-state semantics consistent.
 - Pick a different primitive when the shape of the wait differs: `Skeleton` for filling a layout whose structure you already know, `LoadingDots` for waits that sit inline in a sentence, `Progress` when you can report actual completion percentage.
 
 **Behavior**
+
 - Only mount the Spinner once the async action has actually started; don't pre-render it and toggle visibility with CSS, since a hidden-but-mounted spinner can be caught mid-rotation and looks janky the instant it appears.
 - For any wait that might run past about a second, pair the spinner with short state-naming copy ("Verifying...", "Deploying...") so the user knows what they're waiting on, not just that something is loading.
 - Size the Spinner relative to the adjacent text or icon it sits next to, not the width/height of its parent container — it's a typographic/icon-scale element, not a layout-filling one.
 
 **Accessibility**
+
 - Put `aria-busy="true"` on the wrapping element of whatever action is in flight, so assistive tech announces the busy-state transition.
 - Keep the original trigger (e.g. the button) focusable throughout the load; don't swap it out for a separate detached spinner element, which would drop keyboard focus.
 - Respect `prefers-reduced-motion` and avoid layering extra animation effects on top of the spin itself.

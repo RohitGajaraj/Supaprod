@@ -18,23 +18,23 @@
 
 ## 1. Founders — Role
 
-| Field | Previous | New |
-| --- | --- | --- |
-| Title | CEO | **KEEP** |
-| Equity % | 100 | **KEEP** |
-| At least 10% equity | yes | **KEEP** |
-| Technical founder | no | **KEEP** (honest; the "who writes code" answer carries this — see §4) |
-| Currently in school | no | **KEEP** |
-| Commit exclusively if accepted | yes | **KEEP** |
+| Field                          | Previous | New                                                                   |
+| ------------------------------ | -------- | --------------------------------------------------------------------- |
+| Title                          | CEO      | **KEEP**                                                              |
+| Equity %                       | 100      | **KEEP**                                                              |
+| At least 10% equity            | yes      | **KEEP**                                                              |
+| Technical founder              | no       | **KEEP** (honest; the "who writes code" answer carries this — see §4) |
+| Currently in school            | no       | **KEEP**                                                              |
+| Commit exclusively if accepted | yes      | **KEEP**                                                              |
 
 ## 2. Founders — Background / Social
 
-| Field | Previous | New |
-| --- | --- | --- |
-| LinkedIn / Education / Work | filled | **KEEP** (make sure LinkedIn is current before submit — partners open it) |
-| Personal website | github.com/RohitGajaraj/Project-Cadence-v2 | **CHANGE** → `https://cadence-flow-beta.lovable.app` (the live product beats a stale repo; the v2 repo stays linked in "things you've built" as history) |
-| X URL | twitter.com/rohit_gajaraj | **KEEP** |
-| GitHub URL | github.com/RohitGajaraj | **KEEP** |
+| Field                       | Previous                                   | New                                                                                                                                                      |
+| --------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LinkedIn / Education / Work | filled                                     | **KEEP** (make sure LinkedIn is current before submit — partners open it)                                                                                |
+| Personal website            | github.com/RohitGajaraj/Project-Cadence-v2 | **CHANGE** → `https://cadence-flow-beta.lovable.app` (the live product beats a stale repo; the v2 repo stays linked in "things you've built" as history) |
+| X URL                       | twitter.com/rohit_gajaraj                  | **KEEP**                                                                                                                                                 |
+| GitHub URL                  | github.com/RohitGajaraj                    | **KEEP**                                                                                                                                                 |
 
 ## 3. Founders — Accomplishments
 
@@ -254,6 +254,7 @@ can bring their own keys.
 **New — two variants; submit whichever is TRUE on July 26:**
 
 Variant A (beta users exist):
+
 ```
 Yes, since [date]: [N] beta users from [M] discovery calls. Too early for
 patterns; the first thing they reach for is asking "why did we decide X" and
@@ -261,6 +262,7 @@ getting the receipt back. I use it daily myself to run Cadence's own roadmap.
 ```
 
 Variant B (not yet):
+
 ```
 The first beta users are getting access now, from the [N] discovery
 conversations I've run with PMs and founders this month. Until they're in,
@@ -387,12 +389,12 @@ gets its first real test in beta this month.
 
 ## 10. Equity
 
-| Field | Previous | New |
-| --- | --- | --- |
-| Legal entity formed | no | **KEEP** _(if you incorporate before July 27, update)_ |
-| Planned ownership | Rohit 100%, meaningful equity for right cofounder, option pool | **KEEP** |
-| Investment taken | no | **KEEP** |
-| Currently fundraising | no | **KEEP** |
+| Field                 | Previous                                                       | New                                                    |
+| --------------------- | -------------------------------------------------------------- | ------------------------------------------------------ |
+| Legal entity formed   | no                                                             | **KEEP** _(if you incorporate before July 27, update)_ |
+| Planned ownership     | Rohit 100%, meaningful equity for right cofounder, option pool | **KEEP**                                               |
+| Investment taken      | no                                                             | **KEEP**                                               |
+| Currently fundraising | no                                                             | **KEEP**                                               |
 
 ## 11. Curious
 
@@ -425,24 +427,15 @@ _[Checklist: message Badis BEFORE submitting — heads-up + ask about an alumni 
 ## The pre-submit checklist (now → July 27, 8pm PT)
 
 **This week (July 10–14):**
+
 1. **Start discovery calls — the one thing that most changes this application's odds.** Target 20–30 real conversations from the prospect list before July 25 (Lago got in pre-product on "100+ growth leaders interviewed"). Log each: name, role, the quote, would-they-use. The true count fills `[N]` in 9a and 8e. Never inflate; YC verifies.
 2. Message Badis (heads-up + alumni recommendation ask).
 3. Decide the employment one-liner (8b bracket) and rehearse it.
 4. [FILL] the IIM Bangalore venture line in 3c.
 
-**Launch week (July 15–21):**
-5. Ship the beta per the campaign plan; first outside users in.
-6. Re-record the founder video (≤1:00, bullet card, one take) — [`video-scripts.md`](./video-scripts.md) Part 1.
-7. Re-record the demo video (~2:15, script Part 2). Re-seed the demo workspace first; verify demo-account credit balance.
+**Launch week (July 15–21):** 5. Ship the beta per the campaign plan; first outside users in. 6. Re-record the founder video (≤1:00, bullet card, one take) — [`video-scripts.md`](./video-scripts.md) Part 1. 7. Re-record the demo video (~2:15, script Part 2). Re-seed the demo workspace first; verify demo-account credit balance.
 
-**Submit window (July 22–26 — do NOT wait for the 27th):**
-8. Refresh every `[bracketed]` number: commits, migrations, missions, agent runs, register counts, users, dates.
-9. Choose 8e Variant A or B by what is literally true that day.
-10. Log in with the demo credentials in an incognito window; click the first three surfaces.
-11. Read every answer ALOUD once (the AI-cadence and jargon check); red-pen pass (PG: cross out every word you don't need). Then two final scans: **the retell test** — have one friend read the application and retell it back as a story (who you are, what exists today, who wants it); if they can't, rewrite the unclear field (Dalton's stated reading method). And **the neediness scan** — nothing anywhere may read as "I need YC to make it" (the seventh deadly sin); the posture is "this is happening; YC makes it faster."
-12. Verify links: product URL, LinkedIn (current), X, GitHub. Personal-website field → product URL.
-13. Attach the chosen Claude Code session transcript (8d).
-14. Submit by July 26 evening IST at the latest. Earlier is genuinely better — YC: "applying early is strongly encouraged."
+**Submit window (July 22–26 — do NOT wait for the 27th):** 8. Refresh every `[bracketed]` number: commits, migrations, missions, agent runs, register counts, users, dates. 9. Choose 8e Variant A or B by what is literally true that day. 10. Log in with the demo credentials in an incognito window; click the first three surfaces. 11. Read every answer ALOUD once (the AI-cadence and jargon check); red-pen pass (PG: cross out every word you don't need). Then two final scans: **the retell test** — have one friend read the application and retell it back as a story (who you are, what exists today, who wants it); if they can't, rewrite the unclear field (Dalton's stated reading method). And **the neediness scan** — nothing anywhere may read as "I need YC to make it" (the seventh deadly sin); the posture is "this is happening; YC makes it faster." 12. Verify links: product URL, LinkedIn (current), X, GitHub. Personal-website field → product URL. 13. Attach the chosen Claude Code session transcript (8d). 14. Submit by July 26 evening IST at the latest. Earlier is genuinely better — YC: "applying early is strongly encouraged."
 
 ## Banned words (never in any answer)
 

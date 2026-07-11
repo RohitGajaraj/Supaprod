@@ -97,12 +97,14 @@ function InviteCreator() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="email@example.com"
+          aria-label="Email address"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(220)}
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
+          aria-label="Role for this invitation"
           className={FOCUS_RING}
           style={input(120)}
         >
@@ -124,6 +126,7 @@ function InviteCreator() {
         onChange={(e) => setCsv(e.target.value)}
         rows={4}
         placeholder={"alice@co.com\nbob@co.com"}
+        aria-label="Email addresses, one per line"
         className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
         style={{ ...input(), width: "100%", fontFamily: "var(--font-mono)" }}
       />
@@ -274,12 +277,14 @@ function DomainList() {
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
           placeholder="acme.com"
+          aria-label="Email domain"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(200)}
         />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}
+          aria-label="Default role for this domain"
           className={FOCUS_RING}
           style={input(120)}
         >

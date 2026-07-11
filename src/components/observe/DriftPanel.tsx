@@ -259,7 +259,7 @@ export function DriftPanel() {
             <button
               role="switch"
               aria-checked={cfg.enabled}
-              className="mono-label"
+              className="mono-label transition-opacity hover:opacity-70"
               style={{ fontSize: 8.5, color: cfg.enabled ? "var(--moss)" : "var(--text-faint)" }}
               onClick={() => setCfg({ ...cfg, enabled: !cfg.enabled })}
             >
@@ -338,6 +338,7 @@ export function DriftPanel() {
               onClick={() =>
                 navigate({ to: "/govern", search: { tab: "drift", surface: d.surface } })
               }
+              className="lift"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,

@@ -55,7 +55,11 @@ export const dispatchExploration = createServerFn({ method: "POST" })
     const items = [
       {
         task: `Draft a concrete path forward for this ${kindLabel}: "${title}". What would shipping it actually look like, in 3-5 sentences?`,
-        context: { fanout_section: "draft", target_kind: data.targetKind, target_id: data.targetId },
+        context: {
+          fanout_section: "draft",
+          target_kind: data.targetKind,
+          target_id: data.targetId,
+        },
       },
       {
         task: `Give an honest evaluation of this ${kindLabel}: "${title}". Is it worth doing? What is the strongest case for and against, in 3-5 sentences?`,
@@ -63,7 +67,11 @@ export const dispatchExploration = createServerFn({ method: "POST" })
       },
       {
         task: `Name the real risks in this ${kindLabel}: "${title}". What could make it fail or backfire, in 3-5 sentences?`,
-        context: { fanout_section: "risks", target_kind: data.targetKind, target_id: data.targetId },
+        context: {
+          fanout_section: "risks",
+          target_kind: data.targetKind,
+          target_id: data.targetId,
+        },
       },
     ];
 
@@ -148,15 +156,18 @@ export const listFanoutBatches = createServerFn({ method: "GET" })
 export const decideFanoutBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z
-      .object({ batchId: z.string().uuid(), decision: z.enum(["accepted", "dismissed"]) })
-      .parse(i),
+    z.object({ batchId: z.string().uuid(), decision: z.enum(["accepted", "dismissed"]) }).parse(i),
   )
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabase, userId } = context;
     const { error } = await db(supabase)
       .from("fanout_batches")
-      .update({ status: "decided", decision: data.decision, decided_by: userId, decided_at: new Date().toISOString() })
+      .update({
+        status: "decided",
+        decision: data.decision,
+        decided_by: userId,
+        decided_at: new Date().toISOString(),
+      })
       .eq("id", data.batchId)
       .eq("status", "ready");
     if (error) throw new Error(error.message);

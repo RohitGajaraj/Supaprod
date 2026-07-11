@@ -103,7 +103,7 @@ export function AdminErrorCard({
       <button
         type="button"
         onClick={onRetry}
-        className="cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className="cursor-pointer outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-mono-label)",

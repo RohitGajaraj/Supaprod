@@ -212,12 +212,14 @@ function VoucherCreator() {
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="LAUNCH50"
+          aria-label="Voucher code"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(140)}
         />
         <select
           value={kind}
           onChange={(e) => setKind(e.target.value as typeof kind)}
+          aria-label="Voucher kind"
           className={FOCUS_RING}
           style={input(140)}
         >
@@ -229,6 +231,7 @@ function VoucherCreator() {
           value={planTier}
           onChange={(e) => setPlanTier(e.target.value)}
           placeholder="plan tier"
+          aria-label="Plan tier"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(120)}
         />
@@ -237,6 +240,7 @@ function VoucherCreator() {
           value={credits}
           onChange={(e) => setCredits(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="credits"
+          aria-label="Credits"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(100)}
         />
@@ -245,6 +249,7 @@ function VoucherCreator() {
           value={maxRedemptions}
           onChange={(e) => setMaxRedemptions(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="max uses"
+          aria-label="Maximum redemptions"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(100)}
         />
@@ -253,6 +258,7 @@ function VoucherCreator() {
           value={days}
           onChange={(e) => setDays(e.target.value === "" ? "" : Number(e.target.value))}
           placeholder="days"
+          aria-label="Expires in days"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(80)}
         />
@@ -260,6 +266,7 @@ function VoucherCreator() {
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           placeholder="campaign tag"
+          aria-label="Campaign tag"
           className={`${FOCUS_RING} placeholder:[color:var(--text-subtle)]`}
           style={input(140)}
         />

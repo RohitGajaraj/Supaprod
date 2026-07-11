@@ -26,15 +26,18 @@ Components: `GridSystem` (root/provider), `GridPage` (page-level wrapper around 
 All exported from `@vercel/geistcn/components`.
 
 ### `GridSystem` props (boolean/config, observed)
+
 - `debug` — boolean. Turns on a debug rendering mode (seen paired with a guides-only, cell-less `Grid`).
 - `guideWidth={number}` — numeric guide line thickness/weight (e.g. `1`).
 - `unstable_useContainer` — boolean flag (unstable API) that switches the grid to container-query-based responsive sizing instead of viewport breakpoints. Present on nearly every demo except the two `GridPage`-wrapped / plain responsive-breakpoint demos.
 - `dashedGuides` — boolean. Renders guides as dashed lines instead of solid.
 
 ### `GridPage`
+
 - Wraps `GridSystem` for full-page-level grid usage (composition, no unique props observed beyond children).
 
 ### `Grid` props
+
 - `columns={number}` — fixed column count (e.g. `3`, `5`, `12`).
 - `columns={{ sm, md, lg }}` — responsive column counts per breakpoint object.
 - `rows={number}` — fixed row count.
@@ -43,6 +46,7 @@ All exported from `@vercel/geistcn/components`.
 - `hideGuides="row" | "column"` — hides guides along one axis only (string enum, single-axis value).
 
 ### `GridCell` props
+
 - `column={string | number}` — track placement. Accepts a single track index (`"1"`, `1`) or a span range string `"start/end"` (e.g. `"1/3"`, `"3/10"`, `"11/13"`, `"7/12"`, negative-index end supported: `"1/-1"`).
 - `row={string | number}` — same shape as `column`, for the row axis.
 - `column={{ sm, md, lg }}` / `row={{ sm, md, lg }}` — responsive per-breakpoint placement objects, values can mix bare numbers and span strings across breakpoints.
@@ -50,6 +54,7 @@ All exported from `@vercel/geistcn/components`.
 - children — arbitrary content (numbers, short labels, or long paragraph text in the overlaying-cells demo).
 
 ### `GridCross` props
+
 - `column={number}` — the column-guide index to mark.
 - `row={number}` — the row-guide index to mark.
 - No children; it's a point marker at a guide intersection, not a cell.
@@ -57,47 +62,51 @@ All exported from `@vercel/geistcn/components`.
 ### Composition patterns (JSX usage)
 
 Guides-only grid (no cells):
+
 ```tsx
-import { Grid, GridSystem } from '@vercel/geistcn/components';
+import { Grid, GridSystem } from "@vercel/geistcn/components";
 
 <GridSystem debug guideWidth={1} unstable_useContainer>
   <Grid columns={5} height="preserve-aspect-ratio" rows={2} />
-</GridSystem>
+</GridSystem>;
 ```
 
 Auto-flowing cells:
+
 ```tsx
-import { Grid, GridSystem, GridCell } from '@vercel/geistcn/components';
+import { Grid, GridSystem, GridCell } from "@vercel/geistcn/components";
 
 <GridSystem guideWidth={1} unstable_useContainer>
   <Grid columns={3} rows={2}>
     <GridCell>1</GridCell>
     {/* ...up to 6 */}
   </Grid>
-</GridSystem>
+</GridSystem>;
 ```
 
 Explicit spans with guide occlusion:
+
 ```tsx
 <GridSystem guideWidth={1} unstable_useContainer>
   <Grid columns={3} rows={2}>
-    <GridCell column="1/3" row="1" solid>1 + 2</GridCell>
+    <GridCell column="1/3" row="1" solid>
+      1 + 2
+    </GridCell>
     <GridCell>3</GridCell>
     <GridCell>4</GridCell>
-    <GridCell column="2/4" row="2" solid>5 + 6</GridCell>
+    <GridCell column="2/4" row="2" solid>
+      5 + 6
+    </GridCell>
   </Grid>
 </GridSystem>
 ```
 
 Responsive breakpoints on both `Grid` and `GridCell`:
+
 ```tsx
 <GridSystem unstable_useContainer>
   <Grid columns={{ sm: 1, md: 2, lg: 3 }} rows={{ sm: 6, md: 3, lg: 2 }}>
-    <GridCell
-      column={{ sm: '1', md: '1/3' }}
-      row={{ sm: '1/3', md: 1 }}
-      solid
-    >
+    <GridCell column={{ sm: "1", md: "1/3" }} row={{ sm: "1/3", md: 1 }} solid>
       1 + 2
     </GridCell>
     {/* ... */}
@@ -106,16 +115,19 @@ Responsive breakpoints on both `Grid` and `GridCell`:
 ```
 
 Single-axis guide hiding:
+
 ```tsx
 <GridSystem unstable_useContainer>
   <Grid columns={12} height="preserve-aspect-ratio" hideGuides="row" rows={3} />
 </GridSystem>
 ```
+
 (and `hideGuides="column"` for the vertical-guide-hidden variant)
 
 Cross markers at guide intersections:
+
 ```tsx
-import { Grid, GridCell, GridCross, GridSystem } from '@vercel/geistcn/components';
+import { Grid, GridCell, GridCross, GridSystem } from "@vercel/geistcn/components";
 
 <GridSystem guideWidth={1} unstable_useContainer>
   <Grid columns={3} rows={2}>
@@ -126,12 +138,13 @@ import { Grid, GridCell, GridCross, GridSystem } from '@vercel/geistcn/component
     <GridCell>1</GridCell>
     {/* ...up to 6 */}
   </Grid>
-</GridSystem>
+</GridSystem>;
 ```
 
 Dashed guides + `GridPage` full-page composition:
+
 ```tsx
-import { Grid, GridCell, GridCross, GridPage, GridSystem } from '@vercel/geistcn/components';
+import { Grid, GridCell, GridCross, GridPage, GridSystem } from "@vercel/geistcn/components";
 
 <GridPage>
   <GridSystem dashedGuides guideWidth={1}>
@@ -143,22 +156,25 @@ import { Grid, GridCell, GridCross, GridPage, GridSystem } from '@vercel/geistcn
       <GridCell>Content here</GridCell>
     </Grid>
   </GridSystem>
-</GridPage>
+</GridPage>;
 ```
 
 ## Best practices
 
 **When to use**
+
 - Reach for `Grid` when you actually want the two-dimensional guide/cell structure to be a visible design element — marketing pages, docs landing pages, feature-breakdown sections where rule lines and cell borders read as intentional layout, not just spacing.
 - For ordinary responsive content grids (card grids, list layouts) where the guide lines wouldn't be shown, skip `Grid` and use plain Tailwind `grid grid-cols-*` utilities — `Grid` is overkill without visible guides.
 - Avoid stacking `Grid` inside `Grid` more than one level deep; overlapping guide meshes read as noise and break the cell-span math.
 
 **Behavior**
+
 - Always define `columns` and `rows` for all three breakpoints (`sm`/`md`/`lg`) so cell placement reflows predictably rather than jumping unpredictably between device sizes.
 - Apply `solid` to any `GridCell` that needs an opaque background over the guides beneath it; without `solid`, guides show through the cell by default.
 - Only hide row or column guides when removing them genuinely clarifies the layout (e.g. a single-axis hero band); if you find yourself hiding both axes, that's a signal to drop down to a plain Tailwind grid instead.
 
 **Accessibility**
+
 - Guides are purely decorative — hide them from assistive tech with `aria-hidden="true"` and keep all real semantics on the cell content itself.
 - If cells become interactive/tappable, give each one its own visible focus ring and make sure tab order follows reading order, not DOM/z-order.
 - Verify guide-line contrast in both light and dark themes; the shipped default tokens are tuned for this, but any custom guide color can slip under the 3:1 minimum contrast ratio.

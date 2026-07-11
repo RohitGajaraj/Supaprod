@@ -20,28 +20,31 @@ Source: https://vercel.com/geist/skeleton — fetched via raw HTML + Next.js fli
 ## API
 
 Import:
+
 ```tsx
-import { Skeleton } from '@vercel/geistcn/components';
+import { Skeleton } from "@vercel/geistcn/components";
 ```
+
 Composable with `Button` (and implicitly any child element) via the children-wrapping pattern:
+
 ```tsx
-import { Button, Skeleton } from '@vercel/geistcn/components';
+import { Button, Skeleton } from "@vercel/geistcn/components";
 ```
 
 ### `<Skeleton>` props observed in code samples
 
-| Prop | Type (inferred) | Values seen | Purpose |
-|---|---|---|---|
-| `width` | `number \| string` | `160`, `48`, `120`, `"100%"` | explicit width of the shimmer block |
-| `height` | `number \| string` | `100`, `48`, `32`, `"100%"` | explicit height of the shimmer block |
-| `boxHeight` | `number` | `42`, `48` | outer box height, distinct from the visible bar `height` — reserves layout space (e.g. matching a control's full hit-box) while the bar itself can render shorter |
-| `show` | `boolean` | `false` (default true) | when `false`, forces the wrapped child to render (skips/undoes the skeleton hide state) |
-| `pill` | `boolean` (flag prop) | present | fully rounded pill shape |
-| `rounded` | `boolean` (flag prop) | present | standard rounded-corner shape |
-| `squared` | `boolean` (flag prop) | present | sharp-corner shape |
-| `animated` | `boolean` | `false` (default true) | toggles the shimmer animation |
-| `button` | `boolean` (flag prop) | present | signals the skeleton is wrapping a `<Button>`; extends the shimmer by 1px to visually cover the button's border/outline |
-| `children` | `ReactNode` | `null`, `<Button>...</Button>` | when children are non-null (truthy), the skeleton auto-reveals them (unless `show` overrides); when `null`/absent, shows the shimmer |
+| Prop        | Type (inferred)       | Values seen                    | Purpose                                                                                                                                                           |
+| ----------- | --------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `width`     | `number \| string`    | `160`, `48`, `120`, `"100%"`   | explicit width of the shimmer block                                                                                                                               |
+| `height`    | `number \| string`    | `100`, `48`, `32`, `"100%"`    | explicit height of the shimmer block                                                                                                                              |
+| `boxHeight` | `number`              | `42`, `48`                     | outer box height, distinct from the visible bar `height` — reserves layout space (e.g. matching a control's full hit-box) while the bar itself can render shorter |
+| `show`      | `boolean`             | `false` (default true)         | when `false`, forces the wrapped child to render (skips/undoes the skeleton hide state)                                                                           |
+| `pill`      | `boolean` (flag prop) | present                        | fully rounded pill shape                                                                                                                                          |
+| `rounded`   | `boolean` (flag prop) | present                        | standard rounded-corner shape                                                                                                                                     |
+| `squared`   | `boolean` (flag prop) | present                        | sharp-corner shape                                                                                                                                                |
+| `animated`  | `boolean`             | `false` (default true)         | toggles the shimmer animation                                                                                                                                     |
+| `button`    | `boolean` (flag prop) | present                        | signals the skeleton is wrapping a `<Button>`; extends the shimmer by 1px to visually cover the button's border/outline                                           |
+| `children`  | `ReactNode`           | `null`, `<Button>...</Button>` | when children are non-null (truthy), the skeleton auto-reveals them (unless `show` overrides); when `null`/absent, shows the shimmer                              |
 
 ### Composition patterns
 
@@ -55,16 +58,19 @@ import { Button, Skeleton } from '@vercel/geistcn/components';
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Skeleton when you already know the final layout and are just waiting on data — table rows, card grids, profile blocks, sidebars.
 - For a single in-flight action instead of a whole layout, use a Spinner; for an indeterminate inline wait, use LoadingDots; when you can report real progress, use a Progress bar.
 - Don't use Skeleton as decoration or as a stand-in for "there's nothing here" — that's what an EmptyState is for.
 
 **Behavior**
+
 - Size the skeleton (`width`/`height`) to match the real content's final dimensions; a block that resizes when data arrives (e.g. 200x20 collapsing to 80x16) reads as a visual glitch.
 - Choose the shape flag to match what's coming: `pill` for avatars, `rounded` for buttons/chips, `squared` for image tiles.
 - When wrapping children, keep the reserved dimensions stable across the loading-to-loaded transition so surrounding content doesn't reflow on reveal.
 
 **Accessibility**
+
 - Mark the loading region `aria-busy="true"`, and put `aria-live="polite"` on the destination container (not the skeleton element itself) so screen readers announce completion once real content lands.
 - Turn off the shimmer (no-animation variant) on low-power surfaces and honor `prefers-reduced-motion`.
 - Treat skeletons as purely decorative — never place focusable controls inside one while it's in the loading state.

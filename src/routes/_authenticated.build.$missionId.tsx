@@ -434,7 +434,8 @@ function BuildSessionPage() {
   const mission = (data?.mission ?? null) as MissionRow | null;
   const runs = (data?.runs ?? []) as StudioRunDetail[];
   const changeset = (data?.changeset ?? null) as
-    (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null }) | null;
+    | (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null })
+    | null;
   const changes = (data?.changes ?? []) as ChangeRow[];
   const fileSetPolicy = (data?.fileSetPolicy ?? null) as StudioFileSetPolicy | null;
   const constraints = (data?.constraints ?? null) as StudioConstraints;

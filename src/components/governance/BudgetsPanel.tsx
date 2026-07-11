@@ -295,7 +295,7 @@ export function BudgetsPanel() {
                 </form>
               ) : (
                 <button
-                  className="mono-label"
+                  className="mono-label transition hover:brightness-125"
                   style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
                   onClick={() => {
                     setEditCap(key);
@@ -429,7 +429,7 @@ export function BudgetsPanel() {
               {g?.alert_at_pct ?? 80}%
             </span>
             <button
-              className="mono-label"
+              className="mono-label transition hover:brightness-125"
               style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
               onClick={() =>
                 setAdv({
@@ -523,8 +523,12 @@ export function BudgetsPanel() {
                   }}
                 >
                   <button
-                    className="mono-label"
-                    style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
+                    className="mono-label transition hover:brightness-125 disabled:opacity-50"
+                    style={{
+                      fontSize: 8.5,
+                      color: "var(--ink-faint)",
+                      cursor: removeSurfaceMut.isPending ? "not-allowed" : "pointer",
+                    }}
                     disabled={removeSurfaceMut.isPending}
                     onClick={() => removeSurfaceMut.mutate(row.surface)}
                   >
@@ -545,6 +549,8 @@ export function BudgetsPanel() {
                       position: "relative",
                       flexShrink: 0,
                       transition: "background var(--dur-base)",
+                      opacity: toggleSurfaceMut.isPending ? 0.5 : 1,
+                      cursor: toggleSurfaceMut.isPending ? "not-allowed" : "pointer",
                     }}
                   >
                     <span

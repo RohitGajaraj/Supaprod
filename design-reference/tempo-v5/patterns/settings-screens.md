@@ -47,7 +47,7 @@ Named parts:
 - **Instant-apply card** — no footer actions; the control applies the moment it changes (a toggle, a role change in a member row) and `FieldsetFooterStatus` (or a transient toast) confirms it, worded in plain past tense ("Saved."). Never pair an instant-apply control with a Save button — that duplicates the action and asks the user to confirm something that already happened.
 - **Card-header-action collection card** — see Anatomy §4. Use for Members, API keys, Connected accounts, and any other list-of-rows domain.
 - **Disabled / permission-gated card** — `FieldsetContent disabled` with a `FieldsetFooter highlight` explaining the gate ("You need the Owner role to change billing.") instead of showing dead controls with no explanation. Direct from the Fieldset spec's documented "Disabled" and "With Disabled Wall" sections.
-- **Inline validation vs. whole-card alert** — a single failing field gets an inline `ErrorText`/`WarningText` block inside `FieldsetContent` (the rest of the card stays neutral); a condition that blocks the *entire* card (a failed payment method blocking billing changes, a trial about to lapse) gets `Fieldset type="error"`/`type="warning"` on the whole card, per the Fieldset spec's own "Error Type"/"Warning Type" sections.
+- **Inline validation vs. whole-card alert** — a single failing field gets an inline `ErrorText`/`WarningText` block inside `FieldsetContent` (the rest of the card stays neutral); a condition that blocks the _entire_ card (a failed payment method blocking billing changes, a trial about to lapse) gets `Fieldset type="error"`/`type="warning"` on the whole card, per the Fieldset spec's own "Error Type"/"Warning Type" sections.
 - **Danger zone card** — see Anatomy §5. Never mixed with routine settings cards on the same page; always segregated to the bottom of a page or its own sub-nav entry.
 - **Empty collection card** — a collection card with zero rows renders `EmptyState`/`EmptyStateIcon` in place of the `EntityList` (zero connected accounts, zero API keys) instead of a blank card or a "No items" string with no next step.
 - **Settings-in-a-modal (lightweight)** — for a single-field edit reachable from somewhere other than the Settings page itself (for example renaming a resource from its detail view), the same title/description/control/footer shape can be reused inside `Modal`/`ModalInset` (the composition `Combobox` already documents nesting inside). Reserve this for one or two fields; anything larger belongs on the real settings page, not a modal standing in for it.
@@ -56,23 +56,23 @@ Named parts:
 
 **Setting card container** (`Fieldset`, via `.material-base` or `.material-small`):
 
-| State | Background | Border | Notes |
-| --- | --- | --- | --- |
-| Default | `--ds-background-100` | `--ds-shadow-border` (hairline, `#ffffff25`-equivalent dark / `#00000014` light) | Neutral, no hover state on the card itself — only its controls react |
-| Disabled (gated) | `--ds-background-100`, content at reduced opacity | unchanged | Paired with `FieldsetFooter highlight` explaining the gate, never a bare dimmed card |
-| Error type | `--ds-background-100` | `border-[var(--ds-red-400)]` | Whole-card alarm; text inside stays `--ds-gray-1000`, the border alone signals it |
-| Warning type | `--ds-background-100` | `border-[var(--ds-amber-400)]` | Same pattern, amber hue |
-| Loading | `--ds-background-100` with `Skeleton` placeholders in place of title/subtitle/control | unchanged | Never render an empty card while data resolves |
+| State            | Background                                                                            | Border                                                                           | Notes                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Default          | `--ds-background-100`                                                                 | `--ds-shadow-border` (hairline, `#ffffff25`-equivalent dark / `#00000014` light) | Neutral, no hover state on the card itself — only its controls react                 |
+| Disabled (gated) | `--ds-background-100`, content at reduced opacity                                     | unchanged                                                                        | Paired with `FieldsetFooter highlight` explaining the gate, never a bare dimmed card |
+| Error type       | `--ds-background-100`                                                                 | `border-[var(--ds-red-400)]`                                                     | Whole-card alarm; text inside stays `--ds-gray-1000`, the border alone signals it    |
+| Warning type     | `--ds-background-100`                                                                 | `border-[var(--ds-amber-400)]`                                                   | Same pattern, amber hue                                                              |
+| Loading          | `--ds-background-100` with `Skeleton` placeholders in place of title/subtitle/control | unchanged                                                                        | Never render an empty card while data resolves                                       |
 
 **Settings sub-nav item** (36px row, shares the rail's row anatomy but drops the ember active-icon tint — a settings page already spends its one ember mark on the primary card action, so the sub-nav's own "you are here" signal stays neutral):
 
-| State | Background | Text |
-| --- | --- | --- |
-| Default | transparent | `--ds-gray-900` |
-| Hover | `--ds-gray-100` | `--ds-gray-1000` |
-| Active (current domain) | `--ds-gray-100` (persistent) | `--ds-gray-1000` |
-| Focus-visible | as default/hover | `--ds-focus-ring-outline` ring added |
-| Disabled (role cannot access this domain) | transparent | `--ds-gray-700`, paired with a `Tooltip` naming the required role |
+| State                                     | Background                   | Text                                                              |
+| ----------------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| Default                                   | transparent                  | `--ds-gray-900`                                                   |
+| Hover                                     | `--ds-gray-100`              | `--ds-gray-1000`                                                  |
+| Active (current domain)                   | `--ds-gray-100` (persistent) | `--ds-gray-1000`                                                  |
+| Focus-visible                             | as default/hover             | `--ds-focus-ring-outline` ring added                              |
+| Disabled (role cannot access this domain) | transparent                  | `--ds-gray-700`, paired with a `Tooltip` naming the required role |
 
 **Inline control row** (a passive label+toggle or label+badge row inside a card): the row itself never takes a hover background (it isn't clickable as a unit); only the embedded control (toggle, `Combobox` trigger) shows its own documented hover/focus states. Reserve a whole-row hover wash (`--ds-gray-alpha-100`) for rows that are themselves `as="button"` — for example a collection row that opens a detail view.
 
@@ -94,15 +94,15 @@ Named parts:
 
 **Keyboard** (full map):
 
-| Key | Effect |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Move focus in visual order: sub-nav rows -> page header -> each card top-to-bottom (title/subtitle are not focus stops, only interactive controls are) -> footer actions -> next card |
-| `Arrow Down` / `Arrow Up` | While focus is inside the sub-nav list, move between domain rows (roving tabindex), same convention as the rail |
-| `Home` / `End` | Jump to the first / last sub-nav row |
-| `Enter` / `Space` | Activate the focused control or button; inside an explicit-save card's single text field, `Enter` triggers the same action as clicking the primary footer button |
-| `Escape` | Close whatever menu, `Combobox` popover, or modal is open and return focus to its trigger |
-| `Tab` inside a member row | Moves from the role control to that row's `DotsMenu`, never skipping either |
-| `Cmd/Ctrl+K` | Opens the global Command Menu, which can jump straight to a named settings domain (for example typing "billing") rather than requiring the user to click through the sub-nav |
+| Key                       | Effect                                                                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`       | Move focus in visual order: sub-nav rows -> page header -> each card top-to-bottom (title/subtitle are not focus stops, only interactive controls are) -> footer actions -> next card |
+| `Arrow Down` / `Arrow Up` | While focus is inside the sub-nav list, move between domain rows (roving tabindex), same convention as the rail                                                                       |
+| `Home` / `End`            | Jump to the first / last sub-nav row                                                                                                                                                  |
+| `Enter` / `Space`         | Activate the focused control or button; inside an explicit-save card's single text field, `Enter` triggers the same action as clicking the primary footer button                      |
+| `Escape`                  | Close whatever menu, `Combobox` popover, or modal is open and return focus to its trigger                                                                                             |
+| `Tab` inside a member row | Moves from the role control to that row's `DotsMenu`, never skipping either                                                                                                           |
+| `Cmd/Ctrl+K`              | Opens the global Command Menu, which can jump straight to a named settings domain (for example typing "billing") rather than requiring the user to click through the sub-nav          |
 
 **Screen reader**: the sub-nav is a `<nav aria-label="Settings">` landmark holding a `role="list"` of links, the current domain carrying `aria-current="page"` (same convention as the primary rail). Each setting card is a `<section aria-labelledby="{card-id}-title">` so its `FieldsetTitle` supplies the section's accessible name. The danger zone card additionally sets `aria-describedby` pointing at its consequence sentence so assistive tech announces the stakes before any button inside it. `DestructiveActionModal` wires its verification input's prompt via `aria-labelledby`/`htmlFor` and marks its warning icon `aria-hidden` exactly as documented. A save confirmation renders in an `aria-live="polite"` region so it's announced without stealing focus from whatever the user does next.
 
@@ -125,57 +125,57 @@ Named parts:
 
 ## Tokens used
 
-| Token | Used for |
-| --- | --- |
-| `--ds-background-100` | Card, sub-nav, and page background |
-| `--ds-background-200` | Rare subtle differentiation (for example a card's own header strip against its body) |
-| `--ds-gray-100` / `--ds-gray-200` | Sub-nav row hover/active background |
-| `--ds-gray-400` | Card hairline border component; `DotsMenu` disabled border |
-| `--ds-gray-700` | Disabled sub-nav text, disabled `DotsMenu` text, disabled tooltip-explained state text |
-| `--ds-gray-900` | Card subtitle/description text, default sub-nav text, secondary row text |
-| `--ds-gray-1000` | Card title text, active sub-nav text, primary row text |
-| `--ds-gray-alpha-100` | Hover wash on an `as="button"` collection row |
-| `--ds-ember-600` / `--ds-ember-700` | Active tablet section-nav tab underline/tint (dark/light theme) |
-| `--ds-ember-800` | Primary footer button fill (ember substitutes for Geist's brand-blue role per the Tempo color law) |
-| `--ds-red-100`/`200`/`400`/`800`/`900` | Danger-card border accent; error-type Fieldset border; destructive Button fill; "Failed"/"Past due" Badge |
-| `--ds-amber-100`/`200`/`400`/`800`/`900` | Warning-type Fieldset border; "Trial"/"Renewing soon" Badge |
-| `--ds-green-200`/`800`/`900` | "Active"/"Paid" plan and invoice Badges |
-| `--ds-blue-200`/`800`/`900` | "Pending invite" Badge, informational links |
-| `--ds-contrast-fg` | Text on any solid-filled Badge or primary/error Button |
-| `--ds-focus-ring` / `--ds-focus-ring-outline` / `--ds-focus-color` | Focus states on every interactive element in this pattern |
-| `--ds-radius-small` (6px) | Card and popover-row radius |
-| `--ds-radius-medium` (12px) | `Combobox`/`DotsMenu` popovers, modal corners |
-| `--ds-radius-large` (16px) | Mobile off-canvas settings-nav sheet |
-| `--ds-shadow-border` / `--ds-shadow-border-small` | Setting-card hairline |
-| `--ds-shadow-menu` | `DotsMenu` and role `Combobox` popovers |
-| `--ds-shadow-modal` | Invite/Create and `DestructiveActionModal` overlays |
-| `.material-base` / `.material-small` | Setting card surface |
-| `.material-menu` | Row-level popovers |
-| `.material-modal` | Every modal in this pattern |
-| `--ds-motion-timing-swift` | Every eased transition in this pattern |
-| `--ds-motion-popover-duration` (200ms) | Sub-nav active state, popover open/close |
-| `--ds-motion-overlay-duration` (300ms) / `--ds-motion-overlay-scale` (0.96) | Modal open/close |
-| `--ds-size-small` (32px) | Footer/row action buttons, `DotsMenu` trigger |
-| `--ds-size-medium` (36px) | Text `Input`/`Combobox` fields, sub-nav rows, tablet tab row |
-| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` | Sub-nav rows, every popover row |
-| `--geist-space` / `--geist-space-2x` / `--geist-space-3x` / `--geist-space-4x` | Card internal padding, icon-to-label gaps |
-| `--geist-gap-quarter` (8px) | Tight gaps within a row |
-| `--geist-gap-half` (12px) | Gap between a footer's status and action clusters |
-| `--geist-gap` (24px) | Gap between stacked cards on a domain page |
-| `--geist-gap-section` (32px) | Gap between the page header and the first card |
-| `--ds-page-width` (1400px) | Max width of the content column |
-| `--ds-z-modal` | Invite/Create and `DestructiveActionModal` layering |
-| `--ds-z-menu` | `DotsMenu`/`Combobox` popovers |
-| `--ds-z-toast` | Save-confirmation toast |
-| `text-heading-24` | Domain page title |
-| `text-heading-16` | Setting card title (`FieldsetTitle`) |
-| `text-copy-14` / `text-copy-13` | Card subtitle, helper text |
-| `text-label-14` | Sub-nav rows, form field labels |
-| `text-label-13` | Row secondary text (email, timestamps) |
-| `text-label-14-mono` / `text-label-13-mono` | API keys, ids, invoice numbers |
-| `text-button-14` | Footer and header-action button labels |
-| `text-tabular` | Billing amounts, member/invoice counts |
-| `--font-sans` | Every string in this pattern except explicitly mono content |
+| Token                                                                          | Used for                                                                                                  |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                          | Card, sub-nav, and page background                                                                        |
+| `--ds-background-200`                                                          | Rare subtle differentiation (for example a card's own header strip against its body)                      |
+| `--ds-gray-100` / `--ds-gray-200`                                              | Sub-nav row hover/active background                                                                       |
+| `--ds-gray-400`                                                                | Card hairline border component; `DotsMenu` disabled border                                                |
+| `--ds-gray-700`                                                                | Disabled sub-nav text, disabled `DotsMenu` text, disabled tooltip-explained state text                    |
+| `--ds-gray-900`                                                                | Card subtitle/description text, default sub-nav text, secondary row text                                  |
+| `--ds-gray-1000`                                                               | Card title text, active sub-nav text, primary row text                                                    |
+| `--ds-gray-alpha-100`                                                          | Hover wash on an `as="button"` collection row                                                             |
+| `--ds-ember-600` / `--ds-ember-700`                                            | Active tablet section-nav tab underline/tint (dark/light theme)                                           |
+| `--ds-ember-800`                                                               | Primary footer button fill (ember substitutes for Geist's brand-blue role per the Tempo color law)        |
+| `--ds-red-100`/`200`/`400`/`800`/`900`                                         | Danger-card border accent; error-type Fieldset border; destructive Button fill; "Failed"/"Past due" Badge |
+| `--ds-amber-100`/`200`/`400`/`800`/`900`                                       | Warning-type Fieldset border; "Trial"/"Renewing soon" Badge                                               |
+| `--ds-green-200`/`800`/`900`                                                   | "Active"/"Paid" plan and invoice Badges                                                                   |
+| `--ds-blue-200`/`800`/`900`                                                    | "Pending invite" Badge, informational links                                                               |
+| `--ds-contrast-fg`                                                             | Text on any solid-filled Badge or primary/error Button                                                    |
+| `--ds-focus-ring` / `--ds-focus-ring-outline` / `--ds-focus-color`             | Focus states on every interactive element in this pattern                                                 |
+| `--ds-radius-small` (6px)                                                      | Card and popover-row radius                                                                               |
+| `--ds-radius-medium` (12px)                                                    | `Combobox`/`DotsMenu` popovers, modal corners                                                             |
+| `--ds-radius-large` (16px)                                                     | Mobile off-canvas settings-nav sheet                                                                      |
+| `--ds-shadow-border` / `--ds-shadow-border-small`                              | Setting-card hairline                                                                                     |
+| `--ds-shadow-menu`                                                             | `DotsMenu` and role `Combobox` popovers                                                                   |
+| `--ds-shadow-modal`                                                            | Invite/Create and `DestructiveActionModal` overlays                                                       |
+| `.material-base` / `.material-small`                                           | Setting card surface                                                                                      |
+| `.material-menu`                                                               | Row-level popovers                                                                                        |
+| `.material-modal`                                                              | Every modal in this pattern                                                                               |
+| `--ds-motion-timing-swift`                                                     | Every eased transition in this pattern                                                                    |
+| `--ds-motion-popover-duration` (200ms)                                         | Sub-nav active state, popover open/close                                                                  |
+| `--ds-motion-overlay-duration` (300ms) / `--ds-motion-overlay-scale` (0.96)    | Modal open/close                                                                                          |
+| `--ds-size-small` (32px)                                                       | Footer/row action buttons, `DotsMenu` trigger                                                             |
+| `--ds-size-medium` (36px)                                                      | Text `Input`/`Combobox` fields, sub-nav rows, tablet tab row                                              |
+| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` | Sub-nav rows, every popover row                                                                           |
+| `--geist-space` / `--geist-space-2x` / `--geist-space-3x` / `--geist-space-4x` | Card internal padding, icon-to-label gaps                                                                 |
+| `--geist-gap-quarter` (8px)                                                    | Tight gaps within a row                                                                                   |
+| `--geist-gap-half` (12px)                                                      | Gap between a footer's status and action clusters                                                         |
+| `--geist-gap` (24px)                                                           | Gap between stacked cards on a domain page                                                                |
+| `--geist-gap-section` (32px)                                                   | Gap between the page header and the first card                                                            |
+| `--ds-page-width` (1400px)                                                     | Max width of the content column                                                                           |
+| `--ds-z-modal`                                                                 | Invite/Create and `DestructiveActionModal` layering                                                       |
+| `--ds-z-menu`                                                                  | `DotsMenu`/`Combobox` popovers                                                                            |
+| `--ds-z-toast`                                                                 | Save-confirmation toast                                                                                   |
+| `text-heading-24`                                                              | Domain page title                                                                                         |
+| `text-heading-16`                                                              | Setting card title (`FieldsetTitle`)                                                                      |
+| `text-copy-14` / `text-copy-13`                                                | Card subtitle, helper text                                                                                |
+| `text-label-14`                                                                | Sub-nav rows, form field labels                                                                           |
+| `text-label-13`                                                                | Row secondary text (email, timestamps)                                                                    |
+| `text-label-14-mono` / `text-label-13-mono`                                    | API keys, ids, invoice numbers                                                                            |
+| `text-button-14`                                                               | Footer and header-action button labels                                                                    |
+| `text-tabular`                                                                 | Billing amounts, member/invoice counts                                                                    |
+| `--font-sans`                                                                  | Every string in this pattern except explicitly mono content                                               |
 
 ## Implementation guidance
 
@@ -188,7 +188,15 @@ Named parts:
 **1. General workspace settings — an explicit-save card and an instant-apply card:**
 
 ```tsx
-import { Fieldset, FieldsetContent, FieldsetTitle, FieldsetSubtitle, FieldsetFooter, FieldsetFooterStatus, FieldsetFooterActions } from "@/components/ui/fieldset";
+import {
+  Fieldset,
+  FieldsetContent,
+  FieldsetTitle,
+  FieldsetSubtitle,
+  FieldsetFooter,
+  FieldsetFooterStatus,
+  FieldsetFooterActions,
+} from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -199,13 +207,24 @@ function GeneralSettingsPage() {
       <Fieldset>
         <FieldsetContent>
           <FieldsetTitle>Workspace name</FieldsetTitle>
-          <FieldsetSubtitle>Shown across Cadence and in every email we send your team.</FieldsetSubtitle>
-          <Input aria-label="Workspace name" className="mt-4 max-w-sm" defaultValue="Northwind Labs" size="medium" />
+          <FieldsetSubtitle>
+            Shown across Cadence and in every email we send your team.
+          </FieldsetSubtitle>
+          <Input
+            aria-label="Workspace name"
+            className="mt-4 max-w-sm"
+            defaultValue="Northwind Labs"
+            size="medium"
+          />
         </FieldsetContent>
         <FieldsetFooter>
-          <FieldsetFooterStatus><span className="text-copy-13 text-gray-900">Saved 2 minutes ago</span></FieldsetFooterStatus>
+          <FieldsetFooterStatus>
+            <span className="text-copy-13 text-gray-900">Saved 2 minutes ago</span>
+          </FieldsetFooterStatus>
           <FieldsetFooterActions>
-            <Button size="small" variant="secondary">Discard</Button>
+            <Button size="small" variant="secondary">
+              Discard
+            </Button>
             <Button size="small">Save changes</Button>
           </FieldsetFooterActions>
         </FieldsetFooter>
@@ -216,7 +235,9 @@ function GeneralSettingsPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <FieldsetTitle>Require two-factor authentication</FieldsetTitle>
-              <FieldsetSubtitle>Every member must enroll in 2FA before they can sign in.</FieldsetSubtitle>
+              <FieldsetSubtitle>
+                Every member must enroll in 2FA before they can sign in.
+              </FieldsetSubtitle>
             </div>
             <Switch aria-label="Require two-factor authentication" defaultChecked />
           </div>
@@ -230,7 +251,12 @@ function GeneralSettingsPage() {
 **2. Members — a card-header-action collection card with row-level role control and overflow:**
 
 ```tsx
-import { Fieldset, FieldsetContent, FieldsetTitle, FieldsetSubtitle } from "@/components/ui/fieldset";
+import {
+  Fieldset,
+  FieldsetContent,
+  FieldsetTitle,
+  FieldsetSubtitle,
+} from "@/components/ui/fieldset";
 import { Entity, EntityList, EntityContent } from "@/components/ui/entity";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { DotsMenu, MenuItem } from "@/components/ui/dots-menu";
@@ -272,7 +298,9 @@ function MembersSettingsPage() {
           <Entity
             right={
               <div className="flex items-center gap-[var(--geist-gap-quarter)]">
-                <Badge variant="blue" contrast="low" size="sm">Pending</Badge>
+                <Badge variant="blue" contrast="low" size="sm">
+                  Pending
+                </Badge>
                 <DotsMenu aria-label="Actions for jordan@northwindlabs.com">
                   <MenuItem>Resend invite</MenuItem>
                   <MenuItem>Remove invite</MenuItem>
@@ -308,14 +336,28 @@ function DangerZoneCard({ workspaceName }: { workspaceName: string }) {
           <FieldsetTitle>Danger zone</FieldsetTitle>
           <div className="mt-4 flex flex-col gap-4">
             <Entity
-              right={<Button onClick={() => setConfirming("transfer")} size="small" variant="error">Transfer workspace</Button>}
+              right={
+                <Button onClick={() => setConfirming("transfer")} size="small" variant="error">
+                  Transfer workspace
+                </Button>
+              }
             >
-              <EntityContent title="Transfer workspace" description={`Move ${workspaceName} to another owner.`} />
+              <EntityContent
+                title="Transfer workspace"
+                description={`Move ${workspaceName} to another owner.`}
+              />
             </Entity>
             <Entity
-              right={<Button onClick={() => setConfirming("delete")} size="small" variant="error">Delete workspace</Button>}
+              right={
+                <Button onClick={() => setConfirming("delete")} size="small" variant="error">
+                  Delete workspace
+                </Button>
+              }
             >
-              <EntityContent title="Delete workspace" description={`Permanently remove ${workspaceName} and everything in it.`} />
+              <EntityContent
+                title="Delete workspace"
+                description={`Permanently remove ${workspaceName} and everything in it.`}
+              />
             </Entity>
           </div>
         </FieldsetContent>
@@ -323,7 +365,12 @@ function DangerZoneCard({ workspaceName }: { workspaceName: string }) {
 
       <DestructiveActionModal
         confirmLabel="Delete workspace"
-        description={<>{workspaceName} and all its missions, specs, and connections will be permanently deleted.</>}
+        description={
+          <>
+            {workspaceName} and all its missions, specs, and connections will be permanently
+            deleted.
+          </>
+        }
         irreversibleDescription={`Deleting ${workspaceName} cannot be undone.`}
         onCancel={() => setConfirming(null)}
         onConfirm={() => setConfirming(null)}

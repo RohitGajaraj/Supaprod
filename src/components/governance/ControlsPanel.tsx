@@ -149,7 +149,7 @@ function ModeSegment({
                   : "var(--ink-subtle)",
               fontWeight: active ? 600 : 400,
               cursor: disabled || blocked || active ? "default" : "pointer",
-              opacity: blocked ? 0.45 : 1,
+              opacity: blocked ? 0.45 : disabled ? 0.6 : 1,
               border: "none",
               transition: "background var(--dur-base)",
             }}
@@ -384,6 +384,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
               ? "Why resume? · optional, lands in the audit log"
               : "Why pause? · optional, lands in the audit log"
           }
+          aria-label={killed ? "Reason for resuming" : "Reason for pausing"}
           style={{ marginTop: 10, fontSize: 12 }}
         />
         {ks?.reason ? (
@@ -424,7 +425,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           {stuck}
         </div>
         <button
-          className="mono-label"
+          className="mono-label transition hover:brightness-125"
           style={{ color: "var(--text-subtle)", marginTop: 4 }}
           onClick={onOpenQueue}
         >
@@ -469,8 +470,13 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                     <div style={{ fontSize: 11.5, color: "var(--ink-subtle)" }}>{desc}</div>
                   </div>
                   <button
-                    className="mono-label cursor-pointer"
-                    style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                    className="mono-label transition hover:brightness-125"
+                    style={{
+                      fontSize: 10.5,
+                      color: "var(--text-subtle)",
+                      opacity: deleteSubMut.isPending ? 0.5 : 1,
+                      cursor: deleteSubMut.isPending ? "not-allowed" : "pointer",
+                    }}
                     disabled={deleteSubMut.isPending}
                     onClick={() => deleteSubMut.mutate(s.id)}
                   >

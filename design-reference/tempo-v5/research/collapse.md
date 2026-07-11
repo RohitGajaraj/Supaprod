@@ -19,6 +19,7 @@ Each section has a rendered live preview plus a "Show code" toggle revealing the
 ### `Collapse` + `CollapseGroup` (from `@vercel/geistcn/components`)
 
 Props observed in the example code:
+
 - `CollapseGroup`
   - `multiple` (boolean, optional) — allow more than one child `Collapse` open simultaneously. Omitted = only one panel open at a time (accordion behavior).
 - `Collapse`
@@ -31,24 +32,23 @@ Props observed in the example code:
 **Default (group, both closed):**
 
 ```tsx
-import { Collapse, CollapseGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Collapse, CollapseGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <CollapseGroup>
       <Collapse title="Question A">
         <p className="text-copy-16 mb-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </p>
       </Collapse>
       <Collapse title="Question B">
         <p className="text-copy-16 mb-4">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-          dolore eu fugiat nulla pariatur.
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+          nulla pariatur.
         </p>
       </Collapse>
     </CollapseGroup>
@@ -59,24 +59,23 @@ export function Component(): JSX.Element {
 **Expanded (second item starts open via `defaultExpanded`):**
 
 ```tsx
-import { Collapse, CollapseGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Collapse, CollapseGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <CollapseGroup>
       <Collapse title="Question A">
         <p className="text-copy-16 mb-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </p>
       </Collapse>
       <Collapse defaultExpanded title="Question B">
         <p className="text-copy-16 mb-4">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-          dolore eu fugiat nulla pariatur.
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+          nulla pariatur.
         </p>
       </Collapse>
     </CollapseGroup>
@@ -87,24 +86,23 @@ export function Component(): JSX.Element {
 **Multiple (more than one panel can be open at once):**
 
 ```tsx
-import { Collapse, CollapseGroup } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Collapse, CollapseGroup } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <CollapseGroup multiple>
       <Collapse title="Question A">
         <p className="text-copy-16 mb-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </p>
       </Collapse>
       <Collapse title="Question B">
         <p className="text-copy-16 mb-4">
-          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-          dolore eu fugiat nulla pariatur.
+          Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+          nulla pariatur.
         </p>
       </Collapse>
     </CollapseGroup>
@@ -115,17 +113,16 @@ export function Component(): JSX.Element {
 **Small (standalone `Collapse`, no group wrapper, `size="small"`):**
 
 ```tsx
-import { Collapse } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Collapse } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <Collapse size="small" title="Question A">
       <p className="text-copy-16 mb-4">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
       </p>
     </Collapse>
   );
@@ -135,22 +132,26 @@ export function Component(): JSX.Element {
 ## Best practices
 
 **When to use**
+
 - Reach for Collapse only for optional, advanced, or repetitive content most users skip on most visits (FAQ entries, advanced settings, a request-payload preview) — not for primary content.
 - Don't collapse top-level page structure that every user needs to read; use normal headed sections instead, or collapsing it hides what the page is actually about.
 - Use a single `Collapse` for one optional block; use `CollapseGroup` for a related set of them. If the items are actually sibling views rather than optional drill-downs, use Tabs instead.
 
 **Behavior**
+
 - Default to closed unless a first-time visitor must read the content before they can act.
 - Inside a `CollapseGroup`, keep single-open (accordion) behavior when items are mutually exclusive; opt into `multiple` only when the items are independent of each other.
 - Always animate the open/close transition — an instant jump-cut makes the page feel like it teleported.
 - Cap nesting at one level. Two-level nesting hides too much content and breaks the keyboard tab order.
 
 **Content**
+
 - Title-case the heading and name the topic, not the action ("Advanced Settings", not "Show Advanced Settings").
 - Write the body as sentence-case prose with normal section formatting — treat the panel as a small page, not a tooltip.
 - Never bury a primary destructive action inside a closed Collapse; it forces a double-click just to reach the warning.
 
 **Accessibility**
+
 - The trigger renders as a real `<button>` carrying `aria-expanded` (flips on toggle) and `aria-controls` pointing at the panel's id.
 - Enter and Space toggle the panel; no other key is bound globally. Arrow keys are left free to move focus within the panel's own content.
 - Keep the panel content in the DOM even while closed (hide via `hidden` or visibility, not by unmounting) so in-page search / find-in-page still matches it. Reserve lazy-rendering for genuinely expensive content only.

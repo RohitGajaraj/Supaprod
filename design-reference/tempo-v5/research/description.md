@@ -16,24 +16,24 @@ Only three demo variants are shown on this page (Default, Text right, Ellipsis) 
 Single component, imported as:
 
 ```tsx
-import { Description } from '@vercel/geistcn/components';
+import { Description } from "@vercel/geistcn/components";
 ```
 
 ### `<Description>` props (observed across all three code examples)
 
-| Prop | Type | Observed values | Notes |
-|---|---|---|---|
-| `title` | `string` | `"Section Title"` | The label/key half of the pair. Rendered as the definition term. |
-| `content` | `string` | `"Data about this section."`, long lorem-ipsum string | The value half of the pair. Rendered as the definition description. |
-| `tooltip` | `string` | `"Additional context about what this section refers to."` | Optional. Adds a tooltip (likely an info affordance next to the title) with a one-sentence clarification. |
-| `right` | boolean flag (no value passed — presence-based) | present in the "Text right" example | Right-aligns the content relative to the title. |
-| `ellipsis` | boolean flag (no value passed — presence-based) | present in the "Ellipsis" example | Truncates long `content` to a single line with an ellipsis instead of wrapping. |
+| Prop       | Type                                            | Observed values                                           | Notes                                                                                                     |
+| ---------- | ----------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `title`    | `string`                                        | `"Section Title"`                                         | The label/key half of the pair. Rendered as the definition term.                                          |
+| `content`  | `string`                                        | `"Data about this section."`, long lorem-ipsum string     | The value half of the pair. Rendered as the definition description.                                       |
+| `tooltip`  | `string`                                        | `"Additional context about what this section refers to."` | Optional. Adds a tooltip (likely an info affordance next to the title) with a one-sentence clarification. |
+| `right`    | boolean flag (no value passed — presence-based) | present in the "Text right" example                       | Right-aligns the content relative to the title.                                                           |
+| `ellipsis` | boolean flag (no value passed — presence-based) | present in the "Ellipsis" example                         | Truncates long `content` to a single line with an ellipsis instead of wrapping.                           |
 
 ### Minimal usage (Default)
 
 ```tsx
-import { Description } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Description } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -49,8 +49,8 @@ export function Component(): JSX.Element {
 ### Text right variant
 
 ```tsx
-import { Description } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Description } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -67,8 +67,8 @@ export function Component(): JSX.Element {
 ### Ellipsis variant (long content)
 
 ```tsx
-import { Description } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Description } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (

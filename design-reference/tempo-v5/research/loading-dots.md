@@ -15,12 +15,14 @@ Demo names embedded in the code (used as `Preview name="..."` identifiers): `loa
 ## API
 
 **Import:**
+
 ```tsx
-import { LoadingDots } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadingDots } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 ```
 
 **Example 1 — Default (three sizes stacked):**
+
 ```tsx
 export function Component(): JSX.Element {
   return (
@@ -34,6 +36,7 @@ export function Component(): JSX.Element {
 ```
 
 **Example 2 — With text (children composition):**
+
 ```tsx
 export function Component(): JSX.Element {
   return (
@@ -45,26 +48,31 @@ export function Component(): JSX.Element {
 ```
 
 **Props observed:**
+
 - `size` — enum, one of `"sm" | "md" | "lg"`. Controls the dot diameter (and implicitly the gap/spacing between dots). No numeric px prop is shown in the code examples themselves, though the Best Practices copy references a numeric `size` (dot diameter in px) as an underlying concept — treat the three named sizes as the primary public API and a numeric override as a secondary/advanced escape hatch only if actually present in the shipped component's types (not shown in any example on this page).
 - `children` — optional `ReactNode`. When passed (e.g. a `<p>` label), `LoadingDots` wraps the label and the dots together as a single composed unit (label first, animated dots trailing) rather than requiring the caller to place `<LoadingDots />` after their own text node.
 
 **Composition patterns:**
+
 1. Bare, standalone (no children) — three dots animate alone; used when embedding directly after a verb in running copy, e.g. `Saving<LoadingDots />`.
 2. Wrapping a text label as `children` — `LoadingDots` renders the label plus dots as one unit; used per the "With text" demo when you want the dots component to own the whole "Label…" composite rather than gluing it manually.
 
 ## Best practices
 
 **When to use**
+
 - Reach for Loading Dots for short, indeterminate in-copy waits — appended directly after a verb (`Saving…`, `Building…`), not as a page-level loading state.
 - For buttons, use the button's own `loading` prop rather than nesting `LoadingDots` inside the button label.
 - Pick the right primitive for the job: Skeleton for layout placeholders, Progress when you know percent-complete, Spinner for icon-sized indeterminate waits, and Loading Dots specifically for inline textual waits.
 
 **Behavior**
+
 - Only override `size` when the default doesn't match the surrounding type scale — don't set it reflexively.
 - Keep the label attached to the dots specific to the in-flight action (`Saving`, `Deploying`, `Uploading`) so a wait that stretches past ~1 second still communicates what's happening, not just that something is happening.
 - Never pair the dots with an already-completed verb (e.g. `Saved<LoadingDots />`) — the animation itself signals ongoing work, so it contradicts a past-tense label.
 
 **Accessibility**
+
 - Wrap the live region in a container with `aria-live="polite"` so assistive tech announces the in-progress label without yanking focus or interrupting other announcements.
 - Treat the dots themselves as purely decorative — meaning lives in the adjacent text, so don't attach an `aria-label` to `LoadingDots` directly.
 - Respect `prefers-reduced-motion`, and avoid stacking Loading Dots with a second animated indicator (e.g. a Spinner) on the same line — redundant motion cues add noise, not clarity.

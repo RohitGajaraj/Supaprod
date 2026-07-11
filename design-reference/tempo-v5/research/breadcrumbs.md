@@ -17,8 +17,8 @@ Each section has a rendered live preview plus a "Show code" toggle revealing the
 ### `Breadcrumb` + `BreadcrumbItem` (from `@vercel/geistcn/components`)
 
 ```tsx
-import { Breadcrumb, BreadcrumbItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Breadcrumb, BreadcrumbItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -41,8 +41,8 @@ export function Component(): JSX.Element {
 **Active state:**
 
 ```tsx
-import { Breadcrumb, BreadcrumbItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Breadcrumb, BreadcrumbItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -58,8 +58,8 @@ export function Component(): JSX.Element {
 **Disabled state:**
 
 ```tsx
-import { Breadcrumb, BreadcrumbItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Breadcrumb, BreadcrumbItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -77,7 +77,7 @@ export function Component(): JSX.Element {
 - `Breadcrumb` — the trail container/wrapper. Renders its `BreadcrumbItem` children with separators between them (separator glyph/markup not present in the static HTML — it's produced by the live component render, which this page loads into a lazy preview slot rather than shipping in the initial payload).
   - `type`: `"text" | "menu"` — optional prop, defaults to a plain trail (equivalent to `"text"`) when omitted (the Active/Disabled examples don't pass `type` at all). `"text"` renders each crumb as plain inline text/links; `"menu"` renders each crumb as a trigger capable of opening a dropdown menu of sibling/child pages at that level (the standard breadcrumb-with-overflow-menu pattern).
 - `BreadcrumbItem` — a single crumb. Takes plain text children (no icon/leading-element prop observed in these examples).
-  - `active`: boolean prop — marks the crumb representing the current page. Only one item carries this in the example (the last non-terminal item shown, "Dashboard" — note the example nests it as the *middle* item, not necessarily meaning only the last item may be active; it simply demonstrates the prop on one item).
+  - `active`: boolean prop — marks the crumb representing the current page. Only one item carries this in the example (the last non-terminal item shown, "Dashboard" — note the example nests it as the _middle_ item, not necessarily meaning only the last item may be active; it simply demonstrates the prop on one item).
   - `disabled`: boolean prop — marks a crumb as non-interactive (no navigation), still rendered but visually and functionally inert.
   - No `href`/`onClick` prop is shown in any example — link/navigation wiring is not demonstrated on this page (crumbs may default to plain text or the wiring is elided from the minimal demo source).
 

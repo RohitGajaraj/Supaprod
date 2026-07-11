@@ -332,15 +332,12 @@ export function FocusDock() {
                 setComposerOpen(false);
               }
             }}
+            className="material-menu"
             style={{
               width: 340,
               padding: "12px 14px",
               marginBottom: 6,
-              background: "var(--card)",
-              border: "1px solid var(--hairline-strong)",
-              borderRadius: "var(--radius-card)",
-              boxShadow: "0 24px 64px -16px rgba(0,0,0,0.65), var(--top-light)",
-              animation: "cadRise 200ms var(--ease) both",
+              animation: "cadRise 200ms var(--ds-motion-timing-swift) both",
               display: "flex",
               flexDirection: "column",
               gap: 10,

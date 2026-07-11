@@ -27,14 +27,11 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-50 flex flex-col outline-none"
+          className="material-large fixed inset-y-0 right-0 z-50 flex flex-col outline-none"
           style={{
             width: "480px",
             maxWidth: "92vw",
-            backgroundColor: "#101013",
-            borderLeft: "1px solid var(--hairline-strong)",
-            boxShadow: "-30px 0 60px rgba(0,0,0,0.5)",
-            animation: "cadSlideIn 240ms var(--ease)",
+            animation: "cadSlideIn 300ms var(--ds-motion-timing-swift)",
           }}
         >
           <div

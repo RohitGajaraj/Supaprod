@@ -17,7 +17,13 @@ import { LOOM_CARD } from "@/components/studio/studio-ui";
 
 /** The entity kinds the stage_events read side accepts (getStageEvents). */
 export type StageEntityType =
-  "spec" | "mission" | "opportunity" | "theme" | "decision" | "goal" | "loop";
+  | "spec"
+  | "mission"
+  | "opportunity"
+  | "theme"
+  | "decision"
+  | "goal"
+  | "loop";
 
 export interface StageTimelineProps {
   entityType: StageEntityType;

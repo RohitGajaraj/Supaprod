@@ -16,8 +16,8 @@ No Sizes, Types, Variants, or States sections are present on this page — unusu
 Only one composition pattern is demonstrated in code:
 
 ```tsx
-import { Browser } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Browser } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -45,16 +45,19 @@ Composition guidance: use the canned `Browser` component for the standard shape;
 ## Best practices
 
 **When to use**
+
 - Use it purely as decorative marketing chrome — wrapping screenshots, demo captures, or recordings on landing pages, docs, and changelog posts.
 - Never put live/real product UI inside it; the frame visually signals "this is a screenshot," so putting an interactive surface inside is misleading.
 - Prefer the composed building blocks over a custom-built frame when the default `Browser` shape doesn't match the layout — don't recreate the chrome from scratch.
 
 **Behavior**
+
 - Pick the chrome variant to match the page background it sits on — light chrome on light sections, dark chrome on dark sections — so the frame doesn't visually clash with its surroundings.
 - For long URLs in the address bar, truncate in the middle (host prefix + path tail both stay visible) rather than truncating from one end.
 - Reserve/lock the aspect ratio of the inner content so the frame doesn't jump or reflow while an image loads or if it fails to load.
 
 **Accessibility**
+
 - The chrome itself is purely decorative — hide it from assistive tech (`aria-hidden="true"`) and put the actual meaning on the inner image/video via its own `alt` text.
 - Alt text on the inner screenshot should describe what's actually shown, not a generic label like "browser screenshot."
 - Don't make the dots or nav controls focusable — they're static decoration, not real controls, so focusable-but-inert elements would confuse keyboard users.

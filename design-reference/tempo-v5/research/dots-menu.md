@@ -20,32 +20,33 @@ Adjacent pages in the sidebar nav: previous = **Destructive Action Modal**, next
 Import path: `@vercel/geistcn/components`.
 
 ```tsx
-import { DotsMenu, MenuItem } from '@vercel/geistcn/components';
+import { DotsMenu, MenuItem } from "@vercel/geistcn/components";
 ```
 
 ### `<DotsMenu>` (the trigger + dropdown wrapper)
 
 Props observed across the four examples:
 
-| Prop | Type / values seen | Effect |
-|---|---|---|
-| `children` | one or more `<MenuItem>` | populates the dropdown list |
-| `iconSize` | `10 \| 12 \| 18` (numeric px) | size of the three-dot glyph inside the trigger button; button footprint itself does not resize |
-| `disabled` | boolean | disables the whole trigger button (native `disabled` attribute renders on the underlying `<button>`; blocks opening the menu) |
+| Prop       | Type / values seen            | Effect                                                                                                                        |
+| ---------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `children` | one or more `<MenuItem>`      | populates the dropdown list                                                                                                   |
+| `iconSize` | `10 \| 12 \| 18` (numeric px) | size of the three-dot glyph inside the trigger button; button footprint itself does not resize                                |
+| `disabled` | boolean                       | disables the whole trigger button (native `disabled` attribute renders on the underlying `<button>`; blocks opening the menu) |
 
 ### `<MenuItem>` (dropdown row)
 
-| Prop | Type / values seen | Effect |
-|---|---|---|
-| `children` | string / node | the item's label text |
-| `disabled` | boolean | disables that single row while the rest of the menu stays interactive |
+| Prop       | Type / values seen | Effect                                                                |
+| ---------- | ------------------ | --------------------------------------------------------------------- |
+| `children` | string / node      | the item's label text                                                 |
+| `disabled` | boolean            | disables that single row while the rest of the menu stays interactive |
 
 ### Usage snippets (as shown on the page)
 
 **Default:**
+
 ```tsx
-import { DotsMenu, MenuItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { DotsMenu, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -59,9 +60,10 @@ export function Component(): JSX.Element {
 ```
 
 **Sizes:**
+
 ```tsx
-import { DotsMenu, MenuItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { DotsMenu, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -87,9 +89,10 @@ export function Component(): JSX.Element {
 ```
 
 **Disabled (whole trigger):**
+
 ```tsx
-import { DotsMenu, MenuItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { DotsMenu, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -103,9 +106,10 @@ export function Component(): JSX.Element {
 ```
 
 **Disabled Menu Item (single row):**
+
 ```tsx
-import { DotsMenu, MenuItem } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { DotsMenu, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (

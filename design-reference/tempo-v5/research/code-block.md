@@ -18,8 +18,9 @@
 ## API
 
 Import:
+
 ```jsx
-import { CodeBlock } from '@vercel/geistcn/components';
+import { CodeBlock } from "@vercel/geistcn/components";
 ```
 
 ### `<CodeBlock>` props observed across examples
@@ -110,13 +111,13 @@ export function Component() {
 ```jsx
 // Language switcher (select)
 const languages = [
-  { label: 'JavaScript', value: 'js' },
-  { label: 'TypeScript', value: 'ts' },
-  { label: 'Next.js', value: 'next' },
-  { label: 'Lua', value: 'lua' },
+  { label: "JavaScript", value: "js" },
+  { label: "TypeScript", value: "ts" },
+  { label: "Next.js", value: "next" },
+  { label: "Lua", value: "lua" },
 ];
 
-const [language, setLanguage] = useState('js');
+const [language, setLanguage] = useState("js");
 
 <CodeBlock
   aria-label="Hello world"
@@ -129,7 +130,7 @@ const [language, setLanguage] = useState('js');
   }}
 >
   {code}
-</CodeBlock>
+</CodeBlock>;
 ```
 
 ```jsx
@@ -162,23 +163,27 @@ const [language, setLanguage] = useState('js');
 ## Best practices
 
 **When to use**
+
 - Reach for `<CodeBlock>` only for multi-line, syntax-highlighted source meant to be scanned or copy-pasted as a unit.
 - A lone token (env var, function name, file path) belongs in inline `<Code>`, not a full block.
 - A single copyable shell command or a one-off secret/key reveal belongs in `<Snippet>`, not `<CodeBlock>` — `<Snippet>` already has the prompt glyph and copy button built in.
 
 **Behavior**
+
 - Always set a language/syntax value (`tsx`, `bash`, `json`, `diff`, etc.) — accurate highlighting is the entire reason to pick `<CodeBlock>` over a bare `<pre>`.
 - Highlight sparingly: only the specific lines relevant to the point being made. Highlighting every line is equivalent to highlighting none.
 - Represent diffs with the `diff` grammar or the dedicated added/removed line props — don't fake a diff with `// added` / `// removed` comments, since that corrupts anything copied out of the block.
 - Only show the filename header when the snippet has a real destination file (`app/page.tsx`, `vercel.json`); leave it off for throwaway/illustrative snippets.
 
 **Content**
+
 - Snippets must stay runnable/pasteable as shown: don't turn real code into pseudo-code, and don't manually prefix shell lines with `$` (that's `<Snippet>`'s job, and doing both doubles up to `$ $ command`).
 - Surrounding prose should stay in sentence case, with inline CLI flags wrapped in backticks (e.g. `` `--prebuilt` ``).
 
 ## Design notes
 
 **Outer/anatomy (from rendered markup, `Default` example):**
+
 - Outer demo wrapper: `rounded-lg border` with `border-gray-alpha-400` and `bg-background-100`.
 - Block container: `relative my-4 rounded-md border overflow-hidden`, border color `var(--ds-gray-400)`, background `var(--ds-bfackground-100)` (sic — literal typo'd CSS var seen in the markup, effectively a near-white/near-black background token).
 - Header/toolbar row (only present when `filename` is set): `h-12` (48px) flex row, `bg-[var(--ds-background-200)]`, bottom border `border-[var(--ds-gray-400)]`, padding `py-0 pr-3 pl-4`.

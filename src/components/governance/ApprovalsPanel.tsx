@@ -425,7 +425,7 @@ function ApprovalCard({
             </button>
             {a.mission_id ? (
               <Link
-                className="btn btn-sm"
+                className="btn btn-sm hover:underline"
                 style={{ color: "var(--glacier)" }}
                 to="/build/$missionId"
                 params={{ missionId: a.mission_id }}
@@ -444,7 +444,7 @@ function ApprovalCard({
         ) : null}
         <details style={{ marginTop: 8 }}>
           <summary
-            className="mono-label"
+            className="mono-label transition hover:brightness-125"
             style={{ cursor: "pointer", color: "var(--text-faint)", listStylePosition: "inside" }}
           >
             args · the exact payload

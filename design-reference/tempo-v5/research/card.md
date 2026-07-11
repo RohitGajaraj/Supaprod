@@ -34,9 +34,10 @@ No `size` prop or size enum appears anywhere in the captured examples.
 ### Usage snippets (verbatim from the docs, minus surrounding boilerplate)
 
 Default:
+
 ```tsx
-import { Card } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Card } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -48,6 +49,7 @@ export function Component(): JSX.Element {
 ```
 
 Hover:
+
 ```tsx
 <Card className="p-4" hoverable>
   <p className="text-copy-14 text-gray-900">A simple card</p>
@@ -55,6 +57,7 @@ Hover:
 ```
 
 Border:
+
 ```tsx
 <Card border className="p-4" hoverable shadow>
   <p className="text-copy-14 text-gray-900">A simple card</p>
@@ -62,6 +65,7 @@ Border:
 ```
 
 Border Between:
+
 ```tsx
 <Card border borderBetween className="p-4" hoverable shadow>
   <p className="text-copy-14 text-gray-900 py-2">Option 1</p>
@@ -71,6 +75,7 @@ Border Between:
 ```
 
 Border Between Vertical (row direction):
+
 ```tsx
 <Card border borderBetween className="p-4" direction="row" hoverable shadow>
   <p className="text-copy-14 text-gray-900 px-2 w-full">Option 1</p>
@@ -80,6 +85,7 @@ Border Between Vertical (row direction):
 ```
 
 Secondary:
+
 ```tsx
 <Card border borderBetween className="p-4" hoverable secondary shadow>
   <p className="text-copy-14 text-gray-900 py-2">Option 1</p>

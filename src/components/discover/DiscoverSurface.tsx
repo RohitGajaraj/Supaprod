@@ -385,16 +385,7 @@ export function DiscoverSurface() {
               signal pipeline as its own labelled section so its purpose reads
               plainly. */}
           <div style={{ marginTop: 44 }}>
-            <h2
-              style={{
-                margin: 0,
-                fontFamily: "var(--font-ui)",
-                fontSize: 16,
-                fontWeight: 600,
-                color: "var(--text-primary)",
-                lineHeight: 1.3,
-              }}
-            >
+            <h2 className="text-heading-16" style={{ margin: 0, color: "var(--text-primary)" }}>
               Market watch
             </h2>
             <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>

@@ -15,31 +15,32 @@ Source: https://vercel.com/geist/destructive-action-modal (fetched via curl, ser
 ## API
 
 Import:
+
 ```tsx
-import { Button, DestructiveActionModal } from '@vercel/geistcn/components';
+import { Button, DestructiveActionModal } from "@vercel/geistcn/components";
 ```
 
 ### `DestructiveActionModal` props (observed across all 4 examples)
 
-| Prop | Type (inferred) | Notes |
-|---|---|---|
-| `open` | `boolean` | Caller-controlled; component never self-dismisses, even in `loading`/`error` states. |
-| `onConfirm` | `() => void` | Fires only once the typed verification phrase matches. |
-| `onCancel` | `() => void` | Fires on Cancel click, outside-click, or Escape. |
-| `title` | `string` | Title Case, `Verb + Noun`, a statement, not a question — e.g. `"Delete Project"`. |
-| `description` | `string \| JSX.Element` | Sentence case; names the consequence; can interpolate the resource name with inline markup (e.g. `<span className="font-medium">next-year-boilerplate</span>`). |
-| `irreversibleDescription` | `string` (optional) | Renders the red striped "cannot be undone" band. Omit entirely (not falsy) for reversible actions. Ends with literal "cannot be undone." |
-| `confirmLabel` | `string` | Must match `title` 1:1 — never generic (`Confirm`, `OK`, `Continue`), never a bare verb (`Delete`). |
-| `verificationPhrase` | `string` | The exact string the user must type to unlock submit. For entity deletes: the resource name itself (e.g. `"next-year-boilerplate"`, `"my-project"`). For non-entity actions: a lowercase verb phrase (e.g. `"disable vercel authentication"`). |
-| `verificationLabel` | `string` (optional) | Paired with an entity-name `verificationPhrase` to produce the prompt `To confirm, type the project name "my-project"` — e.g. `"project name"`. Omitted in the verb-phrase (non-entity) example. |
-| `loading` | `boolean` (optional) | Disables both buttons, shows a spinner on the confirm button. |
-| `error` | `string \| Error` (optional) | Renders inline under the verification input; modal stays open on error. |
+| Prop                      | Type (inferred)              | Notes                                                                                                                                                                                                                                          |
+| ------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open`                    | `boolean`                    | Caller-controlled; component never self-dismisses, even in `loading`/`error` states.                                                                                                                                                           |
+| `onConfirm`               | `() => void`                 | Fires only once the typed verification phrase matches.                                                                                                                                                                                         |
+| `onCancel`                | `() => void`                 | Fires on Cancel click, outside-click, or Escape.                                                                                                                                                                                               |
+| `title`                   | `string`                     | Title Case, `Verb + Noun`, a statement, not a question — e.g. `"Delete Project"`.                                                                                                                                                              |
+| `description`             | `string \| JSX.Element`      | Sentence case; names the consequence; can interpolate the resource name with inline markup (e.g. `<span className="font-medium">next-year-boilerplate</span>`).                                                                                |
+| `irreversibleDescription` | `string` (optional)          | Renders the red striped "cannot be undone" band. Omit entirely (not falsy) for reversible actions. Ends with literal "cannot be undone."                                                                                                       |
+| `confirmLabel`            | `string`                     | Must match `title` 1:1 — never generic (`Confirm`, `OK`, `Continue`), never a bare verb (`Delete`).                                                                                                                                            |
+| `verificationPhrase`      | `string`                     | The exact string the user must type to unlock submit. For entity deletes: the resource name itself (e.g. `"next-year-boilerplate"`, `"my-project"`). For non-entity actions: a lowercase verb phrase (e.g. `"disable vercel authentication"`). |
+| `verificationLabel`       | `string` (optional)          | Paired with an entity-name `verificationPhrase` to produce the prompt `To confirm, type the project name "my-project"` — e.g. `"project name"`. Omitted in the verb-phrase (non-entity) example.                                               |
+| `loading`                 | `boolean` (optional)         | Disables both buttons, shows a spinner on the confirm button.                                                                                                                                                                                  |
+| `error`                   | `string \| Error` (optional) | Renders inline under the verification input; modal stays open on error.                                                                                                                                                                        |
 
 ### Composition pattern (all 4 examples share this shape)
 
 ```tsx
-import { Button, DestructiveActionModal } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Button, DestructiveActionModal } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [open, setOpen] = useState(false);
@@ -62,9 +63,8 @@ export function Component(): JSX.Element {
         confirmLabel="Delete Project"
         description={
           <>
-            <span className="font-medium">next-year-boilerplate</span> and all
-            its deployments, domains, and environment variables will be
-            permanently deleted.
+            <span className="font-medium">next-year-boilerplate</span> and all its deployments,
+            domains, and environment variables will be permanently deleted.
           </>
         }
         irreversibleDescription="Deleting next-year-boilerplate cannot be undone."
@@ -139,11 +139,13 @@ The trigger `Button` in every example uses `size="small"` and `variant="error"` 
 ## Best practices
 
 **When to use**
+
 - Pick this over a plain `Modal` when the action is destructive enough to warrant friction: delete, rotate, revoke, disconnect, downgrade, or disabling a security setting. The typed gate is what forces deliberate intent.
 - It's also appropriate for reversible-but-serious actions (disabling deployment protection, revoking a shared token) — keep the typed gate, just drop `irreversibleDescription`.
 - Don't reach for it on routine, low-stakes confirmations (save draft, discard changes, close without saving) — the typed gate reads as overkill there; use a plain `Modal` instead.
 
 **Behavior**
+
 - Autofocus the verification input on open so typing can start immediately.
 - Submit stays disabled until the input value exactly matches `verificationPhrase`.
 - Enter submits only once the gate is unlocked; it's inert before that. Cancel, outside-click, and Escape all dismiss unconditionally.
@@ -151,6 +153,7 @@ The trigger `Button` in every example uses `size="small"` and `variant="error"` 
 - The success toast that follows a confirmed action should echo the button label 1:1 (a "Delete Project" button implies a "Project deleted" toast, never a paraphrase like "Project removed").
 
 **Content**
+
 - `title`: Title Case, `Verb + Noun`, phrased as a statement, never a question ("Delete Project", not "Delete this project?").
 - `description`: sentence case, names the concrete consequence, and interpolates the specific resource name when there is one — bolding the resource name reads stronger than a generic sentence.
 - `confirmLabel` must mirror the title exactly — never a generic label like "Confirm"/"OK"/"Continue", never a bare verb like "Delete".
@@ -159,6 +162,7 @@ The trigger `Button` in every example uses `size="small"` and `variant="error"` 
 - `error` messages should read like a real (Vercel-voice) sentence describing the failure, never a raw error object dump.
 
 **Accessibility**
+
 - The verification input's prompt text is wired to it via `aria-labelledby`/`htmlFor` so screen readers announce the full instruction on focus.
 - The warning icon in the irreversibility band is `aria-hidden` since the accompanying sentence already carries the meaning — avoids double announcement.
 - Focus is retained inside the modal across an error transition so a retry doesn't lose context; after a successful confirm, focus returns to the original trigger element.
@@ -170,5 +174,5 @@ The trigger `Button` in every example uses `size="small"` and `variant="error"` 
 - Loading state: spinner rendered on the primary/confirm button itself (not a separate overlay); both Cancel and Confirm become disabled together.
 - Error state: inline error text appears under the verification input, not as a toast or banner — this keeps the modal open and the typed value intact for retry.
 - Warning icon appears specifically inside the irreversibility band and is marked `aria-hidden="true"`.
-- No CSS custom-property / utility-class tokens (`--ds-*`, `material-*`, `text-label-14`, etc.) were exposed on this page — the code samples shown are minimal JSX *usage* snippets (consumer-facing API only), not the component's internal implementation/markup, so no internal class names or design tokens were observable from this page. Anatomy/visual sizing (px values, radii) is likewise not disclosed here; only the described visual behavior (striped red band, spinner-on-button, inline error text, autofocus) is available as a design cue.
+- No CSS custom-property / utility-class tokens (`--ds-*`, `material-*`, `text-label-14`, etc.) were exposed on this page — the code samples shown are minimal JSX _usage_ snippets (consumer-facing API only), not the component's internal implementation/markup, so no internal class names or design tokens were observable from this page. Anatomy/visual sizing (px values, radii) is likewise not disclosed here; only the described visual behavior (striped red band, spinner-on-button, inline error text, autofocus) is available as a design cue.
 - Composition is always `Button` (trigger, kept mounted alongside the modal) + `DestructiveActionModal` (controlled entirely by parent `open` state) — no compound/subcomponent parts (no `DestructiveActionModal.Trigger` or `.Content`) are shown; it's a single flat component with the props listed above.

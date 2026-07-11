@@ -100,7 +100,9 @@ export const listDecisions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
     z
-      .object({/* ... */})
+      .object({
+        /* ... */
+      })
       .partial()
       .parse(i ?? {}),
   )

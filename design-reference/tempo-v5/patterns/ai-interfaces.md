@@ -78,7 +78,7 @@ of them at once (see Usage examples).
 - **Empty state** — before the first turn, the message list renders an `EmptyState`
   (`research/empty-state.md`'s "Guide" framing): one small geometric composition (identity
   layer budget), a title ("Ask Cadence anything"), a description naming what it can do for
-  *this* workspace specifically, and up to four suggestion chips (secondary `Button`s) that
+  _this_ workspace specifically, and up to four suggestion chips (secondary `Button`s) that
   fill the composer on click rather than sending immediately.
 
 ### 2. Streaming output — text, code, artifacts
@@ -112,7 +112,7 @@ Here is the plan. I'll touch three files and open one PR.
 - **Artifact card** — a long-form deliverable (a document, a full file, a diagram, a dataset
   preview) graduates out of the conversational stream into its own card: type icon, title,
   a one-line freshness/size note, and an "Open" affordance. This is the point where the
-  chat stops being the place to *read* the deliverable and becomes the log of how it was
+  chat stops being the place to _read_ the deliverable and becomes the log of how it was
   made. Below a size threshold it can render its content inline (a short table, a small
   diagram); above it, "Open" is the only way in.
 - **Inline citation** — a small numbered chip (see Receipts & trust evidence) sits inline
@@ -149,7 +149,7 @@ Here is the plan. I'll touch three files and open one PR.
 - **Tool-call sub-row** (nested, indented one `--geist-gap-quarter` step under its parent
   step): the call itself rendered as a single-line invocation (`tool.name({ args })`,
   `text-label-13-mono`), its result summary on the line under it (`→ 142 lines`, `→ 3 files
-  changed`), and its own duration. A tool call whose input or output is long (a diff, a full
+changed`), and its own duration. A tool call whose input or output is long (a diff, a full
   file, a JSON payload) renders that payload inside a `Code Block` rather than inline text.
 - **Run summary** — a three-item `Description` row (`<dl>`) above the list: total steps,
   total wall time, total cost. Hovering the cost figure opens a `ContextCardTrigger` with
@@ -355,55 +355,55 @@ Spend this run                                              $0.42 of $1.00
 
 ## Variants
 
-| Area | Variant | When to use |
-| --- | --- | --- |
-| Ask surface | Full-page Ask | The dedicated `/chat` (or Ask) route — primary surface, full message history, full composer. |
-| Ask surface | Docked panel | An Ask entry point surfaced from within another screen (a PRD, a mission) — narrower column, same anatomy, opens as a `Sheet`/`Drawer` rather than a route. |
-| Ask surface | Suggested-prompt empty state | First visit to a surface with no history yet — up to four chips, each a real question relevant to *this* workspace's actual data, never generic filler. |
-| Streaming | Plain text | The default — most replies. |
-| Streaming | Code-forward | The reply is primarily a diff/file/snippet — lead with the `Code Block`, keep prose to the minimum framing sentence before and after it. |
-| Streaming | Artifact-forward | The deliverable is long-form (a spec, a full document) — the artifact card appears early and the surrounding prose stays to one or two sentences of framing, never a restated copy of the artifact's own content. |
-| Agent run timeline | Compact (inline in chat) | A short run (2 to 4 steps) shown directly under the turn that triggered it — no separate summary trio, just the step list. |
-| Agent run timeline | Full (dedicated trace view) | A longer or historical run — the full anatomy above, including the run summary trio, at `/traces/$traceId`. |
-| HITL gate card | Standard gate | The default — Approve / Send back / Challenge, as specified above. |
-| HITL gate card | Diff-bearing gate | Adds the Code Block diff/preview area when the action changes files or config. |
-| HITL gate card | Handoff gate | The action delegates to an external agent/tool (e.g. sending a build task to an outside coding agent) — body copy states plainly that the hand-off cannot be recalled once sent; otherwise identical anatomy. |
-| Receipts | Inline citation | A single claim inside flowing text — numbered chip + Context Card. |
-| Receipts | Sources row | The aggregate list under a whole message — one chip per distinct source used in that turn. |
-| Receipts | Trust Ledger entry | The durable, workspace-level record — `Entity` row in the ledger list, opening the full `ReceiptDetailSheet`. |
-| Model picker | Full catalog (Combobox) | Starting a new thread, or deliberately switching models mid-thread. |
-| Model picker | Replay-with (scoped popover) | Re-running one already-sent turn with a different model, without leaving the thread. |
-| Tool picker | Panel (Entity + Checkbox list) | Composer's own "tools" trigger — the default. |
-| Tool picker | Settings-level | The exhaustive, account-wide connector list belongs in Settings → Connected accounts, not this picker — this picker only ever shows tools already available to *this* workspace. |
-| Error & retry | Turn-level Error | The whole reply failed to generate. |
-| Error & retry | Step-level failure | One step inside a multi-step run failed; the rest of the run's state is preserved. |
-| Error & retry | Guardrail block | The system paused deliberately (not a failure) and needs a human decision to continue. |
-| Cost & time | Per-message strip | Every assistant turn. |
-| Cost & time | Run-level summary | Every agent run with more than one step. |
-| Cost & time | Budget meter | Only when a run or period is genuinely approaching a real spend cap. |
+| Area               | Variant                        | When to use                                                                                                                                                                                                       |
+| ------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ask surface        | Full-page Ask                  | The dedicated `/chat` (or Ask) route — primary surface, full message history, full composer.                                                                                                                      |
+| Ask surface        | Docked panel                   | An Ask entry point surfaced from within another screen (a PRD, a mission) — narrower column, same anatomy, opens as a `Sheet`/`Drawer` rather than a route.                                                       |
+| Ask surface        | Suggested-prompt empty state   | First visit to a surface with no history yet — up to four chips, each a real question relevant to _this_ workspace's actual data, never generic filler.                                                           |
+| Streaming          | Plain text                     | The default — most replies.                                                                                                                                                                                       |
+| Streaming          | Code-forward                   | The reply is primarily a diff/file/snippet — lead with the `Code Block`, keep prose to the minimum framing sentence before and after it.                                                                          |
+| Streaming          | Artifact-forward               | The deliverable is long-form (a spec, a full document) — the artifact card appears early and the surrounding prose stays to one or two sentences of framing, never a restated copy of the artifact's own content. |
+| Agent run timeline | Compact (inline in chat)       | A short run (2 to 4 steps) shown directly under the turn that triggered it — no separate summary trio, just the step list.                                                                                        |
+| Agent run timeline | Full (dedicated trace view)    | A longer or historical run — the full anatomy above, including the run summary trio, at `/traces/$traceId`.                                                                                                       |
+| HITL gate card     | Standard gate                  | The default — Approve / Send back / Challenge, as specified above.                                                                                                                                                |
+| HITL gate card     | Diff-bearing gate              | Adds the Code Block diff/preview area when the action changes files or config.                                                                                                                                    |
+| HITL gate card     | Handoff gate                   | The action delegates to an external agent/tool (e.g. sending a build task to an outside coding agent) — body copy states plainly that the hand-off cannot be recalled once sent; otherwise identical anatomy.     |
+| Receipts           | Inline citation                | A single claim inside flowing text — numbered chip + Context Card.                                                                                                                                                |
+| Receipts           | Sources row                    | The aggregate list under a whole message — one chip per distinct source used in that turn.                                                                                                                        |
+| Receipts           | Trust Ledger entry             | The durable, workspace-level record — `Entity` row in the ledger list, opening the full `ReceiptDetailSheet`.                                                                                                     |
+| Model picker       | Full catalog (Combobox)        | Starting a new thread, or deliberately switching models mid-thread.                                                                                                                                               |
+| Model picker       | Replay-with (scoped popover)   | Re-running one already-sent turn with a different model, without leaving the thread.                                                                                                                              |
+| Tool picker        | Panel (Entity + Checkbox list) | Composer's own "tools" trigger — the default.                                                                                                                                                                     |
+| Tool picker        | Settings-level                 | The exhaustive, account-wide connector list belongs in Settings → Connected accounts, not this picker — this picker only ever shows tools already available to _this_ workspace.                                  |
+| Error & retry      | Turn-level Error               | The whole reply failed to generate.                                                                                                                                                                               |
+| Error & retry      | Step-level failure             | One step inside a multi-step run failed; the rest of the run's state is preserved.                                                                                                                                |
+| Error & retry      | Guardrail block                | The system paused deliberately (not a failure) and needs a human decision to continue.                                                                                                                            |
+| Cost & time        | Per-message strip              | Every assistant turn.                                                                                                                                                                                             |
+| Cost & time        | Run-level summary              | Every agent run with more than one step.                                                                                                                                                                          |
+| Cost & time        | Budget meter                   | Only when a run or period is genuinely approaching a real spend cap.                                                                                                                                              |
 
 ## States
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default (assistant turn) | Message body | Plain text on `--ds-background-100`; body `text-copy-14`, `--ds-gray-1000`; role label `text-label-13`, `--ds-gray-900`. |
-| Default (user turn) | Message body | Fill `--ds-gray-100`; `--ds-radius-medium`; text `text-copy-14`, `--ds-gray-1000`. |
-| Hover | Inline citation chip, sources chip, artifact card, timeline step (expandable), picker option | Background steps `--ds-gray-100` → `--ds-gray-200` (or, for a chip already on `--ds-gray-100`, straight to `--ds-gray-200`); border (where present) `--ds-gray-400` → `--ds-gray-500`. |
-| Active (pressed) | Any of the above when clicked | Background `--ds-gray-300` (or the next step up from its hover value); border `--ds-gray-600`. |
-| Focus | Every interactive element across all eight areas (chips, action buttons, picker triggers/options, timeline rows, gate-card actions, retry buttons) | `--ds-focus-ring`, never removed, never swapped for a color-only outline. |
-| Disabled | Send button (empty composer or streaming in progress — replaced by Stop, not disabled-and-hidden), gate-card actions mid-decision | Standard `Button` disabled treatment (`research/button.md`); paired with a `Tooltip` only when the reason genuinely isn't obvious from context (an empty composer's disabled Send needs none). |
-| Loading — pre-stream | Message body before the first token | `LoadingDots` (`size="sm"`) wrapping a phase label ("Thinking," "Searching workspace," "Reading files") — swapped as the phase changes, never left stale. |
-| Loading — mid-stream | Message body, code block, artifact card while content is still arriving | No overlay, no skeleton — the growing text/code IS the loading state. A streaming code block suppresses its copy button and filename header until the fence closes. |
-| Loading — step running | Agent run timeline row | `LoadingDots` (`size="sm"`) in place of a static status dot, next to the step label. |
-| Loading — reconnecting | Composer-level Note | Neutral tone, `LoadingDots`, "Reconnecting…" — escalates to Error tone only on genuine failure. |
-| Empty | Message list (no turns yet) | `EmptyState` composition (icon + title + description + up to 4 suggestion chips), per Anatomy §1. |
-| Empty | Tool picker (no connectors on this workspace) | `EmptyState`, compact variant, one CTA ("Connect a source") routing to Settings — never a bare blank list. |
-| Empty | Receipts row (no sources used) | The sources row does not render at all — an empty row is worse than no row. |
-| Error — turn-level | Message body | `Error` block (`--ds-red-900` label icon, `text-label-14` heading, `text-copy-14` body), per `research/error.md`. |
-| Error — step-level | Agent run timeline row | `--ds-red-900` status dot; failure summary in `text-copy-13`, `--ds-gray-900`; "Retry this step" tertiary action. |
-| Error — connector | Tool picker row | `Badge` reads "Needs auth" (amber-subtle); row stays checked-off (unchecked), clicking it routes to the connector's auth flow instead of toggling. |
-| Blocked (guardrail) | Agent run timeline row | `--ds-amber-900` status dot; label suffix "Paused"; expands into the HITL gate card in place. |
-| Standing / Proven / Superseded | Trust Ledger entry (outcome) | `Badge`: `standing` = plain `--ds-gray-200`/`--ds-gray-1000` (neutral, gray = no judgment yet); `proven` = `--ds-green-200`/`--ds-green-900` (subtle); `superseded` = `--ds-amber-200`/`--ds-amber-900` (subtle) — never red; being superseded is a normal lifecycle event, not a failure. |
+| State                          | Applies to                                                                                                                                         | Tokens                                                                                                                                                                                                                                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Default (assistant turn)       | Message body                                                                                                                                       | Plain text on `--ds-background-100`; body `text-copy-14`, `--ds-gray-1000`; role label `text-label-13`, `--ds-gray-900`.                                                                                                                                                                   |
+| Default (user turn)            | Message body                                                                                                                                       | Fill `--ds-gray-100`; `--ds-radius-medium`; text `text-copy-14`, `--ds-gray-1000`.                                                                                                                                                                                                         |
+| Hover                          | Inline citation chip, sources chip, artifact card, timeline step (expandable), picker option                                                       | Background steps `--ds-gray-100` → `--ds-gray-200` (or, for a chip already on `--ds-gray-100`, straight to `--ds-gray-200`); border (where present) `--ds-gray-400` → `--ds-gray-500`.                                                                                                     |
+| Active (pressed)               | Any of the above when clicked                                                                                                                      | Background `--ds-gray-300` (or the next step up from its hover value); border `--ds-gray-600`.                                                                                                                                                                                             |
+| Focus                          | Every interactive element across all eight areas (chips, action buttons, picker triggers/options, timeline rows, gate-card actions, retry buttons) | `--ds-focus-ring`, never removed, never swapped for a color-only outline.                                                                                                                                                                                                                  |
+| Disabled                       | Send button (empty composer or streaming in progress — replaced by Stop, not disabled-and-hidden), gate-card actions mid-decision                  | Standard `Button` disabled treatment (`research/button.md`); paired with a `Tooltip` only when the reason genuinely isn't obvious from context (an empty composer's disabled Send needs none).                                                                                             |
+| Loading — pre-stream           | Message body before the first token                                                                                                                | `LoadingDots` (`size="sm"`) wrapping a phase label ("Thinking," "Searching workspace," "Reading files") — swapped as the phase changes, never left stale.                                                                                                                                  |
+| Loading — mid-stream           | Message body, code block, artifact card while content is still arriving                                                                            | No overlay, no skeleton — the growing text/code IS the loading state. A streaming code block suppresses its copy button and filename header until the fence closes.                                                                                                                        |
+| Loading — step running         | Agent run timeline row                                                                                                                             | `LoadingDots` (`size="sm"`) in place of a static status dot, next to the step label.                                                                                                                                                                                                       |
+| Loading — reconnecting         | Composer-level Note                                                                                                                                | Neutral tone, `LoadingDots`, "Reconnecting…" — escalates to Error tone only on genuine failure.                                                                                                                                                                                            |
+| Empty                          | Message list (no turns yet)                                                                                                                        | `EmptyState` composition (icon + title + description + up to 4 suggestion chips), per Anatomy §1.                                                                                                                                                                                          |
+| Empty                          | Tool picker (no connectors on this workspace)                                                                                                      | `EmptyState`, compact variant, one CTA ("Connect a source") routing to Settings — never a bare blank list.                                                                                                                                                                                 |
+| Empty                          | Receipts row (no sources used)                                                                                                                     | The sources row does not render at all — an empty row is worse than no row.                                                                                                                                                                                                                |
+| Error — turn-level             | Message body                                                                                                                                       | `Error` block (`--ds-red-900` label icon, `text-label-14` heading, `text-copy-14` body), per `research/error.md`.                                                                                                                                                                          |
+| Error — step-level             | Agent run timeline row                                                                                                                             | `--ds-red-900` status dot; failure summary in `text-copy-13`, `--ds-gray-900`; "Retry this step" tertiary action.                                                                                                                                                                          |
+| Error — connector              | Tool picker row                                                                                                                                    | `Badge` reads "Needs auth" (amber-subtle); row stays checked-off (unchecked), clicking it routes to the connector's auth flow instead of toggling.                                                                                                                                         |
+| Blocked (guardrail)            | Agent run timeline row                                                                                                                             | `--ds-amber-900` status dot; label suffix "Paused"; expands into the HITL gate card in place.                                                                                                                                                                                              |
+| Standing / Proven / Superseded | Trust Ledger entry (outcome)                                                                                                                       | `Badge`: `standing` = plain `--ds-gray-200`/`--ds-gray-1000` (neutral, gray = no judgment yet); `proven` = `--ds-green-200`/`--ds-green-900` (subtle); `superseded` = `--ds-amber-200`/`--ds-amber-900` (subtle) — never red; being superseded is a normal lifecycle event, not a failure. |
 
 ## Interaction model
 
@@ -434,18 +434,18 @@ Spend this run                                              $0.42 of $1.00
 
 **Keyboard** (full map)
 
-| Key | Where | Effect |
-| --- | --- | --- |
-| `Enter` | Composer textarea | Sends the message. |
-| `Shift+Enter` | Composer textarea | Inserts a newline without sending. |
-| `Escape` | Composer textarea (mid-stream) | Nothing by default — use the Stop button; Escape is reserved for closing overlays, not interrupting a stream, so a person doesn't lose a reply by reaching for a familiar key. |
-| `Tab` / `Shift+Tab` | Ask surface | Moves: message list's interactive elements (citations, artifact "Open," feedback thumbs, "View trace," "Replay with…") in document order → attachment chips → textarea → model picker → tool picker → Send/Stop. |
-| `Enter` / `Space` | Model/tool picker trigger, timeline row chevron, gate-card action, retry button | Activates it. |
-| `↑` / `↓` | Open model Combobox | Moves through filtered options. |
-| `Enter` | Open model Combobox (option highlighted) | Selects it; does not submit the composer even if the picker is nested inside the same form. |
-| `Escape` | Open picker, open Context Card, open gate-card inline textarea | Closes it, focus returns to its trigger. |
-| `→` | Agent run timeline row (focused, has children) | Expands its tool-call children (mirrors `Collapse`'s own toggle contract). |
-| `Tab` | Inside an expanded timeline row | Moves into that row's own controls (e.g. "Retry this step"), not to the next row — arrow keys own row-to-row movement, Tab drills into one row. |
+| Key                 | Where                                                                           | Effect                                                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Enter`             | Composer textarea                                                               | Sends the message.                                                                                                                                                                                               |
+| `Shift+Enter`       | Composer textarea                                                               | Inserts a newline without sending.                                                                                                                                                                               |
+| `Escape`            | Composer textarea (mid-stream)                                                  | Nothing by default — use the Stop button; Escape is reserved for closing overlays, not interrupting a stream, so a person doesn't lose a reply by reaching for a familiar key.                                   |
+| `Tab` / `Shift+Tab` | Ask surface                                                                     | Moves: message list's interactive elements (citations, artifact "Open," feedback thumbs, "View trace," "Replay with…") in document order → attachment chips → textarea → model picker → tool picker → Send/Stop. |
+| `Enter` / `Space`   | Model/tool picker trigger, timeline row chevron, gate-card action, retry button | Activates it.                                                                                                                                                                                                    |
+| `↑` / `↓`           | Open model Combobox                                                             | Moves through filtered options.                                                                                                                                                                                  |
+| `Enter`             | Open model Combobox (option highlighted)                                        | Selects it; does not submit the composer even if the picker is nested inside the same form.                                                                                                                      |
+| `Escape`            | Open picker, open Context Card, open gate-card inline textarea                  | Closes it, focus returns to its trigger.                                                                                                                                                                         |
+| `→`                 | Agent run timeline row (focused, has children)                                  | Expands its tool-call children (mirrors `Collapse`'s own toggle contract).                                                                                                                                       |
+| `Tab`               | Inside an expanded timeline row                                                 | Moves into that row's own controls (e.g. "Retry this step"), not to the next row — arrow keys own row-to-row movement, Tab drills into one row.                                                                  |
 
 **Screen-reader behavior**
 
@@ -527,44 +527,44 @@ Spend this run                                              $0.42 of $1.00
 
 ## Tokens used
 
-| Token / class | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Page fill; assistant-turn background (i.e., no fill of its own). |
-| `--ds-gray-100` / `-200` / `-300` | User-turn bubble fill; interactive chip/row default/hover/active; HITL gate card lift-off fill. |
-| `--ds-gray-400` / `-500` / `-600` | Borders: default / hover / active, across chips, cards, and the timeline's connector line. |
-| `--ds-gray-700` | Timestamps, digest-style secondary labels, disabled-state text. |
-| `--ds-gray-900` | Role labels ("Cadence"), citation chip text, meta-strip figures, status-dot accessible-name-carrying icons. |
-| `--ds-gray-1000` | Primary body text (assistant and user turns), step titles, gate-card heading. |
-| `--ds-gray-alpha-100`…`-500` | Layering washes over unknown backgrounds (e.g. artifact card hover lift on top of arbitrary content preview colors). |
-| `--ds-ember-600`/`700`/`800` | Approve button fill only — the single ember moment this whole pattern is allowed per view (contract §2, §10). |
-| `--ds-blue-900` | Informational-only inline links inside message bodies and Context Card content; never a status dot. |
-| `--ds-green-900` / `--ds-green-200` | Success status dot; "proven" Trust Ledger outcome badge (subtle). |
-| `--ds-amber-900` / `--ds-amber-200` | Warning/blocked status dot; guardrail-paused label; "superseded" outcome badge (subtle); budget meter's warning zone. |
-| `--ds-red-900` / `--ds-red-700` | Error status dot and text; budget meter's over-cap zone. |
-| `--ds-focus-ring` | Focus state on every interactive element in all eight areas. |
-| `--ds-shadow-border-small` / `.material-small` | Chips, sources row, code-block chrome. |
-| `--ds-shadow-border-medium` / `.material-medium` | Composer surface; HITL gate card. |
-| `--ds-shadow-menu` / `.material-menu` | Model/tool picker popovers; Context Card surface. |
-| `--ds-shadow-tooltip` / `.material-tooltip` | Any single-line info tooltip nested inside this pattern (e.g. a disabled Send's reason). |
-| `--ds-radius-small` | Chips, code-block container, citation badge. |
-| `--ds-radius-medium` | User-turn bubble, composer, HITL gate card, artifact card. |
-| `--ds-motion-timing-swift` | Every transition in this pattern: hover lifts, expand/collapse, gate-card inline textarea reveal. |
-| `--ds-motion-popover-duration` (0.2s) | Picker popovers, Context Card, gate-card inline textarea. |
-| `--ds-motion-overlay-duration` / `-scale` | Mobile Drawer fallback for artifact panel and pickers. |
-| `--ds-z-menu` | Model/tool picker popover stacking context. |
-| `--ds-z-drawer` | Mobile artifact/picker Drawer stacking context. |
-| `--ds-size-medium` (36px) | Composer control row (model/tool picker triggers, Send/Stop), gate-card actions, retry buttons. |
-| `--ds-popover-padding` / `-row-height` / `-row-radius` | Model Combobox list rhythm, tool picker's Entity rows. |
-| `text-heading-14` / `text-label-14` (strong) | Gate-card header, chart-adjacent section titles reused inside a run summary. |
-| `text-label-13` | Role label ("Cadence"), step titles, receipt entity titles. |
-| `text-label-13-mono` / `text-label-12-mono` | Tool-call invocation lines, timestamps, durations, cost/token figures — all tabular. |
-| `text-copy-14` / `-13` | Message body text, gate-card body sentence, error body copy. |
-| `text-button-14` / `-12` | Gate-card and inline-note action labels; citation chip label. |
-| `.text-tabular` | Every changing numeral in the meta strip and run summary (cost, tokens, duration) — never the flowing prose around them. |
-| `--geist-gap` (24px) | Vertical rhythm between message turns. |
-| `--geist-gap-half` (12px) | Vertical rhythm inside a turn (body → meta footer; step → its tool-call children). |
-| `--geist-gap-quarter` (8px) | Icon-to-label gaps throughout (status dot to step title, kind icon to entity title). |
-| `--ds-page-width` (1400px) | Outer bound the whole Ask surface sits inside on desktop. |
+| Token / class                                          | Role in this pattern                                                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `--ds-background-100`                                  | Page fill; assistant-turn background (i.e., no fill of its own).                                                         |
+| `--ds-gray-100` / `-200` / `-300`                      | User-turn bubble fill; interactive chip/row default/hover/active; HITL gate card lift-off fill.                          |
+| `--ds-gray-400` / `-500` / `-600`                      | Borders: default / hover / active, across chips, cards, and the timeline's connector line.                               |
+| `--ds-gray-700`                                        | Timestamps, digest-style secondary labels, disabled-state text.                                                          |
+| `--ds-gray-900`                                        | Role labels ("Cadence"), citation chip text, meta-strip figures, status-dot accessible-name-carrying icons.              |
+| `--ds-gray-1000`                                       | Primary body text (assistant and user turns), step titles, gate-card heading.                                            |
+| `--ds-gray-alpha-100`…`-500`                           | Layering washes over unknown backgrounds (e.g. artifact card hover lift on top of arbitrary content preview colors).     |
+| `--ds-ember-600`/`700`/`800`                           | Approve button fill only — the single ember moment this whole pattern is allowed per view (contract §2, §10).            |
+| `--ds-blue-900`                                        | Informational-only inline links inside message bodies and Context Card content; never a status dot.                      |
+| `--ds-green-900` / `--ds-green-200`                    | Success status dot; "proven" Trust Ledger outcome badge (subtle).                                                        |
+| `--ds-amber-900` / `--ds-amber-200`                    | Warning/blocked status dot; guardrail-paused label; "superseded" outcome badge (subtle); budget meter's warning zone.    |
+| `--ds-red-900` / `--ds-red-700`                        | Error status dot and text; budget meter's over-cap zone.                                                                 |
+| `--ds-focus-ring`                                      | Focus state on every interactive element in all eight areas.                                                             |
+| `--ds-shadow-border-small` / `.material-small`         | Chips, sources row, code-block chrome.                                                                                   |
+| `--ds-shadow-border-medium` / `.material-medium`       | Composer surface; HITL gate card.                                                                                        |
+| `--ds-shadow-menu` / `.material-menu`                  | Model/tool picker popovers; Context Card surface.                                                                        |
+| `--ds-shadow-tooltip` / `.material-tooltip`            | Any single-line info tooltip nested inside this pattern (e.g. a disabled Send's reason).                                 |
+| `--ds-radius-small`                                    | Chips, code-block container, citation badge.                                                                             |
+| `--ds-radius-medium`                                   | User-turn bubble, composer, HITL gate card, artifact card.                                                               |
+| `--ds-motion-timing-swift`                             | Every transition in this pattern: hover lifts, expand/collapse, gate-card inline textarea reveal.                        |
+| `--ds-motion-popover-duration` (0.2s)                  | Picker popovers, Context Card, gate-card inline textarea.                                                                |
+| `--ds-motion-overlay-duration` / `-scale`              | Mobile Drawer fallback for artifact panel and pickers.                                                                   |
+| `--ds-z-menu`                                          | Model/tool picker popover stacking context.                                                                              |
+| `--ds-z-drawer`                                        | Mobile artifact/picker Drawer stacking context.                                                                          |
+| `--ds-size-medium` (36px)                              | Composer control row (model/tool picker triggers, Send/Stop), gate-card actions, retry buttons.                          |
+| `--ds-popover-padding` / `-row-height` / `-row-radius` | Model Combobox list rhythm, tool picker's Entity rows.                                                                   |
+| `text-heading-14` / `text-label-14` (strong)           | Gate-card header, chart-adjacent section titles reused inside a run summary.                                             |
+| `text-label-13`                                        | Role label ("Cadence"), step titles, receipt entity titles.                                                              |
+| `text-label-13-mono` / `text-label-12-mono`            | Tool-call invocation lines, timestamps, durations, cost/token figures — all tabular.                                     |
+| `text-copy-14` / `-13`                                 | Message body text, gate-card body sentence, error body copy.                                                             |
+| `text-button-14` / `-12`                               | Gate-card and inline-note action labels; citation chip label.                                                            |
+| `.text-tabular`                                        | Every changing numeral in the meta strip and run summary (cost, tokens, duration) — never the flowing prose around them. |
+| `--geist-gap` (24px)                                   | Vertical rhythm between message turns.                                                                                   |
+| `--geist-gap-half` (12px)                              | Vertical rhythm inside a turn (body → meta footer; step → its tool-call children).                                       |
+| `--geist-gap-quarter` (8px)                            | Icon-to-label gaps throughout (status dot to step title, kind icon to entity title).                                     |
+| `--ds-page-width` (1400px)                             | Outer bound the whole Ask surface sits inside on desktop.                                                                |
 
 ## Implementation guidance
 
@@ -693,9 +693,7 @@ function AssistantReply({ turn, pendingApproval, onDecided }: AssistantReplyProp
   return (
     <MessageTurn role="assistant" streaming={turn.streaming}>
       <ChatMarkdown content={turn.content} citations={turn.meta?.sources.map((s) => s.n)} />
-      {pendingApproval && (
-        <ApprovalCard approval={pendingApproval} onDecided={onDecided} />
-      )}
+      {pendingApproval && <ApprovalCard approval={pendingApproval} onDecided={onDecided} />}
       {turn.meta && <MessageMetaFooter meta={turn.meta} feedbackId={turn.id} />}
     </MessageTurn>
   );

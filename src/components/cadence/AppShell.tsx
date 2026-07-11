@@ -90,7 +90,7 @@ function NavRow({
       to={item.to}
       search={item.search as never}
       data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
-      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] ${
+      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] ${
         active
           ? "loom-thread-active bg-[var(--surface-active)] font-semibold text-[var(--text-primary)]"
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"

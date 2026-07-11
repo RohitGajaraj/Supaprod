@@ -27,23 +27,23 @@ composition patterns beyond the one shown) are present in the page payload.
 Single component, imported from the shared Geist React package:
 
 ```tsx
-import { Pagination } from '@vercel/geistcn/components';
+import { Pagination } from "@vercel/geistcn/components";
 ```
 
 ### Usage (the only example on the page)
 
 ```tsx
-import { Pagination } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Pagination } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 const prev = {
-  title: 'Home',
-  href: '#',
+  title: "Home",
+  href: "#",
 };
 
 const next = {
-  title: 'Introduction',
-  href: '#',
+  title: "Introduction",
+  href: "#",
 };
 
 export function Component(): JSX.Element {
@@ -116,15 +116,15 @@ props.
 - No numeric sizing (px height/width), border radius, or spacing token is
   visible anywhere in the captured payload — Geist does not expose those
   values on this documentation page; the only visual facts confirmed are:
-    - two-slot horizontal layout (previous on the left, next on the right)
-    - each slot shows a directional chevron plus the direction word
-      ("Previous" / "Next") and, presumably below or beside it, the
-      destination `title` (per the rendered example: "Previous" over
-      "Home", "Next" over "Introduction")
-  Exact spacing/typography/color tokens for the live component itself are
-  not present in the static payload — pulling them will require inspecting
-  the rendered DOM/CSS directly (not available from this static HTML/RSC
-  fetch) rather than relying on this page's documented code samples.
+  - two-slot horizontal layout (previous on the left, next on the right)
+  - each slot shows a directional chevron plus the direction word
+    ("Previous" / "Next") and, presumably below or beside it, the
+    destination `title` (per the rendered example: "Previous" over
+    "Home", "Next" over "Introduction")
+    Exact spacing/typography/color tokens for the live component itself are
+    not present in the static payload — pulling them will require inspecting
+    the rendered DOM/CSS directly (not available from this static HTML/RSC
+    fetch) rather than relying on this page's documented code samples.
 - No motion/transition behavior is described anywhere on the page.
 - No responsive/breakpoint behavior documented.
 

@@ -17,6 +17,7 @@ Only two live demo sections are documented for Sheet (no separate Sizes/Types/Va
 Subcomponents (from `@vercel/geistcn/components`): `Sheet`, `SheetTrigger`, `SheetContent`, `SheetHeader`, `SheetTitle`, `SheetDescription`, `SheetFooter`, `SheetClose`.
 
 Composition pattern:
+
 ```
 <Sheet modal>
   <SheetTrigger asChild><Button>...</Button></SheetTrigger>
@@ -35,6 +36,7 @@ Composition pattern:
 ```
 
 Props observed in the code examples:
+
 - `Sheet`
   - `modal` (boolean) — present as a bare boolean prop (`<Sheet modal>`) in both examples. Best Practices notes the **default is `modal=false`** (non-modal) so the underlying page and high-z elements like toasts stay reachable; pass `modal` explicitly to opt into a blocking/modal sheet.
 - `SheetContent`
@@ -53,21 +55,25 @@ Props observed in the code examples:
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Sheet when the user needs persistent, related context alongside the page they're already on — e.g. deployment details, inspecting a log row, or a member's profile — where the page underneath is still meaningfully usable.
 - If the interaction is a blocking decision, use Modal instead; if it's a mobile-only bottom panel, use Drawer instead.
 - Don't use Sheet to confirm a destructive action — its non-modal default leaves the underlying page interactive, which undersells the severity of something like a delete or revoke; use a real confirmation modal for those.
 
 **Behavior**
+
 - Sheet is non-modal (`modal=false`) by default specifically so toasts and other high-priority overlays remain reachable while it's open. Only flip that default when the sheet is meant to own the whole screen.
 - Choose `side` based on where the trigger lives: a row-level inspector should slide from the `right`; a global filter panel should slide from the `left`. Don't switch sides for the same sheet mid-session — keep it consistent.
 - Clicking outside the sheet does not auto-dismiss it, so every sheet must render an explicit, visible close control and must also respond to Escape.
 
 **Content**
+
 - Titles are Title Case and name the entity being shown (e.g. "Deployment Details", "Member Profile") — not the action that opened the sheet.
 - Body copy is read-first: sentence-case prose, with Title Case for any sub-headings. Action buttons in the footer are optional; when present they follow a Verb + Noun label pattern (e.g. "Next").
 - Don't restate the page's own header inside the sheet — the sheet exists to be the detail layer, not a duplicate banner.
 
 **Accessibility**
+
 - Trap keyboard focus inside the sheet while open, and return focus to the triggering row/element on close so keyboard users don't lose their place in a list.
 - Always render a visible close affordance — either a button labeled "Close" or an icon button with `aria-label="Close"` — since outside-click won't dismiss it.
 - Announce the sheet via `aria-labelledby` pointing at the title element; only add `aria-describedby` when the body content is short enough to be genuinely load-bearing as a description.

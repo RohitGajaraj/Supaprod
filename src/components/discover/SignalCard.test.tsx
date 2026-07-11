@@ -1,7 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import type { ReactElement } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { SignalCard } from "./SignalCard";
+import { SignalCard as SignalCardExport } from "./SignalCard";
+
+// SignalCard is wrapped in React.memo; memo() returns an exotic object whose
+// callable inner component lives on `.type`. Unwrap it so the shallow
+// call-the-component technique below keeps working.
+const SignalCard = (
+  (SignalCardExport as unknown as { type?: (props: object) => ReactElement }).type ??
+  SignalCardExport
+) as (props: object) => ReactElement;
 
 /** Depth-first search for a child whose `type` matches, walking `props.children`
  * without a DOM renderer — the codebase's established shallow-element

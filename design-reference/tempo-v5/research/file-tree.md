@@ -20,8 +20,8 @@ No "Sizes," "Types," "Variants," "States," or "Best Practices" sections exist on
 Import path and components used in the example:
 
 ```tsx
-import { Tree, Folder, File } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Tree, Folder, File } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (

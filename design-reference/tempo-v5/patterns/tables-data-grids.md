@@ -46,23 +46,23 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
 
 ## States
 
-| State | Trigger | Tokens |
-|---|---|---|
-| Row default | resting | background transparent (inherits container's `--ds-background-100`); text `--ds-gray-1000` (primary col) / `--ds-gray-900` (secondary/mono col); 1px bottom divider `--ds-gray-400` |
-| Row hover | pointer over row | background `--ds-gray-100`; Dots Menu fades to `opacity: 1`; cursor `pointer` only if the row itself navigates |
-| Row active/pressed | mousedown on row | background `--ds-gray-200` |
-| Row selected | checkbox checked | background `--ds-ember-100`; 2px left accent bar `--ds-ember-600`; checkbox fill follows the checked token below. Hover on a selected row layers `--ds-gray-alpha-400` over the ember wash rather than swapping to plain gray, so selection stays visible under hover |
-| Checkbox unchecked, enabled | default | box `--ds-background-100` fill, border `--ds-gray-700` |
-| Checkbox checked, enabled | toggled on | fill + border `--ds-gray-1000` (per `checkbox.md`); a selected row's own ember wash is a separate signal layered underneath, the checkbox glyph itself stays neutral gray for contrast |
-| Checkbox hover (unchecked) | pointer over box | background `--ds-gray-200` |
-| Row/checkbox focus-visible | keyboard focus | `box-shadow: var(--ds-focus-ring)` (2px background + 2px `--ds-focus-color`, ember hue) |
-| Disabled row | record the viewer can't act on | text dims to `--ds-gray-700`; checkbox (if present) `--ds-gray-100` bg / `--ds-gray-500` border, non-interactive; Dots Menu disabled entirely and paired with a Tooltip naming why |
-| Sortable header, hover | pointer over column label | text `--ds-gray-1000`, chevron fades in at `--ds-gray-700` |
-| Sortable header, active sort | column is the current sort key | chevron solid `--ds-gray-1000` (direction indicates asc/desc), label text `--ds-gray-1000` |
-| Loading | data in flight | header stays; body replaced by 5 to 8 skeleton rows matching the active density's row height, `--ds-gray-200` fill, pulse animation gated on `prefers-reduced-motion` (falls back to a static `--ds-gray-200` fill, no pulse) |
-| Empty (nothing created yet) | zero records, no filter active | rows replaced by an `EmptyState` composition inside the same container: icon (32px, `EmptyStateIcon` chip), `text-heading-16` title (Title Case), `text-copy-14` `--ds-gray-900` description, optional one primary + one secondary CTA |
-| Empty (filtered to zero) | zero records, a filter/search is active | same `EmptyState` shape, copy follows the exact template: `No {items} match "{query}". Clear the filter to see all.` Wrap the swap in `aria-live="polite"` |
-| Error | the fetch failed | rows replaced by an `Error` composition: specific title ("Couldn't load guardrail runs", never "Something went wrong"), message, a monospace request id inside a collapsed `<details>`, and a "Try again" button |
+| State                        | Trigger                                 | Tokens                                                                                                                                                                                                                                                                |
+| ---------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row default                  | resting                                 | background transparent (inherits container's `--ds-background-100`); text `--ds-gray-1000` (primary col) / `--ds-gray-900` (secondary/mono col); 1px bottom divider `--ds-gray-400`                                                                                   |
+| Row hover                    | pointer over row                        | background `--ds-gray-100`; Dots Menu fades to `opacity: 1`; cursor `pointer` only if the row itself navigates                                                                                                                                                        |
+| Row active/pressed           | mousedown on row                        | background `--ds-gray-200`                                                                                                                                                                                                                                            |
+| Row selected                 | checkbox checked                        | background `--ds-ember-100`; 2px left accent bar `--ds-ember-600`; checkbox fill follows the checked token below. Hover on a selected row layers `--ds-gray-alpha-400` over the ember wash rather than swapping to plain gray, so selection stays visible under hover |
+| Checkbox unchecked, enabled  | default                                 | box `--ds-background-100` fill, border `--ds-gray-700`                                                                                                                                                                                                                |
+| Checkbox checked, enabled    | toggled on                              | fill + border `--ds-gray-1000` (per `checkbox.md`); a selected row's own ember wash is a separate signal layered underneath, the checkbox glyph itself stays neutral gray for contrast                                                                                |
+| Checkbox hover (unchecked)   | pointer over box                        | background `--ds-gray-200`                                                                                                                                                                                                                                            |
+| Row/checkbox focus-visible   | keyboard focus                          | `box-shadow: var(--ds-focus-ring)` (2px background + 2px `--ds-focus-color`, ember hue)                                                                                                                                                                               |
+| Disabled row                 | record the viewer can't act on          | text dims to `--ds-gray-700`; checkbox (if present) `--ds-gray-100` bg / `--ds-gray-500` border, non-interactive; Dots Menu disabled entirely and paired with a Tooltip naming why                                                                                    |
+| Sortable header, hover       | pointer over column label               | text `--ds-gray-1000`, chevron fades in at `--ds-gray-700`                                                                                                                                                                                                            |
+| Sortable header, active sort | column is the current sort key          | chevron solid `--ds-gray-1000` (direction indicates asc/desc), label text `--ds-gray-1000`                                                                                                                                                                            |
+| Loading                      | data in flight                          | header stays; body replaced by 5 to 8 skeleton rows matching the active density's row height, `--ds-gray-200` fill, pulse animation gated on `prefers-reduced-motion` (falls back to a static `--ds-gray-200` fill, no pulse)                                         |
+| Empty (nothing created yet)  | zero records, no filter active          | rows replaced by an `EmptyState` composition inside the same container: icon (32px, `EmptyStateIcon` chip), `text-heading-16` title (Title Case), `text-copy-14` `--ds-gray-900` description, optional one primary + one secondary CTA                                |
+| Empty (filtered to zero)     | zero records, a filter/search is active | same `EmptyState` shape, copy follows the exact template: `No {items} match "{query}". Clear the filter to see all.` Wrap the swap in `aria-live="polite"`                                                                                                            |
+| Error                        | the fetch failed                        | rows replaced by an `Error` composition: specific title ("Couldn't load guardrail runs", never "Something went wrong"), message, a monospace request id inside a collapsed `<details>`, and a "Try again" button                                                      |
 
 ## Interaction model
 
@@ -104,46 +104,46 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
 
 ## Tokens used
 
-| Token | Used for |
-|---|---|
-| `--ds-background-100` | Table container fill; pinned background behind a sticky actions column |
-| `--ds-background-200` | Grouped-row section bar alternative fill (used sparingly, never as decorative zebra striping) |
-| `--ds-gray-100` | Row hover background; checkbox unchecked-hover background; grouped-row section bar background |
-| `--ds-gray-200` | Row active/pressed background; sortable-header active background; checkbox hover fill reference |
-| `--ds-gray-300` | Stronger pressed-state reference on dense interactive header controls |
-| `--ds-gray-400` | Row divider hairlines; header bottom border; sticky actions-column left divider |
-| `--ds-gray-500` | Disabled checkbox border |
-| `--ds-gray-600` | Disabled, checked checkbox fill |
-| `--ds-gray-700` | Disabled row/cell text; disabled Dots Menu text; resting sort-chevron color |
-| `--ds-gray-900` | Secondary/mono column text; time column text; column header label text; empty/error description text |
-| `--ds-gray-1000` | Primary column text; checked checkbox fill; active sort-chevron/header text |
-| `--ds-gray-alpha-400` | Hover wash layered over an already-selected (ember) row |
-| `--ds-ember-100` | Selected row background wash |
-| `--ds-ember-600` | Selected row left accent bar |
-| `--ds-focus-ring` / `--ds-focus-color` / `--ds-focus-ring-outline` | Keyboard focus on rows, cells, checkboxes, header sort triggers, Dots Menu trigger |
-| `--ds-green-600/700/800/200/900` | Status success (Dot solid / Badge solid `800` fill / Badge subtle `200` fill + `900` text) |
-| `--ds-red-*` (same step pattern) | Status error |
-| `--ds-amber-*` (same step pattern) | Status warning |
-| `--ds-blue-*` (same step pattern) | Status informational |
-| `text-label-14` | Primary column text, comfortable/spacious density |
-| `text-label-13` | Secondary column text; compact-density primary column; column header labels |
-| `text-label-12` | Compact-density secondary column text |
-| `text-label-13-mono` / `text-label-12-mono` | Mono column values (ids, slugs, paths, durations) at comfortable/compact density |
-| `text-copy-13` / `text-copy-14` | Empty/error body copy; mobile card secondary field values |
-| `text-heading-16` | Empty-state / error title inside a contained (non-full-page) table region |
-| `text-button-14` | Bulk action bar and empty-state CTA button labels |
-| `text-tabular` | Any column with changing numeric values (durations, counts, timestamps) |
-| `material-base` / `material-small` | Table container elevation |
-| `material-menu` | Dots Menu / Context Menu popover surface |
-| `material-tooltip` | Truncated-text tooltip; absolute-time tooltip; disabled-control explainer |
-| `--ds-radius-small` | Table container corner radius (paired with `overflow: hidden`) |
-| `--ds-size-small` / `--ds-size-medium` / `--ds-size-large` | Row height per density mode (compact/comfortable/spacious) and every inline control (checkbox hit area, pagination buttons) |
-| `--geist-space` / `--geist-space-2x` / `--geist-space-3x` / `--geist-space-4x` | Cell horizontal/vertical padding per density mode |
-| `--geist-gap-quarter` / `--geist-gap-half` / `--geist-gap` | Toolbar and bulk-action-bar internal spacing |
-| `--ds-motion-timing-swift` | All row/header/menu transitions |
-| `--ds-motion-popover-duration` / `--ds-motion-popover-timing` | Bulk action bar appearance; Dots Menu open/close |
-| `--ds-z-menu` | Dots Menu / Context Menu popover stacking |
-| `--ds-page-width` | Containing page's max width (the table itself stretches to its container) |
+| Token                                                                          | Used for                                                                                                                    |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                          | Table container fill; pinned background behind a sticky actions column                                                      |
+| `--ds-background-200`                                                          | Grouped-row section bar alternative fill (used sparingly, never as decorative zebra striping)                               |
+| `--ds-gray-100`                                                                | Row hover background; checkbox unchecked-hover background; grouped-row section bar background                               |
+| `--ds-gray-200`                                                                | Row active/pressed background; sortable-header active background; checkbox hover fill reference                             |
+| `--ds-gray-300`                                                                | Stronger pressed-state reference on dense interactive header controls                                                       |
+| `--ds-gray-400`                                                                | Row divider hairlines; header bottom border; sticky actions-column left divider                                             |
+| `--ds-gray-500`                                                                | Disabled checkbox border                                                                                                    |
+| `--ds-gray-600`                                                                | Disabled, checked checkbox fill                                                                                             |
+| `--ds-gray-700`                                                                | Disabled row/cell text; disabled Dots Menu text; resting sort-chevron color                                                 |
+| `--ds-gray-900`                                                                | Secondary/mono column text; time column text; column header label text; empty/error description text                        |
+| `--ds-gray-1000`                                                               | Primary column text; checked checkbox fill; active sort-chevron/header text                                                 |
+| `--ds-gray-alpha-400`                                                          | Hover wash layered over an already-selected (ember) row                                                                     |
+| `--ds-ember-100`                                                               | Selected row background wash                                                                                                |
+| `--ds-ember-600`                                                               | Selected row left accent bar                                                                                                |
+| `--ds-focus-ring` / `--ds-focus-color` / `--ds-focus-ring-outline`             | Keyboard focus on rows, cells, checkboxes, header sort triggers, Dots Menu trigger                                          |
+| `--ds-green-600/700/800/200/900`                                               | Status success (Dot solid / Badge solid `800` fill / Badge subtle `200` fill + `900` text)                                  |
+| `--ds-red-*` (same step pattern)                                               | Status error                                                                                                                |
+| `--ds-amber-*` (same step pattern)                                             | Status warning                                                                                                              |
+| `--ds-blue-*` (same step pattern)                                              | Status informational                                                                                                        |
+| `text-label-14`                                                                | Primary column text, comfortable/spacious density                                                                           |
+| `text-label-13`                                                                | Secondary column text; compact-density primary column; column header labels                                                 |
+| `text-label-12`                                                                | Compact-density secondary column text                                                                                       |
+| `text-label-13-mono` / `text-label-12-mono`                                    | Mono column values (ids, slugs, paths, durations) at comfortable/compact density                                            |
+| `text-copy-13` / `text-copy-14`                                                | Empty/error body copy; mobile card secondary field values                                                                   |
+| `text-heading-16`                                                              | Empty-state / error title inside a contained (non-full-page) table region                                                   |
+| `text-button-14`                                                               | Bulk action bar and empty-state CTA button labels                                                                           |
+| `text-tabular`                                                                 | Any column with changing numeric values (durations, counts, timestamps)                                                     |
+| `material-base` / `material-small`                                             | Table container elevation                                                                                                   |
+| `material-menu`                                                                | Dots Menu / Context Menu popover surface                                                                                    |
+| `material-tooltip`                                                             | Truncated-text tooltip; absolute-time tooltip; disabled-control explainer                                                   |
+| `--ds-radius-small`                                                            | Table container corner radius (paired with `overflow: hidden`)                                                              |
+| `--ds-size-small` / `--ds-size-medium` / `--ds-size-large`                     | Row height per density mode (compact/comfortable/spacious) and every inline control (checkbox hit area, pagination buttons) |
+| `--geist-space` / `--geist-space-2x` / `--geist-space-3x` / `--geist-space-4x` | Cell horizontal/vertical padding per density mode                                                                           |
+| `--geist-gap-quarter` / `--geist-gap-half` / `--geist-gap`                     | Toolbar and bulk-action-bar internal spacing                                                                                |
+| `--ds-motion-timing-swift`                                                     | All row/header/menu transitions                                                                                             |
+| `--ds-motion-popover-duration` / `--ds-motion-popover-timing`                  | Bulk action bar appearance; Dots Menu open/close                                                                            |
+| `--ds-z-menu`                                                                  | Dots Menu / Context Menu popover stacking                                                                                   |
+| `--ds-page-width`                                                              | Containing page's max width (the table itself stretches to its container)                                                   |
 
 ## Implementation guidance
 
@@ -171,15 +171,21 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
 
   {selectedIds.length > 0 && (
     <DataTableBulkBar count={selectedIds.length}>
-      <Button variant="secondary" className="text-button-14">Archive</Button>
-      <Button variant="tertiary" className="text-button-14">Export</Button>
+      <Button variant="secondary" className="text-button-14">
+        Archive
+      </Button>
+      <Button variant="tertiary" className="text-button-14">
+        Export
+      </Button>
     </DataTableBulkBar>
   )}
 
   <Table role="grid" aria-rowcount={total}>
     <TableHeader>
       <TableRow>
-        <TableHead className="w-8"><Checkbox aria-label="Select all" /></TableHead>
+        <TableHead className="w-8">
+          <Checkbox aria-label="Select all" />
+        </TableHead>
         <SortableHead column="title">Title</SortableHead>
         <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Owner</TableHead>
         <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Status</TableHead>
@@ -190,19 +196,28 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
     <TableBody aria-busy={isLoading}>
       {prds.map((prd) => (
         <TableRow key={prd.id} aria-selected={selectedIds.includes(prd.id)}>
-          <TableCell><Checkbox aria-label={`Select ${prd.title}`} checked={selectedIds.includes(prd.id)} /></TableCell>
+          <TableCell>
+            <Checkbox aria-label={`Select ${prd.title}`} checked={selectedIds.includes(prd.id)} />
+          </TableCell>
           <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">{prd.title}</TableCell>
           <TableCell className="text-label-13 text-[var(--ds-gray-900)]">{prd.owner}</TableCell>
-          <TableCell><StatusBadge status={prd.status} /></TableCell>
-          <TableCell className="text-label-13 text-[var(--ds-gray-900)] text-tabular" title={prd.updatedAtIso}>
+          <TableCell>
+            <StatusBadge status={prd.status} />
+          </TableCell>
+          <TableCell
+            className="text-label-13 text-[var(--ds-gray-900)] text-tabular"
+            title={prd.updatedAtIso}
+          >
             {prd.updatedAtRelative}
           </TableCell>
           <TableCell className="text-right">
-            <DotsMenu items={[
-              { label: 'Open spec' },
-              { label: 'Duplicate spec' },
-              { label: 'Archive spec' },
-            ]} />
+            <DotsMenu
+              items={[
+                { label: "Open spec" },
+                { label: "Duplicate spec" },
+                { label: "Archive spec" },
+              ]}
+            />
           </TableCell>
         </TableRow>
       ))}
@@ -230,11 +245,21 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
     <TableBody>
       {traces.map((run) => (
         <TableRow key={run.id}>
-          <TableCell className="text-label-13-mono text-[var(--ds-gray-900)]">{middleTruncate(run.id, 6, 4)}</TableCell>
-          <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">{run.agentName}</TableCell>
-          <TableCell><StatusDot status={run.status} label={run.statusLabel} /></TableCell>
-          <TableCell className="text-label-13-mono text-tabular text-[var(--ds-gray-900)]">{run.durationMs}ms</TableCell>
-          <TableCell className="text-right"><DotsMenu items={[{ label: 'View trace' }, { label: 'Copy run id' }]} /></TableCell>
+          <TableCell className="text-label-13-mono text-[var(--ds-gray-900)]">
+            {middleTruncate(run.id, 6, 4)}
+          </TableCell>
+          <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">
+            {run.agentName}
+          </TableCell>
+          <TableCell>
+            <StatusDot status={run.status} label={run.statusLabel} />
+          </TableCell>
+          <TableCell className="text-label-13-mono text-tabular text-[var(--ds-gray-900)]">
+            {run.durationMs}ms
+          </TableCell>
+          <TableCell className="text-right">
+            <DotsMenu items={[{ label: "View trace" }, { label: "Copy run id" }]} />
+          </TableCell>
         </TableRow>
       ))}
     </TableBody>
@@ -245,50 +270,71 @@ A table/data grid is a stack of four horizontal bands inside one `material-base`
 **3. Guardrail violations (`/guardrails`) — severity status, bulk acknowledge, empty and error states**
 
 ```tsx
-{error ? (
-  <ErrorBlock
-    title="Couldn't load guardrail runs"
-    message={error.message}
-    requestId={error.requestId}
-    onRetry={refetch}
-  />
-) : violations.length === 0 ? (
-  <EmptyState
-    icon={<EmptyStateIcon icon={<ShieldCheck size={32} />} />}
-    title="No violations right now"
-    description="Guardrail checks are passing across every connected source."
-  />
-) : (
-  <div className="material-base overflow-hidden">
-    {selectedIds.length > 0 && (
-      <DataTableBulkBar count={selectedIds.length}>
-        <Button variant="default" className="text-button-14">Acknowledge selected</Button>
-      </DataTableBulkBar>
-    )}
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-8"><Checkbox aria-label="Select all" /></TableHead>
-          <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Rule</TableHead>
-          <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Severity</TableHead>
-          <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Detected</TableHead>
-          <TableHead aria-hidden />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {violations.map((v) => (
-          <TableRow key={v.id}>
-            <TableCell><Checkbox aria-label={`Select ${v.ruleName}`} /></TableCell>
-            <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">{v.ruleName}</TableCell>
-            <TableCell><Badge variant={v.severity === 'high' ? 'red' : 'amber'} contrast="low">{v.severityLabel}</Badge></TableCell>
-            <TableCell className="text-label-13 text-[var(--ds-gray-900)] text-tabular" title={v.detectedAtIso}>{v.detectedAtRelative}</TableCell>
-            <TableCell className="text-right"><DotsMenu items={[{ label: 'View details' }, { label: 'Acknowledge' }]} /></TableCell>
+{
+  error ? (
+    <ErrorBlock
+      title="Couldn't load guardrail runs"
+      message={error.message}
+      requestId={error.requestId}
+      onRetry={refetch}
+    />
+  ) : violations.length === 0 ? (
+    <EmptyState
+      icon={<EmptyStateIcon icon={<ShieldCheck size={32} />} />}
+      title="No violations right now"
+      description="Guardrail checks are passing across every connected source."
+    />
+  ) : (
+    <div className="material-base overflow-hidden">
+      {selectedIds.length > 0 && (
+        <DataTableBulkBar count={selectedIds.length}>
+          <Button variant="default" className="text-button-14">
+            Acknowledge selected
+          </Button>
+        </DataTableBulkBar>
+      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-8">
+              <Checkbox aria-label="Select all" />
+            </TableHead>
+            <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Rule</TableHead>
+            <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Severity</TableHead>
+            <TableHead className="text-label-13 text-[var(--ds-gray-900)]">Detected</TableHead>
+            <TableHead aria-hidden />
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </div>
-)}
+        </TableHeader>
+        <TableBody>
+          {violations.map((v) => (
+            <TableRow key={v.id}>
+              <TableCell>
+                <Checkbox aria-label={`Select ${v.ruleName}`} />
+              </TableCell>
+              <TableCell className="text-label-14 text-[var(--ds-gray-1000)]">
+                {v.ruleName}
+              </TableCell>
+              <TableCell>
+                <Badge variant={v.severity === "high" ? "red" : "amber"} contrast="low">
+                  {v.severityLabel}
+                </Badge>
+              </TableCell>
+              <TableCell
+                className="text-label-13 text-[var(--ds-gray-900)] text-tabular"
+                title={v.detectedAtIso}
+              >
+                {v.detectedAtRelative}
+              </TableCell>
+              <TableCell className="text-right">
+                <DotsMenu items={[{ label: "View details" }, { label: "Acknowledge" }]} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
 ```
 
 ## Do / Don't

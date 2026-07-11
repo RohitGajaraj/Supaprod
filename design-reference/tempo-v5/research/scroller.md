@@ -20,7 +20,7 @@ Each demo section has a live rendered preview plus a "Show code" toggle revealin
 Single component, no documented subcomponents.
 
 ```tsx
-import { Scroller } from '@vercel/geistcn/components';
+import { Scroller } from "@vercel/geistcn/components";
 ```
 
 ### Props observed in the code examples
@@ -30,14 +30,18 @@ import { Scroller } from '@vercel/geistcn/components';
 - `overflow` — enum: `"y"` | `"x"` | `"both"`. Controls which axis/axes can scroll (rendered to the DOM as `data-overflow="y" | "x" | "both"` on the inner scroller element).
 - `withButtons` — `boolean`. Renders a companion button cluster (rendered as a sibling `.scroller-module__buttons` block) with arrow buttons that scroll to the next/previous direct child.
 - `childrenContainerClassName` — `string`. Extra className merged onto the inner children-wrapping container (used in both button examples to add `gap-4`).
-- `children` — arbitrary JSX; expected to be a flat list of direct-child elements (buttons only scroll to *direct* children, per Behavior notes).
+- `children` — arbitrary JSX; expected to be a flat list of direct-child elements (buttons only scroll to _direct_ children, per Behavior notes).
 
 ### Usage patterns (from code examples)
 
 Vertical, no buttons, fixed height, content wider than the box:
+
 ```tsx
 <Scroller height={220} overflow="y" width="100%">
-  <div className="flex flex-col items-stretch justify-start gap-4 flex-initial" style={{ width: 400 }}>
+  <div
+    className="flex flex-col items-stretch justify-start gap-4 flex-initial"
+    style={{ width: 400 }}
+  >
     <div className="bg-gray-1000 h-64 w-64" />
     <div className="bg-gray-1000 h-64 w-64" />
   </div>
@@ -45,9 +49,13 @@ Vertical, no buttons, fixed height, content wider than the box:
 ```
 
 Horizontal, full-height/full-width parent, content overflowing via `minWidth`:
+
 ```tsx
 <Scroller height="100%" overflow="x" width="100%">
-  <div className="flex flex-row items-stretch justify-start gap-4 flex-initial" style={{ minWidth: '120%' }}>
+  <div
+    className="flex flex-row items-stretch justify-start gap-4 flex-initial"
+    style={{ minWidth: "120%" }}
+  >
     <div className="bg-gray-1000 h-64 w-64" />
     {/* ...more items */}
   </div>
@@ -55,6 +63,7 @@ Horizontal, full-height/full-width parent, content overflowing via `minWidth`:
 ```
 
 Free (both axes), grid layout:
+
 ```tsx
 <Scroller height={220} overflow="both" width="100%">
   <div className="grid grid-flow-col grid-rows-2 gap-4">
@@ -66,6 +75,7 @@ Free (both axes), grid layout:
 ```
 
 Vertical with buttons:
+
 ```tsx
 <div className="flex max-w-max flex-col gap-4">
   <Scroller childrenContainerClassName="gap-4" height={220} overflow="y" withButtons>
@@ -77,6 +87,7 @@ Vertical with buttons:
 ```
 
 Horizontal with buttons:
+
 ```tsx
 <div className="flex flex-col gap-4">
   <Scroller childrenContainerClassName="gap-4" height="100%" overflow="x" width="100%" withButtons>
@@ -105,16 +116,19 @@ Horizontal with buttons:
 ## Best practices
 
 **When to use**
+
 - Reach for Scroller when a set of peer items needs to overflow along one axis rather than wrap or paginate: chip rows, log streams, code snippets, command palettes.
 - Match the axis to the content's natural shape: vertical for stacked feeds, horizontal for chip/tile rails, and `both` ("free") only when content truly needs to scroll in two directions at once (e.g. logs with very long lines inside a tall list).
 - For large paginated or virtualized data sets (more than a few hundred items), don't mount every item as a DOM node — pair Scroller with a virtualization library instead of rendering the full list.
 
 **Behavior**
+
 - The optional scroll buttons only know how to target immediate children of the scroll container — if items get wrapped in an extra div/layout node, the buttons lose track of what to scroll to next.
 - Always pair the clipped edge with a visual cue (fade or shadow) so users can tell there's more content off-screen.
 - In horizontal scrollers keep item widths and gaps uniform; inconsistent sizing breaks the scroll rhythm and reads as a bug.
 
 **Accessibility**
+
 - DOM order drives tab order, so author items in reading order even if the visual scroll direction differs.
 - Scroll buttons must carry descriptive `aria-label`s naming both direction and content (e.g. "Scroll customer logos left") — generic "Previous"/"Next" labels aren't acceptable.
 - Programmatic or keyboard focus landing on an off-screen item must scroll it into view; rely on native browser behavior for this and avoid custom focus-trap logic that could suppress it.
@@ -125,7 +139,7 @@ Horizontal with buttons:
 - **Markup identity attributes**: outer wrapper carries `data-geist-scroller`, `data-version="v1"`; the overlay div carries `data-geist-scroller-overlay`; the scrollable inner div carries `data-geist-scroller-container` and `data-overflow="y" | "x" | "both"` (mirrors the `overflow` prop directly).
 - **CSS module classes seen in rendered output** (hashed, e.g. `scroller-module__aGa9CG__…` — hash suffix will differ per build): `overlayContainer`, `isHorizontal` (added conditionally when the scroll axis is horizontal), `overlay` (the edge-fade/shadow layer sits here, positioned absolutely over the container), `scroller` (the actual `overflow: auto/scroll` element), `buttons` (wrapper for the optional nav-button cluster).
 - **Placeholder content blocks in demos**: solid fills via Tailwind `bg-gray-1000` (maps to the design token `--ds-gray-1000`), sized `h-64 w-64` (256px), `h-96 w-96` (384px), or `h-60 w-96` (240x384px) depending on demo.
-- **Scroll button component**: reuses the shared Geist Button primitive (`data-geist-button`, `data-version="v1"`) at the "small" form-control size — `height: var(--geist-form-small-height)`, width matches (`w-[var(--geist-form-small-height)]`), `--geist-icon-size: 16px`, fully rounded (`!rounded-full`), icon-only (no text). Observed `aria-label` values in the live demo: `"scroll top"`, `"scroll bottom"`, `"scroll left"`, `"scroll right"` — note the Accessibility guidance above explicitly calls for *more descriptive*, content-aware labels than these generic demo defaults (e.g. name what's being scrolled, not just the direction).
+- **Scroll button component**: reuses the shared Geist Button primitive (`data-geist-button`, `data-version="v1"`) at the "small" form-control size — `height: var(--geist-form-small-height)`, width matches (`w-[var(--geist-form-small-height)]`), `--geist-icon-size: 16px`, fully rounded (`!rounded-full`), icon-only (no text). Observed `aria-label` values in the live demo: `"scroll top"`, `"scroll bottom"`, `"scroll left"`, `"scroll right"` — note the Accessibility guidance above explicitly calls for _more descriptive_, content-aware labels than these generic demo defaults (e.g. name what's being scrolled, not just the direction).
 - **Button color tokens** (shared Button primitive, themed variant used here): background `var(--ds-gray-1000)`, foreground `var(--ds-background-100)`, border `var(--ds-gray-400)`, hover background `var(--ds-gray-alpha-200)`; disabled state uses `var(--ds-gray-700)` text on `var(--ds-gray-100)` background. Focus ring via `var(--ds-focus-ring)` / `var(--ds-focus-color)`.
 - **Transitions**: button uses `transition-[border-color,background,color,transform,box-shadow] duration-150 ease-in-out`; icon paths inside get `transition-all duration-200` (seen on other button instances on the page, shared primitive behavior — Scroller's own buttons inherit the same Button component transitions).
 - **No explicit motion spec for the scroll-into-view itself** was present in the extracted code (native browser scroll / `scrollIntoView` behavior implied by the Accessibility note, not a custom animation curve).

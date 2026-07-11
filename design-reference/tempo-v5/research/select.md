@@ -20,34 +20,36 @@ Every demo section above the fold except "Best Practices" also renders a "Show c
 ## API
 
 Import:
+
 ```tsx
-import { Select } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Select } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 // optional, for prefix/suffix icon slots:
-import { IconArrowCircleUp } from '@vercel/geistcn-assets/icons';
+import { IconArrowCircleUp } from "@vercel/geistcn-assets/icons";
 ```
 
 Composition: `<Select>` is used as a single element taking native `<option>` (and presumably `<optgroup>`, per Best Practices copy) as `children` — it wraps a real `<select>` under the hood rather than exposing a custom listbox/option subcomponent API (no `Select.Option`, no `.Group` static — Best Practices explicitly says "Geist `<Select>` has no `.Group` static", implying you fall back to native `<optgroup>`).
 
 ### Props observed across examples
 
-| Prop | Type / values seen | Notes |
-|---|---|---|
-| `aria-label` | string | Used on every example that lacks a visible `label`, for accessible naming. |
-| `label` | string | Visible field label rendered by the component (e.g. `"My label"`, `"Required field"`). |
-| `placeholder` | string | Shown as the closed-select text when no value/defaultValue is set (e.g. `"Small"`, `"Select a fruit"`, `"Please select an option"`). |
-| `size` | `"small"` \| default (unset = medium/default) \| `"large"` | Three-tier sizing, consistent with other Geist form controls. |
-| `prefix` | `ReactNode` (icon element) | Leading decoration slot, e.g. `prefix={<IconArrowCircleUp />}`. |
-| `suffix` | `ReactNode` (icon element) | Trailing decoration slot, e.g. `suffix={<IconArrowCircleUp />}`. |
-| `disabled` | boolean | Disables interaction; shown paired with a placeholder rather than options. |
-| `error` | string | Passing a string switches the control into error/invalid visual state AND is presumably rendered as the error message; value used in examples: `"Please select a value."`. |
-| `defaultValue` | string | Matches an `<option value="...">`; pre-selects that option, uncontrolled. |
-| `required` | boolean | Marks the field required (paired with `label` in the example, not `aria-label`). |
-| `children` | `<option>` elements (optionally `<optgroup>`) | Standard native select children; `value` + text content per option. |
+| Prop           | Type / values seen                                         | Notes                                                                                                                                                                      |
+| -------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aria-label`   | string                                                     | Used on every example that lacks a visible `label`, for accessible naming.                                                                                                 |
+| `label`        | string                                                     | Visible field label rendered by the component (e.g. `"My label"`, `"Required field"`).                                                                                     |
+| `placeholder`  | string                                                     | Shown as the closed-select text when no value/defaultValue is set (e.g. `"Small"`, `"Select a fruit"`, `"Please select an option"`).                                       |
+| `size`         | `"small"` \| default (unset = medium/default) \| `"large"` | Three-tier sizing, consistent with other Geist form controls.                                                                                                              |
+| `prefix`       | `ReactNode` (icon element)                                 | Leading decoration slot, e.g. `prefix={<IconArrowCircleUp />}`.                                                                                                            |
+| `suffix`       | `ReactNode` (icon element)                                 | Trailing decoration slot, e.g. `suffix={<IconArrowCircleUp />}`.                                                                                                           |
+| `disabled`     | boolean                                                    | Disables interaction; shown paired with a placeholder rather than options.                                                                                                 |
+| `error`        | string                                                     | Passing a string switches the control into error/invalid visual state AND is presumably rendered as the error message; value used in examples: `"Please select a value."`. |
+| `defaultValue` | string                                                     | Matches an `<option value="...">`; pre-selects that option, uncontrolled.                                                                                                  |
+| `required`     | boolean                                                    | Marks the field required (paired with `label` in the example, not `aria-label`).                                                                                           |
+| `children`     | `<option>` elements (optionally `<optgroup>`)              | Standard native select children; `value` + text content per option.                                                                                                        |
 
 ### Minimal usage snippets (from the page)
 
 Sizes:
+
 ```tsx
 <Select aria-label="Small" placeholder="Small" size="small">
   <option>Option 1</option>
@@ -69,6 +71,7 @@ Sizes:
 ```
 
 Prefix and suffix (no options, three sizes):
+
 ```tsx
 <Select
   aria-label="Small"
@@ -95,15 +98,13 @@ Prefix and suffix (no options, three sizes):
 ```
 
 Disabled:
+
 ```tsx
-<Select
-  aria-label="Disabled"
-  disabled
-  placeholder="Disabled with placeholder"
-/>
+<Select aria-label="Disabled" disabled placeholder="Disabled with placeholder" />
 ```
 
 Error (three sizes):
+
 ```tsx
 <Select
   aria-label="Small with error"
@@ -127,11 +128,13 @@ Error (three sizes):
 ```
 
 Label:
+
 ```tsx
 <Select label="My label" placeholder="With label" />
 ```
 
 With options / default value:
+
 ```tsx
 <Select aria-label="Fruit" placeholder="Select a fruit">
   <option value="apple">Apple</option>
@@ -153,17 +156,16 @@ With options / default value:
 ```
 
 Required:
+
 ```tsx
-{/* eslint-disable-next-line rulesdir/prefer-radio-for-few-static-options */}
-<Select
-  label="Required field"
-  placeholder="Please select an option"
-  required
->
+{
+  /* eslint-disable-next-line rulesdir/prefer-radio-for-few-static-options */
+}
+<Select label="Required field" placeholder="Please select an option" required>
   <option value="option1">Option 1</option>
   <option value="option2">Option 2</option>
   <option value="option3">Option 3</option>
-</Select>
+</Select>;
 ```
 
 ## Best practices

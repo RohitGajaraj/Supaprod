@@ -7,6 +7,7 @@
 ## Brief 1 — Competitive landscape (2026-07-10)
 
 ### PM-native
+
 - **ChatPRD** — chat-native PRD writer. $15–29/mo. 100K+ PMs, 750K+ docs, bootstrapped. Copilot. No ingestion, no build, no outcome loop. [chatprd.ai/pricing](https://www.chatprd.ai/pricing)
 - **Productboard Spark** — "Agentic Jobs" (briefs, feedback/competitor analysis). $15–19/maker/mo + credits. $1.72B valuation, $71.8M revenue, 4K customers. Copilot. Static ICE/RICE, never outcome-reinforced. [productboard.com/pricing](https://www.productboard.com/pricing/)
 - **Aha!** — bootstrapped suite, $9–59/user/mo, $100M+ ARR profitable. Copilot; single-suite, no cross-connector ingestion, no build spine. [openviewpartners.com](https://openviewpartners.com/blog/ahas-bootstrapped-journey-from-1-to-100m-in-arr/)
@@ -20,6 +21,7 @@
 - **Canny** — Autopilot AI (dedup, replies). $19–79+/mo. Copilot. [g2.com](https://www.g2.com/products/canny/pricing)
 
 ### Platform giants
+
 - **Airtable** — Omni (conversational agent, Jun 2025) → **HyperAgent** (Apr 2026: autonomous 24/7 agents on dedicated VMs, Opus 4.8, code exec + browser) → **ProductCentral** (a named PM altitude product). $20–45/user/mo + $6 AI add-on; ~$478M revenue. True-agent, general-purpose; no product-decision outcome ranking. [airtable.com/platform/ai-agents](https://www.airtable.com/platform/ai-agents)
 - **Atlassian Rovo + JPD** — cross-product agents, credit-metered; Rovo Dev $20/dev/mo; absorbed Cycle. Copilot/agent hybrid locked to Atlassian's graph. [atlassian.com/licensing/rovo](https://www.atlassian.com/licensing/rovo)
 - **Linear** — "Linear Agent" (Mar 2026 beta, free on all plans) triages issues; **"Coding Sessions" (Jun 2026) write code via Claude Code/Codex before a human sees the issue**. True-agent; the fastest tracker closing decide→code; no ICE/outcome-scored decision layer or multi-source Brain. [theregister.com](https://www.theregister.com/2026/03/26/linear_agent/) · [linear.app/changelog](https://linear.app/changelog/2026-06-11-coding-sessions)
@@ -29,6 +31,7 @@
 - **Asana** — AI Studio + "Dash" AI chief-of-staff (monitors work, flags risk). True-agent (ops), not PM-specific. [computerworld.com](https://www.computerworld.com/article/4181295/asana-launches-ai-chief-of-staff-to-keep-projects-on-track.html)
 
 ### Autonomous build (dispatch targets, not competitors)
+
 - **Devin (Cognition)** — $20/mo + $2.25/ACU. **$492M ARR (from $37M in 12 months), $26B valuation (May 2026).** [techcrunch.com](https://techcrunch.com/2026/05/27/ai-coding-startup-cognition-raises-1b-at-25b-pre-money-valuation/)
 - **Factory** — enterprise Droids; $1.5B valuation (Apr 2026). [factory.ai](https://factory.ai/news/series-c)
 - **Cursor** — background/cloud agents; **$2B ARR (Feb 2026), 1M+ paying users**. [eesel.ai](https://www.eesel.ai/blog/cursor-pricing)
@@ -37,20 +40,24 @@
 - **Lovable / Bolt / Replit** — $400M+/$40M/$525M ARR respectively. [forbes.com](https://www.forbes.com/sites/rashishrivastava/2026/06/05/ai-coding-startup-lovable-in-talks-to-raise-funding-at-a-12-billion-valuation/)
 
 ### Recent AI-PM startups
+
 - **Lightsprint (YC S26)** — non-engineers ship via visual plan + parallel cloud agents + PR preview; $500K. Build-collaboration layer; no signal ingestion / ranked bets / outcome learning. [ycombinator.com](https://www.ycombinator.com/companies/lightsprint)
 - **Voker (YC)** — "Outcome Correlation Engine" for a product's embedded AI agents (not PM decisions); $2.2M pre-seed. [voker.ai](https://voker.ai/)
 - **YC W26 signal** — 56 companies build fully autonomous multi-step agents; none found doing decision→outcome→learned-ranking for product management. [techcrunch.com](https://techcrunch.com/2026/03/26/16-of-the-most-interesting-startups-from-yc-w26-demo-day/)
 
 ### The white space (confirmed empty, both axes)
+
 1. **Decisions → outcomes → learned ranking:** every prioritization tool found runs a static formula scored once. Nobody reinforces ranking from recorded decision outcomes.
 2. **PM decision → autonomous build under one outcome record:** build is autonomous and cheap everywhere, but a human or pre-written issue still supplies "what to build"; nobody sits above both a multi-source signal Brain and a dispatched build layer. Cadence sits there alone.
 
 ### Ranked threats
+
 1. **Linear (12–18mo)** — free agent + Coding Sessions inside the workspace of record.
 2. **Airtable (12–24mo)** — HyperAgent runtime + ProductCentral + ~$500M revenue.
 3. **Atlassian (18–24mo)** — buying Discover piecemeal; Rovo distribution.
 
 ### The surprising macro finding
+
 Build is commoditizing faster than 2025 models expected (Devin $37M→$492M in 12 months; Cursor doubling to $2B in three) while **the PM:engineer ratio inverts toward ~1:20** — the strongest argument FOR a decision layer: as building gets cheaper, deciding what's worth building becomes the scarce resource, and every funded competitor still solves it with a static formula. [venturebeat.com](https://venturebeat.com/infrastructure/claude-code-turned-every-engineer-into-three-now-companies-need-more-product-thinkers)
 
 ---

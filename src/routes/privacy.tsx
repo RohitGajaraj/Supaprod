@@ -70,8 +70,8 @@ function PrivacyPage() {
       <LegalSection title="Bring your own AI keys">
         <p>
           If you prefer, you can run Cadence against your own model provider key instead of ours.
-          Nothing about your data handling changes either way. This is a routing choice, not a
-          trust boundary.
+          Nothing about your data handling changes either way. This is a routing choice, not a trust
+          boundary.
         </p>
       </LegalSection>
 

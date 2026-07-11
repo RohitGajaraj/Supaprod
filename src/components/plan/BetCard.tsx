@@ -114,6 +114,7 @@ function BetCardComponent({
     onEditOutcome({ outcome: nextOutcome, measure: nextMeasure });
     setEditing(false);
   };
+  const saveDisabled = editPending || !outcomeVal.trim() || !measureVal.trim();
 
   return (
     <div
@@ -216,22 +217,35 @@ function BetCardComponent({
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="loom-press"
+              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--text-body)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--text-subtle)";
+              }}
             >
               cancel
             </button>
             <button
               type="button"
-              disabled={editPending || !outcomeVal.trim() || !measureVal.trim()}
+              disabled={saveDisabled}
               onClick={saveEdit}
-              className="loom-press"
+              className="loom-press outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 ...QUIET_MONO_STYLE,
                 // Ordinary form action (save): the ember-on-forms ruling reserves ember for the
                 // view's one true primary CTA; this resolves to the neutral default via contrast.
                 color: "var(--text-primary)",
-                opacity: editPending ? 0.5 : 1,
+                cursor: saveDisabled ? "not-allowed" : "pointer",
+                opacity: saveDisabled ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!saveDisabled) e.currentTarget.style.opacity = "0.75";
+              }}
+              onMouseLeave={(e) => {
+                if (!saveDisabled) e.currentTarget.style.opacity = "1";
               }}
             >
               save
@@ -279,8 +293,14 @@ function BetCardComponent({
           <button
             type="button"
             onClick={startEdit}
-            className="loom-press"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "var(--text-body)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--text-subtle)";
+            }}
           >
             {hasOutcome ? "EDIT OUTCOME" : "+ OUTCOME"}
           </button>

@@ -19,7 +19,7 @@ No "Best Practices" (When to use / Behavior / Accessibility) accordion is presen
 Single component, no documented subcomponents.
 
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
+import { LoadMoreButton } from "@vercel/geistcn/components";
 ```
 
 ### Props (all seen in the live code examples)
@@ -32,9 +32,10 @@ import { LoadMoreButton } from '@vercel/geistcn/components';
 ### Usage snippets (from the page, verbatim)
 
 Default:
+
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadMoreButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <LoadMoreButton>Load More</LoadMoreButton>;
@@ -42,9 +43,10 @@ export function Component(): JSX.Element {
 ```
 
 Loading:
+
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadMoreButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <LoadMoreButton loading>Loading...</LoadMoreButton>;
@@ -52,9 +54,10 @@ export function Component(): JSX.Element {
 ```
 
 No Gap:
+
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadMoreButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <LoadMoreButton noGap>Load More</LoadMoreButton>;
@@ -62,9 +65,10 @@ export function Component(): JSX.Element {
 ```
 
 No Border Radius:
+
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadMoreButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <LoadMoreButton noBorderRadius>Load More</LoadMoreButton>;
@@ -72,9 +76,10 @@ export function Component(): JSX.Element {
 ```
 
 Custom Text:
+
 ```tsx
-import { LoadMoreButton } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { LoadMoreButton } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <LoadMoreButton>Show More Results</LoadMoreButton>;

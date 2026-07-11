@@ -19,14 +19,16 @@ Page footer also shows adjacent nav cards ("Previous: Text With Copy Button", "N
 ## API
 
 Import:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 ```
 
 Single component, no documented subcomponents. It renders a native `<textarea>` wrapped in a styled container `<div>` (which itself is wrapped in a `<label>` when used with the label/helper/error pattern seen in markup — label wraps the field + error/helper block).
 
 **Props observed across examples:**
+
 - `aria-label` (string) — used in every example in place of a visible `<label>` text child; accessible name.
 - `placeholder` (string) — instructional/sample text.
 - `defaultValue` (string) — uncontrolled initial value (also accepts a `value` control pattern presumably, not shown).
@@ -40,9 +42,10 @@ Single component, no documented subcomponents. It renders a native `<textarea>` 
 **Usage snippets (verbatim from the page's code examples):**
 
 Default:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -56,9 +59,10 @@ export function Component(): JSX.Element {
 ```
 
 Disabled:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -73,9 +77,10 @@ export function Component(): JSX.Element {
 ```
 
 Error (all three sizes):
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -107,12 +112,13 @@ export function Component(): JSX.Element {
 ```
 
 Sizes:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 const loremIpsum =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
 export function Component(): JSX.Element {
   return (
@@ -141,12 +147,13 @@ export function Component(): JSX.Element {
 ```
 
 Read Only:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 const loremIpsum =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
 export function Component(): JSX.Element {
   return (
@@ -161,9 +168,10 @@ export function Component(): JSX.Element {
 ```
 
 Rows:
+
 ```tsx
-import { Textarea } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Textarea } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -194,11 +202,13 @@ Paraphrased from the page's accordion (When to use / Behavior / Accessibility co
 
 **Textarea element base classes** (constant across all states):
 `py-2.5 px-3 resize-none w-full [&[rows]]:h-[unset] inline-flex appearance-none webkit-search-reset min-w-0 border-none bg-[var(--ds-background-100)] text-[var(--geist-foreground)] order-1 outline-none focus:outline-none`
+
 - disabled adds: `disabled:bg-[var(--ds-gray-100)] disabled:placeholder:text-[var(--accents-3)] disabled:[-webkit-text-fill-color:var(--accents-3)] disabled:opacity-100 disabled:text-[var(--ds-gray-700)] disabled:cursor-not-allowed`
 - `resize-none` — manual textarea resize handle is disabled; sizing is entirely controlled via `rows`/`style.minHeight`/CSS.
 - `spellCheck="false"` and `autoCapitalize/autoComplete/autoCorrect="off"` are set on the native element by default.
 
 **Wrapper container classes by size** (this is where the size scale, radius, and box-shadow/ring live — not on the `<textarea>` itself):
+
 - Common: `flex max-w-full transition-all duration-150 overflow-hidden font-normal w-full`
 - **small**: `rounded-md [&>input]:h-8 text-sm [&>input]:px-3`
 - **medium**: `rounded-md [&>input]:h-(--ds-size-medium) text-sm [&>input]:px-3`
@@ -206,11 +216,13 @@ Paraphrased from the page's accordion (When to use / Behavior / Accessibility co
 - (Note: the `[&>input]` selectors are template classes shared with the Input component; on Textarea they affect the same size token, `--ds-size-medium` / `--ds-size-large`, which the design system defines centrally — small is hardcoded to `h-8` rather than a `--ds-size-small` var in the observed markup.)
 
 **Resting/hover/focus ring (non-error):**
+
 - Resting: `shadow-[0_0_0_1px_var(--ds-gray-alpha-400)]`
 - Hover: `hover:shadow-[0_0_0_1px_var(--ds-gray-alpha-500)]` (suppressed when the control is disabled: `hover:[&:has(textarea:disabled)]:shadow-[0_0_0_1px_var(--ds-gray-alpha-400)]`)
 - Focus: `has-[:focus]:!shadow-[0_0_0_1px_var(--ds-gray-alpha-600),0px_0px_0px_4px_rgba(0,0,0,0.16)]`, with a dark-theme override swapping the outer glow to `rgba(255,255,255,0.24)` (`dark-theme:has-[:focus]:!shadow-[...]`). This is a 1px solid ring plus a 4px soft glow, i.e. a two-layer box-shadow "focus halo," not a browser default outline (outline is explicitly removed on the textarea).
 
 **Error state** — replaces the whole ring/shadow stack and adds marker classes:
+
 - Wrapper: `shadow-[0_0_0_1px_var(--ds-red-900),0_0_0_4px_var(--ds-red-300)]`, hover `hover:shadow-[0_0_0_1px_var(--ds-red-900),0_0_0_4px_var(--ds-red-500)]`, focus `has-[:focus]:shadow-[0_0_0_1px_var(--ds-red-900),0_0_0_4px_var(--ds-red-300)]` (ring stays present/unchanged on focus while erroring, unlike the gray-alpha state which strengthens on focus).
 - Wrapper also carries plain marker classes `geist-themed geist-error` (hooks for theme/QA, not visual by themselves).
 - Error message block: `text-[var(--ds-red-900)] flex items-start text-[13px] leading-5`, `role="alert"`, `data-geist-error`, `id="textarea-<id>-error"`, `style="margin-top:var(--geist-gap-quarter)"`. It renders a 16x16 inline warning-triangle SVG icon (`color: var(--ds-red-900)`, `mr-2 mt-0.5` alignment) followed by a `<div class="break-words">` holding the message text.

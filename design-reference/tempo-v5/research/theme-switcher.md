@@ -16,8 +16,8 @@ Only 3 live demos are present on the page (Default, Small, Disabled) — no sepa
 Single exported component, no documented subcomponents.
 
 ```tsx
-import { ThemeSwitcher } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ThemeSwitcher } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <ThemeSwitcher />;
@@ -25,8 +25,8 @@ export function Component(): JSX.Element {
 ```
 
 ```tsx
-import { ThemeSwitcher } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ThemeSwitcher } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <ThemeSwitcher small />;
@@ -34,8 +34,8 @@ export function Component(): JSX.Element {
 ```
 
 ```tsx
-import { ThemeSwitcher } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { ThemeSwitcher } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <ThemeSwitcher disabled />;
@@ -43,11 +43,13 @@ export function Component(): JSX.Element {
 ```
 
 Props observed:
+
 - `small?: boolean` — renders the compact size (adds `data-small` to the root `<fieldset>` and cascades a `data-[small]:` Tailwind variant down to each segment/label).
 - `disabled?: boolean` — sets native `disabled=""` on each of the three radio `<input>` elements; visual state comes from the `disabled:` / `aria-disabled:` Tailwind variants already baked into the label/segment classes (no separate disabled skin — same classes fire whether disabled is manual or driven by `forcedTheme`).
 - No `value`/`onChange`/`theme` props are exposed in any example — state is implicit, sourced from `next-themes` context (see Best Practices).
 
 Composition / internal structure (from rendered markup, useful for a faithful rebuild):
+
 - Root: `<fieldset>` — the segmented control container. Carries `isolate flex ... rounded-full h-8 w-fit p-0 border-0 m-0 data-[small]:h-6`.
 - `<legend class="sr-only">Select a display theme:</legend>` — visually hidden group label.
 - Three segments, each: `<span class="h-full"><input type="radio" value="system|light|dark" aria-label="system|light|dark" id="theme-switch-{value}-{reactId}" class="appearance-none p-0 m-0 outline-none absolute peer" /><label for="..."><span class="sr-only">{value}</span><span class="relative z-[1] size-4"><svg data-slot="geist-icon">…</svg></span></label></span>`.

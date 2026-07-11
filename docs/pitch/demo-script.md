@@ -11,17 +11,17 @@
 
 ## The 8-minute walkthrough
 
-**Beat 0 — the cold open (30s).** A question, not a feature: *"Ask your team 'why did we decide X' about anything you shipped last quarter. That excavation — hours of Slack archaeology — is the job today."* Type it into Cadence: the answer in seconds, with the evidence chain. [the wedge, in the community's own words]
+**Beat 0 — the cold open (30s).** A question, not a feature: _"Ask your team 'why did we decide X' about anything you shipped last quarter. That excavation — hours of Slack archaeology — is the job today."_ Type it into Cadence: the answer in seconds, with the evidence chain. [the wedge, in the community's own words]
 
-**Beat 1 — while you slept (60s).** Today. The judgment lane: three calls that need a human, ranked by consequence. The brief, bylined by the agents. The receipts strip: what the fleet did overnight — signals swept, themes clustered, one bet re-ranked *because an outcome landed*. Point at the byline: **who** did it, **what** they did, the receipt link. *"Nothing on this screen is a claim. Everything is a link to proof."*
+**Beat 1 — while you slept (60s).** Today. The judgment lane: three calls that need a human, ranked by consequence. The brief, bylined by the agents. The receipts strip: what the fleet did overnight — signals swept, themes clustered, one bet re-ranked _because an outcome landed_. Point at the byline: **who** did it, **what** they did, the receipt link. _"Nothing on this screen is a claim. Everything is a link to proof."_
 
-**Beat 2 — the teardown (90s).** Pick the pet bet (theirs if live-demoing to a team — brave, decisive; ours if cold). Run the Critic: evidence-backed red-team with precedent — *"the last time this premise shipped, here's what happened."* This is judgment with receipts, not a chatbot's opinion.
+**Beat 2 — the teardown (90s).** Pick the pet bet (theirs if live-demoing to a team — brave, decisive; ours if cold). Run the Critic: evidence-backed red-team with precedent — _"the last time this premise shipped, here's what happened."_ This is judgment with receipts, not a chatbot's opinion.
 
 **Beat 3 — decision to PR (2m).** Accept the reshaped bet → the spec generates from the record (drift-stamped projection, not a hand-written artifact) → acceptance criteria compile to checks → a mission dispatches → **a real PR opens with CI running** — under a merge gate no agent can bypass. Show the trace: every step, every tool call, every approval.
 
-**Beat 4 — the wrong path (90s, the trust moment).** Take an agent-drafted change and **rewind it in one key** — the revert lands in the ledger as its own receipt. Then the calibration surface: *"Cadence called N of the last M — including the misses. We publish our error rate. Ask the last AI tool you bought for theirs."*
+**Beat 4 — the wrong path (90s, the trust moment).** Take an agent-drafted change and **rewind it in one key** — the revert lands in the ledger as its own receipt. Then the calibration surface: _"Cadence called N of the last M — including the misses. We publish our error rate. Ask the last AI tool you bought for theirs."_
 
-**Beat 5 — the compounding close (60s).** The Brain: what this workspace has learned — decisions, outcomes, the ranking visibly informed by the record (*"your last three bets in this area under-performed; this one mirrors #2"*). Close: **"Agents do the work. You answer for it. Cadence is how you answer — and it gets smarter about YOUR product with every outcome it records."**
+**Beat 5 — the compounding close (60s).** The Brain: what this workspace has learned — decisions, outcomes, the ranking visibly informed by the record (_"your last three bets in this area under-performed; this one mirrors #2"_). Close: **"Agents do the work. You answer for it. Cadence is how you answer — and it gets smarter about YOUR product with every outcome it records."**
 
 ## Audience variants
 
@@ -31,4 +31,4 @@
 
 ## Don'ts
 
-No slides in the core. No "imagine if" sentences. No feature tour (the surfaces show up only as the loop passes through them). Never claim the self-improvement loop publicly until RPT-50 runs (Layer-1 workspace learning is the claimable line). If something breaks live: *that's Beat 4 happening for real — revert it, show the receipt, keep going.* The failure path is rehearsed precisely so a live failure is a feature.
+No slides in the core. No "imagine if" sentences. No feature tour (the surfaces show up only as the loop passes through them). Never claim the self-improvement loop publicly until RPT-50 runs (Layer-1 workspace learning is the claimable line). If something breaks live: _that's Beat 4 happening for real — revert it, show the receipt, keep going._ The failure path is rehearsed precisely so a live failure is a feature.

@@ -8,7 +8,7 @@
 >
 > **Gate:** P1 is reuse-heavy and needs no founder input to design, but **no product code is written until the founder greenlights a phase.** Each phase's bite-sized, code-complete TDD tasks are produced at build time (after reading the exact current code) and executed via subagent-driven development, one task at a time with review between. P5 is founder-gated (infra/secrets).
 >
-> **Sequencing + ownership (2026-06-21):** this whole G11 / BYO-* lane is founder-gated AND sequenced **BEHIND the Decision Brain (H1, TOPMOST 2026-06-20)**; no autonomous cycle picks up any BYO-* row until both the founder greenlights it and the core loop is proven. **`BYO-P4` (managed AI credits) is LOVABLE-OWNED** (it is the WM credit engine, now built by Lovable in parallel; do not pick it up). Per moat.md, never position or price build or host as the differentiator (own only the PM-shaped 80%); host is sequenced strictly after the loop is proven.
+> **Sequencing + ownership (2026-06-21):** this whole G11 / BYO-_ lane is founder-gated AND sequenced **BEHIND the Decision Brain (H1, TOPMOST 2026-06-20)**; no autonomous cycle picks up any BYO-_ row until both the founder greenlights it and the core loop is proven. **`BYO-P4` (managed AI credits) is LOVABLE-OWNED** (it is the WM credit engine, now built by Lovable in parallel; do not pick it up). Per moat.md, never position or price build or host as the differentiator (own only the PM-shaped 80%); host is sequenced strictly after the loop is proven.
 
 **Goal:** Product-level, provider-agnostic, BYO-or-managed repos; a fully autonomous Build to Ship chain that surfaces only outcomes; managed AI credits; and (sequenced last) a managed end-to-end runtime, so a user runs their whole product org on Cadence.
 

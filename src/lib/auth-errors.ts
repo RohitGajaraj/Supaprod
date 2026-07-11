@@ -11,7 +11,12 @@
 // invite is email-bound), which is the industry-standard tradeoff.
 
 export type AuthContext =
-  "signin" | "signup" | "reset-request" | "reset-update" | "invite" | "oauth";
+  | "signin"
+  | "signup"
+  | "reset-request"
+  | "reset-update"
+  | "invite"
+  | "oauth";
 
 function extractMessage(error: unknown): string {
   if (!error) return "";
@@ -69,10 +74,13 @@ export function authErrorMessage(error: unknown, context: AuthContext = "signin"
       "user already exists",
     ])
   ) {
-    // Return generic message to prevent account enumeration: never reveal
-    // whether an email exists in signup flow. This falls back to the
-    // context-specific default, which in signup is "Couldn't create your account..."
-    return defaultFor(context);
+    // Signup deliberately reveals duplicates (see the header security note:
+    // you cannot create a duplicate account, so this is the industry-standard
+    // tradeoff). A generic retry message here is a dead end: the user retries
+    // forever and is never told to sign in. Every other context stays neutral.
+    return context === "signup"
+      ? "An account already uses this email. Sign in instead."
+      : defaultFor(context);
   }
 
   if (has(raw, ["password should be at least", "password is too short", "at least 6"])) {

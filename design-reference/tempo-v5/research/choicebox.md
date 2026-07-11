@@ -17,12 +17,14 @@ Every demo has a "Show code" toggle revealing the exact JSX; on this page all fo
 ## API
 
 Components:
+
 - `ChoiceboxGroup` — the container/fieldset-equivalent. Renders as `role="radiogroup"` (single-select) or `role="group"` with `aria-multiselectable="true"` (multi-select), not an actual `<fieldset>`/`<legend>` — group naming is via `aria-label` (or a rendered label element when `showLabel` is set).
 - `ChoiceboxGroupItem` — one tile. Renders as a `<label>` wrapping a visually-hidden native `<input type="radio">` or `<input type="checkbox">` (`class="sr-only peer"`), so keyboard/AT semantics come from the real input while the visual state is driven by CSS `:checked`/`peer-checked` selectors.
 
 Props seen in the code examples:
 
 `ChoiceboxGroup`
+
 - `label: string` — accessible name; also visible text when `showLabel` is set.
 - `showLabel?: boolean` — renders the label visibly (used in the Disabled demo); omitted elsewhere, so the label is `aria-label`-only by default.
 - `type: 'radio' | 'checkbox'` — selection mode (single vs multi).
@@ -32,6 +34,7 @@ Props seen in the code examples:
 - `listClassName?: string` — className applied to the internal `<ul>`; used in every example as `"flex-row"` to lay tiles out horizontally instead of the default stacked column.
 
 `ChoiceboxGroupItem`
+
 - `title: string` — bold, Title Case label (rendered `text-sm font-medium`).
 - `description: string` — sentence-case supporting copy (rendered `text-sm`, same size as title but regular weight).
 - `value: string` — the option's value, matched against the group's controlled `value`.
@@ -41,12 +44,12 @@ Props seen in the code examples:
 Usage snippets (from the recovered flight payload, trimmed to the essential shape):
 
 ```tsx
-'use client';
-import { ChoiceboxGroup, ChoiceboxGroupItem } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+"use client";
+import { ChoiceboxGroup, ChoiceboxGroupItem } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
-  const [value, setValue] = useState('trial');
+  const [value, setValue] = useState("trial");
   return (
     <ChoiceboxGroup
       label="select a plan"
@@ -65,9 +68,15 @@ export function Component(): JSX.Element {
 ```tsx
 // Multi-select: swap type + value shape
 const [value, setValue] = useState([] as string[]);
-<ChoiceboxGroup type="checkbox" value={value} onChange={setValue} listClassName="flex-row" label="select a plan">
+<ChoiceboxGroup
+  type="checkbox"
+  value={value}
+  onChange={setValue}
+  listClassName="flex-row"
+  label="select a plan"
+>
   ...
-</ChoiceboxGroup>
+</ChoiceboxGroup>;
 ```
 
 ```tsx
@@ -85,9 +94,15 @@ const [value, setValue] = useState([] as string[]);
 
 ```tsx
 // Custom content — children rendered when selected
-import { Badge, ChoiceboxGroup, ChoiceboxGroupItem } from '@vercel/geistcn/components';
+import { Badge, ChoiceboxGroup, ChoiceboxGroupItem } from "@vercel/geistcn/components";
 
-<ChoiceboxGroup label="select a plan" onChange={setValue} type="radio" value={value} listClassName="flex-row">
+<ChoiceboxGroup
+  label="select a plan"
+  onChange={setValue}
+  type="radio"
+  value={value}
+  listClassName="flex-row"
+>
   <ChoiceboxGroupItem description="Free for two weeks" title="Pro Trial" value="trial">
     <div className="flex justify-center p-2">
       <Badge variant="trial">Trial</Badge>
@@ -98,27 +113,31 @@ import { Badge, ChoiceboxGroup, ChoiceboxGroupItem } from '@vercel/geistcn/compo
       <Badge variant="blue">Pro</Badge>
     </div>
   </ChoiceboxGroupItem>
-</ChoiceboxGroup>
+</ChoiceboxGroup>;
 ```
 
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for it when a choice benefits from a bigger tap target plus supporting detail — a framework picker, a plan comparison, a deployment region with a latency figure.
 - Single-select for mutually exclusive options, multi-select for additive ones — never mix both modes in one group.
 - Keep it to 4-6 tiles max; beyond that, use `Select` or `Combobox` so a single field doesn't push the page into a long scroll. If a tile is just a plain label with no description, use plain `Radio` instead.
 
 **Behavior**
+
 - The entire tile is the hit target and focus target — clicking/tapping anywhere on it selects it. Never nest an interactive button or link inside a tile; it will steal the click.
 - The selection indicator (check or filled dot) in the corner is the real signal — don't rely on the border highlight alone, it's not enough contrast on washed-out screens.
 - A disabled tile needs a `Tooltip` explaining why (e.g. "Available on Pro"). An unexplained faded tile reads as a bug, not an intentional restriction.
 
 **Content**
+
 - Keep titles parallel: one Title Case title and one sentence-case description per tile, description ending in a period.
 - Don't let the description just restate the title — it should carry the differentiating fact (e.g. "$20/mo · 100 GB bandwidth").
 - Icons paired with a title are decorative; if an icon is the only label, give the tile its own `aria-label` naming the choice.
 
 **Accessibility**
+
 - Although it doesn't render a literal `<fieldset>`/`<legend>` in the markup captured, treat the group as one — the underlying native radio/checkbox inputs plus `role="radiogroup"`/`role="group"` + `aria-label` (or `aria-multiselectable`) is what exposes it as a single group to assistive tech.
 - Arrow keys move focus within a single-select group; Space toggles a multi-select item — don't intercept or override these with custom key handlers.
 - Color alone must never be the selection signal — pair the highlight border with the corner check/dot so colorblind users can still tell what's active.

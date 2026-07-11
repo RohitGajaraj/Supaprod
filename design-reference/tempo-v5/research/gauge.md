@@ -20,24 +20,25 @@ Source: https://vercel.com/geist/gauge (Vercel Geist Design System). Captured 20
 Single component, imported from the shared Geist React package:
 
 ```tsx
-import { Gauge } from '@vercel/geistcn/components';
+import { Gauge } from "@vercel/geistcn/components";
 ```
 
 ### `<Gauge />` props (observed across examples)
 
-| Prop | Type / values seen | Purpose |
-|---|---|---|
-| `value` | `number` (0–100) | The percentage the gauge renders. |
-| `size` | `"tiny" \| "small" \| "medium" \| "large"` | Controls overall gauge diameter. |
-| `showValue` | `boolean` (boolean shorthand, no value) | Renders the numeric percentage as a label on/near the gauge. |
-| `colors` | either a **threshold map** (`Record<'0'|'10'|'20'|...|'100', string>`, numeric-string keys at 10-point steps from 0 to 100) OR a **two-key map** (`{ primary: string; secondary: string }`) | Threshold map: assigns a distinct fill color per value bracket (a stepped color ramp). Two-key map: sets just the filled arc (`primary`) and the track/unfilled arc (`secondary`) colors, overriding the default scale entirely. |
-| `arcPriority` | `"equal"` (only non-default value observed; default appears to be primary-dominant) | Controls whether the filled arc is drawn with visual priority over the track (default) or both arcs render with equal visual weight — used for true ratio/half-half displays. |
-| `indeterminate` | `boolean` (boolean shorthand) | Puts the gauge into a loading/unknown state (still takes a `value`, e.g. `25`, presumably as the static angle for the indeterminate sweep). |
-| `children` | not shown filled in any example, but called out in Best Practices as "reserved for an icon overlay" | Icon overlay slot inside the gauge — not for text/unit strings. |
+| Prop            | Type / values seen                                                                                  | Purpose                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`         | `number` (0–100)                                                                                    | The percentage the gauge renders.                                                                                                                                             |
+| `size`          | `"tiny" \| "small" \| "medium" \| "large"`                                                          | Controls overall gauge diameter.                                                                                                                                              |
+| `showValue`     | `boolean` (boolean shorthand, no value)                                                             | Renders the numeric percentage as a label on/near the gauge.                                                                                                                  |
+| `colors`        | either a **threshold map** (`Record<'0'                                                             | '10'                                                                                                                                                                          | '20' | ... | '100', string>`, numeric-string keys at 10-point steps from 0 to 100) OR a **two-key map** (`{ primary: string; secondary: string }`) | Threshold map: assigns a distinct fill color per value bracket (a stepped color ramp). Two-key map: sets just the filled arc (`primary`) and the track/unfilled arc (`secondary`) colors, overriding the default scale entirely. |
+| `arcPriority`   | `"equal"` (only non-default value observed; default appears to be primary-dominant)                 | Controls whether the filled arc is drawn with visual priority over the track (default) or both arcs render with equal visual weight — used for true ratio/half-half displays. |
+| `indeterminate` | `boolean` (boolean shorthand)                                                                       | Puts the gauge into a loading/unknown state (still takes a `value`, e.g. `25`, presumably as the static angle for the indeterminate sweep).                                   |
+| `children`      | not shown filled in any example, but called out in Best Practices as "reserved for an icon overlay" | Icon overlay slot inside the gauge — not for text/unit strings.                                                                                                               |
 
 ### Usage snippets (as documented, `@vercel/geistcn/components`)
 
 Sizes:
+
 ```tsx
 <Gauge size="tiny" value={50} />
 <Gauge size="small" value={50} />
@@ -46,6 +47,7 @@ Sizes:
 ```
 
 Label / showValue:
+
 ```tsx
 <Gauge showValue size="tiny" value={80} />
 <Gauge showValue size="small" value={80} />
@@ -57,6 +59,7 @@ Label / showValue:
 ```
 
 Default color scale (no `colors` prop — built-in ramp):
+
 ```tsx
 <Gauge size="small" value={14} />
 <Gauge size="small" value={34} />
@@ -64,32 +67,35 @@ Default color scale (no `colors` prop — built-in ramp):
 ```
 
 Custom color range (per-threshold override, one gauge shown per 10-point step 0→100; example at value 0 and 10 shown, pattern repeats through 100):
+
 ```tsx
 <Gauge
   colors={{
-    '0': 'var(--ds-pink-100)',
-    '10': 'var(--ds-pink-200)',
-    '20': 'var(--ds-pink-300)',
-    '30': 'var(--ds-pink-400)',
-    '50': 'var(--ds-pink-500)',
-    '60': 'var(--ds-pink-600)',
-    '70': 'var(--ds-pink-700)',
-    '80': 'var(--ds-pink-800)',
-    '90': 'var(--ds-pink-900)',
-    '100': 'var(--ds-pink-1000)',
+    "0": "var(--ds-pink-100)",
+    "10": "var(--ds-pink-200)",
+    "20": "var(--ds-pink-300)",
+    "30": "var(--ds-pink-400)",
+    "50": "var(--ds-pink-500)",
+    "60": "var(--ds-pink-600)",
+    "70": "var(--ds-pink-700)",
+    "80": "var(--ds-pink-800)",
+    "90": "var(--ds-pink-900)",
+    "100": "var(--ds-pink-1000)",
   }}
   size="small"
   value={0}
 />
 ```
+
 (Note: the threshold map skips `'40'` in the captured source — steps are `0,10,20,30,50,60,70,80,90,100`, i.e. 9 declared stops covering an 11-step range; treat as a possible source quirk/typo rather than a hard requirement to skip 40.)
 
 Custom secondary color (two-tone override):
+
 ```tsx
 <Gauge
   colors={{
-    primary: 'var(--ds-blue-700)',
-    secondary: 'var(--ds-blue-300)',
+    primary: "var(--ds-blue-700)",
+    secondary: "var(--ds-blue-300)",
   }}
   size="medium"
   value={50}
@@ -97,12 +103,13 @@ Custom secondary color (two-tone override):
 ```
 
 Arc priority (equal-weight ratio display):
+
 ```tsx
 <Gauge
   arcPriority="equal"
   colors={{
-    primary: 'var(--ds-blue-700)',
-    secondary: 'var(--ds-red-700)',
+    primary: "var(--ds-blue-700)",
+    secondary: "var(--ds-red-700)",
   }}
   showValue
   size="medium"
@@ -111,6 +118,7 @@ Arc priority (equal-weight ratio display):
 ```
 
 Indeterminate:
+
 ```tsx
 <Gauge indeterminate size="tiny" value={25} />
 <Gauge indeterminate size="small" value={25} />
@@ -121,21 +129,25 @@ Indeterminate:
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Gauge when you're showing a 0–100 ratio against a fixed ceiling and the comparison itself is the point — quota usage, cache hit rate, uptime, billing-period consumption.
 - If it's determinate progress toward a known total (an upload, a multi-step setup wizard), use Progress instead — Gauge is for a snapshot ratio, not a completion sequence.
 - If the thing you're representing is really a binary or enum state (not a percentage), use Status Dot (for deployment-style states) or Badge (for everything else) rather than forcing it into a gauge.
 
 **Behavior**
+
 - Default arc behavior favors the filled portion visually; switch to `arcPriority="equal"` specifically when the number is a true ratio and 50% should visually read as an exact half split, not a dominant fill.
 - Don't invent one-off color thresholds for the gauge. Reuse the product's existing numeric breakpoints for warning/error states (e.g. the same `>=80%` warning / `>=95%` error cutoffs used elsewhere) so the gauge's color language stays consistent with the rest of the UI.
 - When a gauge is `indeterminate`, always pair it with copy that explains why the value isn't showing yet (e.g. "Calculating usage…") — an indeterminate gauge alone reads as a bug or a zero value, not a loading state.
 
 **Content**
+
 - A gauge is never self-describing — always pair it with an adjacent label or a Tooltip that names what the number actually represents (e.g. "Build Cache Hit Rate").
 - Don't stuff units into `children` — that slot is reserved for an icon overlay, not text. The unit lives in the label next to the gauge (e.g. "Uptime · 99.97%").
 - When `showValue` is on, the number rendered is the bare value — never concatenate a `%` sign or other unit string into the value itself.
 
 **Accessibility**
+
 - The component owns `role="progressbar"` plus `aria-valuemin` / `aria-valuemax` / `aria-valuenow` internally — don't override or duplicate these.
 - The adjacent label is the gauge's accessible name; wire it up via `aria-labelledby` on the gauge's wrapper so assistive tech announces something like "Uptime, 99 percent."
 - Never rely on color alone to communicate a threshold crossing (e.g. warning/error tint) — always back it with redundant text, either inline below the gauge or in a Tooltip.

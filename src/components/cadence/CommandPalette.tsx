@@ -194,18 +194,14 @@ export function CommandPalette() {
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed left-1/2 outline-none"
+          className="material-menu fixed left-1/2 outline-none"
           style={{
             zIndex: 81,
             top: "18vh",
             transform: "translateX(-50%)",
             width: "560px",
             maxWidth: "92vw",
-            background: "var(--raised)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "var(--radius-panel)",
-            animation: "cadRise 200ms var(--ease)",
+            animation: "cadRise 200ms var(--ds-motion-timing-swift)",
             display: "flex",
             flexDirection: "column",
           }}

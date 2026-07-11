@@ -644,7 +644,9 @@ export function ObsidianOnboarding() {
   if (profileQ.isLoading)
     return (
       <Screen>
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Waking your workspace…</p>
+        <p className="text-label-13" style={{ color: "var(--text-muted)" }}>
+          Waking your workspace…
+        </p>
       </Screen>
     );
   if (needsDetails && !detailsDone) {
@@ -762,13 +764,7 @@ export function ObsidianOnboarding() {
                           {estimate.toUpperCase()}
                         </MonoLabel>
                       </span>
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: 12,
-                          color: "var(--text-subtle)",
-                        }}
-                      >
+                      <span className="text-label-12-mono" style={{ color: "var(--text-subtle)" }}>
                         {on ? "✓" : busy ? "…" : "→"}
                       </span>
                     </button>
@@ -1059,7 +1055,9 @@ export function ObsidianOnboarding() {
             </div>
           ) : (
             <div>
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Critic review is loading…</p>
+              <p className="text-label-13" style={{ color: "var(--text-muted)" }}>
+                Critic review is loading…
+              </p>
               <Button
                 variant="tertiary"
                 onClick={() => {

@@ -18,7 +18,7 @@ No Sizes, Types, or Variants sections exist for this component — Checkbox ship
 Single component, no documented subcomponents.
 
 ```tsx
-import { Checkbox } from '@vercel/geistcn/components';
+import { Checkbox } from "@vercel/geistcn/components";
 ```
 
 ### Props observed across all code examples
@@ -32,9 +32,10 @@ import { Checkbox } from '@vercel/geistcn/components';
 ### Usage snippets (as shown in the docs)
 
 Controlled default:
+
 ```tsx
-import { Checkbox } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Checkbox } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [checked, setChecked] = useState(false);
@@ -48,9 +49,10 @@ export function Component(): JSX.Element {
 ```
 
 Disabled (all three value states):
+
 ```tsx
-import { Checkbox } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Checkbox } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -68,9 +70,10 @@ export function Component(): JSX.Element {
 ```
 
 Indeterminate:
+
 ```tsx
-import { Checkbox } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Checkbox } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <Checkbox indeterminate>Option 1</Checkbox>;
@@ -87,21 +90,25 @@ export function Component(): JSX.Element {
 ## Best practices
 
 **When to use**
+
 - Multi-select within a list — table-row pickers, multi-pick filters, opt-in preference groups.
 - Acknowledgment of a specific statement the user must affirm (terms of service, an irreversible export/action).
 - Not for a single standalone boolean (dark mode, password protection) — use Toggle there since on/off framing reads more clearly than one isolated checkbox.
 
 **Behavior**
+
 - Indeterminate is a display-only visual state, not a real third value the component tracks — the parent component must compute "some but not all children selected" and drive the prop itself, clearing it the instant selection becomes fully on or fully off.
 - Validation errors on a required checkbox (e.g. "you must agree") should only surface on submit, never on blur/toggle — don't flash an error mid-interaction while the user is still deciding.
-- A disabled checkbox must still communicate *why* — pair it with a tooltip; an unexplained greyed-out box reads as broken rather than intentional.
+- A disabled checkbox must still communicate _why_ — pair it with a tooltip; an unexplained greyed-out box reads as broken rather than intentional.
 
 **Content**
+
 - Fieldset/group labels are a short Title Case noun phrase with no trailing colon.
 - An acknowledgment checkbox's label is a complete sentence ending in a period (e.g. "I agree to the Terms of Service.").
 - When a group is indeterminate, put the partial count in the visible copy next to the group label (e.g. "3 of 5 selected") — never leave the mixed state unexplained.
 
 **Accessibility**
+
 - Group related checkboxes inside `<fieldset>`/`<legend>` so assistive tech announces the group context before each option.
 - For unlabeled row-select checkboxes, supply `aria-label="Select {row name}"` so the control remains identifiable out of visual context.
 - Don't break the native `<label>`/`htmlFor` association with a custom wrapper — the click target is designed to extend across the whole label already.

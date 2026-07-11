@@ -83,61 +83,61 @@ first unstarted row of that same checklist.
 
 ## Variants
 
-| Variant | Composition | When to use |
-| --- | --- | --- |
-| **Blank slate** | Icon/illustration + title + description, no children | A surface that is already useful with nothing in it and needs no setup (per `research/empty-state.md`'s own framing, Blank Slate and the plain Default demo are the same minimal composition). Use for a genuinely optional, low-stakes empty region. |
-| **Informational** | Blank slate + one primary `Button` and, only when a second valid path exists, one secondary `Link` | The default choice for any first-use surface where a single action creates the first item ("Connect a data source", "Create your first PRD"). Description names the concrete next action, not generic praise. |
-| **Guided (checklist-nested)** | Informational shape, but the CTA row is replaced by an embedded Onboarding checklist (2) | A surface whose setup is genuinely multi-step (more than one action needed before the surface is useful) — nest the checklist rather than stacking three-plus CTAs, which `research/empty-state.md`'s own best practice flags as a design smell. |
-| **No-results** | Blank slate shape, title names the filter in curly quotes, secondary action clears/widens it, no primary "create" CTA | A filtered list or search that returned zero rows. Follow the template from `research/empty-state.md`: `No {Items} match "${query}". Clear the filter to see all {items}.` |
-| **Cleared / all-done** | Blank slate shape, positive framing, optionally the one ember completion glow (contract §8 personality touch) | A queue/inbox that reached zero because work finished, not because nothing was ever there. Never reuses the "no-results" copy shape — completion is good news, say so. |
-| **Permission / tier-gated** | Full-page empty state (not the smaller inline Note), body follows `{Feature value} with the {Plan} plan.` | A route the user cannot access at all. Reserve the narrower inline `Note` component (outside this pattern's scope) for a single gated tile inside an otherwise-accessible page. |
-| **Error** | Blank slate shape, body pairs with a copyable request id and a "Try Again" Button | A failed load, not a genuine empty state — the content exists but couldn't be fetched. |
-| **Welcome sequence (3)** | Fullscreen takeover or centered Modal, 2 to 5 steps, always skippable | Once per workspace/account, at creation. Use Fullscreen for 3+ steps with real content (choices, connections); use a Modal (Medium) for 1 to 2 lightweight choices. Never re-triggers itself once completed or skipped. |
-| **Onboarding checklist (3)** | Persistent Card on Today, rows map 1:1 to concrete actions | Setup that reasonably spans more than one session. Replaces the welcome sequence once the user is past the very first moment; the two are sequential, never simultaneous. |
-| **Progressive disclosure (advanced group)** | A `Collapse` (or `CollapseGroup` item) nested at the bottom of a checklist or a settings/setup form | Optional, expert, or rarely-needed steps (SSO, spend limits, custom domains) that would overwhelm the primary happy path if shown inline. Per `research/collapse.md`: default closed, cap nesting at one level. |
+| Variant                                     | Composition                                                                                                           | When to use                                                                                                                                                                                                                                           |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Blank slate**                             | Icon/illustration + title + description, no children                                                                  | A surface that is already useful with nothing in it and needs no setup (per `research/empty-state.md`'s own framing, Blank Slate and the plain Default demo are the same minimal composition). Use for a genuinely optional, low-stakes empty region. |
+| **Informational**                           | Blank slate + one primary `Button` and, only when a second valid path exists, one secondary `Link`                    | The default choice for any first-use surface where a single action creates the first item ("Connect a data source", "Create your first PRD"). Description names the concrete next action, not generic praise.                                         |
+| **Guided (checklist-nested)**               | Informational shape, but the CTA row is replaced by an embedded Onboarding checklist (2)                              | A surface whose setup is genuinely multi-step (more than one action needed before the surface is useful) — nest the checklist rather than stacking three-plus CTAs, which `research/empty-state.md`'s own best practice flags as a design smell.      |
+| **No-results**                              | Blank slate shape, title names the filter in curly quotes, secondary action clears/widens it, no primary "create" CTA | A filtered list or search that returned zero rows. Follow the template from `research/empty-state.md`: `No {Items} match "${query}". Clear the filter to see all {items}.`                                                                            |
+| **Cleared / all-done**                      | Blank slate shape, positive framing, optionally the one ember completion glow (contract §8 personality touch)         | A queue/inbox that reached zero because work finished, not because nothing was ever there. Never reuses the "no-results" copy shape — completion is good news, say so.                                                                                |
+| **Permission / tier-gated**                 | Full-page empty state (not the smaller inline Note), body follows `{Feature value} with the {Plan} plan.`             | A route the user cannot access at all. Reserve the narrower inline `Note` component (outside this pattern's scope) for a single gated tile inside an otherwise-accessible page.                                                                       |
+| **Error**                                   | Blank slate shape, body pairs with a copyable request id and a "Try Again" Button                                     | A failed load, not a genuine empty state — the content exists but couldn't be fetched.                                                                                                                                                                |
+| **Welcome sequence (3)**                    | Fullscreen takeover or centered Modal, 2 to 5 steps, always skippable                                                 | Once per workspace/account, at creation. Use Fullscreen for 3+ steps with real content (choices, connections); use a Modal (Medium) for 1 to 2 lightweight choices. Never re-triggers itself once completed or skipped.                               |
+| **Onboarding checklist (3)**                | Persistent Card on Today, rows map 1:1 to concrete actions                                                            | Setup that reasonably spans more than one session. Replaces the welcome sequence once the user is past the very first moment; the two are sequential, never simultaneous.                                                                             |
+| **Progressive disclosure (advanced group)** | A `Collapse` (or `CollapseGroup` item) nested at the bottom of a checklist or a settings/setup form                   | Optional, expert, or rarely-needed steps (SSO, spend limits, custom domains) that would overwhelm the primary happy path if shown inline. Per `research/collapse.md`: default closed, cap nesting at one level.                                       |
 
 ## States
 
 **Empty state**
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default | Icon chip | background `--ds-gray-100`, icon `--ds-gray-900` |
-| Default | Title | `--ds-gray-1000` on `--ds-background-100` |
-| Default | Description | `--ds-gray-900` |
-| Default | Time estimate chip | `--ds-gray-900` text on transparent, 16px clock glyph same color |
-| Hover / active / focus / disabled / loading (CTA button) | Primary/secondary Button | Owned entirely by `research/button.md`'s own Button treatment — this pattern positions the button, it never restyles it |
-| Loading (async region, e.g. mid-filter) | Whole region | Flat `--ds-gray-100` placeholder blocks at the real content's proportions, no shimmer (retired system-wide); swap to the settled empty/populated state the instant the response resolves |
-| Empty → appearing after an async change | Whole region | Wrap in `aria-live="polite"` so it announces without stealing focus (see Interaction model) |
-| Error | Body + icon | icon `--ds-red-900`, request-id text `--ds-gray-900` in `text-label-13-mono`, "Try Again" Button variant `error` per `research/button.md` |
+| State                                                    | Applies to               | Tokens                                                                                                                                                                                   |
+| -------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default                                                  | Icon chip                | background `--ds-gray-100`, icon `--ds-gray-900`                                                                                                                                         |
+| Default                                                  | Title                    | `--ds-gray-1000` on `--ds-background-100`                                                                                                                                                |
+| Default                                                  | Description              | `--ds-gray-900`                                                                                                                                                                          |
+| Default                                                  | Time estimate chip       | `--ds-gray-900` text on transparent, 16px clock glyph same color                                                                                                                         |
+| Hover / active / focus / disabled / loading (CTA button) | Primary/secondary Button | Owned entirely by `research/button.md`'s own Button treatment — this pattern positions the button, it never restyles it                                                                  |
+| Loading (async region, e.g. mid-filter)                  | Whole region             | Flat `--ds-gray-100` placeholder blocks at the real content's proportions, no shimmer (retired system-wide); swap to the settled empty/populated state the instant the response resolves |
+| Empty → appearing after an async change                  | Whole region             | Wrap in `aria-live="polite"` so it announces without stealing focus (see Interaction model)                                                                                              |
+| Error                                                    | Body + icon              | icon `--ds-red-900`, request-id text `--ds-gray-900` in `text-label-13-mono`, "Try Again" Button variant `error` per `research/button.md`                                                |
 
 **Welcome sequence**
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default | Step dot, upcoming | 6px circle, border only `--ds-gray-400`, transparent fill |
-| Default | Step dot, current | fill `--ds-gray-1000` |
-| Default | Step dot, completed | fill `--ds-gray-1000`, smaller checkmark glyph knocked out in `--ds-background-100` |
-| Focus | Step dot / Skip / Back / Next | `--ds-focus-ring-outline` |
-| Loading | Next/Finish button, async step (e.g. provisioning) | `loading` prop per `research/button.md`; Back and Skip stay disabled while it resolves so the user can't abandon a request mid-flight |
-| Error | Step body, e.g. a failed connector OAuth | inline banner, background `--ds-red-100`, border `--ds-red-400`, text/icon `--ds-red-900` — same recipe as the dialogs-drawers-sheets Error state, kept identical across the system |
-| Disabled | Next, until the step's required input is present | Owned by Button's own disabled treatment; always paired with a Tooltip naming what's missing |
+| State    | Applies to                                         | Tokens                                                                                                                                                                              |
+| -------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default  | Step dot, upcoming                                 | 6px circle, border only `--ds-gray-400`, transparent fill                                                                                                                           |
+| Default  | Step dot, current                                  | fill `--ds-gray-1000`                                                                                                                                                               |
+| Default  | Step dot, completed                                | fill `--ds-gray-1000`, smaller checkmark glyph knocked out in `--ds-background-100`                                                                                                 |
+| Focus    | Step dot / Skip / Back / Next                      | `--ds-focus-ring-outline`                                                                                                                                                           |
+| Loading  | Next/Finish button, async step (e.g. provisioning) | `loading` prop per `research/button.md`; Back and Skip stay disabled while it resolves so the user can't abandon a request mid-flight                                               |
+| Error    | Step body, e.g. a failed connector OAuth           | inline banner, background `--ds-red-100`, border `--ds-red-400`, text/icon `--ds-red-900` — same recipe as the dialogs-drawers-sheets Error state, kept identical across the system |
+| Disabled | Next, until the step's required input is present   | Owned by Button's own disabled treatment; always paired with a Tooltip naming what's missing                                                                                        |
 
 **Onboarding checklist**
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default, upcoming row | Row background / status glyph / label | row background transparent; status circle border `--ds-gray-700`, no fill (mirrors Checkbox's unchecked-enabled recipe); label `--ds-gray-1000` in `text-label-14` |
-| Hover, upcoming row | Row background | `--ds-gray-100` |
-| Active/pressed, upcoming row | Row background | `--ds-gray-200` |
-| Focus, row (as a link/button) | Row outline | `--ds-focus-ring-outline` |
-| Done row | Status glyph / label | status circle fills `--ds-gray-1000` with border `--ds-gray-1000`; checkmark path knocked out in `--ds-background-100` (our substitute for Geist's internal `--geist-background` reference, since that token isn't in our set — same knockout effect, our own equivalent); label dims to `--ds-gray-900` (still legible, never strikethrough) |
-| Disabled row (prerequisite not met) | Status glyph / label / row | background `--ds-gray-100`, border `--ds-gray-500`, label `--ds-gray-700` — mirrors Checkbox's disabled-unchecked recipe exactly; always paired with a Tooltip naming the prerequisite (per `research/checkbox.md`'s own best practice) |
-| Loading row (system verifying completion) | Status glyph | glyph replaced by a small spinner, label unchanged |
-| Error row (attempted action failed) | Status glyph / row | border `--ds-red-400`, glyph `--ds-red-900`, inline "Retry" affordance replaces the chevron |
-| Progress meter | Track / fill | track `--ds-gray-200`; fill `--ds-gray-1000` by default. On the single transition to 100%, the fill may pulse to `--ds-ember-600` once — the contract's own sanctioned "ember glow on a completed run" personality touch, never repeated and never the resting color |
-| Collapse trigger ("Advanced") | Default / hover / focus | Follows `research/collapse.md`'s own trigger treatment; chevron rotates on toggle |
-| Empty (all rows done, group about to retire) | Whole card | Collapses to a single dismissible "All set" row per the Cleared/all-done empty-state variant, then removes itself — never lingers as a permanent 100% trophy case |
+| State                                        | Applies to                            | Tokens                                                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default, upcoming row                        | Row background / status glyph / label | row background transparent; status circle border `--ds-gray-700`, no fill (mirrors Checkbox's unchecked-enabled recipe); label `--ds-gray-1000` in `text-label-14`                                                                                                                                                                            |
+| Hover, upcoming row                          | Row background                        | `--ds-gray-100`                                                                                                                                                                                                                                                                                                                               |
+| Active/pressed, upcoming row                 | Row background                        | `--ds-gray-200`                                                                                                                                                                                                                                                                                                                               |
+| Focus, row (as a link/button)                | Row outline                           | `--ds-focus-ring-outline`                                                                                                                                                                                                                                                                                                                     |
+| Done row                                     | Status glyph / label                  | status circle fills `--ds-gray-1000` with border `--ds-gray-1000`; checkmark path knocked out in `--ds-background-100` (our substitute for Geist's internal `--geist-background` reference, since that token isn't in our set — same knockout effect, our own equivalent); label dims to `--ds-gray-900` (still legible, never strikethrough) |
+| Disabled row (prerequisite not met)          | Status glyph / label / row            | background `--ds-gray-100`, border `--ds-gray-500`, label `--ds-gray-700` — mirrors Checkbox's disabled-unchecked recipe exactly; always paired with a Tooltip naming the prerequisite (per `research/checkbox.md`'s own best practice)                                                                                                       |
+| Loading row (system verifying completion)    | Status glyph                          | glyph replaced by a small spinner, label unchanged                                                                                                                                                                                                                                                                                            |
+| Error row (attempted action failed)          | Status glyph / row                    | border `--ds-red-400`, glyph `--ds-red-900`, inline "Retry" affordance replaces the chevron                                                                                                                                                                                                                                                   |
+| Progress meter                               | Track / fill                          | track `--ds-gray-200`; fill `--ds-gray-1000` by default. On the single transition to 100%, the fill may pulse to `--ds-ember-600` once — the contract's own sanctioned "ember glow on a completed run" personality touch, never repeated and never the resting color                                                                          |
+| Collapse trigger ("Advanced")                | Default / hover / focus               | Follows `research/collapse.md`'s own trigger treatment; chevron rotates on toggle                                                                                                                                                                                                                                                             |
+| Empty (all rows done, group about to retire) | Whole card                            | Collapses to a single dismissible "All set" row per the Cleared/all-done empty-state variant, then removes itself — never lingers as a permanent 100% trophy case                                                                                                                                                                             |
 
 ## Interaction model
 
@@ -163,13 +163,13 @@ first unstarted row of that same checklist.
 
 **Keyboard**
 
-| Key | Effect |
-| --- | --- |
+| Key                 | Effect                                                                                                                                                                                                                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Tab` / `Shift+Tab` | Move focus between chip → title → description → CTA row (empty state); between step content's own controls, then Back/Skip/Next (welcome sequence); between checklist rows top to bottom, then the Advanced trigger and its rows once expanded |
-| `Enter` / `Space` | Activates the focused Button, Link, checklist row, or Collapse trigger; toggles a manual-complete row's Checkbox |
-| `Escape` | Welcome sequence only: same effect as Skip, routed through the dialogs-drawers-sheets unsaved-changes guard if the current step holds dirty input; no effect on an empty state or checklist card (neither is a dismissible surface) |
-| `Home` / `End` | If the step indicator is implemented as a tab-like control, jumps to the first / furthest-reached step |
-| Arrow keys | Not globally bound anywhere in this pattern (matches `research/collapse.md`'s own choice to leave arrow keys free for content navigation) |
+| `Enter` / `Space`   | Activates the focused Button, Link, checklist row, or Collapse trigger; toggles a manual-complete row's Checkbox                                                                                                                               |
+| `Escape`            | Welcome sequence only: same effect as Skip, routed through the dialogs-drawers-sheets unsaved-changes guard if the current step holds dirty input; no effect on an empty state or checklist card (neither is a dismissible surface)            |
+| `Home` / `End`      | If the step indicator is implemented as a tab-like control, jumps to the first / furthest-reached step                                                                                                                                         |
+| Arrow keys          | Not globally bound anywhere in this pattern (matches `research/collapse.md`'s own choice to leave arrow keys free for content navigation)                                                                                                      |
 
 **Screen-reader behavior**
 
@@ -251,41 +251,41 @@ first unstarted row of that same checklist.
 
 ## Tokens used
 
-| Token | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Page/card surface fill; also the checkmark knockout color on a done checklist row |
-| `--ds-background-200` | Rare subtle differentiation only, e.g. a card-in-card nested group |
-| `--ds-gray-100` | Icon chip fill; row hover background; disabled-row background |
-| `--ds-gray-200` | Row active/pressed background |
-| `--ds-gray-400` | Upcoming step-dot border |
-| `--ds-gray-500` | Disabled-row border (mirrors Checkbox's disabled-unchecked recipe) |
-| `--ds-gray-700` | Disabled-row label/status color; upcoming-row status circle border |
-| `--ds-gray-900` | Description text; secondary/done-row label text; icon chip glyph color |
-| `--ds-gray-1000` | Title text; current/completed step-dot fill; done-row status fill and default progress-meter fill |
-| `--ds-gray-alpha-400` | Card outer hairline when composed over an unknown background |
-| `--ds-ember-600` | The one sanctioned personality touch: a single non-repeating glow on the progress meter at 100% completion |
-| `--ds-red-100` | Error banner wash (welcome-sequence step error) |
-| `--ds-red-400` | Error banner border; error-row border |
-| `--ds-red-900` | Error text/icon, request-id error state, error-row glyph |
-| `--ds-focus-ring-outline` | Focus state on every interactive element in this pattern |
-| `--ds-z-modal` / `--ds-z-drawer` | Welcome sequence stacking context (Modal/Fullscreen vs. mobile Drawer), inherited from `patterns/dialogs-drawers-sheets.md` |
-| `--ds-motion-timing-swift` | Easing for every transition in this pattern |
-| `--ds-motion-overlay-scale` (0.96) / `--ds-motion-overlay-duration` (0.3s) | Welcome-sequence open/close |
-| `--ds-motion-popover-duration` (0.2s) | Progressive-disclosure expand/collapse (borrowed for consistency, since Collapse's own duration isn't published) |
-| `--ds-radius-small` / `--ds-shadow-border-small` (via `material-small`) | Onboarding checklist card chrome |
-| `--ds-radius-large` / `--ds-shadow-fullscreen` (via `material-fullscreen`) | Welcome-sequence Fullscreen-takeover chrome |
-| `text-heading-20` / `text-heading-16` | Empty-state title; welcome-sequence step headline (Sans, unless the one Pixel moment is used instead) |
-| `--font-pixel` | The single allowed Geist Pixel headline per screen (empty-state title or welcome-sequence opening step only, never both on one screen) |
-| `text-copy-14` | Description / instruction sentences throughout |
-| `text-label-14` | Checklist row labels |
-| `text-label-13` | Time-estimate chip text |
-| `text-label-13-mono` + `.text-tabular` | The "3 of 5" progress counter (technical/numeric content per the contract's Mono law) |
-| `text-button-14` | CTA labels, inherited from Button |
-| `--geist-space-4x` (16px) | Card padding |
-| `--geist-space-6x` (24px) | Section gaps between empty-state parts, welcome-sequence step padding |
-| `--geist-gap-half` (12px) | Row-to-row gap inside the checklist |
-| `--geist-gap-quarter` (8px) | Icon-to-label gaps, status-glyph-to-text gaps |
-| `--ds-size-medium` (36px) | Baseline checklist-row height, borrowed from the control-height rhythm for list-density consistency |
+| Token                                                                      | Role in this pattern                                                                                                                   |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                      | Page/card surface fill; also the checkmark knockout color on a done checklist row                                                      |
+| `--ds-background-200`                                                      | Rare subtle differentiation only, e.g. a card-in-card nested group                                                                     |
+| `--ds-gray-100`                                                            | Icon chip fill; row hover background; disabled-row background                                                                          |
+| `--ds-gray-200`                                                            | Row active/pressed background                                                                                                          |
+| `--ds-gray-400`                                                            | Upcoming step-dot border                                                                                                               |
+| `--ds-gray-500`                                                            | Disabled-row border (mirrors Checkbox's disabled-unchecked recipe)                                                                     |
+| `--ds-gray-700`                                                            | Disabled-row label/status color; upcoming-row status circle border                                                                     |
+| `--ds-gray-900`                                                            | Description text; secondary/done-row label text; icon chip glyph color                                                                 |
+| `--ds-gray-1000`                                                           | Title text; current/completed step-dot fill; done-row status fill and default progress-meter fill                                      |
+| `--ds-gray-alpha-400`                                                      | Card outer hairline when composed over an unknown background                                                                           |
+| `--ds-ember-600`                                                           | The one sanctioned personality touch: a single non-repeating glow on the progress meter at 100% completion                             |
+| `--ds-red-100`                                                             | Error banner wash (welcome-sequence step error)                                                                                        |
+| `--ds-red-400`                                                             | Error banner border; error-row border                                                                                                  |
+| `--ds-red-900`                                                             | Error text/icon, request-id error state, error-row glyph                                                                               |
+| `--ds-focus-ring-outline`                                                  | Focus state on every interactive element in this pattern                                                                               |
+| `--ds-z-modal` / `--ds-z-drawer`                                           | Welcome sequence stacking context (Modal/Fullscreen vs. mobile Drawer), inherited from `patterns/dialogs-drawers-sheets.md`            |
+| `--ds-motion-timing-swift`                                                 | Easing for every transition in this pattern                                                                                            |
+| `--ds-motion-overlay-scale` (0.96) / `--ds-motion-overlay-duration` (0.3s) | Welcome-sequence open/close                                                                                                            |
+| `--ds-motion-popover-duration` (0.2s)                                      | Progressive-disclosure expand/collapse (borrowed for consistency, since Collapse's own duration isn't published)                       |
+| `--ds-radius-small` / `--ds-shadow-border-small` (via `material-small`)    | Onboarding checklist card chrome                                                                                                       |
+| `--ds-radius-large` / `--ds-shadow-fullscreen` (via `material-fullscreen`) | Welcome-sequence Fullscreen-takeover chrome                                                                                            |
+| `text-heading-20` / `text-heading-16`                                      | Empty-state title; welcome-sequence step headline (Sans, unless the one Pixel moment is used instead)                                  |
+| `--font-pixel`                                                             | The single allowed Geist Pixel headline per screen (empty-state title or welcome-sequence opening step only, never both on one screen) |
+| `text-copy-14`                                                             | Description / instruction sentences throughout                                                                                         |
+| `text-label-14`                                                            | Checklist row labels                                                                                                                   |
+| `text-label-13`                                                            | Time-estimate chip text                                                                                                                |
+| `text-label-13-mono` + `.text-tabular`                                     | The "3 of 5" progress counter (technical/numeric content per the contract's Mono law)                                                  |
+| `text-button-14`                                                           | CTA labels, inherited from Button                                                                                                      |
+| `--geist-space-4x` (16px)                                                  | Card padding                                                                                                                           |
+| `--geist-space-6x` (24px)                                                  | Section gaps between empty-state parts, welcome-sequence step padding                                                                  |
+| `--geist-gap-half` (12px)                                                  | Row-to-row gap inside the checklist                                                                                                    |
+| `--geist-gap-quarter` (8px)                                                | Icon-to-label gaps, status-glyph-to-text gaps                                                                                          |
+| `--ds-size-medium` (36px)                                                  | Baseline checklist-row height, borrowed from the control-height rhythm for list-density consistency                                    |
 
 ## Implementation guidance
 
@@ -365,11 +365,7 @@ function FirstRunSequence() {
   const steps = ["welcome", "connect-source", "invite-team"] as const;
 
   return (
-    <WelcomeSequence
-      step={step}
-      stepCount={steps.length}
-      onSkip={skipOnboarding}
-    >
+    <WelcomeSequence step={step} stepCount={steps.length} onSkip={skipOnboarding}>
       <WelcomeSequenceStep
         headline="Welcome to Cadence"
         pixelHeadline
@@ -426,10 +422,7 @@ function DiscoverEmptyState() {
 **3. Onboarding checklist on Today with a collapsed Advanced group**
 
 ```tsx
-import {
-  OnboardingChecklist,
-  OnboardingChecklistItem,
-} from "@/components/ui/onboarding-checklist";
+import { OnboardingChecklist, OnboardingChecklistItem } from "@/components/ui/onboarding-checklist";
 import { Collapse } from "@/components/ui/collapse";
 
 function TodayOnboardingChecklist({ state }: { state: OnboardingState }) {
@@ -441,11 +434,7 @@ function TodayOnboardingChecklist({ state }: { state: OnboardingState }) {
       doneCount={state.doneCount}
       totalCount={state.totalCount}
     >
-      <OnboardingChecklistItem
-        done={state.hasSource}
-        label="Connect a data source"
-        href="/sync"
-      />
+      <OnboardingChecklistItem done={state.hasSource} label="Connect a data source" href="/sync" />
       <OnboardingChecklistItem
         done={state.hasTeam}
         label="Invite your team"

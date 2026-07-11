@@ -11,16 +11,16 @@ evidence and tooling under it. When look/feel/IA disagreement arises anywhere, t
 
 ## Contents
 
-| Path | What it is |
-| --- | --- |
-| `TEMPO.md` | **The portable distribution** — one self-contained, tool-agnostic brief (laws + core tokens + rules of thumb) for any AI builder or human: Lovable knowledge, Codex/Cursor rules, onboarding. |
-| `tokens/colors.css` | Both themes, all 10 scales + gray-alpha + backgrounds + ember + focus ring. Values extracted from the live Geist site; never invent a hex. |
-| `tokens/typography.css` | Geist Sans/Mono/Pixel stacks + the full type class system (`text-heading-72`…`text-copy-13-mono`, Strong/Subtle modifiers). |
-| `tokens/materials.css` | Radii, shadow set, the 8 material presets (base→fullscreen), motion timing, control sizes (32/36/40), popover anatomy, z-index, page width. |
-| `tokens/spacing.css` | The 4px-base space ramp and gap rhythm. |
-| `tokens/fonts.css` | `@font-face` for self-hosted Geist Sans/Mono variable + 5 Pixel faces (files in `/public/fonts/geist/`, SIL OFL 1.1). |
-| `research/` | Re-implementation-grade specs of every documented Geist component (one file per component; index in its `README.md`), plus `_foundations.md` and `_public-sources.md` (what is publicly liftable vs re-implemented). |
-| `patterns/` | The extension library (contract §9): AI-interface and enterprise workflow patterns beyond the Geist catalog, each marked Extension with its sources (Linear/Stripe/Notion/Figma/Arc/Anthropic/Perplexity — inspiration only, never a second base). |
+| Path                    | What it is                                                                                                                                                                                                                                         |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TEMPO.md`              | **The portable distribution** — one self-contained, tool-agnostic brief (laws + core tokens + rules of thumb) for any AI builder or human: Lovable knowledge, Codex/Cursor rules, onboarding.                                                      |
+| `tokens/colors.css`     | Both themes, all 10 scales + gray-alpha + backgrounds + ember + focus ring. Values extracted from the live Geist site; never invent a hex.                                                                                                         |
+| `tokens/typography.css` | Geist Sans/Mono/Pixel stacks + the full type class system (`text-heading-72`…`text-copy-13-mono`, Strong/Subtle modifiers).                                                                                                                        |
+| `tokens/materials.css`  | Radii, shadow set, the 8 material presets (base→fullscreen), motion timing, control sizes (32/36/40), popover anatomy, z-index, page width.                                                                                                        |
+| `tokens/spacing.css`    | The 4px-base space ramp and gap rhythm.                                                                                                                                                                                                            |
+| `tokens/fonts.css`      | `@font-face` for self-hosted Geist Sans/Mono variable + 5 Pixel faces (files in `/public/fonts/geist/`, SIL OFL 1.1).                                                                                                                              |
+| `research/`             | Re-implementation-grade specs of every documented Geist component (one file per component; index in its `README.md`), plus `_foundations.md` and `_public-sources.md` (what is publicly liftable vs re-implemented).                               |
+| `patterns/`             | The extension library (contract §9): AI-interface and enterprise workflow patterns beyond the Geist catalog, each marked Extension with its sources (Linear/Stripe/Notion/Figma/Arc/Anthropic/Perplexity — inspiration only, never a second base). |
 
 ## Provenance & licensing
 

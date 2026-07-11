@@ -34,6 +34,7 @@ Menu extends the [Button component](https://vercel.com/geist/button) — the tri
 - `Tooltip` — used to wrap `MenuItemLocked` for the "why is this disabled" explanation. Props seen: `className`, `text`.
 
 Import paths seen in every example:
+
 ```tsx
 import {
   Menu,
@@ -44,25 +45,18 @@ import {
   MenuItemLocked,
   MenuLink,
   MenuSection,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import {
-  IconAccessibility,
-  IconMoreHorizontal,
-} from '@vercel/geistcn-assets/icons';
+} from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { IconAccessibility, IconMoreHorizontal } from "@vercel/geistcn-assets/icons";
 ```
 
 ### Usage snippets (verbatim from the page's "Show code" panels)
 
 **Default**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -83,14 +77,10 @@ export function Component(): JSX.Element {
 ```
 
 **With chevron**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -115,14 +105,10 @@ export function Component(): JSX.Element {
 ```
 
 **Disabled items**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -144,6 +130,7 @@ export function Component(): JSX.Element {
 ```
 
 **Locked items**
+
 ```tsx
 import {
   Menu,
@@ -152,8 +139,8 @@ import {
   MenuItem,
   MenuItemLocked,
   Tooltip,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+} from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -162,10 +149,7 @@ export function Component(): JSX.Element {
       <Menu width={200}>
         <MenuItem onClick={() => undefined}>View Details</MenuItem>
         <MenuItem onClick={() => undefined}>Edit</MenuItem>
-        <Tooltip
-          className="w-full flex"
-          text="You do not have the permissions to delete."
-        >
+        <Tooltip className="w-full flex" text="You do not have the permissions to delete.">
           <MenuItemLocked onClick={() => undefined}>Delete</MenuItemLocked>
         </Tooltip>
       </Menu>
@@ -175,14 +159,10 @@ export function Component(): JSX.Element {
 ```
 
 **Link items**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuLink,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuLink } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -199,15 +179,10 @@ export function Component(): JSX.Element {
 ```
 
 **Custom trigger**
+
 ```tsx
-import {
-  Avatar,
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Avatar, Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -226,30 +201,17 @@ export function Component(): JSX.Element {
 ```
 
 **Prefix and suffix**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
-import {
-  IconAccessibility,
-  IconMoreHorizontal,
-} from '@vercel/geistcn-assets/icons';
+import { Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
+import { IconAccessibility, IconMoreHorizontal } from "@vercel/geistcn-assets/icons";
 
 export function Component(): JSX.Element {
   return (
     <div className="flex flex-row items-stretch justify-start gap-6 flex-initial">
       <MenuContainer>
-        <MenuButton
-          aria-label="Menu"
-          shape="square"
-          size="small"
-          svgOnly
-          variant="secondary"
-        >
+        <MenuButton aria-label="Menu" shape="square" size="small" svgOnly variant="secondary">
           <IconMoreHorizontal />
         </MenuButton>
         <Menu>
@@ -259,13 +221,7 @@ export function Component(): JSX.Element {
         </Menu>
       </MenuContainer>
       <MenuContainer>
-        <MenuButton
-          aria-label="Menu"
-          shape="square"
-          size="small"
-          svgOnly
-          variant="secondary"
-        >
+        <MenuButton aria-label="Menu" shape="square" size="small" svgOnly variant="secondary">
           <IconMoreHorizontal />
         </MenuButton>
         <Menu>
@@ -278,17 +234,14 @@ export function Component(): JSX.Element {
   );
 }
 ```
+
 _Note: `Menu` is used here with no `width` prop — it sizes to content when omitted._
 
 **Menu position**
+
 ```tsx
-import {
-  Menu,
-  MenuButton,
-  MenuContainer,
-  MenuItem,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -304,6 +257,7 @@ export function Component(): JSX.Element {
 ```
 
 **With section**
+
 ```tsx
 import {
   Menu,
@@ -313,8 +267,8 @@ import {
   MenuItem,
   MenuItemLocked,
   MenuSection,
-} from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+} from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -350,23 +304,27 @@ export function Component(): JSX.Element {
 ## Best practices
 
 **When to use**
+
 - Reach for Menu when a single trigger should reveal a short, discoverable list of actions scoped to one resource (e.g. the "..." menu on a table row, or a dropdown hung off a primary entity).
 - Don't reuse Menu for right-click/long-press context actions (use ContextMenu instead) or for a global command palette behind Cmd+K (use CommandMenu instead).
 - If there are only two closely related primary actions, prefer a split button over hiding the second action inside a menu.
 
 **Behavior**
+
 - The menu opens on click only — never on hover, since hover-open interactions break for screen reader users and conflict with trackpad scrolling.
 - Placement isn't fixed: it auto-flips to stay inside the viewport, so don't hardcode a side that will clip on narrow screens.
 - Close the menu when an item is activated, on Escape, or on an outside click — but never just because the pointer moved off it (no hover-to-close).
 - For actions gated by permissions, use `MenuItemLocked` so the lock icon and disabled visual state carry the "why," rather than silently disabling a plain `MenuItem`.
 
 **Content**
+
 - Item labels are Title Case "Verb + Noun" (e.g. "Rename Project", "Duplicate Deployment"); a bare verb like "Rename" or "Edit" only works when the object is unambiguous from context, which is rare.
 - Only append an ellipsis when the item opens a follow-up dialog/step ("Rename…", "Transfer to Team…") — not for actions that complete immediately.
 - Destructive items belong together at the bottom of the menu, separated from the rest by a divider, and keep the same Verb + Noun phrasing (e.g. "Delete Project" — never a bare "Delete").
 - Section headings (`MenuSection`'s `title`) stay short — one or two Title Case words ("Workspace", "Recent Projects").
 
 **Accessibility**
+
 - Arrow Up/Down move focus between items, Home/End jump to the first/last item, Enter or Space activates the focused item.
 - Typeahead lets a user type a character to jump to the next item starting with it — so keep the visible label as the first thing rendered in the item so what's typed matches what's read.
 - On close, focus must return to the trigger button so keyboard users don't lose their place in the surrounding row/list.

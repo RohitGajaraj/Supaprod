@@ -32,6 +32,7 @@ describe("myFunction", () => {
 ```
 
 **Used in**:
+
 - `format.ts` (signal humanization, time formatting)
 - `ranking.ts` (opportunity ranking, designation logic)
 - `ship-format.ts` (time/currency formatting)
@@ -59,8 +60,8 @@ test("renders spinner when statuses is non-empty", () => {
   // Find the spinner within children
   const children = result?.props.children;
   // Spinner is typically a child span with className="spinner"
-  const hasSpinner = Array.isArray(children) && 
-    children.some((child: any) => child?.props?.className === "spinner");
+  const hasSpinner =
+    Array.isArray(children) && children.some((child: any) => child?.props?.className === "spinner");
   expect(hasSpinner).toBe(true);
 });
 
@@ -71,12 +72,14 @@ test("returns null when statuses is empty", () => {
 ```
 
 **Pattern notes**:
+
 - Call component as a function: `Component({ props })`
 - Inspect returned JSX object (not DOM)
 - Check `.type`, `.props`, `.children`
 - No RTL or DOM rendering needed (faster, pure)
 
 **Used in**:
+
 - `ResearchActivity.test.ts` (ResearchActivityLine, ResearchSummaryRow)
 
 ---
@@ -133,11 +136,13 @@ test("higher ice_score ranks first", () => {
 ```
 
 **Benefits**:
+
 - One place to define defaults (reduces duplication)
 - Tests read clearly (what's varied is explicit)
 - Easy to update if the type changes
 
 **Used in**:
+
 - `ranking.test.ts` (mk fixture builder)
 - `format.test.ts` (payload builders)
 - `decisions-shared.test.ts` (base fixture with spread override)
@@ -173,6 +178,7 @@ test("critic verdict takes precedence over status", () => {
 ```
 
 **Used in**:
+
 - `ranking.test.ts` (verdict tie-breaking tests)
 - `format.test.ts` (verdict for input mapping)
 
@@ -197,6 +203,7 @@ test("ageOf: future timestamp doesn't go negative", () => {
 **Avoid**: `new Date("2026-01-01")` unless testing a specific fixed date
 
 **Used in**:
+
 - `decisions-shared.test.ts` (ageOf time buckets)
 - `format.test.ts` (relTimeCaps buckets)
 
@@ -226,6 +233,7 @@ test("NaN age falls back to empty string (guard against 'Invalid Date' rendering
 **Pattern**: Error cases should degrade gracefully, never crash or render invalid content.
 
 **Used in**:
+
 - `format.test.ts` (withTimeout, malformed URLs)
 - `decisions-shared.test.ts` (malformed timestamps)
 
@@ -259,6 +267,7 @@ describe("STATUS_TONE mapping", () => {
 **Pattern**: Ensures no missing enum entries (compile-time via TS, but runtime test confirms).
 
 **Used in**:
+
 - `decisions-shared.ts` vocabulary mappings
 
 ---
@@ -275,8 +284,8 @@ test("rankOpportunities returns deterministic order (stable sort)", () => {
     mk({ id: "b", ice_score: 5 }),
   ];
 
-  const order1 = rankOpportunities(opps, () => 0).map(r => r.opp.id);
-  const order2 = rankOpportunities(opps, () => 0).map(r => r.opp.id);
+  const order1 = rankOpportunities(opps, () => 0).map((r) => r.opp.id);
+  const order2 = rankOpportunities(opps, () => 0).map((r) => r.opp.id);
 
   expect(order1).toEqual(order2); // Same order every time
   expect(order1).toEqual(["a", "b", "c"]); // Alphabetical finalizer
@@ -286,6 +295,7 @@ test("rankOpportunities returns deterministic order (stable sort)", () => {
 **Pattern**: Pure functions should return the same result every time.
 
 **Used in**:
+
 - `ranking.test.ts` (compareOpportunities tie-breaks)
 
 ---
@@ -309,12 +319,14 @@ describe.skip("parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () => {
 ```
 
 **Pattern**:
+
 - Use `.skip` to prevent false passes
 - Include clear TODO comments
 - Document assertion targets
 - Reference related issues/decisions
 
 **Used in**:
+
 - This audit's new test skeletons
 
 ---
@@ -322,17 +334,17 @@ describe.skip("parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () => {
 ## 11. Assertion Matchers Cheat Sheet
 
 ```typescript
-expect(value).toBe(exact);                // Strict equality
-expect(value).toEqual(object);            // Deep equality
-expect(value).not.toBe(exact);            // Negation
-expect(fn).toThrow();                     // Throws an error
-expect(fn).not.toThrow();                 // Does not throw
-expect(string).toContain("substring");    // String includes
-expect(array).toHaveLength(n);            // Array length
-expect(num).toBeGreaterThan(10);          // Numeric comparison
-expect(num).toBeGreaterThanOrEqual(10);   
-expect(result).toBeDefined();             // Not undefined
-expect(result).not.toBeDefined();         // Is undefined
+expect(value).toBe(exact); // Strict equality
+expect(value).toEqual(object); // Deep equality
+expect(value).not.toBe(exact); // Negation
+expect(fn).toThrow(); // Throws an error
+expect(fn).not.toThrow(); // Does not throw
+expect(string).toContain("substring"); // String includes
+expect(array).toHaveLength(n); // Array length
+expect(num).toBeGreaterThan(10); // Numeric comparison
+expect(num).toBeGreaterThanOrEqual(10);
+expect(result).toBeDefined(); // Not undefined
+expect(result).not.toBeDefined(); // Is undefined
 ```
 
 **Bun uses Jest-compatible matchers**. See: https://docs.getterms.dev/docs/bun/test
@@ -382,17 +394,19 @@ src/components/discover/
 ## 14. Test Naming Guidelines
 
 ✅ **Good**:
+
 ```typescript
-test("ageOf returns '3h ago' for a timestamp 3 hours in the past")
-test("nextActionFor returns 'Draft the spec' for SHIP verdict with backlog status")
-test("verdictFor prefers critic verdict over status mapping")
+test("ageOf returns '3h ago' for a timestamp 3 hours in the past");
+test("nextActionFor returns 'Draft the spec' for SHIP verdict with backlog status");
+test("verdictFor prefers critic verdict over status mapping");
 ```
 
 ❌ **Bad**:
+
 ```typescript
-test("it works")
-test("test ageOf function")
-test("various inputs")
+test("it works");
+test("test ageOf function");
+test("various inputs");
 ```
 
 **Pattern**: Describe the input and expected output; read like a specification.
@@ -415,17 +429,17 @@ bun test --reporter=spec  # Detailed output per test
 
 ## Summary
 
-| Pattern | Files | Use Case |
-|---------|-------|----------|
-| Pure function testing | format, ranking, ship-format | Most common; no dependencies |
-| Component via invocation | ResearchActivity | JSX inspection without RTL |
-| Fixture builders | ranking, format | Reduce duplication in test data |
-| Hook testing (RTL) | graph-visual | React hooks with side effects |
-| Relative timestamps | decisions-shared, format | Time-sensitive logic |
-| Error/fallback testing | format, ranking | Graceful degradation |
-| Enum coverage | decisions-shared | All cases mapped |
-| Deterministic order | ranking | Reproducible results |
-| Skipped test skeletons | This audit | Document gaps without false passes |
+| Pattern                  | Files                        | Use Case                           |
+| ------------------------ | ---------------------------- | ---------------------------------- |
+| Pure function testing    | format, ranking, ship-format | Most common; no dependencies       |
+| Component via invocation | ResearchActivity             | JSX inspection without RTL         |
+| Fixture builders         | ranking, format              | Reduce duplication in test data    |
+| Hook testing (RTL)       | graph-visual                 | React hooks with side effects      |
+| Relative timestamps      | decisions-shared, format     | Time-sensitive logic               |
+| Error/fallback testing   | format, ranking              | Graceful degradation               |
+| Enum coverage            | decisions-shared             | All cases mapped                   |
+| Deterministic order      | ranking                      | Reproducible results               |
+| Skipped test skeletons   | This audit                   | Document gaps without false passes |
 
 ---
 

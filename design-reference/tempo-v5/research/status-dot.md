@@ -17,8 +17,8 @@ No separate "Sizes", "Types", "Variants", or "States" demo sections exist for th
 Single component, no documented subcomponents.
 
 ```tsx
-import { StatusDot } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { StatusDot } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -34,8 +34,8 @@ export function Component(): JSX.Element {
 ```
 
 ```tsx
-import { StatusDot } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { StatusDot } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
@@ -61,7 +61,12 @@ export function Component(): JSX.Element {
 **Rendered DOM shape observed** (from the live demo markup, both variants):
 
 ```html
-<span aria-label="Queued" class="inline-flex items-center" title="This deployment is queued." data-testid="geistcn/status-dot">
+<span
+  aria-label="Queued"
+  class="inline-flex items-center"
+  title="This deployment is queued."
+  data-testid="geistcn/status-dot"
+>
   <span class="inline-block size-2.5 rounded-full bg-[var(--accents-2)]"></span>
   <!-- only present when label is set: -->
   <span class="text-label-14 ml-2 leading-[16px]">Queued</span>
@@ -70,34 +75,38 @@ export function Component(): JSX.Element {
 
 **Exact tooltip/aria strings per state** (the `title` attribute and the `aria-label`, composed from `titlePrefix` + state message):
 
-| `state` | `aria-label` | `title` |
-|---|---|---|
-| `QUEUED` | Queued | This deployment is queued. |
-| `BUILDING` | Building | This deployment is building. |
-| `ERROR` | Error | This deployment had an error. |
-| `READY` | Ready | This deployment is ready. |
-| `CANCELED` | Canceled | This deployment was canceled. |
+| `state`    | `aria-label` | `title`                       |
+| ---------- | ------------ | ----------------------------- |
+| `QUEUED`   | Queued       | This deployment is queued.    |
+| `BUILDING` | Building     | This deployment is building.  |
+| `ERROR`    | Error        | This deployment had an error. |
+| `READY`    | Ready        | This deployment is ready.     |
+| `CANCELED` | Canceled     | This deployment was canceled. |
 
 (`DELETED` is documented as a valid enum value but its copy is not shown anywhere on the page.)
 
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reserve this component strictly for deployment lifecycle status — don't repurpose it for anything else.
 - For other kinds of status (workflow runs, queue messages, sandboxes, cron jobs) use `Badge` with that domain's own state vocabulary instead of stretching Status Dot to fit.
 - If you need a quantified health metric (uptime %, hit rate), reach for `Gauge`; for in-progress work with a known total, use `Progress` — Status Dot is for discrete lifecycle state, not measurement.
 
 **Behavior**
+
 - The dot should animate only while the deployment is actively `BUILDING` or `QUEUED`; once it reaches any terminal state it goes static. Don't pair it with a separate spinner — the dot's own animation is the loading signal.
 - Avoid cycling the dot's color through every transitional state on each poll; update it only when the underlying `readyState` actually changes, to avoid visual noise/flicker.
 - When timing matters, pair the dot with a `RelativeTimeCard` (e.g. "Building · 12s ago") — the dot by itself carries no duration information.
 
 **Content**
+
 - `titlePrefix` must read as a noun phrase, never a full sentence or something ending in a verb/punctuation. Default (`"This deployment"`) suits single-deployment views; in list views pass the specific entity name (e.g. `titlePrefix="vercel-site production"`).
 - Only turn on `label` when the dot has to stand alone without adjacent text explaining the state — Geist sentence-cases the state text for you automatically.
 - Don't wrap the dot in redundant prose like "Status: Ready" — the label (or tooltip) already names the state; that would be double-saying it.
 
 **Accessibility**
+
 - The component builds its own `aria-label` out of `titlePrefix` + the state's message — don't override it with something generic like `aria-label="status"`.
 - If the dot sits inline next to text that already states the same status, mark the dot `aria-hidden` so assistive tech doesn't announce the state twice.
 - Color is never the sole signal — every state ships with its own distinct title/label text so colorblind users get the same information non-visually.

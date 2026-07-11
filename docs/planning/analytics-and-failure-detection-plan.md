@@ -372,7 +372,7 @@ The picker MUST NOT start AFD until:
 
 - Commit this plan + the 4 sibling docs (façade spec, decision record, alerting runbook, feature spec).
 - Add G12 + 14 rows to the dashboard.
-- Update SSOT, AGENTS.md, CLAUDE.md, considerations, plan.md, procurement-inventory, strategic-inputs-log, session-decisions, architecture/*, app-health, features/README, docs/README, and the docs index.
+- Update SSOT, AGENTS.md, CLAUDE.md, considerations, plan.md, procurement-inventory, strategic-inputs-log, session-decisions, architecture/\*, app-health, features/README, docs/README, and the docs index.
 - **No code changes. No vendor signup. No keys set.**
 
 ### Phase 1 — Plumbing (Day 1, 1 PR; AFD-01..03)
@@ -408,7 +408,7 @@ The picker MUST NOT start AFD until:
 ### Phase 5 — Verification (Day 5, no PR)
 
 - Run the acceptance criteria in §8 end-to-end against the live app.
-- Mark all 14 AFD-* rows ✅ in `feature-dashboard.md`.
+- Mark all 14 AFD-\* rows ✅ in `feature-dashboard.md`.
 - Move §3 SSOT cursor to "AFD complete, observability live, dormant kill-switch ready."
 
 ---

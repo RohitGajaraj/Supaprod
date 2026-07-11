@@ -195,7 +195,7 @@ export function AmbientChip({ inline: _inline = true }: { inline?: boolean } = {
       {weather && (
         <>
           {" "}
-          · <span style={{ fontVariantNumeric: "tabular-nums" }}>{Math.round(weather.tempC)}°</span>
+          · <span className="text-tabular">{Math.round(weather.tempC)}°</span>
         </>
       )}
     </span>

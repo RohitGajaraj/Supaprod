@@ -88,41 +88,41 @@ Drawer (mobile/small viewport, bottom-anchored, content-driven or fixed height):
 Pick the lightest surface that still earns the interruption. In order of how much of the
 user's context they take away:
 
-| Variant | Blocking? | When to use |
-| --- | --- | --- |
-| **Context sheet** | No — page stays lightly dimmed but interactive behind it | Peeking or lightly editing one record while the list/board stays live (e.g. reading a PRD's linked evidence while Discovery stays scrollable behind it). Paraphrased from the Stripe Apps ContextView principle: side-by-side context, not full attention capture. |
-| **Focus sheet** | Yes — full backdrop, page inert behind it | A deeper, longer edit that still belongs beside its source rather than replacing it (editing a roadmap item's full detail form). Paraphrased from the Stripe Apps FocusView principle: same edge-anchored shape as Context sheet, but attention-capturing. |
-| **Standard modal** | Yes | A short, self-contained task that has nothing to do with what's behind it: a single form, a settings sub-screen, a picker. `material-modal` (12px radius), centered, width from the size ladder below. |
-| **Confirm modal** | Yes | A yes/no decision with real but reversible consequence (discard changes, leave a run, disconnect a non-destructive integration). Smallest width on the ladder; body copy is one or two sentences, never a form. |
-| **Destructive action modal** | Yes | Delete, revoke, rotate, disconnect, or any action that destroys data or access. Always the type-to-confirm gate (see Interaction model); always an `error`-variant trigger and primary action. Never demoted to Drawer even on mobile — the friction is the point. |
-| **Fullscreen takeover** | Yes | A genuinely multi-step or immersive flow (a build wizard, a multi-field import mapper) that needs the whole viewport but is conceptually still "on top of" the page, not a route change. `material-fullscreen` (16px radius, the only elevation role above modal). Use sparingly — if it always deserves its own URL, make it a route instead. |
-| **Drawer** | Yes, mobile only | The small-viewport substitute for Modal, Sheet, or Confirm modal alike. Bottom-anchored, content-height by default, `height` override only when the default height would clip the primary action. Never the substitute for Destructive action modal (§ above). |
+| Variant                      | Blocking?                                                | When to use                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Context sheet**            | No — page stays lightly dimmed but interactive behind it | Peeking or lightly editing one record while the list/board stays live (e.g. reading a PRD's linked evidence while Discovery stays scrollable behind it). Paraphrased from the Stripe Apps ContextView principle: side-by-side context, not full attention capture.                                                                             |
+| **Focus sheet**              | Yes — full backdrop, page inert behind it                | A deeper, longer edit that still belongs beside its source rather than replacing it (editing a roadmap item's full detail form). Paraphrased from the Stripe Apps FocusView principle: same edge-anchored shape as Context sheet, but attention-capturing.                                                                                     |
+| **Standard modal**           | Yes                                                      | A short, self-contained task that has nothing to do with what's behind it: a single form, a settings sub-screen, a picker. `material-modal` (12px radius), centered, width from the size ladder below.                                                                                                                                         |
+| **Confirm modal**            | Yes                                                      | A yes/no decision with real but reversible consequence (discard changes, leave a run, disconnect a non-destructive integration). Smallest width on the ladder; body copy is one or two sentences, never a form.                                                                                                                                |
+| **Destructive action modal** | Yes                                                      | Delete, revoke, rotate, disconnect, or any action that destroys data or access. Always the type-to-confirm gate (see Interaction model); always an `error`-variant trigger and primary action. Never demoted to Drawer even on mobile — the friction is the point.                                                                             |
+| **Fullscreen takeover**      | Yes                                                      | A genuinely multi-step or immersive flow (a build wizard, a multi-field import mapper) that needs the whole viewport but is conceptually still "on top of" the page, not a route change. `material-fullscreen` (16px radius, the only elevation role above modal). Use sparingly — if it always deserves its own URL, make it a route instead. |
+| **Drawer**                   | Yes, mobile only                                         | The small-viewport substitute for Modal, Sheet, or Confirm modal alike. Bottom-anchored, content-height by default, `height` override only when the default height would clip the primary action. Never the substitute for Destructive action modal (§ above).                                                                                 |
 
 Size ladder (Modal / Fullscreen width; Sheet width is fixed per breakpoint, see Responsive
 behavior):
 
-| Size | Width | Use |
-| --- | --- | --- |
-| Small | ~400px | Confirm modal, Destructive action modal |
-| Medium (default) | ~480–560px | Standard modal — one form, one picker |
-| Large | ~720px | Standard modal with denser content (multi-field form, embedded table) |
-| Fullscreen | 100vw / 100vh | Fullscreen takeover only |
+| Size             | Width         | Use                                                                   |
+| ---------------- | ------------- | --------------------------------------------------------------------- |
+| Small            | ~400px        | Confirm modal, Destructive action modal                               |
+| Medium (default) | ~480–560px    | Standard modal — one form, one picker                                 |
+| Large            | ~720px        | Standard modal with denser content (multi-field form, embedded table) |
+| Fullscreen       | 100vw / 100vh | Fullscreen takeover only                                              |
 
 ## States
 
-| State | Applies to | Tokens |
-| --- | --- | --- |
-| Default | Surface fill | `--ds-background-100` background, radius + shadow from the material class (`material-modal` = `--ds-radius-medium` + `--ds-shadow-border-medium`; `material-fullscreen` = `--ds-radius-large` + `--ds-shadow-fullscreen`) |
-| Overlay | Backdrop | `background: var(--ds-overlay-backdrop-color)` at `--ds-overlay-backdrop-opacity` (0.8) |
-| Close affordance — default | Header "X" | transparent background, icon `--ds-gray-900` |
-| Close affordance — hover | Header "X" | background `--ds-gray-100`, icon `--ds-gray-1000` |
-| Close affordance — active | Header "X" | background `--ds-gray-200`, icon `--ds-gray-1000` |
-| Close affordance — focus | Header "X" | `--ds-focus-ring-outline`, background unchanged from resting state |
-| Disabled (footer buttons) | Confirm/Primary while gate unmet or request in flight | Follows the `Button` component's own disabled treatment (see `research/button.md`); always paired with the reason surfaced in body copy, never a bare disabled control |
-| Loading | Destructive/confirm modal mid-request | Both footer buttons disabled together; spinner renders on the primary button itself (no separate overlay); surface never self-dismisses |
-| Empty | Body, e.g. a sheet with nothing to show yet | One small `empty-state` composition (per `research/empty-state.md` — max one per surface), instructive copy, no apology |
-| Error | Body, inline field or load failure | Text `--ds-red-900`, border `--ds-red-400` on the offending input, background wash `--ds-red-100` for a load-failure banner; icon `--ds-red-900`. Modal/Sheet/Drawer stays open so the user doesn't lose typed state. |
-| Irreversibility band | Destructive action modal only | Diagonal hazard stripe alternating `--ds-red-100`/`--ds-red-200`, top border `--ds-red-400`, text `--ds-red-900`, warning icon `--ds-red-900` marked `aria-hidden` (the sentence already carries the meaning) |
+| State                      | Applies to                                            | Tokens                                                                                                                                                                                                                    |
+| -------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default                    | Surface fill                                          | `--ds-background-100` background, radius + shadow from the material class (`material-modal` = `--ds-radius-medium` + `--ds-shadow-border-medium`; `material-fullscreen` = `--ds-radius-large` + `--ds-shadow-fullscreen`) |
+| Overlay                    | Backdrop                                              | `background: var(--ds-overlay-backdrop-color)` at `--ds-overlay-backdrop-opacity` (0.8)                                                                                                                                   |
+| Close affordance — default | Header "X"                                            | transparent background, icon `--ds-gray-900`                                                                                                                                                                              |
+| Close affordance — hover   | Header "X"                                            | background `--ds-gray-100`, icon `--ds-gray-1000`                                                                                                                                                                         |
+| Close affordance — active  | Header "X"                                            | background `--ds-gray-200`, icon `--ds-gray-1000`                                                                                                                                                                         |
+| Close affordance — focus   | Header "X"                                            | `--ds-focus-ring-outline`, background unchanged from resting state                                                                                                                                                        |
+| Disabled (footer buttons)  | Confirm/Primary while gate unmet or request in flight | Follows the `Button` component's own disabled treatment (see `research/button.md`); always paired with the reason surfaced in body copy, never a bare disabled control                                                    |
+| Loading                    | Destructive/confirm modal mid-request                 | Both footer buttons disabled together; spinner renders on the primary button itself (no separate overlay); surface never self-dismisses                                                                                   |
+| Empty                      | Body, e.g. a sheet with nothing to show yet           | One small `empty-state` composition (per `research/empty-state.md` — max one per surface), instructive copy, no apology                                                                                                   |
+| Error                      | Body, inline field or load failure                    | Text `--ds-red-900`, border `--ds-red-400` on the offending input, background wash `--ds-red-100` for a load-failure banner; icon `--ds-red-900`. Modal/Sheet/Drawer stays open so the user doesn't lose typed state.     |
+| Irreversibility band       | Destructive action modal only                         | Diagonal hazard stripe alternating `--ds-red-100`/`--ds-red-200`, top border `--ds-red-400`, text `--ds-red-900`, warning icon `--ds-red-900` marked `aria-hidden` (the sentence already carries the meaning)             |
 
 Note on skeletons: if the body is fetching content (e.g. a Focus sheet opened before its
 record has loaded), use flat `--ds-gray-100` placeholder blocks at the real content's
@@ -132,8 +132,9 @@ contract); the flat block plus the surface's own entrance motion is the only aff
 ## Interaction model
 
 **Pointer**
+
 - Trigger click opens the surface; focus moves into it (see Accessibility).
-- Clicking the overlay dismisses Modal, Sheet, and Drawer — *unless* an unsaved-changes guard
+- Clicking the overlay dismisses Modal, Sheet, and Drawer — _unless_ an unsaved-changes guard
   is armed (see below), or the surface is a Destructive action modal mid-`loading` request.
 - Drawer additionally supports swipe-down-to-dismiss (native to the underlying primitive).
 - Never open a second Modal, Sheet, or Drawer from inside one that is already open. If a
@@ -145,24 +146,26 @@ contract); the flat block plus the surface's own entrance motion is the only aff
   Modal/Sheet/Drawer, since they're momentary, not a second competing surface.
 
 **Unsaved-changes guard**
+
 - Arm the guard only when the surface holds dirty, unsubmitted input.
 - While armed: overlay click and Escape open a small Confirm modal ("Discard changes?" /
   "Your edits have not been saved.") instead of dismissing immediately; confirming that
   prompt closes both surfaces, canceling it returns focus to the still-open original surface.
-- Never arm the guard for a surface that only *displays* data (Context sheet, read-only
+- Never arm the guard for a surface that only _displays_ data (Context sheet, read-only
   Modal) — the guard exists for genuine data loss, not as reflexive friction.
 
 **Keyboard**
 
-| Key | Effect |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Cycle focusable elements; focus is trapped inside the surface while open |
-| `Escape` | Dismiss (routes through the unsaved-changes guard if armed; inert while a request from this surface is in flight) |
-| `Enter` | Activates the focused button; in a Destructive action modal, submits the primary action only once the typed phrase matches, otherwise inert |
-| `Space` | Activates the focused button/checkbox |
-| System back gesture (mobile) | Dismisses the Drawer, same rules as Escape |
+| Key                          | Effect                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`          | Cycle focusable elements; focus is trapped inside the surface while open                                                                    |
+| `Escape`                     | Dismiss (routes through the unsaved-changes guard if armed; inert while a request from this surface is in flight)                           |
+| `Enter`                      | Activates the focused button; in a Destructive action modal, submits the primary action only once the typed phrase matches, otherwise inert |
+| `Space`                      | Activates the focused button/checkbox                                                                                                       |
+| System back gesture (mobile) | Dismisses the Drawer, same rules as Escape                                                                                                  |
 
 **Screen-reader behavior**
+
 - Modal, Sheet, Drawer: `role="dialog"`, `aria-modal="true"`.
 - Destructive action modal: `role="alertdialog"` (the stronger interruption semantics match
   the stakes).
@@ -172,6 +175,7 @@ contract); the flat block plus the surface's own entrance motion is the only aff
   opened it — never left floating on `<body>`.
 
 **Motion**
+
 - Modal / Fullscreen: scale in from `--ds-motion-overlay-scale` (0.96) to 1 while fading in,
   timed with `--ds-motion-overlay-timing` (`--ds-motion-timing-swift`) over
   `--ds-motion-overlay-duration` (0.3s). Reverse on close.
@@ -218,35 +222,36 @@ contract); the flat block plus the surface's own entrance motion is the only aff
 
 ## Tokens used
 
-| Token | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Surface fill (Modal/Sheet/Drawer/Fullscreen), also the page behind |
-| `--ds-radius-medium` | Modal, Sheet, Drawer corner radius (via `material-modal`/`material-large`) |
-| `--ds-radius-large` | Fullscreen takeover corner radius (via `material-fullscreen`) |
-| `--ds-shadow-border-medium` | Modal/Sheet/Drawer elevation (via `material-modal`/`material-large`) |
-| `--ds-shadow-fullscreen` | Fullscreen takeover elevation |
-| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity` | Backdrop fill (`#000` at 0.8) |
-| `--ds-z-drawer` (200) | Drawer/Sheet stacking context |
-| `--ds-z-modal` (300) | Modal/Fullscreen stacking context |
+| Token                                                                   | Role in this pattern                                                                                  |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                   | Surface fill (Modal/Sheet/Drawer/Fullscreen), also the page behind                                    |
+| `--ds-radius-medium`                                                    | Modal, Sheet, Drawer corner radius (via `material-modal`/`material-large`)                            |
+| `--ds-radius-large`                                                     | Fullscreen takeover corner radius (via `material-fullscreen`)                                         |
+| `--ds-shadow-border-medium`                                             | Modal/Sheet/Drawer elevation (via `material-modal`/`material-large`)                                  |
+| `--ds-shadow-fullscreen`                                                | Fullscreen takeover elevation                                                                         |
+| `--ds-overlay-backdrop-color` / `--ds-overlay-backdrop-opacity`         | Backdrop fill (`#000` at 0.8)                                                                         |
+| `--ds-z-drawer` (200)                                                   | Drawer/Sheet stacking context                                                                         |
+| `--ds-z-modal` (300)                                                    | Modal/Fullscreen stacking context                                                                     |
 | `--ds-z-menu` (2001) / `--ds-z-toast` (5000) / `--ds-z-tooltip` (99999) | Momentary floating elements exempt from the one-surface rule, always above an open Modal/Sheet/Drawer |
-| `--ds-motion-timing-swift` | Entrance/exit easing for every variant |
-| `--ds-motion-overlay-scale` (0.96) | Modal/Fullscreen entrance scale-from value |
-| `--ds-motion-overlay-duration` (0.3s) | Entrance/exit duration, all variants |
-| `--ds-gray-100` / `--ds-gray-200` | Close affordance hover/active background |
-| `--ds-gray-900` / `--ds-gray-1000` | Close affordance and body text, secondary/primary |
-| `--ds-focus-ring-outline` | Focus state on close affordance and all interactive children |
-| `--ds-red-100` / `--ds-red-200` | Irreversibility band stripe, error banner wash |
-| `--ds-red-400` | Irreversibility band top border, invalid-input border |
-| `--ds-red-900` | Irreversibility band text/icon, inline error text |
-| `text-heading-20` / `text-heading-16` | Title (size by Modal size ladder: 20 for Medium/Large, 16 for Small/Confirm) |
-| `text-copy-14` | Description and body copy |
-| `text-button-14` | Footer button labels (inherited from `Button`) |
-| `--geist-space-6x` (24px) | Header/body/footer padding rhythm |
-| `--geist-gap-quarter` (8px) | Tight internal gaps (icon-to-label in the irreversibility band, etc.) |
+| `--ds-motion-timing-swift`                                              | Entrance/exit easing for every variant                                                                |
+| `--ds-motion-overlay-scale` (0.96)                                      | Modal/Fullscreen entrance scale-from value                                                            |
+| `--ds-motion-overlay-duration` (0.3s)                                   | Entrance/exit duration, all variants                                                                  |
+| `--ds-gray-100` / `--ds-gray-200`                                       | Close affordance hover/active background                                                              |
+| `--ds-gray-900` / `--ds-gray-1000`                                      | Close affordance and body text, secondary/primary                                                     |
+| `--ds-focus-ring-outline`                                               | Focus state on close affordance and all interactive children                                          |
+| `--ds-red-100` / `--ds-red-200`                                         | Irreversibility band stripe, error banner wash                                                        |
+| `--ds-red-400`                                                          | Irreversibility band top border, invalid-input border                                                 |
+| `--ds-red-900`                                                          | Irreversibility band text/icon, inline error text                                                     |
+| `text-heading-20` / `text-heading-16`                                   | Title (size by Modal size ladder: 20 for Medium/Large, 16 for Small/Confirm)                          |
+| `text-copy-14`                                                          | Description and body copy                                                                             |
+| `text-button-14`                                                        | Footer button labels (inherited from `Button`)                                                        |
+| `--geist-space-6x` (24px)                                               | Header/body/footer padding rhythm                                                                     |
+| `--geist-gap-quarter` (8px)                                             | Tight internal gaps (icon-to-label in the irreversibility band, etc.)                                 |
 
 ## Implementation guidance
 
 **Radix / primitive mapping**
+
 - Modal, Standard/Confirm modal, Fullscreen takeover → `@radix-ui/react-dialog`, same
   primitive already wired in `src/components/ui/dialog.tsx`.
 - Sheet (Context/Focus, either edge) → the same `@radix-ui/react-dialog` primitive,
@@ -266,6 +271,7 @@ contract); the flat block plus the surface's own entrance motion is the only aff
   inventing new subcomponents.
 
 **Restyling the existing primitives to Tempo**
+
 - Replace ad-hoc Tailwind (`bg-background`, `border`, `shadow-lg`, `text-lg font-semibold`,
   `bg-black/50`) in `dialog.tsx` / `sheet.tsx` / `drawer.tsx` / `alert-dialog.tsx` with the
   material classes (`material-modal`, `material-large`, `material-fullscreen`) plus the
@@ -277,17 +283,20 @@ contract); the flat block plus the surface's own entrance motion is the only aff
   `AlertDialog` equivalents.
 
 **Responsive component swap (Sheet/Modal ↔ Drawer)**
+
 - Drive the swap from a single viewport hook (e.g. a `useIsMobile()` matching the mobile
   breakpoint) at the call site, rendering `<Sheet>`/`<Dialog>` above the breakpoint and
   `<Drawer>` below it, sharing the same header/body/footer children — don't fork the
   content, only the outer shell.
 
 **Unsaved-changes guard composition**
+
 - Track dirty state locally (form library's `isDirty`/`formState` or a simple boolean ref)
   and gate the primitive's `onOpenChange`/`onDismiss` callback: if dirty, open a small
   Confirm modal instead of forwarding the dismiss; only forward it once the guard confirms.
 
 **Where these compose with existing Cadence surfaces**
+
 - Engine Room advanced settings and connector configuration: Standard modal or Focus sheet,
   per the engine-room doctrine's "one door, revealed on demand" — never a second nested
   floating layer once inside.
@@ -320,8 +329,8 @@ function DisconnectGithubButton({ connectorName }: { connectorName: string }) {
         title="Disconnect GitHub"
         description={
           <>
-            Cadence will stop reading <strong>{connectorName}</strong> and any
-            builds that depend on it will fail until you reconnect it.
+            Cadence will stop reading <strong>{connectorName}</strong> and any builds that depend on
+            it will fail until you reconnect it.
           </>
         }
         irreversibleDescription={`Disconnecting ${connectorName} cannot be undone.`}
@@ -345,7 +354,13 @@ function DisconnectGithubButton({ connectorName }: { connectorName: string }) {
 **2. Context sheet — peeking a PRD's linked evidence from Discovery**
 
 ```tsx
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 function EvidenceSheet({ prdId, open, onOpenChange }: EvidenceSheetProps) {
   const { data, isLoading } = usePrdEvidence(prdId);
@@ -355,9 +370,7 @@ function EvidenceSheet({ prdId, open, onOpenChange }: EvidenceSheetProps) {
       <SheetContent side="right" className="material-large">
         <SheetHeader>
           <SheetTitle className="text-heading-20">Linked evidence</SheetTitle>
-          <SheetDescription className="text-copy-14">
-            What backs this requirement
-          </SheetDescription>
+          <SheetDescription className="text-copy-14">What backs this requirement</SheetDescription>
         </SheetHeader>
         {isLoading ? <EvidenceSkeleton /> : <EvidenceList items={data} />}
       </SheetContent>

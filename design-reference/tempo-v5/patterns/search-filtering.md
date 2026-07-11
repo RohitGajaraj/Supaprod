@@ -59,8 +59,8 @@ label with the matched run bolded, trailing suffix slot for a timestamp, a short
 Parts, left to right: **search field** (`ClearableInput`, medium, leading search icon) →
 **filter pills**, one per active facet, each `Facet: value` with a chevron (opens the
 facet's edit popover) and an `×` (removes the facet entirely) → **add-filter trigger**
-(tertiary `Button`, `+` prefix, opens a `Combobox`/`Menu` of unused facets) → *(right-
-aligned cluster)* **saved views** (a `Combobox`- or `Menu`-driven picker showing the
+(tertiary `Button`, `+` prefix, opens a `Combobox`/`Menu` of unused facets) → _(right-
+aligned cluster)_ **saved views** (a `Combobox`- or `Menu`-driven picker showing the
 active view's name) → **clear all** (a tertiary/link `Button`, rendered only once at
 least one filter is applied). An optional **summary line** sits directly under the bar
 (`text-copy-13`, `--ds-gray-900`) stating the result count and how many filters are
@@ -189,7 +189,7 @@ children), following the Geist empty-state content rules:
 
 - Single free-text query: `title` = `No {Items} Match Your Search` (Title Case);
   `description` repeats the query back in curly quotes, e.g. `No results match
-  "onboarding flow". Try a different term or clear the search.`
+"onboarding flow". Try a different term or clear the search.`
 - Multiple active filters: `title` = `No {Items} Match Your Filters`; `description`
   suggests the fix, e.g. `Widen the date range or clear a filter to see more.`
 - Always pair the message with a real, focusable action: a tertiary "Clear filters" (or
@@ -212,24 +212,24 @@ children), following the Geist empty-state content rules:
 
 Global search:
 
-| Key | Effect |
-| --- | --- |
-| `Cmd+K` / `Ctrl+K` | Open the overlay from anywhere in the app (reserved globally; no page-level field may reuse this binding). |
-| Typing | Narrows the list; empty input shows Recent/Suggestions, never a blank list. |
-| `↑` / `↓` | Move the highlighted item. |
-| `Enter` | Activate the highlighted item. |
-| `Esc` | Close the overlay; focus returns to whatever had it before opening. |
-| `Backspace` on an empty input (paged mode) | Pop back one page rather than doing nothing. |
+| Key                                        | Effect                                                                                                     |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `Cmd+K` / `Ctrl+K`                         | Open the overlay from anywhere in the app (reserved globally; no page-level field may reuse this binding). |
+| Typing                                     | Narrows the list; empty input shows Recent/Suggestions, never a blank list.                                |
+| `↑` / `↓`                                  | Move the highlighted item.                                                                                 |
+| `Enter`                                    | Activate the highlighted item.                                                                             |
+| `Esc`                                      | Close the overlay; focus returns to whatever had it before opening.                                        |
+| `Backspace` on an empty input (paged mode) | Pop back one page rather than doing nothing.                                                               |
 
 Filter bar:
 
-| Key | Effect |
-| --- | --- |
-| `Tab` / `Shift+Tab` | Moves between: search field → each pill (one stop each) → add-filter → saved views → clear all → into the list/table. |
-| `Enter` / `Space` on a focused pill | Opens that pill's popover. |
-| `Delete` / `Backspace` on a focused pill (popover closed) | Removes that filter directly, mirroring the `×` click. |
-| Inside an open popover | Standard `Combobox`/`Checkbox` navigation: `↑`/`↓` between options, `Space` toggles a checkbox row, `Enter` selects a single-value option, `Esc` closes the popover and returns focus to the pill. |
-| `Esc` inside the search field | Clears it (built-in `ClearableInput` behavior; do not add a redundant handler on top of it). |
+| Key                                                       | Effect                                                                                                                                                                                             |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab`                                       | Moves between: search field → each pill (one stop each) → add-filter → saved views → clear all → into the list/table.                                                                              |
+| `Enter` / `Space` on a focused pill                       | Opens that pill's popover.                                                                                                                                                                         |
+| `Delete` / `Backspace` on a focused pill (popover closed) | Removes that filter directly, mirroring the `×` click.                                                                                                                                             |
+| Inside an open popover                                    | Standard `Combobox`/`Checkbox` navigation: `↑`/`↓` between options, `Space` toggles a checkbox row, `Enter` selects a single-value option, `Esc` closes the popover and returns focus to the pill. |
+| `Esc` inside the search field                             | Clears it (built-in `ClearableInput` behavior; do not add a redundant handler on top of it).                                                                                                       |
 
 ### Screen reader
 
@@ -302,41 +302,41 @@ Filter bar:
 
 ## Tokens used
 
-| Token / class | Role in this pattern |
-| --- | --- |
-| `--ds-background-100` | Search field, popover, and overlay fill. |
-| `--ds-gray-100` | Disabled search field fill; hovered result/popover row. |
-| `--ds-gray-200` | Filter pill default fill; selected result row; hovered pill. |
-| `--ds-gray-300` | Hovered/open filter pill fill; disabled pill border. |
-| `--ds-gray-400` / `--ds-gray-500` | Search field border, default/hover. |
-| `--ds-gray-700` | Placeholder text, leading icons, secondary metadata, disabled text. |
-| `--ds-gray-900` | Pill chevron, summary line text, secondary result copy. |
-| `--ds-gray-1000` | Pill label text, primary result label, value text. |
-| `--ds-gray-alpha-300` | Optional background wash behind a matched substring in dense lists. |
-| `--ds-ember-100` / `--ds-ember-900` | Selected saved-view chip only. |
-| `--ds-red-900` | Error row text (search failure, list load failure). |
-| `--ds-focus-ring` / `--ds-focus-color` | Focus state on the search field, pills, and popover rows. |
-| `--ds-shadow-border-small` | Search field and pill border/ring. |
-| `--ds-shadow-menu` / `material-menu` | Facet popover, add-filter menu, saved-views picker. |
-| `--ds-shadow-modal` / `material-modal` | Global search overlay (desktop). |
-| `--ds-shadow-fullscreen` / `material-fullscreen` | Global search overlay and filter drawer (mobile). |
-| `--ds-radius-small` | Pill and popover-row corners. |
-| `--ds-radius-medium` | Popover and overlay corners. |
-| `--ds-motion-timing-swift` | Every transition in this pattern. |
-| `--ds-motion-popover-timing` / `--ds-motion-popover-duration` | Facet popover, add-filter menu, saved-views picker open/close (200ms). |
-| `--ds-motion-overlay-timing` / `--ds-motion-overlay-duration` / `--ds-motion-overlay-scale` | Global search overlay open/close (300ms, scale from 0.96). |
-| `--ds-size-small` / `--ds-size-medium` | Popover footer buttons (32px) and the search field/pills (36px default). |
-| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` / `--ds-popover-row-padding` | Facet popover interior and its option rows. |
-| `--geist-gap-quarter` (8px) | Gap between the search field, pills, and add-filter trigger. |
-| `--geist-gap-half` (12px) | Gap between the left cluster and the right cluster's own elements. |
-| `--geist-gap-section` (32px) | Space between the filter bar and the list/table it governs. |
-| `--ds-z-menu` / `--ds-z-modal` / `--ds-z-drawer` | Stacking for the facet popover, global search overlay, and mobile filter drawer respectively. |
-| `text-label-14` | Pill labels, search field value text. |
-| `text-label-13` | Popover header, secondary result metadata. |
-| `text-label-13-mono` / `text-label-12-mono` | Ids, timestamps, and shortcut hints in result rows. |
-| `text-copy-13` | Summary line ("24 results · 2 filters applied"), no-results description. |
-| `text-copy-14` | No-results description when more room is available (e.g. inside a full drawer). |
-| `text-button-14` | Add-filter, clear-all, and popover footer buttons. |
+| Token / class                                                                                               | Role in this pattern                                                                          |
+| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `--ds-background-100`                                                                                       | Search field, popover, and overlay fill.                                                      |
+| `--ds-gray-100`                                                                                             | Disabled search field fill; hovered result/popover row.                                       |
+| `--ds-gray-200`                                                                                             | Filter pill default fill; selected result row; hovered pill.                                  |
+| `--ds-gray-300`                                                                                             | Hovered/open filter pill fill; disabled pill border.                                          |
+| `--ds-gray-400` / `--ds-gray-500`                                                                           | Search field border, default/hover.                                                           |
+| `--ds-gray-700`                                                                                             | Placeholder text, leading icons, secondary metadata, disabled text.                           |
+| `--ds-gray-900`                                                                                             | Pill chevron, summary line text, secondary result copy.                                       |
+| `--ds-gray-1000`                                                                                            | Pill label text, primary result label, value text.                                            |
+| `--ds-gray-alpha-300`                                                                                       | Optional background wash behind a matched substring in dense lists.                           |
+| `--ds-ember-100` / `--ds-ember-900`                                                                         | Selected saved-view chip only.                                                                |
+| `--ds-red-900`                                                                                              | Error row text (search failure, list load failure).                                           |
+| `--ds-focus-ring` / `--ds-focus-color`                                                                      | Focus state on the search field, pills, and popover rows.                                     |
+| `--ds-shadow-border-small`                                                                                  | Search field and pill border/ring.                                                            |
+| `--ds-shadow-menu` / `material-menu`                                                                        | Facet popover, add-filter menu, saved-views picker.                                           |
+| `--ds-shadow-modal` / `material-modal`                                                                      | Global search overlay (desktop).                                                              |
+| `--ds-shadow-fullscreen` / `material-fullscreen`                                                            | Global search overlay and filter drawer (mobile).                                             |
+| `--ds-radius-small`                                                                                         | Pill and popover-row corners.                                                                 |
+| `--ds-radius-medium`                                                                                        | Popover and overlay corners.                                                                  |
+| `--ds-motion-timing-swift`                                                                                  | Every transition in this pattern.                                                             |
+| `--ds-motion-popover-timing` / `--ds-motion-popover-duration`                                               | Facet popover, add-filter menu, saved-views picker open/close (200ms).                        |
+| `--ds-motion-overlay-timing` / `--ds-motion-overlay-duration` / `--ds-motion-overlay-scale`                 | Global search overlay open/close (300ms, scale from 0.96).                                    |
+| `--ds-size-small` / `--ds-size-medium`                                                                      | Popover footer buttons (32px) and the search field/pills (36px default).                      |
+| `--ds-popover-padding` / `--ds-popover-row-height` / `--ds-popover-row-radius` / `--ds-popover-row-padding` | Facet popover interior and its option rows.                                                   |
+| `--geist-gap-quarter` (8px)                                                                                 | Gap between the search field, pills, and add-filter trigger.                                  |
+| `--geist-gap-half` (12px)                                                                                   | Gap between the left cluster and the right cluster's own elements.                            |
+| `--geist-gap-section` (32px)                                                                                | Space between the filter bar and the list/table it governs.                                   |
+| `--ds-z-menu` / `--ds-z-modal` / `--ds-z-drawer`                                                            | Stacking for the facet popover, global search overlay, and mobile filter drawer respectively. |
+| `text-label-14`                                                                                             | Pill labels, search field value text.                                                         |
+| `text-label-13`                                                                                             | Popover header, secondary result metadata.                                                    |
+| `text-label-13-mono` / `text-label-12-mono`                                                                 | Ids, timestamps, and shortcut hints in result rows.                                           |
+| `text-copy-13`                                                                                              | Summary line ("24 results · 2 filters applied"), no-results description.                      |
+| `text-copy-14`                                                                                              | No-results description when more room is available (e.g. inside a full drawer).               |
+| `text-button-14`                                                                                            | Add-filter, clear-all, and popover footer buttons.                                            |
 
 ## Implementation guidance
 

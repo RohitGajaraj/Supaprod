@@ -24,6 +24,7 @@ Source: https://vercel.com/geist/combobox (Geist Design System, `@vercel/geistcn
 ## API
 
 ### Components
+
 - `Combobox` — root/wrapper. Props observed:
   - `aria-label` (string) — accessible name; used in every example since there's no `label` prop.
   - `placeholder` (string) — inline hint text in the input.
@@ -48,13 +49,9 @@ Source: https://vercel.com/geist/combobox (Geist Design System, `@vercel/geistcn
 ### Composition patterns
 
 Minimal (uncontrolled):
+
 ```jsx
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxList,
-  ComboboxOption,
-} from '@vercel/geistcn/components';
+import { Combobox, ComboboxInput, ComboboxList, ComboboxOption } from "@vercel/geistcn/components";
 
 <Combobox aria-label="Search" placeholder="Search...">
   <ComboboxInput />
@@ -63,12 +60,13 @@ import {
     <ComboboxOption value="b">Two</ComboboxOption>
     <ComboboxOption value="c">Three</ComboboxOption>
   </ComboboxList>
-</Combobox>
+</Combobox>;
 ```
 
 Controlled:
+
 ```jsx
-const [value, setValue] = useState<string | null>('b');
+const [value, setValue] = (useState < string) | (null > "b");
 
 <Combobox aria-label="Search" onChange={setValue} placeholder="Search..." value={value}>
   <ComboboxInput />
@@ -77,16 +75,18 @@ const [value, setValue] = useState<string | null>('b');
     <ComboboxOption value="b">Two</ComboboxOption>
     <ComboboxOption value="c">Three</ComboboxOption>
   </ComboboxList>
-</Combobox>
+</Combobox>;
 ```
 
 Disabled / Errored (boolean flags on root):
+
 ```jsx
 <Combobox aria-label="Search" disabled placeholder="Search...">...</Combobox>
 <Combobox aria-label="Search" errored placeholder="Search...">...</Combobox>
 ```
 
 Custom width (trigger vs. popover are independently sizeable):
+
 ```jsx
 <Combobox aria-label="Search" placeholder="Search..." width={256}>
   <ComboboxInput />
@@ -103,6 +103,7 @@ Custom width (trigger vs. popover are independently sizeable):
 ```
 
 Empty state:
+
 ```jsx
 <Combobox aria-label="Search" placeholder="Search..." width={256}>
   <ComboboxInput />
@@ -111,8 +112,9 @@ Empty state:
 ```
 
 Clearable, controlled:
+
 ```jsx
-const [value, setValue] = useState<string | null>('two');
+const [value, setValue] = (useState < string) | (null > "two");
 
 <Combobox aria-label="Search" clearable onChange={setValue} placeholder="Search..." value={value}>
   <ComboboxInput />
@@ -121,25 +123,33 @@ const [value, setValue] = useState<string | null>('two');
     <ComboboxOption value="two">two</ComboboxOption>
     <ComboboxOption value="three">three</ComboboxOption>
   </ComboboxList>
-</Combobox>
+</Combobox>;
 ```
 
 Prefix / suffix icons:
+
 ```jsx
-import { LogoIconVercelSvg } from '@vercel/geistcn-assets/logos';
+import { LogoIconVercelSvg } from "@vercel/geistcn-assets/logos";
 
 <Combobox aria-label="Search" placeholder="Search..." className="w-fit">
   <ComboboxInput />
   <ComboboxList>
-    <ComboboxOption value="a" prefix={<LogoIconVercelSvg />}>One</ComboboxOption>
-    <ComboboxOption value="b" prefix={<LogoIconVercelSvg />}>Two</ComboboxOption>
-    <ComboboxOption value="c" prefix={<LogoIconVercelSvg />}>Three</ComboboxOption>
+    <ComboboxOption value="a" prefix={<LogoIconVercelSvg />}>
+      One
+    </ComboboxOption>
+    <ComboboxOption value="b" prefix={<LogoIconVercelSvg />}>
+      Two
+    </ComboboxOption>
+    <ComboboxOption value="c" prefix={<LogoIconVercelSvg />}>
+      Three
+    </ComboboxOption>
   </ComboboxList>
-</Combobox>
+</Combobox>;
 // suffix variant is identical but with suffix={<LogoIconVercelSvg />} instead of prefix
 ```
 
 With external label (no built-in `label` prop):
+
 ```jsx
 const id = useId();
 
@@ -160,29 +170,33 @@ const id = useId();
       <ComboboxOption value="br">Brazil</ComboboxOption>
     </ComboboxList>
   </Combobox>
-</div>
+</div>;
 ```
 
 Sizes, data-driven options:
+
 ```jsx
 const options = [
-  { value: 'a', label: 'One' },
-  { value: 'b', label: 'Two' },
-  { value: 'c', label: 'Three' },
+  { value: "a", label: "One" },
+  { value: "b", label: "Two" },
+  { value: "c", label: "Three" },
 ];
 
 <Combobox aria-label="Search" placeholder="Search..." size="small">
   <ComboboxInput />
   <ComboboxList>
     {options.map((option) => (
-      <ComboboxOption key={option.value} value={option.value}>{option.label}</ComboboxOption>
+      <ComboboxOption key={option.value} value={option.value}>
+        {option.label}
+      </ComboboxOption>
     ))}
   </ComboboxList>
-</Combobox>
+</Combobox>;
 // repeated with no size prop (medium/default) and size="large"
 ```
 
 Inside a Modal (nested with `Label` wrapper, small size, in a `ModalInset`):
+
 ```jsx
 import {
   Combobox, Modal, Button, Label,
@@ -235,24 +249,28 @@ const options = [ /* a/b/c */ ];
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Combobox when people need to type to narrow a known, potentially long list (regions, framework names, env-var keys) — it is a filter-as-you-type control, not a generic dropdown.
 - If the list is short and fixed and typing wouldn't help, use `Select` instead.
 - If the user can pick more than one item, use `MultiSelect`, not Combobox.
 - If the input is a free-text filter that doesn't have to resolve to one of a fixed set of options, use `Input` with its `search` variant instead of Combobox.
 
 **Behavior**
+
 - While an async query is in flight, keep showing a loading indicator in the list rather than collapsing/hiding it.
 - Empty results should say something specific like `No {items} match "{query}"`, not a generic "No results" — repeat back the query so the user understands why nothing matched.
 - When placed inside a `Modal`, it automatically becomes a Dialog on mobile — don't add a second portal/overlay on top of that behavior.
 - Preserve standard arrow-key navigation between options; don't intercept Enter to submit the parent form while the popover is open (Enter should select the highlighted option first).
 
 **Content**
+
 - Give it a short, Title Case noun as its visible label (e.g. "Region", "Environment Variable Name").
 - Placeholder text should be a concrete hint about what's being searched (e.g. "Search regions", "DATABASE_URL") — never a generic "Search…", and never just the label repeated.
 - Option text should use Title Case for short values and follow correct brand casing (e.g. "Next.js", never "NextJS"); keep the same tone/register across every option in a list.
 - Validation/error messages should name the specific field and constraint in sentence case ending with a period, e.g. "Select a region."
 
 **Accessibility**
+
 - There is no `label` prop on the root — either pair a sibling `<Label htmlFor>` with the root's `id`, or set `aria-label` directly when there's no visible label (e.g. icon-only triggers).
 - The root only accepts `aria-label`, not `aria-labelledby` — if you need to reference existing visible text, use the sibling-label + `id`/`htmlFor` pairing instead.
 - When nested inside a `Modal`, focus must be trapped in the popover so Tab cycles through the options, not out to the page behind the modal.

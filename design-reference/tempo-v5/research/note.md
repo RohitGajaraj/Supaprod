@@ -19,7 +19,7 @@ Source: https://vercel.com/geist/note (fetched 2026-07-10/11, server-rendered HT
   - **Default label** — iterates every `UseTypeTypes` value (`secondary`, `tertiary`, `warning`, `success`, `default`, `alert`, `error`, `lite`, `ghost`, `alert` again, `violet`, `cyan`, `rotate-ccw`) rendering both a plain `<Note type={t}>` and a `<Note fill type={t}>` for each, using the type's own default icon/label.
   - **Custom label** — same type loop, but each Note additionally passes `label={t}` to override the auto label with the raw type string as text.
   - **No label** — same type loop with `label={false}` to suppress the label/icon entirely, for both plain and `fill` variants.
-- **Best Practices** (accordion, three subsections: *When to use*, *Behavior*, *Content* — no separate Accessibility subsection appears on this page).
+- **Best Practices** (accordion, three subsections: _When to use_, _Behavior_, _Content_ — no separate Accessibility subsection appears on this page).
 
 ## API
 
@@ -47,11 +47,9 @@ import { Note } from '@vercel/geistcn/components';
 ```
 
 ```tsx
-import { Button, Note } from '@vercel/geistcn/components';
+import { Button, Note } from "@vercel/geistcn/components";
 
-<Note action={<Button size="small">Upgrade</Button>}>
-  This note details some information.
-</Note>
+<Note action={<Button size="small">Upgrade</Button>}>This note details some information.</Note>;
 ```
 
 ```tsx
@@ -106,16 +104,19 @@ const types: UseTypeTypes[] = [
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Note when feedback is inline and contextual — attached directly to the field, card, or section it explains (e.g. a region-change warning sitting right above the region picker, a rate-limit note beside a usage gauge).
 - Escalate to a different component when the message isn't inline: use Banner for page-level/system-wide messages that need a CTA, Toast for a transient one-off acknowledgment, and Modal when the user must confirm something destructive.
 - Pick `type` by what the message means, not by vibe: `error` for something the user must fix, `warning` for a consequence they should acknowledge, `success` for a check that passed, `secondary` for neutral/informational copy.
 
 **Behavior**
+
 - Treat a Note as persistent state, not a toast — it should stay visible until the underlying condition actually changes. Don't bolt on a dismiss control; a close button competes with the message itself.
 - Cap it at one Note per concept/section. If a card ends up with three stacked Notes, that's a sign the page's information architecture needs fixing, not that the Notes need trimming.
 - The `action` slot is for exactly one inline CTA — never pair it with a second button.
 
 **Content**
+
 - `label` should be a tight 1-2 word, Title Case topic tag (e.g. "Region Change", "Rate Limit", "Plan Limit") — avoid filler openers like "Heads Up", "FYI", or literally "Note".
 - The body (`children`) should be one active-voice sentence that states the actual impact (e.g. "Changing this region restarts all functions.") rather than hedging or describing the situation passively.
 - There's no `info` type — leave `type` unset to get the default info icon, or use `type="secondary"` for neutral copy that still wants the muted styling.

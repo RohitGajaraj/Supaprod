@@ -19,6 +19,7 @@ Source: https://vercel.com/geist/split-button
 Composed of a primary button (left) and a menu trigger (right, chevron-style) that opens a dropdown; two-part control rendered as one visual unit.
 
 Props observed in the code examples:
+
 - `buttonProps: ButtonProps` — spread onto the primary button. Used to pass `onClick`, `size`, `variant`, etc. (reuses the base `Button` component's prop shape).
 - `menuButtonLabel: string` — accessible name for the trailing dropdown-trigger segment; becomes its `aria-label`. Example values: `"Select save method"`, `"Copy page"`.
 - `menuItems: ReactNode` — the dropdown contents; either a JSX fragment (`<>...</>`) of `SplitButtonMenuItem`s or an array of `SplitButtonMenuItem` elements (each needs a `key` when in array form).
@@ -27,6 +28,7 @@ Props observed in the code examples:
 - `children: ReactNode` — the primary button's visible label (e.g. `Save`, or the icon-composed `Copy page`).
 
 Restricted prop values (per Best Practices, enforced by the type system):
+
 - `buttonProps.variant` (aka the component's "type") is restricted to `'default' | 'secondary'` — destructive/other variants are intentionally not allowed on the primary segment.
 - `buttonProps.size` accepts the standard `ButtonProps['size']` union — examples enumerate `'small' | 'medium' | 'large'`.
 
@@ -35,6 +37,7 @@ Restricted prop values (per Best Practices, enforced by the type system):
 One row in the dropdown menu.
 
 Props observed:
+
 - `title: ReactNode` — the item's label; can be plain text (`"Save"`) or a composed node (icon + text span).
 - `description?: string` — secondary/helper text under the title (e.g. `"Save changes and create a new production deployment"`).
 - `menuItemProps: object` — spread onto the underlying menu item element; used for `onClick`, and `className` (e.g. `'w-[200px]'` to size icon-menu items).
@@ -44,36 +47,38 @@ Props observed:
 ### Usage snippets
 
 Minimal primary + one alternate action:
+
 ```tsx
-import { SplitButton, SplitButtonMenuItem } from '@vercel/geistcn/components';
+import { SplitButton, SplitButtonMenuItem } from "@vercel/geistcn/components";
 
 <SplitButton
-  buttonProps={{ onClick: () => alert('Clicked Saved') }}
+  buttonProps={{ onClick: () => alert("Clicked Saved") }}
   menuButtonLabel="Select save method"
   menuItems={
     <>
       <SplitButtonMenuItem
         title="Save"
         description="Save changes"
-        menuItemProps={{ onClick: () => alert('Clicked Save') }}
+        menuItemProps={{ onClick: () => alert("Clicked Save") }}
       />
       <SplitButtonMenuItem
         title="Save + Redeploy"
         description="Save changes and create a new production deployment"
-        menuItemProps={{ onClick: () => alert('Clicked Save + Redeploy') }}
+        menuItemProps={{ onClick: () => alert("Clicked Save + Redeploy") }}
       />
     </>
   }
   menuProps={{ width: 264 }}
 >
   Save
-</SplitButton>
+</SplitButton>;
 ```
 
 Right-aligned menu:
+
 ```tsx
 <SplitButton
-  buttonProps={{ onClick: () => alert('Clicked Saved') }}
+  buttonProps={{ onClick: () => alert("Clicked Saved") }}
   menuAlignment="bottom-end"
   menuButtonLabel="Select save method"
   menuItems={/* ... */}
@@ -84,11 +89,12 @@ Right-aligned menu:
 ```
 
 Icon-only menu items with array form and per-item width:
+
 ```tsx
-import { LogoIconOpenAiSvg, LogoVZeroSvg } from '@vercel/geistcn-assets/logos';
+import { LogoIconOpenAiSvg, LogoVZeroSvg } from "@vercel/geistcn-assets/logos";
 
 <SplitButton
-  buttonProps={{ onClick: () => console.log('Copy page'), size: 'small', variant: 'secondary' }}
+  buttonProps={{ onClick: () => console.log("Copy page"), size: "small", variant: "secondary" }}
   menuButtonLabel="Copy page"
   menuItems={[
     <SplitButtonMenuItem
@@ -96,25 +102,26 @@ import { LogoIconOpenAiSvg, LogoVZeroSvg } from '@vercel/geistcn-assets/logos';
       title="Open in v0"
       description="Open this page in v0"
       icon={<LogoVZeroSvg className="w-4 h-4" />}
-      menuItemProps={{ onClick: () => console.log('v0'), className: 'w-[200px]' }}
+      menuItemProps={{ onClick: () => console.log("v0"), className: "w-[200px]" }}
     />,
     <SplitButtonMenuItem
       key="chatgpt"
       title="Open in ChatGPT"
       description="Open this page in ChatGPT"
       icon={<LogoIconOpenAiSvg className="w-4 h-4" />}
-      menuItemProps={{ onClick: () => console.log('ChatGPT'), className: 'w-[200px]' }}
+      menuItemProps={{ onClick: () => console.log("ChatGPT"), className: "w-[200px]" }}
     />,
   ]}
   menuProps={{ width: 240 }}
 >
   Copy page
-</SplitButton>
+</SplitButton>;
 ```
 
 Icon-composed title:
+
 ```tsx
-import { IconArrowCircleUp, IconFloppyDisk } from '@vercel/geistcn-assets/icons';
+import { IconArrowCircleUp, IconFloppyDisk } from "@vercel/geistcn-assets/icons";
 
 <SplitButtonMenuItem
   title={
@@ -123,27 +130,28 @@ import { IconArrowCircleUp, IconFloppyDisk } from '@vercel/geistcn-assets/icons'
     </span>
   }
   description="Save changes"
-  menuItemProps={{ onClick: () => alert('Clicked Save') }}
-/>
+  menuItemProps={{ onClick: () => alert("Clicked Save") }}
+/>;
 ```
 
 Full size/variant matrix pattern used in both Default and "Title with Icon" demos:
+
 ```tsx
-const SIZES: ButtonProps['size'][] = ['small', 'medium', 'large'];
-const TYPES: Extract<ButtonProps['variant'], 'default' | 'secondary'>[] = ['default', 'secondary'];
+const SIZES: ButtonProps["size"][] = ["small", "medium", "large"];
+const TYPES: Extract<ButtonProps["variant"], "default" | "secondary">[] = ["default", "secondary"];
 
 TYPES.map((variant) =>
   SIZES.map((size) => (
     <SplitButton
       key={`${variant}`}
-      buttonProps={{ onClick: () => alert('Clicked Saved'), size, variant }}
+      buttonProps={{ onClick: () => alert("Clicked Saved"), size, variant }}
       menuButtonLabel="Select save method"
       menuItems={/* ... */}
       menuProps={{ width: 264 }}
     >
       Save
     </SplitButton>
-  ))
+  )),
 );
 ```
 

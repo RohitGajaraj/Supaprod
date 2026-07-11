@@ -303,4 +303,4 @@ The decision ontology, the Critic, the compiled Outcome Contracts/oracles, the d
 
 ### The investor answer, one breath
 
-*"Codegen is a $500M-ARR-in-a-year knife fight between the best-funded teams on earth, racing toward a capability Amodei says the models absorb within two years. We're the layer that gets stronger every time they win: we decide what's worth building, dispatch to whichever generator is best that month — including yours — and keep the one dataset none of them can backfill: what you decided, and whether it was right. They sell the hands. We sell the judgment and the receipts."*
+_"Codegen is a $500M-ARR-in-a-year knife fight between the best-funded teams on earth, racing toward a capability Amodei says the models absorb within two years. We're the layer that gets stronger every time they win: we decide what's worth building, dispatch to whichever generator is best that month — including yours — and keep the one dataset none of them can backfill: what you decided, and whether it was right. They sell the hands. We sell the judgment and the receipts."_

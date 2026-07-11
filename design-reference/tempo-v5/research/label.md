@@ -17,9 +17,10 @@ No other sections (no Sizes, Types, Variants, States, or layout/edge-case demos)
 Import path: `@vercel/geistcn/components`.
 
 Example 1 (Default):
+
 ```tsx
-import { Label } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Label } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return <Label id="test-input" value="This is a label" />;
@@ -27,38 +28,32 @@ export function Component(): JSX.Element {
 ```
 
 Example 2 (With Input):
+
 ```tsx
-import { Input, Label } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Input, Label } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <>
       <Label id="test-input" value="Email Address" withInput />
-      <Input
-        aria-labelledby="test-input"
-        id="test-input"
-        placeholder="Enter email address..."
-      />
+      <Input aria-labelledby="test-input" id="test-input" placeholder="Enter email address..." />
     </>
   );
 }
 ```
 
 Example 3 (Bypass Casing):
+
 ```tsx
-import { Input, Label } from '@vercel/geistcn/components';
-import type { JSX } from 'react';
+import { Input, Label } from "@vercel/geistcn/components";
+import type { JSX } from "react";
 
 export function Component(): JSX.Element {
   return (
     <>
       <Label bypassCasing id="test-input" value="Email address" withInput />
-      <Input
-        aria-labelledby="test-input"
-        id="test-input"
-        placeholder="Enter email address..."
-      />
+      <Input aria-labelledby="test-input" id="test-input" placeholder="Enter email address..." />
     </>
   );
 }
@@ -74,10 +69,12 @@ export function Component(): JSX.Element {
 ### Composition pattern
 
 `Label` is a standalone primitive, not a wrapper — it does not enclose the input as children. The link between label and control is explicit and bidirectional:
+
 - The control gets `id={sameId}` and `aria-labelledby={sameId}`.
 - The `Label` gets that same id value passed to its own `id` prop.
 
 Typical usage shape:
+
 ```tsx
 <Label id={fieldId} value="Field name" withInput />
 <Input aria-labelledby={fieldId} id={fieldId} placeholder="..." />

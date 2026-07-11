@@ -449,7 +449,7 @@ export function CalendarPanel({
             <button
               key={id}
               onClick={() => setViewPersist(id)}
-              className="mono-label"
+              className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontSize: "var(--text-mono-floor)",
                 padding: "3px 10px",
@@ -477,7 +477,7 @@ export function CalendarPanel({
           >
             <MonoLabel>Schedule · Scheduler finds open time</MonoLabel>
             <button
-              className="mono-label"
+              className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
               onClick={() => setShowNew(false)}
             >
@@ -507,7 +507,7 @@ export function CalendarPanel({
                 <button
                   key={s.start_at}
                   onClick={() => setPicked(s.start_at)}
-                  className="mono-label"
+                  className="mono-label outline-none transition-colors hover:[border-color:var(--ink)] hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontSize: "var(--text-mono-floor)",
                     padding: "4px 10px",
@@ -552,7 +552,7 @@ export function CalendarPanel({
           >
             <MonoLabel>Plan deep work · blocks inside your working hours</MonoLabel>
             <button
-              className="mono-label"
+              className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
               onClick={() => {
                 setShowPlan(false);
@@ -607,7 +607,7 @@ export function CalendarPanel({
                       {b.title}
                     </span>
                     <button
-                      className="mono-label"
+                      className="mono-label outline-none transition-colors hover:[border-color:var(--ink)] hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-not-allowed disabled:hover:[border-color:var(--hairline)] disabled:hover:[color:unset]"
                       onClick={() => mAddBlock.mutate(b)}
                       disabled={added || mAddBlock.isPending}
                       style={{
@@ -617,10 +617,10 @@ export function CalendarPanel({
                         border: "1px solid var(--hairline)",
                         color: added ? "var(--emerald)" : "var(--ink-subtle)",
                         whiteSpace: "nowrap",
-                        opacity: added ? 0.8 : 1,
+                        opacity: added ? 0.8 : mAddBlock.isPending ? 0.5 : 1,
                       }}
                     >
-                      {added ? "Added" : "Add to calendar"}
+                      {added ? "Added" : mAddBlock.isPending ? "Adding…" : "Add to calendar"}
                     </button>
                   </div>
                 );
@@ -1628,7 +1628,7 @@ function ConnectButton({
               </span>
               <button
                 onClick={() => onDisconnect(c.id)}
-                className="mono-label"
+                className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{ fontSize: "var(--text-mono-floor)", color: "var(--ink-subtle)" }}
                 aria-label="Disconnect"
               >

@@ -97,40 +97,40 @@
 ## 4. The twelve brutal ones (sourced to real objections — full citations in research-findings.md §3)
 
 1. **"You've had a working product for weeks and zero users. Why haven't you launched?"**
-"Fair — I over-built before opening the doors. I caught it and reorganized the whole company around launch. [True state: 'It's public since [date]' / 'Beta is live and the public listing ships within days — it's written.']"
+   "Fair — I over-built before opening the doors. I caught it and reorganized the whole company around launch. [True state: 'It's public since [date]' / 'Beta is live and the public listing ships within days — it's written.']"
 
 2. **"Linear assigns issues to Cursor and Devin today. Why does a PM need your second system?"**
-"Linear dispatches the build; it doesn't decide what's worth building or check whether the decision paid off. I sit above the tracker — and I dispatch to those same agents. A Linear customer is a Cadence customer, not a lost one."
+   "Linear dispatches the build; it doesn't decide what's worth building or check whether the decision paid off. I sit above the tracker — and I dispatch to those same agents. A Linear customer is a Cadence customer, not a lost one."
 
 3. **"ChatPRD has 100k+ PMs, bootstrapped. What do you know that Claire Vo doesn't?"**
-"She proved the demand — huge respect. A PRD is where her loop ends and mine starts: the decision behind the doc, the build after it, and the outcome after that. Documents don't compound; the decision record does."
+   "She proved the demand — huge respect. A PRD is where her loop ends and mine starts: the decision behind the doc, the build after it, and the outcome after that. Documents don't compound; the decision record does."
 
 4. **"If 'PM is dead' and teams collapse into builders, who's your buyer in three years?"**
-"Whoever is left holding the decisions. If the title dies, one person runs product with a fleet — that person needs receipts more than a PM in a big org does. I'm building for the survivor of that collapse; I'm literally that user today."
+   "Whoever is left holding the decisions. If the title dies, one person runs product with a fleet — that person needs receipts more than a PM in a big org does. I'm building for the survivor of that collapse; I'm literally that user today."
 
 5. **"Scott AI is building your layer from the engineering side. Why do you win?"**
-"They plan work for coding agents — engineering-inward. I start from customer evidence and the decision, and I keep the outcome record. If we both succeed we meet at the tracker; the one who owns the judgment history owns the account."
+   "They plan work for coding agents — engineering-inward. I start from customer evidence and the decision, and I keep the outcome record. If we both succeed we meet at the tracker; the one who owns the judgment history owns the account."
 
 6. **"Your codebase is AI-written and you can't read every line. Production breaks with a paying customer — walk me through it."**
-"It broke during ship-week — the server swallowed 500s invisibly. I diagnosed it with the same fleet, wrapped the server entry to catch it, shipped the fix, and it's in the repo history. Nothing merges without typecheck, build, tests, and review. And an outside audit of the codebase held. Taste is exactly what I sell; I apply it to my own code first."
+   "It broke during ship-week — the server swallowed 500s invisibly. I diagnosed it with the same fleet, wrapped the server entry to catch it, shipped the fix, and it's in the repo history. Nothing merges without typecheck, build, tests, and review. And an outside audit of the codebase held. Taste is exactly what I sell; I apply it to my own code first."
 
 7. **"PMs don't own budget. Who signs, for how much?"**
-"The individual starts free or on a card — same motion Cursor rode. The team plan is where budget lives. The enterprise line item already exists: it's currently split across Linear, Notion, a spec tool, and status meetings."
+   "The individual starts free or on a card — same motion Cursor rode. The team plan is where budget lives. The enterprise line item already exists: it's currently split across Linear, Notion, a spec tool, and status meetings."
 
 8. **"Next model release plans, decides, and dispatches natively. Then what?"**
-"Then my agents get better that same day — keys are bring-your-own and every call goes through one chokepoint. The model is capability. The cross-tool permissions, the trust ramp, and your accumulated decision record are the product, and a lab won't own those."
+   "Then my agents get better that same day — keys are bring-your-own and every call goes through one chokepoint. The model is capability. The cross-tool permissions, the trust ramp, and your accumulated decision record are the product, and a lab won't own those."
 
 9. **"Your moat is an outcome ledger and you have zero users, so zero outcomes. Cold start?"**
-"The ledger pays from day one — it answers 'why did we decide X' with receipts from your first week of usage. The learning loop compounds on top. And I don't ship empty: Cadence's own ledger, running Cadence, is in the product as proof."
+   "The ledger pays from day one — it answers 'why did we decide X' with receipts from your first week of usage. The learning loop compounds on top. And I don't ship empty: Cadence's own ledger, running Cadence, is in the product as proof."
 
 10. **"45 days building alone. Why couldn't you convince one engineer to join you?"**
-"I didn't ask anyone to quit for a pitch. I built the proof first — that's how I've made every move in my career. Recruiting on a working product with users is a different conversation, and I'm having it from a position of strength now."
+    "I didn't ask anyone to quit for a pitch. I built the proof first — that's how I've made every move in my career. Recruiting on a working product with users is a different conversation, and I'm having it from a position of strength now."
 
 11. **"Batch is Oct–Dec in SF. You're in Bangalore. What stops you?"**
-"Nothing. [TRUE status: passport valid, visa plan — CONFIRM before interview.] I'm relocating for the batch and basing the company in SF. My answer was the same in the application; it hasn't wavered."
+    "Nothing. [TRUE status: passport valid, visa plan — CONFIRM before interview.] I'm relocating for the batch and basing the company in SF. My answer was the same in the application; it hasn't wavered."
 
 12. **"What exact number do you show at Demo Day in December?"**
-"[X] teams running their product on Cadence weekly, [Y]% week-2 return, and the first paying workspaces. Those are the three numbers on my wall."
+    "[X] teams running their product on Cadence weekly, [Y]% week-2 return, and the first paying workspaces. Those are the three numbers on my wall."
 
 ## 5. Between application and interview (the slope play)
 

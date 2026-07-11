@@ -82,8 +82,8 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
             .eq("kind", "handoff");
           const sectionByRunId = new Map<string, string>();
           for (const m of messages ?? []) {
-            const section = (m.payload as { context?: { fanout_section?: string } } | null)
-              ?.context?.fanout_section;
+            const section = (m.payload as { context?: { fanout_section?: string } } | null)?.context
+              ?.fanout_section;
             if (typeof section === "string" && m.consumed_by_run_id) {
               sectionByRunId.set(m.consumed_by_run_id as string, section);
             }

@@ -15,11 +15,13 @@ No other demo groupings exist on this page — MiddleTruncate is documented as a
 ## API
 
 Import:
+
 ```tsx
-import { MiddleTruncate, Slider } from '@vercel/geistcn/components';
+import { MiddleTruncate, Slider } from "@vercel/geistcn/components";
 ```
 
 ### `MiddleTruncate` props observed in the example
+
 - `value: string` — the full string to render/truncate (required; the source-of-truth text, not the visible ellipsis form).
 - `className?: string` — applied per-instance to control text style (e.g. `text-label-14`, `text-copy-14`, `text-label-14 font-mono`).
 - `style?: CSSProperties` — per-instance inline style (used in the demo to disable ligatures: `fontFeatureSettings: '"liga" 0, "calt" 0'`, `fontVariantLigatures: 'none'`).
@@ -27,32 +29,25 @@ import { MiddleTruncate, Slider } from '@vercel/geistcn/components';
 No other props (no explicit `startChars`/`endChars`/`separator` props appear in the captured code — the component appears to auto-compute the split from available container width rather than taking explicit head/tail character counts).
 
 ### Composition pattern (minimal usage)
+
 ```tsx
 <div style={{ maxWidth: width }}>
   <div className="min-w-0 basis-0 grow">
-    <MiddleTruncate
-      className={example.className}
-      style={example.style}
-      value={example.value}
-    />
+    <MiddleTruncate className={example.className} style={example.style} value={example.value} />
   </div>
 </div>
 ```
+
 Key structural requirement: `MiddleTruncate` must sit inside a flex/grid child with `min-w-0` (or an equivalent width-constraining wrapper) so it can measure and shrink below its content's intrinsic width — a bare flex child without `min-w-0` won't truncate.
 
 ### Full captured example source (`Component`)
+
 ```tsx
-'use client';
-import { Label } from '@vercel/geistcn/components';
-import { Toggle } from '@vercel/geistcn/components';
-import { MiddleTruncate, Slider } from '@vercel/geistcn/components';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type JSX,
-} from 'react';
+"use client";
+import { Label } from "@vercel/geistcn/components";
+import { Toggle } from "@vercel/geistcn/components";
+import { MiddleTruncate, Slider } from "@vercel/geistcn/components";
+import { useEffect, useRef, useState, type CSSProperties, type JSX } from "react";
 
 interface ExampleItem {
   className: string;
@@ -63,65 +58,63 @@ interface ExampleItem {
 
 const EXAMPLES: ExampleItem[] = [
   {
-    className: 'text-label-14',
-    label: 'Branch',
-    value: 'feature/redesign-dashboard-navigation-with-sidebar-improvements',
+    className: "text-label-14",
+    label: "Branch",
+    value: "feature/redesign-dashboard-navigation-with-sidebar-improvements",
   },
   {
-    className: 'text-copy-14',
-    label: 'Preview URL',
-    value:
-      'platform-web-git-feature-redesign-dashboard-navigation-phamous.vercel.app',
+    className: "text-copy-14",
+    label: "Preview URL",
+    value: "platform-web-git-feature-redesign-dashboard-navigation-phamous.vercel.app",
   },
   {
-    className: 'text-label-14',
-    label: 'Deployment ID',
-    value: 'dpl_8gmXTT1yJRP8UbGfXD7A3sp4RKhW',
+    className: "text-label-14",
+    label: "Deployment ID",
+    value: "dpl_8gmXTT1yJRP8UbGfXD7A3sp4RKhW",
   },
   {
-    className: 'text-label-14 font-mono',
-    label: 'Env var key',
-    value: 'STRIPE_WEBHOOK_SIGNING_SECRET',
+    className: "text-label-14 font-mono",
+    label: "Env var key",
+    value: "STRIPE_WEBHOOK_SIGNING_SECRET",
   },
   {
-    className: 'text-label-14 font-mono',
-    label: 'Monospace no ligatures',
+    className: "text-label-14 font-mono",
+    label: "Monospace no ligatures",
     style: {
       fontFeatureSettings: '"liga" 0, "calt" 0',
-      fontVariantLigatures: 'none',
+      fontVariantLigatures: "none",
     },
-    value: 'STRIPE_WEBHOOK_SIGNING_SECRET',
+    value: "STRIPE_WEBHOOK_SIGNING_SECRET",
   },
   {
-    className: 'text-copy-14',
-    label: 'Commit SHA',
-    value: '2b0874e797d7c2a4092d0033ee0c2f0f9aef2869',
+    className: "text-copy-14",
+    label: "Commit SHA",
+    value: "2b0874e797d7c2a4092d0033ee0c2f0f9aef2869",
   },
   {
-    className: 'text-copy-14',
-    label: 'File path',
-    value:
-      'apps/vercel-site/app/(dashboard)/[teamSlug]/[project]/settings/page.tsx',
+    className: "text-copy-14",
+    label: "File path",
+    value: "apps/vercel-site/app/(dashboard)/[teamSlug]/[project]/settings/page.tsx",
   },
   {
-    className: 'text-copy-14',
-    label: 'Custom domain',
-    value: 'api.internal.platform-observability.example.com',
+    className: "text-copy-14",
+    label: "Custom domain",
+    value: "api.internal.platform-observability.example.com",
   },
   {
-    className: 'text-label-14',
-    label: 'Model name',
-    value: 'google/gemini-3.1-flash-image-preview',
+    className: "text-label-14",
+    label: "Model name",
+    value: "google/gemini-3.1-flash-image-preview",
   },
   {
-    className: 'text-label-14',
-    label: 'Tight width',
-    value: 'feature/redesign-dashboard-navigation-with-sidebar-improvements',
+    className: "text-label-14",
+    label: "Tight width",
+    value: "feature/redesign-dashboard-navigation-with-sidebar-improvements",
   },
   {
-    className: 'text-label-14',
-    label: 'Fits as-is',
-    value: 'sidebar.tsx',
+    className: "text-label-14",
+    label: "Fits as-is",
+    value: "sidebar.tsx",
   },
 ];
 
@@ -160,9 +153,7 @@ export function Component(): JSX.Element {
             className="flex items-center gap-4 rounded-md border border-gray-alpha-400 px-4 py-3"
             key={example.label}
           >
-            <div className="basis-32 shrink-0 text-label-13 text-gray-700">
-              {example.label}
-            </div>
+            <div className="basis-32 shrink-0 text-label-13 text-gray-700">{example.label}</div>
             <div style={{ maxWidth: width }}>
               <div className="min-w-0 basis-0 grow">
                 <MiddleTruncate
@@ -193,10 +184,7 @@ export function Component(): JSX.Element {
           </Label>
         </form>
 
-        <Toggle
-          checked={isAnimating}
-          onChange={(): void => setIsAnimating(!isAnimating)}
-        >
+        <Toggle checked={isAnimating} onChange={(): void => setIsAnimating(!isAnimating)}>
           Animate
         </Toggle>
       </aside>
@@ -208,17 +196,20 @@ export function Component(): JSX.Element {
 ## Best practices
 
 **When to use**
+
 - Reach for middle truncation only when both ends of a string carry meaning — file paths, URLs, deployment IDs, commit hashes, prefixed branch names. The head anchors "what kind of thing" and the tail (or a distinguishing suffix) anchors "which specific one."
 - For prose, titles, and descriptions, truncate at the end instead (standard `…` at the tail) — chopping the middle of a sentence destroys its meaning, it's only useful for identifier-shaped strings.
 - If a user might ever need the exact untruncated value, don't rely on truncation alone — pair it with a tooltip revealing the full string, or a copy affordance, since the truncated glyph on its own throws away precision.
 
 **Behavior**
+
 - The component collapses the string down to a single ellipsis character (`…`), not three literal periods — this matters for monospace content (env keys, hashes, paths) where three periods would eat three fixed character cells instead of one.
 - Truncation is driven by the actual rendered width of its container, so anything that resizes the container in response to interaction (hover-expand cards, animating rows) will make the cut point visibly jump around each frame. If the surrounding layout changes width during an interaction, lock the width for the duration rather than letting it free-run.
 - The DOM/copy value is always the original full string — copying selected text (or any custom copy handler layered on top) must still yield the untruncated source, not the shortened display text. Verify this invariant holds if you intercept `onCopy`.
 - Don't nest `MiddleTruncate` inside a container that also applies CSS `text-overflow: ellipsis` — the two truncation mechanisms conflict and produce inconsistent results (the inner ellipsis generally wins, but not reliably).
 
 **Accessibility**
+
 - Assistive tech should get the full, untruncated string as the accessible name of the wrapping element — the component keeps the complete value in the DOM (for copy) so this is achievable without extra plumbing, but it's the integrator's job to wire the accessible name correctly.
 - If you put `MiddleTruncate` inside a focusable/interactive control (button, link), give that control an explicit `aria-label` — an ellipsis glyph alone announces nothing useful to a screen reader.
 - On small viewports, make sure enough of the string stays visible that the leading segment (path prefix, ID prefix) is still identifiable — don't let responsive layout squeeze the visible portion down to nothing informative.

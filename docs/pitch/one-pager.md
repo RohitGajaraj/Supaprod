@@ -6,18 +6,19 @@
 
 **One line (category):** Cadence is the decision and outcome operating system for product teams — it owns the loop and keeps the receipts.
 
-**One line (the instant anchor):** *"Cadence is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."*
+**One line (the instant anchor):** _"Cadence is Claude Code for the product lifecycle — agents do the product work end to end, you make the calls, and the ledger proves what worked."_
 
 **One paragraph (the story):** Engineers got agents — Cursor, Claude Code — and shipping became 10x cheaper. Product decisions became the bottleneck, and the product side got chatbots that draft and wait. Cadence gives product teams what engineering got: governed agents that run the whole lifecycle — sense signals, rank the bets, red-team them, write the specs, build to PR, ship, and record what actually happened. Plus the thing engineering never needed: an **outcome ledger** — because code has a compiler and product judgment doesn't. **The ledger is the compiler for judgment.** Its feedback arrives in weeks, not seconds — which is exactly why this layer doesn't commoditize, and why owning it compounds.
 
 ## The thesis that makes us different
 
-**Everyone sells capability. We sell accountability.** Every competitor — copilots, incumbents with AI bolted on, agent platforms — sells "do more, faster." But capability commoditizes at open-source speed, while **trust is the collapsed resource**: users catch tools lying about completion, engineers don't believe roadmaps, PMs burn hours excavating "why did we decide X," and the one thing that never transfers to an agent is accountability. As execution goes to zero, the volume of decisions a human must *answer for* explodes.
+**Everyone sells capability. We sell accountability.** Every competitor — copilots, incumbents with AI bolted on, agent platforms — sells "do more, faster." But capability commoditizes at open-source speed, while **trust is the collapsed resource**: users catch tools lying about completion, engineers don't believe roadmaps, PMs burn hours excavating "why did we decide X," and the one thing that never transfers to an agent is accountability. As execution goes to zero, the volume of decisions a human must _answer for_ explodes.
 
 > **Agents do the work. You answer for it. Cadence is how you answer.**
 
 **The three deliberately controversial moves:**
-1. **The artifact is dead; the enemy is productivity theater.** Roadmaps, PRDs, status decks — projections with no source of truth behind them ("Jira is optimized for productivity theater" — the community's own words). Our posture: *receipts or it didn't happen.* Artifacts are generated from the ledger on demand, drift-stamped — outputs, never sources.
+
+1. **The artifact is dead; the enemy is productivity theater.** Roadmaps, PRDs, status decks — projections with no source of truth behind them ("Jira is optimized for productivity theater" — the community's own words). Our posture: _receipts or it didn't happen._ Artifacts are generated from the ledger on demand, drift-stamped — outputs, never sources.
 2. **We publish our own misses.** Every AI product hides its failure rate. We invert it: calibration on our own dogfood ledger, a demo that rehearses the wrong path on purpose, "Cadence called N of the last M" as a first-class surface. A published miss record takes months of honesty to build and one faked number to destroy — that's why it's a moat, not a feature.
 3. **We sell to the accountable individual, not the workflow.** The person whose name is on the decision — the senior/founding PM today, the one-person product runner as orgs collapse (Coinbase runs "one-person teams… managing fleets of agents" — a public company's org experiment). Amplifier, never replacement.
 
@@ -26,7 +27,7 @@
 ## What we can PROVE today (the demo-able facts)
 
 - **[PROVEN] The loop is real and autonomous.** A pg_cron engine advances missions every minute through Sense→Decide→Define→Build→Ship→Learn; agents hand off typed payloads (A2A); 30 background jobs run while the user sleeps. Live DB (2026-07-10): 133 missions, 129 agent runs, 72 decisions, 49 learnings, 2,162 AI events through one governed chokepoint.
-- **[PROVEN] Outcomes move the ranking.** The reinforcement seam (RF-01..08) is live: recorded decision outcomes re-rank the next bets — *"your Cadence gets smarter about your product with every outcome it records"* (the exact mechanism Replit's founder called the one that matters: "it's not improving its weights, it's improving its context").
+- **[PROVEN] Outcomes move the ranking.** The reinforcement seam (RF-01..08) is live: recorded decision outcomes re-rank the next bets — _"your Cadence gets smarter about your product with every outcome it records"_ (the exact mechanism Replit's founder called the one that matters: "it's not improving its weights, it's improving its context").
 - **[PROVEN] Earned autonomy.** Agents graduate permissions by track record (review→confirm→auto), with non-overridable floors (merge/revert/delegate always human-gated). An outside code audit (2026-07-10) called the trust ramp "genuinely mature for this stage."
 - **[PROVEN] Real build-to-PR.** The spine merged a real PR through its own gated path, produced a real preview deploy and production promote with auto release notes.
 - **[PROVEN] The self-report survives audit.** The 97%-complete register was independently code-audited and held — we grade our own homework and then invite the re-grade (that's the accountability thesis, applied to ourselves).
@@ -46,6 +47,7 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 ## The one-liners bank
 
 **Narrative candidates added 2026-07-10 (additive — founder picks; ranked by instant relatability):**
+
 - **"What Cursor did for writing code, Cadence does for deciding what to build."**
 - **"Cursor for product managers — except it also proves which decisions were right."**
 - "Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."

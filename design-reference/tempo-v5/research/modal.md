@@ -59,8 +59,8 @@ import {
   ModalSubtitle,
   ModalActions,
   ModalAction,
-} from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+} from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [open, setOpen] = useState(false);
@@ -76,14 +76,12 @@ export function Component(): JSX.Element {
           <ModalHeader>
             <ModalTitle>Create Token</ModalTitle>
             <ModalSubtitle>
-              Enter a unique name for your token to differentiate it from other
-              tokens and then select the scope.
+              Enter a unique name for your token to differentiate it from other tokens and then
+              select the scope.
             </ModalSubtitle>
           </ModalHeader>
 
-          <p className="text-copy-14">
-            Some content contained within the modal.
-          </p>
+          <p className="text-copy-14">Some content contained within the modal.</p>
         </ModalBody>
 
         <ModalActions>
@@ -115,11 +113,7 @@ export function Component(): JSX.Element {
       <ModalAction onClick={() => setOpen(false)} variant="secondary">
         Cancel
       </ModalAction>
-      <ModalAction
-        onClick={() => setOpen(false)}
-        prefix={<IconArrowLeft />}
-        variant="secondary"
-      >
+      <ModalAction onClick={() => setOpen(false)} prefix={<IconArrowLeft />} variant="secondary">
         Previous
       </ModalAction>
     </div>
@@ -171,18 +165,13 @@ export function Component(): JSX.Element {
 ```tsx
 const initialFocusRef = useRef<HTMLButtonElement>(null);
 
-<Modal
-  active={open}
-  initialFocusRef={initialFocusRef}
-  onClickOutside={() => setOpen(false)}
->
+<Modal active={open} initialFocusRef={initialFocusRef} onClickOutside={() => setOpen(false)}>
   <ModalBody>
     <ModalHeader>
       <ModalTitle>Initial Focus</ModalTitle>
       <ModalSubtitle>
-        This Modal is set up to programmatically move the focus onto the
-        Submit button, making it possible to promptly continue with the
-        Enter key.
+        This Modal is set up to programmatically move the focus onto the Submit button, making it
+        possible to promptly continue with the Enter key.
       </ModalSubtitle>
     </ModalHeader>
   </ModalBody>
@@ -195,7 +184,7 @@ const initialFocusRef = useRef<HTMLButtonElement>(null);
       Submit
     </ModalAction>
   </ModalActions>
-</Modal>
+</Modal>;
 ```
 
 ### Initial focus onto an input field
@@ -203,18 +192,13 @@ const initialFocusRef = useRef<HTMLButtonElement>(null);
 ```tsx
 const initialFocusRef = useRef<HTMLInputElement>(null);
 
-<Modal
-  active={open}
-  initialFocusRef={initialFocusRef}
-  onClickOutside={() => setOpen(false)}
->
+<Modal active={open} initialFocusRef={initialFocusRef} onClickOutside={() => setOpen(false)}>
   <ModalBody>
     <ModalHeader>
       <ModalTitle>Invite Member</ModalTitle>
       <ModalSubtitle>
-        On both desktop and the mobile bottom sheet, the Name field
-        receives focus when the Modal opens so the user can start typing
-        immediately.
+        On both desktop and the mobile bottom sheet, the Name field receives focus when the Modal
+        opens so the user can start typing immediately.
       </ModalSubtitle>
     </ModalHeader>
 
@@ -236,7 +220,7 @@ const initialFocusRef = useRef<HTMLInputElement>(null);
     </ModalAction>
     <ModalAction onClick={() => setOpen(false)}>Send Invite</ModalAction>
   </ModalActions>
-</Modal>
+</Modal>;
 ```
 
 ### Multiple inputs / mobile bottom sheet
@@ -246,14 +230,26 @@ const initialFocusRef = useRef<HTMLInputElement>(null);
   <ModalHeader>
     <ModalTitle>Invite Member</ModalTitle>
     <ModalSubtitle>
-      On a mobile viewport this opens as a bottom sheet. Verify that
-      both inputs receive focus and accept keyboard input.
+      On a mobile viewport this opens as a bottom sheet. Verify that both inputs receive focus and
+      accept keyboard input.
     </ModalSubtitle>
   </ModalHeader>
 
   <div className="flex flex-col gap-3">
-    <Input aria-labelledby="modal-mobile-inputs-name" label="Name" onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" value={name} />
-    <Input aria-labelledby="modal-mobile-inputs-email" label="Email" onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" value={email} />
+    <Input
+      aria-labelledby="modal-mobile-inputs-name"
+      label="Name"
+      onChange={(e) => setName(e.target.value)}
+      placeholder="Jane Doe"
+      value={name}
+    />
+    <Input
+      aria-labelledby="modal-mobile-inputs-email"
+      label="Email"
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="jane@example.com"
+      value={email}
+    />
   </div>
 </ModalBody>
 ```
@@ -302,18 +298,21 @@ const toasts = useToasts();
 ## Best practices (paraphrased)
 
 **When to use**
+
 - Reach for Modal only when the decision truly has to block the rest of the page.
 - If context needs to persist alongside a still-readable page, use Sheet (desktop) or Drawer (mobile) instead of Modal.
 - Always confirm destructive actions in a Modal — Drawer and Sheet don't dim the page enough and read as too soft for delete/revoke actions.
 - Don't use a Modal for routine "create" flows that already have their own dedicated page; navigate to the page instead of popping a Modal.
 
 **Behavior**
+
 - On any destructive Modal, default focus to the Cancel button, not the destructive action — Enter should never fire a destructive action without an explicit typed confirmation.
 - Non-destructive Modals should be dismissible via Escape or outside click; destructive Modals with unsaved/typed input should gate or block that dismissal.
 - The Modal must trap focus while open and hand focus back to the trigger element on close; body scroll should restore in the same tick the Modal unmounts (no scroll-lock leakage).
 - For genuinely high-stakes destructive actions (deleting a production resource, rotating a signing key, downgrading a plan), require the user to type the resource name as a match before the primary button becomes actionable.
 
 **Content**
+
 - The title (`ModalTitle`) is a Title Case statement, never phrased as a question — "Transfer Project," not "Transfer Project?"
 - Body copy is sentence case and short (1-3 sentences); lead with the consequence, then mention any cascading effects.
 - The primary button label is Verb + Noun and should echo the title's verb — a "Transfer Project" title pairs with a "Transfer Project" button, never a generic "Confirm"/"OK"/bare verb on a destructive primary.
@@ -322,6 +321,7 @@ const toasts = useToasts();
 - Match the success toast's verb to the primary button 1:1 (e.g. "Delete Project" button -> "Project deleted" toast).
 
 **Accessibility**
+
 - Wire `aria-labelledby` to the `ModalTitle`'s id so screen readers announce the title as soon as the Modal opens.
 - Keep the Cancel label literally "Cancel" everywhere so screen-reader users get one stable, predictable dismissal term across all destructive flows.
 - After an in-Modal error, keep focus inside the Modal so the user can retry immediately; after success, return focus to the original trigger element.

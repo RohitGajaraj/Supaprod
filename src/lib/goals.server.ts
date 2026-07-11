@@ -36,7 +36,8 @@ export interface GoalProposal {
 }
 
 export type GoalPassResult =
-  { proposed: 1; opportunityId: string } | { proposed: 0; skipped: string };
+  | { proposed: 1; opportunityId: string }
+  | { proposed: 0; skipped: string };
 
 /** One proposal per goal per 24h: the hard spend bound the tick enforces
  *  before any model call. */

@@ -143,7 +143,7 @@ export function WedgeTeardown() {
             onChange={(e) => setIdea(e.target.value)}
             maxLength={200}
             placeholder="e.g. Add an AI summary to the top of every report"
-            className="wedge-input"
+            className="wedge-input focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={inputStyle}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canRun) run.mutate();
@@ -157,6 +157,7 @@ export function WedgeTeardown() {
             maxLength={2000}
             rows={2}
             placeholder="Who is hurting, and how? One or two sentences is plenty."
+            className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{ ...inputStyle, resize: "vertical", minHeight: 52 }}
           />
         </Field>

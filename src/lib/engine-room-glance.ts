@@ -168,7 +168,8 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
     },
     {
       id: "routines",
-      label: "Routines",
+      // Plain rename, not the id echoed back (the glance test's own rule).
+      label: "Runs on its own",
       technical: "Background jobs",
       descriptor: "What runs on its own, and your switch over each one.",
     },

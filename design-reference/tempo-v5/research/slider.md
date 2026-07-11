@@ -18,7 +18,7 @@ No "Sizes", "Types", or other variant sections exist on this page — Slider shi
 Import:
 
 ```tsx
-import { Slider } from '@vercel/geistcn/components';
+import { Slider } from "@vercel/geistcn/components";
 ```
 
 Single component, no documented subcomponents. Props observed across the three demos:
@@ -36,8 +36,8 @@ No `min`, `max`, or `step` props appear in any example on this page (defaults ar
 Default (single thumb, no inputs):
 
 ```tsx
-import { Slider } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Slider } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [value, setValue] = useState([50]);
@@ -52,19 +52,14 @@ export function Component(): JSX.Element {
 Range with inputs (two thumbs + editable numeric fields):
 
 ```tsx
-import { Slider } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Slider } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [value, setValue] = useState([50, 75]);
   return (
     <form>
-      <Slider
-        onValueChange={setValue}
-        showEndInput
-        showStartInput
-        value={value}
-      />
+      <Slider onValueChange={setValue} showEndInput showStartInput value={value} />
     </form>
   );
 }
@@ -73,20 +68,14 @@ export function Component(): JSX.Element {
 Disabled range with inputs:
 
 ```tsx
-import { Slider } from '@vercel/geistcn/components';
-import { useState, type JSX } from 'react';
+import { Slider } from "@vercel/geistcn/components";
+import { useState, type JSX } from "react";
 
 export function Component(): JSX.Element {
   const [value, setValue] = useState([50, 75]);
   return (
     <form>
-      <Slider
-        disabled
-        onValueChange={setValue}
-        showEndInput
-        showStartInput
-        value={value}
-      />
+      <Slider disabled onValueChange={setValue} showEndInput showStartInput value={value} />
     </form>
   );
 }

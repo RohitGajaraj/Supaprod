@@ -274,7 +274,8 @@ export const githubAdapter: ConnectorAdapter = {
       );
     }
     const body = (await res.json()) as
-      { repositories?: { full_name?: string }[] } | { full_name?: string }[];
+      | { repositories?: { full_name?: string }[] }
+      | { full_name?: string }[];
     const repos = Array.isArray(body) ? body : (body.repositories ?? []);
     const q = opts?.q?.toLowerCase();
     return repos
