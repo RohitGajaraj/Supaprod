@@ -62,4 +62,9 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - "Receipts or it didn't happen."
 - "Their demo shows what the AI did. Ours shows what we can prove."
 - "Lovable builds you the wrong feature, beautifully, in ten minutes. Cadence stops you from building the wrong thing — and proves which thing was right."
+
+**Agent-vendor neutrality (declared launch capability, RPT-42 — added 2026-07-11; claim tag: WIRING, the BuildDriver seam + MCP/Skills compliance are real, the marketing packaging is new):**
+
+- "Your agents will change. Your decision history shouldn't." (the deprecation-insurance line, now stated on the connect surface itself.)
+- "We feed the builders and judge the results, so we're the one seat that stays put when the models churn." Cadence drives a native build floor plus the Claude Agent SDK / OpenHands and BYO Devin/Codex/Cursor through one BuildDriver seam, and speaks MCP + Skills, so a model or vendor swap never resets the outcome ledger. This is the structural half of the absorption defense (moat point 3, the neutral seat) made market-legible.
 - "The labs shipped the hands. We're the seat above the fleet where a human answers for the work."
