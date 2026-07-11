@@ -179,7 +179,10 @@
   --coral: var(--ember); /* legacy token name → ember */
   --coral-soft: var(--ember-soft);
   --saffron: oklch(0.8 0.12 85); /* highlight / celebration */
-  --agent: oklch(0.5 0.11 310); /* orchid — reserved: agent actions only */
+  /* Agent presence is the machine's RICH BLUE (refined ruling 2026-07-11:
+     orchid/violet retired from AI treatments). Late-bound var so this early
+     block resolves against the Tempo scale defined further down. */
+  --agent: var(--ds-blue-600);
 
   /* Legacy accent names — remapped to Ember roles so existing pages stay
    * coherent without per-component edits. */
@@ -288,7 +291,7 @@
   --coral: var(--ember);
   --coral-soft: oklch(0.5 0.09 55);
   --saffron: oklch(0.84 0.11 88);
-  --agent: oklch(0.72 0.11 308);
+  --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
 
   --violet: var(--agent);
   --violet-soft: oklch(0.62 0.1 308);
@@ -1785,8 +1788,10 @@ html[data-motion="off"] .ai-working-word {
   /* One source of truth (2026-07-11): the --ds-blue scale IS the glacier
      family now, so this aliases the scale instead of repeating the hex. */
   --glacier: var(--ds-blue-600);
-  /* Royal violet: ONLY inside the shimmer gradient and the working butterfly. */
-  --violet-shimmer: #c77dff;
+  /* RETIRED from AI treatments (founder, 2026-07-11 refined ruling: the
+     purple was not landing on screen). Kept defined only so any stale
+     consumer degrades to the blue family instead of breaking. */
+  --violet-shimmer: var(--ds-blue-900);
   /* Blossom: pink CATEGORICAL color only (graph categories, the pet-feature
      pencil tag). NOT a link color since 2026-07-11 — links are glacier. */
   --blossom: #e5bddf;
@@ -1900,15 +1905,16 @@ html[data-motion="off"] .ai-working-word {
   --dur-page: 280ms;
   /* The AI shimmer: only on text/marks representing the machine actively
    * working; at most ONE per screen. THE standard AI-presence marker
-   * (founder ruling 2026-07-11): glacier-dominant, token-traced, with one
-   * narrow violet depth stop inside the gradient. Also defined on :root in
-   * the Tempo block below so non-obsidian consumers resolve it. */
+   * (founder ruling 2026-07-11, refined same day): a light sweep that stays
+   * INSIDE the rich blue family - violet is retired from AI treatments
+   * entirely. Also defined on :root in the Tempo block below so
+   * non-obsidian consumers resolve it. */
   --shimmer-gradient: linear-gradient(
     90deg,
     var(--ds-blue-600),
-    var(--ds-blue-900),
-    var(--ds-purple-600),
-    var(--ds-blue-1000),
+    var(--ds-blue-900) 42%,
+    var(--ds-blue-1000) 50%,
+    var(--ds-blue-900) 58%,
     var(--ds-blue-600)
   );
 
@@ -1986,8 +1992,8 @@ html[data-motion="off"] .ai-working-word {
   --form-focus: var(--focus-ring);
   --saffron: var(--marigold);
   --agent: var(
-    --ds-purple-600
-  ); /* aliased to Tempo (2026-07-11 fix): was var(--mauve), an unaliased legacy hex; now matches the corrected :root block */
+    --ds-blue-600
+  ); /* machine blue (refined ruling 2026-07-11): orchid/violet retired from agent presence */
   --emerald: var(--moss);
   --hero-bg: var(--surface-card-deep);
   --hero-ink: var(--text-primary);
@@ -2244,12 +2250,13 @@ html[data-motion="off"] .flow-pulse {
   --dur-drawer: 300ms;
 
   /* §6 the thread: one connective line language (moves ONLY where the
-   * machine is genuinely alive). Token-traced 2026-07-11: glacier to
-   * violet-depth to glacier, same family as --shimmer-gradient. */
+   * machine is genuinely alive). Refined 2026-07-11: violet is retired from
+   * every machine treatment; the sweep stays inside the rich blue family,
+   * same as --shimmer-gradient. */
   --thread-gradient: linear-gradient(
     90deg,
     var(--ds-blue-600),
-    var(--ds-purple-600),
+    var(--ds-blue-900),
     var(--ds-blue-600)
   );
 
@@ -2686,20 +2693,24 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-ember-800: #d94e12;
   --ds-ember-900: #ff8f5e;
   --ds-ember-1000: #ffefe6;
-  /* Blue = the GLACIER family (founder ruling 2026-07-11): the whole scale is
-     rebuilt around the platform's #84b3ec anchor (hue ~215) so every consumer
+  /* Blue = the machine's color, RICH glacier (founder rulings 2026-07-11,
+     refined same day: the reference #84b3ec anchor read chalky on black, and
+     "not good" was a brief to redesign, not to flatten to gray). The scale
+     keeps hue ~215 but carries more chroma at slightly deeper lightness so
+     it reads luminous and confident, never washed. Every consumer
      (--glacier, --machine, --link, --action-blue, --cyan, --chart-1, focus
-     outlines) resolves to the approved family. Stock Geist #0090ff is retired. */
-  --ds-blue-100: #0c1622;
-  --ds-blue-200: #102030;
-  --ds-blue-300: #15263c;
-  --ds-blue-400: #1f3a58;
-  --ds-blue-500: #2b4d78;
-  --ds-blue-600: #84b3ec;
-  --ds-blue-700: #4d86c6;
-  --ds-blue-800: #3d74b3;
-  --ds-blue-900: #a8c9f2;
-  --ds-blue-1000: #dcebfb;
+     outlines) resolves to this family. Stock Geist #0090ff stays retired,
+     and violet is retired from every AI treatment. */
+  --ds-blue-100: #0d1726;
+  --ds-blue-200: #112138;
+  --ds-blue-300: #16294a;
+  --ds-blue-400: #20406b;
+  --ds-blue-500: #2c5187;
+  --ds-blue-600: #5c9bf0;
+  --ds-blue-700: #4a83d6;
+  --ds-blue-800: #3a6fc2;
+  --ds-blue-900: #9dc4fa;
+  --ds-blue-1000: #e0eefe;
   --ds-red-100: #330a11;
   --ds-red-200: #440d13;
   --ds-red-300: #5d0e17;
@@ -2858,12 +2869,14 @@ html[data-motion="off"] .ai-pulse-mark {
   --glacier: var(--ds-blue-600);
   --machine: var(--glacier);
   --link: var(--glacier);
+  /* Violet retired from AI treatments (refined ruling 2026-07-11): the sweep
+     stays inside the rich blue family. */
   --shimmer-gradient: linear-gradient(
     90deg,
     var(--ds-blue-600),
-    var(--ds-blue-900),
-    var(--ds-purple-600),
-    var(--ds-blue-1000),
+    var(--ds-blue-900) 42%,
+    var(--ds-blue-1000) 50%,
+    var(--ds-blue-900) 58%,
     var(--ds-blue-600)
   );
 
@@ -2905,7 +2918,7 @@ html[data-motion="off"] .ai-pulse-mark {
   --coral: var(--ds-ember-600);
   --coral-soft: var(--ds-ember-900);
   --saffron: var(--ds-amber-600);
-  --agent: var(--ds-purple-600);
+  --agent: var(--ds-blue-600); /* machine blue; orchid retired (2026-07-11) */
   --violet: var(--ds-purple-600);
   --violet-soft: var(--ds-purple-900);
   --amber: var(--ds-amber-600);
@@ -2993,16 +3006,18 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-ember-1000: #431704;
   /* Glacier family, light: same hue (~215) darkened for AA on white
      (founder ruling 2026-07-11). 700+ verified >= 4.5:1 on white. */
-  --ds-blue-100: #f0f6fd;
-  --ds-blue-200: #e3eefb;
-  --ds-blue-300: #d2e3f8;
-  --ds-blue-400: #b3cff0;
-  --ds-blue-500: #8fb6e4;
-  --ds-blue-600: #4a83c4;
-  --ds-blue-700: #2f6cb3;
-  --ds-blue-800: #275c99;
-  --ds-blue-900: #1e4f8f;
-  --ds-blue-1000: #163a5f;
+  /* Light theme: the same rich hue ~215 family, deepened for AA on white
+     (600 is the link/accent step: 4.5+ contrast on #fff). */
+  --ds-blue-100: #f0f6fe;
+  --ds-blue-200: #e2edfc;
+  --ds-blue-300: #cfe2fa;
+  --ds-blue-400: #a9ccf6;
+  --ds-blue-500: #74a8ef;
+  --ds-blue-600: #2e6ed6;
+  --ds-blue-700: #2560c4;
+  --ds-blue-800: #1d51ad;
+  --ds-blue-900: #1a478f;
+  --ds-blue-1000: #143463;
   --ds-red-100: #ffeef0;
   --ds-red-200: #ffe9ea;
   --ds-red-300: #ffe4e5;
@@ -3114,7 +3129,9 @@ html[data-motion="off"] .ai-pulse-mark {
   --cta-grad-top: var(--ds-ember-600);
   --cta-grad-bottom: var(--ds-ember-700);
   --glacier: var(--ds-blue-600);
-  --violet-shimmer: var(--ds-purple-600);
+  /* RETIRED from AI treatments (refined ruling 2026-07-11): degrades to the
+     blue family for any stale consumer. */
+  --violet-shimmer: var(--ds-blue-900);
   /* --blossom intentionally NOT overridden here (2026-07-11): it returns to
      its original pink categorical value in the early block; links use
      var(--link) -> glacier. Do not re-point blossom at blue again. */
