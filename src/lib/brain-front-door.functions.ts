@@ -71,16 +71,14 @@ export const markBrainSeen = createServerFn({ method: "POST" })
   .inputValidator((d: z.input<typeof WorkspaceInput>) => WorkspaceInput.parse(d))
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabase, userId } = context;
-    await supabase
-      .from("brain_last_seen" as never)
-      .upsert(
-        {
-          user_id: userId,
-          workspace_id: data.workspaceId,
-          seen_at: new Date().toISOString(),
-        } as never,
-        { onConflict: "user_id,workspace_id" },
-      );
+    await supabase.from("brain_last_seen" as never).upsert(
+      {
+        user_id: userId,
+        workspace_id: data.workspaceId,
+        seen_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "user_id,workspace_id" },
+    );
     return { ok: true };
   });
 
@@ -160,22 +158,45 @@ export type JudgmentTimelineResult = {
 };
 
 const JUDGMENT_LIMIT = 30;
+/** RPT-01: a searched recall is a handful of best matches, not a scroll. */
+const RECALL_LIMIT = 8;
+
+/** RPT-01: PostgREST's `.or()` filter string is comma/paren-delimited, so a
+ *  literal comma or parenthesis in the typed question would break the filter
+ *  syntax (a robustness bug, not a security one - the client is parameterized
+ *  either way). Stripped, not escaped, to keep the ILIKE pattern simple. */
+function sanitizeRecallQuery(q: string): string {
+  return q
+    .replace(/[,()%]/g, " ")
+    .trim()
+    .slice(0, 200);
+}
 
 /** Decisions + their supersession chain, composed (not stored) from
  *  `decisions` and the existing `artifact_lineage` walk in
  *  `governing-decision.server.ts` -- the same machinery the Critic already
  *  reuses. Best-effort: if a decision has no lineage edges (most won't yet),
- *  it simply renders with no supersession, never an error. */
+ *  it simply renders with no supersession, never an error.
+ *
+ *  RPT-01: an optional `q` turns the same composition into the "why did we
+ *  decide X?" recall card's search - a keyword match over title + rationale
+ *  instead of "most recent 30". Omitted/blank `q` is byte-identical to the
+ *  original recent-timeline behaviour (every existing caller is untouched). */
 export const getJudgmentTimeline = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<JudgmentTimelineResult> => {
+  .inputValidator((i: unknown) => z.object({ q: z.string().optional() }).parse(i ?? {}))
+  .handler(async ({ context, data }): Promise<JudgmentTimelineResult> => {
     const { supabase, userId } = context;
+    const q = data?.q ? sanitizeRecallQuery(data.q) : "";
 
-    const { data: rows } = await supabase
+    let query = supabase
       .from("decisions")
       .select("id,title,rationale,status,decided_by_agent_slug,created_at")
-      .order("created_at", { ascending: false })
-      .limit(JUDGMENT_LIMIT);
+      .order("created_at", { ascending: false });
+    query = q
+      ? query.or(`title.ilike.%${q}%,rationale.ilike.%${q}%`).limit(RECALL_LIMIT)
+      : query.limit(JUDGMENT_LIMIT);
+    const { data: rows } = await query;
     const decisions = (rows ?? []) as {
       id: string;
       title: string;
@@ -206,9 +227,12 @@ export const getJudgmentTimeline = createServerFn({ method: "GET" })
       };
     });
 
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    // RPT-01: a searched recall never needs the calibration line (the caller
+    // only reads `entries`) - skip both round trips rather than pay for
+    // work the recall card discards.
     let calibrationLine: string | null = null;
+    const { data: ws } = q ? { data: null } : await supabase.rpc("current_user_default_workspace");
+    const workspaceId = (ws as string | null) ?? null;
     if (workspaceId) {
       for (const kind of ["prediction", "risk"] as const) {
         const summary = await summarizeCalibration(supabase, workspaceId, kind);

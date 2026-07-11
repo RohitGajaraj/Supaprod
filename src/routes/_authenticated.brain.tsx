@@ -99,6 +99,11 @@ const JudgmentTimeline = lazy(() =>
     default: m.JudgmentTimeline,
   })),
 );
+// RPT-01: the "why did we decide X?" recall card - a named query surface
+// over the same decisions the Judgment timeline already composes.
+const RecallCard = lazy(() =>
+  import("@/components/knowledge/RecallCard").then((m) => ({ default: m.RecallCard })),
+);
 const BrainFrontDoor = lazy(() =>
   import("@/components/obsidian/BrainFrontDoor").then((m) => ({ default: m.BrainFrontDoor })),
 );
@@ -110,6 +115,7 @@ type Tab =
   | "learnings"
   | "decisions"
   | "judgment"
+  | "recall"
   | "brief"
   | "design"
   | "graph"
@@ -121,6 +127,7 @@ const TABS: Tab[] = [
   "learnings",
   "decisions",
   "judgment",
+  "recall",
   "brief",
   "design",
   "graph",
@@ -138,7 +145,7 @@ type LensId = "identity" | "judgment" | "knowledge" | "capability";
 const LENS_ORDER: LensId[] = ["identity", "judgment", "knowledge", "capability"];
 const LENS_TABS: Record<LensId, Tab[]> = {
   identity: ["brief", "design"],
-  judgment: ["judgment", "insights", "decisions", "learnings", "graph"],
+  judgment: ["judgment", "recall", "insights", "decisions", "learnings", "graph"],
   knowledge: ["memory", "docs", "calendar", "graph"],
   capability: [],
 };
@@ -167,6 +174,7 @@ const TAB_LABEL: Record<Tab, string> = {
   learnings: "Learnings",
   decisions: "Decisions",
   judgment: "Timeline",
+  recall: "Recall",
   brief: "Brief",
   design: "Design",
   graph: "Graph",
@@ -190,6 +198,8 @@ const TAB_DESC: Record<Tab, string> = {
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
   judgment:
     "How belief moved: decisions and what replaced them, in one narrative timeline, plus how often the calls held up.",
+  recall:
+    "Ask why a call was made. Cadence searches your own record and cites the decision it finds.",
   brief:
     "The workspace's standing strategic calls: vision, target user, positioning, and top bets. Every edit is versioned, never lost.",
   design:
@@ -792,6 +802,7 @@ function BrainPage() {
               {tab === "decisions" &&
                 (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
               {tab === "judgment" && <JudgmentTimeline />}
+              {tab === "recall" && <RecallCard />}
               {tab === "brief" && <BriefPanel />}
               {tab === "design" && (
                 <div

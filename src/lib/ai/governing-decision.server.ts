@@ -130,6 +130,15 @@ async function attachGoverningTitles(
   const oppIds = Array.from(
     new Set(superseded.filter((i) => i.governingKind === "opportunity").map((i) => i.governingId)),
   );
+  // RPT-01: a decision can itself be the governing (replacement) node - e.g.
+  // JudgmentTimeline/the recall card walk FROM decision seeds, so a later
+  // decision superseding an earlier one is a real, common case. Missing this
+  // silently dropped the "Replaced by ..." narrative for exactly that case
+  // (governingTitle stayed undefined, so the caller's `? title : id` fallback
+  // never even fired - the item just looked NOT superseded downstream).
+  const decisionIds = Array.from(
+    new Set(superseded.filter((i) => i.governingKind === "decision").map((i) => i.governingId)),
+  );
   const titles = new Map<string, string>();
   try {
     // The Supabase query builder is a PromiseLike (thenable), not a full Promise;
@@ -153,6 +162,7 @@ async function attachGoverningTitles(
     };
     collect("prd", "prds", prdIds);
     collect("opportunity", "opportunities", oppIds);
+    collect("decision", "decisions", decisionIds);
     await Promise.all(queries);
   } catch {
     return items;
