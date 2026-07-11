@@ -53,6 +53,11 @@ const CalendarPanel = lazy(() =>
 const MemoryList = lazy(() =>
   import("@/components/memory/MemoryList").then((m) => ({ default: m.MemoryList })),
 );
+// RPT-28: the write review gate sits above the recall list — nothing enters
+// agent_memory without an approval here.
+const MemoryReviewQueue = lazy(() =>
+  import("@/components/memory/MemoryReviewQueue").then((m) => ({ default: m.MemoryReviewQueue })),
+);
 const CompoundingPanel = lazy(() =>
   import("@/components/knowledge/CompoundingPanel").then((m) => ({
     default: m.CompoundingPanel,
@@ -795,7 +800,18 @@ function BrainPage() {
               {tab === "calendar" && (
                 <CalendarPanel meetingId={meeting} onMeetingChange={setMeeting} />
               )}
-              {tab === "memory" && <MemoryList />}
+              {tab === "memory" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                  <section>
+                    <SectionTitle>Review gate</SectionTitle>
+                    <MemoryReviewQueue />
+                  </section>
+                  <section>
+                    <SectionTitle>What the loop recalls</SectionTitle>
+                    <MemoryList />
+                  </section>
+                </div>
+              )}
               {tab === "learnings" &&
                 (learning ? (
                   <LearningDetail id={learning} />
