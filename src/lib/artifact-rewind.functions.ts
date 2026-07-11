@@ -69,18 +69,39 @@ export const revertPrdToPrevious = createServerFn({ method: "POST" })
 
     if (updateErr) throw new Error(`Revert failed: ${updateErr.message}`);
 
-    // Log the revert action to the Trust Ledger
-    // (as an "action" receipt, same as agent approvals)
-    await db.from("agent_approvals").insert({
-      workspace_id: prd.workspace_id,
-      artifact_id: data.prd_id,
-      artifact_type: "prd",
-      tool_name: "artifact.rewind",
-      decided_by: userId,
-      approved_at: new Date().toISOString(),
-      status: "approved",
-      rationale: "User initiated rewind to previous state",
-    });
+    // RPT-04 (designed wrongness): a rewind is the user saying the AI's prior
+    // work was WRONG, so it must count as a REJECTED judgment against the
+    // agent that authored it - a real signal on the error path, not a hollow
+    // "approved" receipt (which is what this previously wrote, on top of 3
+    // columns - artifact_id/artifact_type/approved_at - that do not exist on
+    // agent_approvals, so the insert silently failed every time; confirmed
+    // against the live schema before this fix). Attribution comes from the
+    // artifact_lineage edge where this PRD is the child (same "ancestors"
+    // query SpecDetail.tsx already uses for "Drafted by {agent}"); a
+    // human-authored PRD with no such edge writes no receipt at all, since
+    // summarizeAgentRecords (agent-track-record.ts) drops an empty agent_slug
+    // anyway - a meaningless row is worse than none.
+    const { data: draftEdge } = await db
+      .from("artifact_lineage")
+      .select("created_by_agent")
+      .eq("child_kind", "prd")
+      .eq("child_id", data.prd_id)
+      .not("created_by_agent", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (draftEdge?.created_by_agent) {
+      await db.from("agent_approvals").insert({
+        workspace_id: prd.workspace_id,
+        agent_slug: draftEdge.created_by_agent,
+        tool_name: "artifact.rewind",
+        decided_by: userId,
+        decided_at: new Date().toISOString(),
+        status: "rejected",
+        rationale: `User rewound the PRD (${data.prd_id}) this agent drafted back to its previous state.`,
+      });
+    }
 
     return { success: true, prd_id: data.prd_id };
   });
@@ -99,7 +120,7 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
 
     const { data: decision, error: fetchErr } = await db
       .from("decisions")
-      .select("id,workspace_id,rationale,snapshot_before")
+      .select("id,workspace_id,rationale,snapshot_before,decided_by_agent_slug")
       .eq("id", data.decision_id)
       .single();
 
@@ -125,16 +146,22 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
 
     if (updateErr) throw new Error(`Revert failed: ${updateErr.message}`);
 
-    await db.from("agent_approvals").insert({
-      workspace_id: decision.workspace_id,
-      artifact_id: data.decision_id,
-      artifact_type: "decision",
-      tool_name: "artifact.rewind",
-      decided_by: userId,
-      approved_at: new Date().toISOString(),
-      status: "approved",
-      rationale: "User initiated rewind to previous state",
-    });
+    // RPT-04 (designed wrongness): same fix as the PRD revert above - a
+    // rewind is a REJECTED judgment against the agent that made this
+    // decision (decisions.decided_by_agent_slug, a direct column, unlike a
+    // PRD's lineage-derived attribution), not a hollow "approved" receipt on
+    // 3 nonexistent columns. A human-made decision writes no receipt.
+    if (decision.decided_by_agent_slug) {
+      await db.from("agent_approvals").insert({
+        workspace_id: decision.workspace_id,
+        agent_slug: decision.decided_by_agent_slug,
+        tool_name: "artifact.rewind",
+        decided_by: userId,
+        decided_at: new Date().toISOString(),
+        status: "rejected",
+        rationale: `User rewound the decision (${data.decision_id}) this agent made back to its previous state.`,
+      });
+    }
 
     return { success: true, decision_id: data.decision_id };
   });
