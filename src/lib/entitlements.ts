@@ -98,6 +98,8 @@ export type Entitlements = {
   workspaceLimit: number | null;
   /** Products (projects) allowed; Free 2 / Pro 3 / Max ~5, team/enterprise generous (null). */
   productLimit: number | null;
+  /** Max parallel agents per fanout spawn; free = 1, paid tiered, enterprise unlimited (null). */
+  maxParallelAgents: number | null;
 
   // --- Collaboration ---
   /** Seats; solo tiers = 1, team/enterprise = many (null). */
@@ -191,6 +193,9 @@ export function entitlementsFor(tier: PlanTier): Entitlements {
 
   const productLimit = tier === "free" ? 2 : tier === "pro" ? 3 : tier === "max" ? 5 : null;
 
+  const maxParallelAgents =
+    tier === "free" ? 1 : tier === "pro" ? 3 : tier === "max" ? 5 : tier === "team" ? 8 : null;
+
   return {
     memoryPersists: paid,
     memoryRetentionDays: paid ? null : FREE_MEMORY_RETENTION_DAYS,
@@ -198,6 +203,7 @@ export function entitlementsFor(tier: PlanTier): Entitlements {
 
     workspaceLimit: tier === "free" ? 1 : null,
     productLimit,
+    maxParallelAgents,
 
     seats: collab ? null : 1,
     rbac: collab,
