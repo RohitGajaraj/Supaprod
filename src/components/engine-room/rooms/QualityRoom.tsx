@@ -53,6 +53,14 @@ const EvalCalibrationPanel = React.lazy(() =>
     default: m.EvalCalibrationPanel,
   })),
 );
+// RPT-50: the self-improvement engine, surfaced as a Quality view. Reads
+// Cadence's OWN quality signals and lists the deterministic improvements it
+// would make to itself (failing evals, over-corrected agents, losing playbooks).
+const SelfImprovementPanel = React.lazy(() =>
+  import("@/components/engine-room/SelfImprovementPanel").then((m) => ({
+    default: m.SelfImprovementPanel,
+  })),
+);
 
 /** RPT-18: one rigor stat (a mono label above a real, tabular-nums figure). Local to this view —
  * not promoted to a shared primitive since AuroraCard already owns the "one hero number" slot and
@@ -232,6 +240,13 @@ export function QualityRoom({ view, suite, surface }: RoomBodyProps) {
     return (
       <React.Suspense fallback={<PanelPending />}>
         <GauntletMetricsPanel />
+      </React.Suspense>
+    );
+  }
+  if (view === "self-improvement") {
+    return (
+      <React.Suspense fallback={<PanelPending />}>
+        <SelfImprovementPanel />
       </React.Suspense>
     );
   }
