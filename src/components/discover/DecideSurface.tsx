@@ -1,6 +1,16 @@
 import { Info } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { OpportunityQueue } from "./OpportunityQueue";
+
+/** PC-29 layer 2: Decide's station agents, most-relevant first (the fleet is
+ * already sorted attention-first, agent-fleet.ts). */
+const DECIDE_STATION_AGENTS = ["strategist", "critic"];
 
 /**
  * The decide stage of the loop (2026-07-07). The ranked opportunity queue used
@@ -11,6 +21,20 @@ import { OpportunityQueue } from "./OpportunityQueue";
  * on the title, and the queue sits in one comfortable centered column.
  */
 export function DecideSurface() {
+  const { activeWorkspaceId } = useWorkspace();
+  // PC-29 layer 2: shared cache with FleetView's "By Agent" tab (same
+  // queryKey) - a cache read here, not a second network call, on the same
+  // workspace. Scoped by workspaceId so switching workspaces doesn't show
+  // another workspace's agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
+    DECIDE_STATION_AGENTS.includes(a.slug),
+  );
+
   return (
     <div
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
@@ -70,6 +94,16 @@ export function DecideSurface() {
             margin: "10px 0 24px",
           }}
         />
+        {presenceAgent ? (
+          <div style={{ marginBottom: 14 }}>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="decide"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
+          </div>
+        ) : null}
         <p
           style={{
             fontSize: "var(--text-base)",
@@ -82,6 +116,10 @@ export function DecideSurface() {
           The ranked opportunities, red-teamed by the Critic. Promote what is worth building and it
           moves to Plan.
         </p>
+
+        {/* PC-29 layer 4: the inline relay, live only while Decide has a run
+            going (e.g. the Critic red-teaming a bet). */}
+        <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
 
         <OpportunityQueue />
       </div>

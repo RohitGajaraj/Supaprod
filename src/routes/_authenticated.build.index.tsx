@@ -44,6 +44,8 @@ import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
 import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
 import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
@@ -51,6 +53,10 @@ import { ToastProvider, ToastHost } from "@/components/obsidian/toast";
 import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
 import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
 import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
+
+/** PC-29 layer 2: Build's station agent. */
+const BUILD_STATION_AGENTS = ["builder"];
 
 export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
@@ -473,7 +479,7 @@ function BuildPage() {
   const fArchive = useServerFn(setStudioSessionArchived);
   const fDelete = useServerFn(deleteStudioSession);
   const qc = useQueryClient();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
   const navigate = useNavigate({ from: "/build/" });
   const search = Route.useSearch();
   const [showArchived, setShowArchived] = useState(false);
@@ -489,6 +495,16 @@ function BuildPage() {
     refetchInterval: 5000,
   });
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // PC-29 layer 2: shared cache with the "By Agent" tab's FleetView (same
+  // queryKey) - a cache read here, not a second network call, on the same
+  // workspace. Scoped by workspaceId so switching workspaces doesn't show
+  // another workspace's agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) => BUILD_STATION_AGENTS.includes(a.slug));
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["studio-sessions"] });
   const archive = useMutation({
@@ -567,6 +583,21 @@ function BuildPage() {
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
             Validated work becomes shipped code. Approved specs come in · merged work moves on.
           </p>
+          {presenceAgent ? (
+            <div style={{ marginTop: 10 }}>
+              <PresenceChip
+                agentSlug={presenceAgent.slug}
+                station="build"
+                state={presenceAgent.state === "working" ? "working" : "idle"}
+                lastActedAt={presenceAgent.lastActiveAt}
+              />
+            </div>
+          ) : null}
+          {/* PC-29 layer 4: the inline relay, live only while Build has a run
+              going. */}
+          <div style={{ marginTop: 10 }}>
+            <AgentRelay variant="station" station="build" workspaceId={activeWorkspaceId} />
+          </div>
           {/* OBS-10: fleet-wide glances, ported from the retired /missions page —
               genuinely about the whole agent mesh (code-gen + orchestrator goal-runs
               alike), not Build-specific, so they belong on Build's calm front now

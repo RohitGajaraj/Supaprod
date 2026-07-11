@@ -10,6 +10,11 @@ import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 import type { ChatMeta } from "@/components/chat/MessageMeta";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import { parseSseLine } from "@/lib/ask-sse";
+import {
+  matchSlashCommands,
+  suggestedAsksForContext,
+  type SlashCommand,
+} from "@/lib/ask-suggestions";
 
 // OBS-12 - Ask (Cmd+J), the summonable AI panel. A right-docked 420px glass
 // panel over any screen, not a destination. The SSE streaming client below
@@ -50,7 +55,10 @@ function ShimmerStatus({ label }: { label: string }) {
   );
 }
 
-function AskUserTurn({ content }: { content: string }) {
+// Memoized so a streaming assistant reply (which changes the messages array
+// reference on every token) never re-renders the already-settled user turns
+// above it - only the message whose props actually changed re-executes.
+const AskUserTurn = React.memo(function AskUserTurn({ content }: { content: string }) {
   return (
     <div className="flex justify-end">
       <div
@@ -69,11 +77,20 @@ function AskUserTurn({ content }: { content: string }) {
       </div>
     </div>
   );
-}
+});
 
-function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatus | null }) {
+const AskAiMessage = React.memo(function AskAiMessage({
+  msg,
+  liveStatus,
+}: {
+  msg: Msg;
+  liveStatus: ResearchStatus | null;
+}) {
   const [traceOpen, setTraceOpen] = React.useState(false);
   const thinking = !msg.content && !msg.error;
+  // Memoize citations array to prevent ChatMarkdown from re-parsing on every parent render.
+  // Hoisted above the early returns below — hooks must run unconditionally on every render.
+  const citations = React.useMemo(() => msg.meta?.sources.map((s) => s.n), [msg.meta?.sources]);
 
   if (msg.error) {
     return (
@@ -97,8 +114,6 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
   }
 
   const meta = msg.meta;
-  // Memoize citations array to prevent ChatMarkdown from re-parsing on every parent render.
-  const citations = React.useMemo(() => meta?.sources.map((s) => s.n), [meta?.sources]);
 
   return (
     <div>
@@ -196,71 +211,169 @@ function AskAiMessage({ msg, liveStatus }: { msg: Msg; liveStatus: ResearchStatu
       ) : null}
     </div>
   );
-}
+});
 
 function AskComposer({
   onSend,
   disabled,
+  paletteOpenRef,
 }: {
   onSend: (content: string) => void;
   disabled: boolean;
+  // Mirrors paletteOpen for the parent dialog's onEscapeKeyDown, which runs
+  // as a document-level CAPTURE-phase listener (Radix DismissableLayer) and
+  // therefore fires before this component's own bubble-phase onKeyDown can
+  // preventDefault() - the dialog needs to know the palette state directly.
+  paletteOpenRef: React.MutableRefObject<boolean>;
 }) {
   const [value, setValue] = React.useState("");
+  const [paletteIndex, setPaletteIndex] = React.useState(0);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const { close } = useAsk();
+
+  const matches = React.useMemo(() => matchSlashCommands(value), [value]);
+  const paletteOpen = matches.length > 0;
+  React.useEffect(() => {
+    paletteOpenRef.current = paletteOpen;
+  }, [paletteOpen, paletteOpenRef]);
 
   const submit = () => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setValue("");
+    setPaletteIndex(0);
+  };
+
+  const selectCommand = (command: SlashCommand) => {
+    setValue(command.fill);
+    setPaletteIndex(0);
+    textareaRef.current?.focus();
   };
 
   return (
-    <div
-      style={{
-        border: "1px solid var(--hairline)",
-        background: "#0E0E10",
-        borderRadius: "var(--radius-card)",
-        padding: "10px 12px",
-      }}
-    >
-      <textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            submit();
-          } else if (e.key === "Escape") {
-            close();
-          }
-        }}
-        placeholder="Ask about this screen"
-        rows={1}
-        style={{
-          width: "100%",
-          resize: "none",
-          background: "transparent",
-          border: "none",
-          outline: "none",
-          fontFamily: "var(--font-ui)",
-          fontSize: 13,
-          lineHeight: 1.55,
-          color: "var(--text-primary)",
-          maxHeight: 80,
-        }}
-      />
+    <div style={{ position: "relative" }}>
+      {paletteOpen ? (
+        <div
+          role="listbox"
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: 0,
+            right: 0,
+            marginBottom: 6,
+            background: "#151517",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            overflow: "hidden",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+          }}
+        >
+          {matches.map((command, i) => (
+            <button
+              key={command.cmd}
+              type="button"
+              role="option"
+              aria-selected={i === paletteIndex}
+              onMouseDown={(e) => {
+                // mousedown (not click) so this fires before the textarea's blur
+                e.preventDefault();
+                selectCommand(command);
+              }}
+              style={{
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 12px",
+                background:
+                  i === paletteIndex
+                    ? "color-mix(in oklab, var(--glacier) 10%, transparent)"
+                    : "transparent",
+                border: "none",
+                textAlign: "left",
+                cursor: "pointer",
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                color: "var(--text-primary)",
+              }}
+            >
+              <span
+                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--glacier)" }}
+              >
+                {command.cmd}
+              </span>
+              <span style={{ color: "var(--text-muted)" }}>{command.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div
         style={{
-          marginTop: 6,
-          fontFamily: "var(--font-mono)",
-          fontSize: 9,
-          textTransform: "uppercase",
-          letterSpacing: "0.09em",
-          color: "var(--text-faint)",
+          border: "1px solid var(--hairline)",
+          background: "#0E0E10",
+          borderRadius: "var(--radius-card)",
+          padding: "10px 12px",
         }}
       >
-        Enter to send · Esc closes
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setPaletteIndex(0);
+          }}
+          onKeyDown={(e) => {
+            if (paletteOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+              e.preventDefault();
+              setPaletteIndex((i) =>
+                e.key === "ArrowDown" ? Math.min(i + 1, matches.length - 1) : Math.max(i - 1, 0),
+              );
+              return;
+            }
+            if (paletteOpen && (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey))) {
+              e.preventDefault();
+              selectCommand(matches[paletteIndex] ?? matches[0]);
+              return;
+            }
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            } else if (e.key === "Escape") {
+              if (paletteOpen) {
+                setValue("");
+              } else {
+                close();
+              }
+            }
+          }}
+          placeholder="Ask about this screen, or type / for commands"
+          rows={1}
+          style={{
+            width: "100%",
+            resize: "none",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            fontFamily: "var(--font-ui)",
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: "var(--text-primary)",
+            maxHeight: 80,
+          }}
+        />
+        <div
+          style={{
+            marginTop: 6,
+            fontFamily: "var(--font-mono)",
+            fontSize: 9,
+            textTransform: "uppercase",
+            letterSpacing: "0.09em",
+            color: "var(--text-faint)",
+          }}
+        >
+          Enter to send · Esc closes · / for commands
+        </div>
       </div>
     </div>
   );
@@ -304,7 +417,7 @@ export function AskPanel() {
         // Create a new AbortController for this request so we can cancel if panel closes
         const controller = new AbortController();
         abortControllerRef.current = controller;
-        
+
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: {
@@ -403,6 +516,23 @@ export function AskPanel() {
     send(intent);
   }, [isOpen, pendingIntent, clearPendingIntent, send]);
 
+  // Follow new content to the bottom, but only while the reader is already
+  // near the bottom - never yank scroll away from someone reading history.
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const nearBottomRef = React.useRef(true);
+  React.useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (el && nearBottomRef.current) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  // Radix's DismissableLayer handles Escape as a document-level capture-phase
+  // listener, so it runs (and can close the whole panel) before the composer's
+  // own onKeyDown ever sees the key. This ref lets the composer report "the
+  // slash palette is open" so the dialog can preventDefault() and swallow that
+  // Escape instead of dismissing - the composer's own handler then still runs
+  // afterward (preventDefault doesn't stop propagation) and clears the palette.
+  const paletteOpenRef = React.useRef(false);
+
   if (!isOpen) return null;
 
   return (
@@ -414,6 +544,9 @@ export function AskPanel() {
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
+          onEscapeKeyDown={(e) => {
+            if (paletteOpenRef.current) e.preventDefault();
+          }}
           className="fixed inset-y-0 right-0 flex flex-col outline-none"
           style={{
             zIndex: 71,
@@ -464,32 +597,70 @@ export function AskPanel() {
             </DialogPrimitive.Close>
           </div>
           <div
+            ref={scrollContainerRef}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+            }}
             className="flex-1 overflow-y-auto flex flex-col"
             style={{ padding: "20px", gap: 16 }}
           >
             {messages.length === 0 ? (
-              <p
-                style={{
-                  fontFamily: "var(--font-ui)",
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                }}
-              >
-                Ask about this screen. I read what is in front of you, so you can skip the setup.
-                Most answers land in a few seconds.
-              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <p
+                  style={{
+                    fontFamily: "var(--font-ui)",
+                    fontSize: 13,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  Ask about this screen. I read what is in front of you, so you can skip the
+                  setup. Most answers land in a few seconds.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {suggestedAsksForContext(context).map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => send(suggestion)}
+                      style={{
+                        textAlign: "left",
+                        padding: "9px 12px",
+                        borderRadius: "var(--radius-card)",
+                        border: "1px solid var(--hairline)",
+                        background: "#0E0E10",
+                        fontFamily: "var(--font-ui)",
+                        fontSize: 12.5,
+                        color: "var(--text-body)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : (
               messages.map((m) =>
                 m.role === "user" ? (
                   <AskUserTurn key={m.id} content={m.content} />
                 ) : (
-                  <AskAiMessage key={m.id} msg={m} liveStatus={liveStatus} />
+                  <AskAiMessage
+                    key={m.id}
+                    msg={m}
+                    // Only the currently-thinking message needs the live
+                    // status; passing null (referentially stable) for every
+                    // settled message lets React.memo actually skip
+                    // re-rendering them on each status tick, instead of the
+                    // shared liveStatus reference invalidating every message.
+                    liveStatus={!m.content && !m.error ? liveStatus : null}
+                  />
                 ),
               )
             )}
           </div>
           <div style={{ padding: "0 20px 20px" }}>
-            <AskComposer onSend={send} disabled={streaming} />
+            <AskComposer onSend={send} disabled={streaming} paletteOpenRef={paletteOpenRef} />
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

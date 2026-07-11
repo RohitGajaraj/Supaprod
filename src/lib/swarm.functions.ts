@@ -158,15 +158,22 @@ export const getSwarmHud = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .order("name"),
       // Latest 80 runs gives us the "current" row per agent and covers an
-      // active swarm comfortably without paging.
-      supabase
-        .from("agent_runs")
-        .select(
-          "id,agent_id,agent_slug,status,step_index,mission_id,input,created_at,last_checkpoint_at",
-        )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(80),
+      // active swarm comfortably without paging. PC-29 fix: this was the one
+      // query in this Promise.all missing the workspaceId scope its siblings
+      // (missions/mission_steps/agent_messages/event_queue) already have, so a
+      // run from another workspace the user belongs to leaked into "what's
+      // running right now" for whichever workspace was on screen.
+      workspaceId
+        ? supabase
+            .from("agent_runs")
+            .select(
+              "id,agent_id,agent_slug,status,step_index,mission_id,input,created_at,last_checkpoint_at",
+            )
+            .eq("user_id", userId)
+            .eq("workspace_id", workspaceId)
+            .order("created_at", { ascending: false })
+            .limit(80)
+        : Promise.resolve({ data: [], error: null }),
       supabase.from("agent_autonomy").select("agent_id,arc").eq("user_id", userId),
       workspaceId
         ? supabase

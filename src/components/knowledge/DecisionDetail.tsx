@@ -104,8 +104,11 @@ function StateCard({ children }: { children: React.ReactNode }) {
 }
 
 /** Share / Unshare a decision + copy its public /d/<slug> link. Pre-migration
- *  tolerant: before the share columns land it shows a quiet "after sync" hint. */
-function ShareDecisionButton({ id }: { id: string }) {
+ *  tolerant: before the share columns land it shows a quiet "after sync" hint.
+ *  Exported (RPT-01) so the Brain "recall card" search results can offer the
+ *  same real share action on a matched decision without duplicating this
+ *  logic - one component, every decision surface. */
+export function ShareDecisionButton({ id }: { id: string }) {
   const qc = useQueryClient();
   const fState = useServerFn(getDecisionShareState);
   const fSet = useServerFn(setDecisionShared);

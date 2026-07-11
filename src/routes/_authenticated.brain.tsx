@@ -20,7 +20,7 @@
 // sub-nav instead of the old flat 9-tab bar. Every previously reachable tab
 // stays reachable; this is a re-parenting, not a removal.
 import { lazy, Suspense, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -28,9 +28,15 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
+
+/** PC-29 layer 2: Brain's station agent. */
+const BRAIN_STATION_AGENTS = ["data-analyst"];
 
 // Every tab panel is code-split: only the active tab's module loads.
 const InsightsPanel = lazy(() =>
@@ -69,11 +75,6 @@ const DecisionDetail = lazy(() =>
 const BriefPanel = lazy(() =>
   import("@/components/knowledge/BriefPanel").then((m) => ({ default: m.BriefPanel })),
 );
-const DesignMemoryPanel = lazy(() =>
-  import("@/components/knowledge/DesignMemoryPanel").then((m) => ({
-    default: m.DesignMemoryPanel,
-  })),
-);
 const GraphPanel = lazy(() =>
   import("@/components/knowledge/GraphPanel").then((m) => ({ default: m.GraphPanel })),
 );
@@ -98,6 +99,11 @@ const JudgmentTimeline = lazy(() =>
     default: m.JudgmentTimeline,
   })),
 );
+// RPT-01: the "why did we decide X?" recall card - a named query surface
+// over the same decisions the Judgment timeline already composes.
+const RecallCard = lazy(() =>
+  import("@/components/knowledge/RecallCard").then((m) => ({ default: m.RecallCard })),
+);
 const BrainFrontDoor = lazy(() =>
   import("@/components/obsidian/BrainFrontDoor").then((m) => ({ default: m.BrainFrontDoor })),
 );
@@ -109,6 +115,7 @@ type Tab =
   | "learnings"
   | "decisions"
   | "judgment"
+  | "recall"
   | "brief"
   | "design"
   | "graph"
@@ -120,6 +127,7 @@ const TABS: Tab[] = [
   "learnings",
   "decisions",
   "judgment",
+  "recall",
   "brief",
   "design",
   "graph",
@@ -137,7 +145,7 @@ type LensId = "identity" | "judgment" | "knowledge" | "capability";
 const LENS_ORDER: LensId[] = ["identity", "judgment", "knowledge", "capability"];
 const LENS_TABS: Record<LensId, Tab[]> = {
   identity: ["brief", "design"],
-  judgment: ["judgment", "insights", "decisions", "learnings", "graph"],
+  judgment: ["judgment", "recall", "insights", "decisions", "learnings", "graph"],
   knowledge: ["memory", "docs", "calendar", "graph"],
   capability: [],
 };
@@ -166,6 +174,7 @@ const TAB_LABEL: Record<Tab, string> = {
   learnings: "Learnings",
   decisions: "Decisions",
   judgment: "Timeline",
+  recall: "Recall",
   brief: "Brief",
   design: "Design",
   graph: "Graph",
@@ -189,6 +198,8 @@ const TAB_DESC: Record<Tab, string> = {
   decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
   judgment:
     "How belief moved: decisions and what replaced them, in one narrative timeline, plus how often the calls held up.",
+  recall:
+    "Ask why a call was made. Cadence searches your own record and cites the decision it finds.",
   brief:
     "The workspace's standing strategic calls: vision, target user, positioning, and top bets. Every edit is versioned, never lost.",
   design:
@@ -602,6 +613,16 @@ function BrainPage() {
     queryKey: ["company-brain-stats", activeWorkspaceId],
     queryFn: () => fStats({ data: { workspaceId: activeWorkspaceId } }),
   });
+  // PC-29 layer 2: shared cache with Build's "By Agent" tab (same
+  // queryKey) - a cache read here, not a second network call, on the same
+  // workspace. Scoped by workspaceId so switching workspaces doesn't show
+  // another workspace's agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) => BRAIN_STATION_AGENTS.includes(a.slug));
 
   // Fresh search object: every drill param clears on a tab switch (the old
   // version carried ?meeting across tabs).
@@ -662,6 +683,21 @@ function BrainPage() {
           >
             Every call you made, what it became, and how belief moved.
           </p>
+          {presenceAgent ? (
+            <div style={{ marginBottom: 18 }}>
+              <PresenceChip
+                agentSlug={presenceAgent.slug}
+                station="brain"
+                state={presenceAgent.state === "working" ? "working" : "idle"}
+                lastActedAt={presenceAgent.lastActiveAt}
+              />
+            </div>
+          ) : null}
+          {/* PC-29 layer 4: the inline relay, live only while Measure/Learn has a
+              run going. Brain was the one station missing this among the 5. */}
+          <div style={{ marginBottom: 18 }}>
+            <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
+          </div>
         </div>
 
         <BrainStatTrio />
@@ -766,8 +802,45 @@ function BrainPage() {
               {tab === "decisions" &&
                 (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
               {tab === "judgment" && <JudgmentTimeline />}
+              {tab === "recall" && <RecallCard />}
               {tab === "brief" && <BriefPanel />}
-              {tab === "design" && <DesignMemoryPanel />}
+              {tab === "design" && (
+                <div
+                  style={{
+                    background: "var(--card)",
+                    border: "1px dashed var(--hairline)",
+                    borderRadius: "var(--radius-card)",
+                    padding: "40px 24px",
+                    textAlign: "center",
+                  }}
+                >
+                  <MonoLabel style={{ display: "block", marginBottom: 8 }}>Moved</MonoLabel>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                      maxWidth: 440,
+                      margin: "0 auto 14px",
+                    }}
+                  >
+                    Design now has its own home: your Brand Kit and every prototype, in one place.
+                  </p>
+                  <Link
+                    to="/design"
+                    style={{
+                      display: "inline-block",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--hairline-strong)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "8px 16px",
+                    }}
+                  >
+                    Open Design
+                  </Link>
+                </div>
+              )}
               {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
               {tab === "docs" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>

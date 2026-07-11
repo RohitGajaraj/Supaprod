@@ -8,6 +8,10 @@
 //
 //   full = bound to one mission (mission / build detail).
 //   mini = one live "what is running now" line for Today.
+//   station = one live line SCOPED TO A SINGLE STATION (PC-29 layer 4),
+//     shown only while that station has an active run. Wired onto
+//     Discover/Decide/Define/Build's calm front; expands via the same
+//     /build/$missionId link the mini line already uses.
 
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +21,14 @@ import { getMission } from "@/lib/missions.functions";
 import { getSwarmHud } from "@/lib/swarm.functions";
 import { MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { AgentMark } from "@/components/agents/AgentMark";
-import { miniRelay, relayByStation, toRelaySteps, type RelayStatus } from "@/lib/relay";
+import type { AgentStation } from "@/lib/agent-vocabulary";
+import {
+  miniRelay,
+  relayByStation,
+  stationActiveRun,
+  toRelaySteps,
+  type RelayStatus,
+} from "@/lib/relay";
 
 function dotFor(s: RelayStatus): "running" | "completed" | "planned" | "failed" | "gate" {
   if (s === "running") return "running";
@@ -28,11 +39,18 @@ function dotFor(s: RelayStatus): "running" | "completed" | "planned" | "failed" 
 }
 
 export function AgentRelay(props: {
-  variant: "full" | "mini";
+  variant: "full" | "mini" | "station";
   missionId?: string;
   workspaceId?: string | null;
+  /** Required when variant is "station": which station's line to show. */
+  station?: AgentStation;
 }) {
   if (props.variant === "mini") return <MiniRelayLine workspaceId={props.workspaceId ?? null} />;
+  if (props.variant === "station") {
+    return props.station ? (
+      <StationRelayLine station={props.station} workspaceId={props.workspaceId ?? null} />
+    ) : null;
+  }
   return props.missionId ? <FullRelay missionId={props.missionId} /> : null;
 }
 
@@ -191,6 +209,71 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       <Link
         to="/build/$missionId"
         params={{ missionId: r.missionId }}
+        style={{ textDecoration: "none", display: "block" }}
+      >
+        {body}
+      </Link>
+    );
+  }
+  return body;
+}
+
+/**
+ * A single station's compact inline relay line (PC-29 layer 4): "{agent} ·
+ * {relay verb}...", shown only while that station has an active run - null
+ * (renders nothing) otherwise, so a quiet station never grows a placeholder.
+ * Shares the swarm HUD query with MiniRelayLine (same key), so mounting this
+ * alongside it costs no extra network round trip. Click expands to the run's
+ * mission, the same navigation the mini line already uses.
+ */
+function StationRelayLine({
+  station,
+  workspaceId,
+}: {
+  station: AgentStation;
+  workspaceId: string | null;
+}) {
+  const hudFn = useServerFn(getSwarmHud);
+  const q = useQuery({
+    queryKey: ["swarm", "hud", workspaceId],
+    queryFn: () => hudFn({ data: { workspaceId } }),
+    refetchInterval: 4000,
+    refetchIntervalInBackground: false,
+  });
+  const run = stationActiveRun(q.data, station);
+  if (!run) return null;
+
+  // Owns its own bottom margin (present only while a run is live) so a
+  // quiet station never reserves layout space for an empty wrapper.
+  const body = (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, marginBottom: 16 }}>
+      <AgentMark slug={run.slug} size={18} />
+      <span
+        style={{
+          fontSize: 12.5,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          minWidth: 0,
+        }}
+      >
+        <span className={run.isGate ? undefined : "agent-live"} style={{ fontWeight: 540 }}>
+          {run.name}
+        </span>
+        <span style={{ color: run.isGate ? "var(--ember)" : "var(--ink-subtle)" }}>
+          {" "}
+          · {run.isGate ? "needs your sign-off" : `${run.verb}...`}
+        </span>
+      </span>
+      <StepDot status={run.isGate ? "gate" : "running"} />
+    </div>
+  );
+
+  if (run.missionId) {
+    return (
+      <Link
+        to="/build/$missionId"
+        params={{ missionId: run.missionId }}
         style={{ textDecoration: "none", display: "block" }}
       >
         {body}

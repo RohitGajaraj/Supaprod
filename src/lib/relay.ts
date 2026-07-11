@@ -190,6 +190,49 @@ export type MiniRelay = {
   active: boolean;
 };
 
+export type StationActiveRun = {
+  slug: string;
+  /** The display name of the one cast agent shown for this station's inline line. */
+  name: string;
+  /** The present-tense relay verb ("reading your sources"), never null (falls back to "working"). */
+  verb: string;
+  /** The mission this run belongs to, for the "expand to the full trace" link. */
+  missionId: string | null;
+  /** True when the run is waiting on a human (the inline line reads in ember). */
+  isGate: boolean;
+};
+
+/**
+ * The one cast agent actively working (or gated) at a single station right
+ * now, for a surface's compact inline relay line (PC-29 layer 4). Prefers a
+ * running agent over a gated one; null when the station is quiet, so the
+ * caller can render nothing rather than a stale line.
+ */
+export function stationActiveRun(
+  hud: SwarmHud | null | undefined,
+  station: AgentStation,
+): StationActiveRun | null {
+  const here = (hud?.agents ?? []).filter(
+    (a) =>
+      agentTier(a.slug) === "cast" &&
+      !isConductor(a.slug) &&
+      resolveStationTotal(a.slug) === station &&
+      (mapRelayStatus(a.latest_run?.status) === "running" ||
+        mapRelayStatus(a.latest_run?.status) === "gate"),
+  );
+  const chosen =
+    here.find((a) => mapRelayStatus(a.latest_run?.status) === "running") ?? here[0] ?? null;
+  if (!chosen) return null;
+
+  return {
+    slug: chosen.slug,
+    name: agentDisplayName(chosen.slug),
+    verb: agentRelayVerb(chosen.slug) ?? "working",
+    missionId: chosen.latest_run?.mission_id ?? null,
+    isGate: mapRelayStatus(chosen.latest_run?.status) === "gate",
+  };
+}
+
 /** Build the one-line "what is running now" summary for Today from the swarm HUD. */
 export function miniRelay(hud: SwarmHud | null | undefined): MiniRelay {
   const missions = (hud?.missions ?? []).filter((m) => mapRelayStatus(m.status) === "running");

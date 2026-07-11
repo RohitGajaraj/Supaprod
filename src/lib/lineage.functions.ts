@@ -16,6 +16,7 @@ export const ARTIFACT_KINDS = [
   "mission",
   "house_rule",
   "design_memory",
+  "prototype",
 ] as const;
 export type ArtifactKind = (typeof ARTIFACT_KINDS)[number];
 
@@ -80,6 +81,10 @@ type LineageEdge = {
   relation: string;
   rationale: string | null;
   created_at: string;
+  // PC-29 layer 3: the agent slug that authored this edge, or null for a
+  // human-made link. select("*") already returns this column; it was simply
+  // never in this type.
+  created_by_agent: string | null;
   // Hydrated title for the "other" end of the edge:
   peer_title?: string | null;
 };
@@ -96,6 +101,7 @@ const TITLE_COLUMN: Record<ArtifactKind, string> = {
   mission: "title",
   house_rule: "rule_text",
   design_memory: "title",
+  prototype: "name",
 };
 
 const TABLE: Record<ArtifactKind, string> = {
@@ -110,6 +116,7 @@ const TABLE: Record<ArtifactKind, string> = {
   mission: "missions",
   house_rule: "house_rules",
   design_memory: "design_memory",
+  prototype: "prototypes",
 };
 
 async function hydrateTitles(

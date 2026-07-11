@@ -12,6 +12,7 @@ import { dispatchStudioSession } from "@/lib/studio.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
+import { AskInContext } from "@/components/obsidian/AskInContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -398,6 +399,9 @@ export function SpecList({ onOpen }: SpecListProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* PC-29 layer 6: the one contextual delegation verb for a spec. */}
+              <AskInContext stationOrKind="spec" targetId={spec.id} targetTitle={spec.title} />
             </div>
           );
         })}

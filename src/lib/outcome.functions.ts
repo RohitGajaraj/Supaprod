@@ -511,7 +511,7 @@ export const listLearnings = createServerFn({ method: "GET" })
     const { data: learnings, error } = await db
       .from("learnings")
       .select(
-        "id, prd_id, opportunity_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, opportunity:opportunities(title, theme_id)",
+        "id, prd_id, opportunity_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, recorded_by_agent_slug, opportunity:opportunities(title, theme_id)",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -534,6 +534,10 @@ export const listLearnings = createServerFn({ method: "GET" })
       prior_ice: number | string | null;
       new_ice: number | string | null;
       created_at: string;
+      // PC-29 layer 3: which agent recorded this learning (always the
+      // Historian today, "historian"; never null in practice, but the
+      // column itself is nullable).
+      recorded_by_agent_slug: string | null;
       opportunity:
         | { title: string | null; theme_id: string | null }
         | { title: string | null; theme_id: string | null }[]

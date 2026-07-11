@@ -4,6 +4,7 @@
 // must export only components). SourceLink stays in DecisionsPanel.
 import type { DecisionRow, DecisionSource } from "@/lib/decisions.functions";
 import type { VerdictTone } from "@/components/cadence/Primitives";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 export const SOURCE_LABEL: Record<DecisionSource, string> = {
   mission: "Mission",
@@ -36,9 +37,11 @@ export function hasSource(d: DecisionRow): boolean {
   return !!(d.mission_id || d.prd_id || d.meeting_id);
 }
 
-/** Who decided, user-facing. The legacy `builder` agent slug reads as Build
- *  (renames 2026-06-12: Builder → Studio → Build; internal identifiers stay). */
+/** Who decided, user-facing. A human call reads as "You"; an agent call
+ * resolves through the agent-vocabulary catalog so a raw DB slug (e.g.
+ * "prd-writer") never leaks to the panel - it reads as the agent's real
+ * name (e.g. "Draft"). */
 export function displayWho(slug: string | null): string {
   if (!slug) return "You";
-  return slug === "builder" ? "Build" : slug;
+  return agentDisplayName(slug);
 }

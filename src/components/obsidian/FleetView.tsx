@@ -7,6 +7,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import type { FleetAgent } from "@/lib/agent-fleet";
 
 const STATE_META: Record<string, { label: string; color: string }> = {
@@ -76,8 +77,15 @@ function AgentRow({ a }: { a: FleetAgent }) {
 }
 
 export function FleetView() {
+  const { activeWorkspaceId } = useWorkspace();
+  // PC-29 fix: scoped by workspaceId (shares its cache with the station
+  // PresenceChip/AgentRelay reads elsewhere on the same workspace) so this
+  // view can no longer show another workspace's agent runs merged in.
   const fGet = useServerFn(getAgentFleet);
-  const query = useQuery({ queryKey: ["agent-fleet"], queryFn: () => fGet() });
+  const query = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fGet({ data: { workspaceId: activeWorkspaceId } }),
+  });
   const fleet = query.data?.fleet;
 
   if (query.isPending) {
