@@ -34,6 +34,9 @@ export function creditsWelcomeVisible(enabled: boolean, monthlyGrantCredits: num
 
 export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
   const fGetCredits = useServerFn(getMyCreditsView);
+  // Hover cue for the icon-only close control (inline styles, so it rides
+  // state); the focus-visible ring stays on the global rule.
+  const [closeHover, setCloseHover] = useState(false);
 
   // Same fallback idiom as Settings' Credits tab: a missing Stripe client
   // token must never block the balance read (environment only scopes topups).
@@ -103,6 +106,8 @@ export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
           e.stopPropagation();
           dismiss();
         }}
+        onMouseEnter={() => setCloseHover(true)}
+        onMouseLeave={() => setCloseHover(false)}
         style={{
           position: "absolute",
           top: 10,
@@ -112,12 +117,13 @@ export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "transparent",
+          background: closeHover ? "var(--ds-gray-alpha-200)" : "transparent",
           border: "none",
           borderRadius: "var(--ds-radius-small)",
-          color: "var(--ds-gray-700)",
+          color: closeHover ? "var(--ds-gray-1000)" : "var(--ds-gray-700)",
           cursor: "pointer",
           padding: 0,
+          transition: "background-color 0.2s var(--ds-motion-timing-swift)",
         }}
       >
         <X size={16} strokeWidth={1.5} aria-hidden="true" />

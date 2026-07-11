@@ -198,8 +198,29 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
         }
       >
         {prdQuery.isError ? (
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-            COULDN'T LOAD SPEC
+          <div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
+              COULDN'T LOAD SPEC
+            </div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+              {(prdQuery.error as Error)?.message}
+            </p>
+            <button
+              type="button"
+              onClick={() => prdQuery.refetch()}
+              className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                marginTop: 14,
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--text-body)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Retry · reloads the spec
+            </button>
           </div>
         ) : prdQuery.isLoading || !prd || !chip ? (
           <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>

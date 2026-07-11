@@ -486,7 +486,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         ) : null}
         <ProvenanceSection
           body={`Stands under: ${detail.decisionTitle}.`}
-          linkLabel="Open in Brain"
+          linkLabel="Open in Memory"
           onOpen={() => navigate({ to: "/brain", search: { tab: "decisions" } as never })}
         />
         <DetailSection heading="Activity">
@@ -522,7 +522,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
         </DetailSection>
         <ProvenanceSection
           body={`Compounded from ${detail.sourceCount} same-shaped learning${detail.sourceCount === 1 ? "" : "s"} in this workspace.`}
-          linkLabel="Open in Brain"
+          linkLabel="Open in Memory"
           onOpen={() => navigate({ to: "/brain", search: { tab: "learnings" } as never })}
         />
         <DetailSection heading="Activity">

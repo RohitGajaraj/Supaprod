@@ -34,10 +34,10 @@ function SecurityPage() {
 
       <LegalSection title="Access and authentication">
         <p>
-          Sign-in is handled through our managed authentication provider. Sessions are bound to
-          your account, and every request to backend data is authorized server-side. Workspace
-          membership controls who can read or change data, and roles (owner, admin, member, viewer)
-          gate sensitive actions such as inviting members or transferring ownership.
+          Sign-in is handled through our managed authentication provider. Sessions are bound to your
+          account, and every request to backend data is authorized server-side. Workspace membership
+          controls who can read or change data, and roles (owner, admin, member, viewer) gate
+          sensitive actions such as inviting members or transferring ownership.
         </p>
       </LegalSection>
 
@@ -94,8 +94,8 @@ function SecurityPage() {
           <a href="/subprocessors" style={{ color: "#ff9542" }}>
             the sub-processor disclosure
           </a>
-          . Connections you create are scoped to your workspace, and you can disconnect them at
-          any time from Settings.
+          . Connections you create are scoped to your workspace, and you can disconnect them at any
+          time from Settings.
         </p>
       </LegalSection>
 

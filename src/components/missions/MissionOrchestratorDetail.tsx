@@ -249,7 +249,7 @@ function GatePanel({
               {agentName ?? "The agent"} wants{" "}
               <span
                 className="mono-label"
-                style={{ color: "var(--mauve)", fontSize: 10.5, display: "inline-flex" }}
+                style={{ color: "var(--text-primary)", fontSize: 10.5, display: "inline-flex" }}
               >
                 {appr.tool_name}
               </span>
@@ -342,13 +342,15 @@ function TraceHop({
   const [showOutput, setShowOutput] = useState(false);
   const [showPayload, setShowPayload] = useState(false);
   const live = h.status === "running" || h.status === "queued" || h.status === "dispatched";
+  // Accent restraint (2026-07-11): identifiers stay in ink, purple is retired
+  // from AI treatments; only outcome colors carry hue on the rail.
   const tint = (st: Hop["steps"][number]): CSSProperties => {
-    if (st.kind === "tool_call") return { color: "var(--mauve)" };
+    if (st.kind === "tool_call") return { color: "var(--text-body)" };
     if (st.kind === "thought") return { color: "var(--text-subtle)", fontStyle: "italic" };
     return { color: "var(--moss)" };
   };
   return (
-    <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 11, marginBottom: 10 }}>
+    <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, marginBottom: 10 }}>
       {inbound ? (
         <div style={{ marginBottom: 4 }}>
           <button
@@ -386,7 +388,7 @@ function TraceHop({
         ) : (
           <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
         )}
-        <span style={{ color: "var(--mauve)", fontWeight: 600 }}>
+        <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
           {agentDisplayName(h.agent_slug, h.agent_name)}
         </span>
         <span
@@ -404,7 +406,7 @@ function TraceHop({
               display: "block",
               height: "100%",
               width: `${pct}%`,
-              background: live ? "var(--cornflower)" : "var(--moss)",
+              background: live ? "var(--glacier)" : "var(--moss)",
             }}
           ></span>
         </span>
@@ -434,7 +436,7 @@ function TraceHop({
               <Link
                 to="/traces/$traceId"
                 params={{ traceId: h.trace_id }}
-                style={{ color: "var(--cornflower)" }}
+                style={{ color: "var(--glacier)" }}
               >
                 trace
               </Link>
@@ -452,8 +454,8 @@ function TraceHop({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 5,
-                  color: "var(--mauve)",
-                  border: "1px solid color-mix(in oklab, var(--mauve) 30%, transparent)",
+                  color: "var(--text-subtle)",
+                  border: "1px solid var(--hairline-strong)",
                   borderRadius: 99,
                   padding: "2px 8px",
                 }}
@@ -1139,7 +1141,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              color: "var(--cornflower)",
+              color: "var(--glacier)",
             }}
           >
             <span className="dot dot-running" style={{ width: 5, height: 5 }} />
@@ -1283,7 +1285,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span className="mono-label" style={{ color: "var(--mauve)" }}>
+                      <span className="mono-label" style={{ color: "var(--text-primary)" }}>
                         {s.agent}
                       </span>
                       <StatusBadge status={badgeStatus(s.status)} />
@@ -1379,7 +1381,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 >
                   <span style={{ flexShrink: 0, alignSelf: "flex-start" }}>
                     {/* moss for ok (accent restraint 2026-07-11): a settled
-                        outcome is a verdict; orchid never marks success. */}
+                        outcome is a verdict; machine blue never marks success. */}
                     <VerdictChip tone={tc.ok ? "moss" : "madder"}>
                       {agentDisplayName(tc.agent_slug)}
                     </VerdictChip>

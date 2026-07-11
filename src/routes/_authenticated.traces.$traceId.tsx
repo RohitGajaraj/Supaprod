@@ -14,9 +14,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
-import { ExternalLink, FileText, Shield } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink, FileText, Shield } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { DrillHeader, MonoLabel } from "@/components/cadence/Primitives";
+import { EvalScoreChips } from "@/components/observe/EvalScoreChips";
 import { getTrace } from "@/lib/traces.functions";
 import { relTime } from "@/components/product/format";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -114,7 +115,11 @@ const EVENT_DOT: Record<string, string> = {
   blocked: "dot-gate",
 };
 
+// The hop table leads with the narrative columns; Dur / Tokens / Cost ride
+// behind the "Timing + cost" disclosure (IA 2026-07-11) so replay reads as a
+// story first and an invoice only on request.
 const GRID = "26px 90px 130px 1fr 60px 56px 56px";
+const GRID_LEAN = "26px 90px 130px 1fr";
 
 const preStyle: CSSProperties = {
   margin: 0,
@@ -161,14 +166,16 @@ function SpanInspector({
     ["Tokens", `${span.prompt_tokens} → ${span.completion_tokens}`],
     ["Cost", fmtUsd(Number(span.est_cost_usd))],
   ];
-  const evalCells: [string, number | null][] = evalRow
+  // Every score wears a pass/watch/fail verdict (eval-health cutoffs) with
+  // the raw number as a mono tail; risk-shaped metrics invert (low is good).
+  const evalScores = evalRow
     ? [
-        ["Relevance", evalRow.relevance],
-        ["Grounded", evalRow.groundedness],
-        ["Coherence", evalRow.coherence],
-        ["Halluc.", evalRow.hallucination_score],
-        ["Toxicity", evalRow.toxicity],
-        ["PII risk", evalRow.pii_risk],
+        { label: "Relevance", value: evalRow.relevance, higherIsBetter: true },
+        { label: "Grounded", value: evalRow.groundedness, higherIsBetter: true },
+        { label: "Coherence", value: evalRow.coherence, higherIsBetter: true },
+        { label: "Halluc.", value: evalRow.hallucination_score, higherIsBetter: false },
+        { label: "Toxicity", value: evalRow.toxicity, higherIsBetter: false },
+        { label: "PII risk", value: evalRow.pii_risk, higherIsBetter: false },
       ]
     : [];
   return (
@@ -260,30 +267,10 @@ function SpanInspector({
         </div>
       )}
 
-      {evalCells.some(([, v]) => v != null) && (
+      {evalScores.some((s) => s.value != null) && (
         <div style={{ marginTop: 14 }}>
           <MonoLabel style={{ marginBottom: 6 }}>Eval scores</MonoLabel>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(0, 1fr))", gap: 8 }}
-          >
-            {evalCells.map(([k, v]) =>
-              v == null ? null : (
-                <div
-                  key={k}
-                  style={{
-                    border: "1px solid var(--hairline)",
-                    borderRadius: 8,
-                    padding: "6px 8px",
-                  }}
-                >
-                  <MonoLabel style={{ marginBottom: 2, fontSize: 8.5 }}>{k}</MonoLabel>
-                  <div className="font-display tabular-nums" style={{ fontSize: 16 }}>
-                    {Number(v).toFixed(2)}
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
+          <EvalScoreChips scores={evalScores} />
         </div>
       )}
 
@@ -397,6 +384,10 @@ export function TraceDetail({ id }: { id: string }) {
   });
 
   const [selected, setSelected] = useState<Selected | null>(null);
+  // Dur / Tokens / Cost columns hide until asked for; the header kicker keeps
+  // the trace-level totals either way, so nothing real disappears.
+  const [showTiming, setShowTiming] = useState(false);
+  const hopGrid = showTiming ? GRID : GRID_LEAN;
 
   const spans = useMemo(() => withDepth((trace.data?.events ?? []) as EventRow[]), [trace.data]);
   const toolCalls = useMemo(() => (trace.data?.toolCalls ?? []) as ToolCallRow[], [trace.data]);
@@ -584,12 +575,25 @@ export function TraceDetail({ id }: { id: string }) {
         </div>
       )}
 
-      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          aria-expanded={showTiming}
+          aria-controls="trace-hop-table"
+          onClick={() => setShowTiming((v) => !v)}
+        >
+          {showTiming ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+          Timing + cost
+        </button>
+      </div>
+
+      <div id="trace-hop-table" className="bento" style={{ padding: 0, overflow: "hidden" }}>
         <div
           className="mono-label"
           style={{
             display: "grid",
-            gridTemplateColumns: GRID,
+            gridTemplateColumns: hopGrid,
             gap: 10,
             padding: "10px 18px",
             borderBottom: "1px solid var(--hairline)",
@@ -599,9 +603,13 @@ export function TraceDetail({ id }: { id: string }) {
           <span>Agent</span>
           <span>Tool call</span>
           <span>What happened</span>
-          <span>Dur</span>
-          <span>Tokens</span>
-          <span>Cost</span>
+          {showTiming && (
+            <>
+              <span>Dur</span>
+              <span>Tokens</span>
+              <span>Cost</span>
+            </>
+          )}
         </div>
         {hopRows.map((r, i) => {
           const isLast = i === hopRows.length - 1;
@@ -622,7 +630,7 @@ export function TraceDetail({ id }: { id: string }) {
               }
               style={{
                 display: "grid",
-                gridTemplateColumns: GRID,
+                gridTemplateColumns: hopGrid,
                 gap: 10,
                 padding: "12px 18px",
                 alignItems: "center",
@@ -652,7 +660,7 @@ export function TraceDetail({ id }: { id: string }) {
                       ...cellEllipsis,
                       paddingLeft: r.span.depth * 10,
                       // Gray for every surface (accent restraint 2026-07-11):
-                      // orchid marks agent actions, not attribution columns.
+                      // machine blue marks agent actions, not attribution columns.
                       color: "var(--ink-muted)",
                     }}
                   >
@@ -699,13 +707,17 @@ export function TraceDetail({ id }: { id: string }) {
                       </span>
                     )}
                   </span>
-                  <span className="mono-label tabular-nums">{fmtMs(r.span.latency_ms)}</span>
-                  <span className="mono-label tabular-nums">
-                    {(r.span.total_tokens || 0).toLocaleString()}
-                  </span>
-                  <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
-                    {fmtUsd(Number(r.span.est_cost_usd))}
-                  </span>
+                  {showTiming && (
+                    <>
+                      <span className="mono-label tabular-nums">{fmtMs(r.span.latency_ms)}</span>
+                      <span className="mono-label tabular-nums">
+                        {(r.span.total_tokens || 0).toLocaleString()}
+                      </span>
+                      <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
+                        {fmtUsd(Number(r.span.est_cost_usd))}
+                      </span>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
@@ -738,13 +750,17 @@ export function TraceDetail({ id }: { id: string }) {
                         ? clip(JSON.stringify(r.tool.result ?? r.tool.args))
                         : "-"}
                   </span>
-                  <span className="mono-label tabular-nums">{fmtMs(r.tool.latency_ms)}</span>
-                  <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                    -
-                  </span>
-                  <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                    -
-                  </span>
+                  {showTiming && (
+                    <>
+                      <span className="mono-label tabular-nums">{fmtMs(r.tool.latency_ms)}</span>
+                      <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+                        -
+                      </span>
+                      <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
+                        -
+                      </span>
+                    </>
+                  )}
                 </>
               )}
               {/* Quiet wall-clock timing bar — production waterfall retainer. */}

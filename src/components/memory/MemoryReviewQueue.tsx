@@ -51,7 +51,7 @@ export function MemoryReviewQueue() {
       toast.success(
         res.supersedesMemoryId
           ? "Saved for review. It looks like it replaces an existing memory."
-          : "Saved for review. Approve it below to add it to the brain.",
+          : "Saved for review. Approve it below to add it to Memory.",
       );
     },
     onError: (e: Error) => toast.error(e.message),
@@ -63,10 +63,10 @@ export function MemoryReviewQueue() {
       qc.invalidateQueries({ queryKey: ["memory-candidates"] });
       // A committed memory now lives in agent_memory; refresh the list beside us.
       if (v.decision === "approve") qc.invalidateQueries({ queryKey: ["agent-memory"] });
-      if (v.decision === "reject") toast.success("Rejected. It never entered the brain.");
+      if (v.decision === "reject") toast.success("Rejected. It never entered Memory.");
       else if (res.superseded)
-        toast.success("Added to the brain. The memory it replaced was retired.");
-      else toast.success("Added to the brain.");
+        toast.success("Added to Memory. The memory it replaced was retired.");
+      else toast.success("Added to Memory.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -145,7 +145,7 @@ export function MemoryReviewQueue() {
           <MonoLabel style={{ marginBottom: 6 }}>Review queue is clear</MonoLabel>
           <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0 }}>
             Nothing is waiting for your approval. Memories the loop proposes, and anything you save
-            above, will appear here before they enter the brain.
+            above, will appear here before they enter Memory.
           </p>
         </div>
       ) : (

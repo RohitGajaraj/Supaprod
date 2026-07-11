@@ -89,7 +89,7 @@ export const Route = createFileRoute("/_authenticated/build/$missionId")({
           </MonoLabel>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
             {isNotFound
-              ? "This mission doesn't exist in your workspace, or it was deleted. Its decisions and learnings stay in your Brain."
+              ? "This mission doesn't exist in your workspace, or it was deleted. Its decisions and learnings stay in Memory."
               : message}
           </p>
           {isNotFound ? (
@@ -233,7 +233,7 @@ function JourneyStrip({
                 target="_blank"
                 rel="noreferrer"
                 className="mono-label tabular-nums"
-                style={{ fontSize: "var(--text-mono-floor)", color: "var(--blossom)" }}
+                style={{ fontSize: "var(--text-mono-floor)", color: "var(--glacier)" }}
               >
                 {stage.label}
               </a>
@@ -256,7 +256,7 @@ function JourneyStrip({
           to="/brain"
           search={{ tab: "docs" }}
           className="mono-label"
-          style={{ fontSize: "var(--text-mono-floor)", color: "var(--blossom)", marginLeft: 4 }}
+          style={{ fontSize: "var(--text-mono-floor)", color: "var(--glacier)", marginLeft: 4 }}
         >
           lands in Releases →
         </Link>
@@ -609,6 +609,15 @@ function BuildSessionPage() {
               ) : (
                 <h1
                   onClick={startTitleRename}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      startTitleRename();
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Rename mission: ${stripAutoPrefix(mission.title)}`}
                   title="Click to rename"
                   style={{
                     fontFamily: "var(--font-serif)",

@@ -27,6 +27,9 @@ const doorLink: React.CSSProperties = {
 const focusRing =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
+/** Links must answer the pointer too, not only the keyboard. */
+const linkHover = "hover:underline";
+
 /** The 'Connections & sync' glance card (§7 + the three-honest-doors IA,
  * 2026-07-11). Connections still live in Settings / Connections (one home);
  * this card is a read-only glance AND the Engine Room's honest door to
@@ -129,7 +132,7 @@ export function ConnectionStrip() {
           RETRY
         </button>
         <span className="flex-1" />
-        <Link to="/sync" className={focusRing} style={doorLink}>
+        <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
           OPEN SYNC &amp; BINDINGS →
         </Link>
       </div>
@@ -170,7 +173,7 @@ export function ConnectionStrip() {
     <Link
       to="/sync"
       search={{ conflict: conflicts[0]!.id }}
-      className={`inline-flex items-center uppercase ${focusRing}`}
+      className={`inline-flex items-center uppercase ${focusRing} ${linkHover}`}
       aria-label={`${conflicts.length} sync ${conflicts.length === 1 ? "conflict needs" : "conflicts need"} your call. Open the first one.`}
       style={{
         gap: "6px",
@@ -216,7 +219,7 @@ export function ConnectionStrip() {
           No sources connected to this workspace yet.
         </span>
         <span className="flex-1" />
-        <Link to="/sync" className={focusRing} style={doorLink}>
+        <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
           OPEN SYNC &amp; BINDINGS →
         </Link>
       </div>
@@ -285,7 +288,7 @@ export function ConnectionStrip() {
       ) : null}
       {conflictVerdict}
       <span className="flex-1" />
-      <Link to="/sync" className={focusRing} style={doorLink}>
+      <Link to="/sync" className={`${focusRing} ${linkHover}`} style={doorLink}>
         OPEN SYNC &amp; BINDINGS →
       </Link>
     </div>

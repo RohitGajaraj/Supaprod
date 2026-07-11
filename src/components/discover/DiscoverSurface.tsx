@@ -28,7 +28,7 @@ const STATION_AGENTS: Record<"signals" | "queue", string[]> = {
   queue: ["strategist", "critic"],
 };
 
-/** Loom v4 §9: every empty state whispers the moat — a faint, static
+/** Loom v4 §9: every empty state whispers the moat, a faint, static
  * constellation of nodes and threads. Decorative only, so it is hidden from
  * assistive tech. */
 function ConstellationMotif() {

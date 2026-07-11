@@ -45,9 +45,9 @@ export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
   // invisible most of the time; now the whole lead phrase pixelates and the
   // plain tail (heroB) stays Geist Sans. Pixel is a fixed 400 display face
   // with no italic, so the emphasis <em> keeps its role color (ember, moss
-  // at all-clear) but drops the slant. LoopStrip counts stay Geist Mono, and
-  // ColdStartOnramp (which replaces this hero on a cold workspace, never
-  // co-renders) carries the Pixel budget in that state instead.
+  // at all-clear) but drops the slant. ColdStartOnramp (which replaces this
+  // hero on a cold workspace, never co-renders) carries the Pixel budget in
+  // that state instead. (LoopStrip itself was retired and deleted 2026-07-11.)
   // Loom W2-TODAY: tightened vertical rhythm so the hero + the featured call
   // + the My-day strip + the machine pulse all land above the fold at 1440px
   // (DESIGN-LOOM §8b's 1.5-screen budget).

@@ -148,6 +148,19 @@ export type NeedsYouCounts = {
   liveCalls: number;
 };
 
+/* SEAM (sync-doors, 2026-07-11): sync-conflict Calls are NOT injected yet.
+ * The three-honest-doors IA wants an open sync conflict to surface as a Call
+ * on Today, deep-linking /sync?conflict=<id> (the /sync route already accepts
+ * and highlights that param). There is no cheap generic hook here: every call
+ * kind is a typed array + a count + a Today card renderer in lockstep
+ * (_authenticated.today.tsx), so a server-side count alone would inflate
+ * counts.liveCalls with no visible card, which the honesty law forbids.
+ * To wire it: (1) add syncConflicts to NeedsYouCounts via a head count on
+ * sync_mappings where conflict=true, include it in liveCalls; (2) add a
+ * syncConflictCalls array ({ id, provider, external_id }) to NeedsYou in
+ * getNeedsYou; (3) render the card in the Today queue linking to
+ * /sync?conflict=<id>. All three land together or not at all. */
+
 /** Tolerant critic_review reader: jsonb object or a stringified copy. */
 function parseCriticReview(raw: unknown): CriticReview | null {
   if (!raw) return null;

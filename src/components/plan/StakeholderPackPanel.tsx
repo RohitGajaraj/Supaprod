@@ -215,7 +215,7 @@ export function StakeholderPackPanel({
         className="flex items-center justify-between"
         style={{ marginBottom: 20, borderBottom: "1px solid var(--hairline)" }}
       >
-        <div role="tablist" className="flex" style={{ gap: 20 }}>
+        <div role="tablist" aria-label="Audience" className="flex" style={{ gap: 20 }}>
           {AUDIENCE_TABS.map((tab) => {
             const active = tab.id === audience;
             return (
@@ -233,9 +233,11 @@ export function StakeholderPackPanel({
                   textTransform: "uppercase",
                   color: active ? "var(--text-primary)" : "var(--text-subtle)",
                   paddingBottom: 8,
-                  borderBottom: active ? "2px solid var(--text-primary)" : "2px solid transparent",
                   background: "none",
+                  // border (shorthand) must precede borderBottom or it wipes
+                  // the active underline (React sets styles in object order).
                   border: "none",
+                  borderBottom: active ? "2px solid var(--text-primary)" : "2px solid transparent",
                   cursor: "pointer",
                 }}
               >

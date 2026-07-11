@@ -16,15 +16,15 @@ import { shortHead } from "@/lib/trust-verify";
 const TIERS: { label: string; body: string }[] = [
   {
     label: "Archive",
-    body: "Hides a build from your list. Fully reversible. Keeps everything, including anything it taught the brain.",
+    body: "Hides a build from your list. Fully reversible. Keeps everything, including anything it taught Memory.",
   },
   {
     label: "Delete",
-    body: "Removes a build's working files and log. Anything it taught the brain stays, the way a decision outlives the meeting that produced it.",
+    body: "Removes a build's working files and log. Anything it taught Memory stays, the way a decision outlives the meeting that produced it.",
   },
   {
     label: "Forget",
-    body: "A separate, deliberate action for removing something from the brain itself. Not a side effect of tidying up. Coming as its own explicit, warned step.",
+    body: "A separate, deliberate action for removing something from Memory itself. Not a side effect of tidying up. Coming as its own explicit, warned step.",
   },
 ];
 

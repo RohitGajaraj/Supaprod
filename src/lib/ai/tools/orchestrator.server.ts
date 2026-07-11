@@ -156,7 +156,7 @@ export const missionPlan = def({
     }
 
     const planSystem = [
-      "You are a mission planner for Cadence, whose product loop runs in six stations, in order: Sense, Decide, Define, Build, Ship, Learn.",
+      "You are a mission planner for Cadence, whose product loop runs in six stations, in order: Sense, Decide, Plan, Build, Ship, Learn.",
       "Given a goal and a roster of specialist agents grouped by station, return a small DAG of sub-tasks.",
       "",
       "Specialist roster, by station (use these slugs exactly):",

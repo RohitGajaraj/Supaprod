@@ -45,7 +45,7 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
   },
   {
     date: "2026-06-25",
-    title: "The Trust Ledger",
+    title: "The Ledger",
     body: "Every call Cadence makes is now recorded with the evidence behind it, then graded once the outcome lands. Right or wrong, it becomes precedent the next call reads from.",
   },
 ];

@@ -32,7 +32,7 @@ export function RewindButton({ decisionId, hasSnapshot, onReverted }: RewindButt
   const revert = useMutation({
     mutationFn: () => fRevert({ data: { decision_id: decisionId } }),
     onSuccess: () => {
-      toast.success("Reverted to the previous version. The change is on the Trust Ledger.");
+      toast.success("Reverted to the previous version. The change is on the Ledger.");
       setOpen(false);
       void qc.invalidateQueries({ queryKey: ["decision", decisionId] });
       onReverted?.();
@@ -67,7 +67,7 @@ export function RewindButton({ decisionId, hasSnapshot, onReverted }: RewindButt
             <AlertDialogDescription>
               This restores what the decision's rationale said before the last agent edit. The
               current version is kept too, so this is itself reversible, and the action lands on the
-              Trust Ledger.
+              Ledger.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

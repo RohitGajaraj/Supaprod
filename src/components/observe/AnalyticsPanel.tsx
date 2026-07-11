@@ -5,7 +5,7 @@
 // per-SURFACE rollup as the top-level whole-spend view (every AI call, ink
 // labels); the reference's per-AGENT rollup sits underneath it as the
 // also-real layer of the 'agent' surface: gray labels (the reference's
-// orchid tint is retired per accent restraint 2026-07-11), rows drill to
+// violet orchid tint is retired per accent restraint 2026-07-11), rows drill to
 // /govern?tab=analytics&agent=<slug> (AgentSpendDetail replaces the tab
 // body). Reference's "of $X cap" spend sub-line renders only where a real
 // cap exists (ai_budgets daily cap on 24h, monthly cap on 30d); the "ttft"
@@ -369,7 +369,7 @@ export function AnalyticsPanel() {
                         width: 90,
                         flexShrink: 0,
                         // Gray name column (accent restraint 2026-07-11):
-                        // orchid marks agent actions, not name labels.
+                        // machine blue marks agent actions, not name labels.
                         color: "var(--ink-muted)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",

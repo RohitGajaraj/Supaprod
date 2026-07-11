@@ -7,10 +7,11 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { Hero } from "@/components/obsidian/today/Hero";
-import { LoopStrip, type LoopSurface } from "@/components/obsidian/today/LoopStrip";
+import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
 import { JudgmentLane } from "@/components/today/JudgmentLane";
+import { FirstTeardownCard } from "@/components/today/FirstTeardownCard";
 import { ReceiptsStrip } from "@/components/today/ReceiptsStrip";
 import { ProductMasthead } from "@/components/today/ProductMasthead";
 import { type ExpiredCall, type QueueCall } from "@/components/today/TriageQueue";
@@ -23,7 +24,14 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { useFlowMode } from "@/hooks/use-flow-mode";
 import { supabase } from "@/integrations/supabase/client";
 import { getGreeting } from "@/lib/greeting.functions";
-import { getNeedsYou, getLoopPulse, snoozeApproval, type NeedsYou } from "@/lib/today.functions";
+import {
+  getColdStart,
+  getNeedsYou,
+  getLoopPulse,
+  snoozeApproval,
+  type LoopPulse,
+  type NeedsYou,
+} from "@/lib/today.functions";
 import { getTodayLanes } from "@/lib/today-lanes.functions";
 import { listFanoutBatches } from "@/lib/fanout.functions";
 import { CompositeReviewCard } from "@/components/build/CompositeReviewCard";
@@ -34,7 +42,6 @@ import { decidePlaybookProposal } from "@/lib/playbooks.functions";
 import { useConfirm } from "@/hooks/use-confirm";
 import { listLearnings } from "@/lib/outcome.functions";
 import { rescoresOf } from "@/lib/moat-vis";
-import { listAgentRuns } from "@/lib/agents.functions";
 import { recordRitualSession } from "@/lib/gauntlet.functions";
 import { getProductContext } from "@/lib/briefs.functions";
 import { listProjects } from "@/lib/projects.functions";
@@ -80,14 +87,29 @@ export const Route = createFileRoute("/_authenticated/today")({
 // and getNeedsYou hides snoozed rows until the window passes — the call
 // returns on its own, never silently dropped.
 
-// OBS-10: re-pointed at the real Discover/Plan destinations.
-const LOOP_SURFACE_TO: Record<LoopSurface, { to: string; search?: Record<string, string> }> = {
-  discover: { to: "/discover" },
-  today: { to: "/today" },
-  define: { to: "/plan" },
-  build: { to: "/build" },
-  brain: { to: "/brain" },
-};
+/** The one loop pulse that survived the LoopStrip retirement (2026-07-11):
+ * a single plain past-tense sentence above the receipts strip. Empty string
+ * when the last 24 hours produced nothing, so the line simply does not render. */
+function pulseSentence(lp: LoopPulse): string {
+  const parts: string[] = [];
+  if (lp.signals > 0) parts.push(`sensed ${lp.signals} ${lp.signals === 1 ? "signal" : "signals"}`);
+  if (lp.opportunities > 0)
+    parts.push(
+      `framed ${lp.opportunities} ${lp.opportunities === 1 ? "opportunity" : "opportunities"}`,
+    );
+  if (lp.specs > 0) parts.push(`drafted ${lp.specs} ${lp.specs === 1 ? "spec" : "specs"}`);
+  if (lp.runs > 0) parts.push(`completed ${lp.runs} ${lp.runs === 1 ? "run" : "runs"}`);
+  if (lp.memories > 0)
+    parts.push(`saved ${lp.memories} ${lp.memories === 1 ? "memory" : "memories"}`);
+  if (parts.length === 0) return "";
+  const list =
+    parts.length === 1
+      ? parts[0]
+      : parts.length === 2
+        ? `${parts[0]} and ${parts[1]}`
+        : `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+  return `In the last 24 hours, Cadence ${list}.`;
+}
 
 function fmtUsd(n: number): string {
   if (n <= 0) return "$0";
@@ -225,7 +247,7 @@ function TodaySpotlight({
               </>
             ) : (
               <>
-                <span style={{ ...monoLabel, color: "var(--moss)" }}>All quiet</span>
+                <span style={{ ...monoLabel, color: "var(--moss)" }}>All clear</span>
                 <span style={{ color: "var(--text-muted)" }}>
                   Nothing needs your judgment right now.
                 </span>
@@ -411,18 +433,35 @@ function Dashboard() {
   // PM Desk: the hero glow yields to the session edge glow while a block runs.
   const { isFlowMode } = useFlowMode();
 
-  // OBS-14 - the one coach mark the product shows: only right after the
-  // onboarding flow hands off, and never again once dismissed.
-  const [showCoachMark, setShowCoachMark] = useState(false);
-  // Founder ruling 2026-07-09: the same landing also greets the new account
-  // with its starter-credit grant, once, for a few seconds.
-  const [showCreditsWelcome, setShowCreditsWelcome] = useState(false);
+  // ONE overlay at a time (2026-07-11 revamp): the landing shows the
+  // starter-credit welcome first (it auto-dismisses after 9s), and the coach
+  // mark only takes the stage on its dismissal - never both at once.
+  const [overlay, setOverlay] = useState<"none" | "credits" | "coach">("none");
+  const coachPendingRef = useRef(false);
   useEffect(() => {
     const justLanded = window.sessionStorage.getItem("cadence.onboarding.justLanded") === "1";
-    if (shouldShowCoachMark(justLanded, todayCoachMarkDismissed())) setShowCoachMark(true);
-    if (justLanded && !creditsWelcomeDismissed()) setShowCreditsWelcome(true);
     window.sessionStorage.removeItem("cadence.onboarding.justLanded");
+    const coachEligible = shouldShowCoachMark(justLanded, todayCoachMarkDismissed());
+    if (justLanded && !creditsWelcomeDismissed()) {
+      coachPendingRef.current = coachEligible;
+      setOverlay("credits");
+    } else if (coachEligible) {
+      setOverlay("coach");
+    }
   }, []);
+  const advanceOverlay = () => {
+    setOverlay(coachPendingRef.current ? "coach" : "none");
+    coachPendingRef.current = false;
+  };
+  // CreditsWelcome renders nothing (and never calls onDismiss) when credit
+  // metering is off or the grant is zero. This fallback advances past it after
+  // its 9s hold plus a buffer, so the coach mark is never silently blocked;
+  // advancing also unmounts the card, so the two can never co-render.
+  useEffect(() => {
+    if (overlay !== "credits") return;
+    const t = window.setTimeout(advanceOverlay, 12_000);
+    return () => window.clearTimeout(t);
+  }, [overlay]);
 
   const fetchProjects = useServerFn(listProjects);
   const fetchGreeting = useServerFn(getGreeting);
@@ -430,7 +469,6 @@ function Dashboard() {
   const fetchFanoutBatches = useServerFn(listFanoutBatches);
   const fetchLoopPulse = useServerFn(getLoopPulse);
   const fetchLearnings = useServerFn(listLearnings);
-  const fetchRuns = useServerFn(listAgentRuns);
   const fetchDashboard = useServerFn(getDashboard);
   const fetchLanes = useServerFn(getTodayLanes);
   const fetchProductContext = useServerFn(getProductContext);
@@ -457,7 +495,6 @@ function Dashboard() {
   const readyFanoutBatches = (fanoutBatches.data ?? []).filter((b) => b.status === "ready");
   const loopPulse = useQuery({ queryKey: ["loop-pulse"], queryFn: () => fetchLoopPulse() });
   const learnings = useQuery({ queryKey: ["learnings"], queryFn: () => fetchLearnings() });
-  const runs = useQuery({ queryKey: ["runs"], queryFn: () => fetchRuns() });
   const dash = useQuery({ queryKey: ["dashboard"], queryFn: () => fetchDashboard() });
   // SW-5: the four-lane content model (Needs your judgment · What the swarm did ·
   // At risk/watch · Shipped and what it cost), each computed from real rows.
@@ -489,8 +526,7 @@ function Dashboard() {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       const meta = u?.user_metadata as
-        | { display_name?: string; full_name?: string; name?: string }
-        | undefined;
+        { display_name?: string; full_name?: string; name?: string } | undefined;
       const name =
         meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "there";
       setUserName(name);
@@ -503,6 +539,17 @@ function Dashboard() {
     staleTime: 30 * 60 * 1000,
   });
 
+  // Cold-start gate (2026-07-11): a genuinely cold workspace swaps the hero
+  // for the on-ramp. Same query key as ColdStartOnramp's own self-gate, so
+  // the two can never disagree; a warm workspace pays one cached read.
+  const fetchColdStart = useServerFn(getColdStart);
+  const coldStart = useQuery({
+    queryKey: ["cold-start"],
+    queryFn: () => fetchColdStart(),
+    staleTime: 60_000,
+  });
+  const isCold = coldStart.data?.isCold === true;
+
   // One ritual session recorded per Today mount (retention metric); strictly
   // best-effort, never blocks render, swallows every failure.
   const ritualRecorded = useRef(false);
@@ -513,16 +560,17 @@ function Dashboard() {
   }, []);
 
   const ny = needsYou.data;
-  // R2-ATTENTION #1: the ONE needs-you truth is the server-side count —
-  // never an array-length sum, which display caps can understate. Expired
-  // gates are excluded server-side (they live in the quiet Expired group).
+  // R2-ATTENTION #1: the ONE needs-you truth is counts.liveCalls, computed
+  // once server-side (live calls + pushed insights + ready fan-out batches).
+  // The hero, the lane header, and the shell badge all read this number,
+  // never a client-side re-derivation, which display caps and split queries
+  // can understate or double-count. Expired gates are excluded server-side
+  // (they live in the quiet Expired group).
   const callCount = ny?.counts.liveCalls ?? 0;
   const expiredTotal = ny?.counts.expired ?? 0;
-  // PC-32 block 3 (Love-Gate find): pushed insights ARE judgment-lane items,
-  // so the hero, the glow field, and the spotlight speak the MERGED count —
-  // the old split had the hero declare "All clear" over a lane showing 2.
+  // The spotlight's zero-call sentence still names pushed insights
+  // specifically (copy, not a count surface).
   const insightCount = lanes.data?.lane1.count ?? 0;
-  const judgmentCount = callCount + insightCount;
 
   const [clearedSession, setClearedSession] = useState(0);
   const answered = () => setClearedSession((c) => c + 1);
@@ -780,29 +828,34 @@ function Dashboard() {
         },
       };
     }),
-    ...(ny?.oppCalls ?? []).map((o) => {
-      const { body, ev } = criticEvidence(o.critic_review);
-      return {
-        id: o.id,
-        expiresAt: null,
-        raisedAt: Date.parse(o.created_at) || 0,
-        props: {
-          kind: "WORTH BUILDING?",
-          expiry: "",
-          title: o.title,
-          body,
-          ev,
-          okLabel: "Keep it",
-          noLabel: "Drop it",
-          consequence: "Keep moves it to Now on the roadmap · Drop retires it from the backlog",
-          onOpen: () => setActiveCallId(o.id),
-          traceRef: traceNode("OPP", o.id),
-          time: timeNode(o.created_at),
-          onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
-          onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
-        },
-      };
-    }),
+    // The pinned "Your first teardown" card owns its opportunity; keep it out
+    // of the generic build calls so the same call never renders twice.
+    ...(ny?.oppCalls ?? [])
+      .filter((o) => o.id !== ny?.firstTeardown?.id)
+      .map((o) => {
+        const { body, ev } = criticEvidence(o.critic_review);
+        return {
+          id: o.id,
+          expiresAt: null,
+          raisedAt: Date.parse(o.created_at) || 0,
+          props: {
+            kind: "WORTH BUILDING?",
+            expiry: "",
+            title: o.title,
+            body,
+            ev,
+            okLabel: "Approve",
+            noLabel: "Send back",
+            consequence:
+              "Approve keeps it and moves it to Now on the roadmap · Send back drops it from the backlog",
+            onOpen: () => setActiveCallId(o.id),
+            traceRef: traceNode("OPP", o.id),
+            time: timeNode(o.created_at),
+            onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
+            onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
+          },
+        };
+      }),
     // SW-7 (mission 3.4): a spec whose design mockup gate is undecided - the
     // design station's one queue entry, since it has no page of its own.
     ...(ny?.designGateCalls ?? []).map((p) => ({
@@ -815,9 +868,9 @@ function Dashboard() {
         title: p.title,
         body: "The generated mockup is waiting on your call before this spec can dispatch to Build.",
         ev: [],
-        okLabel: "Approve design",
-        noLabel: "Request changes",
-        consequence: "Approve unblocks Build for this spec · Request changes keeps the gate closed",
+        okLabel: "Approve",
+        noLabel: "Send back",
+        consequence: "Approve unblocks Build for this spec · Send back keeps the gate closed",
         onOpen: () => setActiveCallId(p.id),
         traceRef: traceNode("PRD", p.id),
         time: timeNode(p.updated_at),
@@ -838,9 +891,10 @@ function Dashboard() {
         title: c.decisionTitle,
         body: `${c.assumptionStatement}. ${c.rationale}`,
         ev: c.evidenceText ? [{ src: "SIGNAL", text: c.evidenceText }] : [],
-        okLabel: "Re-examine",
-        noLabel: "Still holds",
-        consequence: "Reopens the decision for review · nothing changes without you",
+        okLabel: "Approve",
+        noLabel: "Send back",
+        consequence:
+          "Approve reopens the decision for review · Send back keeps it standing as decided",
         onOpen: () => setActiveCallId(c.id),
         traceRef: traceNode("ASM", c.id),
         time: timeNode(c.created_at),
@@ -863,10 +917,10 @@ function Dashboard() {
           p.sourceCount > 0
             ? [{ src: "LEARNINGS", text: `${p.sourceCount} same-shaped learnings behind this` }]
             : [],
-        okLabel: "Adopt playbook",
-        noLabel: "Dismiss",
+        okLabel: "Approve",
+        noLabel: "Send back",
         consequence:
-          "Adopt keeps the method on the record · Dismiss retires this proposal for good",
+          "Approve adopts the method on the record · Send back retires this proposal for good",
         onOpen: () => setActiveCallId(p.id),
         traceRef: traceNode("PBP", p.id),
         time: timeNode(p.created_at),
@@ -940,8 +994,8 @@ function Dashboard() {
       status: "design pending",
       critic: null,
       updatedAt: p.updated_at,
-      okLabel: "Approve design",
-      noLabel: "Request changes",
+      okLabel: "Approve",
+      noLabel: "Send back",
       onOk: () => decideDesignGateCall.mutate({ id: p.id, ok: true }),
       onNo: () => decideDesignGateCall.mutate({ id: p.id, ok: false }),
     };
@@ -953,8 +1007,8 @@ function Dashboard() {
       title: o.title,
       critic: o.critic_review,
       createdAt: o.created_at,
-      okLabel: "Keep it",
-      noLabel: "Drop it",
+      okLabel: "Approve",
+      noLabel: "Send back",
       onOk: () => decideOpp.mutate({ id: o.id, ok: true }),
       onNo: () => decideOpp.mutate({ id: o.id, ok: false }),
     };
@@ -969,8 +1023,8 @@ function Dashboard() {
       rationale: c.rationale,
       evidenceText: c.evidenceText,
       createdAt: c.created_at,
-      okLabel: "Re-examine",
-      noLabel: "Still holds",
+      okLabel: "Approve",
+      noLabel: "Send back",
       onOk: () => decideChallenge.mutate({ id: c.id, action: "confirm" }),
       onNo: () => decideChallenge.mutate({ id: c.id, action: "dismiss" }),
     };
@@ -983,8 +1037,8 @@ function Dashboard() {
       body: p.body,
       sourceCount: p.sourceCount,
       createdAt: p.created_at,
-      okLabel: "Adopt playbook",
-      noLabel: "Dismiss",
+      okLabel: "Approve",
+      noLabel: "Send back",
       onOk: () => decideProposal.mutate({ proposalId: p.id, decision: "confirm" }),
       onNo: () => dismissProposal(p.id),
     };
@@ -1026,16 +1080,7 @@ function Dashboard() {
   const totalCalls = callCount + clearedSession;
   const clearedPct = totalCalls > 0 ? Math.round((clearedSession / totalCalls) * 100) : 100;
 
-  const goSurface = (surface: LoopSurface) => {
-    const target = LOOP_SURFACE_TO[surface];
-    navigate({ to: target.to, search: target.search as never });
-  };
-
   const lp = loopPulse.data;
-  const runRows = runs.data?.runs ?? [];
-  const workingCount = runRows.filter(
-    (r) => (r as { status?: string }).status === "running",
-  ).length;
 
   const learningRows = learnings.data?.learnings ?? [];
   // PC-32: only the newest rescore feeds the Spotlight's "Proved out" line;
@@ -1075,10 +1120,8 @@ function Dashboard() {
   return (
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Today"]} />
-      {showCoachMark ? <TodayCoachMark onDismiss={() => setShowCoachMark(false)} /> : null}
-      {showCreditsWelcome ? (
-        <CreditsWelcome onDismiss={() => setShowCreditsWelcome(false)} />
-      ) : null}
+      {overlay === "coach" ? <TodayCoachMark onDismiss={() => setOverlay("none")} /> : null}
+      {overlay === "credits" ? <CreditsWelcome onDismiss={advanceOverlay} /> : null}
       {/* Loom v4 §4b: Today rides the standard desktop container (1240px),
           not the v3 1060px column — the room is used, not framed. */}
       <div
@@ -1100,25 +1143,23 @@ function Dashboard() {
           <div
             aria-hidden="true"
             className="loom-glow-field"
-            data-tone={needsYouLoaded && judgmentCount > 0 ? "ember" : undefined}
+            data-tone={needsYouLoaded && callCount > 0 ? "ember" : undefined}
           />
         ) : null}
         {needsYouLoaded ? (
           <>
-            <Hero
-              greeting={greeting.data?.greeting ?? "Hello"}
-              userName={userName}
-              pendingCalls={judgmentCount}
-            />
-            {/* PC-32 block 6: the loop pulse folds into the hero zone as
-                compact pills — kept, shrunk, caption dropped. */}
-            <LoopStrip
-              compact
-              counts={{ sense: lp?.signals ?? 0, define: lp?.specs ?? 0, learn: lp?.memories ?? 0 }}
-              pendingCalls={judgmentCount}
-              workingCount={workingCount}
-              onGo={goSurface}
-            />
+            {/* Cold workspace: the on-ramp IS the hero (never co-renders with
+                it; ColdStartOnramp self-gates on the same cold-start query, so
+                a warm workspace can never see both). */}
+            {isCold ? (
+              <ColdStartOnramp />
+            ) : (
+              <Hero
+                greeting={greeting.data?.greeting ?? "Hello"}
+                userName={userName}
+                pendingCalls={callCount}
+              />
+            )}
           </>
         ) : (
           <>
@@ -1184,13 +1225,24 @@ function Dashboard() {
                     color: "var(--text-faint)",
                   }}
                 >
-                  {callCount + (lanesData?.lane1.count ?? 0) + readyFanoutBatches.length}
+                  {callCount}
                 </span>
               ) : null}
               <div
                 style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
               />
             </div>
+            {/* The pinned first teardown: the wedge's first artifact stays at
+                the top of the judgment lane regardless of verdict (the old
+                revise/kill filter silently dropped clean 'ship' verdicts)
+                until the human answers it with Keep or Share. */}
+            {needsYouLoaded && ny?.firstTeardown ? (
+              <FirstTeardownCard
+                teardown={ny.firstTeardown}
+                onKeep={() => decideOpp.mutate({ id: ny.firstTeardown!.id, ok: true })}
+                deciding={decideOpp.isPending}
+              />
+            ) : null}
             {readyFanoutBatches.length > 0 ? (
               <div className="flex flex-col" style={{ gap: 10 }}>
                 {readyFanoutBatches.map((batch) => (
@@ -1247,11 +1299,7 @@ function Dashboard() {
                   }}
                 />
               </div>
-            ) : callCount === 0 &&
-              expiredTotal === 0 &&
-              !lanes.isPending &&
-              (lanesData?.lane1.count ?? 0) === 0 &&
-              readyFanoutBatches.length === 0 ? (
+            ) : callCount === 0 && expiredTotal === 0 ? (
               <div
                 style={{
                   background: "var(--card)",
@@ -1343,6 +1391,21 @@ function Dashboard() {
             )}
           </section>
 
+          {/* The loop pulse (2026-07-11): the LoopStrip rollup pills are
+              retired; what survives is one plain past-tense sentence above
+              the receipts strip. Renders nothing on a quiet day. */}
+          {lp && lp.total > 0 ? (
+            <p
+              style={{
+                fontSize: 12.5,
+                lineHeight: 1.5,
+                color: "var(--text-muted)",
+                margin: "0 0 -14px",
+              }}
+            >
+              {pulseSentence(lp)}
+            </p>
+          ) : null}
           {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
               one-line acts with real actor bylines, replacing the swarm
               card grid. */}
@@ -1381,7 +1444,7 @@ function Dashboard() {
             />
             <DoorLink
               label="Activity"
-              hint="the full swarm history"
+              hint="the full agent history"
               onClick={() => navigate({ to: "/build" })}
             />
             <DoorLink

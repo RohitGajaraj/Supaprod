@@ -145,11 +145,11 @@ export function StatusBadge({ status }: { status: string }) {
      moss    confirmed / keep / validated / ship
      ember   needs correction / the human's call
      indigo  next action / do this now
-     orchid  agent-performed
+     machine agent-performed (machine blue; the "orchid" violet is retired, 2026-07-11)
      saffron highlight / celebrate
      madder  failed / missed / kill
    Full usage rules: DESIGN.md "Inline verdict chips". */
-export type VerdictTone = "moss" | "ember" | "indigo" | "orchid" | "saffron" | "madder";
+export type VerdictTone = "moss" | "ember" | "indigo" | "machine" | "saffron" | "madder";
 
 // "indigo" resolves to a neutral gray, not action-blue (Tempo v5
 // DESIGN-TEMPO.md §2 glacier/machine-voice narrowing, 2026-07-11):
@@ -163,7 +163,7 @@ const VERDICT_TONES: Record<VerdictTone, string> = {
   moss: "var(--emerald)",
   ember: "var(--ember)",
   indigo: "var(--text-subtle)",
-  orchid: "var(--agent)",
+  machine: "var(--agent)",
   saffron: "var(--saffron)",
   madder: "var(--rose)",
 };

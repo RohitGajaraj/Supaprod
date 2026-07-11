@@ -520,7 +520,7 @@ export const OpportunityRow = memo(function OpportunityRow({
                   aria-label="Opportunity actions"
                   disabled={actionsPending}
                   onClick={(event) => event.stopPropagation()}
-                  className="loom-press"
+                  className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     flexShrink: 0,
                     fontFamily: "var(--font-mono)",

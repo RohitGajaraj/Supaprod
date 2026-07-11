@@ -48,7 +48,7 @@ describe("ask-suggestions - suggestedAsksForContext", () => {
       "Plan",
       "Build",
       "a mission",
-      "Brain",
+      "Memory",
       "the Engine Room",
       "this screen",
     ]) {

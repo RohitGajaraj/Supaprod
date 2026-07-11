@@ -316,7 +316,7 @@ describe("signalHasRaw", () => {
 
 describe("pickFirstString (via signalPreview with JSON)", () => {
   test("should skip keys whose values are non-strings and fall through to the next key", () => {
-    // "title" key is a number — should skip to "name"
+    // "title" key is a number, should skip to "name"
     const json = JSON.stringify({ title: 42, name: "Fallback name" });
     expect(signalPreview(json)).toBe("Fallback name");
   });
@@ -376,7 +376,7 @@ describe("readableFromJson (via signalPreview with JSON)", () => {
     expect(result).not.toContain("epsilon");
   });
 
-  test("should stop recursing when nesting depth exceeds 4 — readableFromJson returns empty, signalGist falls back to raw clean", () => {
+  test("should stop recursing when nesting depth exceeds 4, readableFromJson returns empty, signalGist falls back to raw clean", () => {
     // Build an object nested 5 levels deep with readable text only at the innermost leaf.
     // readableFromJson hits depth > 4 at the leaf and returns "". Because the extracted text
     // is empty, signalGist falls back to stripSignalNoise(rawJson, keepBreaks). The raw JSON
@@ -386,7 +386,7 @@ describe("readableFromJson (via signalPreview with JSON)", () => {
     };
     const json = JSON.stringify(deep);
     const result = signalPreview(json);
-    // The fallback strips noise from the raw JSON string — result is non-empty raw-ish text
+    // The fallback strips noise from the raw JSON string, result is non-empty raw-ish text
     expect(typeof result).toBe("string");
     // The deeply-buried title is NOT surfaced (depth cap is enforced)
     expect(result).not.toBe("Too deep to find");
@@ -415,7 +415,7 @@ describe("readableFromJson (via signalPreview with JSON)", () => {
     expect(signalPreview(json)).toBe("Body only");
   });
 
-  test("should handle mixed array: strings, numbers, nulls — slice caps at 3, nulls filtered out", () => {
+  test("should handle mixed array: strings, numbers, nulls, slice caps at 3, nulls filtered out", () => {
     // Array is ["hello", null, 99, "world"]. slice(0,3) => ["hello", null, 99].
     // null maps to "" (filtered), so result is "hello. 99". "world" is beyond slot 3.
     const json = JSON.stringify(["hello", null, 99, "world"]);
@@ -435,7 +435,7 @@ describe("readableFromJson (via signalPreview with JSON)", () => {
   });
 });
 
-describe("looksLikeJson (via signalPreview — detection boundary)", () => {
+describe("looksLikeJson (via signalPreview, detection boundary)", () => {
   test("should not attempt JSON parse on a plain string starting with a letter", () => {
     const text = "hello world";
     expect(signalPreview(text)).toBe("hello world");
@@ -444,7 +444,7 @@ describe("looksLikeJson (via signalPreview — detection boundary)", () => {
   test("should not attempt JSON parse on a string that starts with { but does not end with }", () => {
     // looksLikeJson requires both start and end chars to match
     const text = "{broken json";
-    // Falls through to plain stripSignalNoise — no crash
+    // Falls through to plain stripSignalNoise, no crash
     expect(typeof signalPreview(text)).toBe("string");
   });
 
@@ -475,7 +475,7 @@ describe("looksLikeJson (via signalPreview — detection boundary)", () => {
   });
 });
 
-describe("stripSignalNoise (via signalPreview / signalCleanBody — specific rule coverage)", () => {
+describe("stripSignalNoise (via signalPreview / signalCleanBody, specific rule coverage)", () => {
   test("should remove angle-bracket autolinks (<https://...>)", () => {
     const text = "See <https://example.com/path> for details";
     expect(signalPreview(text)).not.toContain("https://");
@@ -557,7 +557,7 @@ describe("stripSignalNoise (via signalPreview / signalCleanBody — specific rul
   });
 });
 
-describe("truncateOnWord (via signalPreview — boundary conditions)", () => {
+describe("truncateOnWord (via signalPreview, boundary conditions)", () => {
   test("should return text unchanged when length equals max exactly", () => {
     const text = "Hello world"; // 11 chars
     expect(signalPreview(text, 11)).toBe("Hello world");
@@ -583,7 +583,7 @@ describe("truncateOnWord (via signalPreview — boundary conditions)", () => {
   });
 
   test("should cut mid-word (no space suffix added) when no space exceeds the 60% threshold", () => {
-    // A single long word with no spaces — lastSpace = -1, which is not > max*0.6
+    // A single long word with no spaces, lastSpace = -1, which is not > max*0.6
     const text = "Superlongwordwithoutspaces";
     const result = signalPreview(text, 10);
     expect(result).toMatch(/…$/);
@@ -605,13 +605,13 @@ describe("truncateOnWord (via signalPreview — boundary conditions)", () => {
   });
 });
 
-describe("signalGist (via signalPreview / signalCleanBody — integration edge cases)", () => {
+describe("signalGist (via signalPreview / signalCleanBody, integration edge cases)", () => {
   test("should fall back to raw-clean when JSON parses but yields empty extracted text", () => {
-    // A valid JSON object whose values are all null — readableFromJson returns ""
+    // A valid JSON object whose values are all null, readableFromJson returns ""
     // so the fallback stripSignalNoise(trimmed, keepBreaks) runs on the raw JSON string
     const json = JSON.stringify({ custom_key: null, another: null });
     const result = signalPreview(json);
-    // Not empty — the raw JSON string is stripped of noise and returned
+    // Not empty, the raw JSON string is stripped of noise and returned
     expect(typeof result).toBe("string");
   });
 
@@ -633,7 +633,7 @@ describe("signalGist (via signalPreview / signalCleanBody — integration edge c
   });
 
   test("should handle JSON where the extracted text itself contains markdown noise", () => {
-    // The title value contains a bare URL — stripSignalNoise runs on extracted text
+    // The title value contains a bare URL, stripSignalNoise runs on extracted text
     const json = JSON.stringify({ title: "See https://example.com for info" });
     const result = signalPreview(json);
     expect(result).not.toContain("https://");
@@ -649,7 +649,7 @@ describe("signalGist (via signalPreview / signalCleanBody — integration edge c
 
   test("should return the first readable nested string encountered when no recognised title/body keys exist", () => {
     // meta has no title/body keys. Object.values loop runs: first value is "2024-01-01"
-    // (the timestamp string), which readableFromJson returns immediately — "Readable message"
+    // (the timestamp string), which readableFromJson returns immediately, "Readable message"
     // inside content is never reached because the first readable value wins.
     const json = JSON.stringify({
       meta: { timestamp: "2024-01-01", content: { message: "Readable message" } },

@@ -133,7 +133,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
           <StepDot status="gate" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Gray attribution (accent restraint 2026-07-11): orchid marks agent
+            {/* Gray attribution (accent restraint 2026-07-11): machine blue marks agent
                 ACTIONS, never standing name labels. */}
             <div className="mono-label" style={{ color: "var(--ink-muted)", fontSize: 10 }}>
               {agent}

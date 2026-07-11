@@ -62,6 +62,7 @@ export function SpecComposer() {
         <input
           value={intent}
           onChange={(e) => setIntent(e.target.value)}
+          aria-label="What do you want to build?"
           placeholder="One line is enough. The agent drafts the full contract from it."
           onKeyDown={(e) => {
             if (e.key === "Enter") submit();

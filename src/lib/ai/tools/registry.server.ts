@@ -2244,7 +2244,7 @@ function safeJson<T = unknown>(s: string): T | null {
 const researchSynthesize = def({
   name: "research.synthesize",
   description:
-    "Cluster recent user-research signals into themes. Reads signals (optionally filtered by tag/sentiment), uses AI to group them, writes themes and links signals. Use at the start of Discover→Define to turn raw feedback into themes.",
+    "Cluster recent user-research signals into themes. Reads signals (optionally filtered by tag/sentiment), uses AI to group them, writes themes and links signals. Use at the start of Discover→Plan to turn raw feedback into themes.",
   category: "write",
   argsSchema: z.object({
     lookback_days: z.number().int().min(1).max(180).optional(),

@@ -36,6 +36,13 @@ import { latestIso, relTimeCaps } from "@/components/discover/format";
 export const Route = createFileRoute("/_authenticated/sync")({
   component: SyncInboxPage,
   head: () => ({ meta: [{ title: "Sync & bindings · Cadence" }] }),
+  // Deep-link target for the honest doors to this surface (the Engine Room
+  // "Connections & sync" glance card, a future Today Call): /sync?conflict=<id>
+  // lands on, scrolls to, and highlights that conflict row.
+  validateSearch: (search: Record<string, unknown>): { conflict?: string } =>
+    typeof search.conflict === "string" && search.conflict.length > 0
+      ? { conflict: search.conflict }
+      : {},
 });
 
 type Mapping = {
@@ -58,6 +65,10 @@ function providerLabel(p: string): string {
   return CONNECTOR_REGISTRY[p as ProviderId]?.label ?? p.replace(/_/g, " ");
 }
 
+/** Focus ring never removed (Tempo law): shared classes for inline links. */
+const FOCUS_RING =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
+
 /** Section heading: real h2 for the AT outline, mono-caps look per contract. */
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -69,6 +80,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function SyncInboxPage() {
   const qc = useQueryClient();
+  const { conflict: followedConflictId } = Route.useSearch();
   const { activeProductId, activeWorkspaceId, activeProduct } = useWorkspace();
   const fList = useServerFn(listSyncMappings);
   const fResolve = useServerFn(resolveSyncConflict);
@@ -113,6 +125,26 @@ function SyncInboxPage() {
     (mPull.isPending && mPull.variables === id) || (mPush.isPending && mPush.variables === id);
   const supported = (p: string) => p === "google_docs" || p === "notion" || p === "linear";
 
+  // Deep-link landing: once the list is in, bring the followed conflict row
+  // into view. Scroll is instant under prefers-reduced-motion.
+  const followedIsLoaded =
+    !q.isLoading && !q.error && Boolean(followedConflictId) ? followedConflictId : null;
+  useEffect(() => {
+    if (!followedIsLoaded) return;
+    const el = document.getElementById(`sync-conflict-${followedIsLoaded}`);
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  }, [followedIsLoaded]);
+
+  // Honesty: a followed conflict that is no longer in the list was resolved
+  // (here or remotely) between the click and the landing. Say so quietly.
+  const followedGone =
+    Boolean(followedConflictId) &&
+    !q.isLoading &&
+    !q.error &&
+    !conflicts.some((m) => m.id === followedConflictId);
+
   return (
     <div
       style={{
@@ -126,7 +158,7 @@ function SyncInboxPage() {
       <Link
         to="/settings"
         search={{ section: "connections" }}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className={`${FOCUS_RING} hover:underline`}
         style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}
       >
         ← Settings · Connections
@@ -215,6 +247,11 @@ function SyncInboxPage() {
             </button>
           </div>
         ) : null}
+        {followedGone && (
+          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: "0 0 10px" }}>
+            The conflict you followed here is already resolved.
+          </p>
+        )}
         {!q.isLoading && !q.error && conflicts.length === 0 && (
           <div
             className="bento"
@@ -226,7 +263,19 @@ function SyncInboxPage() {
         {!q.error && (
           <div style={{ display: "grid", gap: 8 }}>
             {conflicts.map((m) => (
-              <div key={m.id} className="bento" style={{ padding: 16 }}>
+              <div
+                key={m.id}
+                id={`sync-conflict-${m.id}`}
+                className="bento"
+                style={{
+                  padding: 16,
+                  // Ember marks the selection the visitor followed (Tempo:
+                  // ember = selection), one row at most, never the whole list.
+                  ...(m.id === followedConflictId
+                    ? { borderColor: "var(--ember)", boxShadow: "0 0 0 1px var(--ember)" }
+                    : {}),
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -262,6 +311,7 @@ function SyncInboxPage() {
                       href={m.external_url}
                       target="_blank"
                       rel="noreferrer"
+                      className={`${FOCUS_RING} hover:underline`}
                       style={{
                         fontSize: 12,
                         color: "var(--ink-subtle)",
@@ -349,6 +399,7 @@ function SyncInboxPage() {
             <Link
               to="/settings"
               search={{ section: "connections" }}
+              className={FOCUS_RING}
               style={{ color: "var(--link)", textDecoration: "underline" }}
             >
               Settings · Connections
@@ -396,6 +447,7 @@ function SyncInboxPage() {
                         href={m.external_url}
                         target="_blank"
                         rel="noreferrer"
+                        className={`${FOCUS_RING} hover:underline`}
                         style={{
                           color: "var(--ink)",
                           overflow: "hidden",
@@ -598,7 +650,11 @@ function WebhookIngestCard() {
           >
             {endpoint}
           </code>
-          <button className="loom-press" onClick={() => copy(endpoint, "Endpoint")} style={pillBtn}>
+          <button
+            className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
+            onClick={() => copy(endpoint, "Endpoint")}
+            style={pillBtn}
+          >
             <Copy size={12} />
             Copy
           </button>
@@ -636,7 +692,7 @@ function WebhookIngestCard() {
               {freshToken ? (
                 <>
                   <button
-                    className="loom-press"
+                    className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
                     onClick={() => setRevealed((v) => !v)}
                     style={pillBtn}
                   >
@@ -644,7 +700,7 @@ function WebhookIngestCard() {
                     {revealed ? "Hide" : "Reveal"}
                   </button>
                   <button
-                    className="loom-press"
+                    className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
                     onClick={() => copy(freshToken, "Token")}
                     style={pillBtn}
                   >
@@ -658,7 +714,7 @@ function WebhookIngestCard() {
                 </span>
               )}
               <button
-                className="loom-press"
+                className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
                 disabled={mRotate.isPending}
                 onClick={() => (rotateArmed ? mRotate.mutate() : setRotateArmed(true))}
                 style={{
@@ -676,7 +732,7 @@ function WebhookIngestCard() {
                 {rotateArmed ? "Confirm rotate?" : "Rotate"}
               </button>
               <button
-                className="loom-press"
+                className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
                 disabled={mRevoke.isPending}
                 onClick={() => mRevoke.mutate()}
                 style={{ ...pillBtn, opacity: mRevoke.isPending ? 0.5 : 1 }}
@@ -699,7 +755,8 @@ function WebhookIngestCard() {
 
         <div style={{ marginTop: 16 }}>
           <button
-            className="loom-press"
+            className={`loom-press ${FOCUS_RING} hover:underline`}
+            aria-expanded={curlOpen}
             onClick={() => setCurlOpen((v) => !v)}
             style={{
               display: "inline-flex",

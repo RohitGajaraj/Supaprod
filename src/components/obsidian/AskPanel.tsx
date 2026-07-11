@@ -37,19 +37,11 @@ type Msg = {
 class AskUiError extends Error {}
 
 function ShimmerStatus({ label }: { label: string }) {
+  // The codified platform pairing for "the machine is working" copy: the
+  // shared .ai-working-word utility (Pixel face + glacier shimmer, reduced
+  // motion gated in styles.css). Never re-roll the shimmer per surface.
   return (
-    <span
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: 10,
-        background: "var(--shimmer-gradient)",
-        backgroundSize: "280%",
-        WebkitBackgroundClip: "text",
-        backgroundClip: "text",
-        color: "transparent",
-        animation: "cadShimmer 5s linear infinite",
-      }}
-    >
+    <span className="ai-working-word" style={{ fontSize: 12 }}>
       {label}
     </span>
   );

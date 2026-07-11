@@ -182,6 +182,8 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "calibration",
       "suites",
       "drift",
+      // RPT-50: the self-improvement engine rides Quality as "What to fix".
+      "self-improvement",
       "prompts",
       "proof",
     ]);

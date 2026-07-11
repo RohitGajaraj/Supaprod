@@ -367,11 +367,13 @@ function LoopCard({
                   height: 6,
                   borderRadius: "50%",
                   flexShrink: 0,
+                  // Run outcomes are semantic: green success, red failure
+                  // (Tempo hard law; ember stays reserved for human gates).
                   background:
                     r.status === "ok"
-                      ? "var(--glacier)"
+                      ? "var(--moss)"
                       : r.status === "error"
-                        ? "var(--ember-text)"
+                        ? "var(--madder)"
                         : "var(--text-subtle)",
                   position: "relative",
                   top: -1,

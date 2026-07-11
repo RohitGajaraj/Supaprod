@@ -86,7 +86,7 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     id: "trust-ledger",
-    pitch: "Verify the Trust Ledger integrity fingerprint",
+    pitch: "Verify the Ledger integrity fingerprint",
     run: { to: "/engine-room", search: { room: "record" } },
   },
   {

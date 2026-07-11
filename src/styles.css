@@ -3136,6 +3136,13 @@ html[data-motion="off"] .ai-pulse-mark {
      its original pink categorical value in the early block; links use
      var(--link) -> glacier. Do not re-point blossom at blue again. */
   --fuchsia: var(--ds-pink-700);
+  /* Pencil annotations re-based on theme-flipping ds ramps (2026-07-11): the
+     early block's pastels were dark-only literals with no light override, so
+     DesignationTag inks washed out on light backgrounds. The 900 steps read
+     as ink in both themes. */
+  --pencil-lime: var(--ds-green-900);
+  --pencil-blossom: var(--ds-pink-900);
+  --pencil-apricot: var(--ds-amber-900);
   --moss: var(--ds-green-700);
   --moss-bright: var(--ds-green-900);
   --madder: var(--ds-red-600);

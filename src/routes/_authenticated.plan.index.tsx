@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
           </p>
           <button
             onClick={reset}
-            className="loom-press"
+            className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               marginTop: 14,
               fontFamily: "var(--font-mono)",

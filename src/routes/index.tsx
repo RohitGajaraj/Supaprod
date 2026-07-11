@@ -102,7 +102,7 @@ const STATIONS = [
   {
     id: "define",
     num: "03",
-    label: "Define",
+    label: "Plan",
     icon: "◧",
     kicker: "The spec writes itself",
     orbitKicker: "evidence-linked",
@@ -141,9 +141,9 @@ const STATIONS = [
     label: "Learn",
     icon: "◉",
     kicker: "The outcome lands",
-    orbitKicker: "brain updated",
+    orbitKicker: "memory updated",
     body: "D+14 arrives. Cadence records what happened, whether the call was right, and writes a supersession edge so the next similar signal gets smarter precedent.",
-    live: "D+14: activation +8%. Call validated. Supersession written. Brain updated.",
+    live: "D+14: activation +8%. Call validated. Supersession written. Memory updated.",
     color: C.green,
     glow: C.greenDim,
   },
@@ -300,7 +300,7 @@ const STATS = [
 const MACHINE_CONTENT = `## Cadence - The product OS for the full product lifecycle
 
 Cadence is the product operating system that owns your entire product lifecycle end to end.
-Six stations: Discover, Decide, Define, Build, Ship, Learn.
+Six stations: Discover, Decide, Plan, Build, Ship, Learn.
 One governed engine. Zero manual handoffs.
 
 When something breaks, Cadence diagnoses, revises the spec, and recovers autonomously.
@@ -2055,7 +2055,9 @@ function MultiProductStrip() {
           letterSpacing: "0.02em",
         }}
       >
-        <span style={{ color: C.emberBright, fontWeight: 600 }}>The product-staff seat.</span> One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin). Cadence is the console for the product-staff seat.
+        <span style={{ color: C.emberBright, fontWeight: 600 }}>The product-staff seat.</span> One
+        PM directing a fleet of 20 agents across a 4-6 person pod (Mosseri). 1.2 humans + 20 agents
+        = 10-human output (Lemkin). Cadence is the console for the product-staff seat.
       </p>
     </div>
   );
@@ -2415,7 +2417,7 @@ function LedgerSection() {
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}
         >
-          <Tag col={C.emberBright}>Trust Ledger</Tag>
+          <Tag col={C.emberBright}>The Ledger</Tag>
           <h2
             style={{
               fontSize: "clamp(22px,3vw,32px)",
@@ -2428,10 +2430,10 @@ function LedgerSection() {
             Every call, graded by its outcome.
           </h2>
           <p style={{ fontSize: 14.5, color: C.muted, maxWidth: 600, margin: 0, lineHeight: 1.66 }}>
-            This is the Trust Ledger. Every decision Cadence makes is recorded with the evidence
-            behind it, then graded once the outcome lands. Right or wrong, each call becomes
-            precedent the next one reads from. It cannot be backfilled or bought. It exists only
-            because Cadence was in the loop when the call was made.
+            This is the Ledger. Every decision Cadence makes is recorded with the evidence behind
+            it, then graded once the outcome lands. Right or wrong, each call becomes precedent the
+            next one reads from. It cannot be backfilled or bought. It exists only because Cadence
+            was in the loop when the call was made.
           </p>
         </div>
 

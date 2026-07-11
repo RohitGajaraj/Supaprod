@@ -11,7 +11,7 @@ const rowStyle = { display: "flex", alignItems: "center", gap: "8px", flexWrap: 
 /**
  * OBS-10: the capture / bulk-import / cluster / auto-cluster controls ported
  * from the retired /product Signals tab. Collapsed by default (a form that's
- * always open would out-shout the feed it sits above) — a quiet mono-caps
+ * always open would out-shout the feed it sits above), a quiet mono-caps
  * control row that expands only the piece the operator asked for.
  */
 export function SignalComposer({ unclusteredCount }: { unclusteredCount: number }) {

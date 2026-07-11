@@ -156,7 +156,11 @@ export function RoadmapColumns() {
     return (
       <div
         role="status"
-        style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
+        }}
       >
         <span className="sr-only">Loading the roadmap…</span>
         {COLUMNS.map((c) => (
@@ -205,6 +209,7 @@ export function RoadmapColumns() {
         <button
           type="button"
           onClick={() => roadmap.refetch()}
+          className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
@@ -299,7 +304,15 @@ export function RoadmapColumns() {
           </span>
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
+      {/* Columns wrap below ~780px content width so 768 stays readable
+          (three crushed 200px columns fail the responsive pass). */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
+        }}
+      >
         {COLUMNS.map((col) => {
           const colItems = itemsByBucket.get(col.key) ?? [];
           const expanded = expandedCols.has(col.key);

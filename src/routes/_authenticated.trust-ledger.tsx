@@ -17,6 +17,6 @@ export const Route = createFileRoute("/_authenticated/trust-ledger")({
       statusCode: 301,
     });
   },
-  head: () => ({ meta: [{ title: "Trust Ledger · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Ledger · Cadence" }] }),
   component: () => null,
 });

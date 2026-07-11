@@ -30,15 +30,12 @@ import {
   recordOnboardingMilestone,
   type OnboardingTrack,
 } from "@/lib/onboarding.functions";
-import { trackDescriptions } from "@/lib/onboarding/track-seeds";
 import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
 import { runCriticReview, runWedgeTeardown, listOpportunities } from "@/lib/discovery.functions";
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalMark } from "@/components/onboarding/ArrivalButterfly";
 import { AiPulse } from "@/components/obsidian/AiPulse";
-import { track } from "@/lib/observability/analytics";
-import { trackFunnelMilestone } from "@/lib/activation-funnel.server";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 // SW-7: multi-account suite providers (Calendar + Gmail/Outlook Mail), same
@@ -705,7 +702,6 @@ export function ObsidianOnboarding() {
     onError: (e: Error) => toast.error(e.message || "Could not set up the workspace"),
   });
   const fSeedTrack = useServerFn(seedWorkspaceForTrack);
-  const [pendingTrack, setPendingTrack] = useState<OnboardingTrack | null>(null);
 
   // SW-6/SW-7: returning from any full-page-redirect connect (GitHub App
   // install, or any native-OAuth/suite provider), the callback lands on
@@ -789,7 +785,6 @@ export function ObsidianOnboarding() {
           setProductName(name);
           setPendingOneLiner(oneLiner);
           // Auto-seed workspace with default track ("solo") for new accounts
-          setPendingTrack("solo");
           mSeedWorkspace.mutate("solo");
         }}
       />

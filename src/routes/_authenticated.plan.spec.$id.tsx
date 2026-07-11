@@ -697,7 +697,7 @@ function SpecEditorPage() {
             onClick={() => captureDecision.mutate()}
             disabled={captureDecision.isPending}
             className="loom-press"
-            title="Log this spec as a decision in Brain"
+            title="Log this spec as a decision in Memory"
             style={{ ...ACTION_BTN, opacity: captureDecision.isPending ? 0.5 : 1 }}
           >
             {captureDecision.isPending ? "Capturing…" : "Capture as decision"}

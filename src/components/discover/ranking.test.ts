@@ -509,25 +509,25 @@ describe("designation precedence boundary: needs validation beats quick win", ()
     return { rank: 2, verdict: "PENDING", corroboration: 0, ...over };
   }
 
-  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=7 — both at exact thresholds)", () => {
+  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=7, both at exact thresholds)", () => {
     // impact=6 satisfies rule 2 (>= 6); ease=7 satisfies rule 3 (>= 7).
     // Rule 2 is first in the if-else chain, so "needs validation" wins.
     expect(deriveDesignation(boundary({ impact: 6, ease: 7 }))).toBe("needs validation");
   });
 
-  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=9 — both well above thresholds)", () => {
+  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=9, both well above thresholds)", () => {
     // Exceeding both thresholds still returns only one designation.
     // Rule 2 fires first regardless of how far past the threshold the values are.
     expect(deriveDesignation(boundary({ impact: 8, ease: 9 }))).toBe("needs validation");
   });
 
-  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=7 — impact high, ease at threshold)", () => {
+  test("should return 'needs validation' when bet qualifies for both rules (impact=8, ease=7, impact high, ease at threshold)", () => {
     // impact=8 > 6 (rule 2 fires), ease=7 >= 7 (rule 3 would also fire).
     // The precedence winner is rule 2.
     expect(deriveDesignation(boundary({ impact: 8, ease: 7 }))).toBe("needs validation");
   });
 
-  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=8 — impact at threshold, ease high)", () => {
+  test("should return 'needs validation' when bet qualifies for both rules (impact=6, ease=8, impact at threshold, ease high)", () => {
     // The symmetric case: impact is exactly at rule 2's threshold (6), ease
     // exceeds rule 3's threshold (8 >= 7). Rule 2 still fires first.
     expect(deriveDesignation(boundary({ impact: 6, ease: 8 }))).toBe("needs validation");
@@ -540,7 +540,7 @@ describe("designation precedence boundary: needs validation beats quick win", ()
     expect(deriveDesignation(boundary({ impact: 5, ease: 7 }))).toBe("quick win");
   });
 
-  test("should return 'quick win' when endorsement is added — endorsed bets skip rule 2 and fall through to rule 3", () => {
+  test("should return 'quick win' when endorsement is added, endorsed bets skip rule 2 and fall through to rule 3", () => {
     // When the Critic endorses the bet (SHIP), !endorsed is false so rule 2 is
     // bypassed entirely. ease >= 7 && impact >= 5 then makes rule 3 the winner.
     // This tests that the not-endorsed gate is what causes the rule 2 / rule 3
@@ -550,7 +550,7 @@ describe("designation precedence boundary: needs validation beats quick win", ()
     ).toBe("quick win");
   });
 
-  test("should return only 'needs validation' (not both designations) when both rules match — result is a single Designation, not an array", () => {
+  test("should return only 'needs validation' (not both designations) when both rules match, result is a single Designation, not an array", () => {
     // Defensive sanity: deriveDesignation returns a scalar Designation, so it is
     // structurally impossible to return two at once. This test confirms the return
     // value is NOT an array and IS the rule-2 winner.
@@ -563,7 +563,7 @@ describe("designation precedence boundary: needs validation beats quick win", ()
     // Confirm the same precedence holds when designation is derived via the full
     // ranking pipeline (not just deriveDesignation in isolation).
     const opps = [
-      // rank 1 anchor — ensures the dual-qualifier bet lands at rank 2.
+      // rank 1 anchor, ensures the dual-qualifier bet lands at rank 2.
       mk({ id: "anchor", ice_score: 9, critic_review: critic("ship") }),
       // Dual-qualifier: not endorsed, impact=6 (rule 2), ease=8 (rule 3).
       mk({ id: "dual", ice_score: 5, critic_review: null, impact: 6, ease: 8 }),

@@ -79,7 +79,7 @@ export const MCP_TOOLS: McpTool[] = [
   {
     name: "search_decisions",
     description:
-      "Search the decision brain: decisions by keyword, each tagged with its provenance outcome (still stands vs superseded). Answers 'what did this team decide, and did it hold up?'",
+      "Search the decision memory: decisions by keyword, each tagged with its provenance outcome (still stands vs superseded). Answers 'what did this team decide, and did it hold up?'",
     inputSchema: {
       type: "object",
       properties: {

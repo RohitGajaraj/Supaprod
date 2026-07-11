@@ -30,7 +30,7 @@ export interface SpecListProps {
 // SpecStateTone -> a VerdictChip tone resolving to the same hue (VALIDATED/CRITIC
 // REVIEW/DRAFTING share the exact moss/marigold/glacier hexes stateChip names;
 // there is no "APPROVED"/"SHIPPED" VerdictTone, so the chip's own `children`
-// (chip.label) carries the exact word — this only picks the color family.
+// (chip.label) carries the exact word, so this only picks the color family.
 const TONE_TO_VERDICT = {
   moss: "VALIDATED",
   marigold: "CRITIC REVIEW",
@@ -166,6 +166,7 @@ export function SpecList({ onOpen }: SpecListProps) {
         <button
           type="button"
           onClick={() => specs.refetch()}
+          className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",

@@ -56,13 +56,14 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
       <button
         type="button"
         onClick={dismiss}
-        className="text-button-12"
+        className="text-button-12 outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           marginTop: 10,
           color: "var(--text-muted)",
           background: "transparent",
           border: "none",
           padding: 0,
+          cursor: "pointer",
         }}
       >
         Got it

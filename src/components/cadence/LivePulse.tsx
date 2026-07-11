@@ -32,9 +32,10 @@ export function useLiveActivity(): LiveActivity {
 /**
  * The global ticker (mounted in the top bar, so it rides every authenticated
  * screen). Renders nothing when the machine is idle. While work runs it shows
- * the ACTION in the ember shimmer, linking to the mission's cockpit. It does
- * NOT show human-gate state - that lives in its own surfaces (Today badge +
- * gate cards), so a stale open approval never keeps the pulse lit.
+ * the ACTION in the glacier shimmer (working = glacier, waiting on you =
+ * ember; founder ruling 2026-07-11), linking to the mission's cockpit. It
+ * does NOT show human-gate state - that lives in its own surfaces (Today
+ * badge + gate cards), so a stale open approval never keeps the pulse lit.
  */
 export function LiveTicker() {
   const a = useLiveActivity();

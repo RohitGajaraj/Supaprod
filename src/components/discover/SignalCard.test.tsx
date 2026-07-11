@@ -10,7 +10,7 @@ const SignalCard = ((SignalCardExport as unknown as { type?: (props: object) => 
   .type ?? SignalCardExport) as (props: object) => ReactElement;
 
 /** Depth-first search for a child whose `type` matches, walking `props.children`
- * without a DOM renderer — the codebase's established shallow-element
+ * without a DOM renderer, the codebase's established shallow-element
  * technique (see OpportunityRow.test.tsx / src/components/obsidian/__tests__/primitives.test.tsx). */
 function containsType(node: unknown, type: unknown): boolean {
   if (node == null || typeof node !== "object") return false;
@@ -30,7 +30,7 @@ const BASE_PROPS = {
 
 // OBS-10: the write-action overflow menu ported from the retired /product
 // Signals tab. Every handler is optional so a read-only embed degrades
-// cleanly with no menu at all — verify that degradation, not just the
+// cleanly with no menu at all, verify that degradation, not just the
 // fully-wired case.
 describe("SignalCard write-action overflow", () => {
   test("renders no action menu when every handler is omitted", () => {

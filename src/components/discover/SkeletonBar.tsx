@@ -1,4 +1,4 @@
-/** Loom v4 §9: one skeleton grammar for the Discover surface — a shimmer bar
+/** Loom v4 §9: one skeleton grammar for the Discover surface, a shimmer bar
  * in the raised tone, sized by the caller to match the loaded layout. Never a
  * spinner for primary content, never a blank block. */
 export function SkeletonBar({ width, height = 12 }: { width: string; height?: number }) {

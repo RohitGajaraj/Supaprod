@@ -30,7 +30,7 @@ export function sourceLabel(source: string): string {
 }
 
 const SOURCE_BLURBS: Record<MemoryCandidateSource, string> = {
-  user: "You typed this in to save it to the brain.",
+  user: "You typed this in to save it to Memory.",
   agent: "An agent drew this from one of its runs and proposed saving it.",
   outcome: "The loop distilled this from a shipped outcome and proposed saving it.",
 };

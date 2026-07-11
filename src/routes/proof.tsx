@@ -26,13 +26,13 @@ export const Route = createFileRoute("/proof")({
   },
   head: () => ({
     meta: [
-      { title: "The Trust Ledger · Cadence" },
+      { title: "The Ledger · Cadence" },
       {
         name: "description",
         content:
           "Cadence's own calibration score and public decision receipts — published, including the misses.",
       },
-      { property: "og:title", content: "The Trust Ledger" },
+      { property: "og:title", content: "The Ledger" },
       {
         property: "og:description",
         content: "We publish our own calibration score. Including the misses.",
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/proof")({
       { property: "og:type", content: "website" },
       { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "The Trust Ledger · Cadence" },
+      { name: "twitter:title", content: "The Ledger · Cadence" },
       { name: "twitter:image", content: OG_IMAGE },
     ],
   }),
@@ -83,7 +83,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           </span>
         </Link>
         <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)" }}>
-          the trust ledger
+          the ledger
         </span>
       </header>
 

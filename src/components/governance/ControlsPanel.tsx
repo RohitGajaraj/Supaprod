@@ -243,8 +243,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       // runs do not auto-resume in production, agents simply may run again.
       toast.success(
         next
-          ? "Swarm paused. Every agent is holding, nothing was lost."
-          : "Swarm resumed. Agents can run again.",
+          ? "Agents paused. Every agent is holding, nothing was lost."
+          : "Agents resumed. They can run again.",
       );
       setReason("");
       qc.invalidateQueries({ queryKey: ["governance"] });
@@ -377,7 +377,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
             <div style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 2 }}>
               {killed
                 ? "All agents paused. Nothing runs until you resume."
-                : "Swarm is live. Flipping this pauses every agent mid-step, reversibly."}
+                : "Agents are live. Flipping this pauses every agent mid-step, reversibly."}
             </div>
           </div>
           <PillSwitch

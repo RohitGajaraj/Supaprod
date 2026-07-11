@@ -191,7 +191,12 @@ function DensityToggle() {
   return (
     <div style={{ marginBottom: 20 }}>
       <ObsidianMonoLabel tone="muted">Density</ObsidianMonoLabel>
-      <div className="flex items-center" role="group" aria-label="Density" style={{ gap: 6, marginTop: 8 }}>
+      <div
+        className="flex items-center"
+        role="group"
+        aria-label="Density"
+        style={{ gap: 6, marginTop: 8 }}
+      >
         {(["comfortable", "compact"] as const).map((d) => (
           <button
             key={d}
@@ -202,7 +207,8 @@ function DensityToggle() {
             style={{
               fontFamily: "var(--font-ui)",
               fontSize: 12.5,
-              padding: "6px 12px",
+              height: 32,
+              padding: "0 12px",
               borderRadius: "var(--radius-control)",
               border: "1px solid var(--hairline)",
               background: density === d ? "var(--raised)" : "transparent",
@@ -365,7 +371,7 @@ function AdminDoor() {
             borderRadius: 6,
           }}
         >
-          ×
+          <X size={16} strokeWidth={1.5} aria-hidden="true" />
         </button>
       </div>
     );
@@ -453,7 +459,8 @@ function SettingsPage() {
                       key={s.id}
                       type="button"
                       onClick={() => setTab(s.id)}
-                      className="loom-press"
+                      aria-pressed={isActive}
+                      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: "var(--text-mono-floor, 10.5px)",
@@ -494,6 +501,7 @@ function SettingsPage() {
             {active === "profile" && (
               <>
                 <ProfileTab />
+                <AppearanceSection />
                 <DensityToggle />
               </>
             )}
@@ -2466,7 +2474,7 @@ const BRIEF_FIELDS: {
     key: "current_focus",
     label: "Current focus",
     hint: "What Cadence should prioritize this quarter. Cut, don't expand.",
-    placeholder: "Q3 2026: close the Discover, Define, Plan, Build loop on real signals.",
+    placeholder: "Q3 2026: close the Discover, Plan, Build loop on real signals.",
     rows: 4,
   },
   {

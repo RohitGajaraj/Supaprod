@@ -366,8 +366,10 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           value={goalTitle}
           onChange={(e) => setGoalTitle(e.target.value)}
           placeholder="Mission title (optional)"
+          aria-label="Mission title (optional)"
           maxLength={200}
           style={{
+            minHeight: 36,
             background: "var(--surface-hover)",
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-control)",
@@ -379,6 +381,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       )}
       <textarea
         ref={textareaRef}
+        aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={(e) => {
@@ -409,13 +412,16 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
+                aria-label="Pick an approved spec"
+                className="loom-press"
                 style={{
                   maxWidth: 260,
+                  minHeight: 32,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
                   fontFamily: "var(--font-mono)",
-                  fontSize: 9,
+                  fontSize: "var(--text-mono-floor)",
                   color: "var(--text-subtle)",
                   background: "none",
                   border: "1px solid var(--hairline)",
@@ -608,7 +614,9 @@ function BuildPage() {
   // Calm first run (2026-07-11): fleet glances, the loop-health strip, and the
   // By Agent / By Lane lenses appear only once the workspace has shipped at
   // least one mission. Until then the surface is just the composer.
-  const hasCompletedMission = rows.some((s) => s.status === "completed");
+  // Orchestrator goal-runs finish as 'done', Studio sessions as 'completed';
+  // both count as a completed mission for the calm-first-run gate.
+  const hasCompletedMission = rows.some((s) => s.status === "completed" || s.status === "done");
 
   // Functional form (not a plain object) so this doesn't clobber the `view`
   // param when opening/closing a mission from the "By Lane" tab (adversarial
@@ -818,6 +826,7 @@ function BuildPage() {
                   </p>
                   <button
                     type="button"
+                    className="loom-press"
                     onClick={() => {
                       textareaRef.current?.focus();
                       textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

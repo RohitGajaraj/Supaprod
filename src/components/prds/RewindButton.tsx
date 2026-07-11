@@ -33,7 +33,7 @@ export function RewindButton({ prdId, hasSnapshot, onReverted }: RewindButtonPro
   const revert = useMutation({
     mutationFn: () => fRevert({ data: { prd_id: prdId } }),
     onSuccess: () => {
-      toast.success("Reverted to the previous version. The change is on the Trust Ledger.");
+      toast.success("Reverted to the previous version. The change is on the Ledger.");
       setOpen(false);
       void qc.invalidateQueries({ queryKey: ["prd", prdId] });
       onReverted?.();
@@ -67,7 +67,7 @@ export function RewindButton({ prdId, hasSnapshot, onReverted }: RewindButtonPro
             <AlertDialogTitle>Revert to the previous version?</AlertDialogTitle>
             <AlertDialogDescription>
               This restores what the PRD said before the last agent edit. The current version is
-              kept too, so this is itself reversible, and the action lands on the Trust Ledger.
+              kept too, so this is itself reversible, and the action lands on the Ledger.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

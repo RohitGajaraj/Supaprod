@@ -119,7 +119,7 @@ export function DocsPanel() {
   const mDelete = useMutation({
     mutationFn: (vars: { id: string; title: string }) => fDelete({ data: { id: vars.id } }),
     onSuccess: (_r, vars) => {
-      toast.success(`“${vars.title}” deleted · removed from the brain`);
+      toast.success(`“${vars.title}” deleted · removed from Memory`);
       setSelectedId(null);
       setOpenDocId(null);
       qc.invalidateQueries({ queryKey: ["docs"] });
@@ -130,7 +130,7 @@ export function DocsPanel() {
   const mImport = useMutation({
     mutationFn: (urlOrId: string) => fImportGDoc({ data: { urlOrId } }),
     onSuccess: ({ doc }) => {
-      toast.success(`Imported “${doc.title}” · part of the brain now`);
+      toast.success(`Imported “${doc.title}” · in Memory now`);
       qc.invalidateQueries({ queryKey: ["docs"] });
       setSelectedId(doc.id);
     },
@@ -142,7 +142,7 @@ export function DocsPanel() {
   const mImportNotion = useMutation({
     mutationFn: (urlOrId: string) => fImportNotion({ data: { urlOrId } }),
     onSuccess: ({ doc }) => {
-      toast.success(`Imported “${doc.title}” from Notion · part of the brain now`);
+      toast.success(`Imported “${doc.title}” from Notion · in Memory now`);
       qc.invalidateQueries({ queryKey: ["docs"] });
       setSelectedId(doc.id);
       setNotionOpen(false);
@@ -388,7 +388,7 @@ export function DocsPanel() {
                 className="mono-label"
                 style={{ fontSize: "var(--text-mono-floor)", margin: "4px 0 14px" }}
               >
-                doc · last edited {updatedLabel(doc.updated_at)} · autosaves to the brain
+                doc · last edited {updatedLabel(doc.updated_at)} · autosaves to Memory
                 {mUpdate.isPending ? " · saving…" : ""}
               </div>
               <DocEditor
@@ -406,10 +406,10 @@ export function DocsPanel() {
           </div>
         ) : (
           <EmptyState
-            pixel={false} /* BrainStatTrio above carries Brain's one Pixel moment */
+            pixel={false} /* BrainStatTrio above carries Memory's one Pixel moment */
             icon={FileText}
             title="No docs yet"
-            body="Workspace pages live here. Import from Google Docs or Notion, or start blank. Everything you write joins the brain."
+            body="Workspace pages live here. Import from Google Docs or Notion, or start blank. Everything you write joins Memory."
             cta="New page · opens the editor"
             onCta={() => mCreate.mutate()}
           />
@@ -429,7 +429,10 @@ export function DocsPanel() {
                     onClick={() => setOpenDocId(open ? null : d.id)}
                     onDoubleClick={() => openEditor(d.id)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") setOpenDocId(open ? null : d.id);
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setOpenDocId(open ? null : d.id);
+                      }
                     }}
                     title="Click to preview · double-click to edit"
                     style={{
@@ -570,7 +573,11 @@ export function DocsPanel() {
       {notionOpen && (
         <div
           role="dialog"
+          aria-modal="true"
           aria-label="Import from Notion"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setNotionOpen(false);
+          }}
           style={{
             position: "fixed",
             inset: 0,
@@ -603,7 +610,7 @@ export function DocsPanel() {
                 borderBottom: "1px solid var(--hairline)",
               }}
             >
-              <MonoLabel>Import from Notion · joins the brain</MonoLabel>
+              <MonoLabel>Import from Notion · joins Memory</MonoLabel>
               <button
                 onClick={() => setNotionOpen(false)}
                 aria-label="Close"
@@ -641,7 +648,7 @@ export function DocsPanel() {
                   style={{ paddingLeft: 28, fontSize: 12 }}
                 />
               </span>
-              <span className="mono-label" style={{ fontSize: 7.5 }}>
+              <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
                 or paste a Notion page URL
               </span>
               <input

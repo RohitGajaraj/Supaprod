@@ -26,7 +26,7 @@ import {
 const STATUS_TONE: Record<string, string> = {
   active: "var(--glacier)",
   paused: "var(--text-subtle)",
-  achieved: "var(--moss, #4a7c59)",
+  achieved: "var(--moss)",
   archived: "var(--text-subtle)",
 };
 

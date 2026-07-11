@@ -6,7 +6,7 @@ describe("ask-context - contextForPath", () => {
     expect(contextForPath("/today", null)).toBe("Today");
     expect(contextForPath("/discover", null)).toBe("Discover");
     expect(contextForPath("/plan", null)).toBe("Plan");
-    expect(contextForPath("/knowledge", null)).toBe("Brain");
+    expect(contextForPath("/knowledge", null)).toBe("Memory");
   });
 
   it("Build without an open mission reads as Build", () => {

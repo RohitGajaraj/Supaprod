@@ -27,6 +27,7 @@ import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import type { Designation } from "./ranking";
 import {
+  BestBetStamp,
   DESIGNATION_MEANING,
   DesignationTag,
   OPPORTUNITY_STATUSES,
@@ -143,7 +144,7 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
           </div>
         ) : (
           <p style={emptyLine}>
-            No recorded outcome matches this bet yet. As outcomes land, the Brain recalls them here.
+            No recorded outcome matches this bet yet. As outcomes land, Memory recalls them here.
           </p>
         )}
       </DetailSection>
@@ -282,7 +283,7 @@ export function OpportunityDetailSheet({
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="loom-press"
+                        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                         style={{
                           fontFamily: "var(--font-ui)",
                           fontSize: "11.5px",
@@ -327,7 +328,7 @@ export function OpportunityDetailSheet({
                   onClick={copyTraceId}
                   aria-label="Copy trace id"
                   title="Copy the full trace id"
-                  className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+                  className="loom-press flex items-center outline-none hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     gap: "6px",
                     fontFamily: "var(--font-mono)",
@@ -382,22 +383,9 @@ export function OpportunityDetailSheet({
                       </span>
                     ) : null}
                     {isBestBet ? (
-                      <span
-                        title="The single top-ranked bet in the queue"
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: "10px",
-                          letterSpacing: "0.02em",
-                          color: "var(--pencil-lime)",
-                          border:
-                            "1px solid color-mix(in srgb, var(--pencil-lime) 30%, var(--hairline))",
-                          borderRadius: "999px",
-                          padding: "2px 8px",
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        Best bet
-                      </span>
+                      // Same stamp anatomy as the queue card (founder ruling
+                      // 2026-07-11): Pixel face, moss family, never lime.
+                      <BestBetStamp />
                     ) : (
                       <DesignationTag designation={designation} />
                     )}
@@ -486,7 +474,7 @@ export function OpportunityDetailSheet({
                   <button
                     type="button"
                     onClick={onViewLineage}
-                    className="loom-press flex items-center hover:[color:var(--text-primary)]"
+                    className="loom-press flex items-center outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       gap: "6px",
                       fontSize: "12px",

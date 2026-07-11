@@ -127,7 +127,8 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       id: "self-improvement",
       label: "What to fix",
       technical: "Self-improvement",
-      descriptor: "What Cadence flags to improve about its own quality, from real signals (RPT-50).",
+      descriptor:
+        "What Cadence flags to improve about its own quality, from real signals (RPT-50).",
     },
     {
       id: "prompts",
@@ -200,7 +201,7 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       // room, so its old deep links land on this front tab.
       id: "receipts",
       label: "Paper trail",
-      technical: "Trust ledger",
+      technical: "Ledger",
       descriptor:
         "Every decision and action as a receipt, with its evidence, share controls, and the tamper seal.",
     },

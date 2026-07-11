@@ -17,7 +17,7 @@ const OpportunityRow = ((
 ).type ?? OpportunityRowExport) as (props: object) => ReactElement;
 
 /** Depth-first search for a child whose `type` matches, walking `props.children`
- * without a DOM renderer — the codebase's established shallow-element
+ * without a DOM renderer, the codebase's established shallow-element
  * technique (see src/components/obsidian/__tests__/primitives.test.tsx). */
 function containsType(node: unknown, type: unknown): boolean {
   if (node == null || typeof node !== "object") return false;
@@ -84,7 +84,7 @@ describe("DesignationTag", () => {
 
 // OBS-10: the write-action overflow menu ported from the retired /product
 // Opportunities tab. Every handler is optional so the row degrades cleanly
-// (e.g. a read-only embed) when none are passed — verify that degradation,
+// (e.g. a read-only embed) when none are passed, verify that degradation,
 // not just the fully-wired case.
 describe("OpportunityRow write-action overflow", () => {
   test("renders no action menu when every handler is omitted", () => {

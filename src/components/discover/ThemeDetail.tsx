@@ -190,7 +190,7 @@ export function ThemeDetail({
                   }}
                   aria-label="Copy trace id"
                   title="Copy the full trace id"
-                  className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+                  className="loom-press flex items-center outline-none hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     marginLeft: "auto",
                     gap: "6px",

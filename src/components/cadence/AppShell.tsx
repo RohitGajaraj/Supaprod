@@ -354,9 +354,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     "/build":
       "Build surface · live agent activity, PR and CI status, cost per session, build controls.",
     "/brain":
-      "Memory · the decision brain and memory layer: beliefs, supersession graph, learnings, precedents.",
+      "Memory · the decision record and memory layer: beliefs, supersession graph, learnings, precedents.",
     "/engine-room":
-      "Engine Room · spend, quality, safety, and the record (traces, receipts, the trust ledger), at a glance.",
+      "Engine Room · spend, quality, safety, and the record (traces, receipts, the ledger), at a glance.",
     "/discover":
       "Discovery feed · raw signals clustered into ranked themes, the decision queue, competitor moves.",
     "/plan": "Plan · cited specs and the outcome-declared roadmap.",

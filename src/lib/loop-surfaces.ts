@@ -28,7 +28,7 @@ export const LOOP_SURFACES = [
   // match via the "/plan" prefix, the internal identifier that stays per the
   // Studio-rename precedent). The user-facing artifact word is "spec" (the
   // stage id stays `prd`, internal identifier).
-  { id: "prd", label: "Define", to: "/plan", produces: "an approved spec" },
+  { id: "prd", label: "Plan", to: "/plan", produces: "an approved spec" },
   { id: "build", label: "Build", to: "/build", produces: "a working change" },
   // OBS-10: /missions folded into Build (the one true missions home) — this
   // stage still names the engine's own Ship step (a distinct concept from

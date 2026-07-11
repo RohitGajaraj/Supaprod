@@ -118,7 +118,7 @@ export function PushedInsights({
         // sentence: dumping the goal into a mono-caps label produced an
         // all-uppercase sentence (a Loom section 1 violation). The goal already
         // reads in the headline and detail above.
-        const actionLabel = pushAction?.label?.trim() || "Open in Brain";
+        const actionLabel = pushAction?.label?.trim() || "Open in Memory";
         return (
           <div
             key={ins.id}
@@ -195,7 +195,7 @@ export function SwarmActivityLane({
       }
     >
       {lane.groups.length === 0 ? (
-        <LaneEmpty text="No swarm activity in the last 24 hours." />
+        <LaneEmpty text="No agent activity in the last 24 hours." />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {lane.groups.map((g) => {
