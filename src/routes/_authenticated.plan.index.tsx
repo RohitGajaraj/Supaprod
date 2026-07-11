@@ -8,6 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { TopBar } from "@/components/cadence/TopBar";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { PlanSurface, PLAN_VIEWS, type PlanView } from "@/components/plan/PlanSurface";
+import { IntelBriefPanel } from "@/components/today/IntelBriefPanel";
 
 export const Route = createFileRoute("/_authenticated/plan/")({
   validateSearch: (search: Record<string, unknown>): { view?: PlanView } => {
@@ -68,6 +69,10 @@ function PlanPage() {
     <>
       <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Define"]} />
       <PlanSurface view={view} />
+      {/* RPT-46: the daily upstream intelligence brief with receipts, mounted as
+          a Plan section below the fold. Gate-resilient: honest empty state while
+          the live feed is dormant, briefs once signals exist. */}
+      <IntelBriefPanel />
     </>
   );
 }
