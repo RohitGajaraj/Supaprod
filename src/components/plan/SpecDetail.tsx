@@ -347,7 +347,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                 >
                   Drafted by {agentDisplayName(draftedByAgent)}
                   {signalCount > 0 ? ` from ${signalCount} signal${signalCount === 1 ? "" : "s"}` : ""}
-                  {" — receipt"}
+                  {" - receipt"}
                 </button>
               ) : null}
             </div>

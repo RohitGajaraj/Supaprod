@@ -21,7 +21,7 @@ export const getAgentFleet = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<{ fleet: AgentFleet }> => {
     const { supabase } = context;
     // PC-29 fix: agent_runs carries a workspace_id (WM-F1); without this filter
-    // a user who belongs to 2+ workspaces (the default — every account gets a
+    // a user who belongs to 2+ workspaces (the default - every account gets a
     // seeded Demo workspace plus an empty one) sees another workspace's runs
     // merged into whichever workspace is on screen. Fall back to the caller's
     // default workspace the same way getSwarmHud does, so an omitted id still
