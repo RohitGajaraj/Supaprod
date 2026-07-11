@@ -25,6 +25,7 @@ import {
   formatDesignMemoryContext,
 } from "@/lib/design-memory.functions";
 import { parseDesignCriticReview, type DesignCriticReview } from "@/lib/ai/design-critic";
+import { parsePersonaBoardReview, type PersonaBoardReview } from "@/lib/ai/persona-critic";
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
 import { resolveLineageCols } from "@/lib/knowledge-graph-view.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -69,6 +70,44 @@ export async function runDesignCriticLens(
     const parsed = asPlainObject<Record<string, unknown>>(result.json);
     if (!parsed) return null;
     return parseDesignCriticReview(parsed);
+  } catch {
+    return null;
+  }
+}
+
+const PERSONA_BOARD_SYSTEM = `You are a persona review board of three named critics evaluating a product artifact (an opportunity bet, or a PRD spec) BEFORE a human approves it. Each critic objects strictly from their own seat:
+- exec: the executive sponsor. Objects on strategic fit, opportunity cost, ROI, timing, and whether this earns the company's scarce attention.
+- engineering: the engineering lead. Objects on feasibility, hidden complexity, dependencies, operational and maintenance cost, and risk of the build slipping.
+- customer_of_record: the named customer whose problem this claims to solve. Objects on whether it actually solves their job to be done, missing real-world cases, and whether they would adopt it.
+Each critic returns their own verdict and a short list of concrete objections (an empty list when that seat has no objection). Return STRICT JSON only, keyed by persona:
+{"exec":{"verdict":"ship|revise|kill","objections":["..."]},"engineering":{"verdict":"ship|revise|kill","objections":["..."]},"customer_of_record":{"verdict":"ship|revise|kill","objections":["..."]}}
+Be specific and speak in each persona's voice. Quote the artifact where useful. No filler. Use "ship" only when that seat has no real objection; "kill" only when that seat considers it unsalvageable; "revise" otherwise.`;
+
+/**
+ * RPT-41: run the Critic's persona review board standalone. Fail-safe (never throws)
+ * so a missing/malformed board pass never blocks the base Critic verdict it augments.
+ * One callModel through the runtime chokepoint, then the pure parser bounds the shape.
+ */
+export async function runPersonaBoard(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: { surfaceRef: string; subject: string },
+): Promise<PersonaBoardReview | null> {
+  try {
+    const result = await callModel(supabase, userId, {
+      surface: "judge",
+      surface_ref: opts.surfaceRef,
+      model: "google/gemini-2.5-flash",
+      fallbackModel: "google/gemini-2.5-flash",
+      responseFormat: "json_object",
+      messages: [
+        { role: "system", content: PERSONA_BOARD_SYSTEM },
+        { role: "user", content: opts.subject },
+      ],
+    });
+    const parsed = asPlainObject<Record<string, unknown>>(result.json);
+    if (!parsed) return null;
+    return parsePersonaBoardReview(parsed);
   } catch {
     return null;
   }
@@ -124,6 +163,8 @@ export type CriticReview = {
   reviewed_at: string;
   /** DSN-02: the design lens, present only for target.kind==="prd" (never opportunities). */
   design?: DesignCriticReview;
+  /** RPT-41: the persona review board (exec / engineering / customer-of-record), on both kinds. */
+  board?: PersonaBoardReview;
 };
 
 /**
@@ -308,6 +349,16 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
       });
       if (design) review.design = design;
     }
+
+    // RPT-41: the persona review board runs on BOTH opportunities and specs, so each
+    // seat's objections (exec / engineering / customer-of-record) land on the receipt
+    // trail BEFORE the human gate. Best-effort - a failed board never drops the base
+    // verdict above, and is set before the persist so the objections survive.
+    const board = await runPersonaBoard(supabase, userId, {
+      surfaceRef: `persona-board:${target.kind}:${target.id}`,
+      subject,
+    });
+    if (board) review.board = board;
 
     await supabase.from(table).update({ critic_review: review }).eq("id", target.id);
     return review;

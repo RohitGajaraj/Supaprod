@@ -108,12 +108,7 @@ export type StudioRunDetail = {
 
 /** Serializable JSON for server-fn payloads (matches the loop's Json shape). */
 export type StudioJson =
-  | string
-  | number
-  | boolean
-  | null
-  | StudioJson[]
-  | { [k: string]: StudioJson };
+  string | number | boolean | null | StudioJson[] | { [k: string]: StudioJson };
 
 export type StudioApproval = {
   id: string;
@@ -1050,6 +1045,114 @@ export const getChangesetRevisions = createServerFn({ method: "GET" })
       .order("revision_no", { ascending: false });
     if (error) throw new Error(error.message);
     return { revisions: (rows ?? []) as StudioRevision[] };
+  });
+
+/**
+ * RPT-31: the Agent Inbox (verification cockpit) cross-mission feed of
+ * APPLIED (merged) changesets. One workspace-scoped read: every merged
+ * changeset the caller can see, newest first, carrying its mission title (for
+ * "in {mission}"), product_id (so the row's rollback controls resolve their
+ * history), the PR link, and a real file count. Read-only.
+ *
+ * Scoping: pinned to ONE workspace (the active one, else the caller's default),
+ * the same posture as listChangelog, so a multi-workspace user never sees a
+ * merged cross-workspace list under a single-workspace breadcrumb. RLS still
+ * enforces access on top. No new table: it reads studio_changesets + missions +
+ * studio_changes, the same tables getRollbacks / rollbackRelease already touch.
+ */
+export type AppliedChange = {
+  id: string;
+  product_id: string | null;
+  mission_id: string | null;
+  mission_title: string | null;
+  title: string;
+  repo: string;
+  branch: string | null;
+  pr_url: string | null;
+  pr_number: number | null;
+  file_count: number;
+  merged_at: string;
+};
+
+export const listAppliedChanges = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        workspaceId: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+      })
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<{ changes: AppliedChange[] }> => {
+    const db = context.supabase as unknown as SupabaseClient;
+
+    // Pin to ONE workspace (active, else the caller's default), matching
+    // listChangelog. RLS still enforces access; this restores active-workspace
+    // scoping so a merged cross-workspace list never shows under one breadcrumb.
+    let workspaceId: string | null = data.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await db.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
+    if (!workspaceId) return { changes: [] };
+
+    const { data: rows, error } = await db
+      .from("studio_changesets")
+      .select("id,product_id,mission_id,repo,branch,pr_url,pr_number,title,updated_at")
+      .eq("workspace_id", workspaceId)
+      .eq("status", "merged")
+      .order("updated_at", { ascending: false })
+      .limit(data.limit ?? 40);
+    if (error) throw new Error(error.message);
+
+    type Row = {
+      id: string;
+      product_id: string | null;
+      mission_id: string | null;
+      repo: string | null;
+      branch: string | null;
+      pr_url: string | null;
+      pr_number: number | null;
+      title: string | null;
+      updated_at: string;
+    };
+    const csRows = (rows ?? []) as Row[];
+    if (!csRows.length) return { changes: [] };
+
+    // Mission titles (for "in {mission}") and real file counts, one round trip each.
+    const missionIds = [
+      ...new Set(csRows.map((c) => c.mission_id).filter((id): id is string => !!id)),
+    ];
+    const changesetIds = csRows.map((c) => c.id);
+    const [{ data: missions }, { data: changeRows }] = await Promise.all([
+      missionIds.length
+        ? db.from("missions").select("id,title").in("id", missionIds)
+        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      db.from("studio_changes").select("changeset_id").in("changeset_id", changesetIds),
+    ]);
+    const titleByMission = new Map(
+      ((missions ?? []) as { id: string; title: string }[]).map((m) => [m.id, m.title]),
+    );
+    const fileCount = new Map<string, number>();
+    for (const r of (changeRows ?? []) as { changeset_id: string }[]) {
+      fileCount.set(r.changeset_id, (fileCount.get(r.changeset_id) ?? 0) + 1);
+    }
+
+    const changes: AppliedChange[] = csRows.map((c) => ({
+      id: c.id,
+      product_id: c.product_id,
+      mission_id: c.mission_id,
+      mission_title: c.mission_id ? (titleByMission.get(c.mission_id) ?? null) : null,
+      title: c.title ?? "Untitled change",
+      repo: c.repo ?? "",
+      branch: c.branch,
+      pr_url: c.pr_url,
+      pr_number: c.pr_number,
+      file_count: fileCount.get(c.id) ?? 0,
+      merged_at: c.updated_at,
+    }));
+    return { changes };
   });
 
 /**

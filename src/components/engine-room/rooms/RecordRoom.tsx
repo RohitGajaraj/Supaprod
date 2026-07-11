@@ -12,6 +12,7 @@ import {
   PanelPending,
   type RoomBodyProps,
 } from "../RoomDetail";
+import { VerifyCockpit } from "./VerifyCockpit";
 
 // LOOM W2 fold: /govern's approvals and support tabs live in this room now.
 // Approvals are ANSWERED on Today (the one queue); this room keeps the
@@ -154,6 +155,9 @@ function ApprovalsView() {
 }
 
 export function RecordRoom({ view }: RoomBodyProps) {
+  // RPT-31: the Agent Inbox / verification cockpit is the record room's
+  // default landing view (registered first in ROOM_TAB_META.record).
+  if (view === "verify") return <VerifyCockpit view={view} />;
   if (view === "ledger") return <LedgerView />;
   if (view === "approvals") return <ApprovalsView />;
   if (view === "support") {

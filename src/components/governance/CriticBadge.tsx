@@ -35,6 +35,13 @@ const VERDICT_STYLES: Record<
   kill: { label: "Kill", tone: "madder", Icon: ShieldX },
 };
 
+// RPT-41: the three fixed persona-board seats, labeled for the review sheet.
+const PERSONA_LABELS: Record<string, string> = {
+  exec: "Exec sponsor",
+  engineering: "Engineering lead",
+  customer_of_record: "Customer of record",
+};
+
 export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Props) {
   const qc = useQueryClient();
   const fRun = useServerFn(runCriticReview);
@@ -161,6 +168,42 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
                     ))}
                   </ul>
                 )}
+              </div>
+            ) : null}
+
+            {review.board && review.board.length > 0 ? (
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground mb-3">
+                  Persona review board
+                </div>
+                <div className="space-y-4">
+                  {review.board.map((p) => {
+                    const pv = VERDICT_STYLES[p.verdict];
+                    return (
+                      <div key={p.persona}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs font-medium">
+                            {PERSONA_LABELS[p.persona] ?? p.persona}
+                          </span>
+                          <VerdictChip tone={pv.tone}>{pv.label}</VerdictChip>
+                        </div>
+                        {p.objections.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            No objections from this seat.
+                          </p>
+                        ) : (
+                          <ul className="space-y-1.5 list-disc pl-4">
+                            {p.objections.map((o, i) => (
+                              <li key={i} className="text-sm leading-snug">
+                                {o}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
 
