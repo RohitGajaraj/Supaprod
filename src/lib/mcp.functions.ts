@@ -568,8 +568,9 @@ export async function outcomeHistory(
       .ilike("title", `%${safe}%`)
       .limit(500);
     if (oErr) throw new Error(oErr.message);
-    opportunityIds = (opps ?? []).map((o: { id: string }) => o.id as string);
-    if (opportunityIds.length === 0) return [];
+    const ids = (opps ?? []).map((o: { id: string }) => o.id as string);
+    if (ids.length === 0) return [];
+    opportunityIds = ids;
   }
 
   let q = supabaseClient
