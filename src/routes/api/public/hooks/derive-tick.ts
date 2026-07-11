@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { withJobRun } from "@/lib/observability";
 import { deriveAllInsights } from "@/lib/brain/derive-insights.server";
 import { runInsightPush } from "@/lib/brain/push-insights.server";
@@ -69,6 +70,8 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 results.push({ workspace_id: ws.id, insights: 0, pushed: 0, note: "routine disabled" });
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              markRoutineRun(routinesDb, ws.id, "learnings-synthesis");
               // SEAM-3 (mission 3.9): deterministic push detection rides the
               // derive cadence. Runs before the derive cap check because it has
               // its own hard cap (3 pushes/workspace/day) and zero AI spend; a

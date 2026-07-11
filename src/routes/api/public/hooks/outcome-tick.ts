@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { withJobRun } from "@/lib/observability";
 import { generateOutcomeSuggestion } from "@/lib/outcome-suggestion.server";
@@ -82,6 +83,8 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
               if (workspaceId && disabledWorkspaceIds.has(workspaceId)) {
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              if (workspaceId) markRoutineRun(admin, workspaceId, "outcome-check");
               let gh: Awaited<ReturnType<typeof resolveGitHub>>;
               try {
                 gh = await resolveGitHub({ workspaceId, userId: null });

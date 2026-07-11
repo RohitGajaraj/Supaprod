@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { withJobRun } from "@/lib/observability";
 
 // workspace_routine_prefs (PC-08, migration 20260710220000) predates the
@@ -100,6 +101,8 @@ export const Route = createFileRoute("/api/public/hooks/steward-tick")({
                 results.push({ workspace_id: ws.id, nudged: false, reason: "routine disabled" });
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              markRoutineRun(routinesDb, ws.id, "steward");
 
               // Rate limit: skip if a steward nudge was already inserted in the past 23h
               const { data: recentNudge } = await supabaseAdmin

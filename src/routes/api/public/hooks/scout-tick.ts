@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { withJobRun } from "@/lib/observability";
 import { hashContent, diffSnapshots } from "@/lib/scout/diff";
 import { listDueTargets, markChecked, type ScoutTargetRow } from "@/lib/scout/targets.server";
@@ -98,6 +99,8 @@ export const Route = createFileRoute("/api/public/hooks/scout-tick")({
                 results.push({ workspace_id: ws.id, skipped_routine: true });
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              markRoutineRun(db, ws.id, "scout");
 
               // Auto-seed all 6 WatchKind targets from workspace context for any
               // kind not yet in the watch list. Idempotent (no-op once seeded).
