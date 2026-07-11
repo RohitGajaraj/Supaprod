@@ -21,6 +21,22 @@
  * -named font var must always resolve through --font-sans/--font-mono/
  * --font-pixel — never a literal font-family string — in BOTH blocks.
  *
+ * SAME FOOTGUN, COLOR EDITION (found + fixed 2026-07-11): the early
+ * `[data-obsidian]` block also held the named role colors --rose,
+ * --primary-ink, --deep-green, and --action-blue, and --agent as either a
+ * literal legacy hex or a var() pointing at an unaliased "working palette"
+ * var (--pearl/--cornflower/--mauve — themselves still legacy hexes with no
+ * corrective re-alias). The later corrective block never redeclared any of
+ * the five, so under the live `<div data-obsidian>` app scope (which the
+ * root `:root` rules do not directly match — only `[data-obsidian]` does)
+ * these silently resolved to pre-Tempo values. Fixed the same way as the
+ * font footgun: each now aliases directly via var() to the same --ds-*
+ * token the corrected :root block already uses for that name. The broader
+ * "working palette" data-viz hexes (--tangerine/--melon/--cornflower/
+ * --mauve/--teal/--pearl/etc.) and the retired pencil-annotation vars are
+ * intentionally left as-is — no unambiguous 1:1 Tempo target exists for
+ * that bespoke chart palette; do not guess-alias them without a design call.
+ *
  * Color roles (exclusive — color tells the user WHO acts and WHAT is asked):
  *   --ember        needs-human only: gates, calls, primary CTA
  *   --action-blue  live/running state + links (indigo)
@@ -1768,7 +1784,7 @@ html[data-motion="off"] .agent-live {
   /* User-behavior data */
   --flamingo: #f26b8a;
   --magenta: #c2337e;
-  --rose: #e89ab0; /* NOTE: data color here; parchment's alert role moved to --destructive/--madder */
+  --rose: var(--ds-red-600); /* aliased to Tempo (2026-07-11 fix): matches --madder/--destructive and the corrected :root block below, so the alert/failure role reads identically whether or not the data-obsidian scope is active */
   /* Agent identity (one fixed shade per face) */
   --mauve: #b78bc7;
   --amethyst: #7e5aa6;
@@ -1920,13 +1936,13 @@ html[data-motion="off"] .agent-live {
   --pale-blue: var(--raised);
   --border-light: var(--hairline-faint);
   --card-border: var(--hairline-faint);
-  --primary-ink: var(--pearl);
-  --deep-green: var(--pearl);
-  --action-blue: var(--cornflower);
+  --primary-ink: var(--ds-gray-1000); /* aliased to Tempo (2026-07-11 fix): was var(--pearl), an unaliased legacy hex; now matches the corrected :root block */
+  --deep-green: var(--ds-green-800); /* aliased to Tempo (2026-07-11 fix): was var(--pearl) — wrong scale entirely (the approve-button role needs green, not the pearl axis color); now matches the corrected :root block */
+  --action-blue: var(--ds-blue-600); /* aliased to Tempo (2026-07-11 fix): was var(--cornflower), an unaliased legacy hex; now matches the corrected :root block */
   --focus-blue: var(--focus-ring);
   --form-focus: var(--focus-ring);
   --saffron: var(--marigold);
-  --agent: var(--mauve);
+  --agent: var(--ds-purple-600); /* aliased to Tempo (2026-07-11 fix): was var(--mauve), an unaliased legacy hex; now matches the corrected :root block */
   --emerald: var(--moss);
   --hero-bg: var(--surface-card-deep);
   --hero-ink: var(--text-primary);

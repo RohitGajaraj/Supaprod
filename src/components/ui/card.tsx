@@ -6,7 +6,12 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
+      className={cn(
+        // Radius + shadow from materials.css tokens (never hand-rolled); bg-card kept as-is
+        // since it correctly resolves to the differentiated surface tint, not the page bg.
+        "rounded-(--ds-radius-medium) bg-card text-card-foreground shadow-(--ds-shadow-border-medium)",
+        className,
+      )}
       {...props}
     />
   ),

@@ -111,7 +111,10 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default gap-2 select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      // Row anatomy matches the popover-menu-row convention used by dropdown-menu/
+      // context-menu/menubar/select (tempo-v5/research/command-menu.md is the same
+      // "menu row" pattern): 36px row height, 6px row radius.
+      "relative flex h-(--ds-popover-row-height) cursor-default gap-2 select-none items-center rounded-(--ds-popover-row-radius) px-2 text-label-14 outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}
