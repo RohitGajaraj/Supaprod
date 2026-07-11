@@ -1,4 +1,4 @@
-// RPT-46: "What changed upstream" — the daily upstream intelligence brief,
+// RPT-46: "What changed upstream". The daily upstream intelligence brief,
 // surfaced with receipts. Reads the latest market / competitor / tech-shift
 // briefs the researcher-tick and scout-tick already write into `signals`, and
 // reveals the contributing raw signals (artifact_lineage, relation
