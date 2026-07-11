@@ -99,20 +99,34 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     enabled: !!activeWorkspaceId,
   });
 
-  // Initialize workspace and product from localStorage or defaults
+  // Optimistically restore the last workspace from localStorage on mount, WITHOUT
+  // waiting for the workspaces query. On a cold direct-URL load this fires the
+  // page's data queries (which are `enabled: !!activeWorkspaceId`) immediately, in
+  // parallel with the workspaces fetch, instead of after two sequential round
+  // trips, so a page like /brain shows its content instead of a "select workspace"
+  // skeleton. Runs client-side only (no SSR hydration mismatch: the first render
+  // is null on both server and client, this effect sets state after mount). The
+  // validation effect below corrects a stale id once real membership loads.
+  useEffect(() => {
+    const stored = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+    if (stored) setActiveWorkspaceState((cur) => cur ?? stored);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Validate against real membership once workspaces load: keep the current id if
+  // it is still a workspace the user belongs to, else fall back to the first, else
+  // clear (the user has no workspaces). Persists the resolved choice.
   useEffect(() => {
     if (isLoadingWorkspaces) return;
 
-    const storedWorkspace = localStorage.getItem(WORKSPACE_STORAGE_KEY);
-    if (storedWorkspace && workspaces.some((w) => w.id === storedWorkspace)) {
-      setActiveWorkspaceState(storedWorkspace);
-    } else if (workspaces.length > 0) {
-      const defaultWorkspace = workspaces[0].id;
-      setActiveWorkspaceState(defaultWorkspace);
-      localStorage.setItem(WORKSPACE_STORAGE_KEY, defaultWorkspace);
-    } else {
-      setActiveWorkspaceState(null);
-    }
+    setActiveWorkspaceState((cur) => {
+      if (cur && workspaces.some((w) => w.id === cur)) return cur;
+      if (workspaces.length > 0) {
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, workspaces[0].id);
+        return workspaces[0].id;
+      }
+      return null;
+    });
   }, [workspaces, isLoadingWorkspaces]);
 
   // Initialize product when products change
