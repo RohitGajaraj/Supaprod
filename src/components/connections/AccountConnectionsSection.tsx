@@ -35,6 +35,7 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { DrillHeader, MonoLabel, StepDot } from "@/components/cadence/Primitives";
 import { ProviderLogo } from "./ProviderLogo";
 import { RequestConnectorCard } from "./RequestConnectorCard";
+import { ConnectTrustDialog } from "./ConnectTrustDialog";
 import { latestIso, relTimeCaps } from "@/components/discover/format";
 
 // F-CONN Phase 2: Settings, "Connections", the single home for account-level
@@ -405,6 +406,10 @@ export function AccountConnectionsSection({
   onOpenDetail: (provider: ProviderId) => void;
 }) {
   const qc = useQueryClient();
+
+  // RPT-02 - the trust card interstitial: set to a spec to show it, null to
+  // hide. The real connect only fires from the dialog's Continue button.
+  const [trustFor, setTrustFor] = useState<ProviderSpec | null>(null);
 
   // One-time toast after the GitHub App full-redirect callback, then strip the
   // params so a refresh doesn't re-toast. Read from window.location directly:
@@ -787,7 +792,7 @@ export function AccountConnectionsSection({
                       status={status}
                       spec={spec}
                       busy={busy}
-                      onConnect={() => connectProvider(spec)}
+                      onConnect={() => setTrustFor(spec)}
                     />
                   </div>
                 </div>
@@ -796,6 +801,17 @@ export function AccountConnectionsSection({
           </div>
         )}
       </div>
+      <ConnectTrustDialog
+        provider={trustFor?.id ?? null}
+        label={trustFor?.label ?? ""}
+        open={!!trustFor}
+        onOpenChange={(o) => !o && setTrustFor(null)}
+        onContinue={() => {
+          if (trustFor) connectProvider(trustFor);
+          setTrustFor(null);
+        }}
+        busy={busy}
+      />
     </div>
   );
 }
@@ -947,6 +963,10 @@ export function ConnectorDetail({
     else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
   };
+  // RPT-02 - this drill-down is independently reachable via ?connector=
+  // (deep link / bookmark / stale tab) for a provider that isn't connected
+  // yet, so it needs its own trust-dialog gate too, not just the grid's.
+  const [showTrust, setShowTrust] = useState(false);
 
   /* -- Active via an admin-managed env credential (envConfigured), no
      per-user OAuth registered (gatewayConfigured false): Cadence is already
@@ -1054,11 +1074,22 @@ export function ConnectorDetail({
             type="button"
             className="btn btn-primary btn-sm"
             disabled={busy}
-            onClick={connect}
+            onClick={() => setShowTrust(true)}
           >
             Connect {spec.label}
           </button>
         </div>
+        <ConnectTrustDialog
+          provider={provider}
+          label={spec.label}
+          open={showTrust}
+          onOpenChange={setShowTrust}
+          onContinue={() => {
+            setShowTrust(false);
+            connect();
+          }}
+          busy={busy}
+        />
       </div>
     );
   }
@@ -1119,7 +1150,7 @@ export function ConnectorDetail({
                 type="button"
                 className="btn btn-ghost btn-sm"
                 disabled={busy}
-                onClick={() => suiteSpec && mSuite.mutate(suiteSpec)}
+                onClick={() => setShowTrust(true)}
               >
                 Connect another account
               </button>
@@ -1317,6 +1348,17 @@ export function ConnectorDetail({
               ))}
         </div>
       </div>
+      <ConnectTrustDialog
+        provider={provider}
+        label={spec.label}
+        open={showTrust}
+        onOpenChange={setShowTrust}
+        onContinue={() => {
+          setShowTrust(false);
+          connect();
+        }}
+        busy={busy}
+      />
     </div>
   );
 }
