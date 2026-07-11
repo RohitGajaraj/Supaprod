@@ -57,6 +57,7 @@ export function decidePublicReadRateLimit(
 export async function checkPublicDecisionRateLimit(
   db: SupabaseClient,
   clientIp: string,
+  limit = LIMIT_PER_WINDOW,
 ): Promise<{ allowed: true } | { allowed: false; retryAfterSeconds: number }> {
   const nowMs = Date.now();
   const nowIso = new Date(nowMs).toISOString();
@@ -69,7 +70,7 @@ export async function checkPublicDecisionRateLimit(
       .maybeSingle();
     if (getError) throw new Error(getError.message);
 
-    const decision = decidePublicReadRateLimit((row as RateLimitRow | null) ?? null, nowMs);
+    const decision = decidePublicReadRateLimit((row as RateLimitRow | null) ?? null, nowMs, limit);
 
     if (decision.kind === "block") {
       return { allowed: false, retryAfterSeconds: decision.retryAfterSeconds };
