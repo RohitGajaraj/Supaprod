@@ -355,7 +355,7 @@ export function DecisionDetail({ id }: { id: string }) {
           }
         />
 
-        {/* Summary band: the call + rationale, led first (calm neutral tint —
+        {/* Summary band: the call + rationale, led first (calm neutral tint,
             Tempo v5 glacier narrowing, 2026-07-11: this is a card accent, not
             a status control, so it stays gray). */}
         <div

@@ -18,7 +18,7 @@
 //
 // OBS-08: ported to Obsidian — the Obsidian VerdictChip carries the tone, and
 // the "what it moved" line renders in neutral mono (README law: the
-// moved-line states what changed, in the machine's own voice) — Tempo v5
+// moved-line states what changed, in the machine's own voice), Tempo v5
 // (2026-07-11) narrowed glacier to literal status/link use only, so this
 // data readout is neutral text now, not a chromatic tint.
 import { useServerFn } from "@tanstack/react-start";

@@ -785,7 +785,7 @@ function BundleGrid({
               borderRadius: "var(--radius-control)",
               cursor: wouldExceed ? "not-allowed" : "pointer",
               opacity: wouldExceed ? 0.5 : 1,
-              // Selected reads with a neutral high-contrast border + wash —
+              // Selected reads with a neutral high-contrast border + wash,
               // never ember, which stays reserved for the Buy action below.
               border: selected ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
               background: selected ? "var(--surface-active)" : "var(--raised)",

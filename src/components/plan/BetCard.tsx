@@ -59,7 +59,7 @@ const QUIET_MONO_STYLE = {
   cursor: "pointer" as const,
 };
 
-/** Highlight number-like tokens in the mono measure line via contrast (not color — Tempo v5
+/** Highlight number-like tokens in the mono measure line via contrast (not color. Tempo v5
  * glacier narrowing, 2026-07-11: this is decoration, not a status control); the rest stays faint. */
 function MeasureLine({ measure }: { measure: string }) {
   const parts = measure.split(/(-?\d[\d.,%]*)/g).filter((p) => p.length > 0);
@@ -228,7 +228,7 @@ function BetCardComponent({
               className="loom-press"
               style={{
                 ...QUIET_MONO_STYLE,
-                // Ordinary form action (save) — the ember-on-forms ruling reserves ember for the
+                // Ordinary form action (save): the ember-on-forms ruling reserves ember for the
                 // view's one true primary CTA; this resolves to the neutral default via contrast.
                 color: "var(--text-primary)",
                 opacity: editPending ? 0.5 : 1,

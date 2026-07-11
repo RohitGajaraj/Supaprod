@@ -4,7 +4,7 @@
  * not a data dump. Per the Tempo design contract: Lane 1 (Needs your
  * judgment) is the ONLY ember lane; lanes 2-4 stay neutral gray (glacier is
  * reserved for literal status pills/dots, never an ambient lane voice). These
- * are presentational — no data fetching here.
+ * are presentational, no data fetching here.
  */
 
 import * as React from "react";

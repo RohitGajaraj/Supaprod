@@ -154,7 +154,7 @@ export type VerdictTone = "moss" | "ember" | "indigo" | "orchid" | "saffron" | "
 // "indigo" resolves to a neutral gray, not action-blue (Tempo v5
 // DESIGN-TEMPO.md §2 glacier/machine-voice narrowing, 2026-07-11):
 // action-blue's sanctioned scope is literal live/running status + links, and
-// a "next action" verdict is neither — it is a rendered judgment (see the
+// a "next action" verdict is neither, it is a rendered judgment (see the
 // doc comment above), so it defaults to neutral like any other decoration.
 // Uses --text-subtle (not --ink/--text-primary) so the tone stays visually
 // distinct from surrounding body text - "the role color IS the meaning"
@@ -341,8 +341,8 @@ export function RiskTag({ risk }: { risk: string }) {
   );
 }
 
-/* DrillHeader — drill-down screen header: neutral mono back link (Tempo v5
-   glacier/machine-voice narrowing, 2026-07-11 — this is navigation chrome,
+/* DrillHeader: drill-down screen header. neutral mono back link (Tempo v5
+   glacier/machine-voice narrowing, 2026-07-11. this is navigation chrome,
    not a literal live/running status, so it stays gray), kicker,
    serif 21 title, optional right-slot action. Ported 1:1 from
    design-reference/cadence/govern-detail.jsx (DrillHeader); used by BOTH the

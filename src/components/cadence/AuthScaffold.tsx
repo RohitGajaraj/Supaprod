@@ -140,7 +140,7 @@ export function AuthScaffold({
           ) : null}
           <CadenceMark size={52} />
           {/* Geist Pixel brand moment (DESIGN-TEMPO.md §3/§8): the auth
-              headline is a genuine hero moment — one short line, shown once
+              headline is a genuine hero moment, one short line, shown once
               per screen, no other Pixel use on this surface. */}
           <h1
             className="font-pixel"

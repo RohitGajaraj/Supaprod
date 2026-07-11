@@ -228,7 +228,7 @@ export function LearningDetail({ id }: { id: string }) {
           }
         />
 
-        {/* Summary band: the compounding value first (calm neutral tint —
+        {/* Summary band: the compounding value first (calm neutral tint,
             Tempo v5 glacier narrowing, 2026-07-11: a card accent, not a
             status control, so it stays gray). */}
         <div

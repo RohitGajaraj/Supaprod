@@ -43,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/admin/people")({
   component: AdminPeople,
 });
 
-// Shared focus treatment: 2px ember ring, offset 2 — every interactive
+// Shared focus treatment: 2px ember ring, offset 2. every interactive
 // element in this file uses this exact class pattern (Tempo contract SS2).
 const FOCUS_RING =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";

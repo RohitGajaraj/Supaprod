@@ -301,10 +301,10 @@ function CardShell({
       style={{
         background: "var(--card)",
         // Depth is tint, never a shadow: both the recommended card and the
-        // current card get the same stronger neutral hairline — the
+        // current card get the same stronger neutral hairline, the
         // "Popular"/"Current plan" copy carries the distinction, not color
         // (Tempo v5 §2 reserves glacier for literal status chips and links).
-        // Never ember — nothing on this comparison table is a
+        // Never ember. Nothing on this comparison table is a
         // genuinely-required action.
         border:
           popular || isCurrent ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",

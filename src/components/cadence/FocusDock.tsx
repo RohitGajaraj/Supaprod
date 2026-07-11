@@ -278,11 +278,11 @@ export function FocusDock() {
     <>
       {/* The session edge glow (founder ask 2026-07-09; the Claude caps-lock
           reference): while a block runs, the screen's edges carry a faint
-          light — neutral gray while the block holds the room, ember through
+          light, neutral gray while the block holds the room, ember through
           the closing stretch (Tempo v5 DESIGN-TEMPO.md §2 glacier/
           machine-voice narrowing, 2026-07-11: a full-viewport glow is
           ambient decoration, not a literal status badge/chip/dot, so it no
-          longer borrows glacier — the pill's own dot/text/progress line
+          longer borrows glacier. the pill's own dot/text/progress line
           still carries the live phase color). A legal glow field: atmosphere
           with meaning, aria-hidden, pointer-transparent, breathing only
           while the session is genuinely live. */}
