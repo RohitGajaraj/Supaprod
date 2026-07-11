@@ -22,6 +22,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { RoadmapBucket } from "@/lib/roadmap-governance";
 
 /**
  * Revert a PRD to its previous snapshot.
@@ -164,4 +165,75 @@ export const revertDecisionToPrevious = createServerFn({ method: "POST" })
     }
 
     return { success: true, decision_id: data.decision_id };
+  });
+
+/**
+ * Revert a roadmap item (an opportunity's Now/Next/Later placement) to its
+ * previous state.
+ *
+ * A "roadmap" is opportunities.roadmap_bucket (+ outcome/measure), moved by an
+ * agent (roadmap.move) or a human (the drag board). Both paths capture the prior
+ * placement in roadmap_snapshot_before, so this restores it and re-captures the
+ * just-current placement as the next snapshot (so a rewind is itself reversible),
+ * matching the prd/decision reverts above. Owner-scoped ("own opportunities all").
+ */
+export const revertRoadmapItemToPrevious = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ opportunity_id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const db = supabase as unknown as SupabaseClient;
+
+    const { data: opp, error: fetchErr } = await db
+      .from("opportunities")
+      .select(
+        "id,workspace_id,roadmap_bucket,roadmap_outcome,roadmap_measure,roadmap_snapshot_before,roadmap_last_agent_slug",
+      )
+      .eq("id", data.opportunity_id)
+      .eq("user_id", userId)
+      .single();
+
+    if (fetchErr || !opp) throw new Error(`Roadmap item not found: ${fetchErr?.message}`);
+
+    const snap = opp.roadmap_snapshot_before as {
+      bucket?: RoadmapBucket | null;
+      outcome?: string | null;
+      measure?: string | null;
+    } | null;
+    if (!snap) throw new Error("This roadmap item has no previous placement to revert to.");
+
+    const { error: updateErr } = await db
+      .from("opportunities")
+      .update({
+        roadmap_bucket: snap.bucket ?? null,
+        roadmap_outcome: snap.outcome ?? null,
+        roadmap_measure: snap.measure ?? null,
+        // Re-capture the just-current placement so the rewind is itself reversible.
+        roadmap_snapshot_before: {
+          bucket: opp.roadmap_bucket ?? null,
+          outcome: opp.roadmap_outcome ?? null,
+          measure: opp.roadmap_measure ?? null,
+        },
+      })
+      .eq("id", data.opportunity_id)
+      .eq("user_id", userId);
+
+    if (updateErr) throw new Error(`Revert failed: ${updateErr.message}`);
+
+    // RPT-04 (designed wrongness): a rewind of an AGENT move is a REJECTED judgment
+    // against that agent (roadmap_last_agent_slug, set by roadmap.move). A human
+    // move clears the slug, so a human's own undo writes no agent receipt.
+    if (opp.roadmap_last_agent_slug) {
+      await db.from("agent_approvals").insert({
+        workspace_id: opp.workspace_id,
+        agent_slug: opp.roadmap_last_agent_slug,
+        tool_name: "artifact.rewind",
+        decided_by: userId,
+        decided_at: new Date().toISOString(),
+        status: "rejected",
+        rationale: `User rewound the roadmap placement (${data.opportunity_id}) this agent set back to its previous bucket.`,
+      });
+    }
+
+    return { success: true, opportunity_id: data.opportunity_id };
   });
