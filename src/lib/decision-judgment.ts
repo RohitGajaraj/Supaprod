@@ -123,3 +123,34 @@ export function planPrecedentCitations(args: {
   }
   return { citeLearningIds, bumpDecisionIds };
 }
+
+/** PC-16: at decision time, Cadence cites the user's own record directly on a
+ * ranked bet - not just inside the opened detail sheet. PURE: collapses a
+ * bet's precedent matches (same Ambient Precedent recall the decision card
+ * and OpportunityJudgment use) into one honest sentence, or null when there
+ * is nothing recorded to cite yet. Never fabricates a count or a verdict -
+ * only ever describes the real matches it was given. */
+export function summarizePrecedentCitation(precedents: JudgmentPrecedent[]): string | null {
+  if (precedents.length === 0) return null;
+  const counts: Record<JudgmentVerdict, number> = { validated: 0, missed: 0, mixed: 0 };
+  for (const p of precedents) counts[p.verdict] += 1;
+  // Majority verdict decides the phrase; a tie prefers the more cautionary
+  // read (missed over mixed over validated) so the citation never oversells.
+  const dominant: JudgmentVerdict =
+    counts.missed >= counts.mixed && counts.missed >= counts.validated
+      ? "missed"
+      : counts.mixed >= counts.validated
+        ? "mixed"
+        : "validated";
+  const n = precedents.length;
+  const be = n === 1 ? "was" : "were";
+  const phrase =
+    dominant === "missed"
+      ? "underperformed"
+      : dominant === "mixed"
+        ? `${be} mixed`
+        : `${be} validated`;
+  const mirror = precedents[0].title;
+  const mirrorPart = mirror ? ` This most closely mirrors "${mirror}".` : "";
+  return `Your last ${n} similar bet${n === 1 ? "" : "s"} ${phrase}.${mirrorPart}`;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { ingestSignal } from "./mcp.functions";
+import { ingestSignal, outcomeHistory } from "./mcp.functions";
 import { INGEST_REVIEW_TAG } from "./ingest-guardrails";
 
 /**
@@ -122,5 +122,138 @@ describe("ingestSignal — validation + error propagation", () => {
     await expect(ingestSignal(client, "ws-1", "user-1", { title: "valid title" })).rejects.toThrow(
       "boom",
     );
+  });
+});
+
+/**
+ * RPT-16 · outcomeHistory. A minimal fixture-based chainable fake standing in
+ * for the real Supabase query builder: `.eq`/`.ilike`/`.in` filter an
+ * in-memory row set for the table named in `.from()`, `.limit` truncates, and
+ * the builder itself is thenable so `await q` resolves `{ data, error }` -
+ * mirrors real supabase-js closely enough to exercise this function's own
+ * filtering/flattening logic without a live database.
+ */
+function makeOutcomeClient(tables: Record<string, Record<string, unknown>[]>) {
+  return {
+    from(table: string) {
+      let rows = tables[table] ?? [];
+      const builder: {
+        select: () => typeof builder;
+        eq: (col: string, val: unknown) => typeof builder;
+        ilike: (col: string, pattern: string) => typeof builder;
+        in: (col: string, vals: unknown[]) => typeof builder;
+        order: () => typeof builder;
+        limit: (n: number) => typeof builder;
+        then: (resolve: (v: { data: unknown[]; error: null }) => void) => void;
+      } = {
+        select: () => builder,
+        eq(col, val) {
+          rows = rows.filter((r) => r[col] === val);
+          return builder;
+        },
+        ilike(col, pattern) {
+          const needle = pattern.replace(/%/g, "").toLowerCase();
+          rows = rows.filter((r) =>
+            String(r[col] ?? "")
+              .toLowerCase()
+              .includes(needle),
+          );
+          return builder;
+        },
+        in(col, vals) {
+          const set = new Set(vals);
+          rows = rows.filter((r) => set.has(r[col]));
+          return builder;
+        },
+        order: () => builder,
+        limit(n) {
+          rows = rows.slice(0, n);
+          return builder;
+        },
+        then(resolve) {
+          resolve({ data: rows, error: null });
+        },
+      };
+      return builder;
+    },
+  };
+}
+
+describe("outcomeHistory", () => {
+  const opportunities = [
+    { id: "opp-1", workspace_id: "ws-1", title: "Faster onboarding" },
+    { id: "opp-2", workspace_id: "ws-1", title: "Retry flow" },
+    { id: "opp-3", workspace_id: "ws-2", title: "Faster onboarding elsewhere" },
+  ];
+  const learnings = [
+    {
+      id: "l-1",
+      workspace_id: "ws-1",
+      opportunity_id: "opp-1",
+      verdict: "validated",
+      summary: "Adoption doubled.",
+      metric_label: "WAU",
+      metric_value: "+120%",
+      prior_ice: 5,
+      new_ice: 7,
+      created_at: "2026-07-05T00:00:00.000Z",
+      opportunity: { title: "Faster onboarding" },
+    },
+    {
+      id: "l-2",
+      workspace_id: "ws-1",
+      opportunity_id: "opp-2",
+      verdict: "missed",
+      summary: null,
+      metric_label: null,
+      metric_value: null,
+      prior_ice: 4,
+      new_ice: 3,
+      created_at: "2026-07-01T00:00:00.000Z",
+      opportunity: { title: "Retry flow" },
+    },
+  ];
+
+  it("returns only the initiative's own outcome history, workspace-scoped", async () => {
+    const client = makeOutcomeClient({ opportunities, learnings });
+    const rows = (await outcomeHistory(client, "ws-1", "onboarding", 20)) as Array<{
+      id: string;
+      initiative: string | null;
+    }>;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("l-1");
+    expect(rows[0].initiative).toBe("Faster onboarding");
+  });
+
+  it("never crosses into another workspace's matching opportunity", async () => {
+    const client = makeOutcomeClient({ opportunities, learnings });
+    // ws-2 has a matching title ("Faster onboarding elsewhere") but no
+    // learnings fixture points at opp-3, so this also proves the tenant
+    // boundary rather than merely an empty fixture coincidence.
+    const rows = await outcomeHistory(client, "ws-2", "onboarding", 20);
+    expect(rows).toEqual([]);
+  });
+
+  it("returns [] immediately when no opportunity matches, without querying learnings", async () => {
+    const client = makeOutcomeClient({ opportunities, learnings });
+    const rows = await outcomeHistory(client, "ws-1", "nonexistent bet", 20);
+    expect(rows).toEqual([]);
+  });
+
+  it("returns the workspace's most recent outcomes overall when initiative is empty", async () => {
+    const client = makeOutcomeClient({ opportunities, learnings });
+    const rows = (await outcomeHistory(client, "ws-1", "", 20)) as Array<{ id: string }>;
+    expect(rows.map((r) => r.id).sort()).toEqual(["l-1", "l-2"]);
+  });
+
+  it("flattens an array-shaped opportunity embed the same way exportSkillpack does", async () => {
+    const client = makeOutcomeClient({
+      opportunities,
+      learnings: [{ ...learnings[0], opportunity: [{ title: "Faster onboarding" }] }],
+    });
+    const rows = (await outcomeHistory(client, "ws-1", "onboarding", 20)) as Array<{
+      initiative: string | null;
+    }>;
+    expect(rows[0].initiative).toBe("Faster onboarding");
   });
 });

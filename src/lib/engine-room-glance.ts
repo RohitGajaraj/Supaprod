@@ -111,6 +111,12 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       descriptor: "How well the machine is scoring today.",
     },
     {
+      id: "calibration",
+      label: "By surface",
+      technical: "Calibration",
+      descriptor: "Pass rate and eval guard status for each AI surface.",
+    },
+    {
       id: "suites",
       label: "What we test",
       technical: "Eval suites",

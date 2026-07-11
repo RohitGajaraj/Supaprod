@@ -15,6 +15,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   evidenceCounts,
   supersededChildIds,
+  receiptEdgeRows,
   type LineageEdgeLite,
 } from "@/lib/trust-ledger.functions";
 import {
@@ -144,6 +145,11 @@ export async function loadNewestDecisionBrief(
     occurredAt: selectedRow.created_at,
     sourceLabel: labelSource(selectedRow.source_kind),
     evidenceCount: evidence.get(selectedRow.id) ?? 0,
+    // RPT-12: the same lineage edges evidenceCount tallies, walked into
+    // citable rows (kind + id + a hydrated-or-fallback label) so the pack's
+    // "backed by N pieces of evidence" claim survives export as N actual
+    // numbered sources, not a number nobody can trace.
+    evidenceItems: receiptEdgeRows(edges, [selectedRow.id]),
     outcome: superseded.has(selectedRow.id) ? "superseded" : "standing",
     verdict,
     metricLabel,

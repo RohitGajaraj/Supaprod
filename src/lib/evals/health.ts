@@ -208,6 +208,78 @@ export function computeEvalHealth(
   };
 }
 
+/** One AI surface's calibration, folded from every suite that targets it. */
+export type SurfaceCalibration = {
+  /** `eval_suites.surface`, or "unassigned" when a run's suite carries none. */
+  surface: string;
+  /** Suite ids folded into this surface (lets a caller drill straight to the one suite when
+   * there is exactly one, instead of a bare list). */
+  suiteIds: string[];
+  runs: number;
+  /** Mean of per-run avg_score (the judge score, real scale) across this surface's runs that
+   * reported one; null when none did. This IS the "calibration score" — how the judge scores
+   * this surface's output, not a fabricated composite. */
+  avgScore: number | null;
+  /** Pooled pass rate across this surface's completed runs; null when none completed. */
+  passRate: number | null;
+};
+
+/**
+ * RPT-18 (Governance): "calibration score per surface" — the same real `eval_runs` history
+ * computeEvalHealth pools by suite, folded instead by the suite's AI surface (chat, roadmap,
+ * discovery, ...). PURE, same honesty contract: a surface with no scored runs reports null, never
+ * a fabricated number. `suiteSurfaces` maps suite_id -> eval_suites.surface (nullable in the DB).
+ */
+export function computeSurfaceCalibration(
+  runsInput: readonly EvalRunRow[],
+  suiteSurfaces: Readonly<Record<string, string | null | undefined>> = {},
+): SurfaceCalibration[] {
+  const runs = (Array.isArray(runsInput) ? runsInput : []).filter(
+    (r): r is EvalRunRow => !!r && typeof r.suite_id === "string",
+  );
+
+  const bySurface = new Map<string, { runs: EvalRunRow[]; suiteIds: Set<string> }>();
+  for (const r of runs) {
+    const surface = suiteSurfaces[r.suite_id] || "unassigned";
+    let entry = bySurface.get(surface);
+    if (!entry) {
+      entry = { runs: [], suiteIds: new Set() };
+      bySurface.set(surface, entry);
+    }
+    entry.runs.push(r);
+    entry.suiteIds.add(r.suite_id);
+  }
+
+  const out: SurfaceCalibration[] = [];
+  for (const [surface, entry] of bySurface) {
+    let scoreSum = 0;
+    let scoreN = 0;
+    for (const r of entry.runs) {
+      if (typeof r.avg_score === "number" && !Number.isNaN(r.avg_score)) {
+        scoreSum += r.avg_score;
+        scoreN += 1;
+      }
+    }
+    out.push({
+      surface,
+      suiteIds: [...entry.suiteIds],
+      runs: entry.runs.length,
+      avgScore: scoreN > 0 ? round2(scoreSum / scoreN) : null,
+      passRate: poolPassRate(entry.runs),
+    });
+  }
+
+  // Worst-calibrated first (matches computeEvalHealth's worst-suite-first convention), nulls last.
+  out.sort((a, b) => {
+    if ((a.avgScore === null) !== (b.avgScore === null)) return a.avgScore === null ? 1 : -1;
+    if (a.avgScore !== null && b.avgScore !== null && a.avgScore !== b.avgScore) {
+      return a.avgScore - b.avgScore;
+    }
+    return b.runs - a.runs;
+  });
+  return out;
+}
+
 /** PURE. One honest, plain-language line for a headline. */
 export function summarizeEvalHealth(h: EvalHealth): string {
   if (h.verdict === "no-data") {

@@ -108,7 +108,16 @@ export type Entitlements = {
   approvalLanes: boolean;
 
   // --- Decision-layer capabilities ---
-  /** Critic red-teams every spec and bet, not only on request (paid). */
+  /**
+   * Display-only signal for the pricing page's upgrade narrative (pricing-
+   * strategy.md §7.1: Critic gets deeper/more customizable per tier - custom
+   * red-team profiles on Business, approved-model lists on Enterprise).
+   * RPT-13 (2026-07-11): the Critic teardown itself has NO code tier-gate -
+   * runCritic() fires unconditionally on every PRD/opportunity for every tier
+   * (discovery.functions.ts), metered only by the normal per-call credit
+   * charge through the callModel chokepoint. This flag does not enforce
+   * anything; do not gate access on it.
+   */
   criticEverywhere: boolean;
   /** Shareable decision links. Live for every tier today. */
   shareLinks: boolean;
@@ -390,6 +399,12 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // Pro's line stays the depth claim (Critic on EVERY spec and bet).
           "Critic teardown of your bets, within your credits",
           "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
+          // RPT-14: the fade above is the AI's own recall cache, never the
+          // decision record itself - decisions have no expiry in the schema
+          // and the export never reads the fading table, so this is a real
+          // guarantee, not marketing. Verified against src/routes/api/public/
+          // hooks/memory-tick.ts (the only expiry cron, agent_memory only).
+          "Your decision record: exportable forever, never fades",
           "2 products, 1 workspace",
           "Shareable decision links",
           "Community support",

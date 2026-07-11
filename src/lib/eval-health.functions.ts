@@ -11,14 +11,22 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   computeEvalHealth,
+  computeSurfaceCalibration,
   summarizeEvalHealth,
   type EvalHealth,
   type EvalRunRow,
   type SuiteTitles,
+  type SurfaceCalibration,
 } from "@/lib/evals/health";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export type EvalHealthResult = { health: EvalHealth; summary: string };
+export type EvalHealthResult = {
+  health: EvalHealth;
+  summary: string;
+  /** RPT-18: calibration score per AI surface, folded from the same run history `health`
+   * pools by suite. Empty when there are no suites/runs yet — never fabricated. */
+  calibrationBySurface: SurfaceCalibration[];
+};
 
 /**
  * Extracted logic for getEvalHealth - testable without TanStack wrappers.
@@ -29,13 +37,17 @@ export async function getEvalHealthImpl(
 ): Promise<EvalHealthResult> {
   const { data: suites, error: sErr } = await supabase
     .from("eval_suites")
-    .select("id,name")
+    .select("id,name,surface")
     .eq("user_id", userId);
   if (sErr) throw new Error(sErr.message);
 
   const ids = (suites ?? []).map((s) => s.id);
   const titles: Record<string, string | null> = {};
-  for (const s of suites ?? []) titles[s.id] = (s as { name?: string | null }).name ?? null;
+  const surfaces: Record<string, string | null> = {};
+  for (const s of suites ?? []) {
+    titles[s.id] = (s as { name?: string | null }).name ?? null;
+    surfaces[s.id] = (s as { surface?: string | null }).surface ?? null;
+  }
 
   let runs: EvalRunRow[] = [];
   if (ids.length) {
@@ -50,7 +62,8 @@ export async function getEvalHealthImpl(
   }
 
   const health = computeEvalHealth(runs, titles as SuiteTitles);
-  return { health, summary: summarizeEvalHealth(health) };
+  const calibrationBySurface = computeSurfaceCalibration(runs, surfaces);
+  return { health, summary: summarizeEvalHealth(health), calibrationBySurface };
 }
 
 export const getEvalHealth = createServerFn({ method: "GET" })

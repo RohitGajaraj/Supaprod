@@ -28,3 +28,20 @@ export function tierFromSampleSize(count: number, minThreshold: number): Confide
   if (count < minThreshold * 2) return "medium";
   return "high";
 }
+
+/**
+ * RPT-08: the same three-tier vocabulary, applied to a 0-1 model-reported
+ * probability (the Critic's own `confidence` field on every review, already
+ * computed for every opportunity/PRD verdict -- no new scoring model, this
+ * just names the existing number honestly instead of hiding it behind a
+ * flat verdict chip that reads as uniform certainty). Thresholds are a
+ * deliberately simple split: below 0.4 is "unsure enough to flag", 0.7+ is
+ * "confident enough not to need a caveat", the middle third is the honest
+ * default the rest of this module already uses for "no strong signal".
+ */
+export function tierFromProbability(p: number): ConfidenceTier {
+  const clamped = Number.isFinite(p) ? Math.min(1, Math.max(0, p)) : 0.5;
+  if (clamped < 0.4) return "low";
+  if (clamped >= 0.7) return "high";
+  return "medium";
+}

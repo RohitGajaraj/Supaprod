@@ -250,6 +250,28 @@ export function StakeholderPackPanel() {
               </div>
             </div>
           ))}
+          {/* RPT-12: the same numbered sources the exported markdown carries,
+              so a "[n]" marker in Provenance above is never bare in-app either. */}
+          {rendered.pack.citations.length > 0 ? (
+            <div style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--text-primary)",
+                  marginBottom: 4,
+                }}
+              >
+                Sources
+              </div>
+              <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "var(--text-body)" }}>
+                {rendered.pack.citations.map((c, i) => (
+                  <li key={`${c.kind}-${c.id}-${i}`}>{c.label}</li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
           <div
             style={{
               fontSize: 11,

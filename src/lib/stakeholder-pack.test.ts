@@ -113,3 +113,44 @@ describe("renderPackMarkdown — artifact", () => {
     expect(md.toLowerCase()).not.toContain("delve");
   });
 });
+
+describe("RPT-12 — claim-level citations survive export", () => {
+  const items = [
+    { kind: "signal", id: "sig-aaaaaaaa-0000", relation: "supports", label: "signal a3f92e1b" },
+    {
+      kind: "prd",
+      id: "prd-bbbbbbbb-0000",
+      relation: "derived_from",
+      label: "Checkout redesign spec",
+    },
+  ];
+
+  it("cites each evidence item as a numbered [n] marker in the provenance line", () => {
+    const p = composeStakeholderPack(brief({ evidenceItems: items }), "eng");
+    const provenance = p.sections.find((s) => s.heading === "Provenance")?.body ?? "";
+    expect(provenance).toContain("[1]");
+    expect(provenance).toContain("[2]");
+  });
+
+  it("renders a Sources section naming each citation when evidenceItems are present", () => {
+    const md = renderPackMarkdown(composeStakeholderPack(brief({ evidenceItems: items }), "exec"));
+    expect(md).toContain("## Sources");
+    expect(md).toContain("[1] signal a3f92e1b");
+    expect(md).toContain("[2] Checkout redesign spec");
+  });
+
+  it("renders no Sources section and no bare [n] markers when there is no walkable evidence", () => {
+    const md = renderPackMarkdown(composeStakeholderPack(brief({ evidenceItems: [] }), "exec"));
+    expect(md).not.toContain("## Sources");
+    expect(md).not.toContain("[1]");
+  });
+
+  it("degrades honestly when evidenceCount is nonzero but evidenceItems is omitted (pre-RPT-12 caller)", () => {
+    // A count without walkable items (evidenceItems undefined) must not
+    // fabricate citation markers it cannot back up.
+    const p = composeStakeholderPack(brief(), "eng");
+    const provenance = p.sections.find((s) => s.heading === "Provenance")?.body ?? "";
+    expect(provenance).not.toContain("[1]");
+    expect(p.citations).toEqual([]);
+  });
+});

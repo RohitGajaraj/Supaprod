@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, ChevronRight, Search } from "lucide-react";
 import { listLearnings } from "@/lib/outcome.functions";
-import { countPriorityMoves } from "@/lib/memory-compounding";
+import { countPriorityMoves, weeklyLearningDigest } from "@/lib/memory-compounding";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
@@ -71,6 +71,10 @@ export function MemoryPanel() {
   // ICE — the literal "this learning moved these priorities" count, the same
   // honest metric the Gauntlet reads. Shown in the Product-memory rail below.
   const prioritiesMoved = countPriorityMoves(allLearnings);
+  // PC-16: the weekly "what Cadence learned" digest - the trailing 7 days of
+  // this same real feed, windowed and tallied. Honest empty state when the
+  // account recorded nothing this week.
+  const digest = weeklyLearningDigest(allLearnings);
 
   if (learnings.isLoading) {
     return (
@@ -235,6 +239,38 @@ export function MemoryPanel() {
         <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 12 }}>
           Every learning is tied back to the spec and opportunity that taught it.
         </p>
+        {/* PC-16: the weekly "what Cadence learned" digest - the same real
+            feed above, windowed to the trailing 7 days. Honest empty state,
+            never a fabricated "nothing new" cheer. */}
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}>
+          <MonoLabel style={{ marginBottom: 8 }}>What Cadence learned this week</MonoLabel>
+          {digest.total === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
+              Nothing recorded this week yet. As outcomes land, they show up here.
+            </p>
+          ) : (
+            <>
+              <p style={{ fontSize: 12.5, color: "var(--ink-muted)", marginBottom: 8 }}>
+                {digest.total} learning{digest.total === 1 ? "" : "s"} recorded
+                {digest.validated ? `, ${digest.validated} validated` : ""}
+                {digest.missed ? `, ${digest.missed} missed` : ""}
+                {digest.mixed ? `, ${digest.mixed} mixed` : ""}.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {digest.highlights.map((h) => (
+                  <div key={h.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ flexShrink: 0, marginTop: 1 }}>
+                      <VerdictChip tone={VERDICT_TONE[h.verdict]}>{h.verdict}</VerdictChip>
+                    </span>
+                    <span style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.5 }}>
+                      {h.summary}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

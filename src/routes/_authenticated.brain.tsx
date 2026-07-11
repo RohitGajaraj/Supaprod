@@ -107,6 +107,11 @@ const RecallCard = lazy(() =>
 const BrainFrontDoor = lazy(() =>
   import("@/components/obsidian/BrainFrontDoor").then((m) => ({ default: m.BrainFrontDoor })),
 );
+const CapabilitiesPanel = lazy(() =>
+  import("@/components/knowledge/CapabilitiesPanel").then((m) => ({
+    default: m.CapabilitiesPanel,
+  })),
+);
 
 type Tab =
   | "insights"
@@ -119,7 +124,8 @@ type Tab =
   | "brief"
   | "design"
   | "graph"
-  | "docs";
+  | "docs"
+  | "capabilities";
 const TABS: Tab[] = [
   "insights",
   "calendar",
@@ -132,6 +138,7 @@ const TABS: Tab[] = [
   "design",
   "graph",
   "docs",
+  "capabilities",
 ];
 
 // PC-34: the IA mirrors the memory model (Identity/Judgment/Knowledge/
@@ -139,15 +146,15 @@ const TABS: Tab[] = [
 // this only groups them; the flat 9-tab bar retires as the OPENING view, but
 // every tab stays one click away inside its lens. Graph is a shared member of
 // both Judgment and Knowledge (the spec: "the marquee within Judgment/
-// Knowledge... not a peer tab"), reachable from either. Capability is empty
-// until PC-30 lands its content here, per the coherence-cluster build order.
+// Knowledge... not a peer tab"), reachable from either. PC-30 lands capability
+// lens content here.
 type LensId = "identity" | "judgment" | "knowledge" | "capability";
 const LENS_ORDER: LensId[] = ["identity", "judgment", "knowledge", "capability"];
 const LENS_TABS: Record<LensId, Tab[]> = {
   identity: ["brief", "design"],
   judgment: ["judgment", "recall", "insights", "decisions", "learnings", "graph"],
   knowledge: ["memory", "docs", "calendar", "graph"],
-  capability: [],
+  capability: ["capabilities"],
 };
 const LENS_LABEL: Record<LensId, string> = {
   identity: "Identity",
@@ -159,7 +166,7 @@ const LENS_ONE_LINER: Record<LensId, string> = {
   identity: "What we are building, and why.",
   judgment: "How belief moved: decisions, outcomes, what was learned.",
   knowledge: "The evidence: signals, docs, meetings, everything gathered.",
-  capability: "What Cadence knows how to do. Landing with PC-30.",
+  capability: "What Cadence knows how to do, with receipts.",
 };
 function lensOf(tab: Tab): LensId {
   for (const lens of LENS_ORDER) {
@@ -179,6 +186,7 @@ const TAB_LABEL: Record<Tab, string> = {
   design: "Design",
   graph: "Graph",
   docs: "Docs & changelog",
+  capabilities: "Capabilities",
 };
 
 // Deep-link honesty: every tab id that ever existed still lands somewhere
@@ -207,6 +215,8 @@ const TAB_DESC: Record<Tab, string> = {
   graph:
     "The living map of how signals, specs, and decisions connect. Watch it grow; click a node to walk its history.",
   docs: "Workspace pages, plus what shipped: announcements, the changelog, and ship history.",
+  capabilities:
+    "What each specialist knows how to do: instructions they receive, skills with validated-outcome rates, autonomy tier, and change history.",
 };
 
 // The Obsidian tab row (OBS-08), tuned to the v4 type scale: mono floor
@@ -238,8 +248,7 @@ function BrainTabRow({
 }
 
 /** PC-34: the front door's four lens doors. Each opens its lens's first tab;
- *  Capability has none yet (PC-30 lands its content here) so its card reads
- *  honestly and does not navigate. */
+ *  PC-30 lands Capability lens content here. */
 function LensCards({ onOpen }: { onOpen: (tab: Tab) => void }) {
   return (
     <div
@@ -862,6 +871,7 @@ function BrainPage() {
                   </section>
                 </div>
               )}
+              {tab === "capabilities" && <CapabilitiesPanel />}
             </Suspense>
           </>
         )}

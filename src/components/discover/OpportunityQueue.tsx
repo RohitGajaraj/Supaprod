@@ -16,6 +16,7 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
+import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { relTimeCaps, verdictFor, withTimeout } from "./format";
 import { rankOpportunities, outcomeSupportFromCounts } from "./ranking";
@@ -144,6 +145,28 @@ export function OpportunityQueue() {
       ),
     [rows, themeById, outcomeSupportByTheme],
   );
+
+  // PC-16: at decision time, Cadence cites the account's own record directly
+  // on the ranked bets - fetched only for what is actually on screen (the
+  // anti-scroll default of 3, or the full list once "show all" is pressed,
+  // capped so this can never balloon into an unbounded number of embedding
+  // calls), and only once the account has ≥3 recorded outcomes so the
+  // citation is never a cold-start guess dressed up as a memory.
+  const MAX_PRECEDENT_IDS = 12;
+  const visibleIds = useMemo(
+    () =>
+      (showAll ? ranked : ranked.slice(0, VISIBLE_OPPS))
+        .map((r) => r.opp.id)
+        .slice(0, MAX_PRECEDENT_IDS),
+    [ranked, showAll],
+  );
+  const hasEnoughOutcomes = (learnings.data?.learnings.length ?? 0) >= 3;
+  const fCitations = useServerFn(getPrecedentCitations);
+  const citations = useQuery({
+    queryKey: ["opportunity-precedent-citations", visibleIds],
+    queryFn: () => fCitations({ data: { ids: visibleIds } }),
+    enabled: hasEnoughOutcomes && visibleIds.length > 0,
+  });
 
   const challenge = useMutation({
     mutationFn: (id: string) =>
@@ -305,6 +328,8 @@ export function OpportunityQueue() {
               status={o.status}
               id={o.id}
               updatedAt={o.updated_at}
+              precedentNote={citations.data?.citations[o.id] ?? null}
+              criticConfidence={o.critic_review?.confidence ?? null}
               onChallenge={() => challenge.mutate(o.id)}
               challengePending={rowBusy && challenge.isPending}
               actionsPending={rowBusy}

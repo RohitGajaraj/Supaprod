@@ -57,6 +57,7 @@ import { getPricingCatalog } from "@/lib/pricing.functions";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataExportCard } from "@/components/settings/DataExportCard";
+import { SkillsFileExportCard } from "@/components/settings/SkillsFileExportCard";
 import { SubprocessorsCard } from "@/components/settings/SubprocessorsCard";
 import { DataSubstrateCard } from "@/components/settings/DataSubstrateCard";
 import { HealthCard } from "@/components/settings/HealthCard";
@@ -362,6 +363,7 @@ function SettingsPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <DataSubstrateCard />
                 <DataExportCard workspaceId={activeWorkspace?.id} />
+                <SkillsFileExportCard />
                 <SubprocessorsCard />
               </div>
             )}

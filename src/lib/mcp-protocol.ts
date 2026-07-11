@@ -145,6 +145,18 @@ export const MCP_TOOLS: McpTool[] = [
     },
   },
   {
+    name: "outcome_history",
+    description:
+      "Given an initiative (an opportunity's name or a keyword), return its recorded outcome history: every learning tied to a matching opportunity, newest first. Answers 'has a bet like this one turned out well before?' An empty initiative returns the workspace's most recent outcomes overall.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        initiative: { type: "string" },
+        limit: { type: "number", default: 20 },
+      },
+    },
+  },
+  {
     name: "get_governing_decision",
     description:
       "Given a topic, return the CURRENT governing decisions: decisions that have not been superseded or contradicted. Stale decisions are flagged and their replacement is named, so an agent always cites the live belief, not an overturned one.",

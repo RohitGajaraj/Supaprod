@@ -286,3 +286,47 @@ export function computeMemoryLift(
   }
   return { ...computed, liftPoints: null, reason: "lift-within-noise" };
 }
+
+// ---------------------------------------------------------------------------
+// PC-16 - the weekly "what Cadence learned" digest. PURE and DB-free: the
+// caller passes the same learnings rows the Memory panel already loads
+// (newest first), and this just windows + counts them. Real rows only - an
+// empty week reads as an honest empty state, never a fabricated count.
+
+export type WeeklyLearningVerdict = "validated" | "missed" | "mixed";
+
+export type WeeklyLearningDigest = {
+  /** Learnings recorded in the trailing 7 days from `now`. */
+  total: number;
+  validated: number;
+  missed: number;
+  mixed: number;
+  /** The most recent few, newest first, for a short "what happened" list. */
+  highlights: { id: string; verdict: WeeklyLearningVerdict; summary: string }[];
+};
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DIGEST_HIGHLIGHT_MAX = 3;
+
+/** PURE: window `rows` (assumed newest-first, matching listLearnings' own
+ *  order) to the trailing 7 days and tally by verdict. A row with an
+ *  unparseable created_at is dropped rather than guessed into the window. */
+export function weeklyLearningDigest(
+  rows: { id: string; verdict: WeeklyLearningVerdict; summary: string; created_at: string }[],
+  now: Date = new Date(),
+): WeeklyLearningDigest {
+  const cutoff = now.getTime() - WEEK_MS;
+  const inWindow = rows.filter((r) => {
+    const t = new Date(r.created_at).getTime();
+    return Number.isFinite(t) && t >= cutoff && t <= now.getTime();
+  });
+  const counts: Record<WeeklyLearningVerdict, number> = { validated: 0, missed: 0, mixed: 0 };
+  for (const r of inWindow) counts[r.verdict] += 1;
+  return {
+    total: inWindow.length,
+    ...counts,
+    highlights: inWindow
+      .slice(0, DIGEST_HIGHLIGHT_MAX)
+      .map((r) => ({ id: r.id, verdict: r.verdict, summary: r.summary })),
+  };
+}

@@ -269,6 +269,28 @@ describe("rankOpportunities", () => {
     expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Review the outcome");
   });
 
+  test("next action: REVISE verdict (not shipped) is told to draft the spec", () => {
+    // Confirms that REVISE verdicts (which should ideally have a different next action
+    // like "refine and resubmit") currently get the same "Draft the spec" as SHIP.
+    // This test documents the current behavior and should be updated if the logic changes.
+    const opps = [mk({ id: "revise", status: "backlog", critic_review: critic("revise") })];
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Draft the spec");
+  });
+
+  test("next action: KILL verdict (not shipped) is told to draft the spec", () => {
+    // Confirms that KILL verdicts (which should probably have a different next action
+    // like "close or archive") currently get the same "Draft the spec" as SHIP.
+    // This test documents the current behavior and should be updated if the logic changes.
+    const opps = [mk({ id: "killed", status: "dropped", critic_review: critic("kill") })];
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Draft the spec");
+  });
+
+  test("next action: SHIP verdict (not shipped) is told to draft the spec", () => {
+    // Confirms that endorsed bets that haven't shipped are told to draft the spec.
+    const opps = [mk({ id: "ship", status: "backlog", critic_review: critic("ship") })];
+    expect(rankOpportunities(opps, noCorr)[0].nextAction).toBe("Draft the spec");
+  });
+
   test("does not throw when ice_score arrives as a numeric string (PostgREST numeric columns serialize as strings, not JS numbers)", () => {
     // ice_score is typed `number | null`, but PostgREST's actual wire shape for
     // a NUMERIC column is a string - the generated Supabase type lies. A
