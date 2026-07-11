@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { getTrackSeed, type OnboardingTrack } from "@/lib/onboarding/track-seeds";
 import { callModel } from "@/lib/ai/runtime.server";
+import type { FunnelStage } from "@/lib/activation-funnel.types";
 
 /**
  * Resolve the caller's default workspace, creating one (with an owner membership)
@@ -328,10 +329,33 @@ export const recordOnboardingMilestone = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { userId } = context;
-    const { trackFunnelMilestone } = await import("./activation-funnel.server");
+
+    // PC-06: the onboarding milestone set is a SUPERSET of the activation-funnel
+    // stages -- product_named / onboarding_completed are onboarding-only and have
+    // no funnel row. The two overlapping steps also carry different names on each
+    // side (data_connected -> connected, critic_completed -> first_teardown).
+    // Translate here and record ONLY genuine funnel stages. Before this map the
+    // raw onboarding stage was passed through with `as any` and inserted verbatim,
+    // where the funnel_milestones stage CHECK (signup/connected/first_teardown/
+    // first_mission/week_2_return) rejected data_connected/critic_completed/... and
+    // the error was swallowed -- so the "connected" and "first_teardown" funnel
+    // stages silently never populated. Dropping the cast restores the type check.
+    const FUNNEL_STAGE_BY_ONBOARDING: Partial<Record<typeof data.stage, FunnelStage>> = {
+      signup: "signup",
+      data_connected: "connected",
+      critic_completed: "first_teardown",
+    };
+    const funnelStage = FUNNEL_STAGE_BY_ONBOARDING[data.stage];
+
+    // Onboarding-only milestone (product_named / onboarding_completed): nothing to
+    // record in the activation funnel. Still a success from the caller's view.
+    if (!funnelStage) {
+      return { success: true };
+    }
 
     try {
-      await trackFunnelMilestone(data.workspaceId, userId, data.stage as any, data.metadata);
+      const { trackFunnelMilestone } = await import("./activation-funnel.server");
+      await trackFunnelMilestone(data.workspaceId, userId, funnelStage, data.metadata);
       return { success: true };
     } catch (e) {
       console.error("[PC-02] recordOnboardingMilestone failed:", e);

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { withJobRun } from "@/lib/observability";
 
@@ -69,6 +70,8 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
                 results.push({ workspace_id: ws.id, error: "routine disabled" });
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              markRoutineRun(routinesDb, ws.id, "signal-clustering");
               const r = await clusterSignalsCore(supabaseAdmin, ws.owner_id, ws.id, null);
               await supabaseAdmin
                 .from("workspaces")

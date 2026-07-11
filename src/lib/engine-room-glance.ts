@@ -124,6 +124,12 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       descriptor: "Whether quality is quietly degrading over time.",
     },
     {
+      id: "self-improvement",
+      label: "What to fix",
+      technical: "Self-improvement",
+      descriptor: "What Cadence flags to improve about its own quality, from real signals (RPT-50).",
+    },
+    {
       id: "prompts",
       label: "Its instructions",
       technical: "Prompts",

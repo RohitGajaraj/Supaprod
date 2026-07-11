@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { markRoutineRun } from "@/lib/routines.server";
 import { withJobRun } from "@/lib/observability";
 import { runStrategyBriefPass } from "@/lib/scout/strategy-brief.server";
 
@@ -65,6 +66,8 @@ export const Route = createFileRoute("/api/public/hooks/competitor-tick")({
                 results.push({ workspace_id: ws.id, error: "routine disabled" });
                 continue;
               }
+              // PC-08: this routine scanned the workspace this tick -- leave a receipt.
+              markRoutineRun(db, ws.id, "competitor-watch");
               const pass = await runStrategyBriefPass(db, ws.owner_id, ws.id);
               results.push({ workspace_id: ws.id, ...pass });
             } catch (e) {
