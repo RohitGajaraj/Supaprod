@@ -43,7 +43,10 @@ export function SkillsFileExportCard() {
   return (
     <div className="material-medium" style={{ padding: 24, maxWidth: 640, marginTop: 16 }}>
       <div className="mono-label">Export agent context bundle</div>
-      <p className="text-copy-13" style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}>
+      <p
+        className="text-copy-13"
+        style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
+      >
         Your decisions, outcomes, and standing rules as one markdown file - mountable into Claude
         Code, Codex, or any AI coding fleet as project context, so your other tools inherit what
         Cadence already knows. Regenerate any time; the ledger is always the source of truth.

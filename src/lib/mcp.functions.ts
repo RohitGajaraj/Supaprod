@@ -536,6 +536,70 @@ export async function exportSkillpack(supabaseClient: any, workspace_id: string,
   });
 }
 
+/**
+ * RPT-16 · Given an initiative (an opportunity's name or a keyword), return
+ * its recorded outcome history: every learning tied to a matching
+ * opportunity, newest first — so an external agent can ask "has a bet like
+ * this one turned out well before?" mid-run. An empty/absent initiative
+ * returns the workspace's most recent outcomes overall. Workspace-scoped +
+ * audited like the other read tools; reuses the same learnings->opportunities
+ * embed shape exportSkillpack already established, so the wire format is
+ * consistent across tools.
+ */
+export async function outcomeHistory(
+  supabaseClient: any,
+  workspace_id: string,
+  initiative: string,
+  limit: number = 20,
+) {
+  const safe = sanitizeIlikeQuery(initiative);
+
+  // Resolve to opportunity ids first (rather than filtering the embedded
+  // relation directly) - a plain .eq/.ilike/.in on a base table is the
+  // established, verified-working pattern in this codebase; filtering
+  // PostgREST's embedded-resource columns needs syntax this codebase does
+  // not otherwise use, so this avoids introducing an unverified query shape.
+  let opportunityIds: string[] | null = null;
+  if (safe) {
+    const { data: opps, error: oErr } = await supabaseClient
+      .from("opportunities")
+      .select("id")
+      .eq("workspace_id", workspace_id)
+      .ilike("title", `%${safe}%`)
+      .limit(500);
+    if (oErr) throw new Error(oErr.message);
+    opportunityIds = (opps ?? []).map((o: { id: string }) => o.id as string);
+    if (opportunityIds.length === 0) return [];
+  }
+
+  let q = supabaseClient
+    .from("learnings")
+    .select(
+      "id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, opportunity:opportunities(title)",
+    )
+    .eq("workspace_id", workspace_id);
+  if (opportunityIds) q = q.in("opportunity_id", opportunityIds);
+
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(limit);
+  if (error) throw new Error(error.message);
+
+  type Wire = {
+    id: string;
+    verdict: string;
+    summary: string | null;
+    metric_label: string | null;
+    metric_value: string | null;
+    prior_ice: number | string | null;
+    new_ice: number | string | null;
+    created_at: string;
+    opportunity: { title: string | null } | { title: string | null }[] | null;
+  };
+  return ((data ?? []) as Wire[]).map(({ opportunity, ...rest }) => ({
+    ...rest,
+    initiative: (Array.isArray(opportunity) ? opportunity[0]?.title : opportunity?.title) ?? null,
+  }));
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // INTEROP-V11 · Q2 — the GOVERNED WRITE tool (ingest_signal).
 //

@@ -10,6 +10,7 @@ import {
   getArdDocument,
   getRoadmap,
   exportSkillpack,
+  outcomeHistory,
   ingestSignal,
   logMCPCall,
 } from "@/lib/mcp.functions";
@@ -263,6 +264,13 @@ async function dispatchTool(
         // Optional `limit`; exportSkillpack clamps it into [1, 500].
         const limit = typeof params.limit === "number" ? params.limit : undefined;
         const data = await exportSkillpack(supabase, workspace_id, limit);
+        return { success: true, data };
+      }
+
+      case "outcome_history": {
+        const initiative = (params.initiative as string) || "";
+        const limit = Math.min((params.limit as number) || 20, 100);
+        const data = await outcomeHistory(supabase, workspace_id, initiative, limit);
         return { success: true, data };
       }
 
