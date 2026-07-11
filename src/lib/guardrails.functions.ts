@@ -4,6 +4,9 @@
  * - upsertGuardrailRule / deleteGuardrailRule / toggleGuardrailRule
  * - seedBuiltInGuardrails: insert a curated starter set
  * - testGuardrailRule: dry-run a rule against sample text
+ * - getGuardrailHitCount: RPT-18 — the real, all-time guardrail_hits count (getGuardrailOverview
+ *   caps its hits list at 100 rows for the recent-activity table, so it cannot answer "how many
+ *   guardrail hits, total" without a dedicated exact count).
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -223,6 +226,25 @@ export const testGuardrailRule = createServerFn({ method: "POST" })
     };
     const r = evaluateGuardrails(data.text, [rule], data.side);
     return { text: r.text, hits: r.hits, blocked: r.blocked };
+  });
+
+/**
+ * RPT-18 (Governance): the Engine Room's "live rigor" block needs a real, honest guardrail
+ * activity number alongside the eval-run count. `guardrail_hits` rows are only inserted when a
+ * rule actually matched (runtime.server.ts), so this is a real "rule fired" count, not an
+ * invented "checks executed" figure — exact via `count: "exact", head: true` so it is not capped
+ * at the 100-row window getGuardrailOverview keeps for its recent-activity table.
+ */
+export const getGuardrailHitCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ count: number }> => {
+    const { supabase, userId } = context;
+    const { count, error } = await supabase
+      .from("guardrail_hits")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { count: count ?? 0 };
   });
 
 export const __builtin_count = BUILTIN_SEED.length;
