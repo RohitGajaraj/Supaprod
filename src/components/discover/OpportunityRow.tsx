@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AskInContext } from "@/components/obsidian/AskInContext";
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { tierFromProbability } from "@/lib/confidence";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import type { Designation } from "./ranking";
 
@@ -230,6 +232,10 @@ export interface OpportunityRowProps {
    * this bet ("your last N similar bets underperformed..."), one honest
    * sentence or absent - never a placeholder while it loads. */
   precedentNote?: string | null;
+  /** RPT-08: the Critic's own disclosed confidence (0-1) in this bet's
+   * verdict, when the bet has been reviewed. Absent (not zero) while
+   * PENDING, so the chip never fabricates a number the Critic never gave. */
+  criticConfidence?: number | null;
 }
 
 /**
@@ -269,6 +275,7 @@ export const OpportunityRow = memo(function OpportunityRow({
   updatedAt,
   rank,
   precedentNote,
+  criticConfidence,
 }: OpportunityRowProps) {
   const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
   const clickable = Boolean(onOpen);
@@ -441,6 +448,12 @@ export const OpportunityRow = memo(function OpportunityRow({
           ) : null}
           {status ? <StatusPill status={status} /> : null}
           <VerdictChip tone={verdict} />
+          {criticConfidence != null ? (
+            <ConfidenceDisclosureChip
+              confidence={criticConfidence}
+              tier={tierFromProbability(criticConfidence)}
+            />
+          ) : null}
         </div>
         <div className="flex items-center" style={{ gap: "6px" }}>
           {onDraftSpec ? (

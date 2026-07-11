@@ -20,6 +20,8 @@ import {
 import { toast } from "@/lib/notify";
 import { iceNum } from "@/lib/moat-vis";
 import type { CriticReview } from "@/lib/discovery.functions";
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { tierFromProbability } from "@/lib/confidence";
 import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
@@ -526,7 +528,18 @@ export function OpportunityDetailSheet({
             {/* Critic: verdict + summary if present, honest empty otherwise. */}
             <DetailSection heading="Critic">
               <div style={{ display: "grid", gap: "9px" }}>
-                <VerdictChip tone={verdict} style={{ justifySelf: "start" }} />
+                <div className="flex items-center" style={{ gap: 6 }}>
+                  <VerdictChip tone={verdict} />
+                  {/* RPT-08: disclosed confidence right on the bet's verdict,
+                      not buried - reuses the Critic's own already-computed
+                      confidence, absent (not zero) until it has reviewed. */}
+                  {opportunity.critic_review?.confidence != null ? (
+                    <ConfidenceDisclosureChip
+                      confidence={opportunity.critic_review.confidence}
+                      tier={tierFromProbability(opportunity.critic_review.confidence)}
+                    />
+                  ) : null}
+                </div>
                 {opportunity.critic_review?.summary ? (
                   <>
                     <p

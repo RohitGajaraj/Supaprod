@@ -329,6 +329,7 @@ export function OpportunityQueue() {
               id={o.id}
               updatedAt={o.updated_at}
               precedentNote={citations.data?.citations[o.id] ?? null}
+              criticConfidence={o.critic_review?.confidence ?? null}
               onChallenge={() => challenge.mutate(o.id)}
               challengePending={rowBusy && challenge.isPending}
               actionsPending={rowBusy}

@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { runCriticReview, type CriticReview } from "@/lib/discovery.functions";
 import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { tierFromProbability } from "@/lib/confidence";
 
 type Props = {
   review: CriticReview | null | undefined;
@@ -84,22 +86,30 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
         gaps: { title: "Missing evidence", empty: "No evidence gaps called out." },
       };
 
+  // RPT-08: disclosed, not buried -- the confidence chip sits right next to
+  // the verdict on the compact chip itself, so a flat "SHIP" never reads as
+  // uniform certainty. Reuses the Critic's own already-computed `confidence`.
+  const confidenceTier = tierFromProbability(review.confidence);
+
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="hover:brightness-110"
-        title="Open Critic review"
-      >
-        <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: 10.5 } : undefined}>
-          {v.label}
-          {riskCount > 0 && (
-            <span style={{ opacity: 0.7 }}>
-              · {riskCount} risk{riskCount === 1 ? "" : "s"}
-            </span>
-          )}
-        </VerdictChip>
-      </button>
+      <span className="inline-flex items-center" style={{ gap: 5 }}>
+        <button
+          onClick={() => setOpen(true)}
+          className="hover:brightness-110"
+          title="Open Critic review"
+        >
+          <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: 10.5 } : undefined}>
+            {v.label}
+            {riskCount > 0 && (
+              <span style={{ opacity: 0.7 }}>
+                · {riskCount} risk{riskCount === 1 ? "" : "s"}
+              </span>
+            )}
+          </VerdictChip>
+        </button>
+        <ConfidenceDisclosureChip confidence={review.confidence} tier={confidenceTier} />
+      </span>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
