@@ -99,6 +99,37 @@ running-state text, aliased to `--ds-blue-600`) keeps its existing narrow
 scope unchanged — it was already status/link-only. Chart/data-viz series
 (`--chart-2` etc.) are unaffected; a chart legitimately needs multiple hues.
 
+**Rich-blue recalibration + violet retirement (founder ruling, 2026-07-11
+late — refines the ruling above; the narrowing WHERE blue may appear stands,
+this changes WHAT the blue is):**
+
+- **The blue values.** The first glacier pass anchored the scale on the
+  platform's `#84b3ec`, which read CHALKY on black (low chroma at high
+  lightness), and the founder's correction was explicit: a flagged color is a
+  brief to redesign, never to flatten to gray. The `--ds-blue-*` scale keeps
+  hue ~215 with more chroma at slightly deeper lightness: dark 600 `#5c9bf0`
+  (~6.9:1 on `--ds-background-100`), 900 `#9dc4fa`, 1000 `#e0eefe`; light 600
+  `#2e6ed6` (AA on white). Canonical values in `tokens/colors.css` + the
+  matching `src/styles.css` blocks. Stock Geist `#0090ff` stays retired.
+- **Violet is retired from every machine/AI treatment.** `--agent`, the
+  shimmer + thread gradients, and the `--violet-shimmer` alias all resolve
+  inside the blue family now. Purple remains ONLY categorical (data-viz
+  series, graph node kinds). Agent identity ramps must not sit in the
+  violet/magenta band.
+- **The two-voice grammar.** Ember = the human's move (gates, approvals,
+  the one primary CTA). Rich blue = the machine at work (the `.agent-live` /
+  `.ai-working-word` shimmer, running badges, `--thread-gradient`). The demo
+  sentence: "orange is my move, blue is theirs."
+- **The AI-presence signature.** The flowing light-sweep (`--shimmer-gradient`,
+  a blue-family gradient; `agent-shimmer` keyframes) is THE marker for
+  machine-working moments, at most one per screen, always reduced-motion
+  gated. `.ai-working-word` pairs it with the Pixel face for hero AI moments;
+  `ShimmerText` (src/components/cadence/ShimmerText.tsx) is the shared
+  component consumers use — never re-roll a private shimmer.
+- **Theme trio.** `light`, `dark`, and `system` (live `prefers-color-scheme`
+  tracking) via `useTheme()` in `src/hooks/use-theme.tsx`. Dark stays the
+  default; both themes resolve from the same token names.
+
 ## 3. Typography law — three faces, three jobs
 
 **Verified against vercel.com/font (2026-07-11):** Vercel built Geist for developers and
