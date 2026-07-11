@@ -52,7 +52,7 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - **"Cursor for product managers — except it also proves which decisions were right."**
 - "Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."
 - "An AI product team you can actually hold accountable."
-- "One PM. Five products. A fleet that works while you sleep — and shows its receipts every morning."
+- **"The product-staff seat. One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin). Cadence is the console for the product-staff seat."** [RPT-35]
 - "Your product org, running itself — with a ledger that proves what worked."
 
 **The original bank:**

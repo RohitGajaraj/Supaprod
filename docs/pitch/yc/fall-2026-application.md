@@ -377,10 +377,12 @@ actually budget for. The budget already exists. Today it's split across
 Linear, Notion, a spec tool, a coding agent, and status meetings.
 
 How big: every company that builds software is becoming a product org run
-this way: a few accountable people directing fleets. Cadence is the
-operating system that org runs on, and the system of record for its
-decisions. Systems of record are the biggest outcomes in software. Pricing
-gets its first real test in beta this month.
+this way: the product-staff seat. One PM directing 20 agents across a 4–6 person
+pod (Mosseri, 2026). The math: 1.2 humans + 20 agents = 10-human output (Lemkin,
+2026). Cadence is the console for the product-staff seat — the operating system
+that org runs on, and the system of record for its decisions. Systems of record
+are the biggest outcomes in software. Pricing gets its first real test in beta
+this month.
 ```
 
 ### 9d. "If you had any other ideas you considered applying with, please list them."
