@@ -28,6 +28,7 @@ import {
   type StatTone,
 } from "@/components/discover/DetailKit";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
 import { PanelSkeleton } from "./PanelSkeleton";
 
@@ -43,6 +44,8 @@ type LearningRow = {
   new_ice: number | string | null;
   created_at: string;
   opportunity_title: string | null;
+  /** PC-29 layer 3: which agent recorded this learning (the Historian). */
+  recorded_by_agent_slug: string | null;
 };
 
 const VERDICT_TONE: Record<LearningRow["verdict"], VerdictTone> = {
@@ -192,16 +195,30 @@ export function LearningDetail({ id }: { id: string }) {
           title={l.opportunity_title ?? "Recorded outcome"}
           chips={<VerdictChip tone={VERDICT_TONE[l.verdict]} />}
           time={
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "9.5px",
-                letterSpacing: "0.06em",
-                color: "var(--text-subtle)",
-              }}
-            >
-              RECORDED {relTimeCaps(l.created_at)}
-            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "9.5px",
+                  letterSpacing: "0.06em",
+                  color: "var(--text-subtle)",
+                }}
+              >
+                RECORDED {relTimeCaps(l.created_at)}
+              </span>
+              {l.recorded_by_agent_slug ? (
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "9.5px",
+                    letterSpacing: "0.06em",
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  by {agentDisplayName(l.recorded_by_agent_slug)}
+                </span>
+              ) : null}
+            </div>
           }
           traceRef={
             <button
