@@ -226,6 +226,10 @@ export interface OpportunityRowProps {
    * quiet mono ordering index next to the ICE anchor, distinct from the
    * colored ICE numeral. */
   rank?: number;
+  /** PC-16: Cadence's own citation of the account's recorded precedent for
+   * this bet ("your last N similar bets underperformed..."), one honest
+   * sentence or absent - never a placeholder while it loads. */
+  precedentNote?: string | null;
 }
 
 /**
@@ -264,6 +268,7 @@ export const OpportunityRow = memo(function OpportunityRow({
   id,
   updatedAt,
   rank,
+  precedentNote,
 }: OpportunityRowProps) {
   const hasMenuActions = Boolean(onLineage || onDelete || onSetStatus);
   const clickable = Boolean(onOpen);
@@ -385,6 +390,22 @@ export const OpportunityRow = memo(function OpportunityRow({
               </span>
             ))}
           </div>
+        ) : null}
+        {precedentNote ? (
+          // PC-16: Cadence cites the account's own record on the bet itself,
+          // at decision time - not gated behind opening the detail sheet.
+          <p
+            style={{
+              marginTop: "6px",
+              marginBottom: 0,
+              fontSize: "11.5px",
+              lineHeight: 1.5,
+              color: "var(--text-subtle)",
+              fontStyle: "italic",
+            }}
+          >
+            Cadence recalls: {precedentNote}
+          </p>
         ) : null}
         {hasMeta ? (
           <div className="flex flex-wrap items-center" style={{ marginTop: "6px" }}>

@@ -16,6 +16,7 @@ import {
   assemblePrecedentBlock,
   parseAlternativesConsidered,
   planPrecedentCitations,
+  summarizePrecedentCitation,
   type DecisionAlternativeRow,
   type JudgmentPrecedent,
 } from "@/lib/decision-judgment";
@@ -178,6 +179,57 @@ export const getOpportunityJudgment = createServerFn({ method: "POST" })
     return { precedents, consideredAgainst };
   });
 
+/** PC-16: at decision time, cite the user's own record directly on the
+ * ranked bets themselves - not just after opening the detail sheet. Bulk
+ * sibling of getOpportunityJudgment: same Ambient Precedent recall, run for
+ * every id the caller is actually rendering, returned as one honest sentence
+ * per bet (or null when nothing is recorded to cite yet). Capped so a caller
+ * can never turn one page load into an unbounded number of embedding calls -
+ * the front end only ever asks for the bets currently on screen. */
+export type PrecedentCitations = { citations: Record<string, string | null> };
+const EMPTY_CITATIONS: PrecedentCitations = { citations: {} };
+const MAX_CITATION_IDS = 12;
+
+export const getPrecedentCitations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ ids: z.array(z.string().uuid()).max(MAX_CITATION_IDS) }).parse(i),
+  )
+  .handler(async ({ context, data }): Promise<PrecedentCitations> => {
+    if (data.ids.length === 0) return EMPTY_CITATIONS;
+    const { userId } = context;
+    const db = context.supabase as unknown as SupabaseClient;
+
+    const { data: rows } = await db
+      .from("opportunities")
+      .select("id,title,problem,hypothesis,workspace_id")
+      .in("id", data.ids);
+    const opps = (rows ?? []) as Array<{
+      id: string;
+      title: string | null;
+      problem: string | null;
+      hypothesis: string | null;
+      workspace_id: string | null;
+    }>;
+
+    const entries = await Promise.all(
+      opps.map(async (o) => {
+        const text = [o.title, o.problem, o.hypothesis]
+          .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+          .join(". ");
+        if (!text) return [o.id, null] as const;
+        const matches = await loadDecisionPrecedent(db, {
+          userId,
+          workspaceId: o.workspace_id,
+          text,
+        });
+        const precedents = assemblePrecedentBlock(matches).filter((p) => p.opportunityId !== o.id);
+        return [o.id, summarizePrecedentCitation(precedents)] as const;
+      }),
+    );
+    return { citations: Object.fromEntries(entries) };
+  });
+
 /** Resolve served precedents to learnings + past decisions, then write the
  * receipts the pure planner approves: learning_citations inserts and
  * bump_decision_cited_by RPCs. Deduped via trace_id "decision:<id>". */
@@ -259,6 +311,6 @@ async function recordPrecedentCitations(
   }
   // Parallelize RPC calls: bump all decision IDs concurrently
   await Promise.all(
-    plan.bumpDecisionIds.map((id) => db.rpc("bump_decision_cited_by", { _decision_id: id }))
+    plan.bumpDecisionIds.map((id) => db.rpc("bump_decision_cited_by", { _decision_id: id })),
   );
 }

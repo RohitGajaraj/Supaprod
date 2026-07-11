@@ -3,7 +3,9 @@ import {
   assemblePrecedentBlock,
   parseAlternativesConsidered,
   planPrecedentCitations,
+  summarizePrecedentCitation,
   JUDGMENT_PRECEDENT_MAX,
+  type JudgmentPrecedent,
   type PrecedentMatchLike,
 } from "./decision-judgment";
 
@@ -163,5 +165,65 @@ describe("planPrecedentCitations", () => {
     });
     expect(plan.citeLearningIds).toEqual(["lrn-1"]);
     expect(plan.bumpDecisionIds).toEqual(["dec-past"]);
+  });
+});
+
+describe("summarizePrecedentCitation", () => {
+  function jp(over: Partial<JudgmentPrecedent> = {}): JudgmentPrecedent {
+    return {
+      memoryId: "mem-1",
+      title: "Faster checkout flow",
+      verdict: "missed",
+      summary: "under-performed",
+      score: 0.8,
+      prdId: null,
+      opportunityId: null,
+      ...over,
+    };
+  }
+
+  it("returns null on no precedents (never fabricates)", () => {
+    expect(summarizePrecedentCitation([])).toBeNull();
+  });
+
+  it("cites a single missed precedent by its title", () => {
+    const text = summarizePrecedentCitation([jp({ verdict: "missed" })]);
+    expect(text).toBe(
+      'Your last 1 similar bet underperformed — this most closely mirrors "Faster checkout flow".',
+    );
+  });
+
+  it("pluralizes and reports the majority verdict across several matches", () => {
+    const text = summarizePrecedentCitation([
+      jp({ memoryId: "a", verdict: "missed" }),
+      jp({ memoryId: "b", verdict: "missed" }),
+      jp({ memoryId: "c", verdict: "validated" }),
+    ]);
+    expect(text).toBe(
+      'Your last 3 similar bets underperformed — this most closely mirrors "Faster checkout flow".',
+    );
+  });
+
+  it("reports validated when that is the majority", () => {
+    const text = summarizePrecedentCitation([
+      jp({ memoryId: "a", verdict: "validated" }),
+      jp({ memoryId: "b", verdict: "validated" }),
+    ]);
+    expect(text).toBe(
+      'Your last 2 similar bets were validated — this most closely mirrors "Faster checkout flow".',
+    );
+  });
+
+  it("breaks a tie toward the more cautionary read (missed over mixed over validated)", () => {
+    const text = summarizePrecedentCitation([
+      jp({ memoryId: "a", verdict: "mixed" }),
+      jp({ memoryId: "b", verdict: "missed" }),
+    ]);
+    expect(text).toContain("underperformed");
+  });
+
+  it("omits the mirror clause when the nearest match has no title", () => {
+    const text = summarizePrecedentCitation([jp({ title: null })]);
+    expect(text).toBe("Your last 1 similar bet underperformed.");
   });
 });

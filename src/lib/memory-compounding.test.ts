@@ -3,6 +3,7 @@ import {
   countPriorityMoves,
   reuseRate,
   computeMemoryLift,
+  weeklyLearningDigest,
   type ReviewedOutcome,
 } from "./memory-compounding";
 
@@ -284,5 +285,48 @@ describe("computeMemoryLift", () => {
         [null, undefined, "bad", 123, "2020-01-01"],
       ),
     ).not.toThrow();
+  });
+});
+
+describe("weeklyLearningDigest", () => {
+  const now = new Date("2026-07-11T12:00:00.000Z");
+  const daysAgo = (n: number) => new Date(now.getTime() - n * 86400000).toISOString();
+
+  test("empty input is an honest empty digest", () => {
+    const d = weeklyLearningDigest([], now);
+    expect(d).toEqual({ total: 0, validated: 0, missed: 0, mixed: 0, highlights: [] });
+  });
+
+  test("counts only rows within the trailing 7 days, excludes older ones", () => {
+    const rows = [
+      { id: "a", verdict: "validated" as const, summary: "in window", created_at: daysAgo(1) },
+      { id: "b", verdict: "missed" as const, summary: "in window", created_at: daysAgo(6.9) },
+      { id: "c", verdict: "mixed" as const, summary: "too old", created_at: daysAgo(10) },
+    ];
+    const d = weeklyLearningDigest(rows, now);
+    expect(d.total).toBe(2);
+    expect(d.validated).toBe(1);
+    expect(d.missed).toBe(1);
+    expect(d.mixed).toBe(0);
+  });
+
+  test("caps highlights at 3, newest-first per the caller's own order", () => {
+    const rows = Array.from({ length: 5 }, (_, i) => ({
+      id: `l${i}`,
+      verdict: "validated" as const,
+      summary: `learning ${i}`,
+      created_at: daysAgo(1),
+    }));
+    const d = weeklyLearningDigest(rows, now);
+    expect(d.total).toBe(5);
+    expect(d.highlights.length).toBe(3);
+    expect(d.highlights.map((h) => h.id)).toEqual(["l0", "l1", "l2"]);
+  });
+
+  test("drops a row with an unparseable created_at rather than guessing it into the window", () => {
+    const rows = [
+      { id: "a", verdict: "validated" as const, summary: "bad date", created_at: "not-a-date" },
+    ];
+    expect(weeklyLearningDigest(rows, now).total).toBe(0);
   });
 });
