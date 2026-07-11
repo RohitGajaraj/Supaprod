@@ -45,13 +45,17 @@ const ACCEPTED_MIME = [
   "video/webm",
 ].join(",");
 
-const SPEAKER_COLORS: Record<string, string> = {
-  A: "text-blue-600",
-  B: "text-emerald-600",
-  C: "text-violet-600",
-  D: "text-orange-600",
+// Token-traced speaker coding (accent restraint 2026-07-11): the label text
+// stays gray mono; a small categorical dot carries the per-speaker hue from
+// the DS categorical vars, so both themes resolve and no raw Tailwind hue
+// competes with the recalibrated glacier blue.
+const SPEAKER_DOTS: Record<string, string> = {
+  A: "var(--glacier)",
+  B: "var(--moss)",
+  C: "var(--marigold)",
+  D: "var(--blossom)",
 };
-const speakerColor = (s: string) => SPEAKER_COLORS[s] ?? "text-slate-600";
+const speakerDot = (s: string) => SPEAKER_DOTS[s] ?? "var(--ink-faint)";
 
 function formatMs(ms: number) {
   const s = Math.floor(ms / 1000);
@@ -87,7 +91,15 @@ function ChunkView({ chunks }: { chunks: TranscriptChunk[] }) {
     <div className="space-y-2 text-sm">
       {chunks.map((c, i) => (
         <div key={i} className="flex gap-3">
-          <span className={`font-mono font-semibold w-12 shrink-0 ${speakerColor(c.speaker)}`}>
+          <span
+            className="font-mono font-semibold w-12 shrink-0 inline-flex items-center gap-1.5"
+            style={{ color: "var(--ink-muted)" }}
+          >
+            <span
+              aria-hidden="true"
+              className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
+              style={{ background: speakerDot(c.speaker) }}
+            />
             {c.speaker}
           </span>
           <span className="text-slate-400 font-mono text-xs shrink-0 pt-0.5 w-14">

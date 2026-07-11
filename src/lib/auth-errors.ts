@@ -11,12 +11,7 @@
 // invite is email-bound), which is the industry-standard tradeoff.
 
 export type AuthContext =
-  | "signin"
-  | "signup"
-  | "reset-request"
-  | "reset-update"
-  | "invite"
-  | "oauth";
+  "signin" | "signup" | "reset-request" | "reset-update" | "invite" | "oauth";
 
 function extractMessage(error: unknown): string {
   if (!error) return "";

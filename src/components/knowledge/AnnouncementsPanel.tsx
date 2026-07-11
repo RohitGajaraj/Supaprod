@@ -376,7 +376,7 @@ export function AnnouncementsPanel() {
                     style={{
                       gap: 5,
                       fontSize: 11,
-                      color: "var(--glacier)",
+                      color: "var(--link)",
                       fontFamily: "var(--font-mono)",
                       textDecoration: "none",
                     }}

@@ -2,7 +2,6 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { captureError } from "./lib/observability/errors";
-import { renderErrorPage } from "./lib/error-page";
 import {
   buildAgentCard,
   buildOAuthProtectedResourceMetadata,
@@ -24,8 +23,58 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
+// Catastrophic 500 fallback rendered by this worker entry. A standalone HTML
+// document with inline styles because the app stylesheet and token layer may
+// not be reachable at this point; hex values mirror the Tempo dark tokens
+// (--ds-background-100 #0a0a0a, --ds-gray-1000 #ededed). Dark-first per
+// DESIGN-TEMPO.md section 1. The "500" numeral is the page's single Geist
+// Pixel brand moment (contract sections 3 and 8), mirroring the 404 boundary
+// in __root.tsx; the @font-face points at the self-hosted Pixel Square file
+// (never Google Fonts) and degrades to the mono stack if it cannot load.
+// Copy matches the client error boundary for a consistent voice; no raw
+// stack is ever shown. (src/lib/error-page.ts still serves src/start.ts.)
+function renderBrandedErrorPage(): string {
+  return `<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>This page didn't load</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      @font-face {
+        font-family: "Geist Pixel Square";
+        src: url("/fonts/geist/GeistPixel-Square.woff2") format("woff2");
+        font-weight: 400;
+        font-display: swap;
+      }
+      :root { color-scheme: dark; }
+      body { font: 15px/1.55 "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #ededed; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      .card { max-width: 26rem; width: 100%; text-align: center; padding: 2rem; }
+      .code { font-family: "Geist Pixel Square", ui-monospace, monospace; font-size: 52px; line-height: 1; color: #ededed; margin-bottom: 12px; }
+      h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+      p { color: #9c978f; margin: 0 0 1.5rem; }
+      .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+      a, button { padding: 0.5rem 1rem; border-radius: 0.5rem; font: inherit; font-size: 0.8125rem; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
+      .primary { background: #ff6b2c; color: #160903; font-weight: 600; }
+      .secondary { background: transparent; color: #c6c0b8; border-color: rgba(255,255,255,0.09); }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="code">500</div>
+      <h1>This page didn't load</h1>
+      <p>Something went wrong on our end. Try again, or head back home.</p>
+      <div class="actions">
+        <button class="primary" onclick="location.reload()">Try again</button>
+        <a class="secondary" href="/">Go home</a>
+      </div>
+    </div>
+  </body>
+</html>`;
+}
+
 function brandedErrorResponse(): Response {
-  return new Response(renderErrorPage(), {
+  return new Response(renderBrandedErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });

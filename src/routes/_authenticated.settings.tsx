@@ -1302,7 +1302,7 @@ function CreditsTabInner() {
             <a
               href="mailto:sales@cadence.app?subject=Enterprise%20credits"
               className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ color: "var(--blossom)" }}
+              style={{ color: "var(--link)" }}
             >
               Talk to sales for volume pricing
             </a>
@@ -1570,7 +1570,7 @@ function WorkspaceBindingsSummary() {
         <Link
           to="/sync"
           className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{ fontSize: 12.5, color: "var(--blossom)" }}
+          style={{ fontSize: 12.5, color: "var(--link)" }}
         >
           {bindings.length === 0
             ? "Set up workspace sync and bindings →"

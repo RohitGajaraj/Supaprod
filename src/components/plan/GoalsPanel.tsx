@@ -278,7 +278,7 @@ function GoalCard({
               <Link
                 to="/decide"
                 className="outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{ color: "var(--glacier)", textDecoration: "none" }}
+                style={{ color: "var(--link)", textDecoration: "none" }}
               >
                 {o.title}
               </Link>

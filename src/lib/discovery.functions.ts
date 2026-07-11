@@ -1249,7 +1249,8 @@ export const savePrd = createServerFn({ method: "POST" })
     // legacy specs still approve. This is the "receipts are the test suite of
     // decision work, enforced at creation" gate.
     if (rest.status === "approved" && (prior?.status ?? null) !== "approved") {
-      const rawContract = rest.contract ?? (prior as { contract?: unknown } | null)?.contract ?? null;
+      const rawContract =
+        rest.contract ?? (prior as { contract?: unknown } | null)?.contract ?? null;
       const parsed = OutcomeContractSchema.partial().safeParse(rawContract ?? {});
       if (parsed.success && (parsed.data.intent ?? "").trim()) {
         const grade = gradeOutcomeContract({ success_metrics: parsed.data.success_metrics ?? [] });

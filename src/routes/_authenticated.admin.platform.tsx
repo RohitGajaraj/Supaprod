@@ -202,7 +202,7 @@ function HostingPocPanel() {
       {lastUrl ? (
         <p style={bodyTextStyle()}>
           Live at:{" "}
-          <a href={lastUrl} target="_blank" rel="noreferrer" style={{ color: "var(--blossom)" }}>
+          <a href={lastUrl} target="_blank" rel="noreferrer" style={{ color: "var(--link)" }}>
             {lastUrl}
           </a>
         </p>

@@ -465,7 +465,7 @@ export function DecisionDetail({ id }: { id: string }) {
                   gap: "6px",
                   fontFamily: "var(--font-ui)",
                   fontSize: "12px",
-                  color: "var(--glacier)",
+                  color: "var(--link)",
                 }}
               >
                 <ExternalLink className="h-3.5 w-3.5" />

@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { StudioApproval, StudioRunDetail } from "@/lib/studio.functions";
+import { ShimmerText } from "@/components/cadence/ShimmerText";
 import { ApprovalCard } from "./ApprovalCard";
 import { StatusIcon, StatusChip, LOOM_CARD } from "./studio-ui";
 import { fmtCost, summarizeArgs } from "./studio-format";
@@ -36,7 +37,7 @@ function fmtClock(iso: string): string {
   });
 }
 
-function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
+function StepLine({ step, idx, live }: { step: LoopStep; idx: number; live: boolean }) {
   if (step.kind === "thought") {
     return (
       <div style={stepLine}>
@@ -59,16 +60,25 @@ function StepLine({ step, idx }: { step: LoopStep; idx: number }) {
     );
   }
   if (step.kind === "tool_call") {
-    // madder only on real failure outcomes (error / denied); orchid only on
-    // the tool identifier — the agent-action law.
+    // madder only on real failure outcomes (error / denied). Tool names are
+    // gray (accent restraint 2026-07-11): a standing mauve tint on every
+    // identifier failed the restraint budget. The one chromatic moment is
+    // the shared glacier shimmer on the step that is actually running now
+    // (queued while the run is live), so AI presence reads as motion, not
+    // as a permanent hue.
     const failed = step.status === "error" || step.status === "denied";
+    const running = live && step.status === "queued";
     return (
       <div style={stepLine}>
         <span className="tabular-nums" style={stepNum}>
           {idx + 1}.
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ color: "var(--mauve)", fontWeight: 600 }}>{step.name}</span>
+          {running ? (
+            <ShimmerText style={{ fontWeight: 600 }}>{step.name}</ShimmerText>
+          ) : (
+            <span style={{ color: "var(--text-body)", fontWeight: 600 }}>{step.name}</span>
+          )}
           {step.status !== "executed" ? (
             <span style={{ color: failed ? "var(--madder)" : "var(--text-body)" }}>
               {" "}
@@ -141,7 +151,7 @@ function RunBlock({ run, index }: { run: StudioRunDetail; index: number }) {
           </div>
         )}
         {run.steps.map((s, i) => (
-          <StepLine key={i} step={s} idx={i} />
+          <StepLine key={i} step={s} idx={i} live={live} />
         ))}
         {live && (
           <div style={stepLine}>

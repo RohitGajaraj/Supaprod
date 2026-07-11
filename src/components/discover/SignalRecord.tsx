@@ -462,7 +462,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                   style={{
                     gap: 7,
                     fontSize: "12.5px",
-                    color: "var(--glacier)",
+                    color: "var(--link)",
                     lineHeight: 1.4,
                     width: "fit-content",
                   }}

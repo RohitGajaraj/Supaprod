@@ -790,7 +790,9 @@ export function CalendarPanel({
                     ) : null}
                   </span>
                   {it.kind === "meeting" && it.processed ? (
-                    <VerdictChip tone="orchid">extracted</VerdictChip>
+                    /* moss (accent restraint 2026-07-11): "extracted" is a
+                       completed outcome; orchid never marks success. */
+                    <VerdictChip tone="moss">extracted</VerdictChip>
                   ) : null}
                   <span
                     className="mono-label"

@@ -756,7 +756,7 @@ export function ChangesPanel({
                     rel="noopener noreferrer"
                     style={{
                       fontSize: 11,
-                      color: "var(--blossom)",
+                      color: "var(--link)",
                       textDecoration: "none",
                       whiteSpace: "nowrap",
                     }}

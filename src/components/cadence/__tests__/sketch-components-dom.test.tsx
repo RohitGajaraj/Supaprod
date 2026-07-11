@@ -214,7 +214,12 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
       { label: "Wed", value: 5 },
     ];
     const { container } = render(
-      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} ariaLabel="Activity" />,
+      <SketchBarChart
+        data={data}
+        trackH={100}
+        formatValue={(v) => String(v)}
+        ariaLabel="Activity"
+      />,
     );
 
     // Should auto-derive insight and include in aria-label

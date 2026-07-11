@@ -2,10 +2,12 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
-// LOOM W1 - route-level pending fallback. Navigation must never flash a dead
-// black frame (DESIGN-LOOM §9): this renders a quiet, theme-safe shimmer
-// while a route's beforeLoad/loader work runs. Inline styles only - it also
-// mounts on public (parchment) routes, so it reads on both themes.
+// Tempo v5 - route-level pending fallback. Navigation must never flash a dead
+// black frame: this renders the Pixel wordmark over the glacier shimmer while
+// a route's beforeLoad/loader work runs, so even the wait carries the brand
+// (founder ruling 2026-07-11: Pixel is the hero face; glacier is the AI/info
+// blue). Inline styles only - it also mounts on public routes, so every value
+// carries a dark-safe literal and reads on both themes.
 function RoutePending() {
   return (
     <div
@@ -13,10 +15,23 @@ function RoutePending() {
       style={{
         minHeight: "40vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        gap: 14,
       }}
     >
+      <span
+        style={{
+          fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+          fontSize: 15,
+          letterSpacing: "0.18em",
+          color: "var(--text-muted, rgb(143, 143, 143))",
+          userSelect: "none",
+        }}
+      >
+        cadence
+      </span>
       <div
         style={{
           width: 220,

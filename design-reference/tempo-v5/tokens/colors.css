@@ -49,16 +49,22 @@
   --ds-ember-900: #ff8f5e;
   --ds-ember-1000: #ffefe6;
 
-  --ds-blue-100: #06193a;
-  --ds-blue-200: #022248;
-  --ds-blue-300: #002f62;
-  --ds-blue-400: #003771;
-  --ds-blue-500: #004287;
-  --ds-blue-600: #0090ff;
-  --ds-blue-700: #0071f6;
-  --ds-blue-800: #005fd8;
-  --ds-blue-900: #50a8ff;
-  --ds-blue-1000: #ebf6ff;
+  /* Blue = the GLACIER family (founder ruling 2026-07-11): links/info AND the
+     AI-presence accent recalibrated around the platform's #84b3ec anchor
+     (hue ~215). The stock Geist #0090ff read too harsh against Cadence's
+     surfaces; this is the ONE sanctioned deviation from the Geist blue scale.
+     Same role model: 100-300 bg, 400-600 borders/accent, 700-800 fills,
+     900-1000 text. 900 verified >= 4.5:1 on --ds-background-100. */
+  --ds-blue-100: #0c1622;
+  --ds-blue-200: #102030;
+  --ds-blue-300: #15263c;
+  --ds-blue-400: #1f3a58;
+  --ds-blue-500: #2b4d78;
+  --ds-blue-600: #84b3ec;
+  --ds-blue-700: #4d86c6;
+  --ds-blue-800: #3d74b3;
+  --ds-blue-900: #a8c9f2;
+  --ds-blue-1000: #dcebfb;
 
   --ds-red-100: #330a11;
   --ds-red-200: #440d13;
@@ -179,16 +185,18 @@
   --ds-ember-900: #a63508;
   --ds-ember-1000: #431704;
 
-  --ds-blue-100: #f0f7ff;
-  --ds-blue-200: #eaf4ff;
-  --ds-blue-300: #e0efff;
-  --ds-blue-400: #cce7ff;
-  --ds-blue-500: #97ccff;
-  --ds-blue-600: #51aeff;
-  --ds-blue-700: #0070f7;
-  --ds-blue-800: #005edc;
-  --ds-blue-900: #0064e2;
-  --ds-blue-1000: #002453;
+  /* Glacier family, light: same hue (~215) darkened for contrast on white
+     (founder ruling 2026-07-11). 700 verified >= 4.5:1 on white. */
+  --ds-blue-100: #f0f6fd;
+  --ds-blue-200: #e3eefb;
+  --ds-blue-300: #d2e3f8;
+  --ds-blue-400: #b3cff0;
+  --ds-blue-500: #8fb6e4;
+  --ds-blue-600: #4a83c4;
+  --ds-blue-700: #2f6cb3;
+  --ds-blue-800: #275c99;
+  --ds-blue-900: #1e4f8f;
+  --ds-blue-1000: #163a5f;
 
   --ds-red-100: #ffeef0;
   --ds-red-200: #ffe9ea;

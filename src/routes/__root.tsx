@@ -49,13 +49,21 @@ function BoundaryShell({ children }: { children: React.ReactNode }) {
 function NotFoundComponent() {
   return (
     <BoundaryShell>
-      <div className="mono-label" style={{ marginBottom: 8 }}>
-        404 · not found
-      </div>
-      <h1
-        className="font-display"
-        style={{ fontSize: 26, color: "var(--text-primary)", marginBottom: 8 }}
+      {/* The 404 numeral is the page's single Geist Pixel brand moment
+          (DESIGN-TEMPO.md sections 3 and 8: big numerals qualify, max one
+          Pixel element per screen). --text-score is the 52px display scale. */}
+      <div
+        style={{
+          fontFamily: "var(--font-pixel)",
+          fontSize: "var(--text-score, 52px)",
+          lineHeight: 1,
+          color: "var(--ds-gray-1000)",
+          marginBottom: 12,
+        }}
       >
+        404
+      </div>
+      <h1 className="text-heading-24" style={{ color: "var(--text-primary)", marginBottom: 8 }}>
         Page not found
       </h1>
       <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20, lineHeight: 1.55 }}>
@@ -183,7 +191,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // className="dark" makes SSR, no-JS, and pre-hydration states dark-first
+    // (Tempo v5 theme law); the bootstrap script below flips to light only
+    // when the user explicitly stored that preference.
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <ThemeBootstrapScript />
         <HeadContent />
@@ -197,13 +208,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function ThemeBootstrapScript() {
-  // Pre-hydration theme bootstrap: avoid FOUC. Default is light; legacy
-  // stored "aurora" resolves to dark.
+  // Pre-hydration theme bootstrap: avoid FOUC. Tempo v5 contract: dark is the
+  // default (class 'dark', no data-theme); light = data-theme='light' plus the
+  // 'dark' class removed. Legacy stored "aurora" resolves to dark.
   return (
     <script
       suppressHydrationWarning
       dangerouslySetInnerHTML={{
-        __html: `(function(){try{var t=localStorage.getItem('cadence.theme');if(t==='dark'||t==='aurora'){document.documentElement.classList.add('dark');}}catch(e){/* default light */}})();`,
+        __html: `(function(){try{var t=localStorage.getItem('cadence.theme');var d=document.documentElement;if(t==='light'){d.classList.remove('dark');d.setAttribute('data-theme','light');}else{d.classList.add('dark');d.removeAttribute('data-theme');}}catch(e){/* default dark via the SSR class */}})();`,
       }}
     />
   );

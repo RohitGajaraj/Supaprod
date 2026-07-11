@@ -190,7 +190,7 @@ function AdminReceiptsRollup() {
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-label)",
             letterSpacing: "0.11em",
-            color: "var(--blossom)",
+            color: "var(--link)",
           }}
         >
           View the full per-week / per-agent tables →

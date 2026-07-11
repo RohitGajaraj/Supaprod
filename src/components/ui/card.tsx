@@ -7,9 +7,11 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        // Radius + shadow from materials.css tokens (never hand-rolled); bg-card kept as-is
-        // since it correctly resolves to the differentiated surface tint, not the page bg.
-        "rounded-(--ds-radius-medium) bg-card text-card-foreground shadow-(--ds-shadow-border-medium)",
+        // material-medium preset = 12px radius + background-100 fill + medium border
+        // shadow in one class (contract section 4: elevation only via presets, never a
+        // hand-assembled radius+shadow combo). The preset supplies the bg, so bg-card
+        // is dropped deliberately; card surfaces sit on --ds-background-100.
+        "material-medium text-card-foreground",
         className,
       )}
       {...props}
@@ -20,39 +22,36 @@ Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
+    // p-4 = the 16px card padding documented in research/card.md (was p-6).
+    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-4", className)} {...props} />
   ),
 );
 CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn("font-semibold leading-none tracking-tight", className)}
-      {...props}
-    />
+    <div ref={ref} className={cn("text-heading-16", className)} {...props} />
   ),
 );
 CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+    <div ref={ref} className={cn("text-copy-14 text-(--ds-gray-900)", className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("p-4 pt-0", className)} {...props} />
   ),
 );
 CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("flex items-center p-4 pt-0", className)} {...props} />
   ),
 );
 CardFooter.displayName = "CardFooter";

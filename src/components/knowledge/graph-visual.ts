@@ -1,21 +1,24 @@
-// W3 (Loom) - the graph's shared visual vocabulary. One place maps a node
-// kind to its v4 role color (DESIGN-LOOM section 7) so the canvas renderer,
-// the legend, and the story panel can never drift apart. Colors are token
-// references first (the tokens-only law); each carries a literal fallback so
-// the Canvas2D renderer, which needs concrete color strings, can resolve them
-// through getComputedStyle and still paint if a token is ever missing.
+// W3 - the graph's shared visual vocabulary. One place maps a node kind to
+// its role color (DESIGN-TEMPO.md section 2: data-viz is the sanctioned
+// multi-hue exception) so the canvas renderer, the legend, and the story
+// panel can never drift apart. Colors are token references first (the
+// tokens-only law); each carries a literal fallback so the Canvas2D
+// renderer, which needs concrete color strings, can resolve them through
+// getComputedStyle and still paint if a token is ever missing.
 import { useEffect, useState } from "react";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
 
 export type KindVisual = { token: string; fallback: string; label: string };
 
 /**
- * DESIGN-LOOM section 7 node language. Kinds the contract names verbatim:
- * decision ember-soft, learning glacier, signal blossom, theme violet-soft,
- * spec pearl, mission cornflower, meeting rose, task slate. Kinds the graph
- * carries that the contract does not name are assigned from the working data
- * palette (families never moonlight): opportunity teal, roadmap cobalt,
- * design memory mauve.
+ * Node language, kept from the v4 assignment: decision ember-soft, signal
+ * blossom, theme violet-soft, spec pearl, mission cornflower, meeting rose,
+ * task slate, opportunity teal, roadmap cobalt, design memory mauve.
+ * Blue harmony (founder ruling A, 2026-07-11): only glacier reads as "the
+ * blue"; --cornflower and --cobalt were retuned in styles.css into the same
+ * hue 215 family but stepped apart in lightness so mission/roadmap stay
+ * distinguishable without competing with glacier. Fallbacks mirror the
+ * retuned token values verbatim.
  */
 export const KIND_VISUAL: Record<string, KindVisual> = {
   decision: { token: "--ember-soft", fallback: "#ffa477", label: "Decision" },
@@ -23,10 +26,10 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
   theme: { token: "--violet-soft", fallback: "#a67fc9", label: "Theme" },
   opportunity: { token: "--teal", fallback: "#2e9e8f", label: "Opportunity" },
   prd: { token: "--pearl", fallback: "#edeae4", label: "Spec" },
-  roadmap_item: { token: "--cobalt", fallback: "#3b5bdb", label: "Roadmap" },
+  roadmap_item: { token: "--cobalt", fallback: "#2f5d9e", label: "Roadmap" },
   task: { token: "--slate", fallback: "#6e6a64", label: "Task" },
   meeting: { token: "--rose", fallback: "#e89ab0", label: "Meeting" },
-  mission: { token: "--cornflower", fallback: "#6b8afd", label: "Mission" },
+  mission: { token: "--cornflower", fallback: "#5c88c9", label: "Mission" },
   design_memory: { token: "--mauve", fallback: "#b78bc7", label: "Design" },
 };
 

@@ -179,7 +179,7 @@ export function ChangelogPanel() {
                         gap: 6,
                         marginTop: 12,
                         fontSize: 12,
-                        color: "var(--glacier)",
+                        color: "var(--link)",
                         fontFamily: "var(--font-mono)",
                         textDecoration: "none",
                       }}

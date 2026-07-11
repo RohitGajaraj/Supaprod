@@ -38,12 +38,18 @@ export function ColdStartOnramp() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "4px 2px" }}>
       <div>
+        {/* Geist Pixel welcome headline (DESIGN-TEMPO §3): the cold-start
+            card's one Pixel moment. The onramp renders only in the
+            empty-workspace state that replaces the populated hero, so this
+            headline and the hero's Pixel numeral never co-render; keep it
+            mounted INSTEAD OF Hero, never alongside. Step titles and body
+            stay Geist Sans. */}
         <div
           style={{
-            fontSize: 17,
-            fontWeight: 600,
+            fontFamily: "var(--font-pixel)",
+            fontWeight: 400,
+            fontSize: 19,
             color: "var(--ink)",
-            letterSpacing: "-0.01em",
           }}
         >
           Give your agents something to read.
@@ -83,10 +89,13 @@ export function ColdStartOnramp() {
                   : "var(--canvas)",
               }}
             >
+              {/* Ruling C 2026-07-11 (accent restraint): these steps are static
+                  guidance, not an AI working state, so the icons take the muted
+                  gray of sibling icons instead of a standing orchid accent. */}
               <Icon
                 size={16}
                 strokeWidth={1.75}
-                style={{ color: "var(--agent)", flexShrink: 0, marginTop: 2 }}
+                style={{ color: "var(--ink-subtle)", flexShrink: 0, marginTop: 2 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{s.title}</div>

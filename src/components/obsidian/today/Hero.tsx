@@ -32,11 +32,17 @@ export interface HeroProps {
   pendingCalls: number;
 }
 
-/** The Today ritual's opening line. Newsreader 34px, one ember (or moss at
- * all-clear) italic word, the rest plain. */
+/** The Today ritual's opening line. Geist Sans heading (text-heading-32),
+ * one ember (or moss at all-clear) italic word, the rest plain. */
 export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
   const { heroA, heroB } = computeHero(pendingCalls);
   const allClear = pendingCalls <= 0;
+  // Tempo brand moment (DESIGN-TEMPO §3/§8): the pending-calls numeral is
+  // Today's ONE Geist Pixel element (pattern: MissionOrchestratorDetail's
+  // compounding count). Only leading digits pixelate; the ember word itself
+  // stays Geist Sans, so spelled counts (One/Two/Three) and the all-clear
+  // line carry no Pixel at all. LoopStrip counts stay Geist Mono.
+  const numeral = /^(\d+)([\s\S]*)$/.exec(heroA);
   // Loom W2-TODAY: tightened vertical rhythm so the hero + the featured call
   // + the My-day strip + the machine pulse all land above the fold at 1440px
   // (DESIGN-LOOM §8b's 1.5-screen budget).
@@ -54,20 +60,35 @@ export function Hero({ greeting, userName, pendingCalls }: HeroProps) {
       >
         {greeting}, {userName}
       </div>
+      {/* Migrated off the legacy --font-serif alias onto the Tempo heading
+          class system (DESIGN-TEMPO §3): text-heading-32 is the closest step
+          to the old 34px hero size. */}
       <h1
+        className="text-heading-32"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 430,
-          fontSize: "var(--text-hero)",
-          lineHeight: 1.15,
-          letterSpacing: "-0.015em",
           color: "var(--text-primary)",
           margin: 0,
           textWrap: "balance",
         }}
       >
         <em style={{ fontStyle: "italic", color: allClear ? "var(--moss)" : "var(--ember)" }}>
-          {heroA}
+          {numeral ? (
+            <>
+              <span
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontWeight: 400,
+                  fontStyle: "normal",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {numeral[1]}
+              </span>
+              {numeral[2]}
+            </>
+          ) : (
+            heroA
+          )}
         </em>
         {heroB}
       </h1>

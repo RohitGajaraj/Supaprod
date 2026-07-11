@@ -783,3 +783,22 @@ function AskComposer({ value, onChange, onSend, model, onModelChange, tools }: A
 - Don't write any generated or example copy in this pattern with an em dash or en dash — the
   humanized-output law applies to every string an agent or the product produces, including
   gate-card body sentences, error messages, and suggestion-chip labels.
+
+## The AI-presence signature: the shimmering working word (founder ruling 2026-07-11)
+
+The platform-wide marker that an agent is present and working is ONE word (Working,
+Thinking, or the agent's name) set in Geist Pixel Square with the glacier-blue flowing
+shimmer gradient clipped to the text. It is a single sanctioned utility, not a recipe:
+
+- Class: `.ai-working-word` in `src/styles.css` (Pixel face + the `agent-shimmer`
+  gradient, `background-clip: text`). Consume the class; never re-implement the gradient
+  inline, and never define a second shimmer.
+- Hue: the glacier family (`#84b3ec` and its ramp), per the 2026-07-11 blue-equals-glacier
+  ruling. Violet may remain only as a depth note inside the gradient stops.
+- Motion: always gated. Under `prefers-reduced-motion` (or `data-motion="off"`) the word
+  falls back to static glacier text; the Pixel face alone still signals the AI moment.
+- Budget: at most ONE shimmer per screen, and it counts as the screen's Pixel brand
+  moment while visible. A streaming reply pairs it with the sanctioned `.stream-caret`,
+  never an ad-hoc spinner or a second `LoadingDots`.
+- Role split: glacier shimmer = the machine is working. Ember stays reserved for
+  waiting-on-human moments (the approve CTA, a pending call), never for busy states.

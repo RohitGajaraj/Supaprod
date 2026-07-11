@@ -649,7 +649,9 @@ export function TraceDetail({ id }: { id: string }) {
                     style={{
                       ...cellEllipsis,
                       paddingLeft: r.span.depth * 10,
-                      color: r.span.surface === "agent" ? "var(--agent)" : "var(--ink-muted)",
+                      // Gray for every surface (accent restraint 2026-07-11):
+                      // orchid marks agent actions, not attribution columns.
+                      color: "var(--ink-muted)",
                     }}
                   >
                     {r.span.surface === "agent" && r.span.surface_ref
@@ -709,7 +711,9 @@ export function TraceDetail({ id }: { id: string }) {
                     className="mono-label"
                     style={{
                       ...cellEllipsis,
-                      color: traceAgentSlug ? "var(--agent)" : "var(--ink-faint)",
+                      // Gray slug column (accent restraint 2026-07-11); faint
+                      // only for the empty placeholder.
+                      color: traceAgentSlug ? "var(--ink-muted)" : "var(--ink-faint)",
                     }}
                   >
                     {traceAgentSlug ?? "-"}

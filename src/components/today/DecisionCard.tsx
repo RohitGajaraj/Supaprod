@@ -130,7 +130,9 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
           <StepDot status="gate" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="mono-label" style={{ color: "var(--agent)", fontSize: 10 }}>
+            {/* Gray attribution (accent restraint 2026-07-11): orchid marks agent
+                ACTIONS, never standing name labels. */}
+            <div className="mono-label" style={{ color: "var(--ink-muted)", fontSize: 10 }}>
               {agent}
               {trackLabel && (
                 <span
@@ -321,7 +323,8 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <StepDot status="gate" />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="mono-label" style={{ color: "var(--agent)", fontSize: 10 }}>
+          {/* Gray metadata (accent restraint 2026-07-11): no standing tint on labels. */}
+          <div className="mono-label" style={{ color: "var(--ink-muted)", fontSize: 10 }}>
             {isPrd ? "Spec · needs your call" : "Opportunity · Critic challenged"}
           </div>
           <div style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 600, marginTop: 2 }}>

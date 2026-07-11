@@ -364,7 +364,9 @@ export function AnalyticsPanel() {
                       style={{
                         width: 90,
                         flexShrink: 0,
-                        color: "var(--agent)",
+                        // Gray name column (accent restraint 2026-07-11):
+                        // orchid marks agent actions, not name labels.
+                        color: "var(--ink-muted)",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",

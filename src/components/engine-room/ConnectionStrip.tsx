@@ -103,7 +103,7 @@ export function ConnectionStrip() {
             fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.11em",
             textTransform: "uppercase",
-            color: "var(--blossom)",
+            color: "var(--link)",
             textDecoration: "none",
           }}
         >

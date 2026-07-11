@@ -1378,7 +1378,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   }}
                 >
                   <span style={{ flexShrink: 0, alignSelf: "flex-start" }}>
-                    <VerdictChip tone={tc.ok ? "orchid" : "madder"}>
+                    {/* moss for ok (accent restraint 2026-07-11): a settled
+                        outcome is a verdict; orchid never marks success. */}
+                    <VerdictChip tone={tc.ok ? "moss" : "madder"}>
                       {agentDisplayName(tc.agent_slug)}
                     </VerdictChip>
                   </span>

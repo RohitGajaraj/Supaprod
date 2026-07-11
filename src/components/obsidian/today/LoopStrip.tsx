@@ -11,7 +11,13 @@ const TONE_STYLE: Record<PillTone, { border: string; color: string; shadow: stri
     color: "var(--ember)",
     shadow: "0 0 14px rgba(255,107,44,0.15)",
   },
-  glacier: { border: rgba("#84b3ec", 0.35), color: "var(--glacier)", shadow: "none" },
+  // color-mix over the rgba() hex helper so the border follows the token
+  // (glacier was recalibrated 2026-07-11; literals would silently drift).
+  glacier: {
+    border: "color-mix(in oklab, var(--glacier) 35%, transparent)",
+    color: "var(--glacier)",
+    shadow: "none",
+  },
   quiet: { border: "rgba(255,255,255,0.12)", color: "var(--text-muted)", shadow: "none" },
 };
 
@@ -64,7 +70,7 @@ function Pill({
             width: 5,
             height: 5,
             borderRadius: "var(--radius-pill)",
-            background: "#84b3ec",
+            background: "var(--glacier)",
             animation: "cadPulse 2s ease-in-out infinite",
           }}
         />

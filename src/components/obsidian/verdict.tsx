@@ -1,6 +1,5 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { rgba } from "./primitives";
 
 export type VerdictTone =
   | "SHIP"
@@ -15,24 +14,26 @@ export type VerdictTone =
   | "PENDING";
 
 interface VerdictHue {
-  hex: string;
+  /** Token-traced base hue: derives the 12% tinted fill and 45% border. */
+  color: string;
+  /** Text step: the brighter -bright/-text variant of the same role hue. */
   text: string;
 }
 
-// components.md: SHIP/VALIDATED/KEPT moss (#8FD9A0 text) · KILL/MISSED madder
-// (#EE7A6C) · REVISE ember (#FF8B52, a distinct lighter shade from
-// --ember/--ember-deep, verbatim from the anatomy) · CRITIC REVIEW/WATCH
-// marigold · DRAFTING glacier. PENDING is handled separately (no hue).
+// Token-traced (2026-07-11): SHIP/VALIDATED/KEPT moss · KILL/MISSED madder ·
+// REVISE ember · CRITIC REVIEW/WATCH marigold · DRAFTING glacier. Vars over
+// literals so both themes resolve from the same role tokens (the old hexes
+// only held in dark). PENDING is handled separately (no hue).
 const VERDICT_HUE: Record<Exclude<VerdictTone, "PENDING">, VerdictHue> = {
-  SHIP: { hex: "#7FBF8E", text: "#8FD9A0" },
-  VALIDATED: { hex: "#7FBF8E", text: "#8FD9A0" },
-  KEPT: { hex: "#7FBF8E", text: "#8FD9A0" },
-  KILL: { hex: "#E06557", text: "#EE7A6C" },
-  MISSED: { hex: "#E06557", text: "#EE7A6C" },
-  REVISE: { hex: "#FF6B2C", text: "#FF8B52" },
-  "CRITIC REVIEW": { hex: "#E8B44C", text: "#E8B44C" },
-  WATCH: { hex: "#E8B44C", text: "#E8B44C" },
-  DRAFTING: { hex: "#84b3ec", text: "#84b3ec" },
+  SHIP: { color: "var(--moss)", text: "var(--moss-bright)" },
+  VALIDATED: { color: "var(--moss)", text: "var(--moss-bright)" },
+  KEPT: { color: "var(--moss)", text: "var(--moss-bright)" },
+  KILL: { color: "var(--madder)", text: "var(--madder-bright)" },
+  MISSED: { color: "var(--madder)", text: "var(--madder-bright)" },
+  REVISE: { color: "var(--ember)", text: "var(--ember-text, var(--ember))" },
+  "CRITIC REVIEW": { color: "var(--marigold)", text: "var(--marigold)" },
+  WATCH: { color: "var(--marigold)", text: "var(--marigold)" },
+  DRAFTING: { color: "var(--glacier)", text: "var(--glacier)" },
 };
 
 export interface VerdictChipProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -55,11 +56,15 @@ export const VerdictChip = React.forwardRef<HTMLSpanElement, VerdictChipProps>(
           letterSpacing: "0.11em",
           borderRadius: "var(--radius-pill)",
           padding: "3px 10px",
-          backgroundColor: hue ? rgba(hue.hex, 0.12) : "transparent",
+          // color-mix instead of the rgba() helper: the hues are now var()
+          // references, which a hex parser cannot derive alphas from.
+          backgroundColor: hue ? `color-mix(in oklab, ${hue.color} 12%, transparent)` : "transparent",
           // PENDING: spec says "faint hairline border" - --hairline-faint
           // (5%, doc-commented "faint dividers" in the token layer) is the
           // literal match for that word, not the general --hairline (7%).
-          border: hue ? `1px solid ${rgba(hue.hex, 0.45)}` : "1px solid var(--hairline-faint)",
+          border: hue
+            ? `1px solid color-mix(in oklab, ${hue.color} 45%, transparent)`
+            : "1px solid var(--hairline-faint)",
           color: hue ? hue.text : "var(--text-faint)",
           ...style,
         }}

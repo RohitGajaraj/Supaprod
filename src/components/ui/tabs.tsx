@@ -13,7 +13,8 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       // rounded-(--ds-radius-small) = 6px (materials.css); rounded-lg was an off-grid 8px value.
-      "inline-flex h-9 items-center justify-center rounded-(--ds-radius-small) bg-muted p-1 text-muted-foreground",
+      // gray-100/gray-900 = component background + secondary text roles (contract section 2).
+      "inline-flex h-9 items-center justify-center rounded-(--ds-radius-small) bg-(--ds-gray-100) p-1 text-(--ds-gray-900)",
       className,
     )}
     {...props}
@@ -30,7 +31,9 @@ const TabsTrigger = React.forwardRef<
     className={cn(
       // Focus ring standardized to the --ds-focus-ring box-shadow pattern (matches every
       // other primitive -- button/input/checkbox/etc); the old ring-offset utility diverged.
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium cursor-pointer transition-all focus-visible:outline-none focus-visible:shadow-(--ds-focus-ring) disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+      // Active trigger lifts via the small border shadow preset, not a raw Tailwind shadow,
+      // and transitions only the properties that actually change (swift easing, reduced-motion gated).
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-label-14 cursor-pointer transition-[background-color,color,box-shadow] duration-150 ease-(--ds-motion-timing-swift) motion-reduce:transition-none focus-visible:outline-none focus-visible:shadow-(--ds-focus-ring) disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-(--ds-background-100) data-[state=active]:text-(--ds-gray-1000) data-[state=active]:shadow-(--ds-shadow-border-small)",
       className,
     )}
     {...props}

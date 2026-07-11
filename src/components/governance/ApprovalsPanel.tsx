@@ -426,7 +426,7 @@ function ApprovalCard({
             {a.mission_id ? (
               <Link
                 className="btn btn-sm hover:underline"
-                style={{ color: "var(--glacier)" }}
+                style={{ color: "var(--link)" }}
                 to="/build/$missionId"
                 params={{ missionId: a.mission_id }}
               >

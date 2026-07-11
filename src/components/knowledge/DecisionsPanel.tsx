@@ -348,7 +348,7 @@ export function DecisionsPanel() {
                         e.stopPropagation();
                         navigate({ to: "/today" });
                       }}
-                      style={{ fontSize: 11, color: "var(--glacier)", cursor: "pointer" }}
+                      style={{ fontSize: 11, color: "var(--link)", cursor: "pointer" }}
                     >
                       Decide on Today &rarr;
                     </span>

@@ -184,12 +184,12 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: "8.5px",
-                    color: "var(--blossom)",
-                    // No numeric alpha is given for a "blossom hairline" pill;
-                    // reuses the one literal hairline alpha this component
-                    // does have (the card's own ember border, 0.25) rather
-                    // than inventing a distinct number.
-                    border: `1px solid ${rgba("#E5BDDF", 0.25)}`,
+                    // Source chips speak the one link role (U6): blossom is
+                    // retired from links/citations, so text and hairline both
+                    // derive from var(--link). color-mix keeps the chip's
+                    // existing 0.25 hairline alpha without a hardcoded hex.
+                    color: "var(--link)",
+                    border: "1px solid color-mix(in srgb, var(--link) 25%, transparent)",
                     borderRadius: "var(--radius-pill)",
                     padding: "2px 8px",
                   }}

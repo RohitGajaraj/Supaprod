@@ -269,8 +269,10 @@ export function TabRow({
   );
 }
 
-/* EmptyState — bento empty slate with icon tile, serif title, single CTA.
-   Ported 1:1 from design-reference/cadence/loop.jsx (EmptyState). */
+/* EmptyState — bento empty slate with icon tile, pixel title, single CTA.
+   Ported from design-reference/cadence/loop.jsx (EmptyState); title face
+   moved to Geist Pixel per DESIGN-TEMPO §3 (empty-state headlines are a
+   sanctioned brand moment). */
 export function EmptyState({
   icon: Icon,
   title,
@@ -301,7 +303,10 @@ export function EmptyState({
       >
         <Icon size={18} />
       </span>
-      <h3 className="font-display" style={{ fontSize: 19 }}>
+      {/* Titles stay a few words: Pixel is display-only, never multi-line copy.
+          A surface showing EmptyState must not simultaneously render another
+          Pixel flourish (max 1 per screen). Body and CTA stay Geist Sans. */}
+      <h3 style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, fontSize: 19 }}>
         {title}
       </h3>
       <p

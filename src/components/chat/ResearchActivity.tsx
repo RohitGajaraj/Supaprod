@@ -1,4 +1,5 @@
 import type { ChatMeta } from "@/components/chat/MessageMeta";
+import { ShimmerText } from "@/components/cadence/ShimmerText";
 
 /**
  * Shared SSE protocol v2 — zero or more research-progress events stream before
@@ -55,7 +56,10 @@ export function ResearchActivityLine({ statuses }: { statuses: ResearchStatus[] 
       }}
     >
       <span className="spinner" />
-      <span
+      {/* The active step wears the shared glacier shimmer (founder ruling B,
+          2026-07-11): AI working states carry ONE signature marker. Only the
+          latest step renders, so the one-shimmer-per-screen rule holds. */}
+      <ShimmerText
         style={{
           maxWidth: 420,
           overflow: "hidden",
@@ -64,7 +68,7 @@ export function ResearchActivityLine({ statuses }: { statuses: ResearchStatus[] 
         }}
       >
         {latest.label}
-      </span>
+      </ShimmerText>
       {segments.length > 0 && (
         <span className="mono-label" style={{ fontSize: 9 }}>
           {segments.join(" · ")}

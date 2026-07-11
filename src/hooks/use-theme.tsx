@@ -3,7 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 export type Theme = "dark" | "light";
 
 const STORAGE_KEY = "cadence.theme";
-const DEFAULT_THEME: Theme = "light";
+// Tempo v5 theme law (DESIGN-TEMPO.md section 1): dark is the default experience.
+const DEFAULT_THEME: Theme = "dark";
 
 type ThemeContextValue = {
   theme: Theme;
@@ -16,7 +17,17 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function applyThemeClass(t: Theme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  root.classList.toggle("dark", t === "dark");
+  // Tempo v5 contract, agreed with the styles.css unit: dark = the 'dark'
+  // class with NO data-theme attribute (:root already holds the dark tokens);
+  // light = data-theme='light' with the 'dark' class removed, so the
+  // [data-theme='light'] token block in styles.css actually applies.
+  if (t === "dark") {
+    root.classList.add("dark");
+    delete root.dataset.theme;
+  } else {
+    root.dataset.theme = "light";
+    root.classList.remove("dark");
+  }
   // Aurora theme retired with the Ember Editorial design system; clear the
   // class in case a stale bootstrap or extension left it behind.
   root.classList.remove("aurora");

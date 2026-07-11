@@ -1,10 +1,11 @@
 // AGENT-EXP: the agent's visual identity, used everywhere an agent is "called out".
 //
-// Per the agent-palette extension to the color law (docs/conventions/design-context.md):
-// every agent carries its own hue (from the violet -> magenta -> indigo range,
-// disjoint from the status colors ember/green/blue/red) AND a unique geometric
-// glyph. Color is never the only signal, so the glyph distinguishes agents in
-// monochrome and for color-blind users.
+// Accent restraint (founder ruling C, 2026-07-11; DESIGN-TEMPO.md section 2):
+// per-agent hue lives ONLY inside the small glyph mark, where identity coding
+// earns its color. The name text is gray when idle and wears the shared
+// glacier shimmer (.agent-live) only while the agent is genuinely running, so
+// standing chromatic tints never sit on plain text. The glyph, not color,
+// distinguishes agents in monochrome and for color-blind users.
 //
 // AgentMark   = the glyph in its hue, in a soft rounded square.
 // AgentBadge  = the called-out treatment: mark + name (+ optional present-tense verb).
@@ -101,7 +102,6 @@ export function AgentBadge({
   fallbackName?: string | null;
 }) {
   const name = agentDisplayName(slug, fallbackName);
-  const { hue } = agentMark(slug);
   const v = verb ?? (showVerb ? agentRelayVerb(slug) : null);
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -112,7 +112,8 @@ export function AgentBadge({
           style={{
             fontSize: 13,
             fontWeight: 540,
-            color: live ? undefined : hue,
+            // Idle names are gray (restraint); only the live shimmer colors the name.
+            color: live ? undefined : "var(--ink-muted)",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
             overflow: "hidden",

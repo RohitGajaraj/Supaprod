@@ -233,7 +233,7 @@ export function WorkspaceBindingsSection() {
                         <Link
                           to="/settings"
                           search={{ section: "connections" }}
-                          style={{ color: "var(--blossom)" }}
+                          style={{ color: "var(--link)" }}
                         >
                           Settings · Connections
                         </Link>{" "}

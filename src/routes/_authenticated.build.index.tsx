@@ -406,7 +406,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                 // is /plan, so say so and link there.
                 <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
                   No approved specs yet.{" "}
-                  <Link to="/plan" style={{ color: "var(--blossom)" }}>
+                  <Link to="/plan" style={{ color: "var(--link)" }}>
                     Approve one in Plan →
                   </Link>
                 </div>

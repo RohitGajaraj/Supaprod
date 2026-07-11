@@ -233,7 +233,7 @@ function ProvenanceSection({
           style={{
             gap: "6px",
             fontSize: "12px",
-            color: "var(--glacier)",
+            color: "var(--link)",
             background: "transparent",
             border: "none",
             padding: 0,

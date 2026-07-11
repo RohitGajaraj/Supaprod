@@ -554,7 +554,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             borderRight: "1px solid var(--hairline)",
           }}
         >
-          {/* Header — Butterfly mark + wordmark + workspace switcher. */}
+          {/* Header — pixel C monogram + wordmark + workspace switcher. */}
           <div
             style={{
               padding: "16px 16px 12px",
@@ -569,17 +569,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   style={{ gap: 11 }}
                   aria-label="Workspace switcher"
                 >
-                  <img
-                    src="/assets/butterfly-ember.svg"
-                    width={22}
-                    height={22}
-                    alt=""
+                  {/* Pixel C monogram (DESIGN-TEMPO §8): THE compact mark; the
+                      retired Butterfly is not carried into v5. Rail chrome, not
+                      a per-screen brand moment, so it does not consume the
+                      one-Pixel-per-screen budget. Gray-1000 only; the ember
+                      variant is reserved for active/brand states. The 22px box
+                      around the ~15px glyph plus the header padding gives clear
+                      space roughly equal to the monogram's own width. */}
+                  <span
                     aria-hidden="true"
-                    className="shrink-0"
+                    className="shrink-0 inline-flex items-center justify-center"
                     style={{
-                      opacity: 0.92,
+                      width: 22,
+                      height: 22,
+                      fontFamily: "var(--font-pixel)",
+                      fontWeight: 400,
+                      fontSize: 15,
+                      lineHeight: 1,
+                      color: "var(--ds-gray-1000)",
                     }}
-                  />
+                  >
+                    C
+                  </span>
                   <span className="flex-1 min-w-0">
                     <span
                       className="block truncate"

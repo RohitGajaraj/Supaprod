@@ -349,7 +349,7 @@ function SyncInboxPage() {
             <Link
               to="/settings"
               search={{ section: "connections" }}
-              style={{ color: "var(--blossom, #d8a6e0)", textDecoration: "underline" }}
+              style={{ color: "var(--link)", textDecoration: "underline" }}
             >
               Settings · Connections
             </Link>{" "}

@@ -64,10 +64,9 @@ export function ExecutedCard() {
               }}
             >
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-                <span
-                  className="mono-label"
-                  style={{ fontSize: 9, color: "var(--agent, var(--ink))" }}
-                >
+                {/* Gray attribution (accent restraint 2026-07-11): settled work
+                    carries no standing agent tint. */}
+                <span className="mono-label" style={{ fontSize: 9, color: "var(--ink-muted)" }}>
                   {who}
                 </span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink)" }}>

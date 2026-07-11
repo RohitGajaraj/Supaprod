@@ -1,24 +1,5 @@
-import { describe, expect, test, beforeEach, afterEach, mock } from "bun:test";
-
-// ---------------------------------------------------------------------------
-// React module mock — must be declared before the static import of graph-visual
-// so that when graph-visual imports { useState, useEffect } from "react" it
-// gets our controlled stubs instead of the real implementations.
-//
-// The three mutable variables below are captured by reference: mutations made
-// inside tests are visible inside the mock closures.
-// ---------------------------------------------------------------------------
-
-let _effectCb: (() => (() => void) | void) | null = null;
-let _effectCleanup: (() => void) | void = undefined;
-const _setterCalls: boolean[] = [];
-
-mock.module("react", () => ({
-  useState: (initial: boolean) => [initial, (v: boolean) => _setterCalls.push(v)],
-  useEffect: (cb: () => (() => void) | void) => {
-    _effectCb = cb;
-  },
-}));
+import { describe, expect, test, afterEach } from "bun:test";
+import { renderHook, act } from "@testing-library/react";
 
 import {
   kindTracePrefix,
@@ -128,18 +109,19 @@ describe("truncateTitle", () => {
 });
 
 describe("resolveKindColors", () => {
-  let originalWindow: typeof globalThis.window;
-  let mockGetComputedStyle: ReturnType<typeof test>;
-
-  beforeEach(() => {
-    originalWindow = globalThis.window;
-  });
+  // Stub ONLY window.getComputedStyle, never the window identity: happy-dom's
+  // global `document` is a getter off the registered window, so swapping the
+  // whole window object silently killed every DOM-mounted test that ran after
+  // this file in a combined run.
+  const originalGetComputedStyle = globalThis.window.getComputedStyle;
 
   afterEach(() => {
-    if (originalWindow) {
-      globalThis.window = originalWindow;
-    }
+    globalThis.window.getComputedStyle = originalGetComputedStyle;
   });
+
+  function stubGetComputedStyle(fn: () => { getPropertyValue: (prop: string) => string }) {
+    globalThis.window.getComputedStyle = fn as unknown as typeof window.getComputedStyle;
+  }
 
   test("returns a map with all kinds when getComputedStyle is available", () => {
     const mockStyles = new Map([
@@ -155,12 +137,7 @@ describe("resolveKindColors", () => {
       trim: () => "",
     });
 
-    // Type assertion needed for testing
-    Object.defineProperty(globalThis, "window", {
-      value: { getComputedStyle: mockGetComputedStyle },
-      writable: true,
-      configurable: true,
-    });
+    stubGetComputedStyle(mockGetComputedStyle);
 
     const fakeEl = {} as HTMLElement;
     const result = resolveKindColors(fakeEl);
@@ -169,8 +146,8 @@ describe("resolveKindColors", () => {
     expect(result.size).toBeGreaterThan(0);
   });
 
-  test("uses fallback colors when window is undefined", () => {
-    // Simulate no window
+  test("uses fallback colors when styles resolve empty", () => {
+    stubGetComputedStyle(() => ({ getPropertyValue: () => "" }));
     const result = resolveKindColors({} as HTMLElement);
     expect(result instanceof Map).toBe(true);
     // Should have fallback values (ash, etc.)
@@ -183,11 +160,7 @@ describe("resolveKindColors", () => {
       trim: () => "",
     });
 
-    Object.defineProperty(globalThis, "window", {
-      value: { getComputedStyle: mockGetComputedStyle },
-      writable: true,
-      configurable: true,
-    });
+    stubGetComputedStyle(mockGetComputedStyle);
 
     const result = resolveKindColors({} as HTMLElement);
     expect(result.has("__unknown")).toBe(true);
@@ -203,11 +176,7 @@ describe("resolveKindColors", () => {
       trim: () => "",
     });
 
-    Object.defineProperty(globalThis, "window", {
-      value: { getComputedStyle: mockGetComputedStyle },
-      writable: true,
-      configurable: true,
-    });
+    stubGetComputedStyle(mockGetComputedStyle);
 
     const result = resolveKindColors({} as HTMLElement);
     // signal (--blossom) should be in the map with the trimmed hex value
@@ -219,25 +188,14 @@ describe("resolveKindColors", () => {
 // ---------------------------------------------------------------------------
 // usePrefersReducedMotion
 //
-// Testing strategy: the React module is mocked at the top of this file so
-// useState and useEffect are our controlled stubs. Each test installs minimal
-// browser API mocks (window.matchMedia, MutationObserver, document) on
-// globalThis and clears them in afterEach before the shared setup.ts afterEach
-// runs. All Object.defineProperty calls use configurable: true so that
-// subsequent tests can redefine or clear them without "Unable to delete" errors.
 // ---------------------------------------------------------------------------
-
-// Clears browser globals set by this test suite without using `delete`
-// (which fails on non-configurable properties).
-function clearBrowserMocks(): void {
-  for (const key of ["window", "document", "MutationObserver"] as const) {
-    Object.defineProperty(globalThis, key, {
-      value: undefined,
-      writable: true,
-      configurable: true,
-    });
-  }
-}
+// usePrefersReducedMotion - tested against the REAL React + the happy-dom
+// globals registered by test/setup.ts. The previous harness mock.module()'d
+// react (process-global in bun, poisoning the jsx runtime for every test file
+// loaded after this one) and nulled window/document between tests (killing
+// later DOM suites). Only window.matchMedia and MutationObserver are stubbed,
+// and both are restored exactly.
+// ---------------------------------------------------------------------------
 
 interface ObserverTracker {
   observeCalled: boolean;
@@ -248,18 +206,24 @@ interface ObserverTracker {
 }
 
 interface MockEnv {
-  mq: { matches: boolean };
+  mq: {
+    matches: boolean;
+    addEventListener: (type: string, cb: () => void) => void;
+    removeEventListener: (type: string, cb: () => void) => void;
+  };
   mqListeners: (() => void)[];
   mqRemovedListeners: (() => void)[];
-  obs: ObserverTracker | null;
-  docEl: { dataset: Record<string, string | undefined> };
-  runEffect(): void;
-  runCleanup(): void;
+  queriesSeen: string[];
+  get obs(): ObserverTracker | null;
 }
+
+const REAL_MATCH_MEDIA = globalThis.window.matchMedia;
+const REAL_MUTATION_OBSERVER = globalThis.MutationObserver;
 
 function buildMockEnv(mqMatches: boolean, dataMotion?: string): MockEnv {
   const mqListeners: (() => void)[] = [];
   const mqRemovedListeners: (() => void)[] = [];
+  const queriesSeen: string[] = [];
   const mq = {
     matches: mqMatches,
     addEventListener(_type: string, cb: () => void) {
@@ -270,351 +234,197 @@ function buildMockEnv(mqMatches: boolean, dataMotion?: string): MockEnv {
     },
   };
 
-  const dataset: Record<string, string | undefined> = {};
-  if (dataMotion !== undefined) dataset.motion = dataMotion;
-  const docEl = { dataset };
+  if (dataMotion !== undefined) {
+    document.documentElement.dataset.motion = dataMotion;
+  }
 
-  // obs is populated when the MutationObserver constructor runs inside runEffect
   let obs: ObserverTracker | null = null;
 
-  Object.defineProperty(globalThis, "window", {
-    value: { matchMedia: () => mq },
-    writable: true,
-    configurable: true,
-  });
-  Object.defineProperty(globalThis, "document", {
-    value: { documentElement: docEl },
-    writable: true,
-    configurable: true,
-  });
-  Object.defineProperty(globalThis, "MutationObserver", {
-    value: class {
-      constructor(cb: () => void) {
-        const tracker: ObserverTracker = {
-          observeCalled: false,
-          observeTarget: null,
-          observeOptions: null,
-          disconnectCalled: false,
-          triggerMutation: cb,
-        };
-        obs = tracker;
-        Object.assign(this, {
-          observe(target: Node, options: MutationObserverInit) {
-            tracker.observeCalled = true;
-            tracker.observeTarget = target;
-            tracker.observeOptions = options;
-          },
-          disconnect() {
-            tracker.disconnectCalled = true;
-          },
-        });
-      }
-      observe(_target: Node, _options: MutationObserverInit) {}
-      disconnect() {}
-    },
-    writable: true,
-    configurable: true,
-  });
+  globalThis.window.matchMedia = ((query: string) => {
+    queriesSeen.push(query);
+    return mq;
+  }) as unknown as typeof window.matchMedia;
+
+  globalThis.MutationObserver = class {
+    constructor(cb: () => void) {
+      const tracker: ObserverTracker = {
+        observeCalled: false,
+        observeTarget: null,
+        observeOptions: null,
+        disconnectCalled: false,
+        triggerMutation: cb,
+      };
+      obs = tracker;
+      Object.assign(this, {
+        observe(target: Node, options: MutationObserverInit) {
+          tracker.observeCalled = true;
+          tracker.observeTarget = target;
+          tracker.observeOptions = options;
+        },
+        disconnect() {
+          tracker.disconnectCalled = true;
+        },
+      });
+    }
+    observe(_target: Node, _options: MutationObserverInit) {}
+    disconnect() {}
+    takeRecords(): MutationRecord[] {
+      return [];
+    }
+  } as unknown as typeof MutationObserver;
 
   return {
     mq,
     mqListeners,
     mqRemovedListeners,
+    queriesSeen,
     get obs() {
       return obs;
-    },
-    docEl,
-    runEffect() {
-      if (!_effectCb) throw new Error("no useEffect callback — call the hook first");
-      _effectCleanup = _effectCb();
-    },
-    runCleanup() {
-      if (typeof _effectCleanup === "function") _effectCleanup();
     },
   };
 }
 
-describe("usePrefersReducedMotion — initial state", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
-  });
-  afterEach(clearBrowserMocks);
+function restoreEnv(): void {
+  globalThis.window.matchMedia = REAL_MATCH_MEDIA;
+  globalThis.MutationObserver = REAL_MUTATION_OBSERVER;
+  delete document.documentElement.dataset.motion;
+}
 
-  test("should return false initially (useState default is false)", () => {
+describe("usePrefersReducedMotion - computed state", () => {
+  afterEach(restoreEnv);
+
+  test("false when OS preference is off and no data-motion attribute", () => {
     buildMockEnv(false);
-    const result = usePrefersReducedMotion();
-    expect(result).toBe(false);
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(false);
   });
 
-  test("should register exactly one useEffect callback on call", () => {
-    buildMockEnv(false);
-    usePrefersReducedMotion();
-    expect(_effectCb).not.toBeNull();
+  test("true when OS prefers-reduced-motion is set", () => {
+    buildMockEnv(true);
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(true);
   });
-});
 
-describe("usePrefersReducedMotion — compute logic (setState values)", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
+  test("true when data-motion='off' is present on documentElement", () => {
+    buildMockEnv(false, "off");
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(true);
   });
-  afterEach(clearBrowserMocks);
 
-  test("should call setState(false) when OS preference is off and no data-motion attribute", () => {
+  test("true when BOTH the OS preference and data-motion='off' are active", () => {
+    buildMockEnv(true, "off");
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(true);
+  });
+
+  test("false when data-motion='reduce' (hook only reacts to 'off', not 'reduce')", () => {
+    buildMockEnv(false, "reduce");
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(false);
+  });
+
+  test("queries window.matchMedia with '(prefers-reduced-motion: reduce)'", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(false);
-  });
-
-  test("should call setState(true) when OS prefers-reduced-motion is set", () => {
-    const env = buildMockEnv(true);
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(true);
-  });
-
-  test("should call setState(true) when data-motion='off' is present on documentElement", () => {
-    const env = buildMockEnv(false, "off");
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(true);
-  });
-
-  test("should call setState(true) when BOTH OS preference and data-motion='off' are active", () => {
-    const env = buildMockEnv(true, "off");
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(true);
-  });
-
-  test("should call setState(false) when data-motion='reduce' (hook only reacts to 'off', not 'reduce')", () => {
-    const env = buildMockEnv(false, "reduce");
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(false);
-  });
-
-  test("should query window.matchMedia with '(prefers-reduced-motion: reduce)'", () => {
-    const queriesSeen: string[] = [];
-    const mq = { matches: false, addEventListener: () => {}, removeEventListener: () => {} };
-    Object.defineProperty(globalThis, "window", {
-      value: {
-        matchMedia: (q: string) => {
-          queriesSeen.push(q);
-          return mq;
-        },
-      },
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(globalThis, "document", {
-      value: { documentElement: { dataset: {} } },
-      writable: true,
-      configurable: true,
-    });
-    Object.defineProperty(globalThis, "MutationObserver", {
-      value: class {
-        constructor(_cb: () => void) {}
-        observe() {}
-        disconnect() {}
-      },
-      writable: true,
-      configurable: true,
-    });
-
-    usePrefersReducedMotion();
-    if (!_effectCb) throw new Error("no effect");
-    _effectCleanup = _effectCb();
-
-    expect(queriesSeen).toContain("(prefers-reduced-motion: reduce)");
+    renderHook(() => usePrefersReducedMotion());
+    expect(env.queriesSeen).toContain("(prefers-reduced-motion: reduce)");
   });
 });
 
-describe("usePrefersReducedMotion — SSR safety", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
-    clearBrowserMocks();
-  });
-  afterEach(clearBrowserMocks);
-
-  test("should not throw when window is undefined (SSR environment)", () => {
-    usePrefersReducedMotion();
-    expect(() => {
-      if (!_effectCb) throw new Error("no effect");
-      _effectCleanup = _effectCb();
-    }).not.toThrow();
-  });
-
-  test("should return undefined cleanup when window is undefined (no listeners registered)", () => {
-    usePrefersReducedMotion();
-    if (!_effectCb) throw new Error("no effect");
-    const cleanup = _effectCb();
-    expect(cleanup).toBeUndefined();
-  });
-
-  test("should not construct MutationObserver when window is undefined", () => {
-    let constructed = false;
-    Object.defineProperty(globalThis, "MutationObserver", {
-      value: class {
-        constructor() {
-          constructed = true;
-        }
-        observe() {}
-        disconnect() {}
-      },
-      writable: true,
-      configurable: true,
-    });
-    usePrefersReducedMotion();
-    if (!_effectCb) throw new Error("no effect");
-    _effectCleanup = _effectCb();
-    expect(constructed).toBe(false);
-  });
-
-  test("should not call matchMedia when window is undefined", () => {
-    let called = false;
-    usePrefersReducedMotion();
-    if (!_effectCb) throw new Error("no effect");
-    expect(() => (_effectCleanup = _effectCb())).not.toThrow();
-    expect(called).toBe(false);
+// The old "SSR safety" block simulated window === undefined by nulling the
+// global, which cannot coexist with a real registered DOM (and React effects
+// never run during SSR anyway, so the guard in the hook is belt-and-braces).
+// The guard's presence is asserted structurally instead.
+describe("usePrefersReducedMotion - SSR guard", () => {
+  test("the effect body guards on typeof window before touching browser APIs", () => {
+    // Transpile-tolerant: bun minifies the guard to `typeof window > "u"`.
+    expect(String(usePrefersReducedMotion)).toContain("typeof window");
   });
 });
 
-describe("usePrefersReducedMotion — MutationObserver setup", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
-  });
-  afterEach(clearBrowserMocks);
+describe("usePrefersReducedMotion - MutationObserver setup", () => {
+  afterEach(restoreEnv);
 
-  test("should observe document.documentElement", () => {
+  test("observes document.documentElement", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    renderHook(() => usePrefersReducedMotion());
     expect(env.obs!.observeCalled).toBe(true);
-    expect(env.obs!.observeTarget).toBe(env.docEl);
+    expect(env.obs!.observeTarget).toBe(document.documentElement);
   });
 
-  test("should configure MutationObserver with attributes: true", () => {
+  test("configures the observer with attributes: true", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    renderHook(() => usePrefersReducedMotion());
     expect(env.obs!.observeOptions?.attributes).toBe(true);
   });
 
-  test("should configure MutationObserver to watch only the data-motion attribute", () => {
+  test("watches only the data-motion attribute", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    renderHook(() => usePrefersReducedMotion());
     expect(env.obs!.observeOptions?.attributeFilter).toEqual(["data-motion"]);
   });
 
-  test("should register exactly one change listener on the matchMedia query", () => {
+  test("registers exactly one change listener on the matchMedia query", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    renderHook(() => usePrefersReducedMotion());
     expect(env.mqListeners.length).toBe(1);
     expect(typeof env.mqListeners[0]).toBe("function");
   });
 });
 
-describe("usePrefersReducedMotion — cleanup on unmount", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
-  });
-  afterEach(clearBrowserMocks);
+describe("usePrefersReducedMotion - cleanup on unmount", () => {
+  afterEach(restoreEnv);
 
-  test("should remove the matchMedia change listener on cleanup", () => {
+  test("removes the matchMedia change listener on unmount", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    const { unmount } = renderHook(() => usePrefersReducedMotion());
     const registered = env.mqListeners[0];
-    env.runCleanup();
+    unmount();
     expect(env.mqRemovedListeners.length).toBe(1);
     expect(env.mqRemovedListeners[0]).toBe(registered);
   });
 
-  test("should disconnect the MutationObserver on cleanup", () => {
+  test("disconnects the MutationObserver on unmount", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
+    const { unmount } = renderHook(() => usePrefersReducedMotion());
     expect(env.obs!.disconnectCalled).toBe(false);
-    env.runCleanup();
-    expect(env.obs!.disconnectCalled).toBe(true);
-  });
-
-  test("should call both removeEventListener and disconnect when unmounting", () => {
-    const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    env.runCleanup();
-    expect(env.mqRemovedListeners.length).toBe(1);
+    unmount();
     expect(env.obs!.disconnectCalled).toBe(true);
   });
 });
 
-describe("usePrefersReducedMotion — reactivity to runtime changes", () => {
-  beforeEach(() => {
-    _effectCb = null;
-    _effectCleanup = undefined;
-    _setterCalls.length = 0;
-  });
-  afterEach(clearBrowserMocks);
+describe("usePrefersReducedMotion - reactivity to runtime changes", () => {
+  afterEach(restoreEnv);
 
-  test("should call setState when the matchMedia change listener fires", () => {
+  test("recomputes to true when matchMedia fires with matches=true", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    const before = _setterCalls.length;
-    env.mqListeners[0]();
-    expect(_setterCalls.length).toBe(before + 1);
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(false);
+    act(() => {
+      env.mq.matches = true;
+      env.mqListeners[0]();
+    });
+    expect(result.current).toBe(true);
   });
 
-  test("should call setState when the MutationObserver fires", () => {
+  test("recomputes to true when the observer fires after data-motion='off' lands", () => {
     const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    const before = _setterCalls.length;
-    env.obs!.triggerMutation();
-    expect(_setterCalls.length).toBe(before + 1);
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(false);
+    act(() => {
+      document.documentElement.dataset.motion = "off";
+      env.obs!.triggerMutation();
+    });
+    expect(result.current).toBe(true);
   });
 
-  test("should set state to true when matchMedia fires with matches=true", () => {
-    const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(false);
-    env.mq.matches = true;
-    env.mqListeners[0]();
-    expect(_setterCalls[_setterCalls.length - 1]).toBe(true);
-  });
-
-  test("should set state to true when MutationObserver fires after data-motion is set to 'off'", () => {
-    const env = buildMockEnv(false);
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(false);
-    env.docEl.dataset.motion = "off";
-    env.obs!.triggerMutation();
-    expect(_setterCalls[_setterCalls.length - 1]).toBe(true);
-  });
-
-  test("should set state back to false when data-motion attribute is removed", () => {
+  test("recomputes back to false when the data-motion attribute is removed", () => {
     const env = buildMockEnv(false, "off");
-    usePrefersReducedMotion();
-    env.runEffect();
-    expect(_setterCalls[0]).toBe(true);
-    delete env.docEl.dataset.motion;
-    env.obs!.triggerMutation();
-    expect(_setterCalls[_setterCalls.length - 1]).toBe(false);
+    const { result } = renderHook(() => usePrefersReducedMotion());
+    expect(result.current).toBe(true);
+    act(() => {
+      delete document.documentElement.dataset.motion;
+      env.obs!.triggerMutation();
+    });
+    expect(result.current).toBe(false);
   });
 });

@@ -6,6 +6,7 @@ import {
   ResearchSummaryRow,
 } from "./ResearchActivity";
 import type { ChatMeta } from "@/components/chat/MessageMeta";
+import { ShimmerText } from "@/components/cadence/ShimmerText";
 
 describe("ResearchActivity", () => {
   describe("parseResearchStatus", () => {
@@ -183,7 +184,7 @@ describe("ResearchActivity", () => {
         ? result.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (child: any) => child?.type === "span" && child?.props?.children === "Reading sources...",
+        (child: any) => child?.type === ShimmerText && child?.props?.children === "Reading sources...",
       );
       expect(labelSpan).toBeDefined();
     });
@@ -600,7 +601,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.children === "Searching the web",
+        (c: any) => c?.type === ShimmerText && c?.props?.children === "Searching the web",
       );
       expect(labelSpan).toBeDefined();
     });
@@ -630,7 +631,7 @@ describe("ResearchActivity", () => {
         ? result?.props.children
         : [result?.props.children];
       const labelSpan = children.find(
-        (c: any) => c?.type === "span" && c?.props?.children === "Synthesizing answer",
+        (c: any) => c?.type === ShimmerText && c?.props?.children === "Synthesizing answer",
       );
       expect(labelSpan).toBeDefined();
     });
@@ -748,7 +749,7 @@ describe("ResearchActivity", () => {
         : [result?.props.children];
       const labelSpan = children.find(
         (c: any) =>
-          c?.type === "span" && c?.props?.children === "A very long label that could overflow",
+          c?.type === ShimmerText && c?.props?.children === "A very long label that could overflow",
       );
       expect(labelSpan?.props?.style?.maxWidth).toBe(420);
       expect(labelSpan?.props?.style?.overflow).toBe("hidden");

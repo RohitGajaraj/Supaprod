@@ -102,8 +102,12 @@ describe("VerdictChip tone -> hue map", () => {
         expect(el.props.style.backgroundColor).toBe("transparent");
         expect(el.props.style.color).toBe("var(--text-faint)");
       } else {
-        expect(el.props.style.backgroundColor).toMatch(/^rgba\(/);
-        expect(el.props.style.border).toContain("0.45");
+        // Token-traced (2026-07-11): fills derive from role tokens via
+        // color-mix so both themes resolve; the old rgba() literals only
+        // held in dark.
+        expect(el.props.style.backgroundColor).toMatch(/^color-mix\(in oklab, var\(--/);
+        expect(el.props.style.backgroundColor).toContain("12%");
+        expect(el.props.style.border).toContain("45%");
       }
     }
   });
@@ -113,16 +117,16 @@ describe("VerdictChip tone -> hue map", () => {
       (
         VerdictChip as unknown as { render: (props: { tone: VerdictTone }, ref: null) => any }
       ).render({ tone }, null);
-    expect(render("SHIP").props.style.color).toBe("#8FD9A0");
-    expect(render("VALIDATED").props.style.color).toBe("#8FD9A0");
-    expect(render("KEPT").props.style.color).toBe("#8FD9A0");
+    expect(render("SHIP").props.style.color).toBe("var(--moss-bright)");
+    expect(render("VALIDATED").props.style.color).toBe("var(--moss-bright)");
+    expect(render("KEPT").props.style.color).toBe("var(--moss-bright)");
   });
 
-  test("REVISE uses the distinct #FF8B52 text shade, not raw --ember", () => {
+  test("REVISE uses the distinct ember text step, not raw --ember", () => {
     const el = (
       VerdictChip as unknown as { render: (props: { tone: VerdictTone }, ref: null) => any }
     ).render({ tone: "REVISE" }, null);
-    expect(el.props.style.color).toBe("#FF8B52");
+    expect(el.props.style.color).toBe("var(--ember-text, var(--ember))");
   });
 });
 

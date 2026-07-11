@@ -33,6 +33,8 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
+  // Known deviation from tempo-v5/research/modal.md: on mobile we keep the centered
+  // card (full-width minus 2rem) instead of collapsing to a bottom sheet.
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -44,7 +46,8 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-(--ds-radius-small) text-(--ds-gray-900) transition-colors hover:bg-(--ds-gray-100) hover:text-(--ds-gray-1000) active:bg-(--ds-gray-200) focus-visible:outline-none focus-visible:[outline:var(--ds-focus-ring-outline)] focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-(--ds-gray-100) data-[state=open]:text-(--ds-gray-1000)">
+      {/* size-8 = the 32px small control step; the icon stays 16px. */}
+      <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex size-8 cursor-pointer items-center justify-center rounded-(--ds-radius-small) text-(--ds-gray-900) transition-colors hover:bg-(--ds-gray-100) hover:text-(--ds-gray-1000) active:bg-(--ds-gray-200) focus-visible:outline-none focus-visible:[outline:var(--ds-focus-ring-outline)] focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-(--ds-gray-100) data-[state=open]:text-(--ds-gray-1000)">
         <X className="size-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>

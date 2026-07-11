@@ -27,7 +27,10 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+        {/* Layout-only overrides. The old 48px input, py-3 rows, and 20px icons broke
+            the 32/36/40 control grid and the 16px icon law; heights, icon sizes, and
+            heading type now come from CommandInput/CommandItem/CommandGroup themselves. */}
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-item]]:px-2">
           {children}
         </Command>
       </DialogContent>
@@ -44,7 +47,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-(--ds-size-large) w-full rounded-md bg-transparent py-3 text-label-14 outline-none placeholder:text-(--ds-gray-700) disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}
@@ -83,7 +86,10 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      // Heading type matches SelectLabel/DropdownMenuLabel (text-label-12 + medium,
+      // gray-700). text-label-12 is a plain CSS class, not a Tailwind utility, so it
+      // cannot ride an arbitrary variant; text-[12px] leading-4 mirrors its 12px/16px.
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:leading-4 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-(--ds-gray-700)",
       className,
     )}
     {...props}
@@ -113,8 +119,9 @@ const CommandItem = React.forwardRef<
     className={cn(
       // Row anatomy matches the popover-menu-row convention used by dropdown-menu/
       // context-menu/menubar/select (tempo-v5/research/command-menu.md is the same
-      // "menu row" pattern): 36px row height, 6px row radius.
-      "relative flex h-(--ds-popover-row-height) cursor-default gap-2 select-none items-center rounded-(--ds-popover-row-radius) px-2 text-label-14 outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+      // "menu row" pattern): 36px row height, 6px row radius, and the same
+      // gray-200 highlight step so the palette reads as a sibling of those menus.
+      "relative flex h-(--ds-popover-row-height) cursor-default gap-2 select-none items-center rounded-(--ds-popover-row-radius) px-2 text-label-14 text-(--ds-gray-1000) outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-(--ds-gray-200) data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className,
     )}
     {...props}
@@ -126,7 +133,8 @@ CommandItem.displayName = CommandPrimitive.Item.displayName;
 const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)}
+      // Same shortcut treatment as DropdownMenuShortcut: mono label, gray-700.
+      className={cn("ml-auto text-label-12-mono text-(--ds-gray-700)", className)}
       {...props}
     />
   );
