@@ -390,6 +390,12 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // Pro's line stays the depth claim (Critic on EVERY spec and bet).
           "Critic teardown of your bets, within your credits",
           "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
+          // RPT-14: the fade above is the AI's own recall cache, never the
+          // decision record itself - decisions have no expiry in the schema
+          // and the export never reads the fading table, so this is a real
+          // guarantee, not marketing. Verified against src/routes/api/public/
+          // hooks/memory-tick.ts (the only expiry cron, agent_memory only).
+          "Your decision record: exportable forever, never fades",
           "2 products, 1 workspace",
           "Shareable decision links",
           "Community support",
