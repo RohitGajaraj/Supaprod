@@ -14,7 +14,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
-export const Route = createFileRoute("/subprocessors")({ component: SubprocessorsPage });
+const TITLE = "Sub-processors · Cadence";
+const DESC = "Every third party that touches Cadence data, what it does, and the region it runs in.";
+
+export const Route = createFileRoute("/subprocessors")({
+  component: SubprocessorsPage,
+  head: () => ({
+    meta: [
+      { title: TITLE },
+      { name: "description", content: DESC },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESC },
+    ],
+  }),
+});
 
 const CATEGORY_LABEL: Record<SubProcessor["category"], string> = {
   ai_gateway: "AI gateway",
