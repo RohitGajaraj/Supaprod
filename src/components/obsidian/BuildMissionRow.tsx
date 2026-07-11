@@ -16,6 +16,7 @@ import { studioToMissionRowStatus, studioVerdict, MISSION_ROW_STEP_LABEL } from 
 import { fmtCost } from "@/components/studio/studio-format";
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { AskInContext } from "./AskInContext";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
 
 export function BuildMissionRow({
@@ -73,6 +74,17 @@ export function BuildMissionRow({
           <DropdownMenuItem onClick={onDelete}>Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* PC-29 layer 6: the one contextual delegation verb, only once the
+          session has actually shipped (merged) - a running/planned mission
+          isn't "shipped work" yet. */}
+      {verdict === "SHIP" ? (
+        <AskInContext
+          stationOrKind="shipped"
+          targetId={session.mission_id}
+          targetTitle={stripAutoPrefix(session.title)}
+        />
+      ) : null}
     </div>
   );
 }

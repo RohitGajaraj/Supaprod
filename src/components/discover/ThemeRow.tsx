@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AskInContext } from "@/components/obsidian/AskInContext";
 import { relTimeCaps, traceRef } from "./format";
 
 export interface ThemeRowProps {
@@ -210,6 +211,9 @@ export function ThemeRow({
           <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* PC-29 layer 6: the one contextual delegation verb for a theme. */}
+      <AskInContext stationOrKind="theme" targetId={themeId} targetTitle={title} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import { Copy } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -9,6 +9,9 @@ import { MonoLabel, VerdictChip, Citation } from "@/components/obsidian";
 import type { Citation as CitationRecord } from "@/components/product/CitationsCard";
 import { toast } from "@/lib/notify";
 import { getPrd, type CriticReview } from "@/lib/discovery.functions";
+import { getLineage, getProvenance } from "@/lib/lineage.functions";
+import { LineageDrawer } from "@/components/cadence/LineageDrawer";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { DetailSection, StatCell, StatStrip, type StatTone } from "@/components/discover/DetailKit";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { relTimeCaps, traceRef, verdictFor, type VerdictWord } from "@/components/discover/format";
@@ -134,12 +137,31 @@ function withCitations(children: ReactNode, citations: CitationRecord[]): ReactN
  * Every field maps to a real prds column; an absent value renders nothing.
  */
 export function SpecDetail({ id, onClose }: SpecDetailProps) {
+  const [lineageOpen, setLineageOpen] = useState(false);
   const fGetPrd = useServerFn(getPrd);
   const prdQuery = useQuery({
     queryKey: ["prd", id],
     queryFn: () => fGetPrd({ data: { id: id! } }),
     enabled: !!id,
   });
+
+  // PC-29 layer 3: who drafted this spec, and from how much evidence - the
+  // immediate parent edge (getLineage's ancestors) carries created_by_agent;
+  // getProvenance's signal_count is the "from N signals" figure.
+  const fGetLineage = useServerFn(getLineage);
+  const lineageQuery = useQuery({
+    queryKey: ["lineage", "prd", id],
+    queryFn: () => fGetLineage({ data: { kind: "prd", id: id! } }),
+    enabled: !!id,
+  });
+  const fGetProvenance = useServerFn(getProvenance);
+  const provenanceQuery = useQuery({
+    queryKey: ["provenance", "prd", id],
+    queryFn: () => fGetProvenance({ data: { kind: "prd", id: id! } }),
+    enabled: !!id,
+  });
+  const draftedByAgent = lineageQuery.data?.ancestors[0]?.created_by_agent ?? null;
+  const signalCount = provenanceQuery.data?.signal_count ?? 0;
 
   const prd = prdQuery.data?.prd as SpecRecord | undefined;
   const citations = prd?.citations ?? [];
@@ -155,6 +177,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
   };
 
   return (
+    <>
     <SlideOver
       open={!!id}
       onClose={onClose}
@@ -297,11 +320,37 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
           {/* Provenance: honest, from opportunity_id only. The full chain to the
               source signals lives one layer deeper, in the full spec editor. */}
           <DetailSection heading="Where it came from">
-            <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
-              {prd.opportunity_id
-                ? "Promoted from a Decide opportunity. Open the full spec to trace it back to the source signals."
-                : "Added directly, not promoted from a ranked opportunity."}
-            </span>
+            <div style={{ display: "grid", gap: "6px" }}>
+              <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
+                {prd.opportunity_id
+                  ? "Promoted from a Decide opportunity. Open the full spec to trace it back to the source signals."
+                  : "Added directly, not promoted from a ranked opportunity."}
+              </span>
+              {/* PC-29 layer 3: who drafted it and from how much evidence, when
+                  the immediate lineage edge names an agent. */}
+              {draftedByAgent ? (
+                <button
+                  type="button"
+                  onClick={() => setLineageOpen(true)}
+                  className="loom-press"
+                  style={{
+                    justifySelf: "start",
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontSize: "12.5px",
+                    color: "var(--glacier)",
+                    textDecoration: "underline",
+                    textUnderlineOffset: "2px",
+                  }}
+                >
+                  Drafted by {agentDisplayName(draftedByAgent)}
+                  {signalCount > 0 ? ` from ${signalCount} signal${signalCount === 1 ? "" : "s"}` : ""}
+                  {" — receipt"}
+                </button>
+              ) : null}
+            </div>
           </DetailSection>
 
           {/* Critic: verdict + summary if present, honest empty otherwise. */}
@@ -393,5 +442,13 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
         </div>
       )}
     </SlideOver>
+    <LineageDrawer
+      open={lineageOpen}
+      onOpenChange={setLineageOpen}
+      kind="prd"
+      id={id}
+      title={prd?.title}
+    />
+    </>
   );
 }

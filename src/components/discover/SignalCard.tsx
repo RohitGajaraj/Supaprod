@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AskInContext } from "@/components/obsidian/AskInContext";
 import { signalPreview, traceRef } from "./format";
 
 export interface SignalCardProps {
@@ -188,6 +189,12 @@ export function SignalCard({
               ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
+        ) : null}
+        {/* PC-29 layer 6: the one contextual delegation verb for a signal. */}
+        {id ? (
+          <span style={{ marginLeft: hasActions ? undefined : "auto" }}>
+            <AskInContext stationOrKind="signal" targetId={id} targetTitle={quote} />
+          </span>
         ) : null}
       </div>
       <p

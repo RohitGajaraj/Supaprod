@@ -80,6 +80,10 @@ type LineageEdge = {
   relation: string;
   rationale: string | null;
   created_at: string;
+  // PC-29 layer 3: the agent slug that authored this edge, or null for a
+  // human-made link. select("*") already returns this column; it was simply
+  // never in this type.
+  created_by_agent: string | null;
   // Hydrated title for the "other" end of the edge:
   peer_title?: string | null;
 };

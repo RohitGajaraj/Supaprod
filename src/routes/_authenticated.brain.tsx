@@ -28,9 +28,15 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
+
+/** PC-29 layer 2: Brain's station agent. */
+const BRAIN_STATION_AGENTS = ["data-analyst"];
 
 // Every tab panel is code-split: only the active tab's module loads.
 const InsightsPanel = lazy(() =>
@@ -602,6 +608,16 @@ function BrainPage() {
     queryKey: ["company-brain-stats", activeWorkspaceId],
     queryFn: () => fStats({ data: { workspaceId: activeWorkspaceId } }),
   });
+  // PC-29 layer 2: shared cache with Build's "By Agent" tab (same
+  // queryKey) - a cache read here, not a second network call, on the same
+  // workspace. Scoped by workspaceId so switching workspaces doesn't show
+  // another workspace's agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) => BRAIN_STATION_AGENTS.includes(a.slug));
 
   // Fresh search object: every drill param clears on a tab switch (the old
   // version carried ?meeting across tabs).
@@ -662,6 +678,21 @@ function BrainPage() {
           >
             Every call you made, what it became, and how belief moved.
           </p>
+          {presenceAgent ? (
+            <div style={{ marginBottom: 18 }}>
+              <PresenceChip
+                agentSlug={presenceAgent.slug}
+                station="brain"
+                state={presenceAgent.state === "working" ? "working" : "idle"}
+                lastActedAt={presenceAgent.lastActiveAt}
+              />
+            </div>
+          ) : null}
+          {/* PC-29 layer 4: the inline relay, live only while Measure/Learn has a
+              run going. Brain was the one station missing this among the 5. */}
+          <div style={{ marginBottom: 18 }}>
+            <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
+          </div>
         </div>
 
         <BrainStatTrio />

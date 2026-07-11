@@ -71,12 +71,16 @@ describe("displayWho", () => {
     expect(displayWho(null)).toBe("You");
   });
 
-  test("the legacy 'builder' agent slug reads as 'Build' (post-rename)", () => {
-    expect(displayWho("builder")).toBe("Build");
+  test("a catalog slug resolves to its display name, never the raw slug", () => {
+    expect(displayWho("builder")).toBe("Engineer");
+    expect(displayWho("critic")).toBe("Challenge");
   });
 
-  test("any other slug passes through verbatim", () => {
-    expect(displayWho("critic")).toBe("critic");
-    expect(displayWho("scout")).toBe("scout");
+  test("a deprecated legacy slug still resolves through the catalog (map-only alias)", () => {
+    expect(displayWho("scout")).toBe("Watch");
+  });
+
+  test("an unknown slug title-cases rather than leaking verbatim", () => {
+    expect(displayWho("some-unknown-slug")).toBe("Some Unknown Slug");
   });
 });

@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { RoadmapColumns } from "./RoadmapColumns";
 import { SpecComposer } from "./SpecComposer";
 import { SpecList } from "./SpecList";
@@ -7,6 +13,10 @@ import { SpecDetail } from "./SpecDetail";
 import { StakeholderPackPanel } from "./StakeholderPackPanel";
 import { GoalsPanel } from "./GoalsPanel";
 import { LoopsPanel } from "./LoopsPanel";
+
+/** PC-29 layer 2: Define's station agents, most-relevant first (the fleet is
+ * already sorted attention-first, agent-fleet.ts). */
+const DEFINE_STATION_AGENTS = ["prd-writer", "sprint-planner", "ux-architect"];
 
 /** The deep-linkable Plan sections (?view=), honored by scrolling the
  * section into view and moving focus to its heading (DESIGN-LOOM §9b).
@@ -29,6 +39,19 @@ export type PlanView = (typeof PLAN_VIEWS)[number];
  */
 export function PlanSurface({ view }: { view?: PlanView }) {
   const [specOpen, setSpecOpen] = useState<string | null>(null);
+  const { activeWorkspaceId } = useWorkspace();
+  // PC-29 layer 2: shared cache with FleetView's "By Agent" tab (same
+  // queryKey) - a cache read here, not a second network call, on the same
+  // workspace. Scoped by workspaceId so switching workspaces doesn't show
+  // another workspace's agent activity.
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
+    DEFINE_STATION_AGENTS.includes(a.slug),
+  );
   const sectionRefs = {
     goals: useRef<HTMLElement>(null),
     loops: useRef<HTMLElement>(null),
@@ -122,6 +145,21 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         <p style={{ fontSize: 14, color: "var(--text-body)", margin: "10px 0 0" }}>
           Every bet declares an outcome and a measure. Nothing hides in a backlog.
         </p>
+        {presenceAgent ? (
+          <div style={{ marginTop: 14 }}>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="define"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
+          </div>
+        ) : null}
+        {/* PC-29 layer 4: the inline relay, live only while Define has a run
+            going (a spec being drafted, a sprint being planned). */}
+        <div style={{ marginTop: 14 }}>
+          <AgentRelay variant="station" station="define" workspaceId={activeWorkspaceId} />
+        </div>
       </div>
 
       <div style={{ marginBottom: 14 }}>

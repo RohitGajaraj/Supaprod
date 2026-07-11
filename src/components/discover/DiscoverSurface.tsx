@@ -4,8 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { PresenceChip } from "@/components/obsidian/PresenceChip";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listSignals } from "@/lib/discovery.functions";
+import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
@@ -14,6 +17,11 @@ import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
 import { StrategySection } from "./StrategySection";
+
+/** PC-29 layer 2: Discover's station agents, most-relevant first. The fleet
+ * is already sorted attention-first (agent-fleet.ts), so the first candidate
+ * present is the one worth showing. */
+const DISCOVER_STATION_AGENTS = ["discovery-scout", "researcher"];
 
 /** Loom v4 §9: every empty state whispers the moat — a faint, static
  * constellation of nodes and threads. Decorative only, so it is hidden from
@@ -57,11 +65,26 @@ function ConstellationMotif() {
 export function DiscoverSurface() {
   const navigate = useNavigate();
   const { tab } = useSearch({ from: "/_authenticated/discover" });
-  const { activeProductId, setActiveWorkspaceId, refreshWorkspaces } = useWorkspace();
+  const { activeProductId, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =
+    useWorkspace();
   const fSignals = useServerFn(listSignals);
   const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
   const fTriggerSample = useServerFn(triggerSampleWorkspace);
   const queryClient = useQueryClient();
+  // PC-29 layer 2: shared cache with FleetView's "By Agent" tab (same
+  // queryKey) - a cache read here, not a second network call, when both are
+  // mounted on the same workspace. Scoped by workspaceId so switching
+  // workspaces doesn't show another workspace's agent activity (getAgentFleet
+  // itself also filters server-side; the query key just keeps the cache
+  // honest across a switch).
+  const fFleet = useServerFn(getAgentFleet);
+  const fleet = useQuery({
+    queryKey: ["agent-fleet", activeWorkspaceId],
+    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
+    DISCOVER_STATION_AGENTS.includes(a.slug),
+  );
 
   // Loom W2 (audit D-24): honor the deep-link ?tab= from the legacy redirects
   // and the palette pass. Only the signals column lives here now (the
@@ -148,6 +171,16 @@ export function DiscoverSurface() {
           margin: "10px 0 14px",
         }}
       />
+      {presenceAgent ? (
+        <div style={{ marginBottom: 14 }}>
+          <PresenceChip
+            agentSlug={presenceAgent.slug}
+            station="discover"
+            state={presenceAgent.state === "working" ? "working" : "idle"}
+            lastActedAt={presenceAgent.lastActiveAt}
+          />
+        </div>
+      ) : null}
       {/* The sensing framing lives inside Discover: this is where continuous
           capture becomes ranked themes. */}
       <p
@@ -162,6 +195,11 @@ export function DiscoverSurface() {
         Cadence senses continuously. Every signal you or your tools capture flows in, gets clustered
         automatically, and rises as a ranked theme.
       </p>
+
+      {/* PC-29 layer 4: the inline relay, live only while Sense has a run
+          going. Reuses the same station data as PresenceChip above -
+          quiet when nothing is working. */}
+      <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
 
       {signalsEmpty ? (
         <div

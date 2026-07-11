@@ -17,14 +17,32 @@ import {
 
 export const getAgentFleet = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ fleet: AgentFleet }> => {
+  .inputValidator((input: { workspaceId?: string | null } | undefined) => input ?? {})
+  .handler(async ({ context, data }): Promise<{ fleet: AgentFleet }> => {
     const { supabase } = context;
-    // A recent window of runs is enough for a live fleet snapshot.
-    const { data: runs, error } = await supabase
-      .from("agent_runs")
-      .select("agent_slug,agent_name,status,created_at")
-      .order("created_at", { ascending: false })
-      .limit(500);
+    // PC-29 fix: agent_runs carries a workspace_id (WM-F1); without this filter
+    // a user who belongs to 2+ workspaces (the default — every account gets a
+    // seeded Demo workspace plus an empty one) sees another workspace's runs
+    // merged into whichever workspace is on screen. Fall back to the caller's
+    // default workspace the same way getSwarmHud does, so an omitted id still
+    // scopes to something rather than silently reading cross-workspace.
+    let workspaceId = data.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
+
+    // A recent window of runs is enough for a live fleet snapshot. No workspace
+    // at all (a brand-new account with none yet) reads as an empty fleet rather
+    // than every workspace's runs merged together.
+    const { data: runs, error } = workspaceId
+      ? await supabase
+          .from("agent_runs")
+          .select("agent_slug,agent_name,status,created_at")
+          .eq("workspace_id", workspaceId)
+          .order("created_at", { ascending: false })
+          .limit(500)
+      : { data: [], error: null };
     if (error) throw new Error(error.message);
 
     let roster: FleetRosterInput[] = [];

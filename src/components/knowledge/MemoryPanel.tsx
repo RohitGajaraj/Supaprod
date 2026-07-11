@@ -17,6 +17,7 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { countPriorityMoves } from "@/lib/memory-compounding";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 
 type LearningRow = {
   id: string;
@@ -32,6 +33,8 @@ type LearningRow = {
   /** Title of the opportunity this learning rescored — the named priority that
    *  moved (MOAT-VIS). Null when the learning is not tied to an opportunity. */
   opportunity_title: string | null;
+  /** PC-29 layer 3: which agent recorded this learning (the Historian). */
+  recorded_by_agent_slug: string | null;
 };
 
 const VERDICT_TONE: Record<LearningRow["verdict"], VerdictTone> = {
@@ -188,6 +191,14 @@ export function MemoryPanel() {
                         {l.opportunity_title ?? "a priority"}
                       </span>{" "}
                       · ICE {Number(l.prior_ice).toFixed(1)} → {Number(l.new_ice).toFixed(1)}
+                    </span>
+                  ) : null}
+                  {l.recorded_by_agent_slug ? (
+                    <span
+                      className="mono-label"
+                      style={{ fontSize: 8.5, display: "block", marginTop: 2 }}
+                    >
+                      recorded by {agentDisplayName(l.recorded_by_agent_slug)}
                     </span>
                   ) : null}
                 </span>

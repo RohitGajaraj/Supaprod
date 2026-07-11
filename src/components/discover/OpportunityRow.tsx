@@ -9,6 +9,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AskInContext } from "@/components/obsidian/AskInContext";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import type { Designation } from "./ranking";
 
@@ -515,6 +516,8 @@ export function OpportunityRow({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
+          {/* PC-29 layer 6: the one contextual delegation verb for a bet. */}
+          {id ? <AskInContext stationOrKind="opportunity" targetId={id} targetTitle={title} /> : null}
         </div>
       </div>
     </div>
