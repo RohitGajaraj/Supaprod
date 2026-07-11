@@ -103,6 +103,17 @@ reclaim_done="$(bash "$LANE" claim "M1 / LRN-01" 4 "src/lib/support/**" 2>&1; ec
   && ok "held -> absent from next; done -> claim refused (exit 4)" \
   || bad "slash-id next/done handling wrong (in_next_held=$in_next_held reclaim='$reclaim_done')"
 
+# 12) `next` recognizes an ANNOTATED partial status cell (e.g. "◐ [~80%]"), not only a bare
+#     "◐" with nothing else in the cell (regression: the eligibility awk did an exact `==`
+#     match against the bare symbol, so every annotated row - the universal convention across
+#     this dashboard - was silently invisible to every lane's `next`, fleet-wide, until fixed
+#     to a prefix match via `index(s, sym) == 1`). Coupled to the real dashboard like test 11
+#     above: OBS-PORT is a long-standing, always-annotated Tier-1 partial row.
+echo "[12] next recognizes an annotated partial status cell, not only a bare symbol"
+annotated_in_next="$(bash "$LANE" next 2>/dev/null | grep -c '^OBS-PORT$' || true)"
+[ "$annotated_in_next" = 1 ] && ok "an annotated '◐ [...]' row (OBS-PORT) is eligible in next" \
+  || bad "annotated partial row missing from next (count=$annotated_in_next) - the exact-match regression may be back"
+
 echo
 echo "RESULT: $pass passed, $fail failed"
 [ "$fail" = 0 ]
