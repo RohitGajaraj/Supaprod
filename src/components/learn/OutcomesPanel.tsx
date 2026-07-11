@@ -32,9 +32,9 @@ export function OutcomesPanel() {
   }
   if (launches.length === 0) {
     return (
-      <div className="bento p-10 text-center">
-        <Megaphone className="h-6 w-6 mx-auto text-violet-300/70" />
-        <h3 className="font-display text-base mt-3">Outcomes land here</h3>
+      <div className="material-medium p-10 text-center">
+        <Megaphone className="h-6 w-6 mx-auto text-muted-foreground" />
+        <h3 className="text-heading-16 mt-3">Outcomes land here</h3>
         <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">
           Growth-agent drafts (changelog, Slack post, announcement email) queue here behind an
           approval gate. Outbound only sends after you approve.
@@ -45,7 +45,7 @@ export function OutcomesPanel() {
   return (
     <div className="space-y-4">
       {launches.map((a) => (
-        <div key={a.id} className="bento p-5">
+        <div key={a.id} className="material-medium p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export function OutcomesPanel() {
             <Link
               to="/govern"
               search={{ tab: "approvals" }}
-              className="mt-3 inline-flex items-center gap-1 text-[11px] text-violet-300 hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-[11px] text-action-blue hover:underline"
             >
               Review in Approvals <ArrowUpRight className="h-3 w-3" />
             </Link>

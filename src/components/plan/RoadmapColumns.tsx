@@ -239,15 +239,13 @@ export function RoadmapColumns() {
       {/* OBS-10: bulk re-prioritize bar, appears only once a set is selected (calm front). */}
       {selectedIds.size > 0 && (
         <div
+          className="material-base"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
             padding: "10px 14px",
             marginBottom: 12,
-            background: "var(--surface-card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-panel)",
           }}
         >
           <MonoLabel tone="muted">{selectedIds.size} selected</MonoLabel>

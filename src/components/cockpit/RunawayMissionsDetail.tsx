@@ -171,7 +171,10 @@ function MissionCard({ missionId, severity, reasons, onClick }: MissionCardProps
       onClick={onClick}
       style={{
         padding: 10,
-        backgroundColor: severity === "runaway" ? "rgba(139, 69, 19, 0.05)" : "rgba(0, 0, 0, 0.02)",
+        backgroundColor:
+          severity === "runaway"
+            ? "color-mix(in oklab, var(--ink) 6%, transparent)"
+            : "rgba(0, 0, 0, 0.02)",
         border: "1px solid var(--stroke-faint)",
         borderRadius: 4,
         cursor: "pointer",
@@ -179,11 +182,15 @@ function MissionCard({ missionId, severity, reasons, onClick }: MissionCardProps
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLDivElement).style.backgroundColor =
-          severity === "runaway" ? "rgba(139, 69, 19, 0.1)" : "rgba(0, 0, 0, 0.05)";
+          severity === "runaway"
+            ? "color-mix(in oklab, var(--ink) 12%, transparent)"
+            : "rgba(0, 0, 0, 0.05)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLDivElement).style.backgroundColor =
-          severity === "runaway" ? "rgba(139, 69, 19, 0.05)" : "rgba(0, 0, 0, 0.02)";
+          severity === "runaway"
+            ? "color-mix(in oklab, var(--ink) 6%, transparent)"
+            : "rgba(0, 0, 0, 0.02)";
       }}
     >
       <div

@@ -7,6 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { ProviderSpec } from "@/lib/connectors/registry";
 
 // F-CONN Phase 1 — paste-an-API-key connect for api_key providers
@@ -56,29 +58,23 @@ export function ApiKeyConnectDialog({
           }}
           className="space-y-3"
         >
-          <input
+          <Input
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={method?.kind === "api_key" ? method.placeholder : "API key"}
             autoFocus
-            className="w-full rounded-lg border hairline bg-background/40 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
           />
-          <input
+          <Input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Label (optional, e.g. Acme workspace)"
             maxLength={80}
-            className="w-full rounded-lg border hairline bg-background/40 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
           />
           <DialogFooter>
-            <button
-              type="submit"
-              disabled={pending || !apiKey.trim()}
-              className="btn-pill text-xs px-4 py-1.5 disabled:opacity-50"
-            >
+            <Button type="submit" size="sm" disabled={pending || !apiKey.trim()}>
               {pending ? "Connecting…" : "Connect"}
-            </button>
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -157,7 +157,7 @@ export function CompoundingPanel() {
               key={l.id}
               to="/brain"
               search={{ tab: "learnings", learning: l.id }}
-              className="block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 textDecoration: "none",
                 color: "inherit",

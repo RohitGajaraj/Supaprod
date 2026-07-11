@@ -38,7 +38,7 @@ export function SharedPremiseNudge({
   if (dismissed || !data || data.length === 0) return null;
   return (
     <aside
-      className={["bento", className].filter(Boolean).join(" ")}
+      className={["material-medium", className].filter(Boolean).join(" ")}
       aria-label="Shared-premise precedent"
     >
       <div className="flex items-center justify-between">

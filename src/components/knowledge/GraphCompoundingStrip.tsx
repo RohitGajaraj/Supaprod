@@ -127,11 +127,9 @@ export function GraphCompoundingStrip({
 
   return (
     <div
+      className="material-medium"
       style={{
         background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--top-light)",
         padding: "14px 18px",
         marginBottom: 12,
       }}

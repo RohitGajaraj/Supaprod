@@ -55,7 +55,7 @@ function FilterGroup<T extends string>({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 9,
@@ -211,7 +211,7 @@ export function DesignMemoryPanel() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
@@ -255,7 +255,7 @@ function DesignMemoryRowView({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           display: "grid",
           gridTemplateColumns: grid,
@@ -310,7 +310,7 @@ function DesignMemoryRowView({
                 type="button"
                 disabled={deciding}
                 onClick={() => onDecide("approve")}
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontSize: 11,
                   color: "var(--moss)",
@@ -326,7 +326,7 @@ function DesignMemoryRowView({
                 type="button"
                 disabled={deciding}
                 onClick={() => onDecide("reject")}
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontSize: 11,
                   color: "var(--madder)",
@@ -442,7 +442,7 @@ function AddDesignMemoryDialog({
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://your-marketing-site.com"
                 autoFocus
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   width: "100%",
                   background: "var(--card)",
@@ -464,7 +464,7 @@ function AddDesignMemoryDialog({
                 rows={6}
                 maxLength={20000}
                 autoFocus
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   width: "100%",
                   resize: "vertical",

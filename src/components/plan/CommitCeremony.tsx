@@ -38,18 +38,12 @@ export function CommitCeremony({ bet, onConfirm, onCancel, pending = false }: Co
         />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 outline-none"
+          className="material-modal fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 outline-none"
           style={{
             width: "480px",
             maxWidth: "92vw",
-            background: "var(--raised)",
             backdropFilter: "blur(20px)",
-            border: "1px solid var(--hairline-strong)",
-            borderRadius: "var(--radius-panel)",
             padding: "24px",
-            // v4 overlay depth (§2): glass hairline top-light + the deep
-            // overlay shadow, in place of the old ad-hoc drop shadow.
-            boxShadow: "var(--shadow-glass), var(--shadow-overlay)",
             animation: "cadRise var(--dur-panel) var(--ease)",
           }}
         >

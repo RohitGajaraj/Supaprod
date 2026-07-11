@@ -29,14 +29,14 @@ function CodeBlock({ children }: { children?: ReactNode }) {
 
   return (
     <div className="group/code relative my-3">
-      <pre className="overflow-x-auto rounded-lg border hairline bg-background/60 p-3 font-mono text-[12.5px] leading-relaxed [&_code]:bg-transparent [&_code]:p-0">
+      <pre className="material-small overflow-x-auto p-3 font-mono text-[12.5px] leading-relaxed [&_code]:bg-transparent [&_code]:p-0">
         {children}
       </pre>
       <button
         type="button"
         onClick={copy}
         aria-label={copied ? "Copied" : "Copy code"}
-        className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-md border hairline bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity duration-150 hover:text-foreground focus-visible:opacity-100 group-hover/code:opacity-100"
+        className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-md border hairline bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity duration-150 hover:text-foreground focus-visible:opacity-100 group-hover/code:opacity-100"
       >
         {copied ? <Check className="h-3 w-3 text-deep-green" /> : <Copy className="h-3 w-3" />}
       </button>
@@ -102,18 +102,12 @@ const components: Components = {
   ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-  h1: ({ children }) => (
-    <h1 className="mb-2 mt-4 text-base font-semibold text-foreground">{children}</h1>
-  ),
+  h1: ({ children }) => <h1 className="mb-2 mt-4 text-heading-16 text-foreground">{children}</h1>,
   h2: ({ children }) => (
     <h2 className="mb-1.5 mt-4 text-[15px] font-semibold text-foreground">{children}</h2>
   ),
-  h3: ({ children }) => (
-    <h3 className="mb-1 mt-3 text-sm font-semibold text-foreground">{children}</h3>
-  ),
-  h4: ({ children }) => (
-    <h4 className="mb-1 mt-3 text-sm font-semibold text-foreground">{children}</h4>
-  ),
+  h3: ({ children }) => <h3 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h3>,
+  h4: ({ children }) => <h4 className="mb-1 mt-3 text-heading-14 text-foreground">{children}</h4>,
   blockquote: ({ children }) => (
     <blockquote className="my-2 border-l-2 border-border pl-3 italic text-muted-foreground">
       {children}

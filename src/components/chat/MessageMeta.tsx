@@ -396,14 +396,7 @@ export function MessageMetaFooter({
               align="end"
               side="top"
               sideOffset={6}
-              className="border-hairline"
-              style={{
-                width: 190,
-                background: "var(--canvas)",
-                borderRadius: 10,
-                padding: 5,
-                boxShadow: "0 12px 32px -16px oklch(0 0 0 / 30%)",
-              }}
+              style={{ width: 190, padding: 5 }}
             >
               <span
                 className="mono-label"

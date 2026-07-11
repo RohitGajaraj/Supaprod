@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/ui/button";
 import { exportWorkspace, listExportLog, type ExportLogRow } from "@/lib/projects.functions";
 
 // U6 · Data portability: export the whole workspace footprint as one JSON
@@ -70,9 +71,12 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
   }
 
   return (
-    <div className="bento" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
       <div className="mono-label">Export your data</div>
-      <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}>
+      <p
+        className="text-copy-13"
+        style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
+      >
         Download this workspace as one JSON file: your signals, opportunities and decisions, specs,
         tasks, outcomes, and agent memory. Pick what to include. Yours to keep or move anywhere, no
         lock-in.
@@ -85,31 +89,35 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
         {SECTIONS.map((s) => (
           <label
             key={s.id}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
+            className="text-label-13"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
             <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
             {s.label}
           </label>
         ))}
       </div>
-      <button
-        className="btn btn-ghost btn-sm"
-        style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8 }}
+      <Button
+        variant="ghost"
+        size="sm"
+        style={{ marginTop: 14 }}
         onClick={onExport}
         disabled={busy || selected.size === 0}
       >
         <Download size={14} />
         {busy ? "Preparing your export" : "Download workspace export"}
-      </button>
+      </Button>
 
       <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
         <div className="mono-label" style={{ fontSize: 11 }}>
           Recent exports
         </div>
         {history.isLoading ? (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 12 }}>Loading</p>
+          <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
+            Loading
+          </p>
         ) : exports.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 12 }}>
+          <p className="text-copy-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
             Your past exports will appear here.
           </p>
         ) : (
@@ -126,13 +134,13 @@ export function DataExportCard({ workspaceId }: { workspaceId?: string }) {
                   borderTop: i === 0 ? "none" : "1px solid var(--hairline)",
                 }}
               >
-                <span style={{ fontSize: 13, color: "var(--ink)" }}>
+                <span className="text-label-13" style={{ color: "var(--ink)" }}>
                   {new Date(e.created_at).toLocaleString(undefined, {
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}
                 </span>
-                <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>
+                <span className="text-label-12" style={{ color: "var(--ink-muted)" }}>
                   {KIND_LABEL[e.kind]} · {e.row_count} records
                 </span>
               </li>

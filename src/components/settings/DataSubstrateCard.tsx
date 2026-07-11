@@ -35,13 +35,16 @@ export function DataSubstrateCard() {
   const hasSeal = seal?.available && !!seal.head && seal.count > 0;
 
   return (
-    <div className="bento" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
       <div className="mono-label" style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <Database size={13} strokeWidth={1.8} />
         Where your brain lives
       </div>
 
-      <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}>
+      <p
+        className="text-copy-13"
+        style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
+      >
         Your workspace runs on a dedicated Postgres database, with pgvector for semantic memory
         search. It is not a shared model or a black box. It is your data, in a database you can
         query, export, and take with you.
@@ -51,7 +54,10 @@ export function DataSubstrateCard() {
         <div className="mono-label" style={{ fontSize: 10 }}>
           Ownership
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 6, maxWidth: 520 }}>
+        <p
+          className="text-copy-13"
+          style={{ color: "var(--ink-muted)", marginTop: 6, maxWidth: 520 }}
+        >
           This data is yours. Cadence does not train shared models on it or sell it. The full export
           below is the same data you own, in one file, with no lock-in.
         </p>

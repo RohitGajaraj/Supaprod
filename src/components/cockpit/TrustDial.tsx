@@ -115,7 +115,7 @@ export function TrustDial({ nameById }: { nameById: Map<string, NameInfo> }) {
           <ShieldCheck size={11} strokeWidth={1.75} /> earned, not granted
         </span>
       </div>
-      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+      <div className="material-medium" style={{ padding: 0, overflow: "hidden" }}>
         {rows.map((t, i) => (
           <TrustRow key={t.agent_id} trust={t} info={nameById.get(t.agent_id)} first={i === 0} />
         ))}
@@ -257,7 +257,7 @@ function TrustRow({
         {canPromote ? (
           <button
             type="button"
-            className="btn btn-primary btn-sm"
+            className="btn btn-secondary btn-sm"
             style={{ flexShrink: 0 }}
             disabled={setArc.isPending}
             onClick={() => setArc.mutate(trust.suggested_arc)}

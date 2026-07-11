@@ -123,7 +123,7 @@ function TranscriptCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => setExpanded((v) => !v)}
-                className="h-7 gap-1 text-xs"
+                className="gap-1 text-xs"
               >
                 Transcript
                 {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -182,7 +182,7 @@ function TranscriptCard({
               variant="outline"
               size="sm"
               onClick={() => onExtract(transcript.id)}
-              className="gap-1.5 text-xs h-7"
+              className="gap-1.5 text-xs"
             >
               <Sparkles className="h-3 w-3" />
               Extract action items

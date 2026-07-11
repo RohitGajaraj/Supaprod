@@ -20,6 +20,7 @@ import { useState } from "react";
 import { Check, Copy, KeyRound, Plug, Trash2 } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -61,9 +62,9 @@ function fmtDate(iso: string | null): string {
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <button
-      type="button"
-      className="btn btn-ghost btn-sm"
+    <Button
+      variant="ghost"
+      size="sm"
       aria-label={copied ? "Copied to clipboard" : `${label} to clipboard`}
       onClick={async () => {
         try {
@@ -85,7 +86,7 @@ function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) 
           <Copy size={13} strokeWidth={1.75} /> {label}
         </>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -168,7 +169,7 @@ export function IntegrationsTab() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* Intro */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel icon={Plug} style={{ marginBottom: 4 }}>
           MCP access
         </MonoLabel>
@@ -180,9 +181,9 @@ export function IntegrationsTab() {
       </div>
 
       {/* Issue a token */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 4 }}>Issue a token</MonoLabel>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
+        <p className="text-label-12" style={{ color: "var(--ink-subtle)", marginBottom: 12 }}>
           Name this token for the tool using it. The secret is shown once, right after you create
           it.
         </p>
@@ -218,7 +219,7 @@ export function IntegrationsTab() {
             </label>
             <button
               type="submit"
-              className="btn btn-primary btn-sm"
+              className="btn btn-secondary btn-sm"
               disabled={!slug.trim() || issue.isPending}
             >
               <KeyRound size={13} strokeWidth={1.75} />
@@ -262,21 +263,21 @@ export function IntegrationsTab() {
                 {freshToken}
               </code>
               <CopyButton text={freshToken} />
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setFreshToken(null)}
                 style={{ flexShrink: 0 }}
               >
                 Done
-              </button>
+              </Button>
             </div>
           </div>
         ) : null}
       </div>
 
       {/* Active tokens */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Active tokens</MonoLabel>
         {tokensQ.isLoading ? (
           <div className="mono-label" style={{ color: "var(--ink-faint)", padding: "8px 0" }}>
@@ -287,7 +288,7 @@ export function IntegrationsTab() {
             {(tokensQ.error as Error).message}
           </p>
         ) : tokens.length === 0 ? (
-          <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: 0 }}>
+          <p className="text-label-12" style={{ color: "var(--ink-faint)", margin: 0 }}>
             No tokens yet. Issue one above to connect an external agent.
           </p>
         ) : (
@@ -297,6 +298,7 @@ export function IntegrationsTab() {
               return (
                 <div
                   key={t.id}
+                  className="text-label-13"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -304,7 +306,6 @@ export function IntegrationsTab() {
                     padding: "10px 0",
                     borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
                     borderBottom: "1px solid var(--hairline)",
-                    fontSize: 13,
                     opacity: revoked ? 0.55 : 1,
                   }}
                 >
@@ -329,15 +330,17 @@ export function IntegrationsTab() {
                     </div>
                   </div>
                   {!revoked ? (
-                    <button
-                      className="btn btn-ghost btn-sm"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      svgOnly
                       aria-label={`Revoke ${t.slug}`}
                       style={{ color: "var(--rose)" }}
                       disabled={revoke.isPending && revoke.variables === t.id}
                       onClick={() => onRevoke(t)}
                     >
                       <Trash2 size={13} strokeWidth={1.75} />
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               );
@@ -347,9 +350,9 @@ export function IntegrationsTab() {
       </div>
 
       {/* How to connect */}
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel style={{ marginBottom: 4 }}>How to connect</MonoLabel>
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
+        <p className="text-label-12" style={{ color: "var(--ink-subtle)", marginBottom: 12 }}>
           Point any MCP-aware or HTTP client at the endpoint below, with your token as a bearer
           header. It speaks the native MCP handshake (initialize, tools/list, tools/call) over
           JSON-RPC 2.0, so a standards client connects with a pasted bearer header. The curl below
@@ -361,11 +364,10 @@ export function IntegrationsTab() {
             Endpoint
           </span>
           <code
+            className="text-label-12-mono"
             style={{
               flex: 1,
               minWidth: 0,
-              fontFamily: "var(--font-mono)",
-              fontSize: 12,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -380,9 +382,7 @@ export function IntegrationsTab() {
           <span className="mono-label" style={{ fontSize: 8.5, width: 64, flexShrink: 0 }}>
             Auth
           </span>
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>
-            Authorization: Bearer &lt;your-token&gt;
-          </code>
+          <code className="text-label-12-mono">Authorization: Bearer &lt;your-token&gt;</code>
         </div>
 
         <div style={{ marginBottom: 12 }}>

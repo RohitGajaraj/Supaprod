@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy, X } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { inviteMember, listInvitations, revokeInvitation } from "@/lib/workspaces.functions";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/notify";
 
 // Invite teammates: the calm-front view of WM-F5 (workspace invitations). Manager-only RLS
@@ -76,9 +77,12 @@ export function TeamCard() {
   const canInvite = !!activeWorkspaceId && email.trim().length > 0 && !invite.isPending;
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
       <div className="mono-label">Invite teammates</div>
-      <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}>
+      <p
+        className="text-label-12"
+        style={{ color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}
+      >
         Invite people to this workspace by email. They join with the role you pick. Outbound email
         is off for now, so share the join link the invite gives you.
       </p>
@@ -108,7 +112,7 @@ export function TeamCard() {
         </select>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          className="btn btn-secondary btn-sm"
           disabled={!canInvite}
           onClick={() => invite.mutate()}
         >
@@ -130,8 +134,8 @@ export function TeamCard() {
           }}
         >
           <code
+            className="text-label-12-mono"
             style={{
-              fontSize: 12,
               color: "var(--ink-muted)",
               flex: 1,
               overflow: "hidden",
@@ -141,15 +145,10 @@ export function TeamCard() {
           >
             {lastLink}
           </code>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={copyLink}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}
-          >
+          <Button variant="ghost" size="sm" onClick={copyLink} style={{ flexShrink: 0 }}>
             <Copy size={13} />
             Copy link
-          </button>
+          </Button>
         </div>
       )}
 
@@ -158,9 +157,11 @@ export function TeamCard() {
           Invitations
         </div>
         {invitations.isLoading ? (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 12 }}>Loading</p>
+          <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
+            Loading
+          </p>
         ) : pending.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 12 }}>
+          <p className="text-copy-13" style={{ color: "var(--ink-faint)", marginTop: 12 }}>
             No invitations yet.
           </p>
         ) : (
@@ -179,8 +180,8 @@ export function TeamCard() {
               >
                 <div style={{ minWidth: 0 }}>
                   <div
+                    className="text-label-13"
                     style={{
-                      fontSize: 13,
                       color: "var(--ink)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -194,17 +195,17 @@ export function TeamCard() {
                   </div>
                 </div>
                 {inv.status === "pending" && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     disabled={revoke.isPending}
                     onClick={() => revoke.mutate(inv.id)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}
+                    style={{ flexShrink: 0 }}
                     aria-label={`Revoke invitation for ${inv.email}`}
                   >
                     <X size={13} />
                     Revoke
-                  </button>
+                  </Button>
                 )}
               </li>
             ))}

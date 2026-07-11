@@ -19,15 +19,7 @@ import { SkeletonBar } from "./SkeletonBar";
 
 function PanelShell({ children }: { children: ReactNode }) {
   return (
-    <div
-      style={{
-        backgroundColor: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--top-light), var(--shadow-ambient)",
-        padding: "18px 20px",
-      }}
-    >
+    <div className="material-medium" style={{ padding: "18px 20px" }}>
       {children}
     </div>
   );

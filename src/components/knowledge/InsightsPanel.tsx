@@ -129,11 +129,9 @@ export function InsightsPanel() {
   if (q.isError) {
     return (
       <div
+        className="material-medium"
         style={{
           background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light)",
           padding: "16px 18px",
         }}
       >
@@ -145,7 +143,7 @@ export function InsightsPanel() {
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,

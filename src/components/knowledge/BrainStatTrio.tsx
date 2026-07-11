@@ -136,7 +136,7 @@ export function BrainStatTrio() {
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
           }}
-          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         >
           Go to Today →
         </Link>

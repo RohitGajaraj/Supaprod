@@ -112,13 +112,21 @@ export function BillingBanner() {
       {/* LOOM W1: the checkout-preview banner is contextual to billing
           surfaces only (chrome-quiet law); Settings mounts its own. */}
       {pastDue ? (
-        <div className="flex w-full items-center justify-center gap-3 border-b border-red-300 bg-red-50 px-4 py-2 text-xs text-red-900">
+        <div
+          className="flex w-full items-center justify-center gap-3 px-4 py-2 text-xs"
+          style={{
+            borderBottom: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
+            background: "color-mix(in oklab, var(--rose) 10%, transparent)",
+            color: "var(--text-body)",
+          }}
+        >
           <span>Your last renewal payment failed. Update your card to keep your plan active.</span>
           <button
             type="button"
             onClick={openPortal}
             disabled={opening}
-            className="rounded-[8px] bg-red-700 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-red-800 disabled:opacity-60"
+            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium hover:opacity-90 disabled:opacity-60"
+            style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
           >
             {opening ? "Opening..." : "Update card"}
           </button>

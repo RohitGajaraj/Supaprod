@@ -124,7 +124,7 @@ function FilterGroup<T extends string>({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor)",
@@ -205,7 +205,7 @@ export function DecisionsPanel() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search titles"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             flex: 1,
             minWidth: 160,
@@ -293,7 +293,7 @@ export function DecisionsPanel() {
               onClick={() =>
                 navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
               }
-              className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
@@ -396,7 +396,7 @@ export function DecisionsPanel() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
@@ -467,7 +467,7 @@ function LogDecisionDialog({
               placeholder="What was decided?"
               maxLength={280}
               autoFocus
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 width: "100%",
                 background: "var(--card)",
@@ -489,7 +489,7 @@ function LogDecisionDialog({
               placeholder="Why this, and not the alternative."
               rows={4}
               maxLength={2000}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 width: "100%",
                 resize: "vertical",

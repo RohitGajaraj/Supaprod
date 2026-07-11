@@ -25,9 +25,9 @@ export function LearningsPanel() {
   }
   if (learnings.length === 0) {
     return (
-      <div className="bento p-10 text-center">
-        <Sparkles className="h-6 w-6 mx-auto text-amber-300/70" />
-        <h3 className="font-display text-base mt-3">Learnings close the loop</h3>
+      <div className="material-medium p-10 text-center">
+        <Sparkles className="h-6 w-6 mx-auto text-muted-foreground" />
+        <h3 className="text-heading-16 mt-3">Learnings close the loop</h3>
         <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">
           When a shipped opportunity gets re-scored from new signals or outcomes, the change shows
           up here. This is the loop closing back to Product → Signals.
@@ -38,7 +38,7 @@ export function LearningsPanel() {
   return (
     <div className="space-y-4">
       {learnings.map((o) => (
-        <div key={o.id} className="bento p-5">
+        <div key={o.id} className="material-medium p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Link to="/discover" className="font-display text-sm hover:underline">

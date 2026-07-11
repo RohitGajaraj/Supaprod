@@ -34,14 +34,14 @@ export function BackendHealthBanner() {
         alignItems: "center",
         gap: 10,
         padding: "10px 16px",
-        background: "color-mix(in oklab, var(--ember) 14%, var(--canvas))",
-        borderBottom: "1px solid color-mix(in oklab, var(--ember) 40%, transparent)",
+        background: "color-mix(in oklab, var(--amber) 14%, var(--canvas))",
+        borderBottom: "1px solid color-mix(in oklab, var(--amber) 40%, transparent)",
         color: "var(--ink)",
         fontSize: 13,
         lineHeight: 1.45,
       }}
     >
-      <AlertTriangle size={15} style={{ color: "var(--ember)", flexShrink: 0 }} />
+      <AlertTriangle size={15} style={{ color: "var(--amber)", flexShrink: 0 }} />
       <span>
         Backend update pending. Some actions (including onboarding setup) may fail until the
         operator applies the latest migrations.

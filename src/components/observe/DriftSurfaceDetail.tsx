@@ -194,16 +194,18 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
     }
     return Array.from(map.values())
       .sort((a, b) => a.date.localeCompare(b.date))
-      .map((r): DayRow => ({
-        date: r.date,
-        reqs: r.reqs,
-        errs: r.errs,
-        latency: r.reqs ? r.lat / r.reqs : 0,
-        tokens: r.reqs ? r.tok / r.reqs : 0,
-        cost: r.reqs ? r.cost / r.reqs : 0,
-        errorRate: r.reqs ? (r.errs / r.reqs) * 100 : 0,
-        score: r.scoreReqs ? r.scoreSum / r.scoreReqs : null,
-      }));
+      .map(
+        (r): DayRow => ({
+          date: r.date,
+          reqs: r.reqs,
+          errs: r.errs,
+          latency: r.reqs ? r.lat / r.reqs : 0,
+          tokens: r.reqs ? r.tok / r.reqs : 0,
+          cost: r.reqs ? r.cost / r.reqs : 0,
+          errorRate: r.reqs ? (r.errs / r.reqs) * 100 : 0,
+          score: r.scoreReqs ? r.scoreSum / r.scoreReqs : null,
+        }),
+      );
   }, [snaps]);
 
   // Reference sparkline slot, honest rendering: on watch, the incident
@@ -217,7 +219,7 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
         return {
           series,
           baseline: Number(worst.baseline_value),
-          color: "var(--ember)",
+          color: "var(--marigold)",
           label: `${METRIC_LABELS[worst.metric] ?? worst.metric} vs baseline · last ${series.length} days`,
         };
       }
@@ -330,13 +332,13 @@ export function DriftSurfaceDetail({ id }: { id: string }) {
             <>
               <div className="font-display tabular-nums" style={{ fontSize: 24 }}>
                 {fmtMetric(worst.metric, Number(worst.baseline_value))} →{" "}
-                <span style={{ color: "var(--ember)" }}>
+                <span style={{ color: "var(--marigold)" }}>
                   {fmtMetric(worst.metric, Number(worst.current_value))}
                 </span>
               </div>
               <div style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 2 }}>
                 {METRIC_LABELS[worst.metric] ?? worst.metric} ·{" "}
-                <span className="tabular-nums" style={{ color: "var(--ember)" }}>
+                <span className="tabular-nums" style={{ color: "var(--marigold)" }}>
                   {fmtDelta(Number(worst.delta_pct))}
                 </span>
                 {openIncidents.length > 1 ? ` · +${openIncidents.length - 1} more open` : null}

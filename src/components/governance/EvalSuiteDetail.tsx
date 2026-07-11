@@ -248,13 +248,13 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <span
                 className="font-display tabular-nums"
-                style={{ fontSize: 32, color: below ? "var(--ember)" : undefined }}
+                style={{ fontSize: 32, color: below ? "var(--madder)" : undefined }}
               >
                 {score}
               </span>
               <span
                 className="mono-label"
-                style={{ color: below ? "var(--ember)" : "var(--emerald)" }}
+                style={{ color: below ? "var(--madder)" : "var(--emerald)" }}
               >
                 {below ? `below gate ${suite.pass_threshold}` : `gate ${suite.pass_threshold} ✓`}
               </span>
@@ -358,7 +358,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                       fontSize: 16,
                       color:
                         rScore != null && rScore < suite.pass_threshold
-                          ? "var(--ember)"
+                          ? "var(--madder)"
                           : "var(--ink)",
                     }}
                   >

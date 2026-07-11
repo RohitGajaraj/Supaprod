@@ -32,7 +32,7 @@ import {
 } from "@/lib/admin-invitations.functions";
 
 const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 const mutationFailed = (e: unknown) =>
   toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
@@ -90,7 +90,7 @@ function InviteCreator() {
   });
 
   return (
-    <div style={card()}>
+    <div className="material-medium" style={card()}>
       <MonoLabel>New invitation</MonoLabel>
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
@@ -161,7 +161,7 @@ function InviteList() {
   });
 
   return (
-    <div style={card()}>
+    <div className="material-medium" style={card()}>
       <MonoLabel>Invitations · {list.isLoading ? "…" : rows.length}</MonoLabel>
       {list.isLoading ? (
         <AdminSkeleton rows={3} height={38} />
@@ -267,7 +267,7 @@ function DomainList() {
   });
 
   return (
-    <div style={card()}>
+    <div className="material-medium" style={card()}>
       <MonoLabel>Auto-approve email domains</MonoLabel>
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
@@ -378,7 +378,7 @@ function SignupApprovalsList() {
   });
 
   return (
-    <div style={card()}>
+    <div className="material-medium" style={card()}>
       <MonoLabel>Pending signup approvals · {list.isLoading ? "…" : rows.length}</MonoLabel>
       {list.isLoading ? (
         <AdminSkeleton rows={2} height={34} />
@@ -434,11 +434,10 @@ function SignupApprovalsList() {
   );
 }
 
+// Radius/border/shadow come from the material-medium preset class applied at each
+// call site; this helper now supplies layout only (Tempo materials law).
 function card(): React.CSSProperties {
   return {
-    background: "var(--card)",
-    border: "1px solid var(--hairline)",
-    borderRadius: "var(--radius-card)",
     padding: "var(--space-4)",
     display: "grid",
     gap: "var(--space-3)",

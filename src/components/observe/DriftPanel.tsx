@@ -287,7 +287,6 @@ export function DriftPanel() {
                   type="number"
                   value={Number(cfg[key])}
                   onChange={(e) => setCfg({ ...cfg, [key]: Number(e.target.value) })}
-                  style={{ fontSize: 12, padding: "4px 8px" }}
                 />
               </label>
             ))}

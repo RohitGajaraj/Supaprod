@@ -7,6 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Target, Download, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
 import { toast } from "@/lib/notify";
@@ -183,7 +184,11 @@ export function ProductsTab() {
   if (portfolio.isLoading) {
     // Skeleton matches the loaded layout: one bento card with product rows.
     return (
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }} aria-hidden="true">
+      <div
+        className="material-medium"
+        style={{ padding: "var(--card-pad, 20px)" }}
+        aria-hidden="true"
+      >
         <div
           className="animate-pulse"
           style={{ height: 12, width: 140, borderRadius: 4, background: "var(--surface-2)" }}
@@ -208,20 +213,21 @@ export function ProductsTab() {
 
   if (portfolio.error) {
     return (
-      <div className="bento" style={{ padding: 24 }}>
+      <div className="material-medium" style={{ padding: 24 }}>
         <div className="mono-label" style={{ color: "var(--rose)" }}>
           Couldn't load products
         </div>
-        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+        <p className="text-copy-13" style={{ color: "var(--ink-muted)", marginTop: 8 }}>
           {(portfolio.error as Error)?.message}
         </p>
-        <button
-          className="btn btn-ghost btn-sm"
+        <Button
+          variant="ghost"
+          size="sm"
           style={{ marginTop: 14 }}
           onClick={() => portfolio.refetch()}
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -233,7 +239,7 @@ export function ProductsTab() {
   if (all.length === 0) {
     // Empty = an instruction + one action (DESIGN-LOOM §9).
     return (
-      <div className="bento" style={{ padding: 24 }}>
+      <div className="material-medium" style={{ padding: 24 }}>
         <MonoLabel icon={Target}>Products</MonoLabel>
         <p
           style={{
@@ -246,16 +252,16 @@ export function ProductsTab() {
           A product is where signals, opportunities, and specs live. New workspaces start with one
           named after the workspace; add one here to begin.
         </p>
-        <button type="button" className="btn btn-primary btn-sm" onClick={addProduct}>
+        <Button size="sm" onClick={addProduct}>
           New product
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <div
           style={{
             display: "flex",
@@ -273,9 +279,9 @@ export function ProductsTab() {
                 click to switch
               </span>
             )}
-            <button type="button" className="btn btn-ghost btn-sm" onClick={addProduct}>
+            <Button variant="ghost" size="sm" onClick={addProduct}>
               New product
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -397,7 +403,7 @@ export function ProductsTab() {
       </div>
 
       {archived.length > 0 && (
-        <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+        <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
           <MonoLabel icon={Archive}>
             Archived · {archived.length} product{archived.length === 1 ? "" : "s"}
           </MonoLabel>
@@ -417,8 +423,8 @@ export function ProductsTab() {
                 }}
               >
                 <span
+                  className="text-label-13"
                   style={{
-                    fontSize: 13,
                     color: "var(--ink-muted)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",

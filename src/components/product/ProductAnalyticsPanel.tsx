@@ -84,7 +84,7 @@ export function ProductAnalyticsPanel({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <BarChart2 className="h-3.5 w-3.5 text-indigo-500" />
+          <BarChart2 className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold text-slate-700">Post-ship analytics</span>
           {d.ingestGated && (
             <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5">
@@ -129,12 +129,12 @@ export function ProductAnalyticsPanel({
               value={eventDraft}
               onChange={(e) => setEventDraft(e.target.value)}
               placeholder="e.g. decision_made"
-              className="flex-1 text-xs border border-slate-200 rounded px-2 py-1 outline-none focus:border-indigo-400"
+              className="flex-1 text-xs border border-slate-200 rounded px-2 py-1 outline-none focus:border-foreground"
             />
             <button
               onClick={() => mLink.mutate(eventDraft.trim() || null)}
               disabled={mLink.isPending}
-              className="text-xs px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+              className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50"
             >
               {mLink.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Link"}
             </button>
@@ -144,14 +144,14 @@ export function ProductAnalyticsPanel({
           </div>
         ) : d.featureEvent ? (
           <div className="flex items-center gap-1.5">
-            <CheckCircle className="h-3 w-3 text-green-500 shrink-0" />
+            <CheckCircle className="h-3 w-3 shrink-0" style={{ color: "var(--emerald)" }} />
             <code className="text-[11px] text-slate-600">{d.featureEvent}</code>
             <button
               onClick={() => {
                 setEventDraft(d.featureEvent ?? "");
                 setEditingEvent(true);
               }}
-              className="ml-auto text-[10px] text-slate-400 hover:text-indigo-600"
+              className="ml-auto text-[10px] text-slate-400 hover:text-[var(--action-blue)]"
             >
               change
             </button>
@@ -159,7 +159,7 @@ export function ProductAnalyticsPanel({
               <button
                 onClick={() => mLink.mutate(null)}
                 disabled={mLink.isPending}
-                className="text-[10px] text-slate-400 hover:text-red-600"
+                className="text-[10px] text-slate-400 hover:text-[var(--rose)]"
               >
                 unlink
               </button>
@@ -171,7 +171,7 @@ export function ProductAnalyticsPanel({
               setEventDraft("");
               setEditingEvent(true);
             }}
-            className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800"
+            className="flex items-center gap-1.5 text-xs text-[var(--action-blue)] hover:opacity-80"
           >
             <Link2 className="h-3 w-3" />
             Link a PostHog event to track adoption

@@ -54,8 +54,8 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
             }}
             className={
               view === id
-                ? "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
-                : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] hover:[background-color:var(--hover)]"
+                ? "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                : "loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
             }
             style={{
               fontFamily: "var(--font-mono)",

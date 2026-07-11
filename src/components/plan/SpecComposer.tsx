@@ -42,11 +42,8 @@ export function SpecComposer() {
 
   return (
     <div
+      className="material-medium"
       style={{
-        background: "var(--surface-card)",
-        borderRadius: "var(--radius-panel)",
-        border: "1px solid var(--hairline)",
-        boxShadow: "var(--shadow-elevated)",
         padding: "14px 16px",
         marginBottom: 16,
       }}

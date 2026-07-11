@@ -73,7 +73,7 @@ export function TracesPanel() {
           value={days}
           onChange={(e) => setDays(Number(e.target.value))}
           aria-label="Window"
-          style={{ width: 76, fontSize: 11, padding: "4px 8px", fontFamily: "var(--font-mono)" }}
+          style={{ width: 76, fontFamily: "var(--font-mono)" }}
         >
           <option value={1}>24h</option>
           <option value={7}>7d</option>
@@ -85,7 +85,7 @@ export function TracesPanel() {
           value={status}
           onChange={(e) => setStatus(e.target.value as "all" | "ok" | "error")}
           aria-label="Status filter"
-          style={{ width: 104, fontSize: 11, padding: "4px 8px", fontFamily: "var(--font-mono)" }}
+          style={{ width: 104, fontFamily: "var(--font-mono)" }}
         >
           <option value="all">all</option>
           <option value="ok">successful</option>

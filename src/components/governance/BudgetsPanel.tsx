@@ -281,7 +281,7 @@ export function BudgetsPanel() {
                     autoFocus
                     value={capDraft}
                     onChange={(e) => setCapDraft(e.target.value)}
-                    style={{ width: 76, fontSize: 12, padding: "3px 8px" }}
+                    style={{ width: 76, fontSize: 12 }}
                     inputMode="decimal"
                     aria-label={`${label} cap`}
                   />

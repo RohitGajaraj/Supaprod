@@ -32,7 +32,7 @@ export function DecisionCurrencyBanner({
   const replacement = data.governingTitle ? `by "${data.governingTitle}"` : "by a later decision";
   return (
     <aside
-      className={["bento", className].filter(Boolean).join(" ")}
+      className={["material-medium", className].filter(Boolean).join(" ")}
       aria-label="Decision currency"
     >
       <div className="flex items-center justify-between">

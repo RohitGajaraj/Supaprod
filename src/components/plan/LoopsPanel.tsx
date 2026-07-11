@@ -91,11 +91,8 @@ export function LoopsPanel() {
   return (
     <div>
       <div
+        className="material-medium"
         style={{
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
-          border: "1px solid var(--hairline)",
-          boxShadow: "var(--shadow-elevated)",
           padding: "14px 16px",
           marginBottom: 16,
         }}
@@ -223,16 +220,14 @@ function LoopCard({
   const next = fmtWhen(loop.next_run_at);
   return (
     <div
+      className="material-base"
       style={{
-        background: "var(--surface-card)",
-        borderRadius: "var(--radius-panel)",
-        border: "1px solid var(--hairline)",
         padding: "12px 16px",
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
-          {loop.title}
+        <span className="text-label-14" style={{ color: "var(--text-primary)" }}>
+          <strong>{loop.title}</strong>
         </span>
         <span
           style={{

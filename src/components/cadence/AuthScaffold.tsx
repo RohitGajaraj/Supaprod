@@ -68,11 +68,11 @@ const header: CSSProperties = {
   marginBottom: 26,
 };
 
+// Tempo v5 materials law (DESIGN-TEMPO.md §4): elevation is a preset, never a
+// hand-rolled border+shadow+radius trio. --card/--hairline/--shadow-elevated/
+// --radius-card already alias 1:1 to --ds-background-100 / --ds-shadow-border-medium
+// / --ds-radius-medium (12px), so `material-medium` renders identically here.
 const card: CSSProperties = {
-  background: "var(--card)",
-  border: "1px solid var(--hairline)",
-  borderRadius: "var(--radius-card, 12px)",
-  boxShadow: "var(--shadow-elevated)",
   padding: 22,
 };
 
@@ -151,7 +151,9 @@ export function AuthScaffold({
           {subhead}
         </div>
 
-        <div style={card}>{children}</div>
+        <div className="material-medium" style={card}>
+          {children}
+        </div>
 
         {footer ? <p style={footerStyle}>{footer}</p> : null}
       </div>

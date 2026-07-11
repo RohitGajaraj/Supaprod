@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "@/lib/notify";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { Button } from "@/components/ui/button";
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
@@ -151,7 +152,7 @@ export function NotificationsTab() {
 
   return (
     <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 16 }}>Preferences Matrix</MonoLabel>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -187,7 +188,7 @@ export function NotificationsTab() {
         </div>
       </div>
 
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Digest Settings</MonoLabel>
         <label style={{ display: "block", maxWidth: 320 }}>
           <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6 }}>
@@ -208,7 +209,7 @@ export function NotificationsTab() {
         </label>
       </div>
 
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 12 }}>Stakeholder update</MonoLabel>
         <label
           style={{
@@ -254,7 +255,7 @@ export function NotificationsTab() {
         ) : null}
       </div>
 
-      <div className="bento" style={{ padding: "var(--card-pad, 20px)" }}>
+      <div className="material-medium" style={{ padding: "var(--card-pad, 20px)" }}>
         <MonoLabel style={{ marginBottom: 4 }}>Interaction feedback</MonoLabel>
         <p style={{ fontSize: 11, color: "var(--ink-muted)", margin: "0 0 14px" }}>
           Sound and touch feedback on actions. Applies instantly on this device. Sound is
@@ -293,9 +294,9 @@ export function NotificationsTab() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button type="submit" className="btn btn-primary btn-sm" disabled={saveMutation.isPending}>
+        <Button type="submit" size="sm" disabled={saveMutation.isPending}>
           {saveMutation.isPending ? "Saving…" : "Save preferences"}
-        </button>
+        </Button>
       </div>
     </form>
   );

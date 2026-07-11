@@ -92,7 +92,7 @@ export function ChangelogPanel() {
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
           }}
-          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         >
           Go to Build →
         </Link>
@@ -174,7 +174,7 @@ export function ChangelogPanel() {
                       href={e.pr_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="inline-flex items-center hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         gap: 6,
                         marginTop: 12,
@@ -200,7 +200,7 @@ export function ChangelogPanel() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
@@ -227,7 +227,7 @@ export function ChangelogPanel() {
             textDecoration: "none",
             fontFamily: "var(--font-mono)",
           }}
-          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         >
           View outcomes →
         </Link>

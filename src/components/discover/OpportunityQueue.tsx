@@ -208,12 +208,8 @@ export function OpportunityQueue() {
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="flex items-center"
+            className="material-medium flex items-center"
             style={{
-              backgroundColor: "var(--card)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-card)",
-              boxShadow: "var(--top-light), var(--shadow-ambient)",
               padding: "16px 18px",
               gap: "16px",
               height: "62px",
@@ -232,15 +228,7 @@ export function OpportunityQueue() {
 
   if (opps.error) {
     return (
-      <div
-        style={{
-          backgroundColor: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light), var(--shadow-ambient)",
-          padding: "20px",
-        }}
-      >
+      <div className="material-medium" style={{ padding: "20px" }}>
         <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
           Could not load opportunities
         </MonoLabel>

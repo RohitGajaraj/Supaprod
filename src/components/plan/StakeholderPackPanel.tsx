@@ -227,12 +227,9 @@ export function StakeholderPackPanel() {
 
       {rendered ? (
         <div
+          className="material-medium"
           style={{
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-panel)",
             padding: "22px 24px",
-            background: "var(--surface-card)",
-            boxShadow: "var(--shadow-elevated)",
           }}
         >
           {rendered.pack.sections.map((s, i) => (

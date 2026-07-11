@@ -156,7 +156,7 @@ export function JudgmentTimeline() {
                   onClick={() =>
                     navigate({ to: "/brain", search: { tab: "decisions", decision: entry.id } })
                   }
-                  className="flex-1 min-w-0 text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  className="flex-1 min-w-0 text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     padding: "14px 0 18px",
                     borderBottom: isLast ? "none" : "1px solid var(--hairline)",
@@ -260,7 +260,7 @@ export function JudgmentTimeline() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,

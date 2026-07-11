@@ -91,7 +91,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
   if (agents.length === 0) return null;
 
   return (
-    <div className="bento" style={{ padding: 20 }}>
+    <div className="material-medium" style={{ padding: 20 }}>
       <div
         style={{
           display: "flex",
@@ -107,7 +107,8 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
           aria-label="Select an agent to inspect"
           style={{
             fontSize: 13,
-            padding: "4px 8px",
+            height: "var(--ds-size-small)",
+            padding: "0 8px",
             borderRadius: 8,
             border: `1px solid ${HAIRLINE}`,
             background: "transparent",

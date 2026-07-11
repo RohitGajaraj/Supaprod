@@ -29,7 +29,7 @@ export function PrecedentNudge({
   if (dismissed || !data || data.length === 0) return null;
   return (
     <aside
-      className={["bento", className].filter(Boolean).join(" ")}
+      className={["material-medium", className].filter(Boolean).join(" ")}
       aria-label="Decision precedent"
     >
       <div className="flex items-center justify-between">

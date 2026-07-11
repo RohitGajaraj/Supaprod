@@ -118,12 +118,9 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
   const missingCount = chain.steps.filter((s) => s.status === "missing").length;
   return (
     <div
+      className="material-medium"
       style={{
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
         padding: "18px 20px",
-        boxShadow: "var(--top-light)",
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>

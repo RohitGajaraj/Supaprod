@@ -66,10 +66,8 @@ export function LoopHealthBanner() {
 
   return (
     <section
+      className="material-medium"
       style={{
-        background: "var(--surface-card)",
-        borderRadius: "var(--radius-panel)",
-        boxShadow: "var(--top-light), var(--shadow-ambient)",
         padding: "10px var(--card-pad)",
         marginBottom: 18,
         display: "flex",
@@ -99,13 +97,15 @@ export function LoopHealthBanner() {
       </span>
 
       {h.verdict === "stalled" ? (
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{stalledSummary(h)}</span>
+        <span className="text-label-12" style={{ color: "var(--text-muted)" }}>
+          {stalledSummary(h)}
+        </span>
       ) : h.verdict === "working" ? (
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+        <span className="text-label-12" style={{ color: "var(--text-muted)" }}>
           {h.inFlightRuns} run{h.inFlightRuns === 1 ? "" : "s"} in flight
         </span>
       ) : (
-        <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
+        <span className="text-label-12" style={{ color: "var(--text-subtle)" }}>
           nothing in flight, nothing stuck
         </span>
       )}

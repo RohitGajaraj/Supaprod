@@ -48,7 +48,7 @@ export function HealthCard() {
   }
 
   return (
-    <div className="bento" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
       <div
         style={{
           display: "flex",
@@ -60,7 +60,10 @@ export function HealthCard() {
       >
         <div>
           <div className="mono-label">Health</div>
-          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}>
+          <p
+            className="text-copy-13"
+            style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}
+          >
             How your AI calls and agent missions are holding up over the last {days} days.
           </p>
         </div>
@@ -84,11 +87,17 @@ export function HealthCard() {
         </div>
       </div>
 
-      <div style={{ marginTop: 16, fontSize: 14, color: "var(--ink)" }}>{headline}</div>
+      <div className="text-label-14" style={{ marginTop: 16, color: "var(--ink)" }}>
+        {headline}
+      </div>
       {rollup.signals.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
           {rollup.signals.map((s, i) => (
-            <li key={i} style={{ fontSize: 13, color: "var(--ink-subtle)", marginTop: 4 }}>
+            <li
+              key={i}
+              className="text-label-13"
+              style={{ color: "var(--ink-subtle)", marginTop: 4 }}
+            >
               {s}
             </li>
           ))}

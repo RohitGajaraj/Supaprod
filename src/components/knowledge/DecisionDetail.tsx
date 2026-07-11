@@ -92,11 +92,9 @@ function TimeLine({ iso }: { iso: string }) {
 function StateCard({ children }: { children: React.ReactNode }) {
   return (
     <div
+      className="material-medium"
       style={{
         background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--top-light)",
         padding: "16px 18px",
       }}
     >
@@ -283,7 +281,7 @@ export function DecisionDetail({ id }: { id: string }) {
         <button
           type="button"
           onClick={onBack}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor)",
@@ -300,13 +298,11 @@ export function DecisionDetail({ id }: { id: string }) {
       </div>
 
       <div
+        className="material-medium"
         style={{
           display: "grid",
           gap: "16px",
           background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light)",
           padding: "18px 20px",
         }}
       >
@@ -490,7 +486,7 @@ export function DecisionDetail({ id }: { id: string }) {
                   search: { tab: "graph", focusKind: "decision", focusId: d.id },
                 })
               }
-              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontSize: "12.5px",
                 color: "var(--glacier)",
@@ -587,7 +583,7 @@ export function DecisionDetail({ id }: { id: string }) {
                     disabled={update.isPending}
                     onClick={() => update.mutate({ id: d.id, status: s })}
                     aria-pressed={selected}
-                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       background: "transparent",
                       border: "none",

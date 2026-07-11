@@ -9,6 +9,7 @@ import {
   transferWorkspaceOwnership,
   changeWorkspaceMemberRole,
 } from "@/lib/workspaces.functions";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/notify";
 
 // Members: the calm-front view of who is in the workspace (WM-F4 + RBAC). Identity (name/email)
@@ -130,7 +131,7 @@ export function MembersCard() {
   });
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
+    <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
       <div
         style={{
           display: "flex",
@@ -146,7 +147,10 @@ export function MembersCard() {
           </span>
         )}
       </div>
-      <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}>
+      <p
+        className="text-label-12"
+        style={{ color: "var(--ink-subtle)", marginTop: 6, maxWidth: 520 }}
+      >
         Who can work in this workspace.{" "}
         {isOwner
           ? "As the owner, you can change roles, remove people, or hand over ownership."
@@ -198,11 +202,13 @@ export function MembersCard() {
             ))}
           </ul>
         ) : membersQ.isError ? (
-          <div style={{ fontSize: 13, color: "var(--rose)", marginTop: 4 }}>
+          <div className="text-label-13" style={{ color: "var(--rose)", marginTop: 4 }}>
             Could not load members. Try again.
           </div>
         ) : members.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--ink-faint)" }}>No members yet.</p>
+          <p className="text-label-13" style={{ color: "var(--ink-faint)" }}>
+            No members yet.
+          </p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {members.map((m, i) => {
@@ -232,6 +238,7 @@ export function MembersCard() {
                 >
                   <div
                     aria-hidden
+                    className="text-label-13"
                     style={{
                       width: 34,
                       height: 34,
@@ -242,7 +249,6 @@ export function MembersCard() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 13,
                       fontWeight: 600,
                       color: "var(--ink-muted)",
                     }}
@@ -255,8 +261,8 @@ export function MembersCard() {
                       style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                     >
                       <span
+                        className="text-label-13"
                         style={{
-                          fontSize: 13,
                           color: "var(--ink)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -320,55 +326,48 @@ export function MembersCard() {
                       <span style={{ fontSize: 11, color: "var(--ink-subtle)", maxWidth: 180 }}>
                         Make {name} the owner? You become an admin.
                       </span>
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
+                      <Button
+                        size="sm"
                         disabled={transfer.isPending}
                         onClick={() => transfer.mutate(m.userId)}
                       >
                         {transfer.isPending ? "Transferring" : "Confirm"}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm"
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         disabled={transfer.isPending}
                         onClick={() => setConfirmTransfer(null)}
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     (showTransfer || showRemove) && (
                       <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                         {showTransfer && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm"
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setConfirmTransfer(m.userId)}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                             aria-label={`Make ${name} the owner`}
                           >
                             <Crown size={13} />
                             Make owner
-                          </button>
+                          </Button>
                         )}
                         {showRemove && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm"
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             disabled={remove.isPending}
                             onClick={() => remove.mutate(m.userId)}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                              color: "var(--rose)",
-                            }}
+                            style={{ color: "var(--rose)" }}
                             aria-label={`Remove ${name}`}
                           >
                             <UserMinus size={13} />
                             Remove
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )

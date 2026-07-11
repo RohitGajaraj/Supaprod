@@ -157,7 +157,7 @@ export function ProductBindingsSection({ projectId, workspaceId, projectName }: 
                 ) : picking === pickKey ? (
                   <div className="flex items-center gap-2">
                     <select
-                      className="text-xs border border-border rounded px-2 py-1 bg-background"
+                      className="h-(--ds-size-small) text-xs border border-border rounded px-2 bg-background"
                       defaultValue=""
                       onChange={(e) => {
                         const conn = connected.find((c) => c.id === e.target.value);

@@ -10,6 +10,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gift } from "lucide-react";
 import { redeemVoucher } from "@/lib/admin-vouchers.functions";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/lib/notify";
 
 export function RedeemCodeCard() {
@@ -40,14 +42,13 @@ export function RedeemCodeCard() {
   });
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
+    <div className="material-medium" style={{ padding: "var(--card-pad, 18px)" }}>
       <MonoLabel icon={Gift}>Redeem a code</MonoLabel>
       <p style={{ margin: "6px 0 10px", fontSize: 12.5, color: "var(--ink-muted, #6b6457)" }}>
         Have a promo or credit code? Enter it to add credits or unlock a plan.
       </p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <input
-          className="input"
+        <Input
           placeholder="Enter code"
           value={code}
           maxLength={64}
@@ -57,14 +58,9 @@ export function RedeemCodeCard() {
             if (e.key === "Enter" && code.trim() && !redeem.isPending) redeem.mutate(code);
           }}
         />
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          disabled={!code.trim() || redeem.isPending}
-          onClick={() => redeem.mutate(code)}
-        >
+        <Button disabled={!code.trim() || redeem.isPending} onClick={() => redeem.mutate(code)}>
           {redeem.isPending ? "Redeeming…" : "Redeem"}
-        </button>
+        </Button>
       </div>
     </div>
   );

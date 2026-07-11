@@ -557,7 +557,7 @@ export function AnalyticsPanel() {
                       className="mono-label"
                       style={{
                         fontSize: 8.5,
-                        color: h.action === "block" ? "var(--rose)" : "var(--ember)",
+                        color: h.action === "block" ? "var(--rose)" : "var(--marigold)",
                       }}
                     >
                       {h.action}
@@ -749,7 +749,7 @@ function EventDetail({ data }: { data: EventDetailData }) {
                 className="mono-label"
                 style={{
                   fontSize: 8.5,
-                  color: h.action === "block" ? "var(--rose)" : "var(--ember)",
+                  color: h.action === "block" ? "var(--rose)" : "var(--marigold)",
                 }}
               >
                 {h.action}

@@ -174,7 +174,7 @@ export function ImpactLedgerPanel() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name (optional, for the record header)"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             flex: 1,
             minWidth: 220,

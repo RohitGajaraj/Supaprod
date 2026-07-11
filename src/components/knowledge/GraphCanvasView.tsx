@@ -74,7 +74,7 @@ function GraphViewToggle({
             type="button"
             role="tab"
             aria-selected={active}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "var(--text-mono-floor)",
@@ -290,11 +290,9 @@ export function GraphCanvasView({
     // An error never wears the empty state's clothes: name the cause, offer retry.
     return (
       <div
+        className="material-medium"
         style={{
           background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light)",
           padding: "16px 18px",
         }}
       >
@@ -304,7 +302,7 @@ export function GraphCanvasView({
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
@@ -328,11 +326,9 @@ export function GraphCanvasView({
   ) {
     return (
       <div
+        className="material-medium"
         style={{
           background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light)",
           padding: "36px 24px",
           textAlign: "center",
         }}
@@ -362,7 +358,7 @@ export function GraphCanvasView({
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
@@ -405,7 +401,7 @@ export function GraphCanvasView({
             {!reducedMotion ? (
               <button
                 type="button"
-                className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-floor)",

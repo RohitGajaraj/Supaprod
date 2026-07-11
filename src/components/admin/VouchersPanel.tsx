@@ -26,7 +26,7 @@ import {
 } from "@/lib/admin-vouchers.functions";
 
 const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 const mutationFailed = (e: unknown) =>
   toast.error(e instanceof Error ? e.message : "The action failed. Nothing was changed.");
@@ -61,7 +61,7 @@ export function VouchersPanel() {
   return (
     <div style={{ display: "grid", gap: "var(--space-4)" }}>
       <VoucherCreator />
-      <div style={card()}>
+      <div className="material-medium" style={card()}>
         <MonoLabel>Vouchers · {list.isLoading ? "…" : rows.length}</MonoLabel>
         {list.isLoading ? (
           <AdminSkeleton rows={3} height={38} />
@@ -205,7 +205,7 @@ function VoucherCreator() {
   });
 
   return (
-    <div style={card()}>
+    <div className="material-medium" style={card()}>
       <MonoLabel>New voucher</MonoLabel>
       <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap" }}>
         <input
@@ -321,21 +321,10 @@ function RedemptionsDrawer({
         style={{
           width: "min(480px, 100vw)",
           overflow: "auto",
-          backgroundColor: "var(--card)",
         }}
       >
         <SheetHeader>
-          <SheetTitle
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 460,
-              fontSize: "var(--text-card-title)",
-              lineHeight: 1.3,
-              color: "var(--text-primary)",
-            }}
-          >
-            Redemptions
-          </SheetTitle>
+          <SheetTitle>Redemptions</SheetTitle>
         </SheetHeader>
         {list.isLoading ? (
           <div style={{ marginTop: "var(--space-4)" }}>
@@ -373,11 +362,10 @@ function RedemptionsDrawer({
   );
 }
 
+// Radius/border/shadow come from the material-medium preset class applied at each
+// call site; this helper now supplies layout only (Tempo materials law).
 function card(): React.CSSProperties {
   return {
-    background: "var(--card)",
-    border: "1px solid var(--hairline)",
-    borderRadius: "var(--radius-card)",
     padding: "var(--space-4)",
     display: "grid",
     gap: "var(--space-3)",

@@ -204,14 +204,7 @@ export function SpecList({ onOpen }: SpecListProps) {
 
   return (
     <>
-      <div
-        style={{
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
-          border: "1px solid var(--hairline)",
-          boxShadow: "var(--shadow-elevated)",
-        }}
-      >
+      <div className="material-medium">
         {shownSpecs.map((spec, i) => {
           const chip = stateChip(spec.status);
           const cites = citesLabel(spec.citations);

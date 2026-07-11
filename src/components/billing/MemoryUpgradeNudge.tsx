@@ -55,7 +55,7 @@ export function MemoryUpgradeNudge() {
         background: "color-mix(in oklab, var(--ember, #c2602e) 6%, var(--canvas, #fbf7ef))",
       }}
     >
-      <span style={{ fontSize: 13, lineHeight: 1.45, color: "var(--ink, #1d1a14)", flex: 1 }}>
+      <span className="text-copy-13" style={{ color: "var(--ink, #1d1a14)", flex: 1 }}>
         On Star, your decision memory fades after {FREE_MEMORY_RETENTION_DAYS} days. Upgrade to keep
         every decision compounding instead of expiring.
       </span>

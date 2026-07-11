@@ -24,18 +24,16 @@ export function ConnectionStrip() {
     queryFn: () => fBindings(),
   });
 
+  // Tempo v5 §4: fill/radius/shadow come from the material-small preset
+  // (className below), not a hand-rolled border+shadow+radius combo.
   const strip: React.CSSProperties = {
     gap: "14px",
-    backgroundColor: "var(--surface-card-deep)",
-    border: "1px solid var(--hairline)",
-    borderRadius: "10px",
     padding: "12px 16px",
-    boxShadow: "var(--top-light)",
   };
 
   if (q.isLoading) {
     return (
-      <div className="flex items-center" style={strip} aria-hidden="true">
+      <div className="flex items-center material-small" style={strip} aria-hidden="true">
         <span
           className="block rounded-full"
           style={{
@@ -53,7 +51,7 @@ export function ConnectionStrip() {
 
   if (q.isError) {
     return (
-      <div className="flex flex-wrap items-center" style={strip}>
+      <div className="flex flex-wrap items-center material-small" style={strip}>
         <span
           style={{
             fontFamily: "var(--font-ui)",
@@ -87,7 +85,7 @@ export function ConnectionStrip() {
 
   if (bindings.length === 0) {
     return (
-      <div className="flex flex-wrap items-center" style={strip}>
+      <div className="flex flex-wrap items-center material-small" style={strip}>
         <span
           style={{
             fontFamily: "var(--font-ui)",
@@ -119,20 +117,13 @@ export function ConnectionStrip() {
   const more = bindings.length - shown.length;
 
   return (
-    <div className="flex flex-wrap items-center" style={strip}>
+    <div className="flex flex-wrap items-center material-small" style={strip}>
       {shown.map((b) => {
         const connected = b.connection_status === "connected";
         return (
           <span key={b.id} className="inline-flex items-center" style={{ gap: "10px" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-ui)",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "var(--text-primary)",
-              }}
-            >
-              {providerLabel(b.provider)}
+            <span className="text-label-13" style={{ color: "var(--text-primary)" }}>
+              <strong>{providerLabel(b.provider)}</strong>
             </span>
             <span
               className="uppercase"

@@ -25,11 +25,9 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
 
   return (
     <div
+      className="material-medium"
       style={{
-        border: "1px solid var(--hairline)",
-        borderRadius: 12,
         padding: "16px 18px",
-        background: "var(--surface-1, transparent)",
       }}
     >
       <p
@@ -85,7 +83,7 @@ export function CompositeReviewCard({ batch }: { batch: FanoutBatch }) {
           type="button"
           onClick={() => decide.mutate("accepted")}
           disabled={decide.isPending}
-          className="btn btn-primary btn-sm"
+          className="btn btn-secondary btn-sm"
         >
           Useful, thanks
         </button>

@@ -33,7 +33,7 @@ function GhostButton({
     <button
       type="button"
       onClick={onClick}
-      className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 10.5,
@@ -82,11 +82,9 @@ export function GraphNodeStory({
 
   return (
     <div
+      className="material-large"
       style={{
         background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--top-light), var(--shadow-ambient)",
         padding: "16px 18px",
       }}
     >
@@ -259,7 +257,7 @@ function SupersessionSection({
               aria-label={`${l.label} ${l.peerTitle || "untitled"}${
                 l.retired ? " (no longer current)" : ""
               }`}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 background: "none",
                 border: "none",

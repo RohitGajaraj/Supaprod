@@ -937,14 +937,12 @@ export function GraphUniverseCanvas({
   return (
     <div
       ref={wrapperRef}
+      className="material-large"
       style={{
         position: "relative",
         width: "100%",
         height: "clamp(420px, 58vh, 640px)",
         background: "var(--surface-card-deep)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--top-light), var(--shadow-ambient)",
         overflow: "hidden",
       }}
     >
@@ -1031,7 +1029,7 @@ export function GraphUniverseCanvas({
       <div style={{ position: "absolute", right: 10, bottom: 8, display: "flex", gap: 10 }}>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 10.5,

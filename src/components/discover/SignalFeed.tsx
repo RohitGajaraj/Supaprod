@@ -23,21 +23,9 @@ import type { ThemeMember } from "./ThemeDetail";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Loom v4 §2: the card catches the ambient light — top-light hairline plus
- * the ambient shadow, tokens only. */
-const CARD_SHADOW = "var(--top-light), var(--shadow-ambient)";
-
 function PanelShell({ children }: { children: ReactNode }) {
   return (
-    <div
-      style={{
-        backgroundColor: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
-        boxShadow: CARD_SHADOW,
-        padding: "18px 20px",
-      }}
-    >
+    <div className="material-medium" style={{ padding: "18px 20px" }}>
       {children}
     </div>
   );
@@ -264,15 +252,7 @@ export function SignalFeed() {
 
   if (signals.error) {
     return (
-      <div
-        style={{
-          backgroundColor: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: CARD_SHADOW,
-          padding: "20px",
-        }}
-      >
+      <div className="material-medium" style={{ padding: "20px" }}>
         <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
           Could not load signals
         </MonoLabel>

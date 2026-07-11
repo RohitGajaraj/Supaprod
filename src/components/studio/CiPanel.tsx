@@ -301,15 +301,12 @@ export function CiPanel({
 
       {mergeGatePending ? (
         <div
-          className="fade-up"
+          className="fade-up material-medium"
           style={{
-            background: "var(--ember-tint)",
-            border: "1px solid var(--ember-line)",
-            borderRadius: 12,
             padding: 14,
           }}
         >
-          <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember-text)", fontWeight: 700 }}>
+          <MonoLabel icon={ShieldAlert} style={{ color: "var(--text-primary)", fontWeight: 700 }}>
             Waiting on you
           </MonoLabel>
           <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--text-body)" }}>

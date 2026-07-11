@@ -23,7 +23,7 @@ export function ActivationFunnelPanel() {
 
   if (!activeProductId) {
     return (
-      <div style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>
+      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
         No workspace selected
       </div>
     );
@@ -41,13 +41,15 @@ export function ActivationFunnelPanel() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>Loading funnel...</div>
+      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
+        Loading funnel...
+      </div>
     );
   }
 
   if (error || !snapshot) {
     return (
-      <div style={{ padding: 16, fontSize: 13, color: "var(--text-muted)" }}>
+      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
         Unable to load funnel data
       </div>
     );
@@ -121,7 +123,7 @@ export function ActivationFunnelPanel() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {stages.map((stage) => (
-          <div key={stage.label} style={{ fontSize: 12 }}>
+          <div key={stage.label} className="text-label-12">
             <div
               style={{
                 display: "flex",

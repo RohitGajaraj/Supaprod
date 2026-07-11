@@ -8,13 +8,13 @@ import {
   type RoomKey,
 } from "@/lib/engine-room-glance";
 
+// Tempo v5 §4: fill/radius/shadow come from the material-medium preset
+// (className below) — --card/--radius-card/--shadow-elevated already resolve
+// to the same --ds-background-100/--ds-radius-medium/--ds-shadow-border-medium
+// values, so only the stateful border (color varies per card state) stays here.
 const CARD_BASE: React.CSSProperties = {
-  backgroundColor: "var(--card)",
   border: "1px solid var(--hairline)",
-  borderRadius: "var(--radius-card)",
   padding: "18px 20px",
-  // LOOM §2: raised surfaces catch the light from above and cast ambient depth.
-  boxShadow: "var(--shadow-elevated)",
 };
 
 export interface RoomCardProps {
@@ -34,7 +34,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
       type="button"
       onClick={onOpen}
       className={cn(
-        "grid text-left outline-none",
+        "grid text-left outline-none material-medium",
         "hover:[background-color:#141416]",
         "hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
         "active:scale-[0.98]",
@@ -110,7 +110,7 @@ function ShimmerBar({ width, height = 10 }: { width: number | string; height?: n
  * fabricated number. */
 export function RoomCardSkeleton({ room }: { room: RoomKey }) {
   return (
-    <div className="grid" style={{ ...CARD_BASE, gap: "9px" }}>
+    <div className="grid material-medium" style={{ ...CARD_BASE, gap: "9px" }}>
       <span className="flex items-center gap-[10px]">
         <span
           className="flex-1"
@@ -148,7 +148,7 @@ export function RoomCardError({
 }) {
   return (
     <div
-      className="grid"
+      className="grid material-medium"
       style={{ ...CARD_BASE, gap: "7px", borderColor: "rgba(224, 101, 87, 0.4)" }}
     >
       <span className="flex items-center gap-[10px]">

@@ -100,7 +100,7 @@ export function ModelSwitcher({
           >
             <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
-              <div className="text-xs text-foreground">Auto</div>
+              <div className="text-label-12 text-foreground">Auto</div>
               <div className="truncate text-[10px] text-muted-foreground">
                 Best model per task, optimized automatically.
               </div>
@@ -124,16 +124,12 @@ export function ModelSwitcher({
                       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/60"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 text-xs text-foreground">
+                        <div className="flex items-center gap-1.5 text-label-12 text-foreground">
                           {m.label}
                           {isRecommended && (
                             <span
                               title="Best available for agentic tasks"
-                              className="inline-flex items-center gap-0.5 rounded-sm px-1 py-0.5 text-[9px] font-medium"
-                              style={{
-                                background: "color-mix(in oklab, var(--ember) 15%, transparent)",
-                                color: "var(--ember)",
-                              }}
+                              className="inline-flex items-center gap-0.5 rounded-sm bg-secondary/70 px-1 py-0.5 text-[9px] font-medium text-muted-foreground"
                             >
                               <Zap className="h-2 w-2" />
                               Best
@@ -157,7 +153,7 @@ export function ModelSwitcher({
                     className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left"
                   >
                     <div className="min-w-0 flex-1 opacity-50">
-                      <div className="text-xs text-foreground">{m.label}</div>
+                      <div className="text-label-12 text-foreground">{m.label}</div>
                       <div className="truncate text-[10px] text-muted-foreground">{m.desc}</div>
                     </div>
                     <Link
@@ -187,7 +183,7 @@ export function ModelSwitcher({
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-150 hover:bg-secondary/60"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 text-xs text-foreground">
+                    <div className="flex items-center gap-1.5 text-label-12 text-foreground">
                       {k.label ?? k.model_id}
                       <span title="Uses your API key" className="inline-flex">
                         <KeyRound className="h-2.5 w-2.5 text-muted-foreground/70" />

@@ -14,7 +14,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 
 const DOT: Record<LoopWarmth, string> = {
   warm: "var(--emerald)",
-  warming: "var(--ember, #d97706)",
+  warming: "var(--marigold)",
   cold: "var(--ink-faint)",
 };
 

@@ -23,8 +23,9 @@ function toolDescription(toolName: string): string | null {
 
 /**
  * Inline governance gate for a Build session — the screen-3 GatePanel
- * contract: ember-tinted panel (the one voice that asks for attention),
- * tool name, args summary, rationale, consequence-first approve/reject.
+ * contract: neutral material-medium panel (Tempo reserves ember for the
+ * Approve CTA only, per patterns/ai-interfaces.md §4 Do/Don't), tool name,
+ * args summary, rationale, consequence-first approve/reject.
  */
 export function ApprovalCard({
   approval,
@@ -52,15 +53,12 @@ export function ApprovalCard({
 
   return (
     <div
-      className="fade-up"
+      className="fade-up material-medium"
       style={{
-        background: "var(--ember-tint)",
-        border: "1px solid var(--ember-line)",
-        borderRadius: 12,
         padding: 14,
       }}
     >
-      <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember-text)", fontWeight: 700 }}>
+      <MonoLabel icon={ShieldAlert} style={{ color: "var(--text-primary)", fontWeight: 700 }}>
         Waiting on you
       </MonoLabel>
       <div style={{ marginTop: 8 }}>

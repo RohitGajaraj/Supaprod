@@ -68,11 +68,9 @@ export function AdminErrorCard({
   return (
     <div
       role="alert"
+      className="material-medium"
       style={{
         padding: "var(--space-4)",
-        background: "var(--card)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--radius-card)",
         display: "grid",
         gap: 8,
         justifyItems: "start",
@@ -105,7 +103,7 @@ export function AdminErrorCard({
       <button
         type="button"
         onClick={onRetry}
-        className="cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-mono-label)",

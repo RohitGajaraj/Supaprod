@@ -24,21 +24,26 @@ export function SubprocessorsCard() {
   const items = q.data?.subprocessors ?? [];
 
   return (
-    <div className="bento" style={{ padding: 24, maxWidth: 640 }}>
+    <div className="material-medium" style={{ padding: 24, maxWidth: 640 }}>
       <div className="mono-label">Where your data goes</div>
-      <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}>
+      <p
+        className="text-copy-13"
+        style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 520 }}
+      >
         The third parties that process your data on Cadence&apos;s behalf, and what each one does.
         We only list a provider while your data actually flows to it.
       </p>
 
       {q.isLoading ? (
-        <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 16 }}>Loading</p>
+        <p className="text-label-13" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
+          Loading
+        </p>
       ) : q.isError ? (
-        <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 16 }}>
+        <p className="text-copy-13" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
           Could not load the list right now.
         </p>
       ) : items.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--ink-faint)", marginTop: 16 }}>
+        <p className="text-copy-13" style={{ color: "var(--ink-faint)", marginTop: 16 }}>
           No sub-processors to show.
         </p>
       ) : (
@@ -60,15 +65,17 @@ export function SubprocessorsCard() {
                   flexWrap: "wrap",
                 }}
               >
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{s.name}</span>
+                <span className="text-label-14" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                  {s.name}
+                </span>
                 <span className="mono-label" style={{ fontSize: 10 }}>
                   {CATEGORY_LABEL[s.category]}
                 </span>
               </div>
-              <p style={{ fontSize: 13, color: "var(--ink-muted)", margin: "4px 0 0" }}>
+              <p className="text-copy-13" style={{ color: "var(--ink-muted)", margin: "4px 0 0" }}>
                 {s.purpose}
               </p>
-              <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "4px 0 0" }}>
+              <p className="text-label-12" style={{ color: "var(--ink-faint)", margin: "4px 0 0" }}>
                 Receives: {s.dataCategories.join(", ")}
               </p>
             </li>

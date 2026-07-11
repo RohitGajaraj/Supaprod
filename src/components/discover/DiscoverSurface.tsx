@@ -165,11 +165,8 @@ export function DiscoverSurface() {
 
       {signalsEmpty ? (
         <div
+          className="material-medium"
           style={{
-            backgroundColor: "var(--card)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            boxShadow: "var(--top-light), var(--shadow-ambient)",
             padding: "44px 40px",
             textAlign: "center",
           }}

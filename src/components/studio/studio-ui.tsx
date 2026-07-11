@@ -3,20 +3,23 @@ import { StatusBadge, StepDot } from "@/components/cadence/Primitives";
 import { changesetColor, changesetLabel, statusLabel } from "./studio-format";
 
 /**
- * LOOM v4 (W2-BUILD): the shared raised-card treatment for the Build spine.
- * DESIGN-LOOM §2: depth = surface tint + top-light + ambient shadow, never a
- * heavy border. Replaces the parchment `.bento` class on every ported panel
- * so the whole mission detail reads as one Obsidian surface.
+ * Tempo v5: the shared raised-card treatment for the Build spine, values
+ * matching the `material-medium` preset (contract §4) — the lowest on-page
+ * elevation that still reads as a raised card. Kept as a style object (not a
+ * className) so every existing `{...LOOM_CARD}` spread across the surface
+ * picks up the fix with no call-site changes.
  */
 export const LOOM_CARD: CSSProperties = {
-  background: "var(--surface-card)",
-  borderRadius: "var(--radius-panel)",
-  boxShadow: "var(--top-light), var(--shadow-ambient)",
+  background: "var(--ds-background-100)",
+  borderRadius: "var(--ds-radius-medium)",
+  boxShadow: "var(--ds-shadow-border-medium)",
 };
 
 /**
  * Loading skeleton block (DESIGN-LOOM §9: shimmer skeletons that match the
- * real layout, never spinners for primary content). Pure presentation.
+ * real layout, never spinners for primary content). Radius matches LOOM_CARD
+ * (material-medium) so the placeholder traces the shape of the card it
+ * stands in for. Pure presentation.
  */
 export function SkeletonBlock({ height, style }: { height: number; style?: CSSProperties }) {
   return (
@@ -24,7 +27,7 @@ export function SkeletonBlock({ height, style }: { height: number; style?: CSSPr
       aria-hidden="true"
       style={{
         height,
-        borderRadius: "var(--radius-panel)",
+        borderRadius: "var(--ds-radius-medium)",
         background: "var(--surface-raised)",
         animation: "cadGlow 1.8s ease-in-out infinite",
         ...style,
