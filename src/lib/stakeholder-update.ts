@@ -167,3 +167,53 @@ export function buildStakeholderUpdate(s: StakeholderSnapshot): StakeholderUpdat
     .trimEnd();
   return { headline, lede, sections, markdown };
 }
+
+/**
+ * The figures an outcome receipt leads with (RPT-49). A narrow slice of StakeholderSnapshot so
+ * both the session-scoped composer and the admin-client digest loader can feed buildOutcomeReceipt
+ * the exact same shape.
+ */
+export type OutcomeReceiptSnapshot = {
+  /** Deep-work blocks completed in the period. */
+  shipped: number;
+  /** Decisions (approvals) decided in the period. */
+  decisions: number;
+  /** The most recent reviewed outcome, if any. */
+  latestOutcome: { title: string; verdict: string } | null;
+  /** Validated share of reviewed bets (0..100), or null when there is not enough data. */
+  outcomeAccuracyPct: number | null;
+};
+
+/**
+ * PURE. Render the compact "outcome receipt" that LEADS the ambient stakeholder digest (RPT-49),
+ * so the note OPENS with what the work produced instead of operational noise. Three pieces, in
+ * order: what shipped (deep-work blocks + decisions), what it did (the latest reviewed outcome,
+ * read as meaning: held up / fell short), and calibration (the reviewed-bet accuracy). This is
+ * outcome-marketing from live state, and it is honest and sparse-safe: a genuinely quiet period
+ * (nothing shipped, no reviewed outcome, no accuracy data) returns null so the digest can lead
+ * with its operational items rather than a fabricated receipt, and a null metric is omitted, never
+ * padded to 0% or the word "null". Terse by design, since this is the lede of a longer digest.
+ */
+export function buildOutcomeReceipt(s: OutcomeReceiptSnapshot): string | null {
+  const lines: string[] = [];
+
+  // What shipped: deep-work blocks + decisions. The line closes with the verb, so it stays terse.
+  const shippedParts: string[] = [];
+  if (s.decisions > 0) shippedParts.push(count(s.decisions, "decision"));
+  if (s.shipped > 0) shippedParts.push(count(s.shipped, "deep-work block"));
+  if (shippedParts.length) lines.push(`${shippedParts.join(", ")} shipped.`);
+
+  // What it did: the latest reviewed outcome, interpreted ("held up" / "fell short"), not the raw label.
+  if (s.latestOutcome) {
+    lines.push(`"${s.latestOutcome.title}" ${outcomeVerb(s.latestOutcome.verdict)}.`);
+  }
+
+  // Calibration: the reviewed-bet accuracy, interpreted. A null metric is omitted, never shown as 0%.
+  const out = s.outcomeAccuracyPct;
+  if (out != null) {
+    lines.push(out === 100 ? "Every reviewed bet held up." : `${out}% of reviewed bets held up.`);
+  }
+
+  if (lines.length === 0) return null;
+  return ["**Receipts**", ...lines].join("\n");
+}

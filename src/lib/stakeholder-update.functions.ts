@@ -9,8 +9,13 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { buildStakeholderUpdate, type StakeholderUpdateResult } from "./stakeholder-update";
+import {
+  buildStakeholderUpdate,
+  type StakeholderUpdateResult,
+  type OutcomeReceiptSnapshot,
+} from "./stakeholder-update";
 
 const InputSchema = z.object({ workspaceName: z.string().nullable().optional() });
 
@@ -23,6 +28,101 @@ const PERIOD_DAYS = 7;
 
 const pct = (num: number, den: number): number | null =>
   den > 0 ? Math.round((num / den) * 100) : null;
+
+type TaskLite = { is_deep_work: boolean | null; status: string | null };
+type LatestOutcomeRow = {
+  verdict: string | null;
+  opportunity: { title: string | null } | { title: string | null }[] | null;
+};
+
+// PURE row -> figure derivations, shared by getStakeholderUpdate (session/RLS path) and
+// loadOutcomeReceiptSnapshot (admin-client cron path) so the two never diverge on how a raw
+// row becomes a receipt figure.
+
+/** Deep-work tasks that reached done (the "shipped" figure). */
+function deriveShipped(tasks: TaskLite[]): number {
+  return tasks.filter((t) => t.is_deep_work && t.status === "done").length;
+}
+
+/** The newest reviewed outcome as { title, verdict }, tolerant of the join's to-one/array shapes. */
+function deriveLatestOutcome(rows: LatestOutcomeRow[]): { title: string; verdict: string } | null {
+  const latestRow = rows[0];
+  if (!latestRow) return null;
+  const opp = latestRow.opportunity;
+  const title = (Array.isArray(opp) ? opp[0]?.title : opp?.title)?.trim();
+  if (title && latestRow.verdict) return { title, verdict: latestRow.verdict };
+  return null;
+}
+
+/** Validated share of reviewed bets (0..100), or null when there are none. */
+function deriveOutcomeAccuracy(rows: { verdict: string | null }[]): number | null {
+  const validated = rows.filter((l) => l.verdict === "validated").length;
+  return pct(validated, rows.length);
+}
+
+/**
+ * RPT-49: admin-safe loader for the outcome-receipt figures that LEAD the ambient stakeholder
+ * digest. Mirrors the figures getStakeholderUpdate composes, but with EXPLICIT workspace_id /
+ * user_id filters because it runs under the digest cron's service-role admin client, where
+ * auth.uid() is null and RLS cannot scope on its own (the same service-role-vs-session-context
+ * class of bug already fixed for ai_events). Same helper shape as loadNewestDecisionBrief.
+ *
+ * Scoping mirrors getStakeholderUpdate's live semantics: tasks + learnings are workspace-membership
+ * RLS-keyed, so they are scoped by workspace_id here; decisions (agent_approvals) are user-scoped in
+ * the per-user email path (userId set) and workspace-scoped for the shared Slack channel (userId
+ * null). Every read is fail-safe: an errored query degrades to its empty/neutral figure, never
+ * throwing, so a quiet or misconfigured workspace can never break the digest cron.
+ */
+export async function loadOutcomeReceiptSnapshot(
+  supabase: SupabaseClient,
+  userId: string | null,
+  workspaceId: string,
+): Promise<OutcomeReceiptSnapshot> {
+  const now = Date.now();
+  const sevenAgo = new Date(now - PERIOD_DAYS * 86_400_000).toISOString();
+  const ninetyAgo = new Date(now - ACCURACY_DAYS * 86_400_000).toISOString();
+
+  let decidedQuery = supabase
+    .from("agent_approvals")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .not("decided_at", "is", null)
+    .gte("decided_at", sevenAgo)
+    .limit(1000);
+  if (userId) decidedQuery = decidedQuery.eq("user_id", userId);
+
+  const [tasksRes, decidedRes, latestRes, accuracyRes] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select("is_deep_work,status")
+      .eq("workspace_id", workspaceId)
+      .gte("created_at", sevenAgo)
+      .limit(1000),
+    decidedQuery,
+    supabase
+      .from("learnings")
+      .select("verdict,created_at,opportunity:opportunities(title)")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(1),
+    supabase
+      .from("learnings")
+      .select("verdict")
+      .eq("workspace_id", workspaceId)
+      .in("verdict", ["validated", "missed", "mixed"])
+      .gte("created_at", ninetyAgo)
+      .limit(2000),
+  ]);
+
+  return {
+    shipped: deriveShipped((tasksRes.data ?? []) as TaskLite[]),
+    decisions: (decidedRes.data ?? []).length,
+    latestOutcome: deriveLatestOutcome((latestRes.data ?? []) as LatestOutcomeRow[]),
+    outcomeAccuracyPct: deriveOutcomeAccuracy(
+      (accuracyRes.data ?? []) as { verdict: string | null }[],
+    ),
+  };
+}
 
 export const getStakeholderUpdate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -116,27 +216,12 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
       supabase.from("profiles").select("display_name,full_name").maybeSingle(),
     ]);
 
-    const tasks = (tasksRes.data ?? []) as {
-      is_deep_work: boolean | null;
-      status: string | null;
-    }[];
-    const shipped = tasks.filter((t) => t.is_deep_work && t.status === "done").length;
+    const shipped = deriveShipped((tasksRes.data ?? []) as TaskLite[]);
     const decisions = (decidedRes.data ?? []).length;
     const validated = (validatedRes.data ?? []).length;
 
     // Latest reviewed outcome (best-effort; the join is to-one, shapes vary so handle both).
-    let latestOutcome: { title: string; verdict: string } | null = null;
-    const latestRow = (latestRes.data ?? [])[0] as
-      | {
-          verdict: string | null;
-          opportunity: { title: string | null } | { title: string | null }[] | null;
-        }
-      | undefined;
-    if (latestRow) {
-      const opp = latestRow.opportunity;
-      const title = (Array.isArray(opp) ? opp[0]?.title : opp?.title)?.trim();
-      if (title && latestRow.verdict) latestOutcome = { title, verdict: latestRow.verdict };
-    }
+    const latestOutcome = deriveLatestOutcome((latestRes.data ?? []) as LatestOutcomeRow[]);
 
     const activeMissions = ((missionsRes.data ?? []) as { title: string | null }[])
       .map((m) => m.title?.trim())
@@ -174,11 +259,9 @@ export const getStakeholderUpdate = createServerFn({ method: "POST" })
     const acceptancePct = pct(approved, approved + rejected);
 
     // Outcome accuracy (90d): validated share of reviewed bets.
-    const verdicts = ((accuracyRes.data ?? []) as { verdict: string | null }[]).map(
-      (l) => l.verdict,
+    const outcomeAccuracyPct = deriveOutcomeAccuracy(
+      (accuracyRes.data ?? []) as { verdict: string | null }[],
     );
-    const accuracyValidated = verdicts.filter((v) => v === "validated").length;
-    const outcomeAccuracyPct = pct(accuracyValidated, verdicts.length);
 
     return buildStakeholderUpdate({
       periodLabel: "the last 7 days",
