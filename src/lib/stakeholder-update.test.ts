@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { buildStakeholderUpdate, type StakeholderSnapshot } from "./stakeholder-update";
+import {
+  buildOutcomeReceipt,
+  buildStakeholderUpdate,
+  type OutcomeReceiptSnapshot,
+  type StakeholderSnapshot,
+} from "./stakeholder-update";
 
 /**
  * One-keystroke stakeholder status update (PM-STATUS-UPDATE).
@@ -207,5 +212,94 @@ describe("buildStakeholderUpdate", () => {
     expect(next.bullets.length).toBe(6); // 5 shown + 1 overflow
     expect(next.bullets[0]).toBe("Opportunity 1 (ICE 5.0)");
     expect(next.bullets[5]).toContain("2 more");
+  });
+});
+
+/**
+ * RPT-49: the outcome-receipt LEAD for the ambient stakeholder digest. A PURE composer that opens
+ * the note with what the work produced (what shipped, what it did, calibration) instead of the
+ * operational noise the digest used to lead with. Outcome-marketing from live state, honest and
+ * sparse-safe: a genuinely quiet period reads honestly (null, so the digest leads with its own
+ * items) and a null metric is omitted rather than padded. These tests pin that behavior.
+ */
+describe("buildOutcomeReceipt", () => {
+  const receiptFull: OutcomeReceiptSnapshot = {
+    shipped: 2,
+    decisions: 3,
+    latestOutcome: { title: "Hard escalation policy for refunds", verdict: "validated" },
+    outcomeAccuracyPct: 100,
+  };
+
+  test("LEADS with the three pieces in order: what shipped, what it did, calibration", () => {
+    const md = buildOutcomeReceipt(receiptFull);
+    expect(md).not.toBeNull();
+    const text = md!;
+    // what shipped (deep-work blocks + decisions)
+    expect(text).toContain("3 decisions, 2 deep-work blocks shipped.");
+    // what it did (the verdict read as meaning, never the raw label)
+    expect(text).toContain('"Hard escalation policy for refunds" held up.');
+    expect(text).not.toContain("validated");
+    // calibration
+    expect(text).toContain("Every reviewed bet held up.");
+    // order: shipped, then outcome, then calibration
+    expect(text.indexOf("shipped.")).toBeLessThan(text.indexOf('"Hard escalation'));
+    expect(text.indexOf('"Hard escalation')).toBeLessThan(text.indexOf("Every reviewed"));
+  });
+
+  test("a genuinely quiet period reads honestly: no receipt to fabricate (null)", () => {
+    const md = buildOutcomeReceipt({
+      shipped: 0,
+      decisions: 0,
+      latestOutcome: null,
+      outcomeAccuracyPct: null,
+    });
+    expect(md).toBeNull();
+  });
+
+  test("a null calibration metric is omitted, never shown as 0% or 'null'", () => {
+    const md = buildOutcomeReceipt({ ...receiptFull, outcomeAccuracyPct: null })!;
+    expect(md).toContain("3 decisions, 2 deep-work blocks shipped.");
+    expect(md).toContain("held up."); // the outcome line still renders
+    expect(md).not.toContain("reviewed bet"); // the calibration line was omitted
+    expect(md).not.toContain("null");
+    expect(md).not.toContain("0%");
+  });
+
+  test("a fell-short outcome + partial calibration read by meaning, singular counts stay singular", () => {
+    const md = buildOutcomeReceipt({
+      shipped: 0,
+      decisions: 1,
+      latestOutcome: { title: "Auto-refund under $20", verdict: "missed" },
+      outcomeAccuracyPct: 67,
+    })!;
+    expect(md).toContain("1 decision shipped.");
+    expect(md).not.toContain("1 decisions");
+    expect(md).toContain('"Auto-refund under $20" fell short.');
+    expect(md).toContain("67% of reviewed bets held up.");
+  });
+
+  test("a shipped-only period leads with what shipped and omits the empty outcome + calibration", () => {
+    const md = buildOutcomeReceipt({
+      shipped: 4,
+      decisions: 0,
+      latestOutcome: null,
+      outcomeAccuracyPct: null,
+    })!;
+    expect(md).toContain("4 deep-work blocks shipped.");
+    expect(md).not.toContain("held up");
+    expect(md).not.toContain("fell short");
+  });
+
+  test("HUMANIZED: no em/en dashes or invisibles, no banned buzzwords", () => {
+    const md = buildOutcomeReceipt(receiptFull)!;
+    expect(md).not.toMatch(/[—–]/);
+    expect(md).not.toMatch(/[​‌‍⁠﻿­]/);
+    for (const bad of ["seamless", "leverage", "robust", "supercharge", "unlock", "elevate"]) {
+      expect(md.toLowerCase()).not.toContain(bad);
+    }
+  });
+
+  test("is deterministic - same snapshot, identical output", () => {
+    expect(buildOutcomeReceipt(receiptFull)).toEqual(buildOutcomeReceipt(receiptFull));
   });
 });

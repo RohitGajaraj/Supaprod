@@ -39,6 +39,7 @@ import { DecisionCurrencyBanner } from "@/components/decision/DecisionCurrencyBa
 import { CitationsCard, type Citation } from "@/components/product/CitationsCard";
 import { OutcomeCard, type OutcomePrd } from "@/components/product/OutcomeCard";
 import { OutcomeContractPanel } from "@/components/product/OutcomeContractPanel";
+import { IntentVsBuiltReceipt } from "@/components/product/IntentVsBuiltReceipt";
 import { SpecProjectionsPanel } from "@/components/product/SpecProjectionsPanel";
 import { FlowDiagram } from "@/components/product/FlowDiagram";
 import { LaunchPlanPanel } from "@/components/product/LaunchPlanPanel";
@@ -936,13 +937,17 @@ function SpecEditorPage() {
             <ReactMarkdown components={PREVIEW_COMPONENTS}>{body || "_Empty spec_"}</ReactMarkdown>
           </article>
         ) : mode === "contract" ? (
-          <OutcomeContractPanel
-            prdId={id}
-            specTitle={prd.title}
-            bodyMd={body}
-            contract={(prd as { contract?: OutcomeContract | null }).contract}
-            invalidateKey={["prd", id]}
-          />
+          <div className="space-y-6">
+            <OutcomeContractPanel
+              prdId={id}
+              specTitle={prd.title}
+              bodyMd={body}
+              contract={(prd as { contract?: OutcomeContract | null }).contract}
+              invalidateKey={["prd", id]}
+            />
+            {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
+            <IntentVsBuiltReceipt prdId={id} />
+          </div>
         ) : mode === "projections" ? (
           <SpecProjectionsPanel
             title={prd.title}

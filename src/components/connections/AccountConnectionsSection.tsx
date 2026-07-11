@@ -631,6 +631,25 @@ export function AccountConnectionsSection({
           >
             Workspace sync and bindings →
           </Link>
+          {/* RPT-42: agent-vendor neutrality, declared on the connect surface. The
+              deprecation-insurance promise, stated where sources are wired: the seam is
+              real (native build floor + Claude Agent SDK / OpenHands + BYO Devin/Codex/
+              Cursor via the BuildDriver, MCP + Skills compliant), so a model or vendor
+              swap never resets the outcome ledger. */}
+          <div
+            style={{
+              fontSize: 11.5,
+              lineHeight: 1.5,
+              color: "var(--text-subtle)",
+              borderTop: "1px solid var(--hairline)",
+              paddingTop: 12,
+            }}
+          >
+            <MonoLabel style={{ display: "block", marginBottom: 6 }}>Vendor neutral</MonoLabel>
+            Your agents will change. Your decision history should not. Cadence drives whichever
+            builders you connect and keeps the outcome ledger yours, so swapping a model or a
+            vendor never resets what the workspace has learned.
+          </div>
         </div>
       </aside>
 

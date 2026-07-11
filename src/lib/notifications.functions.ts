@@ -4,6 +4,8 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email.server";
 import { loadNewestDecisionBrief } from "@/lib/stakeholder-pack.functions";
+import { loadOutcomeReceiptSnapshot } from "@/lib/stakeholder-update.functions";
+import { buildOutcomeReceipt } from "@/lib/stakeholder-update";
 import {
   composeStakeholderPack,
   renderPackMarkdown,
@@ -504,6 +506,10 @@ export async function generateDigest(
   // null, the same class of service-role-vs-session-context bug already fixed for
   // ai_events (see 20260701190000_ai_events_workspace_default_service_role_safe.sql).
   let stakeholderSection: string | null = null;
+  // RPT-49: the outcome-receipt lead. Rides the same digest_stakeholder_update opt-in + resolved
+  // workspaceId, and OPENS the digest with what shipped, what it did, and calibration instead of
+  // the operational noise (approvals / stalled runs / budget / drift) that used to lead.
+  let outcomeReceipt: string | null = null;
   if (prefs?.digest_stakeholder_update) {
     try {
       const { data: wsRpc } = await supabase.rpc("ensure_user_default_workspace", {
@@ -511,6 +517,13 @@ export async function generateDigest(
       });
       const workspaceId = (wsRpc as string | null) ?? null;
       if (workspaceId) {
+        // Its own best-effort try, so a receipt failure never costs us the decision pack below.
+        try {
+          const receiptSnapshot = await loadOutcomeReceiptSnapshot(supabase, userId, workspaceId);
+          outcomeReceipt = buildOutcomeReceipt(receiptSnapshot);
+        } catch {
+          outcomeReceipt = null;
+        }
         const loaded = await loadNewestDecisionBrief(supabase, workspaceId);
         if (loaded) {
           const audience = (prefs.digest_stakeholder_audience ?? "exec") as PackAudience;
@@ -530,13 +543,15 @@ export async function generateDigest(
     .update({ last_digest_sent_at: new Date().toISOString() })
     .eq("user_id", userId);
 
-  if (digestItems.length === 0 && !stakeholderSection) {
+  if (digestItems.length === 0 && !stakeholderSection && !outcomeReceipt) {
     return { generated: false, reason: "No digest items found matching preferences." };
   }
 
   const subject = `Cadence ${frequency} digest`;
   const sections = [
     `Hello,\n\nHere is your ${frequency} digest from Cadence:`,
+    // RPT-49: the outcome receipt LEADS, before the operational items.
+    outcomeReceipt,
     digestItems.length > 0 ? digestItems.join("\n") : null,
     stakeholderSection ? `Stakeholder update:\n\n${stakeholderSection}` : null,
     "Review detailed logs in your Cadence Cockpit dashboard.",
