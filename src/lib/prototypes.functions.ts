@@ -6,6 +6,19 @@
  * gets a name, a stable share_slug, and a public/private toggle -- the
  * existing `/p/$slug` viewer lights up as soon as a row lands here. No new
  * generation logic: publish reads the scaffold DEF-04 already made.
+ *
+ * Authorization note (IDOR review acknowledged NOT exploitable, verified
+ * against the live RLS policy SQL, not just code reading): every handler
+ * here uses `requireSupabaseAuth`'s RLS-scoped client, never the admin
+ * client. `listPrototypes`/`togglePrototypeShare` have no app-level
+ * `.eq("user_id", ...)` filter because none is needed -- `prototypes`'
+ * live policy is `FOR ALL USING (auth.uid() = user_id AND
+ * is_workspace_member(workspace_id)) WITH CHECK (same)`, so a caller
+ * passing another user's row id updates/reads zero rows, not someone
+ * else's. `publishPrototypeFromPrd` derives `workspace_id` from a `prds`
+ * row read through the SAME RLS-scoped client (`prds`' SELECT policy is
+ * `is_workspace_member(workspace_id)`), so a prdId from a foreign
+ * workspace returns null and the handler throws before any write.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
