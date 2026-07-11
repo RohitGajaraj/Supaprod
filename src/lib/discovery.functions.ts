@@ -1285,7 +1285,7 @@ export const savePrd = createServerFn({ method: "POST" })
     // RPT-23 verifiability gate can grade the effective contract on approval.
     const { data: prior } = await supabase
       .from("prds")
-      .select("status,workspace_id,title,body_md,contract")
+      .select("status,workspace_id,title,body_md,contract,model")
       .eq("id", id)
       .maybeSingle();
 
@@ -1320,6 +1320,29 @@ export const savePrd = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+
+    // RPT-32: capture a human's spec-BODY edit of an AGENT-drafted spec as an
+    // "edit" gate signal, but ONLY at a status-bearing checkpoint (an explicit
+    // advance, not a keystroke autosave) whose body differs from the prior save,
+    // so per-keystroke saves never inflate the correction rate. Best-effort and
+    // awaited (never throws); skipped for human-authored specs (no model) and
+    // unchanged bodies.
+    if (
+      rest.status &&
+      typeof rest.body_md === "string" &&
+      rest.body_md !== (prior?.body_md ?? null) &&
+      (prior as { model?: string | null } | null)?.model
+    ) {
+      await recordGateSignalCore(supabase, userId, {
+        gateType: "edit",
+        subjectType: "spec",
+        subjectRef: id,
+        agentSlug: "spec-drafter",
+        verdict: "edited",
+        diffSummary: `spec body edited before ${rest.status}`,
+        workspaceId: (prior as { workspace_id?: string | null } | null)?.workspace_id ?? null,
+      });
+    }
 
     // SEAM-1: stage history for a status-bearing spec save (helper skips no-ops).
     if (rest.status) {
