@@ -90,7 +90,7 @@ function NavRow({
       to={item.to}
       search={item.search as never}
       data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
-      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)] ${
+      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] ${
         active
           ? "loom-thread-active bg-[var(--surface-active)] font-semibold text-[var(--text-primary)]"
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
@@ -146,10 +146,12 @@ function pollWhenVisible(ms: number) {
     typeof document !== "undefined" && document.visibilityState === "hidden" ? false : ms;
 }
 
-/** Honest, persistent label for a sample/demo workspace. Blossom is the
- *  information voice (never ember, which is reserved for a human decision); it
- *  stays visible while the sample workspace is active so example data is never
- *  mistaken for real data. */
+/** Honest, persistent label for a sample/demo workspace. Neutral gray, not a
+ *  chromatic accent (Tempo v5 DESIGN-TEMPO.md §2 glacier/machine-voice
+ *  narrowing, 2026-07-11): this is provenance metadata, not a literal live/
+ *  running status, so it stays gray; ember stays reserved for a human
+ *  decision. It stays visible while the sample workspace is active so example
+ *  data is never mistaken for real data. */
 function SampleWorkspaceBanner() {
   return (
     <div
@@ -168,7 +170,7 @@ function SampleWorkspaceBanner() {
           fontSize: "10.5px",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: "var(--blossom)",
+          color: "var(--text-muted)",
         }}
       >
         Sample data
@@ -271,7 +273,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       const meta = u?.user_metadata as
-        { display_name?: string; full_name?: string; name?: string } | undefined;
+        | { display_name?: string; full_name?: string; name?: string }
+        | undefined;
       const name =
         meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "Account";
       setUserName(name);
@@ -562,7 +565,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="loom-press w-full flex items-center text-left outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+                  className="loom-press w-full flex items-center text-left outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
                   style={{ gap: 11 }}
                   aria-label="Workspace switcher"
                 >
@@ -621,7 +624,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 fontSize: "9.5px",
                                 letterSpacing: "0.05em",
                                 textTransform: "uppercase",
-                                color: "var(--blossom)",
+                                color: "var(--text-muted)",
                               }}
                             >
                               Sample
@@ -711,7 +714,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="loom-press flex flex-1 items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+              className="loom-press flex flex-1 items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
               style={{
                 gap: 8,
                 border: "1px solid var(--hairline)",
@@ -729,7 +732,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-ask"))}
-              className="loom-press flex items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+              className="loom-press flex items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
               style={{
                 gap: 8,
                 border: "1px solid var(--hairline)",
@@ -804,7 +807,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 to="/govern"
                 search={{ tab: "controls" }}
-                className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+                className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
                 style={{
                   border: "1px solid var(--hairline-strong)",
                   padding: "7px 10px",
@@ -839,7 +842,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   aria-label="Account menu"
-                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
                   style={{ gap: 11, padding: "8px 10px" }}
                 >
                   <span

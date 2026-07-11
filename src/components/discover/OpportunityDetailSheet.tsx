@@ -346,19 +346,19 @@ export function OpportunityDetailSheet({
 
             {/* Priority band: the agent-and-human priority cue, high in the
                 view. The queue position, the single best bet, the recommended
-                next action, and the rationale. A calm glacier tint marks the
-                best bet (never amber or brown); everything else stays quiet.
-                Rendered only when threaded in; absent members render nothing. */}
+                next action, and the rationale. Stays neutral; the "Best bet"
+                chip below is the band's one accent (Tempo v5 glacier
+                narrowing, 2026-07-11: a second chromatic tint on the
+                surrounding band would compete with it). Rendered only when
+                threaded in; absent members render nothing. */}
             {rank != null || rationale || nextAction || designation ? (
               <div
                 style={{
                   display: "grid",
                   gap: "9px",
-                  background: isBestBet
-                    ? "color-mix(in srgb, var(--glacier) 8%, transparent)"
-                    : "var(--surface-raised)",
+                  background: "var(--surface-raised)",
                   border: isBestBet
-                    ? "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)"
+                    ? "1px solid var(--hairline-strong)"
                     : "1px solid var(--hairline)",
                   borderRadius: "var(--radius-card)",
                   padding: "13px 15px",
@@ -488,7 +488,7 @@ export function OpportunityDetailSheet({
                     style={{
                       gap: "6px",
                       fontSize: "12px",
-                      color: "var(--glacier)",
+                      color: "var(--text-muted)",
                       background: "transparent",
                       border: "none",
                       padding: 0,

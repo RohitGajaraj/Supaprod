@@ -54,7 +54,7 @@ function AskBox() {
           new CustomEvent("cadence:open-ask", { detail: { intent: ASK_INTENT } }),
         )
       }
-      className="loom-press flex w-full items-center text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press flex w-full items-center text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         gap: 16,
         border: "1px solid var(--hairline-strong)",
@@ -87,7 +87,7 @@ function WhatChangedRow({ item }: { item: WhatChangedItem }) {
     <Link
       to="/brain"
       search={{ tab: "learnings", learning: item.id }}
-      className="loom-press flex items-center justify-between outline-none hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press flex items-center justify-between outline-none hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         gap: 14,
         padding: "12px 16px",
@@ -227,7 +227,7 @@ function VolunteeredInsightsSection({ insights }: { insights: VolunteeredInsight
       {/* ONE spotlight moment for this section: the highest-scoring insight,
           in the exact voice InsightsPanel already established for this kind
           of read. */}
-      <SpotlightCard kicker="What Cadence is seeing" tone="glacier">
+      <SpotlightCard kicker="What Cadence is seeing" tone="neutral">
         <InsightBody insight={top} />
       </SpotlightCard>
       {rest.map((insight) => (

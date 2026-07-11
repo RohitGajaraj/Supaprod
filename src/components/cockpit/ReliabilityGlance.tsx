@@ -85,7 +85,7 @@ export function ReliabilityGlance() {
           >
             {parts.join(" · ")}
           </span>
-          <span style={{ color: "var(--glacier)" }}>details →</span>
+          <span style={{ color: "var(--text-primary)" }}>details →</span>
         </div>
       </PopoverTrigger>
       <PopoverContent

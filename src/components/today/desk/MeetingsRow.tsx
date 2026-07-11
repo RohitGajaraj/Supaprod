@@ -48,7 +48,7 @@ export function MeetingsRow() {
     <button
       type="button"
       onClick={() => navigate({ to: "/brain", search: { tab: "calendar" } as never })}
-      className="loom-press flex w-full items-center text-left outline-none transition-colors hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press flex w-full items-center text-left outline-none transition-colors hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 10,
         padding: "10px 6px 8px",

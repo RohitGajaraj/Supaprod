@@ -358,7 +358,7 @@ export function DecisionsPanel() {
               <span
                 style={{
                   fontSize: 12.5,
-                  color: d.decided_by_agent_slug ? "var(--glacier)" : "var(--text-muted)",
+                  color: "var(--text-muted)",
                 }}
               >
                 {displayWho(d.decided_by_agent_slug)}

@@ -261,7 +261,7 @@ function RailRow({
     <button
       type="button"
       onClick={onClick}
-      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         display: "flex",
         alignItems: "center",
@@ -644,7 +644,7 @@ export function AccountConnectionsSection({
           <RequestConnectorCard compact />
           <Link
             to="/sync"
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{ fontSize: 12, color: "var(--text-subtle)" }}
           >
             Workspace sync and bindings →
@@ -694,7 +694,8 @@ export function AccountConnectionsSection({
                 border: "none",
                 padding: 0,
                 fontSize: 12.5,
-                color: "var(--glacier)",
+                color: "var(--text-primary)",
+                textDecoration: "underline",
                 cursor: "pointer",
               }}
             >

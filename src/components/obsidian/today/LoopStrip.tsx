@@ -42,7 +42,7 @@ function Pill({
       type="button"
       onClick={onGo}
       title={title}
-      className="inline-flex items-center outline-none transition-colors hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="inline-flex items-center outline-none transition-colors hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         gap: 7,
         border: `1px solid ${s.border}`,

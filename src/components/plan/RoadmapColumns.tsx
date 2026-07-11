@@ -209,7 +209,7 @@ export function RoadmapColumns() {
             marginTop: 14,
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-body)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -334,7 +334,7 @@ export function RoadmapColumns() {
                   <button
                     type="button"
                     onClick={() => toggleExpanded(col.key)}
-                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-ui)",
                       fontSize: 12.5,

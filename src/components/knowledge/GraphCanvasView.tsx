@@ -145,9 +145,9 @@ function ConstellationMotif() {
     <svg width="200" height="88" viewBox="0 0 200 88" aria-hidden="true" style={{ opacity: 0.5 }}>
       <defs>
         <linearGradient id="graph-empty-thread" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="var(--glacier)" />
-          <stop offset="55%" stopColor="#5b7cfa" />
-          <stop offset="100%" stopColor="var(--blossom)" />
+          <stop offset="0%" stopColor="var(--text-subtle)" />
+          <stop offset="55%" stopColor="var(--text-muted)" />
+          <stop offset="100%" stopColor="var(--text-faint)" />
         </linearGradient>
       </defs>
       <g stroke="url(#graph-empty-thread)" strokeWidth="1" opacity="0.4">
@@ -302,11 +302,11 @@ export function GraphCanvasView({
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
             padding: 0,
@@ -358,11 +358,11 @@ export function GraphCanvasView({
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
           }}
@@ -407,7 +407,7 @@ export function GraphCanvasView({
                   fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: replaying ? "var(--glacier)" : "var(--text-subtle)",
+                  color: replaying ? "var(--text-primary)" : "var(--text-subtle)",
                   background: "transparent",
                   border: "1px solid var(--hairline)",
                   borderRadius: "var(--radius-control)",

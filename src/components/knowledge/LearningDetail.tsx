@@ -1,7 +1,7 @@
 // LearningDetail - Brain -> Learnings drill-down, rebuilt on the shared
 // DetailKit anatomy (DESIGN-LOOM dim 17 / design-anatomy §3) so a learning
 // reads identically to a Discover signal, a Decide opportunity, and a Today
-// call: DetailHeader -> a glacier summary band (the compounding value first)
+// call: DetailHeader -> a neutral summary band (the compounding value first)
 // -> a compact StatStrip -> consistent DetailSections -> an actions footer.
 // Drill state rides ?learning= on /brain; the detail replaces only the tab
 // body. Reads listLearnings (the same ["learnings"] cache CompoundingPanel
@@ -228,13 +228,15 @@ export function LearningDetail({ id }: { id: string }) {
           }
         />
 
-        {/* Summary band: the compounding value first (calm glacier tint). */}
+        {/* Summary band: the compounding value first (calm neutral tint —
+            Tempo v5 glacier narrowing, 2026-07-11: a card accent, not a
+            status control, so it stays gray). */}
         <div
           style={{
             display: "grid",
             gap: "8px",
-            background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+            background: "color-mix(in srgb, var(--text-subtle) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--text-subtle) 22%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "13px 15px",
           }}
@@ -335,7 +337,7 @@ export function LearningDetail({ id }: { id: string }) {
                   className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontSize: "12.5px",
-                    color: "var(--glacier)",
+                    color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
                     padding: 0,
@@ -354,7 +356,7 @@ export function LearningDetail({ id }: { id: string }) {
                   className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontSize: "12.5px",
-                    color: "var(--glacier)",
+                    color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
                     padding: 0,

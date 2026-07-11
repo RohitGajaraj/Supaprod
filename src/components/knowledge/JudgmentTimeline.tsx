@@ -190,7 +190,7 @@ export function JudgmentTimeline() {
                   <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 6 }}>
                     {entry.decidedBy ? (
                       <>
-                        <span style={{ fontSize: 12, color: "var(--glacier)" }}>
+                        <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
                           decided by {displayWho(entry.decidedBy)}
                         </span>
                         <span style={{ color: "var(--text-faint)" }}>·</span>

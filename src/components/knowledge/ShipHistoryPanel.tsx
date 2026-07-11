@@ -204,7 +204,7 @@ export function ShipHistoryPanel() {
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
               fontSize: 11,
-              color: "var(--machine)",
+              color: "var(--text-subtle)",
             }}
           >
             {r.agent_name}

@@ -90,19 +90,19 @@ export function FlowWidget({ asRow = false }: { asRow?: boolean }) {
       type="button"
       aria-label="Focus mode"
       title={isFlowMode ? "Focus mode on" : "Focus mode"}
-      className="loom-press flex w-full items-center rounded-[8px] px-[10px] py-[8px] text-[13px] text-[var(--text-muted)] outline-none transition-colors hover:bg-[var(--raised)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--glacier)]"
+      className="loom-press flex w-full items-center rounded-[8px] px-[10px] py-[8px] text-[13px] text-[var(--text-muted)] outline-none transition-colors hover:bg-[var(--raised)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
       style={{ gap: 11 }}
     >
       <Waves
         className={cn("shrink-0", isFlowMode && "flow-pulse")}
-        style={{ width: 15, height: 15, color: isFlowMode ? "var(--glacier)" : undefined }}
+        style={{ width: 15, height: 15, color: isFlowMode ? "var(--text-primary)" : undefined }}
         strokeWidth={1.75}
       />
       <span className="flex-1 truncate text-left">Focus</span>
       {isFlowMode && remainingLabel ? (
         <span
           className="tabular-nums shrink-0"
-          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--glacier)" }}
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, color: "var(--text-primary)" }}
         >
           {remainingLabel}
         </span>

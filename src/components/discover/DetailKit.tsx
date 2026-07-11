@@ -26,12 +26,14 @@ const STAT_TONE_COLOR: Record<StatTone, string> = {
   neutral: "var(--text-primary)",
 };
 
-/** A tier tone from a 0 to 10 score: strong reads moss, mid glacier, low a
- * quiet muted tone. The shared rule for every scored stat cell, so a strength
- * anchor reads the same on every object. */
+/** A tier tone from a 0 to 10 score: strong reads moss, mid a full-contrast
+ * neutral, low a quiet muted tone. The shared rule for every scored stat
+ * cell, so a strength anchor reads the same on every object. Chromatic color
+ * is reserved for the strong tier only (Tempo v5 glacier narrowing, 2026-07-11):
+ * a mid score is not a status, so it stays gray. */
 export function toneForScore(score: number): StatTone {
   if (score >= 7) return "moss";
-  if (score >= 4) return "glacier";
+  if (score >= 4) return "neutral";
   return "muted";
 }
 

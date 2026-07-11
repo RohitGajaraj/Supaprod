@@ -94,11 +94,7 @@ function Frame({
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
-          {eyebrow ? (
-            <MonoLabel tone="glacier" style={{ marginBottom: 10 }}>
-              {eyebrow}
-            </MonoLabel>
-          ) : null}
+          {eyebrow ? <MonoLabel style={{ marginBottom: 10 }}>{eyebrow}</MonoLabel> : null}
           <h1
             style={{
               fontFamily: "var(--font-serif)",
@@ -526,7 +522,11 @@ export function ObsidianOnboarding() {
   // PC-02: Helper to track funnel milestone (async, non-blocking)
   async function trackMilestone(
     stage:
-      "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
+      | "signup"
+      | "product_named"
+      | "data_connected"
+      | "critic_completed"
+      | "onboarding_completed",
     metadata?: Record<string, unknown>,
   ) {
     if (!activeWorkspace?.id) return;
@@ -663,13 +663,14 @@ export function ObsidianOnboarding() {
           }}
         >
           <ArrivalButterfly />
+          {/* Geist Pixel brand moment (DESIGN-TEMPO.md SS3/SS8): the arrival
+              headline is this surface's one hero moment - a single line
+              shown once, first thing a new user sees. */}
           <p
+            className="font-pixel"
             style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 430,
               fontSize: 34,
               lineHeight: 1.15,
-              letterSpacing: "-0.015em",
               color: "var(--text-primary)",
               marginTop: 24,
               marginBottom: 0,

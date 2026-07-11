@@ -68,7 +68,7 @@ export function sketchPath(
    double stroke, hand-set dot on the last point. */
 export function SketchLine({
   data,
-  color = "var(--action-blue)",
+  color = "var(--text-muted)",
   w = 210,
   h = 42,
   baseline,
@@ -157,11 +157,10 @@ export function SketchBar({
   trackH?: number;
 }) {
   const W = 60; // nominal units; the svg stretches to the flex cell
-  const { outline, hatch } = useMemo(() => sketchBarGeometry(pct, seed, trackH), [
-    pct,
-    seed,
-    trackH,
-  ]);
+  const { outline, hatch } = useMemo(
+    () => sketchBarGeometry(pct, seed, trackH),
+    [pct, seed, trackH],
+  );
   return (
     <svg
       width="100%"
@@ -229,8 +228,7 @@ export function sketchLineGeometry(
     passB: sketchPath(pts, mulberry32(seedOf(data, 2)), 1.1),
     endX: px(data.length - 1),
     endY: py(data[data.length - 1]),
-    baseY:
-      baseline != null && baseline >= min && baseline <= max ? py(baseline) : null,
+    baseY: baseline != null && baseline >= min && baseline <= max ? py(baseline) : null,
   };
 }
 
@@ -240,11 +238,7 @@ export interface SketchBarGeometry {
   hatch: string;
 }
 
-export function sketchBarGeometry(
-  pct: number,
-  seed: number,
-  trackH: number,
-): SketchBarGeometry {
+export function sketchBarGeometry(pct: number, seed: number, trackH: number): SketchBarGeometry {
   const W = 60; // nominal units; the svg stretches to the flex cell
   const rnd = mulberry32((seed * 2654435761) | 0);
   const top = trackH - Math.max(3, (pct / 100) * (trackH - 2));
@@ -410,7 +404,7 @@ export function SketchBarChart({
               onMouseLeave={() => setHover((h) => (h === i ? null : h))}
               onFocus={() => setHover(i)}
               onBlur={() => setHover((h) => (h === i ? null : h))}
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
               style={{
                 flex: 1,
                 minWidth: 0,

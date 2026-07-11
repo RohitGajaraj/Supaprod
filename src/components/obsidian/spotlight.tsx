@@ -18,15 +18,20 @@ import { MonoLabel } from "./primitives";
  *  - an optional mono kicker, the message in a confident readable voice, and
  *    an optional actions slot
  *
- * Tone maps the glow to meaning (glacier = the machine's read · ember =
- * needs-a-human · moss = a healthy/positive takeaway · blossom = information).
+ * Tone maps the glow to meaning (ember = needs-a-human · moss =
+ * a healthy/positive takeaway · blossom = information · neutral = a plain
+ * read with no status claim). "glacier" is kept as a type value for
+ * back-compat with existing callers but renders identically to neutral
+ * (2026-07-11 glacier-narrowing ruling, DESIGN-TEMPO.md §2): a card glow is
+ * decoration, not a literal status badge, so it no longer earns its own
+ * blue tint - update call sites to "neutral" when touched next.
  * Use SPARINGLY: at most one or two spotlights per screen (the restraint
  * budget governs how many spotlights, never whether an insight is allowed one).
  */
 export type SpotlightTone = "glacier" | "ember" | "moss" | "blossom" | "neutral";
 
 const SPOTLIGHT_GLOW: Record<SpotlightTone, string> = {
-  glacier: "rgba(132, 179, 236, 0.07)",
+  glacier: "rgba(255, 255, 255, 0.03)",
   ember: "rgba(255, 107, 44, 0.06)",
   moss: "rgba(127, 191, 142, 0.07)",
   blossom: "rgba(229, 189, 223, 0.06)",
@@ -34,7 +39,7 @@ const SPOTLIGHT_GLOW: Record<SpotlightTone, string> = {
 };
 
 const SPOTLIGHT_KICKER_COLOR: Record<SpotlightTone, string> = {
-  glacier: "var(--glacier)",
+  glacier: "var(--text-muted)",
   ember: "var(--ember-text)",
   moss: "var(--moss-bright)",
   blossom: "var(--blossom)",
@@ -54,7 +59,7 @@ export interface SpotlightCardProps extends React.HTMLAttributes<HTMLDivElement>
 
 export const SpotlightCard = React.forwardRef<HTMLDivElement, SpotlightCardProps>(
   (
-    { kicker, tone = "glacier", actions, compact = false, className, style, children, ...props },
+    { kicker, tone = "neutral", actions, compact = false, className, style, children, ...props },
     ref,
   ) => (
     <div

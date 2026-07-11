@@ -52,10 +52,13 @@ export function deriveBrainStats(result: ImpactLedgerResult): BrainStats {
 function StatCell({ value, label }: BrainStatCell) {
   return (
     <div>
+      {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8): this
+          trio sits at the top of every Brain tab, so its numeral is the
+          surface's single big-stat display moment - never the label beside
+          it. */}
       <div
         style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 450,
+          fontFamily: "var(--font-pixel)",
           fontSize: 24,
           color: "var(--text-primary)",
           fontVariantNumeric: "tabular-nums",

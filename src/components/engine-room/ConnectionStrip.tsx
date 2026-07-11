@@ -69,7 +69,7 @@ export function ConnectionStrip() {
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor)",
             letterSpacing: "0.11em",
-            color: "var(--glacier)",
+            color: "var(--text-primary)",
             background: "none",
             border: "none",
             padding: 0,

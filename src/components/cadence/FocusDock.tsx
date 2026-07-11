@@ -69,7 +69,7 @@ function DurationChip({
     <button
       type="button"
       onClick={onClick}
-      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 11.5,
@@ -278,8 +278,12 @@ export function FocusDock() {
     <>
       {/* The session edge glow (founder ask 2026-07-09; the Claude caps-lock
           reference): while a block runs, the screen's edges carry a faint
-          phase-colored light — glacier while the machine holds the room,
-          ember through the closing stretch. A legal glow field: atmosphere
+          light — neutral gray while the block holds the room, ember through
+          the closing stretch (Tempo v5 DESIGN-TEMPO.md §2 glacier/
+          machine-voice narrowing, 2026-07-11: a full-viewport glow is
+          ambient decoration, not a literal status badge/chip/dot, so it no
+          longer borrows glacier — the pill's own dot/text/progress line
+          still carries the live phase color). A legal glow field: atmosphere
           with meaning, aria-hidden, pointer-transparent, breathing only
           while the session is genuinely live. */}
       {running ? (
@@ -294,7 +298,7 @@ export function FocusDock() {
             boxShadow:
               phase === "closing"
                 ? "inset 0 0 140px -48px rgba(255,107,44,0.14), inset 0 0 48px -24px rgba(255,107,44,0.08)"
-                : "inset 0 0 140px -48px rgba(127,209,220,0.10), inset 0 0 48px -24px rgba(127,209,220,0.05)",
+                : "inset 0 0 140px -48px var(--ds-gray-alpha-500), inset 0 0 48px -24px var(--ds-gray-alpha-300)",
             transition: "box-shadow 280ms var(--ease)",
           }}
         />
@@ -495,7 +499,7 @@ export function FocusDock() {
             onMouseLeave={() => setHovered(false)}
             onFocus={() => setHovered(true)}
             onBlur={() => setHovered(false)}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
             style={{
               display: "flex",
               alignItems: "center",
@@ -536,7 +540,7 @@ export function FocusDock() {
               <button
                 type="button"
                 aria-label="Focus block controls (Option F)"
-                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
                 style={{
                   display: "flex",
                   alignItems: "center",

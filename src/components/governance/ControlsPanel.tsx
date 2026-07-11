@@ -425,7 +425,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         </div>
         <button
           className="mono-label"
-          style={{ color: "var(--action-blue)", marginTop: 4 }}
+          style={{ color: "var(--text-subtle)", marginTop: 4 }}
           onClick={onOpenQueue}
         >
           open the queue →

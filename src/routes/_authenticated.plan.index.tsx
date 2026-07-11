@@ -47,7 +47,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
               marginTop: 14,
               fontFamily: "var(--font-mono)",
               fontSize: 11,
-              color: "var(--glacier)",
+              color: "var(--text-subtle)",
               background: "none",
               border: "none",
               cursor: "pointer",

@@ -15,7 +15,14 @@ export function rgba(hex: string, alpha: number): string {
 }
 
 export type MonoLabelTone =
-  "ember" | "glacier" | "blossom" | "moss" | "madder" | "marigold" | "muted" | "faint";
+  | "ember"
+  | "glacier"
+  | "blossom"
+  | "moss"
+  | "madder"
+  | "marigold"
+  | "muted"
+  | "faint";
 
 export const MONO_LABEL_TONE_COLOR: Record<MonoLabelTone, string> = {
   ember: "var(--ember)",
@@ -178,7 +185,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading || undefined}
         className={cn(
           "relative inline-flex items-center justify-center gap-2 outline-none",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
           !isDisabled && !isLink && "active:scale-[0.985]",
           !isDisabled && BUTTON_VARIANT_HOVER_CLASS[variant],
           isDisabled ? "cursor-default opacity-45" : "cursor-pointer",
@@ -208,7 +215,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             aria-hidden="true"
             className="absolute h-[6px] w-[6px] rounded-full"
             style={{
-              backgroundColor: variant === "primary" ? "var(--cta-ink)" : "var(--glacier)",
+              backgroundColor: variant === "primary" ? "var(--cta-ink)" : "var(--text-muted)",
               animation: "cadPulse 2s ease-in-out infinite",
             }}
           />

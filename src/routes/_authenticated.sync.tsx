@@ -126,7 +126,7 @@ function SyncInboxPage() {
       <Link
         to="/settings"
         search={{ section: "connections" }}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}
       >
         ← Settings · Connections

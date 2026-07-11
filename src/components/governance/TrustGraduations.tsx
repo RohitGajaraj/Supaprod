@@ -76,7 +76,7 @@ function GraduationCard({
   return (
     <div className="bento" style={{ padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <TrendingUp size={14} style={{ color: "var(--glacier)" }} aria-hidden="true" />
+        <TrendingUp size={14} style={{ color: "var(--text-subtle)" }} aria-hidden="true" />
         <span
           style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-primary)" }}
         >
@@ -85,7 +85,7 @@ function GraduationCard({
         <span style={{ fontSize: 12.5, color: "var(--text-body)" }}>
           has earned looser reins on
         </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--glacier)" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-body)" }}>
           {p.tool_name}
         </span>
       </div>

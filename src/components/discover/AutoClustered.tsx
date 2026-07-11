@@ -50,7 +50,6 @@ function HeaderRow({ count }: { count: number }) {
         </p>
       </div>
       <MonoLabel
-        tone="glacier"
         style={{
           fontSize: "10.5px",
           letterSpacing: "0.08em",
@@ -97,7 +96,7 @@ function SourceFilterRow({
         type="button"
         onClick={() => onSelect(null)}
         aria-pressed={active === null}
-        className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={chipStyle(active === null)}
       >
         ALL
@@ -108,7 +107,7 @@ function SourceFilterRow({
           type="button"
           onClick={() => onSelect(active === s.source ? null : s.source)}
           aria-pressed={active === s.source}
-          className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={chipStyle(active === s.source)}
         >
           {sourceCaps(s.source)} {s.count}
@@ -404,7 +403,7 @@ export function AutoClustered() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,

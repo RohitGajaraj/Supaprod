@@ -1,9 +1,10 @@
 /**
  * SW-5 (mission 3.11) — the render for Today's four segregated lanes. Data comes
  * from a single source (getTodayLanes), so the surface is computed-and-grouped,
- * not a data dump. Per the Obsidian design contract: Lane 1 (Needs your
- * judgment) is the ONLY ember lane; lanes 2-4 speak in the calm glacier/neutral
- * machine voice. These are presentational — no data fetching here.
+ * not a data dump. Per the Tempo design contract: Lane 1 (Needs your
+ * judgment) is the ONLY ember lane; lanes 2-4 stay neutral gray (glacier is
+ * reserved for literal status pills/dots, never an ambient lane voice). These
+ * are presentational — no data fetching here.
  */
 
 import * as React from "react";
@@ -156,7 +157,7 @@ export function PushedInsights({
                 fontFamily: "var(--font-ui)",
                 fontSize: 12,
                 fontWeight: 500,
-                color: "var(--glacier)",
+                color: "var(--text-muted)",
                 background: "transparent",
                 border: "1px solid var(--hairline-strong)",
                 borderRadius: "var(--radius-control)",
@@ -359,7 +360,7 @@ export function WatchLane({ lane, bare }: { lane: TodayLane3; bare?: boolean }) 
 
 const VERDICT_DOT: Record<string, string> = {
   achieved: "var(--moss)",
-  partial: "var(--glacier)",
+  partial: "var(--text-faint)",
   missed: "var(--madder)",
 };
 const VERDICT_LABEL: Record<string, string> = {
@@ -388,7 +389,7 @@ export function ShippedLane({ lane }: { lane: TodayLane4 }) {
                     width: 7,
                     height: 7,
                     borderRadius: 99,
-                    background: VERDICT_DOT[it.verdict] ?? "var(--glacier)",
+                    background: VERDICT_DOT[it.verdict] ?? "var(--text-faint)",
                     flexShrink: 0,
                     alignSelf: "center",
                   }}

@@ -17,8 +17,10 @@
 // priority, and labels both numbers so each means one thing.
 //
 // OBS-08: ported to Obsidian — the Obsidian VerdictChip carries the tone, and
-// the "what it moved" line is the machine voice in glacier mono (README law:
-// the moved-line states what changed, in the machine's own voice).
+// the "what it moved" line renders in neutral mono (README law: the
+// moved-line states what changed, in the machine's own voice) — Tempo v5
+// (2026-07-11) narrowed glacier to literal status/link use only, so this
+// data readout is neutral text now, not a chromatic tint.
 import { useServerFn } from "@tanstack/react-start";
 import { PanelSkeleton } from "./PanelSkeleton";
 import { useQuery } from "@tanstack/react-query";
@@ -175,7 +177,7 @@ export function CompoundingPanel() {
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-floor)",
-                      color: "var(--glacier)",
+                      color: "var(--text-subtle)",
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
                     }}

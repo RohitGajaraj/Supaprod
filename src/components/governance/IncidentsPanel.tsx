@@ -153,7 +153,7 @@ function IncidentCard({ n }: { n: Incident }) {
             fontFamily: "var(--font-mono)",
             fontSize: 9.5,
             letterSpacing: "0.1em",
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
           }}
         >
           {hasTrace ? "Open trace" : "Open mission"}
@@ -212,7 +212,7 @@ export function IncidentsPanel() {
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor, 10.5px)",
             letterSpacing: "0.11em",
-            color: "var(--glacier)",
+            color: "var(--text-primary)",
             background: "none",
             border: "none",
             padding: 0,

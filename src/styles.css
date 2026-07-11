@@ -1784,7 +1784,9 @@ html[data-motion="off"] .agent-live {
   /* User-behavior data */
   --flamingo: #f26b8a;
   --magenta: #c2337e;
-  --rose: var(--ds-red-600); /* aliased to Tempo (2026-07-11 fix): matches --madder/--destructive and the corrected :root block below, so the alert/failure role reads identically whether or not the data-obsidian scope is active */
+  --rose: var(
+    --ds-red-600
+  ); /* aliased to Tempo (2026-07-11 fix): matches --madder/--destructive and the corrected :root block below, so the alert/failure role reads identically whether or not the data-obsidian scope is active */
   /* Agent identity (one fixed shade per face) */
   --mauve: #b78bc7;
   --amethyst: #7e5aa6;
@@ -1820,7 +1822,9 @@ html[data-motion="off"] .agent-live {
    * var(--font-serif) / var(--font-pencil). Never reintroduce a literal font
    * string here; point every voice at the Tempo trio (--font-sans / --font-mono
    * / --font-pixel) or a var() alias to one of them. See the guardrail note above. */
-  --font-serif: var(--font-display); /* was Newsreader; Tempo v5 has no serif — Geist covers display too */
+  --font-serif: var(
+    --font-display
+  ); /* was Newsreader; Tempo v5 has no serif — Geist covers display too */
   --font-ui: var(--font-sans); /* was Schibsted Grotesk */
   /* --font-mono intentionally NOT redeclared here — the Geist Mono definition
      above is the single source of truth; a second declaration in this same
@@ -1936,13 +1940,21 @@ html[data-motion="off"] .agent-live {
   --pale-blue: var(--raised);
   --border-light: var(--hairline-faint);
   --card-border: var(--hairline-faint);
-  --primary-ink: var(--ds-gray-1000); /* aliased to Tempo (2026-07-11 fix): was var(--pearl), an unaliased legacy hex; now matches the corrected :root block */
-  --deep-green: var(--ds-green-800); /* aliased to Tempo (2026-07-11 fix): was var(--pearl) — wrong scale entirely (the approve-button role needs green, not the pearl axis color); now matches the corrected :root block */
-  --action-blue: var(--ds-blue-600); /* aliased to Tempo (2026-07-11 fix): was var(--cornflower), an unaliased legacy hex; now matches the corrected :root block */
+  --primary-ink: var(
+    --ds-gray-1000
+  ); /* aliased to Tempo (2026-07-11 fix): was var(--pearl), an unaliased legacy hex; now matches the corrected :root block */
+  --deep-green: var(
+    --ds-green-800
+  ); /* aliased to Tempo (2026-07-11 fix): was var(--pearl) — wrong scale entirely (the approve-button role needs green, not the pearl axis color); now matches the corrected :root block */
+  --action-blue: var(
+    --ds-blue-600
+  ); /* aliased to Tempo (2026-07-11 fix): was var(--cornflower), an unaliased legacy hex; now matches the corrected :root block */
   --focus-blue: var(--focus-ring);
   --form-focus: var(--focus-ring);
   --saffron: var(--marigold);
-  --agent: var(--ds-purple-600); /* aliased to Tempo (2026-07-11 fix): was var(--mauve), an unaliased legacy hex; now matches the corrected :root block */
+  --agent: var(
+    --ds-purple-600
+  ); /* aliased to Tempo (2026-07-11 fix): was var(--mauve), an unaliased legacy hex; now matches the corrected :root block */
   --emerald: var(--moss);
   --hero-bg: var(--surface-card-deep);
   --hero-ink: var(--text-primary);
@@ -1965,6 +1977,21 @@ html[data-motion="off"] .agent-live {
   background-color: var(--selection);
   color: var(--text-primary);
 }
+/* FOOTGUN (found + verified 2026-07-11, do not "fix" per-component instead):
+ * this rule is unlayered plain CSS (it sits after both explicit @layer base
+ * and @layer utilities close earlier in this file). Per the CSS Cascade
+ * Layers spec, unlayered declarations always beat layered ones regardless of
+ * specificity or source order - so ANY component-level Tailwind utility
+ * class targeting focus-visible outline color (e.g. `focus-visible:outline-
+ * [var(--ember)]`), which Tailwind emits into its own internal layered
+ * `utilities` layer, is permanently inert here. It cannot win no matter what
+ * color it names. Empirically verified via computed-style inspection in a
+ * live browser: a button with `focus-visible:outline-[var(--glacier)]` in
+ * its className still renders the outline color driven by this rule's
+ * `--focus-ring`, not glacier. The single source of truth for focus-ring
+ * color app-wide is `--focus-ring` below (currently aliased to the ember
+ * `--ds-focus-color` in the later corrective [data-obsidian] block) - change
+ * it there, never per component. */
 [data-obsidian] :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
@@ -2684,12 +2711,21 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-shadow-small: 0px 1px 2px #00000029;
   --ds-shadow-medium: 0px 2px 2px #00000052, 0px 8px 8px -8px #00000029;
   --ds-shadow-large: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a;
-  --ds-shadow-border-small: var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
-  --ds-shadow-border-medium: var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
-  --ds-shadow-border-large: var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
-  --ds-shadow-tooltip: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a, var(--ds-shadow-background-border);
-  --ds-shadow-menu: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
-  --ds-shadow-modal: var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-border-small:
+    var(--ds-shadow-border-base), var(--ds-shadow-small), var(--ds-shadow-background-border);
+  --ds-shadow-border-medium:
+    var(--ds-shadow-border-base), var(--ds-shadow-medium), var(--ds-shadow-background-border);
+  --ds-shadow-border-large:
+    var(--ds-shadow-border-base), var(--ds-shadow-large), var(--ds-shadow-background-border);
+  --ds-shadow-tooltip:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px #0000000a,
+    var(--ds-shadow-background-border);
+  --ds-shadow-menu:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
+    0px 16px 24px -8px #0000000f, var(--ds-shadow-background-border);
+  --ds-shadow-modal:
+    var(--ds-shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
+    0px 24px 32px -8px #0000000f, var(--ds-shadow-background-border);
   --ds-shadow-fullscreen: var(--ds-shadow-modal);
   --ds-radius-small: 6px;
   --ds-radius-medium: 12px;
@@ -2964,49 +3000,166 @@ html[data-motion="off"] .ai-pulse-mark {
 }
 
 /* --- Tempo type classes (tokens/typography.css) --- */
-.text-heading-72 { font: 600 72px/72px var(--font-sans); letter-spacing: -4.32px; }
-.text-heading-64 { font: 600 64px/64px var(--font-sans); letter-spacing: -3.84px; }
-.text-heading-56 { font: 600 56px/56px var(--font-sans); letter-spacing: -3.36px; }
-.text-heading-48 { font: 600 48px/56px var(--font-sans); letter-spacing: -2.88px; }
-.text-heading-40 { font: 600 40px/48px var(--font-sans); letter-spacing: -2.4px; }
-.text-heading-32 { font: 600 32px/40px var(--font-sans); letter-spacing: -1.28px; }
-.text-heading-24 { font: 600 24px/32px var(--font-sans); letter-spacing: -0.96px; }
-.text-heading-20 { font: 600 20px/26px var(--font-sans); letter-spacing: -0.4px; }
-.text-heading-16 { font: 600 16px/24px var(--font-sans); letter-spacing: -0.32px; }
-.text-heading-14 { font: 600 14px/20px var(--font-sans); letter-spacing: -0.28px; }
-.text-button-16 { font: 500 16px/20px var(--font-sans); }
-.text-button-14 { font: 500 14px/20px var(--font-sans); }
-.text-button-12 { font: 500 12px/16px var(--font-sans); }
-.text-label-20 { font: 400 20px/32px var(--font-sans); }
-.text-label-18 { font: 400 18px/20px var(--font-sans); }
-.text-label-16 { font: 400 16px/20px var(--font-sans); }
-.text-label-14 { font: 400 14px/20px var(--font-sans); }
-.text-label-13 { font: 400 13px/16px var(--font-sans); }
-.text-label-12 { font: 400 12px/16px var(--font-sans); }
-.text-label-14-mono { font: 400 14px/20px var(--font-mono); }
-.text-label-13-mono { font: 400 13px/16px var(--font-mono); }
-.text-label-12-mono { font: 400 12px/16px var(--font-mono); }
-.text-copy-24 { font: 400 24px/36px var(--font-sans); }
-.text-copy-20 { font: 400 20px/36px var(--font-sans); }
-.text-copy-18 { font: 400 18px/28px var(--font-sans); }
-.text-copy-16 { font: 400 16px/24px var(--font-sans); }
-.text-copy-14 { font: 400 14px/20px var(--font-sans); }
-.text-copy-13 { font: 400 13px/18px var(--font-sans); }
-.text-copy-13-mono { font: 400 13px/18px var(--font-mono); }
-.text-label-14 strong, .text-label-13 strong, .text-label-12 strong,
-.text-copy-16 strong, .text-copy-14 strong, .text-copy-13 strong { font-weight: 600; }
-.text-heading-72 strong, .text-heading-64 strong, .text-heading-56 strong,
-.text-heading-48 strong, .text-heading-40 strong, .text-heading-32 strong,
-.text-heading-24 strong, .text-heading-20 strong, .text-heading-16 strong,
-.text-heading-14 strong { font-weight: inherit; color: var(--ds-gray-900); }
-.text-tabular { font-variant-numeric: tabular-nums; }
+.text-heading-72 {
+  font: 600 72px/72px var(--font-sans);
+  letter-spacing: -4.32px;
+}
+.text-heading-64 {
+  font: 600 64px/64px var(--font-sans);
+  letter-spacing: -3.84px;
+}
+.text-heading-56 {
+  font: 600 56px/56px var(--font-sans);
+  letter-spacing: -3.36px;
+}
+.text-heading-48 {
+  font: 600 48px/56px var(--font-sans);
+  letter-spacing: -2.88px;
+}
+.text-heading-40 {
+  font: 600 40px/48px var(--font-sans);
+  letter-spacing: -2.4px;
+}
+.text-heading-32 {
+  font: 600 32px/40px var(--font-sans);
+  letter-spacing: -1.28px;
+}
+.text-heading-24 {
+  font: 600 24px/32px var(--font-sans);
+  letter-spacing: -0.96px;
+}
+.text-heading-20 {
+  font: 600 20px/26px var(--font-sans);
+  letter-spacing: -0.4px;
+}
+.text-heading-16 {
+  font: 600 16px/24px var(--font-sans);
+  letter-spacing: -0.32px;
+}
+.text-heading-14 {
+  font: 600 14px/20px var(--font-sans);
+  letter-spacing: -0.28px;
+}
+.text-button-16 {
+  font: 500 16px/20px var(--font-sans);
+}
+.text-button-14 {
+  font: 500 14px/20px var(--font-sans);
+}
+.text-button-12 {
+  font: 500 12px/16px var(--font-sans);
+}
+.text-label-20 {
+  font: 400 20px/32px var(--font-sans);
+}
+.text-label-18 {
+  font: 400 18px/20px var(--font-sans);
+}
+.text-label-16 {
+  font: 400 16px/20px var(--font-sans);
+}
+.text-label-14 {
+  font: 400 14px/20px var(--font-sans);
+}
+.text-label-13 {
+  font: 400 13px/16px var(--font-sans);
+}
+.text-label-12 {
+  font: 400 12px/16px var(--font-sans);
+}
+.text-label-14-mono {
+  font: 400 14px/20px var(--font-mono);
+}
+.text-label-13-mono {
+  font: 400 13px/16px var(--font-mono);
+}
+.text-label-12-mono {
+  font: 400 12px/16px var(--font-mono);
+}
+.text-copy-24 {
+  font: 400 24px/36px var(--font-sans);
+}
+.text-copy-20 {
+  font: 400 20px/36px var(--font-sans);
+}
+.text-copy-18 {
+  font: 400 18px/28px var(--font-sans);
+}
+.text-copy-16 {
+  font: 400 16px/24px var(--font-sans);
+}
+.text-copy-14 {
+  font: 400 14px/20px var(--font-sans);
+}
+.text-copy-13 {
+  font: 400 13px/18px var(--font-sans);
+}
+.text-copy-13-mono {
+  font: 400 13px/18px var(--font-mono);
+}
+.text-label-14 strong,
+.text-label-13 strong,
+.text-label-12 strong,
+.text-copy-16 strong,
+.text-copy-14 strong,
+.text-copy-13 strong {
+  font-weight: 600;
+}
+.text-heading-72 strong,
+.text-heading-64 strong,
+.text-heading-56 strong,
+.text-heading-48 strong,
+.text-heading-40 strong,
+.text-heading-32 strong,
+.text-heading-24 strong,
+.text-heading-20 strong,
+.text-heading-16 strong,
+.text-heading-14 strong {
+  font-weight: inherit;
+  color: var(--ds-gray-900);
+}
+.text-tabular {
+  font-variant-numeric: tabular-nums;
+}
 
 /* --- Tempo material presets (tokens/materials.css) --- */
-.material-base { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border); }
-.material-small { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-small); }
-.material-medium { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-medium); }
-.material-large { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-border-large); }
-.material-tooltip { border-radius: var(--ds-radius-small); background: var(--ds-background-100); box-shadow: var(--ds-shadow-tooltip); }
-.material-menu { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-menu); }
-.material-modal { border-radius: var(--ds-radius-medium); background: var(--ds-background-100); box-shadow: var(--ds-shadow-modal); }
-.material-fullscreen { border-radius: var(--ds-radius-large); background: var(--ds-background-100); box-shadow: var(--ds-shadow-fullscreen); }
+.material-base {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border);
+}
+.material-small {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-small);
+}
+.material-medium {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-medium);
+}
+.material-large {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-border-large);
+}
+.material-tooltip {
+  border-radius: var(--ds-radius-small);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-tooltip);
+}
+.material-menu {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-menu);
+}
+.material-modal {
+  border-radius: var(--ds-radius-medium);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-modal);
+}
+.material-fullscreen {
+  border-radius: var(--ds-radius-large);
+  background: var(--ds-background-100);
+  box-shadow: var(--ds-shadow-fullscreen);
+}

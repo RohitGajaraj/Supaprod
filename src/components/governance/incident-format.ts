@@ -25,8 +25,11 @@ export function incidentTraceRef(id: string): string {
 
 /** Severity tone per incident kind, as a semantic role token. A failed run,
  * spinning mission, or pipeline error reads in the alert role (madder); a
- * guardrail block is the machine correctly stopping something (glacier, the
- * machine voice); a cost breach is caution (marigold); a manual note is quiet. */
+ * guardrail block is the machine correctly stopping something — a category
+ * tag, not a live/running status, so it reads neutral gray per the Tempo
+ * v5 glacier narrowing (2026-07-11); a cost breach is caution (marigold); a
+ * manual note is quiet. The "glacier" tone name is kept as the internal tag
+ * for this category (see KIND_TONE below); only its CSS value changed. */
 export type IncidentTone = "madder" | "glacier" | "marigold" | "muted";
 
 const KIND_TONE: Record<IncidentKind, IncidentTone> = {
@@ -44,7 +47,7 @@ export function incidentTone(kind: IncidentKind): IncidentTone {
 
 export const INCIDENT_TONE_VAR: Record<IncidentTone, string> = {
   madder: "var(--madder)",
-  glacier: "var(--glacier)",
+  glacier: "var(--text-subtle)",
   marigold: "var(--marigold)",
   muted: "var(--text-muted)",
 };

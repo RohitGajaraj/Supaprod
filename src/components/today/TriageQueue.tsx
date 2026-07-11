@@ -103,7 +103,7 @@ export function TriageQueue({
               {rest.length > 0 && !isOpen ? (
                 <button
                   type="button"
-                  className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   onClick={() => setExpanded((e) => ({ ...e, [group.family]: true }))}
                   style={{
                     fontFamily: "var(--font-mono)",
@@ -127,7 +127,7 @@ export function TriageQueue({
                   ))}
                   <button
                     type="button"
-                    className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     onClick={() => setExpanded((e) => ({ ...e, [group.family]: false }))}
                     style={{
                       fontFamily: "var(--font-mono)",
@@ -158,7 +158,7 @@ export function TriageQueue({
           {!expiredOpen ? (
             <button
               type="button"
-              className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               onClick={() => setExpiredOpen(true)}
               style={{
                 fontFamily: "var(--font-mono)",
@@ -231,15 +231,15 @@ export function TriageQueue({
                   <div className="flex items-baseline" style={{ gap: 14, flexShrink: 0 }}>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onRun}
-                      style={{ ...monoBtn, color: "var(--glacier)" }}
+                      style={{ ...monoBtn, color: "var(--text-muted)" }}
                     >
                       Run it now
                     </button>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onDismiss}
                       style={{ ...monoBtn, color: "var(--text-muted)" }}
                     >
@@ -263,7 +263,7 @@ export function TriageQueue({
               ) : null}
               <button
                 type="button"
-                className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 onClick={() => setExpiredOpen(false)}
                 style={{ ...monoBtn, color: "var(--text-muted)" }}
               >

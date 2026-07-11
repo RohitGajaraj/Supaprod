@@ -88,7 +88,7 @@ export function TestStationPanel({ missionId }: { missionId: string }) {
                 fontFamily: "var(--font-mono)",
                 fontSize: 10.5,
                 letterSpacing: "0.08em",
-                color: "var(--glacier)",
+                color: "var(--text-subtle)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",

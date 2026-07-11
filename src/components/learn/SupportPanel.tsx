@@ -55,7 +55,7 @@ export function SupportPanel() {
             </div>
           </div>
           {s.theme_id && (
-            <div className="mt-1 text-[10px] text-action-blue/80">
+            <div className="mt-1 text-[10px] text-muted-foreground">
               linked to a theme in Product → Signals
             </div>
           )}

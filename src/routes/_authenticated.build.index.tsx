@@ -99,7 +99,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
             marginTop: 14,
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -132,13 +132,13 @@ function ConstellationMotif() {
       viewBox="0 0 120 44"
       style={{ display: "block", margin: "0 auto 12px", opacity: 0.3 }}
     >
-      <g stroke="var(--glacier)" strokeWidth="0.6" opacity="0.5">
+      <g stroke="var(--text-faint)" strokeWidth="0.6" opacity="0.5">
         <line x1="14" y1="30" x2="42" y2="12" />
         <line x1="42" y1="12" x2="70" y2="26" />
         <line x1="70" y1="26" x2="102" y2="14" />
         <line x1="42" y1="12" x2="88" y2="36" />
       </g>
-      <g fill="var(--glacier)">
+      <g fill="var(--text-faint)">
         <circle cx="14" cy="30" r="2" />
         <circle cx="42" cy="12" r="2.5" />
         <circle cx="70" cy="26" r="2" />
@@ -669,7 +669,7 @@ function BuildPage() {
                     marginTop: 14,
                     fontFamily: "var(--font-mono)",
                     fontSize: 11,
-                    color: "var(--glacier)",
+                    color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
@@ -707,7 +707,16 @@ function BuildPage() {
                   }}
                 >
                   <ConstellationMotif />
-                  <p style={{ fontSize: 15, color: "var(--text-primary)", margin: 0 }}>
+                  {/* The one Geist Pixel moment on this screen (DESIGN-TEMPO.md SS3/SS8):
+                      the empty-state headline, never more than once per surface. */}
+                  <p
+                    style={{
+                      fontFamily: "var(--font-pixel)",
+                      fontSize: 17,
+                      color: "var(--text-primary)",
+                      margin: 0,
+                    }}
+                  >
                     Nothing building yet
                   </p>
                   <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
@@ -724,7 +733,7 @@ function BuildPage() {
                       marginTop: 14,
                       fontFamily: "var(--font-mono)",
                       fontSize: 11,
-                      color: "var(--glacier)",
+                      color: "var(--text-subtle)",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
@@ -796,7 +805,7 @@ function BuildPage() {
                   <button
                     type="button"
                     onClick={() => setShowAllMissions((v) => !v)}
-                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       marginTop: 10,
                       fontFamily: "var(--font-ui)",

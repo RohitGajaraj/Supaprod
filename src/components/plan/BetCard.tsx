@@ -59,13 +59,14 @@ const QUIET_MONO_STYLE = {
   cursor: "pointer" as const,
 };
 
-/** Highlight number-like tokens in the mono measure line in glacier; the rest stays faint. */
+/** Highlight number-like tokens in the mono measure line via contrast (not color — Tempo v5
+ * glacier narrowing, 2026-07-11: this is decoration, not a status control); the rest stays faint. */
 function MeasureLine({ measure }: { measure: string }) {
   const parts = measure.split(/(-?\d[\d.,%]*)/g).filter((p) => p.length > 0);
   return (
     <span>
       {parts.map((part, i) => (
-        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--glacier)" : undefined }}>
+        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--text-primary)" : undefined }}>
           {part}
         </span>
       ))}
@@ -227,7 +228,9 @@ function BetCardComponent({
               className="loom-press"
               style={{
                 ...QUIET_MONO_STYLE,
-                color: "var(--glacier)",
+                // Ordinary form action (save) — the ember-on-forms ruling reserves ember for the
+                // view's one true primary CTA; this resolves to the neutral default via contrast.
+                color: "var(--text-primary)",
                 opacity: editPending ? 0.5 : 1,
               }}
             >
@@ -250,7 +253,7 @@ function BetCardComponent({
                   e.stopPropagation();
                   onMoveTo(t.bucket);
                 }}
-                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-label)",
@@ -263,7 +266,7 @@ function BetCardComponent({
                   cursor: isCurrent ? "default" : "pointer",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isCurrent) e.currentTarget.style.color = "var(--glacier)";
+                  if (!isCurrent) e.currentTarget.style.color = "var(--text-body)";
                 }}
                 onMouseLeave={(e) => {
                   if (!isCurrent) e.currentTarget.style.color = "var(--text-subtle)";

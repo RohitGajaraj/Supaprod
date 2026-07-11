@@ -84,7 +84,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
                 type="button"
                 onClick={it.onOpen}
                 title="Open this learning"
-                className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press flex items-baseline text-left outline-none transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
                 style={{
                   gap: 10,
                   background: "transparent",
@@ -105,7 +105,7 @@ export function WhatChanged({ items }: WhatChangedProps) {
             <button
               type="button"
               onClick={() => setShowAll((v) => !v)}
-              className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 10.5,

@@ -143,25 +143,27 @@ function TraceChip({ id }: { id: string }) {
 
 /** The rank spotlight: a small solid badge that reads the queue position in
  * plain language, so a layman gets the priority even though ICE is expert-only.
- * Rank 1 is a filled glacier pill (dark canvas text for contrast, bold); ranks
- * 2 to 3 are a lighter glacier tint pill; deeper ranks are a quiet outline pill.
- * Semantic tokens only; ember stays reserved for the single Capture CTA, so it
- * is never used here. */
+ * Rank 1 is a filled neutral pill (the high-contrast invert fill, dark canvas
+ * text for contrast, bold); ranks 2 to 3 are a lighter neutral tint pill;
+ * deeper ranks are a quiet outline pill. Semantic tokens only; ember stays
+ * reserved for the single Capture CTA, so it is never used here, and rank is
+ * not a status, so it never reaches for glacier either (Tempo v5 glacier
+ * narrowing, 2026-07-11). */
 function RankBadge({ rank }: { rank: number }) {
   const isTop = rank === 1;
   const isHigh = rank >= 2 && rank <= 3;
   const tone: CSSProperties = isTop
     ? {
-        background: "var(--glacier)",
+        background: "var(--text-primary)",
         color: "var(--canvas)",
         border: "1px solid transparent",
         fontWeight: 700,
       }
     : isHigh
       ? {
-          background: "color-mix(in srgb, var(--glacier) 16%, transparent)",
-          color: "var(--glacier)",
-          border: "1px solid color-mix(in srgb, var(--glacier) 26%, transparent)",
+          background: "color-mix(in srgb, var(--text-primary) 12%, transparent)",
+          color: "var(--text-primary)",
+          border: "1px solid color-mix(in srgb, var(--text-primary) 22%, transparent)",
           fontWeight: 600,
         }
       : {
@@ -269,9 +271,11 @@ export const OpportunityRow = memo(function OpportunityRow({
   const clickable = Boolean(onOpen);
   const hasMeta = Boolean(id || updatedAt);
   // The score tier is the one meaningful color on the anchor: strong bets read
-  // moss, mid glacier, weak a quiet muted tone. It is the at-a-glance priority
-  // cue, so the numeral and its bar share the same tone.
-  const tier = ice >= 7 ? "var(--moss)" : ice >= 4 ? "var(--glacier)" : "var(--text-muted)";
+  // moss, mid a full-contrast neutral, weak a quiet muted tone. It is the
+  // at-a-glance priority cue, so the numeral and its bar share the same tone.
+  // A mid score is not a status, so it stays gray (Tempo v5 glacier
+  // narrowing, 2026-07-11).
+  const tier = ice >= 7 ? "var(--moss)" : ice >= 4 ? "var(--text-primary)" : "var(--text-muted)";
   // The caller joins provenance with a middle dot; split it back so each fact
   // reads as its own spaced item rather than a cramped run-on.
   const subParts = sub.split(" · ").filter(Boolean);
@@ -279,7 +283,7 @@ export const OpportunityRow = memo(function OpportunityRow({
     <div
       className={`relative flex items-center transition-[background-color,box-shadow,transform] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
         clickable
-          ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           : ""
       }`}
       style={{

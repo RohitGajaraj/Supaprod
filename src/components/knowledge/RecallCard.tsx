@@ -43,7 +43,7 @@ function ResultCard({ entry }: { entry: JudgmentEntry }) {
       <button
         type="button"
         onClick={openDetail}
-        className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           padding: "14px 0 0",
           background: "transparent",
@@ -81,7 +81,7 @@ function ResultCard({ entry }: { entry: JudgmentEntry }) {
         <div className="flex items-center flex-wrap" style={{ gap: 6, marginTop: 8 }}>
           {entry.decidedBy ? (
             <>
-              <span style={{ fontSize: 12, color: "var(--glacier)" }}>
+              <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>
                 decided by {displayWho(entry.decidedBy)}
               </span>
               <span style={{ color: "var(--text-faint)" }}>·</span>
@@ -237,7 +237,7 @@ export function RecallCard() {
                   }}
                   className="hover:underline"
                   style={{
-                    color: "var(--glacier)",
+                    color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
                     padding: 0,

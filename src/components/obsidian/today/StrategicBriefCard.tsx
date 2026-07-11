@@ -112,7 +112,7 @@ export function StrategicBriefCard() {
   const quietLinkStyle: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
     fontSize: 9,
-    color: "var(--glacier)",
+    color: "var(--text-subtle)",
     background: "transparent",
     border: "none",
     textTransform: "uppercase",
@@ -158,7 +158,7 @@ export function StrategicBriefCard() {
           <button
             type="button"
             onClick={() => setReveal(true)}
-            className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
             style={quietLinkStyle}
           >
             Set the brief
@@ -179,11 +179,11 @@ export function StrategicBriefCard() {
                     <button
                       type="button"
                       onClick={() => startEdit(kind, current)}
-                      className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: 9,
-                        color: "var(--glacier)",
+                        color: "var(--text-subtle)",
                         background: "transparent",
                         border: "none",
                         textTransform: "uppercase",
@@ -314,11 +314,11 @@ export function StrategicBriefCard() {
                 <button
                   type="button"
                   onClick={() => startEdit("top_bet")}
-                  className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: 9,
-                    color: "var(--glacier)",
+                    color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
                     textTransform: "uppercase",
@@ -335,7 +335,7 @@ export function StrategicBriefCard() {
             <button
               type="button"
               onClick={() => setReveal(true)}
-              className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
               style={quietLinkStyle}
             >
               Set the rest of the brief

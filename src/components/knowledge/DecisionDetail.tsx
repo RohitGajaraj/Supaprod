@@ -1,6 +1,6 @@
 // DecisionDetail - Brain -> Decisions drill-down, rebuilt on the shared
 // DetailKit anatomy (DESIGN-LOOM dim 17 / design-anatomy §3) so a decision
-// reads identically to every other object detail: DetailHeader -> a glacier
+// reads identically to every other object detail: DetailHeader -> a neutral
 // summary band (the call + rationale first) -> a compact StatStrip -> the
 // consistent DetailSections -> an actions footer. Drill state rides ?decision=
 // on /brain; the detail replaces only the tab body. Shares the ["decisions",
@@ -355,13 +355,15 @@ export function DecisionDetail({ id }: { id: string }) {
           }
         />
 
-        {/* Summary band: the call + rationale, led first (calm glacier tint). */}
+        {/* Summary band: the call + rationale, led first (calm neutral tint —
+            Tempo v5 glacier narrowing, 2026-07-11: this is a card accent, not
+            a status control, so it stays gray). */}
         <div
           style={{
             display: "grid",
             gap: "8px",
-            background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+            background: "color-mix(in srgb, var(--text-subtle) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--text-subtle) 22%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "13px 15px",
           }}
@@ -400,12 +402,8 @@ export function DecisionDetail({ id }: { id: string }) {
 
         {/* Glanceable summary: how it was made. */}
         <StatStrip columns={3}>
-          <StatCell label="Source" value={SOURCE_LABEL[sourceKind]} tone="glacier" />
-          <StatCell
-            label="Decided by"
-            value={decidedBy}
-            tone={d.decided_by_agent_slug ? "glacier" : "neutral"}
-          />
+          <StatCell label="Source" value={SOURCE_LABEL[sourceKind]} tone="neutral" />
+          <StatCell label="Decided by" value={decidedBy} tone="neutral" />
           <StatCell label="Age" value={relTimeCaps(d.created_at)} tone="neutral" />
         </StatStrip>
 
@@ -492,7 +490,7 @@ export function DecisionDetail({ id }: { id: string }) {
               className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontSize: "12.5px",
-                color: "var(--glacier)",
+                color: "var(--text-subtle)",
                 background: "transparent",
                 border: "none",
                 padding: 0,

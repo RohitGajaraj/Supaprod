@@ -47,9 +47,9 @@ export const Route = createFileRoute("/_authenticated/admin/platform")({
   component: AdminPlatform,
 });
 
-// Focus ring, per the contract: 2px glacier, offset 2, on every interactive element.
+// Focus ring, per the Tempo contract: 2px ember, offset 2, on every interactive element.
 const focusRingClass =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 function AdminPlatform() {
   return (
@@ -447,7 +447,7 @@ function FlagsPanel() {
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
+            style={{ width: 14, height: 14, accentColor: "var(--text-primary)", cursor: "pointer" }}
           />
           Enabled
         </label>

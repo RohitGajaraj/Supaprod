@@ -187,7 +187,6 @@ export function GraphUniverseCanvas({
 
   const chromeRef = useRef({
     thread: toThreeColor(NEUTRAL_THREAD, NEUTRAL_THREAD),
-    glacier: toThreeColor("#84b3ec", "#84b3ec"),
     madder: toThreeColor("#e06557", "#e06557"),
     marigold: toThreeColor("#e8b44c", "#e8b44c"),
     ember: toThreeColor("#FF6B2C", "#FF6B2C"),
@@ -267,7 +266,6 @@ export function GraphUniverseCanvas({
       styles.getPropertyValue(token).trim() || fallback;
     chromeRef.current = {
       thread: toThreeColor(read("--ash", NEUTRAL_THREAD), NEUTRAL_THREAD),
-      glacier: toThreeColor(read("--glacier", "#84b3ec"), "#84b3ec"),
       madder: toThreeColor(read("--madder", "#e06557"), "#e06557"),
       marigold: toThreeColor(read("--marigold", "#e8b44c"), "#e8b44c"),
       ember: toThreeColor(read("--ember", "#FF6B2C"), "#FF6B2C"),
@@ -331,7 +329,7 @@ export function GraphUniverseCanvas({
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute("position", new THREE.Float32BufferAttribute(starPos, 3));
     const starMat = new THREE.PointsMaterial({
-      color: chromeRef.current.glacier,
+      color: chromeRef.current.thread,
       size: 3.2,
       sizeAttenuation: false,
       transparent: true,
@@ -473,7 +471,10 @@ export function GraphUniverseCanvas({
           base = chrome.thread;
           intensity = litEdge ? 0.3 : 0.12;
         } else if (active && litEdge) {
-          base = chrome.glacier;
+          // Tempo v5 glacier narrowing (2026-07-11): this fires on hover too,
+          // not only true selection, so it stays neutral (brightness alone
+          // carries the emphasis); the selected node's ring is the ember cue.
+          base = chrome.thread;
           intensity = 0.9;
         } else {
           base = chrome.thread;
@@ -954,7 +955,7 @@ export function GraphUniverseCanvas({
           inset: 0,
           pointerEvents: "none",
           background:
-            "radial-gradient(60% 55% at 32% 30%, color-mix(in oklab, var(--glacier) 3%, transparent), transparent 70%), radial-gradient(55% 50% at 72% 74%, color-mix(in oklab, var(--ember) 3%, transparent), transparent 72%)",
+            "radial-gradient(60% 55% at 32% 30%, color-mix(in oklab, var(--text-subtle) 3%, transparent), transparent 70%), radial-gradient(55% 50% at 72% 74%, color-mix(in oklab, var(--ember) 3%, transparent), transparent 72%)",
         }}
       />
       <div ref={mountRef} style={{ position: "absolute", inset: 0 }} />

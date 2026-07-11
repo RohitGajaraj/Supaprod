@@ -136,17 +136,17 @@ function statusMeta(detail: CallDetail): { label: string; tone: string } {
       const escalated = detail.escalationState === "escalated";
       return {
         label: escalated ? "Escalated" : "Awaiting you",
-        tone: escalated ? "var(--amber)" : "var(--glacier)",
+        tone: escalated ? "var(--amber)" : "var(--text-muted)",
       };
     }
     case "spec":
-      return { label: "In review", tone: "var(--glacier)" };
+      return { label: "In review", tone: "var(--text-muted)" };
     case "opportunity":
       return { label: "Backlog", tone: "var(--text-muted)" };
     case "assumption":
       return { label: "Open challenge", tone: "var(--amber)" };
     case "playbook":
-      return { label: "Proposed method", tone: "var(--glacier)" };
+      return { label: "Proposed method", tone: "var(--text-muted)" };
   }
 }
 
@@ -202,7 +202,7 @@ function CriticBody({ critic, verdict }: { critic: CriticReview | null; verdict:
       ) : null}
       {critic && critic.missing_evidence.length > 0 ? (
         <div style={{ display: "grid", gap: "4px" }}>
-          <MonoLabel style={{ fontSize: "9px", color: "var(--blossom)" }}>Missing</MonoLabel>
+          <MonoLabel style={{ fontSize: "9px" }}>Missing</MonoLabel>
           <span style={{ fontSize: "12.5px", color: "var(--text-body)" }}>
             {critic.missing_evidence[0]}
           </span>
@@ -304,7 +304,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
     onOpenChange(false);
   };
 
-  // The recommendation band (calm glacier tint, never amber) + the sections
+  // The recommendation band (calm neutral surface, never amber) + the sections
   // are family-specific but assembled in the DetailKit order.
   let band: { recommended: string; rationale: string | null };
   let strip: ReactNode = null;
@@ -412,7 +412,7 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
     };
     strip = (
       <StatStrip>
-        <StatCell label="Stage" value="Review" tone="glacier" />
+        <StatCell label="Stage" value="Review" tone="muted" />
         <StatCell label="Critic" value={verdict} tone={verdictTone(verdict)} />
       </StatStrip>
     );
@@ -588,14 +588,14 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
             }
           />
 
-          {/* Recommendation band: calm glacier tint (never amber), the system's
+          {/* Recommendation band: calm neutral surface (never amber), the system's
               read on what the user should do first. */}
           <div
             style={{
               display: "grid",
               gap: "8px",
-              background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+              background: "var(--surface-2)",
+              border: "1px solid var(--hairline)",
               borderRadius: "var(--radius-card)",
               padding: "13px 15px",
             }}

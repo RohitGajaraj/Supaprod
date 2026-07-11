@@ -5,10 +5,11 @@
  * Driven by entitlements + billing-tier; no DB catalog dependency.
  *
  * OBS-13 - re-skinned to Obsidian v3 (chrome-only): tokens, Newsreader card
- * titles, JetBrains-mono prices/metadata, glacier as the recommended/current
- * signal (ember stays reserved for a genuinely-required action, and this
- * comparison table never has one), zero lucide, zero pictorial connector
- * logos (mono text chips instead). Data/logic unchanged.
+ * titles, JetBrains-mono prices/metadata, a neutral hairline as the
+ * recommended/current signal (Tempo v5 §2 narrows glacier to literal status
+ * chips and hyperlinks only; ember stays reserved for a genuinely-required
+ * action, and this comparison table never has one), zero lucide, zero
+ * pictorial connector logos (mono text chips instead). Data/logic unchanged.
  */
 import { useState } from "react";
 import { MonoLabel, Button, rgba } from "@/components/obsidian";
@@ -68,7 +69,7 @@ function ConnectorChipsMini({ showWrite = false }: { showWrite?: boolean }) {
       >
         + more
       </span>
-      <MonoLabel tone={showWrite ? "glacier" : "muted"}>
+      <MonoLabel tone="muted" style={showWrite ? { color: "var(--text-primary)" } : undefined}>
         {showWrite ? "read + write" : "read"}
       </MonoLabel>
     </div>
@@ -166,7 +167,7 @@ function pillButtonStyle(active: boolean): React.CSSProperties {
 }
 
 const FOCUS_RING_CLASS =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 export function PlanTable({
   currentTier,
@@ -299,15 +300,14 @@ function CardShell({
     <div
       style={{
         background: "var(--card)",
-        // Depth is tint, never a shadow: the recommended card gets a glacier
-        // hairline (the machine's own recommendation), the current card gets
-        // a slightly stronger neutral hairline. Never ember — nothing on
-        // this comparison table is a genuinely-required action.
-        border: popular
-          ? "1px solid var(--glacier)"
-          : isCurrent
-            ? "1px solid var(--hairline-strong)"
-            : "1px solid var(--hairline)",
+        // Depth is tint, never a shadow: both the recommended card and the
+        // current card get the same stronger neutral hairline — the
+        // "Popular"/"Current plan" copy carries the distinction, not color
+        // (Tempo v5 §2 reserves glacier for literal status chips and links).
+        // Never ember — nothing on this comparison table is a
+        // genuinely-required action.
+        border:
+          popular || isCurrent ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "var(--space-5, 22px) var(--space-4) var(--space-4)",
         display: "flex",
@@ -327,7 +327,7 @@ function CardShell({
             left: 0,
             right: 0,
             height: 2,
-            background: "var(--glacier)",
+            background: "var(--text-primary)",
             borderTopLeftRadius: "inherit",
             borderTopRightRadius: "inherit",
           }}
@@ -367,10 +367,10 @@ function CardHeader({
         <Icon size={28} />
         {isCurrent ? (
           <MonoLabel
-            tone="glacier"
             style={{
-              background: rgba("#84b3ec", 0.12),
-              border: "1px solid var(--glacier)",
+              color: "var(--text-primary)",
+              background: "var(--raised)",
+              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-pill)",
               padding: "3px 9px",
               whiteSpace: "nowrap",
@@ -380,9 +380,9 @@ function CardHeader({
           </MonoLabel>
         ) : popular ? (
           <MonoLabel
-            tone="glacier"
             style={{
-              border: "1px solid var(--glacier)",
+              color: "var(--text-primary)",
+              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-pill)",
               padding: "2px 8px",
             }}
@@ -485,7 +485,7 @@ function ExpandableBullets({ items }: { items: string[] }) {
             padding: "var(--space-2) 0 0",
             fontFamily: "var(--font-ui)",
             fontSize: "var(--text-helper)",
-            color: "var(--glacier)",
+            color: "var(--text-muted)",
             cursor: "pointer",
           }}
         >

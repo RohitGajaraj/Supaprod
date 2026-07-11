@@ -258,7 +258,7 @@ function LensCards({ onOpen }: { onOpen: (tab: Tab) => void }) {
             type="button"
             disabled={!primary}
             onClick={() => primary && onOpen(primary)}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               textAlign: "left",
               background: "var(--card)",
@@ -301,11 +301,11 @@ function LensSubNav({
       <button
         type="button"
         onClick={onBack}
-        className="loom-press outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="loom-press outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-ui)",
           fontSize: 12.5,
-          color: "var(--glacier)",
+          color: "var(--text-muted)",
           background: "transparent",
           border: "none",
           padding: 0,
@@ -517,11 +517,11 @@ export const Route = createFileRoute("/_authenticated/brain")({
         <button
           type="button"
           onClick={reset}
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
             padding: 0,
@@ -727,9 +727,9 @@ function BrainPage() {
               <span style={{ color: "var(--text-muted)" }}>counts unavailable right now</span>
               <button
                 type="button"
-                className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
-                  color: "var(--glacier)",
+                  color: "var(--text-subtle)",
                   background: "transparent",
                   border: "none",
                   padding: 0,

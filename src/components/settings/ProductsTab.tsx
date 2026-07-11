@@ -298,12 +298,12 @@ export function ProductsTab() {
                     textAlign: "left",
                     padding: "10px 96px 10px 12px",
                     borderRadius: 8,
-                    // Glacier marks the machine's record of your selection;
-                    // ember stays reserved for needs-a-human (v4 §3).
-                    border: `1px solid ${isActive ? "var(--glacier)" : "var(--hairline)"}`,
-                    background: isActive
-                      ? "color-mix(in oklab, var(--glacier) 8%, transparent)"
-                      : "transparent",
+                    // A neutral hairline + fill marks the current selection
+                    // (Tempo v5 §2 narrows glacier to literal status chips
+                    // and links); ember stays reserved for needs-a-human
+                    // (v4 §3).
+                    border: `1px solid ${isActive ? "var(--hairline-strong)" : "var(--hairline)"}`,
+                    background: isActive ? "var(--hover)" : "transparent",
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -314,7 +314,7 @@ export function ProductsTab() {
                           width: 6,
                           height: 6,
                           borderRadius: 99,
-                          background: "var(--glacier)",
+                          background: "var(--text-primary)",
                           flexShrink: 0,
                         }}
                       />
@@ -334,7 +334,7 @@ export function ProductsTab() {
                     {isActive && (
                       <span
                         className="mono-label"
-                        style={{ color: "var(--glacier)", flexShrink: 0 }}
+                        style={{ color: "var(--text-primary)", flexShrink: 0 }}
                       >
                         active
                       </span>

@@ -148,7 +148,7 @@ export function ActivationFunnelPanel() {
                 style={{
                   height: "100%",
                   width: `${stage.percentage}%`,
-                  background: "var(--glacier)",
+                  background: "var(--text-faint)",
                   transition: "width 0.3s ease",
                 }}
               />

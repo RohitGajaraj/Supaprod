@@ -136,8 +136,12 @@ function MemoryCompoundsCard({
       ) : hasData ? (
         <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ minWidth: 110 }}>
+            {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
+                the moat metric is the single number this whole panel exists
+                to prove, so it gets the display face - the three operational
+                metrics above stay on font-display. */}
             <div
-              className="font-display tabular-nums"
+              className="font-pixel tabular-nums"
               style={{ fontSize: 30, color: "var(--text-primary)" }}
             >
               {pct(data!.reuseRate)}
@@ -562,7 +566,7 @@ export function GauntletMetricsPanel() {
               fontFamily: "var(--font-mono)",
               fontSize: "var(--text-mono-floor, 10.5px)",
               letterSpacing: "0.11em",
-              color: "var(--glacier)",
+              color: "var(--text-primary)",
               background: "none",
               border: "none",
               padding: 0,

@@ -73,7 +73,7 @@ export const ThemeRow = memo(function ThemeRow({
           onOpenDetail(themeId);
         }
       }}
-      className="relative flex cursor-pointer items-center outline-none transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="relative flex cursor-pointer items-center outline-none transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         backgroundColor: "var(--card)",
         border: "1px solid var(--hairline)",
@@ -170,7 +170,7 @@ export const ThemeRow = memo(function ThemeRow({
           event.stopPropagation();
           if (!actionsPending) onPromote();
         }}
-        className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--ember-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--ember-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           flexShrink: 0,
           display: "inline-flex",

@@ -200,11 +200,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
       <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Sparkles
-              className="h-3.5 w-3.5"
-              style={{ color: "var(--glacier)" }}
-              strokeWidth={1.9}
-            />
+            <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.9} />
             <span className="text-[13px] font-medium text-foreground">Design gate</span>
             {gateChip}
           </div>
@@ -219,7 +215,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
     <div className="mt-4 mb-6 rounded-lg border hairline bg-card">
       <div className="flex items-center justify-between border-b hairline px-4 py-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} strokeWidth={1.9} />
+          <Sparkles className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.9} />
           <span className="text-[13px] font-medium text-foreground">Design mockup</span>
           {gateChip}
           {prestaged && (

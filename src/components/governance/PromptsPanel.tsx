@@ -2,7 +2,8 @@
 // (GovernScreen, tab "Prompts"): a bento table (Surface 1fr / Version 70px /
 // Note 1fr / Status 90px / actions 150px) with the surface at 500 weight, the
 // version mono ink, the note at 12px text-subtle, the status mono 8.5
-// (testing → glacier, live → moss), and Diff + Roll back ghost buttons.
+// (testing → glacier, live → moss, both literal status labels — sanctioned
+// per the Tempo v5 glacier narrowing), and Diff + Roll back ghost buttons.
 // Both actions are REAL here: Diff opens production's existing Prompt Studio
 // drill-down (version compare, line diff, draft editing, publish, A/B
 // assignment, usage) restyled quiet-Ember; Roll back calls the
@@ -355,7 +356,7 @@ function TemplateDetail({
       <div style={{ marginBottom: 16 }}>
         <button
           className="mono-label"
-          style={{ color: "var(--glacier)", marginBottom: 10 }}
+          style={{ color: "var(--text-subtle)", marginBottom: 10 }}
           onClick={onBack}
         >
           ← All prompts
@@ -558,7 +559,7 @@ function VersionColumn({
                 borderRadius: 99,
                 fontSize: 9,
                 color: selected ? "var(--canvas)" : "var(--text-subtle)",
-                background: selected ? "var(--glacier)" : "transparent",
+                background: selected ? "var(--text-primary)" : "transparent",
                 border: `1px solid ${selected ? "transparent" : "var(--hairline)"}`,
                 transition: "background var(--dur-fast), color var(--dur-fast)",
               }}
@@ -765,7 +766,7 @@ function AssignmentPanel({
             max={100}
             value={split}
             onChange={(e) => setSplit(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "var(--glacier)" }}
+            style={{ width: "100%", accentColor: "var(--text-primary)" }}
           />
         </label>
       </div>
@@ -844,7 +845,7 @@ function PromptUsagePanel({
                     style={{
                       height: "100%",
                       width: `${pct}%`,
-                      background: "var(--glacier)",
+                      background: "var(--text-subtle)",
                       opacity: 0.85,
                     }}
                   />

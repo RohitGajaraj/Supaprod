@@ -51,7 +51,7 @@ function sectionTitleStyle(): React.CSSProperties {
 }
 
 const focusRingClass =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 function AdminOverview() {
   const qc = useQueryClient();
@@ -230,7 +230,7 @@ function AdminOverview() {
                       c.status === "pass"
                         ? "var(--moss)"
                         : c.status === "warn"
-                          ? "var(--glacier)"
+                          ? "var(--text-muted)"
                           : "var(--madder)",
                   }}
                 />

@@ -151,7 +151,7 @@ export function ProductAnalyticsPanel({
                 setEventDraft(d.featureEvent ?? "");
                 setEditingEvent(true);
               }}
-              className="ml-auto text-[10px] text-slate-400 hover:text-[var(--action-blue)]"
+              className="ml-auto text-[10px] text-slate-400 hover:text-slate-600"
             >
               change
             </button>
@@ -171,7 +171,7 @@ export function ProductAnalyticsPanel({
               setEventDraft("");
               setEditingEvent(true);
             }}
-            className="flex items-center gap-1.5 text-xs text-[var(--action-blue)] hover:opacity-80"
+            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700"
           >
             <Link2 className="h-3 w-3" />
             Link a PostHog event to track adoption

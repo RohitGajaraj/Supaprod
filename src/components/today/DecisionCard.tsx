@@ -185,7 +185,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               display: "inline-flex",
               alignItems: "center",
               gap: 3,
-              color: "var(--action-blue)",
+              color: "var(--ink-faint)",
               background: "transparent",
             }}
             aria-expanded={expanded}

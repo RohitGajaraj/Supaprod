@@ -121,7 +121,10 @@ export function GraphForceCanvas({
   const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
   const colorsRef = useRef<Map<string, string>>(new Map());
   const chromeColors = useRef({
-    glacier: "#84b3ec",
+    // Tempo v5 glacier narrowing (2026-07-11): the selection highlight is a
+    // genuinely selected-element accent, so it reads ember, not the
+    // now-status-only glacier blue.
+    selected: "#ff6b2c",
     madder: "#e06557",
     marigold: "#e8b44c",
     label: "#9c978f",
@@ -219,7 +222,7 @@ export function GraphForceCanvas({
       }
       if (!any) continue;
       if (pass && selected) {
-        ctx.strokeStyle = chrome.glacier;
+        ctx.strokeStyle = chrome.selected;
         ctx.globalAlpha = 0.42;
       } else {
         ctx.strokeStyle = "#c6c0b8";
@@ -294,7 +297,7 @@ export function GraphForceCanvas({
       if (n.key === selected) {
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r + 4 / cam.k, 0, Math.PI * 2);
-        ctx.strokeStyle = chrome.glacier;
+        ctx.strokeStyle = chrome.selected;
         ctx.lineWidth = 2 / cam.k;
         ctx.globalAlpha = 1;
         ctx.stroke();
@@ -397,7 +400,7 @@ export function GraphForceCanvas({
     const read = (token: string, fallback: string) =>
       styles.getPropertyValue(token).trim() || fallback;
     chromeColors.current = {
-      glacier: read("--glacier", "#84b3ec"),
+      selected: read("--ember", "#ff6b2c"),
       madder: read("--madder", "#e06557"),
       marigold: read("--marigold", "#e8b44c"),
       label: read("--text-muted", "#9c978f"),

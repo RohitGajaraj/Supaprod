@@ -56,11 +56,11 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
         <button
           type="button"
           onClick={onOpenAll}
-          className="outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 9,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
           }}
@@ -79,7 +79,7 @@ export function MachineNow({ rows, onOpenAll }: MachineNowProps) {
               key={r.id}
               type="button"
               onClick={r.onOpen}
-              className="flex w-full items-center text-left outline-none transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="flex w-full items-center text-left outline-none transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
               style={{ gap: 9, background: "transparent", border: "none", padding: 0 }}
             >
               <StatusDot state={r.status} word={STATUS_WORD[r.status]} className="shrink-0" />

@@ -178,7 +178,7 @@ const AskAiMessage = React.memo(function AskAiMessage({
               fontSize: 9,
               textTransform: "uppercase",
               letterSpacing: "0.11em",
-              color: "var(--glacier)",
+              color: "var(--text-subtle)",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -286,10 +286,7 @@ function AskComposer({
                 alignItems: "center",
                 gap: 8,
                 padding: "8px 12px",
-                background:
-                  i === paletteIndex
-                    ? "color-mix(in oklab, var(--glacier) 10%, transparent)"
-                    : "transparent",
+                background: i === paletteIndex ? "var(--hover)" : "transparent",
                 border: "none",
                 textAlign: "left",
                 cursor: "pointer",
@@ -299,7 +296,11 @@ function AskComposer({
               }}
             >
               <span
-                style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--glacier)" }}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  color: "var(--text-primary)",
+                }}
               >
                 {command.cmd}
               </span>
@@ -563,16 +564,16 @@ export function AskPanel() {
             className="flex items-center gap-3"
             style={{ padding: "16px 20px", borderBottom: "1px solid var(--hairline)" }}
           >
-            <MonoLabel tone="glacier">ASK</MonoLabel>
+            <MonoLabel>ASK</MonoLabel>
             <span
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 9,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
-                color: "var(--glacier)",
-                background: "color-mix(in oklab, var(--glacier) 8%, transparent)",
-                border: "1px solid rgba(132, 179, 236,0.35)",
+                color: "var(--text-muted)",
+                background: "var(--hover)",
+                border: "1px solid var(--hairline-strong)",
                 borderRadius: "var(--radius-pill, 999px)",
                 padding: "3px 8px",
               }}

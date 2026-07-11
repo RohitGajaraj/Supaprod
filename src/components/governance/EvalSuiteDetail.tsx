@@ -376,7 +376,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                   <span style={{ textAlign: "right" }}>
                     <button
                       className="mono-label"
-                      style={{ color: "var(--action-blue)", fontSize: 8.5 }}
+                      style={{ color: "var(--ink-subtle)", fontSize: 8.5 }}
                       onClick={() => {
                         setFailRunId(r.id);
                         setSub("Failing cases");

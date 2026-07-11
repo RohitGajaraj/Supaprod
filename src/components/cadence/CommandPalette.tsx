@@ -304,7 +304,7 @@ export function CommandPalette() {
                           gap: 10,
                           padding: "9px 16px",
                           background: active ? "var(--surface-active)" : "transparent",
-                          outline: active ? "2px solid var(--glacier)" : "none",
+                          outline: active ? "2px solid var(--ember)" : "none",
                           outlineOffset: -2,
                         }}
                       >

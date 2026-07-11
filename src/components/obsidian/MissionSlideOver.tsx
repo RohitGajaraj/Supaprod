@@ -372,7 +372,7 @@ export function MissionSlideOver({
               fontFamily: "var(--font-mono)",
               fontSize: 11,
               letterSpacing: "0.1em",
-              color: "var(--glacier)",
+              color: "var(--text-subtle)",
               background: "none",
               border: "none",
               cursor: "pointer",

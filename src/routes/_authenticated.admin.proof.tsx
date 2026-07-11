@@ -185,7 +185,7 @@ function AdminReceiptsRollup() {
       <div style={{ gridColumn: "1 / -1" }}>
         <Link
           to="/admin/ai-costs"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-label)",

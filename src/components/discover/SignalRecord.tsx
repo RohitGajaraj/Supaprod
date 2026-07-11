@@ -58,33 +58,36 @@ function kindLabel(kind: string): string {
   return kind.charAt(0).toUpperCase() + kind.slice(1);
 }
 
-/** A subtle tone per lifecycle kind, so the lineage reads with color, not a
- * wall of gray chips. Token colors only. */
+/** A subtle tone per lifecycle kind. Kind is a category, not a status, so
+ * only the two kinds with an established semantic elsewhere (opportunity =
+ * brand, prd = shipped-green) carry color; theme and signal read neutral
+ * gray (Tempo v5 glacier narrowing, 2026-07-11). Token colors only. */
 function kindTone(kind: string): string {
   if (kind === "opportunity") return "var(--ember-text)";
   if (kind === "prd") return "var(--moss-bright)";
-  if (kind === "theme") return "var(--blossom)";
-  if (kind === "signal") return "var(--glacier)";
   return "var(--text-muted)";
 }
 
-/** Sentiment mapped to a semantic tone (real column value, never invented). */
+/** Sentiment mapped to a semantic tone (real column value, never invented).
+ * Positive/negative are genuine status color (moss/madder); a mixed or
+ * unrecognized reading is not a status, so it stays neutral gray (Tempo v5
+ * glacier narrowing, 2026-07-11). */
 function sentimentTone(s: string): { label: string; color: string } {
   const v = s.toLowerCase();
   if (v.includes("pos")) return { label: s, color: "var(--moss-bright)" };
   if (v.includes("neg")) return { label: s, color: "var(--madder)" };
-  if (v.includes("mix")) return { label: s, color: "var(--blossom)" };
-  return { label: s, color: "var(--glacier)" };
+  return { label: s, color: "var(--text-muted)" };
 }
 
 /** Sentiment mapped to a DetailKit stat tone, so the sentiment stat cell tints
- * to match: positive moss, negative madder, mixed amber, else glacier. */
+ * to match: positive moss, negative madder, mixed amber, else a neutral
+ * muted tone. */
 function sentimentStatTone(s: string): StatTone {
   const v = s.toLowerCase();
   if (v.includes("pos")) return "moss";
   if (v.includes("neg")) return "madder";
   if (v.includes("mix")) return "amber";
-  return "glacier";
+  return "muted";
 }
 
 /** A source id in sentence case for a header title fallback and the source
@@ -331,7 +334,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                     fontSize: "10px",
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
-                    color: "var(--blossom)",
+                    color: "var(--text-muted)",
                     background: "var(--card)",
                     border: "1px solid var(--hairline)",
                     borderRadius: "999px",
@@ -351,7 +354,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                     fontSize: "10px",
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
-                    color: "var(--blossom)",
+                    color: "var(--text-muted)",
                     background: "var(--card)",
                     border: "1px solid var(--hairline)",
                     borderRadius: "999px",
@@ -374,9 +377,9 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                     fontFamily: "var(--font-mono)",
                     fontSize: "10px",
                     letterSpacing: "0.03em",
-                    color: "var(--glacier)",
-                    background: "color-mix(in oklab, var(--glacier) 12%, var(--card))",
-                    border: "1px solid color-mix(in oklab, var(--glacier) 24%, var(--hairline))",
+                    color: "var(--text-muted)",
+                    background: "var(--surface-raised)",
+                    border: "1px solid var(--hairline)",
                     borderRadius: "999px",
                     padding: "2px 9px",
                   }}
@@ -482,7 +485,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
         <div style={{ display: "grid", gap: "14px" }}>
           <LineageSection
             heading="Came from"
-            icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--glacier)" }} />}
+            icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--text-subtle)" }} />}
             loading={q.isLoading}
             emptyText="Captured directly, no upstream artifact."
             peers={ancestors.map((e) => ({

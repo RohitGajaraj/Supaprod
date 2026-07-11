@@ -43,10 +43,10 @@ export const Route = createFileRoute("/_authenticated/admin/people")({
   component: AdminPeople,
 });
 
-// Shared focus treatment: 2px glacier ring, offset 2 — every interactive
-// element in this file uses this exact class pattern (design contract §12).
+// Shared focus treatment: 2px ember ring, offset 2 — every interactive
+// element in this file uses this exact class pattern (Tempo contract SS2).
 const FOCUS_RING =
-  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]";
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 
 const SUB_TABS = [
   { id: "users", label: "Users" },
@@ -652,7 +652,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
                 >
                   {(d.audit ?? []).slice(0, 10).map((row) => (
                     <li key={row.id}>
-                      <span style={{ color: "var(--glacier)" }}>{row.action}</span> ·{" "}
+                      <span style={{ color: "var(--text-primary)" }}>{row.action}</span> ·{" "}
                       {row.created_at.slice(0, 16).replace("T", " ")}
                     </li>
                   ))}

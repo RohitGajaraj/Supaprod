@@ -144,7 +144,7 @@ export function FlashlightTabs({
             type="button"
             role="tab"
             aria-selected={isActive}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
             onMouseEnter={(e) => {
               const el = e.currentTarget;
               setGlow({ left: el.offsetLeft, width: el.offsetWidth, on: true });

@@ -151,10 +151,18 @@ export function StatusBadge({ status }: { status: string }) {
    Full usage rules: DESIGN.md "Inline verdict chips". */
 export type VerdictTone = "moss" | "ember" | "indigo" | "orchid" | "saffron" | "madder";
 
+// "indigo" resolves to a neutral gray, not action-blue (Tempo v5
+// DESIGN-TEMPO.md §2 glacier/machine-voice narrowing, 2026-07-11):
+// action-blue's sanctioned scope is literal live/running status + links, and
+// a "next action" verdict is neither — it is a rendered judgment (see the
+// doc comment above), so it defaults to neutral like any other decoration.
+// Uses --text-subtle (not --ink/--text-primary) so the tone stays visually
+// distinct from surrounding body text - "the role color IS the meaning"
+// only holds if the color actually reads as different from plain copy.
 const VERDICT_TONES: Record<VerdictTone, string> = {
   moss: "var(--emerald)",
   ember: "var(--ember)",
-  indigo: "var(--action-blue)",
+  indigo: "var(--text-subtle)",
   orchid: "var(--agent)",
   saffron: "var(--saffron)",
   madder: "var(--rose)",
@@ -333,7 +341,9 @@ export function RiskTag({ risk }: { risk: string }) {
   );
 }
 
-/* DrillHeader — drill-down screen header: blue mono back link, kicker,
+/* DrillHeader — drill-down screen header: neutral mono back link (Tempo v5
+   glacier/machine-voice narrowing, 2026-07-11 — this is navigation chrome,
+   not a literal live/running status, so it stays gray), kicker,
    serif 21 title, optional right-slot action. Ported 1:1 from
    design-reference/cadence/govern-detail.jsx (DrillHeader); used by BOTH the
    loop-detail and govern-detail drill-downs (screens 6 + 7). */
@@ -354,7 +364,7 @@ export function DrillHeader({
     <div style={{ marginBottom: 16 }}>
       <button
         className="mono-label"
-        style={{ color: "var(--action-blue)", marginBottom: 10 }}
+        style={{ color: "var(--ink-subtle)", marginBottom: 10 }}
         onClick={onBack}
       >
         ← {backLabel}

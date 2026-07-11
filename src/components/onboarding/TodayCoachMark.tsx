@@ -46,7 +46,7 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
         background: "rgba(17,17,19,0.72)",
         backdropFilter: "blur(20px)",
         border: "1px solid rgba(255,255,255,0.08)",
-        borderLeft: "2px solid var(--glacier)",
+        borderLeft: "2px solid var(--hairline-strong)",
         animation: "cadRise 260ms var(--ease) both",
       }}
     >

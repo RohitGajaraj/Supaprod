@@ -296,7 +296,7 @@ export function BudgetsPanel() {
               ) : (
                 <button
                   className="mono-label"
-                  style={{ fontSize: 8.5, color: "var(--action-blue)" }}
+                  style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
                   onClick={() => {
                     setEditCap(key);
                     setCapDraft(cap != null ? String(cap) : "");
@@ -430,7 +430,7 @@ export function BudgetsPanel() {
             </span>
             <button
               className="mono-label"
-              style={{ fontSize: 8.5, color: "var(--action-blue)" }}
+              style={{ fontSize: 8.5, color: "var(--ink-subtle)" }}
               onClick={() =>
                 setAdv({
                   daily_token_cap: g?.daily_token_cap != null ? String(g.daily_token_cap) : "",

@@ -54,17 +54,17 @@ The evidence and tooling live in [`design-reference/tempo-v5/`](./design-referen
 
 Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in every scale:
 
-| Steps | Role |
-| --- | --- |
-| 100–300 | Component backgrounds: default / hover / active |
-| 400–600 | Borders: default / hover / active |
-| 700–800 | High-contrast backgrounds (solid fills) |
+| Steps    | Role                                             |
+| -------- | ------------------------------------------------ |
+| 100–300  | Component backgrounds: default / hover / active  |
+| 400–600  | Borders: default / hover / active                |
+| 700–800  | High-contrast backgrounds (solid fills)          |
 | 900–1000 | Text and icons: secondary / primary (accessible) |
 
 - **Gray carries the interface.** A screen is neutral by default; chromatic color appears
   only with meaning.
 - **Ember = the brand.** Primary CTAs, active/selected states, focus ring, brand moments.
-  One primary CTA per view. Ember takes every place Geist's own docs use blue *as brand*.
+  One primary CTA per view. Ember takes every place Geist's own docs use blue _as brand_.
 - **Ember-on-forms ruling (founder-delegated decision, 2026-07-11):** ordinary form
   actions (Save, Apply, Update, submit rows) use the neutral `default` button variant —
   the high-contrast invert fill (gray-1000 on background), the Geist/Linear premium
@@ -77,6 +77,27 @@ Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in
 - Use `--ds-gray-alpha-*` when layering over unknown backgrounds.
 - Focus ring: `--ds-focus-ring` (2px background + 2px ember). Never remove focus
   visibility.
+
+**Glacier / machine-voice narrowing (founder ruling, 2026-07-11 — supersedes the
+2026-07-06 Loom v4.1 color ruling on this point):** the app carries a second
+accent, `--glacier` (aliased today to `--ds-blue-600`), originally scoped as
+"the machine voice — live state, agent presence, mono-label accent" and used
+that way across ~114 files. That is too broad: a screen with two competing
+saturated accents (ember for human action, glacier for machine presence)
+fails the restraint budget even when each individual use looked reasonable in
+isolation. Vercel's own product reserves blue for narrow, literal status
+moments (a "Building" deployment badge), never as an ambient tint. Going
+forward, `--glacier`/`--machine`/`--blossom`/`--link` may only be used for:
+literal status badges/chips/pills (a "Live"/"Running"/"Streaming" indicator),
+citation/source chips, and hyperlinks. They may NOT be used for: icon fill on
+non-status icons, decorative borders/glows/hover tints, background washes,
+card accents, or as a generic "this is AI-related" tint outside an actual
+status control. Default everything else to gray (`--ds-gray-900/1000` text,
+`--ds-gray-400/600` borders); ember remains the only brand accent for
+interactive/selected/primary elements. `--action-blue` (links + literal
+running-state text, aliased to `--ds-blue-600`) keeps its existing narrow
+scope unchanged — it was already status/link-only. Chart/data-viz series
+(`--chart-2` etc.) are unaffected; a chart legitimately needs multiple hues.
 
 ## 3. Typography law — three faces, three jobs
 
@@ -115,7 +136,7 @@ Caveat, Silkscreen** — do not reintroduce. Inter/Roboto remain banned as ever.
 `[data-obsidian]` token block (ported from the retired Obsidian v3 app contract) that
 still declares the old Ember-era voice vars — `--font-serif`, `--font-ui`, `--font-dotted`,
 `--font-pencil` — by their legacy names, because ~130 components still reference those
-var names directly. A *second*, later `[data-obsidian]` block was added to re-alias them
+var names directly. A _second_, later `[data-obsidian]` block was added to re-alias them
 to Geist and wins the cascade (same selector, later source order beats the earlier
 block) — but the earlier block still held literal retired-font strings until this fix,
 so a routine refactor that removed the later block (or reordered them) would have

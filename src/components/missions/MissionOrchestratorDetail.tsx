@@ -289,7 +289,9 @@ function GatePanel({
 /* TraceHop — collapsible hop with timing bar and tinted step lines, ported
    from the reference. Production retainers ride the same left rail: hop
    metadata + trace link, memory-context chip, input/output expanders, and
-   inbound/outbound handoff chips (action-blue tinted). */
+   inbound/outbound handoff chips (neutral - Tempo v5 §2 narrows glacier/
+   cornflower to literal status chips and links, and a hop handoff is
+   structural metadata, not a live-status signal). */
 const rail: CSSProperties = {
   paddingLeft: 22,
   borderLeft: "1px solid var(--hairline)",
@@ -314,9 +316,9 @@ const handoffChip: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: 5,
-  color: "var(--cornflower)",
-  border: "1px solid color-mix(in oklab, var(--cornflower) 30%, transparent)",
-  background: "color-mix(in oklab, var(--cornflower) 8%, transparent)",
+  color: "var(--text-subtle)",
+  border: "1px solid var(--hairline-strong)",
+  background: "var(--raised)",
   borderRadius: 99,
   padding: "2px 8px",
 };
@@ -498,7 +500,6 @@ function TraceHop({
               className="mono-label loom-press"
               style={{
                 fontSize: 10.5,
-                color: "var(--cornflower)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
@@ -513,7 +514,6 @@ function TraceHop({
                 className="mono-label loom-press"
                 style={{
                   fontSize: 10.5,
-                  color: "var(--cornflower)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
@@ -615,11 +615,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       >
         <MonoLabel icon={Layers}>Compounding · the moat at work</MonoLabel>
         {n > 0 && (
-          <button
-            onClick={copySnapshot}
-            className="mono-label loom-press"
-            style={{ color: "var(--cornflower)" }}
-          >
+          <button onClick={copySnapshot} className="mono-label loom-press">
             Copy snapshot
           </button>
         )}
@@ -632,8 +628,11 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       ) : (
         <>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
+            {/* Geist Pixel brand moment (DESIGN-TEMPO §3/§8): the one numeral
+                on this screen that IS the moat made visible, at most once
+                per surface. */}
             <span
-              className="font-display tabular-nums"
+              className="font-pixel tabular-nums"
               style={{ fontSize: 30, lineHeight: 1, color: "var(--text-primary)" }}
             >
               {n}
@@ -1181,7 +1180,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   padding: "3px 10px",
                   borderRadius: 5,
                   border: "1px solid var(--hairline)",
-                  color: "var(--cornflower)",
+                  color: "var(--text-primary)",
                   opacity: advance.isPending ? 0.5 : 1,
                 }}
               >

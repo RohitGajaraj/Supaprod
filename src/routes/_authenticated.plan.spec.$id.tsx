@@ -143,7 +143,7 @@ export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
             marginTop: 14,
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -442,7 +442,7 @@ function SpecEditorPage() {
                 marginTop: 14,
                 fontFamily: "var(--font-mono)",
                 fontSize: 11,
-                color: "var(--glacier)",
+                color: "var(--text-subtle)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -585,7 +585,7 @@ function SpecEditorPage() {
               outline: "none",
               paddingBottom: 10,
             }}
-            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "var(--glacier)")}
+            onFocus={(e) => (e.currentTarget.style.borderBottomColor = "var(--form-focus)")}
             onBlur={(e) => (e.currentTarget.style.borderBottomColor = "var(--hairline)")}
           />
           <div
@@ -638,7 +638,9 @@ function SpecEditorPage() {
                     borderTop: "none",
                     borderLeft: "none",
                     borderRight: "none",
-                    borderBottom: active ? "2px solid var(--glacier)" : "2px solid transparent",
+                    borderBottom: active
+                      ? "2px solid var(--text-primary)"
+                      : "2px solid transparent",
                     background: "none",
                     cursor: "pointer",
                   }}
@@ -713,7 +715,7 @@ function SpecEditorPage() {
               key={a}
               onClick={() => assist.mutate(a)}
               disabled={assist.isPending}
-              className="loom-press hover:[color:var(--glacier)]"
+              className="loom-press hover:[color:var(--text-primary)]"
               style={{
                 fontSize: 11,
                 fontFamily: "var(--font-ui)",
@@ -910,7 +912,7 @@ function SpecEditorPage() {
               lineHeight: 1.65,
               outline: "none",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--glacier)")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--form-focus)")}
             onBlur={(e) => (e.currentTarget.style.borderColor = "var(--hairline)")}
           />
         ) : mode === "preview" ? (
@@ -965,7 +967,7 @@ function SpecEditorPage() {
                 className="loom-press"
                 style={{
                   ...MONO_CAPS,
-                  color: "var(--glacier)",
+                  color: "var(--text-subtle)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -999,7 +1001,7 @@ function SpecEditorPage() {
                       search: { tab: "signals", focus: s.id } as never,
                     })
                   }
-                  className="loom-press hover:[color:var(--glacier)]"
+                  className="loom-press hover:[color:var(--text-primary)]"
                   style={{
                     textAlign: "left",
                     fontSize: 12.5,

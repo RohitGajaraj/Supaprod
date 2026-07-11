@@ -39,7 +39,7 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
         "hover:[background-color:#141416]",
         "hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)]",
         "active:scale-[0.98]",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
         className,
       )}
       style={{

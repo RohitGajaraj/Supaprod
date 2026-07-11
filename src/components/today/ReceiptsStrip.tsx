@@ -127,7 +127,7 @@ export function ReceiptsStrip({
                       width: 5,
                       height: 5,
                       borderRadius: 99,
-                      background: "var(--glacier)",
+                      background: "var(--text-faint)",
                       opacity: 0.6,
                       margin: "0 6.5px",
                       flexShrink: 0,
@@ -166,7 +166,7 @@ export function ReceiptsStrip({
                 <button
                   type="button"
                   onClick={clickable ? () => onOpenMission(g.key) : onOpenActivity}
-                  className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                  className="loom-press outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontFamily: "var(--font-ui)",
                     fontSize: 12,
@@ -192,7 +192,7 @@ export function ReceiptsStrip({
         <button
           type="button"
           onClick={onOpenActivity}
-          className="loom-press self-start outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press self-start outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12,

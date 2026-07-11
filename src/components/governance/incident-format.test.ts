@@ -32,7 +32,7 @@ describe("incidentTone — severity roles", () => {
     expect(incidentTone("pipeline")).toBe("madder");
     expect(incidentTone("runaway")).toBe("madder");
   });
-  test("a guardrail block reads the machine voice, cost reads caution, manual is quiet", () => {
+  test("a guardrail block reads neutral (a category tag, not a live status), cost reads caution, manual is quiet", () => {
     expect(incidentTone("guardrail")).toBe("glacier");
     expect(incidentTone("cost")).toBe("marigold");
     expect(incidentTone("manual")).toBe("muted");
@@ -46,7 +46,7 @@ describe("incidentTone — severity roles", () => {
 describe("INCIDENT_TONE_VAR — CSS variable mapping", () => {
   test("maps all incident tones to valid CSS variables", () => {
     expect(INCIDENT_TONE_VAR.madder).toBe("var(--madder)");
-    expect(INCIDENT_TONE_VAR.glacier).toBe("var(--glacier)");
+    expect(INCIDENT_TONE_VAR.glacier).toBe("var(--text-subtle)");
     expect(INCIDENT_TONE_VAR.marigold).toBe("var(--marigold)");
     expect(INCIDENT_TONE_VAR.muted).toBe("var(--text-muted)");
   });

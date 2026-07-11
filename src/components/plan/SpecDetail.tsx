@@ -130,7 +130,7 @@ function withCitations(children: ReactNode, citations: CitationRecord[]): ReactN
  * Decide opportunity sheet and the Today call sheet. The SlideOver chassis
  * carries the title; beneath it, in the DetailKit order, come the quiet meta
  * row (status + Critic chips, the copyable PRD trace ref, the present-tone
- * time), the glacier recommendation band, the stat strip (stage, Critic,
+ * time), the neutral-tint recommendation band, the stat strip (stage, Critic,
  * sources), then the supporting sections: where it came from, the Critic's
  * take, the spec itself (Newsreader serif with inline `[n]` citation chips),
  * and the activity. Editing stays in the full editor at `/plan/spec/$id`.
@@ -262,14 +262,15 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               </span>
             </div>
 
-            {/* Recommendation band: calm glacier tint (never amber), the system's
+            {/* Recommendation band: calm neutral tint (Tempo v5 glacier narrowing, 2026-07-11:
+              this is a card accent, not a status control, so it stays gray), the system's
               read on what to do next with this spec. */}
             <div
               style={{
                 display: "grid",
                 gap: "8px",
-                background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
-                border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+                background: "color-mix(in srgb, var(--text-subtle) 8%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--text-subtle) 22%, transparent)",
                 borderRadius: "var(--radius-card)",
                 padding: "13px 15px",
               }}
@@ -340,7 +341,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
                       padding: 0,
                       cursor: "pointer",
                       fontSize: "12.5px",
-                      color: "var(--glacier)",
+                      color: "var(--text-body)",
                       textDecoration: "underline",
                       textUnderlineOffset: "2px",
                     }}

@@ -65,7 +65,7 @@ function GhostAction({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-ui)",
         fontSize: 13,
@@ -104,7 +104,7 @@ function QuietTextAction({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="uppercase outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="uppercase outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 9.5,

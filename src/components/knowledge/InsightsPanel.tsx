@@ -17,11 +17,14 @@ import {
 } from "@/lib/brain-insights.functions";
 import { LoopClosureBadge } from "@/components/knowledge/LoopClosureBadge";
 
+// Tempo v5 glacier narrowing (2026-07-11): only action (positive) and risk
+// (danger) are real status semantics; prediction/connection are categorical,
+// not status, so they stay neutral gray rather than an ambient AI tint.
 const SIGNAL_COLOR: Record<BrainSignal["kind"], string> = {
-  prediction: "var(--glacier)",
+  prediction: "var(--text-subtle)",
   action: "var(--moss)",
   risk: "var(--madder)",
-  connection: "var(--blossom)",
+  connection: "var(--text-subtle)",
 };
 
 const TONE: Record<BrainInsight["tone"], { color: string }> = {
@@ -143,11 +146,11 @@ export function InsightsPanel() {
         </p>
         <button
           type="button"
-          className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-subtle)",
             background: "transparent",
             border: "none",
             padding: 0,
@@ -171,7 +174,7 @@ export function InsightsPanel() {
           and glow-lit so it reads as "notice this" — not a competing wall of
           insight blocks (Loom §0.1 prominence + rethink-don't-just-delete). */}
       {qa.data && !qa.data.sparse && qa.data.signals.length > 0 ? (
-        <SpotlightCard kicker="What Cadence is seeing" tone="glacier">
+        <SpotlightCard kicker="What Cadence is seeing" tone="neutral">
           <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
             {qa.data.signals.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>

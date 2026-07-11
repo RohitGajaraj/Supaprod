@@ -34,7 +34,7 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
         "flex w-full items-center gap-3 text-left outline-none",
         onOpen && "hover:[background-color:#141416] cursor-pointer active:scale-[0.995]",
         !onOpen && "cursor-default",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
       )}
       style={{
         padding: "14px 18px",
@@ -118,7 +118,7 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-mono-floor)",
           letterSpacing: "0.11em",
-          color: "var(--glacier)",
+          color: "var(--text-primary)",
           background: "none",
           border: "none",
           padding: 0,
@@ -255,8 +255,10 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
             {status?.error ? "This room's summary did not load." : (status?.glance?.verdict ?? " ")}
           </p>
           {/* The single next step, plain-spoken, only when the room is on
-              watch. Glacier is the machine voice; it reads as guidance, not a
-              control. Derived from the same real state as the verdict. */}
+              watch. Neutral gray per the 2026-07-11 glacier narrowing - this
+              is guidance text, not a status control, so it no longer wears
+              the machine-voice accent. Derived from the same real state as
+              the verdict. */}
           {status?.glance?.action ? (
             <p
               style={{
@@ -266,7 +268,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
                 color: "var(--text-body)",
                 margin: "10px 0 0",
                 paddingLeft: "10px",
-                borderLeft: "2px solid var(--glacier)",
+                borderLeft: "2px solid var(--hairline-strong)",
               }}
             >
               <span
@@ -275,7 +277,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-micro)",
                   letterSpacing: "0.12em",
-                  color: "var(--glacier)",
+                  color: "var(--text-subtle)",
                   marginRight: "8px",
                 }}
               >
@@ -324,9 +326,11 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
       {/* The technical trace, kept underneath and subtle (founder ruling
           2026-07-07): a PM reads the plain label above; an engineer finds the
           system term here. Plain on top, technical beneath, never at the front.
-          Only the two terms are colored (plain = blossom, technical = glacier);
-          the connective words stay faint, so the mapping is what catches the
-          eye (Stress tests -> Gauntlet, Is it slipping? -> Drift). */}
+          Neutral gray per the 2026-07-11 glacier narrowing (was blossom/glacier
+          coloring the two terms) - only the plain label lifts a step brighter
+          than the faint connective words, so the mapping still catches the
+          eye (Stress tests -> Gauntlet, Is it slipping? -> Drift) without a
+          chromatic tint. */}
       <p
         className="uppercase"
         style={{
@@ -339,9 +343,9 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
           borderTop: "1px solid var(--hairline-faint)",
         }}
       >
-        <span style={{ color: "var(--blossom)" }}>{activeMeta.label}</span>
+        <span style={{ color: "var(--text-subtle)" }}>{activeMeta.label}</span>
         {" · the engine calls this "}
-        <span style={{ color: "var(--glacier)" }}>{activeMeta.technical}</span>
+        <span>{activeMeta.technical}</span>
       </p>
     </div>
   );

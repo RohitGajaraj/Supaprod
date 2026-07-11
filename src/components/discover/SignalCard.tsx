@@ -90,7 +90,7 @@ export const SignalCard = memo(function SignalCard({
       }
       className={
         clickable
-          ? "loom-press outline-none transition-colors hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:[outline-offset:-2px] focus-visible:[outline-color:var(--glacier)]"
+          ? "loom-press outline-none transition-colors hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:[outline-offset:-2px] focus-visible:[outline-color:var(--focus-ring)]"
           : undefined
       }
       style={{
@@ -116,8 +116,8 @@ export const SignalCard = memo(function SignalCard({
             fontFamily: "var(--font-mono)",
             fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "var(--blossom)",
-            border: "1px solid color-mix(in srgb, var(--blossom) 35%, transparent)",
+            color: "var(--text-muted)",
+            border: "1px solid color-mix(in srgb, var(--text-muted) 35%, transparent)",
             borderRadius: "var(--radius-pill)",
             padding: "1px 7px",
           }}
@@ -132,7 +132,7 @@ export const SignalCard = memo(function SignalCard({
             title="Open source"
             aria-label="Open source"
             onClick={(event) => event.stopPropagation()}
-            className="loom-press inline-flex items-center outline-none transition-colors hover:[color:var(--glacier)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press inline-flex items-center outline-none transition-colors hover:[color:var(--glacier)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{ color: "var(--text-subtle)" }}
           >
             <ExternalLink className="h-3.5 w-3.5" />

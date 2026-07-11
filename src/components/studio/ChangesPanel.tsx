@@ -784,7 +784,7 @@ export function ChangesPanel({
                   disabled={noteMut.isPending}
                   style={{
                     fontSize: 11,
-                    color: "var(--blossom)",
+                    color: "var(--text-body)",
                     background: "none",
                     border: "none",
                     padding: 0,

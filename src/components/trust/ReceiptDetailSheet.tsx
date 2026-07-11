@@ -142,14 +142,17 @@ export interface ReceiptDetailSheetProps {
   onOpenReceipt?: (id: string) => void;
 }
 
-/** The quiet inline link button every walkable row in this sheet uses. */
+/** The quiet inline link button every walkable row in this sheet uses. Text
+ * stays neutral (Tempo v5 §2 narrows glacier to literal status chips and
+ * `<a>`/`<Link>` hyperlinks; this is a button, not a link element) and
+ * brightens to full-contrast on hover, matching the "Superseded by" row. */
 const LINK_BUTTON: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
   gap: "6px",
   marginLeft: "auto",
   fontSize: "12px",
-  color: "var(--glacier)",
+  color: "var(--text-body)",
   background: "transparent",
   border: "none",
   padding: 0,
@@ -278,14 +281,15 @@ export function ReceiptDetailSheet({
             }
           />
 
-          {/* Outcome band: calm glacier tint (never amber), the record's state
-              in plain words. */}
+          {/* Outcome band: a calm neutral fill (never amber, never a chromatic
+              accent - Tempo v5 §2 narrows glacier to literal status chips and
+              links), the record's state in plain words. */}
           <div
             style={{
               display: "grid",
               gap: "8px",
-              background: "color-mix(in srgb, var(--glacier) 8%, transparent)",
-              border: "1px solid color-mix(in srgb, var(--glacier) 22%, transparent)",
+              background: "var(--raised)",
+              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-card)",
               padding: "13px 15px",
             }}
@@ -322,7 +326,7 @@ export function ReceiptDetailSheet({
             <StatCell
               label="Evidence"
               value={String(r.evidenceCount)}
-              tone={r.evidenceCount > 0 ? "glacier" : "muted"}
+              tone={r.evidenceCount > 0 ? "neutral" : "muted"}
             />
           </StatStrip>
 
@@ -387,7 +391,7 @@ export function ReceiptDetailSheet({
                       {body}
                       <ExternalLink
                         className="h-3 w-3"
-                        style={{ marginLeft: "auto", color: "var(--glacier)", flexShrink: 0 }}
+                        style={{ marginLeft: "auto", color: "var(--text-subtle)", flexShrink: 0 }}
                       />
                     </button>
                   ) : (
@@ -655,7 +659,7 @@ export function ReceiptDetailSheet({
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px" }}>
                     {r.supersededBy.slice(0, 8)}
                   </span>
-                  <span style={{ fontSize: "12px", color: "var(--glacier)" }}>
+                  <span style={{ fontSize: "12px", color: "var(--text-body)" }}>
                     Open the superseding record
                   </span>
                 </button>

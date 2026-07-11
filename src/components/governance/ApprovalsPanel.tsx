@@ -2,13 +2,15 @@
 // (GovernScreen tab "Approvals" + ApprovalCard + RiskTag): "{n} waiting"
 // mono header with the real median response time, "Approve all low-risk"
 // ghost, and the detailed approval card — StepDot, "{agent} wants {tool}"
-// (agent mono ink, tool mono glacier), RiskChip, "in {mission}", expiry clock,
-// summary, consequence-labeled approve/reject, Mission link. Resolved
+// (agent mono ink, tool mono ink-body), RiskChip, "in {mission}", expiry
+// clock, summary, consequence-labeled approve/reject, Mission link. Resolved
 // cards dim to 0.45 with the resolved mono line. Production functionality
 // kept: decideApproval (approve EXECUTES the tool), extendApprovalTtl,
 // the exact-args payload and execution errors. W4 Obsidian reskin: semantic
-// tokens only (moss/madder/marigold/glacier, --text-*), calm mono-caps
-// loading + designed empty slate; no functional or server change.
+// tokens only (moss/madder/marigold, --text-*), calm mono-caps loading +
+// designed empty slate; no functional or server change. Tempo v5 color
+// audit (2026-07-11): glacier retired to neutral gray outside literal
+// status/link uses per the machine-voice narrowing.
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -358,7 +360,7 @@ function ApprovalCard({
             </span>
           )}
           <span style={{ fontSize: 12, color: "var(--text-faint)" }}>wants</span>
-          <span className="mono-label" style={{ color: "var(--glacier)" }}>
+          <span className="mono-label" style={{ color: "var(--text-body)" }}>
             {a.tool_name}
           </span>
           <RiskChip risk={a.risk} />

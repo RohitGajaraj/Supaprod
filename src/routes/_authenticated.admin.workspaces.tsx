@@ -103,7 +103,7 @@ function AdminWorkspaces() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, slug, or owner email"
-            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] placeholder:[color:var(--text-faint)]"
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] placeholder:[color:var(--text-faint)]"
             style={{
               flex: 1,
               padding: "8px 12px",
@@ -440,7 +440,7 @@ function WorkspaceDrawer({
                           if (ok) setRole.mutate({ userId: m.user_id, role });
                         })();
                       }}
-                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)] disabled:opacity-45"
+                      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-45"
                       style={{
                         padding: "5px 8px",
                         background: "var(--raised)",
@@ -573,7 +573,7 @@ function WorkspaceDrawer({
                       color: "var(--text-body)",
                     }}
                   >
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--glacier)" }}>
+                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>
                       {row.action}
                     </span>{" "}
                     · {row.created_at.slice(0, 16).replace("T", " ")}

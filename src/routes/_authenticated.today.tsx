@@ -185,7 +185,7 @@ function TodaySpotlight({
                 type="button"
                 onClick={onOpenCall}
                 title="Open this call"
-                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   color: "var(--text-primary)",
                   background: "transparent",
@@ -243,10 +243,10 @@ function TodaySpotlight({
           <button
             type="button"
             onClick={() => setFullOpen((v) => !v)}
-            className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               ...monoLabel,
-              color: "var(--glacier)",
+              color: "var(--text-subtle)",
               background: "transparent",
               border: "none",
               padding: 0,
@@ -278,10 +278,10 @@ function TodaySpotlight({
             <button
               type="button"
               onClick={onRefreshBrief}
-              className="loom-press outline-none hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 ...monoLabel,
-                color: "var(--glacier)",
+                color: "var(--text-subtle)",
                 background: "transparent",
                 border: "none",
                 padding: 0,
@@ -340,13 +340,13 @@ function ConstellationMotif() {
         strokeWidth="1"
       />
       <path d="M54 20 L84 8 M92 40 L114 54" stroke="var(--hairline)" strokeWidth="1" />
-      <circle cx="14" cy="46" r="2.5" fill="var(--glacier)" opacity="0.55" />
-      <circle cx="54" cy="20" r="3" fill="var(--blossom)" opacity="0.5" />
+      <circle cx="14" cy="46" r="2.5" fill="var(--text-faint)" opacity="0.55" />
+      <circle cx="54" cy="20" r="3" fill="var(--text-subtle)" opacity="0.5" />
       <circle cx="84" cy="8" r="2" fill="var(--text-subtle)" />
-      <circle cx="92" cy="40" r="2.5" fill="var(--glacier)" opacity="0.45" />
+      <circle cx="92" cy="40" r="2.5" fill="var(--text-faint)" opacity="0.45" />
       <circle cx="114" cy="54" r="2" fill="var(--text-subtle)" />
-      <circle cx="128" cy="14" r="3" fill="var(--blossom)" opacity="0.5" />
-      <circle cx="164" cy="34" r="2.5" fill="var(--glacier)" opacity="0.55" />
+      <circle cx="128" cy="14" r="3" fill="var(--text-subtle)" opacity="0.5" />
+      <circle cx="164" cy="34" r="2.5" fill="var(--text-faint)" opacity="0.55" />
     </svg>
   );
 }
@@ -369,13 +369,13 @@ function DoorLink({
       type="button"
       onClick={onClick}
       title={hint}
-      className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press inline-flex items-baseline outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 6,
         fontFamily: "var(--font-ui)",
         fontSize: 12.5,
         fontWeight: 500,
-        color: "var(--glacier)",
+        color: "var(--text-muted)",
         background: "transparent",
         border: "none",
         padding: 0,
@@ -489,7 +489,8 @@ function Dashboard() {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
       const meta = u?.user_metadata as
-        { display_name?: string; full_name?: string; name?: string } | undefined;
+        | { display_name?: string; full_name?: string; name?: string }
+        | undefined;
       const name =
         meta?.display_name ?? meta?.full_name ?? meta?.name ?? u?.email?.split("@")[0] ?? "there";
       setUserName(name);
@@ -1047,7 +1048,7 @@ function Dashboard() {
           ? "var(--moss)"
           : r.verdict === "missed"
             ? "var(--madder)"
-            : "var(--glacier)",
+            : "var(--text-faint)",
       text: `A ${r.verdict} outcome moved ${stripAutoPrefix(r.opportunity_title ?? "a priority")}: priority score ${r.priorIce.toFixed(1)} to ${r.newIce.toFixed(1)}.`,
       cause: "LEARNING · RE-RANKED",
       traceRef: `LRN·${traceRef(r.id)}`,

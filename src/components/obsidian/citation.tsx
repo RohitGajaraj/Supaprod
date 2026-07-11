@@ -26,7 +26,7 @@ export const Citation = React.forwardRef<HTMLButtonElement, CitationProps>(
           aria-describedby={popoverId}
           className={cn(
             "align-super outline-none focus-visible:outline-2 focus-visible:outline-offset-2",
-            "focus-visible:[outline-color:var(--glacier)]",
+            "focus-visible:[outline-color:var(--ember)]",
             className,
           )}
           style={{

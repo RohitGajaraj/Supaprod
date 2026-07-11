@@ -144,7 +144,7 @@ function SettingsIndex({
             key={g.id}
             type="button"
             onClick={() => onSet(g.id)}
-            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]${isActive ? " loom-thread-active" : ""}`}
+            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${isActive ? " loom-thread-active" : ""}`}
             style={{
               gap: 10,
               padding: "8px 12px",
@@ -186,7 +186,7 @@ function DensityToggle() {
   const [density, setDensity] = useDensity();
   return (
     <div style={{ marginBottom: 20 }}>
-      <ObsidianMonoLabel tone="glacier">Density</ObsidianMonoLabel>
+      <ObsidianMonoLabel tone="muted">Density</ObsidianMonoLabel>
       <div className="flex items-center" style={{ gap: 6, marginTop: 8 }}>
         {(["comfortable", "compact"] as const).map((d) => (
           <button
@@ -778,17 +778,17 @@ function BundleGrid({
             disabled={wouldExceed}
             onClick={() => onSelect(b.key)}
             title={wouldExceed ? "Exceeds your per-cycle top-up limit." : undefined}
-            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               textAlign: "left",
               padding: "var(--space-3)",
               borderRadius: "var(--radius-control)",
               cursor: wouldExceed ? "not-allowed" : "pointer",
               opacity: wouldExceed ? 0.5 : 1,
-              // Selected uses glacier — the machine marking your pick — never
-              // ember, which stays reserved for a genuinely-required action.
-              border: selected ? "1px solid var(--glacier)" : "1px solid var(--hairline)",
-              background: selected ? "rgba(132, 179, 236, 0.12)" : "var(--raised)",
+              // Selected reads with a neutral high-contrast border + wash —
+              // never ember, which stays reserved for the Buy action below.
+              border: selected ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
+              background: selected ? "var(--surface-active)" : "var(--raised)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-1)",
@@ -809,8 +809,8 @@ function BundleGrid({
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   background: "var(--card)",
-                  color: "var(--glacier)",
-                  border: "1px solid var(--glacier)",
+                  color: "var(--text-subtle)",
+                  border: "1px solid var(--hairline-strong)",
                   padding: "2px 6px",
                   borderRadius: "var(--radius-pill)",
                 }}
@@ -1297,7 +1297,7 @@ function CreditsTabInner() {
             {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more?{" "}
             <a
               href="mailto:sales@cadence.app?subject=Enterprise%20credits"
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{ color: "var(--blossom)" }}
             >
               Talk to sales for volume pricing
@@ -1444,11 +1444,11 @@ function ConnectionsTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <ObsidianMonoLabel tone="glacier">Yours</ObsidianMonoLabel>
+      <ObsidianMonoLabel tone="muted">Yours</ObsidianMonoLabel>
       <AccountConnectionsSection onOpenDetail={onOpenDetail} />
 
       <div style={{ marginTop: 8 }}>
-        <ObsidianMonoLabel tone="glacier">This workspace's</ObsidianMonoLabel>
+        <ObsidianMonoLabel tone="muted">This workspace's</ObsidianMonoLabel>
         <div style={{ marginTop: 8 }}>
           <WorkspaceBindingsSummary />
         </div>
@@ -1565,7 +1565,7 @@ function WorkspaceBindingsSummary() {
       <div style={{ marginTop: 12 }}>
         <Link
           to="/sync"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{ fontSize: 12.5, color: "var(--blossom)" }}
         >
           {bindings.length === 0

@@ -88,7 +88,7 @@ function AdminLayout() {
                     key={t.id}
                     type="button"
                     onClick={() => navigate({ to: t.id })}
-                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-label)",
@@ -96,7 +96,9 @@ function AdminLayout() {
                       letterSpacing: "0.08em",
                       padding: "8px 12px",
                       color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                      borderBottom: isActive ? "2px solid var(--glacier)" : "2px solid transparent",
+                      borderBottom: isActive
+                        ? "2px solid var(--text-primary)"
+                        : "2px solid transparent",
                       marginBottom: -1,
                     }}
                   >

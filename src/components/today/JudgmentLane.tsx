@@ -100,7 +100,7 @@ function InsightRow({
           fontFamily: "var(--font-ui)",
           fontSize: 12,
           fontWeight: 500,
-          color: "var(--glacier)",
+          color: "var(--text-muted)",
           background: "transparent",
           border: "1px solid var(--hairline-strong)",
           borderRadius: "var(--radius-control)",
@@ -162,7 +162,7 @@ export function JudgmentLane({
       {folded.length > 0 && !open ? (
         <button
           type="button"
-          className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           onClick={() => setOpen(true)}
           style={{
             fontFamily: "var(--font-ui)",
@@ -184,7 +184,7 @@ export function JudgmentLane({
           {folded.map((e) => renderEntry(e, false))}
           <button
             type="button"
-            className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+            className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             onClick={() => setOpen(false)}
             style={linkBtn}
           >
@@ -201,7 +201,7 @@ export function JudgmentLane({
           {!expiredOpen ? (
             <button
               type="button"
-              className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+              className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               onClick={() => setExpiredOpen(true)}
               style={{
                 fontFamily: "var(--font-ui)",
@@ -274,13 +274,13 @@ export function JudgmentLane({
                   <div className="flex items-baseline" style={{ gap: 14, flexShrink: 0 }}>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:#EAF6FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onRun}
                       style={{
                         fontFamily: "var(--font-ui)",
                         fontSize: 12,
                         fontWeight: 500,
-                        color: "var(--glacier)",
+                        color: "var(--text-muted)",
                         background: "transparent",
                         border: "1px solid var(--hairline-strong)",
                         borderRadius: "var(--radius-control)",
@@ -292,7 +292,7 @@ export function JudgmentLane({
                     </button>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onDismiss}
                       style={{
                         fontFamily: "var(--font-ui)",
@@ -326,7 +326,7 @@ export function JudgmentLane({
               ) : null}
               <button
                 type="button"
-                className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 onClick={() => setExpiredOpen(false)}
                 style={linkBtn}
               >

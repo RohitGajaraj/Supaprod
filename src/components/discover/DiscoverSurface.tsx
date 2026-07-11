@@ -42,13 +42,13 @@ function ConstellationMotif() {
         strokeWidth="1"
       />
       <path d="M58 24 L90 10 M96 44 L118 58" stroke="var(--hairline)" strokeWidth="1" />
-      <circle cx="18" cy="52" r="2.5" fill="var(--glacier)" opacity="0.55" />
-      <circle cx="58" cy="24" r="3" fill="var(--blossom)" opacity="0.5" />
+      <circle cx="18" cy="52" r="2.5" fill="var(--text-subtle)" opacity="0.55" />
+      <circle cx="58" cy="24" r="3" fill="var(--text-subtle)" opacity="0.5" />
       <circle cx="90" cy="10" r="2" fill="var(--text-subtle)" />
-      <circle cx="96" cy="44" r="2.5" fill="var(--glacier)" opacity="0.45" />
+      <circle cx="96" cy="44" r="2.5" fill="var(--text-subtle)" opacity="0.45" />
       <circle cx="118" cy="58" r="2" fill="var(--text-subtle)" />
-      <circle cx="132" cy="18" r="3" fill="var(--blossom)" opacity="0.5" />
-      <circle cx="162" cy="38" r="2.5" fill="var(--glacier)" opacity="0.55" />
+      <circle cx="132" cy="18" r="3" fill="var(--text-subtle)" opacity="0.5" />
+      <circle cx="162" cy="38" r="2.5" fill="var(--text-subtle)" opacity="0.55" />
     </svg>
   );
 }
@@ -210,6 +210,20 @@ export function DiscoverSurface() {
           }}
         >
           <ConstellationMotif />
+          {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8): the
+              empty-state headline, short and display-only, never the
+              supporting line beneath it. */}
+          <p
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: "20px",
+              lineHeight: 1.3,
+              color: "var(--text-primary)",
+              margin: "0 0 6px",
+            }}
+          >
+            Nothing sensed yet
+          </p>
           <p
             style={{
               fontSize: "var(--text-base)",
@@ -217,7 +231,7 @@ export function DiscoverSurface() {
               margin: "0 0 16px",
             }}
           >
-            Nothing sensed yet. Connect a source and give it ten minutes.
+            Connect a source and give it ten minutes.
           </p>
           <Button
             variant="primary"
@@ -315,7 +329,7 @@ export function DiscoverSurface() {
                 >
                   <span
                     style={{
-                      color: i === 0 ? "var(--ember-text)" : "var(--glacier)",
+                      color: i === 0 ? "var(--ember-text)" : "var(--text-primary)",
                       fontVariantNumeric: "tabular-nums",
                     }}
                   >

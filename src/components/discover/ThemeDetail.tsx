@@ -63,7 +63,7 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
       <button
         type="button"
         onClick={onBack}
-        className="loom-press w-fit outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+        className="loom-press w-fit outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "10.5px",
@@ -245,7 +245,7 @@ export function ThemeDetail({
 
             {groups.map(([source, groupMembers]) => (
               <div key={source} style={{ display: "grid", gap: "10px" }}>
-                <MonoLabel tone="blossom" style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
+                <MonoLabel style={{ fontSize: "10.5px", letterSpacing: "0.08em" }}>
                   {sourceCaps(source)}
                 </MonoLabel>
                 <div style={{ display: "grid", gap: "8px" }}>
@@ -254,7 +254,7 @@ export function ThemeDetail({
                       key={m.id}
                       type="button"
                       onClick={() => setActiveSignalId(m.id)}
-                      className="loom-press w-full text-left outline-none transition-[background-color,border-color] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                      className="loom-press w-full text-left outline-none transition-[background-color,border-color] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         display: "grid",
                         gap: "4px",

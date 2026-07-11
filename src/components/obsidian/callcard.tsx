@@ -99,7 +99,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         className={cn(
           "flex flex-col",
           clickable &&
-            "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]",
+            "loom-press cursor-pointer outline-none transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
           className,
         )}
         role={clickable ? "button" : undefined}

@@ -312,7 +312,7 @@ export function DocsPanel() {
             >
               <button
                 className="mono-label"
-                style={{ color: "var(--action-blue)", fontSize: "var(--text-mono-floor)" }}
+                style={{ color: "var(--ink-subtle)", fontSize: "var(--text-mono-floor)" }}
                 onClick={() => setSelectedId(null)}
               >
                 ← All docs
@@ -485,7 +485,7 @@ export function DocsPanel() {
                       className="mono-label"
                       style={{
                         fontSize: "var(--text-mono-floor)",
-                        color: "var(--action-blue)",
+                        color: "var(--ink-subtle)",
                         flexShrink: 0,
                       }}
                       onClick={(e) => {

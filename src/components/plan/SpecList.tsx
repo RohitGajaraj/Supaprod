@@ -170,7 +170,7 @@ export function SpecList({ onOpen }: SpecListProps) {
             marginTop: 14,
             fontFamily: "var(--font-mono)",
             fontSize: 11,
-            color: "var(--glacier)",
+            color: "var(--text-body)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -235,7 +235,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                     onOpen(spec.id);
                   }
                 }}
-                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -410,7 +410,7 @@ export function SpecList({ onOpen }: SpecListProps) {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+          className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,

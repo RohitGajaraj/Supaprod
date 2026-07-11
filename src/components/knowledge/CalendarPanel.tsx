@@ -634,7 +634,7 @@ export function CalendarPanel({
                         padding: "3px 10px",
                         borderRadius: 99,
                         border: "1px solid var(--hairline)",
-                        color: added ? "var(--emerald)" : "var(--action-blue)",
+                        color: added ? "var(--emerald)" : "var(--ink-subtle)",
                         whiteSpace: "nowrap",
                         opacity: added ? 0.8 : 1,
                       }}
@@ -862,7 +862,7 @@ export function CalendarPanel({
                       className="mono-label"
                       style={{
                         fontSize: "var(--text-mono-floor)",
-                        color: "var(--action-blue)",
+                        color: "var(--ink)",
                         marginTop: 8,
                       }}
                       onClick={() => onMeetingChange(it.id)}
@@ -1172,7 +1172,7 @@ function MonthGrid({
               style={{
                 display: "block",
                 fontSize: 12,
-                color: "var(--action-blue)",
+                color: "var(--ink)",
                 padding: "2px 0",
                 textAlign: "left",
               }}

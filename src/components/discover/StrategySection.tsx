@@ -33,7 +33,6 @@ function HeaderRow({ label, count }: { label: string; count: number | null }) {
       </h3>
       {count === null ? null : (
         <MonoLabel
-          tone="glacier"
           style={{
             fontSize: "10.5px",
             letterSpacing: "0.08em",
@@ -71,8 +70,8 @@ function BriefRow({ brief, isLast }: { brief: StrategyBrief; isLast: boolean }) 
             fontFamily: "var(--font-mono)",
             fontSize: "10.5px",
             letterSpacing: "0.08em",
-            color: "var(--blossom)",
-            border: "1px solid color-mix(in srgb, var(--blossom) 35%, transparent)",
+            color: "var(--text-muted)",
+            border: "1px solid color-mix(in srgb, var(--text-muted) 35%, transparent)",
             borderRadius: "var(--radius-pill)",
             padding: "1px 7px",
           }}
@@ -216,7 +215,7 @@ export function StrategySection() {
               <button
                 type="button"
                 onClick={() => setShowAllBriefs((v) => !v)}
-                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
@@ -279,7 +278,7 @@ export function StrategySection() {
               <button
                 type="button"
                 onClick={() => setShowAllEntities((v) => !v)}
-                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-ui)",
                   fontSize: 12.5,

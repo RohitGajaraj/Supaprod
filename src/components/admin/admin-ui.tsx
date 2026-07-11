@@ -109,7 +109,7 @@ export function AdminErrorCard({
           fontSize: "var(--text-mono-label)",
           letterSpacing: "0.11em",
           textTransform: "uppercase",
-          color: "var(--glacier)",
+          color: "var(--text-primary)",
           background: "none",
           border: "none",
           padding: 0,

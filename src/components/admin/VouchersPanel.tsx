@@ -278,7 +278,7 @@ function VoucherCreator() {
             checked={autoLogin}
             onChange={(e) => setAutoLogin(e.target.checked)}
             className={FOCUS_RING}
-            style={{ width: 14, height: 14, accentColor: "var(--glacier)", cursor: "pointer" }}
+            style={{ width: 14, height: 14, accentColor: "var(--text-primary)", cursor: "pointer" }}
           />{" "}
           auto-login (signup)
         </label>

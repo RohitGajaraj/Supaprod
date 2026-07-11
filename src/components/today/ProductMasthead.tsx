@@ -23,7 +23,7 @@ export function ProductMasthead({
       type="button"
       onClick={onOpen}
       title={hasStory ? "Open the product brief" : "Write the product brief"}
-      className="loom-press group flex w-full items-baseline text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--glacier)]"
+      className="loom-press group flex w-full items-baseline text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         gap: 8,
         background: "transparent",
@@ -60,7 +60,7 @@ export function ProductMasthead({
       </span>
       <span
         aria-hidden="true"
-        className="transition-colors group-hover:[color:var(--glacier)]"
+        className="transition-colors group-hover:[color:var(--text-body)]"
         style={{ color: "var(--text-faint)", fontSize: 12, flexShrink: 0 }}
       >
         →

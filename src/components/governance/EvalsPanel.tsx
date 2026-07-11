@@ -185,8 +185,9 @@ export function EvalsPanel() {
                           glow: "0 0 7px color-mix(in oklab, var(--tangerine) 45%, transparent)",
                         };
                 // Every chip opens the create-guard form pre-targeted at its surface; the OPEN
-                // one is highlighted (glacier ring + fill) so it is never ambiguous which tile
-                // you are acting on. State (covered / gap / unproven) stays in the dot + tint.
+                // one is highlighted (ember ring + fill, the sanctioned selected-element accent)
+                // so it is never ambiguous which tile you are acting on. State (covered / gap /
+                // unproven) stays in the dot + tint.
                 const targetId = `${t.surface}/${t.key}`;
                 const selected = createOpen && prefill?.target === targetId;
                 const chipStyle = {
@@ -199,13 +200,13 @@ export function EvalsPanel() {
                   padding: "9px 6px",
                   borderRadius: 10,
                   border: `1px ${selected ? "solid" : meta.borderStyle} ${
-                    selected ? "var(--glacier)" : meta.border
+                    selected ? "var(--ember)" : meta.border
                   }`,
                   background: selected
-                    ? "color-mix(in oklab, var(--glacier) 14%, transparent)"
+                    ? "color-mix(in oklab, var(--ember) 14%, transparent)"
                     : meta.bg,
                   boxShadow: selected
-                    ? "inset 0 0 0 1px var(--glacier), 0 0 12px color-mix(in oklab, var(--glacier) 32%, transparent)"
+                    ? "inset 0 0 0 1px var(--ember), 0 0 12px color-mix(in oklab, var(--ember) 32%, transparent)"
                     : "none",
                   color: selected ? "var(--text-primary)" : meta.text,
                   font: "inherit",
@@ -403,7 +404,10 @@ export function EvalsPanel() {
                     </>
                   )}
                   <span style={{ flex: 1 }}></span>
-                  <span className="mono-label" style={{ fontSize: 10.5, color: "var(--glacier)" }}>
+                  <span
+                    className="mono-label"
+                    style={{ fontSize: 10.5, color: "var(--text-subtle)" }}
+                  >
                     runs · cases · config →
                   </span>
                 </div>
