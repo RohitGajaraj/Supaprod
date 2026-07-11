@@ -27,6 +27,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   enqueueHandoff,
   maybeCompleteMission,
+  resolveAgent,
   type HandoffPayload,
 } from "./handoff.server";
 import { recallMemoryRefs } from "./memory.server";
