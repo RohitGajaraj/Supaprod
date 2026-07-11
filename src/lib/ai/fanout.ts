@@ -13,8 +13,11 @@
  * the runtime chokepoint enforces caps PER-RUN, not as a mission-wide aggregate,
  * and live mission runs are created with null caps today, so the per-child budget
  * split is only a hint):
- *   1. COUNT cap: at most {@link FANOUT_MAX_CHILDREN} children per single spawn.
- *   2. DEPTH cap: a spawned child is stamped with its fan-out depth, and a run at
+ *   1. TIER cap: the entitlements model specifies maxParallelAgents per tier
+ *      (Free 1, Pro 3, Max 5, Business 8, Enterprise unlimited/null).
+ *      Planning layer applies this as maxChildren; planning validates up-front.
+ *   2. GLOBAL cap: absolute runtime ceiling (for emergency brakes).
+ *   3. DEPTH cap: a spawned child is stamped with its fan-out depth, and a run at
  *      depth >= {@link FANOUT_MAX_DEPTH} may NOT itself spawn. With the default of
  *      1 that means exactly ONE level of fan-out (a top-level agent spawns workers;
  *      those workers cannot spawn), so the chain can never explode 8 -> 64 -> 512.
@@ -27,7 +30,7 @@
  * db, no network, no AI.
  */
 
-/** Hard cap on parallel sub-agents per single spawn (cost + concurrency guard). */
+/** Global emergency ceiling on parallel sub-agents (failsafe, never exceeded). */
 export const FANOUT_MAX_CHILDREN = 8;
 
 /**
@@ -52,6 +55,21 @@ export function fanoutDepthOf(payload: unknown): number {
 /** PURE. True when a run at this depth may still spawn (bounds nested fan-out). */
 export function canSpawnAtDepth(depth: number): boolean {
   return depth < FANOUT_MAX_DEPTH;
+}
+
+/**
+ * Resolves the effective max children cap for a tier.
+ * Entitlements specify maxParallelAgents per tier; this function returns that
+ * clamped against the global FANOUT_MAX_CHILDREN emergency ceiling.
+ *
+ * @param tierCap maxParallelAgents from entitlements (null = unlimited)
+ * @returns effective cap, never exceeding FANOUT_MAX_CHILDREN
+ */
+export function resolveMaxChildrenForTier(tierCap: number | null): number {
+  if (tierCap === null) {
+    return FANOUT_MAX_CHILDREN;
+  }
+  return Math.min(tierCap, FANOUT_MAX_CHILDREN);
 }
 
 export type FanoutItem = { task: string; context?: Record<string, unknown> };

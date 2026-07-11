@@ -169,9 +169,11 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
           <ShieldAlert className="h-3.5 w-3.5 text-destructive shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-xs font-medium text-destructive">
-              Not verifiable yet. This spec cannot be approved.
+              Cannot be approved: no success metric can be checked.
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+              {grade.reason}
+            </p>
             {grade.unverifiableClauses.length > 0 ? (
               <ul className="mt-1.5 space-y-1">
                 {grade.unverifiableClauses.map((c) => (
@@ -188,6 +190,22 @@ function VerifiabilityVerdict({ contract }: { contract: OutcomeContract }) {
               </ul>
             ) : null}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (grade.verdict === "hazy") {
+    // Non-blocking: metrics exist but none are compiled to an oracle yet. This
+    // is a constructive nudge, not a hard block. Compiling the oracles (auto at
+    // creation, or the "Compile oracles" button) classifies them, and approval
+    // is only refused if they resolve to purely unfalsifiable.
+    return (
+      <div className="mt-4 rounded-md border hairline bg-background/40 px-3 py-2 flex items-start gap-2">
+        <ShieldAlert className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-xs font-medium">Verification is hazy</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{grade.reason}</p>
         </div>
       </div>
     );

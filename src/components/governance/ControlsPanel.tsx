@@ -10,7 +10,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Clock, Gauge, ShieldCheck, Zap } from "lucide-react";
+import { Clock, Gauge, Layers, ShieldCheck, Zap } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
@@ -27,8 +27,23 @@ import {
   listEventQueue,
   decideEventDispatch,
 } from "@/lib/reactor.functions";
-import { MonoLabel } from "@/components/cadence/Primitives";
+import { MonoLabel, VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { relTime, fmtUsd } from "@/components/product/format";
+import {
+  CONSENT_PHILOSOPHY,
+  groupToolsByConsequenceClass,
+  type ConsentPostureId,
+} from "@/lib/consent-classes";
+
+/* RPT-36: the consent posture per class rendered as a quiet verdict chip, in
+   the same three-color language the rest of the loop uses (green safe, ember
+   drafts, rose gated). */
+const POSTURE_TONE: Record<ConsentPostureId, VerdictTone> = {
+  "auto-run": "moss",
+  "ask-first": "indigo",
+  "draft-to-you": "ember",
+  "always-gate": "madder",
+};
 
 type EventType =
   | "signal.created"
@@ -681,6 +696,74 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Consent by consequence class (RPT-36), span 2. A read-only view over
+          the SAME enabled tools above, grouped by blast radius with the trust-
+          ladder (RPT-17) default posture per class. Setting consent once per
+          class, not tool by tool: auto-run reads, draft stakeholder work to you,
+          always gate repo writes. The per-tool control above is where a specific
+          tool gets tightened; this states the policy the classes default to. */}
+      <div style={{ ...V4_CARD, gridColumn: "span 2", padding: "18px 20px" }}>
+        <MonoLabel icon={Layers} style={{ marginBottom: 4 }}>
+          Consent by consequence
+        </MonoLabel>
+        <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginBottom: 12 }}>
+          {CONSENT_PHILOSOPHY}
+        </div>
+        {tools.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "8px 0" }}>
+            No tools enabled yet.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {groupToolsByConsequenceClass(tools, (t) => t.tool_name)
+              .filter((g) => g.tools.length > 0)
+              .map((g, i) => (
+                <div
+                  key={g.id}
+                  style={{
+                    padding: "12px 0",
+                    borderTop: i > 0 ? "1px solid var(--hairline)" : "none",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{g.label}</div>
+                      <div style={{ fontSize: 11.5, color: "var(--ink-subtle)", marginTop: 2 }}>
+                        {g.description}
+                      </div>
+                    </div>
+                    <VerdictChip tone={POSTURE_TONE[g.defaultPosture.posture]}>
+                      {g.defaultPosture.label}
+                    </VerdictChip>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 6 }}>
+                    {g.defaultPosture.rationale}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {g.tools.map((t) => (
+                      <span
+                        key={t.id}
+                        title={t.tool_name}
+                        className="mono-label"
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text-subtle)",
+                          background: "var(--surface-2)",
+                          border: "1px solid var(--hairline)",
+                          borderRadius: 99,
+                          padding: "2px 9px",
+                        }}
+                      >
+                        {t.display_name || t.tool_name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
           </div>
         )}
       </div>

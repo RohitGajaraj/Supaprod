@@ -1,5 +1,5 @@
 /**
- * RPT-23 — Outcome Contract verifiability grade (the creation-time gate).
+ * RPT-23: Outcome Contract verifiability grade (the creation-time gate).
  *
  * Receipts are to decision work what the test suite is to code. An Outcome
  * Contract whose success metrics can never be checked on outcome day is a
@@ -38,13 +38,13 @@ export type ContractGrade = {
   verdict: ContractVerdict;
   /** Standing success metrics considered (superseded clauses are ignored). */
   total: number;
-  /** eval | ci — Cadence or CI can grade this without a human. */
+  /** eval | ci: Cadence or CI can grade this without a human. */
   machine: number;
-  /** uat — a human ticks it off on a real checklist. */
+  /** uat: a human ticks it off on a real checklist. */
   human: number;
-  /** oracle_kind null — not yet compiled; verifiability is unknown. */
+  /** oracle_kind null: not yet compiled; verifiability is unknown. */
   pending: number;
-  /** unverifiable — filed as a watched assumption; not falsifiable as written. */
+  /** unverifiable: filed as a watched assumption; not falsifiable as written. */
   unfalsifiable: number;
   /** machine + human: metrics that can actually be checked on outcome day. */
   verifiable: number;
@@ -118,10 +118,17 @@ export function gradeOutcomeContract(contract: SuccessMetricSource): ContractGra
   else if (verifiable === total) verdict = "verifiable";
   else verdict = "partial";
 
-  // Only "hazy" blocks: metrics exist but none can be checked. "empty" does
-  // not block (a minimal or non-goals-only contract is a weaker signal, not a
-  // broken one) so the gate never dead-ends a spec that simply has no metric.
-  const blocksApproval = verdict === "hazy";
+  // Block approval ONLY for a contract we can PROVE will never be checkable:
+  // every standing metric is explicitly `unverifiable` (a watched assumption,
+  // not falsifiable as written). A gate must refuse what it can prove is bad,
+  // never what it merely has not confirmed is good, so an uncompiled ("pending",
+  // oracle_kind null) metric does NOT block: oracle compilation is a separate,
+  // best-effort step (auto at creation + the manual "Compile oracles" button),
+  // and a not-yet-compiled metric may well be checkable. Blocking on pending
+  // would freeze a freshly created spec before its background compile lands and
+  // would regress every pre-existing spec whose metrics were never compiled.
+  // "empty" (no metric) is a weak signal, not a broken one, so it does not block.
+  const blocksApproval = total > 0 && unfalsifiable === total;
 
   return {
     verdict,
@@ -134,7 +141,15 @@ export function gradeOutcomeContract(contract: SuccessMetricSource): ContractGra
     machineCheckable,
     blocksApproval,
     unverifiableClauses,
-    reason: reasonFor({ verdict, total, verifiable, pending, unfalsifiable, machineCheckable }),
+    reason: reasonFor({
+      verdict,
+      total,
+      verifiable,
+      pending,
+      unfalsifiable,
+      machineCheckable,
+      blocksApproval,
+    }),
   };
 }
 
@@ -145,16 +160,21 @@ function reasonFor(g: {
   pending: number;
   unfalsifiable: number;
   machineCheckable: boolean;
+  blocksApproval: boolean;
 }): string {
   switch (g.verdict) {
     case "empty":
       return "No success metric to check. Add at least one so this decision can be verified on outcome day.";
     case "hazy": {
+      if (g.blocksApproval) {
+        // Every standing metric is a proven watched assumption: nothing to check.
+        return "Every success metric is a watched assumption, not falsifiable as written. Add at least one metric that an eval, CI, or UAT oracle can check before approving.";
+      }
       const bits: string[] = [];
       if (g.pending > 0) bits.push(`${g.pending} not yet compiled to an oracle`);
       if (g.unfalsifiable > 0) bits.push(`${g.unfalsifiable} filed as a watched assumption`);
       const detail = bits.length > 0 ? ` (${bits.join(", ")})` : "";
-      return `No success metric can be verified yet${detail}. Compile the oracles or add a checkable metric before approving.`;
+      return `No success metric has a verifiable oracle yet${detail}. Compile the oracles or add a checkable metric so this can be verified on outcome day.`;
     }
     case "partial":
       return `${g.verifiable} of ${g.total} success metrics are verifiable. The rest are still open, but this can be checked on outcome day.`;

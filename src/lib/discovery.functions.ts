@@ -899,10 +899,14 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
       () => {},
     );
 
-    // RPT-23: automatically compile contract oracles (eval twin) at creation time.
-    // Fire-and-forget: the human reviews the contract while the eval suite and
-    // assumptions are being prepared in the background. Never blocks the response.
-    void compileContractOracles({ data: { id: prd.id } }).catch(() => {});
+    // RPT-23: automatically compile contract oracles (the machine-checkable eval
+    // twin) at creation time. Fire-and-forget: the human reviews the contract
+    // while the eval suite and assumptions are prepared in the background, and a
+    // prep failure never affects this response. Calls the core directly (not the
+    // server-fn wrapper) so it runs with this handler's supabase/userId context.
+    void compileContractOraclesCore(supabase, userId, prd.id, { guardConcurrentEdit: true }).catch(
+      () => {},
+    );
 
     return { prd, clarifying_questions: clarifyingQuestions };
   });
@@ -1020,154 +1024,181 @@ export function deriveOracleClassifications(
 export const compileContractOracles = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { data: prd, error } = await supabase
-      .from("prds")
-      .select("id,title,workspace_id,contract")
-      .eq("id", data.id)
-      .single();
-    if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+  .handler(({ context, data }) =>
+    compileContractOraclesCore(context.supabase, context.userId, data.id),
+  );
 
-    const contract = OutcomeContractSchema.partial().parse(prd.contract ?? {});
-    const metrics = contract.success_metrics ?? [];
-    const uncompiled = metrics.filter((c) => c.status === "standing" && !c.oracle_kind);
-    if (uncompiled.length === 0) {
-      return { contract, eval_cases_created: 0, ci_count: 0, uat_count: 0, assumptions_filed: 0 };
+/**
+ * CNV-02 oracle-compilation core, callable with an explicit (supabase, userId).
+ * Runs both from the server-fn wrapper AND fire-and-forget at spec creation,
+ * where there is no request context to run the auth middleware. Compiling the
+ * machine-checkable eval twin automatically at creation is the RPT-23
+ * "attached at creation" half; the savePrd approve gate is the enforcement half.
+ */
+async function compileContractOraclesCore(
+  supabase: SupabaseClient,
+  userId: string,
+  prdId: string,
+  opts: { guardConcurrentEdit?: boolean } = {},
+) {
+  const { data: prd, error } = await supabase
+    .from("prds")
+    .select("id,title,workspace_id,contract,updated_at")
+    .eq("id", prdId)
+    .single();
+  if (error || !prd) throw new Error(error?.message ?? "Spec not found");
+  const readUpdatedAt = (prd as { updated_at?: string | null }).updated_at ?? null;
+
+  const contract = OutcomeContractSchema.partial().parse(prd.contract ?? {});
+  const metrics = contract.success_metrics ?? [];
+  const uncompiled = metrics.filter((c) => c.status === "standing" && !c.oracle_kind);
+  if (uncompiled.length === 0) {
+    return { contract, eval_cases_created: 0, ci_count: 0, uat_count: 0, assumptions_filed: 0 };
+  }
+
+  const res = await callModel(supabase, userId, {
+    surface: "prd",
+    surface_ref: "oracle_compile",
+    model: "google/gemini-2.5-flash",
+    workspaceId: prd.workspace_id,
+    responseFormat: "json_object",
+    messages: [
+      { role: "system", content: ORACLE_CLASSIFY_SYSTEM },
+      { role: "user", content: uncompiled.map((c, i) => `[${i}] ${c.text}`).join("\n") },
+    ],
+  });
+  const raw = extractArrayField(res.json, "classifications") ?? [];
+  const kindByIndex = deriveOracleClassifications(raw, uncompiled.length);
+  const kindFor = (clauseId: string): OracleKind => {
+    const idx = uncompiled.findIndex((u) => u.id === clauseId);
+    return idx === -1 ? "unverifiable" : (kindByIndex.get(idx) ?? "unverifiable");
+  };
+
+  const evalTargets = uncompiled.filter((c) => kindFor(c.id) === "eval");
+  const oracleRefByClauseId = new Map<string, string>();
+  let evalCasesCreated = 0;
+
+  if (evalTargets.length > 0) {
+    const { data: existingSuite } = await supabase
+      .from("eval_suites")
+      .select("id")
+      .eq("prd_id", prdId)
+      .maybeSingle();
+    let suiteId = (existingSuite?.id as string | undefined) ?? null;
+    if (!suiteId) {
+      const { data: newSuite, error: suiteErr } = await supabase
+        .from("eval_suites")
+        .insert({
+          user_id: userId,
+          name: `Spec acceptance: ${prd.title}`.slice(0, 200),
+          description: "Compiled from this spec's Outcome Contract success metrics (CNV-02).",
+          surface: "prd-acceptance",
+          prompt_key: `prd:${prdId}`,
+          prd_id: prdId,
+        })
+        .select("id")
+        .single();
+      if (suiteErr || !newSuite) {
+        throw new Error(suiteErr?.message ?? "Could not create the eval suite");
+      }
+      suiteId = newSuite.id;
     }
 
-    const res = await callModel(supabase, userId, {
-      surface: "prd",
-      surface_ref: "oracle_compile",
-      model: "google/gemini-2.5-flash",
-      workspaceId: prd.workspace_id,
-      responseFormat: "json_object",
-      messages: [
-        { role: "system", content: ORACLE_CLASSIFY_SYSTEM },
-        { role: "user", content: uncompiled.map((c, i) => `[${i}] ${c.text}`).join("\n") },
-      ],
+    const { data: newCases, error: caseErr } = await supabase
+      .from("eval_cases")
+      .insert(
+        evalTargets.map((c) => ({
+          user_id: userId,
+          suite_id: suiteId,
+          name: c.text.slice(0, 200),
+          input:
+            `Spec: ${prd.title}\n\nDoes the implementation satisfy this acceptance criterion?\n${c.text}`.slice(
+              0,
+              20000,
+            ),
+          rubric: c.text.slice(0, 4000),
+        })),
+      )
+      // A single multi-row INSERT's RETURNING preserves the VALUES order,
+      // so zipping by index against evalTargets is safe here.
+      .select("id");
+    if (caseErr || !newCases) throw new Error(caseErr?.message ?? "Could not create eval cases");
+    evalTargets.forEach((c, i) => {
+      const row = newCases[i];
+      if (row) oracleRefByClauseId.set(c.id, row.id);
     });
-    const raw = extractArrayField(res.json, "classifications") ?? [];
-    const kindByIndex = deriveOracleClassifications(raw, uncompiled.length);
-    const kindFor = (clauseId: string): OracleKind => {
-      const idx = uncompiled.findIndex((u) => u.id === clauseId);
-      return idx === -1 ? "unverifiable" : (kindByIndex.get(idx) ?? "unverifiable");
-    };
+    evalCasesCreated = newCases.length;
+  }
 
-    const evalTargets = uncompiled.filter((c) => kindFor(c.id) === "eval");
-    const oracleRefByClauseId = new Map<string, string>();
-    let evalCasesCreated = 0;
-
-    if (evalTargets.length > 0) {
-      const { data: existingSuite } = await supabase
-        .from("eval_suites")
-        .select("id")
-        .eq("prd_id", data.id)
-        .maybeSingle();
-      let suiteId = (existingSuite?.id as string | undefined) ?? null;
-      if (!suiteId) {
-        const { data: newSuite, error: suiteErr } = await supabase
-          .from("eval_suites")
-          .insert({
-            user_id: userId,
-            name: `Spec acceptance: ${prd.title}`.slice(0, 200),
-            description: "Compiled from this spec's Outcome Contract success metrics (CNV-02).",
-            surface: "prd-acceptance",
-            prompt_key: `prd:${data.id}`,
-            prd_id: data.id,
-          })
-          .select("id")
-          .single();
-        if (suiteErr || !newSuite) {
-          throw new Error(suiteErr?.message ?? "Could not create the eval suite");
-        }
-        suiteId = newSuite.id;
-      }
-
-      const { data: newCases, error: caseErr } = await supabase
-        .from("eval_cases")
-        .insert(
-          evalTargets.map((c) => ({
-            user_id: userId,
-            suite_id: suiteId,
-            name: c.text.slice(0, 200),
-            input:
-              `Spec: ${prd.title}\n\nDoes the implementation satisfy this acceptance criterion?\n${c.text}`.slice(
-                0,
-                20000,
-              ),
-            rubric: c.text.slice(0, 4000),
-          })),
-        )
-        // A single multi-row INSERT's RETURNING preserves the VALUES order,
-        // so zipping by index against evalTargets is safe here.
-        .select("id");
-      if (caseErr || !newCases) throw new Error(caseErr?.message ?? "Could not create eval cases");
-      evalTargets.forEach((c, i) => {
-        const row = newCases[i];
+  const unverifiableTargets = uncompiled.filter((c) => kindFor(c.id) === "unverifiable");
+  let assumptionsFiled = 0;
+  if (unverifiableTargets.length > 0) {
+    const { data: newAssumptions, error: aErr } = await supabase
+      .from("assumptions")
+      .insert(
+        unverifiableTargets.map((c) => ({
+          user_id: userId,
+          workspace_id: prd.workspace_id,
+          prd_id: prdId,
+          statement: c.text.slice(0, 500),
+        })),
+      )
+      .select("id");
+    if (!aErr && newAssumptions) {
+      unverifiableTargets.forEach((c, i) => {
+        const row = newAssumptions[i];
         if (row) oracleRefByClauseId.set(c.id, row.id);
       });
-      evalCasesCreated = newCases.length;
+      assumptionsFiled = newAssumptions.length;
     }
+  }
 
-    const unverifiableTargets = uncompiled.filter((c) => kindFor(c.id) === "unverifiable");
-    let assumptionsFiled = 0;
-    if (unverifiableTargets.length > 0) {
-      const { data: newAssumptions, error: aErr } = await supabase
-        .from("assumptions")
-        .insert(
-          unverifiableTargets.map((c) => ({
-            user_id: userId,
-            workspace_id: prd.workspace_id,
-            prd_id: data.id,
-            statement: c.text.slice(0, 500),
-          })),
-        )
-        .select("id");
-      if (!aErr && newAssumptions) {
-        unverifiableTargets.forEach((c, i) => {
-          const row = newAssumptions[i];
-          if (row) oracleRefByClauseId.set(c.id, row.id);
-        });
-        assumptionsFiled = newAssumptions.length;
-      }
+  let ciCount = 0;
+  let uatCount = 0;
+  const updatedMetrics = metrics.map((c) => {
+    if (c.status !== "standing" || c.oracle_kind) return c;
+    const kind = kindFor(c.id);
+    if (kind === "ci") {
+      ciCount++;
+      return {
+        ...c,
+        oracle_kind: "ci" as const,
+        oracle_ref: "Covered by the standard CI gate (type-check, lint, automated tests).",
+      };
     }
-
-    let ciCount = 0;
-    let uatCount = 0;
-    const updatedMetrics = metrics.map((c) => {
-      if (c.status !== "standing" || c.oracle_kind) return c;
-      const kind = kindFor(c.id);
-      if (kind === "ci") {
-        ciCount++;
-        return {
-          ...c,
-          oracle_kind: "ci" as const,
-          oracle_ref: "Covered by the standard CI gate (type-check, lint, automated tests).",
-        };
-      }
-      if (kind === "uat") {
-        uatCount++;
-        return { ...c, oracle_kind: "uat" as const, oracle_ref: c.text, uat_checked: false };
-      }
-      return { ...c, oracle_kind: kind, oracle_ref: oracleRefByClauseId.get(c.id) ?? null };
-    });
-
-    const updatedContract = { ...contract, success_metrics: updatedMetrics };
-    const { error: upErr } = await supabase
-      .from("prds")
-      .update({ contract: updatedContract, updated_at: new Date().toISOString() })
-      .eq("id", data.id);
-    if (upErr) throw new Error(upErr.message);
-
-    return {
-      contract: updatedContract,
-      eval_cases_created: evalCasesCreated,
-      ci_count: ciCount,
-      uat_count: uatCount,
-      assumptions_filed: assumptionsFiled,
-    };
+    if (kind === "uat") {
+      uatCount++;
+      return { ...c, oracle_kind: "uat" as const, oracle_ref: c.text, uat_checked: false };
+    }
+    return { ...c, oracle_kind: kind, oracle_ref: oracleRefByClauseId.get(c.id) ?? null };
   });
+
+  const updatedContract = { ...contract, success_metrics: updatedMetrics };
+  let updateQuery = supabase
+    .from("prds")
+    .update({ contract: updatedContract, updated_at: new Date().toISOString() })
+    .eq("id", prdId);
+  // Optimistic concurrency for the fire-and-forget creation path: this compile
+  // read the contract seconds ago and did a multi-second AI round-trip, so a
+  // full-column write here could clobber a concurrent user edit (supersede /
+  // save / UAT toggle) made in that window. Guard on the read-time updated_at so
+  // a compile that lost the race no-ops instead of silently overwriting the edit.
+  // The user-initiated "Compile" button (no guard) keeps its unconditional write,
+  // since the user's own click is the latest intent.
+  if (opts.guardConcurrentEdit && readUpdatedAt) {
+    updateQuery = updateQuery.eq("updated_at", readUpdatedAt);
+  }
+  const { error: upErr } = await updateQuery;
+  if (upErr) throw new Error(upErr.message);
+
+  return {
+    contract: updatedContract,
+    eval_cases_created: evalCasesCreated,
+    ci_count: ciCount,
+    uat_count: uatCount,
+    assumptions_filed: assumptionsFiled,
+  };
+}
 
 /** Tick or untick a "uat" clause's manual checklist item. */
 export const toggleUatChecklistItem = createServerFn({ method: "POST" })
