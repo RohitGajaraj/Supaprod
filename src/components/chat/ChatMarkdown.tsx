@@ -1,4 +1,4 @@
-import { Fragment, isValidElement, useMemo, useState, type ReactNode } from "react";
+import { Fragment, isValidElement, memo, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Check, Copy } from "lucide-react";
 
@@ -171,9 +171,9 @@ function citedComponents(valid: ReadonlySet<number>): Components {
  * Pass `citations` (the source ns from meta) to turn inline [n]
  * markers into clickable badges; without it, output is unchanged.
  *
- * Wrapped in React.memo to prevent re-parsing markdown AST during streaming.
+ * Wrapped in memo to prevent re-parsing markdown AST during streaming.
  */
-export const ChatMarkdown = React.memo(function ChatMarkdown({
+export const ChatMarkdown = memo(function ChatMarkdown({
   content,
   citations,
 }: {

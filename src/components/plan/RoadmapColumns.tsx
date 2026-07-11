@@ -130,6 +130,28 @@ export function RoadmapColumns() {
     move.mutate({ id: item.id, bucket });
   };
 
+  // Hooks must run unconditionally before the isLoading/isError early
+  // returns below, or the hook count changes between the loading and
+  // loaded renders and React throws "Rendered more hooks than during the
+  // previous render." (found + fixed 2026-07-11).
+  const items = (roadmap.data?.items ?? []).filter(
+    (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
+  );
+
+  // Memoize bucket grouping so we don't re-filter/sort on every render (e.g., when selectedIds changes).
+  // Maps each column key to its sorted items, computed once per items change.
+  const itemsByBucket = useMemo(() => {
+    const grouped = new Map<RoadmapBucket, RoadmapItem[]>();
+    for (const col of COLUMNS) grouped.set(col.key, []);
+    for (const item of items) {
+      grouped.get(item.bucket)?.push(item);
+    }
+    for (const arr of grouped.values()) {
+      arr.sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
+    }
+    return grouped;
+  }, [items]);
+
   if (roadmap.isLoading) {
     return (
       <div
@@ -198,24 +220,6 @@ export function RoadmapColumns() {
       </div>
     );
   }
-
-  const items = (roadmap.data?.items ?? []).filter(
-    (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
-  );
-
-  // Memoize bucket grouping so we don't re-filter/sort on every render (e.g., when selectedIds changes).
-  // Maps each column key to its sorted items, computed once per items change.
-  const itemsByBucket = useMemo(() => {
-    const grouped = new Map<RoadmapBucket, RoadmapItem[]>();
-    for (const col of COLUMNS) grouped.set(col.key, []);
-    for (const item of items) {
-      grouped.get(item.bucket)?.push(item);
-    }
-    for (const arr of grouped.values()) {
-      arr.sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
-    }
-    return grouped;
-  }, [items]);
 
   if (items.length === 0) {
     return (

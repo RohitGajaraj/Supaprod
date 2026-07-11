@@ -9,9 +9,10 @@ import {
 } from "@/lib/engine-room-glance";
 
 // Tempo v5 §4: fill/radius/shadow come from the material-medium preset
-// (className below) — --card/--radius-card/--shadow-elevated already resolve
-// to the same --ds-background-100/--ds-radius-medium/--ds-shadow-border-medium
-// values, so only the stateful border (color varies per card state) stays here.
+// (className below). Only the stateful border (color varies per card state)
+// stays here. PENDING VISUAL QA (2026-07-11): material-medium's background
+// (--ds-background-100) may not match the legacy --card tone under
+// [data-obsidian] scope - see DESIGN-TEMPO.md pending-issues note.
 const CARD_BASE: React.CSSProperties = {
   border: "1px solid var(--hairline)",
   padding: "18px 20px",

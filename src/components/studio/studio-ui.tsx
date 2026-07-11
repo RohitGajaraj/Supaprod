@@ -4,10 +4,12 @@ import { changesetColor, changesetLabel, statusLabel } from "./studio-format";
 
 /**
  * Tempo v5: the shared raised-card treatment for the Build spine, values
- * matching the `material-medium` preset (contract §4) — the lowest on-page
- * elevation that still reads as a raised card. Kept as a style object (not a
- * className) so every existing `{...LOOM_CARD}` spread across the surface
- * picks up the fix with no call-site changes.
+ * matching the `material-medium` preset (contract SS4). Kept as a style
+ * object (not a className) so every existing `{...LOOM_CARD}` spread across
+ * the surface picks up the fix with no call-site changes.
+ * PENDING VISUAL QA (2026-07-11): background here is material-medium's
+ * --ds-background-100, which may not match the legacy --card tone under
+ * [data-obsidian] scope - see DESIGN-TEMPO.md pending-issues note.
  */
 export const LOOM_CARD: CSSProperties = {
   background: "var(--ds-background-100)",
