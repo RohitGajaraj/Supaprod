@@ -239,7 +239,7 @@ export function MemoryPanel() {
         <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginTop: 12 }}>
           Every learning is tied back to the spec and opportunity that taught it.
         </p>
-        {/* PC-16: the weekly "what Cadence learned" digest — the same real
+        {/* PC-16: the weekly "what Cadence learned" digest - the same real
             feed above, windowed to the trailing 7 days. Honest empty state,
             never a fabricated "nothing new" cheer. */}
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}>

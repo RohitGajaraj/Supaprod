@@ -151,6 +151,6 @@ export function summarizePrecedentCitation(precedents: JudgmentPrecedent[]): str
         ? `${be} mixed`
         : `${be} validated`;
   const mirror = precedents[0].title;
-  const mirrorPart = mirror ? ` — this most closely mirrors "${mirror}"` : "";
-  return `Your last ${n} similar bet${n === 1 ? "" : "s"} ${phrase}${mirrorPart}.`;
+  const mirrorPart = mirror ? ` This most closely mirrors "${mirror}".` : "";
+  return `Your last ${n} similar bet${n === 1 ? "" : "s"} ${phrase}.${mirrorPart}`;
 }

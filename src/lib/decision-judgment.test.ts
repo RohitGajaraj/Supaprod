@@ -189,7 +189,7 @@ describe("summarizePrecedentCitation", () => {
   it("cites a single missed precedent by its title", () => {
     const text = summarizePrecedentCitation([jp({ verdict: "missed" })]);
     expect(text).toBe(
-      'Your last 1 similar bet underperformed — this most closely mirrors "Faster checkout flow".',
+      'Your last 1 similar bet underperformed. This most closely mirrors "Faster checkout flow".',
     );
   });
 
@@ -200,7 +200,7 @@ describe("summarizePrecedentCitation", () => {
       jp({ memoryId: "c", verdict: "validated" }),
     ]);
     expect(text).toBe(
-      'Your last 3 similar bets underperformed — this most closely mirrors "Faster checkout flow".',
+      'Your last 3 similar bets underperformed. This most closely mirrors "Faster checkout flow".',
     );
   });
 
@@ -210,7 +210,7 @@ describe("summarizePrecedentCitation", () => {
       jp({ memoryId: "b", verdict: "validated" }),
     ]);
     expect(text).toBe(
-      'Your last 2 similar bets were validated — this most closely mirrors "Faster checkout flow".',
+      'Your last 2 similar bets were validated. This most closely mirrors "Faster checkout flow".',
     );
   });
 
