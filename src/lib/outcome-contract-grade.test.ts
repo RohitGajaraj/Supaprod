@@ -49,15 +49,27 @@ describe("gradeOutcomeContract (RPT-23) — verifiability at the approve gate", 
     expect(verifiabilityLabel(g)).toBe("Human-verified");
   });
 
-  test("metrics present but all uncompiled (null oracle) is HAZY and BLOCKS approval", () => {
+  test("metrics present but all uncompiled (null oracle) is HAZY but does NOT block (pending != unfalsifiable)", () => {
     const g = gradeOutcomeContract(contract([clause(), clause()]));
     expect(g.verdict).toBe("hazy");
     expect(g.pending).toBe(2);
     expect(g.verifiable).toBe(0);
-    expect(g.blocksApproval).toBe(true);
+    // A gate refuses what it can prove is bad, not what it has not confirmed is
+    // good: not-yet-compiled metrics may still be checkable, so approval is NOT
+    // blocked purely on pending metrics (that would freeze fresh + legacy specs).
+    expect(g.blocksApproval).toBe(false);
     expect(g.unverifiableClauses).toHaveLength(2);
     expect(g.unverifiableClauses.every((c) => c.pending)).toBe(true);
     expect(g.reason).toContain("Compile the oracles");
+  });
+
+  test("mixed pending + unfalsifiable with no verifiable is HAZY but does NOT block (a pending one may compile checkable)", () => {
+    const g = gradeOutcomeContract(contract([clause(), clause({ oracle_kind: "unverifiable" })]));
+    expect(g.verdict).toBe("hazy");
+    expect(g.verifiable).toBe(0);
+    expect(g.pending).toBe(1);
+    expect(g.unfalsifiable).toBe(1);
+    expect(g.blocksApproval).toBe(false);
   });
 
   test("metrics present but all unfalsifiable (watched assumptions) is HAZY and BLOCKS", () => {
@@ -73,7 +85,11 @@ describe("gradeOutcomeContract (RPT-23) — verifiability at the approve gate", 
 
   test("at least one verifiable metric alongside hazy ones is PARTIAL and does NOT block", () => {
     const g = gradeOutcomeContract(
-      contract([clause({ oracle_kind: "eval" }), clause({ oracle_kind: "unverifiable" }), clause()]),
+      contract([
+        clause({ oracle_kind: "eval" }),
+        clause({ oracle_kind: "unverifiable" }),
+        clause(),
+      ]),
     );
     expect(g.verdict).toBe("partial");
     expect(g.verifiable).toBe(1);
