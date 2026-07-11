@@ -35,8 +35,10 @@ export const LOOP_SURFACES = [
   // Build's own "a working change"), it just shares Build's URL now rather
   // than having its own page.
   { id: "missions", label: "Missions", to: "/build", produces: "a shipped outcome" },
-  { id: "brain", label: "Brain", to: "/brain", produces: "a learned precedent" },
-  { id: "trust", label: "Trust", to: "/trust-ledger", produces: "proof you can defend" },
+  { id: "brain", label: "Memory", to: "/brain", produces: "a learned precedent" },
+  // IA SPINE (2026-07-11): the receipts surface folded into the Engine Room's
+  // record room; /trust-ledger is a redirect stub and nothing may link to it.
+  { id: "trust", label: "Trust", to: "/engine-room", produces: "proof you can defend" },
 ] as const;
 
 export type LoopSurface = (typeof LOOP_SURFACES)[number];

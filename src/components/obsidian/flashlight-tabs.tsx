@@ -69,12 +69,33 @@ export function FlashlightTabs({
   const fontSize = size === "sm" ? 12.5 : 13.5;
   const padY = size === "sm" ? 6 : 8;
 
+  // Roving tabindex (ARIA tabs pattern): the active tab is the one tab stop;
+  // Left/Right/Home/End move focus along the row, Enter/Space (native button
+  // activation) selects. Manual activation keeps lazy panels from loading on
+  // every arrow press.
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    const ids = tabs.map((t) => t.id);
+    if (ids.length === 0) return;
+    const focused = ids.findIndex((id) => btnRefs.current.get(id) === document.activeElement);
+    const from = focused >= 0 ? focused : Math.max(ids.indexOf(active), 0);
+    let next = from;
+    if (e.key === "ArrowLeft") next = (from - 1 + ids.length) % ids.length;
+    else if (e.key === "ArrowRight") next = (from + 1) % ids.length;
+    else if (e.key === "Home") next = 0;
+    else next = ids.length - 1;
+    const nextId = ids[next];
+    if (nextId) btnRefs.current.get(nextId)?.focus();
+  };
+
   return (
     <div
       ref={barRef}
       role="tablist"
       aria-label={ariaLabel}
       className="flex flex-wrap"
+      onKeyDown={onKeyDown}
       onMouseLeave={() => setGlow((g) => ({ ...g, on: false }))}
       style={{
         position: "relative",
@@ -144,6 +165,7 @@ export function FlashlightTabs({
             type="button"
             role="tab"
             aria-selected={isActive}
+            tabIndex={isActive ? 0 : -1}
             className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
             onMouseEnter={(e) => {
               const el = e.currentTarget;

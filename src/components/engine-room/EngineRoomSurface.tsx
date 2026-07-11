@@ -155,8 +155,11 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
  * read-only consumer of an existing query (OBS-09 §3 no-feature-work
  * boundary). Nothing here writes. The four doors are always visible (LOOM
  * §0: nothing hidden); an all-healthy day earns one quiet line, never a
- * banner that swallows the grid. */
-export function EngineRoomSurface() {
+ * banner that swallows the grid.
+ *
+ * IA 2026-07-11: renders bare (no container) so the route can seat it in the
+ * content column beside the persistent RoomRail switcher. */
+export function EngineRoomGlance() {
   const navigate = useNavigate({ from: "/engine-room" });
   const { rooms } = useEngineRoomGlance();
   const allHealthy =
@@ -168,8 +171,10 @@ export function EngineRoomSurface() {
   const openRoom = (key: RoomKey) => navigate({ search: { room: key } });
 
   return (
-    <EngineRoomContainer>
-      {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+    <div>
+      {/* Loom §2b glow field: the one ambient wash behind the hero (absolute,
+          anchored + clipped by EngineRoomContainer, which the route still
+          renders as this column's ancestor). */}
       <div aria-hidden="true" className="loom-glow-field" data-tone={glowTone} />
       <h1
         style={{
@@ -233,6 +238,6 @@ export function EngineRoomSurface() {
       </div>
 
       <ConnectionStrip />
-    </EngineRoomContainer>
+    </div>
   );
 }

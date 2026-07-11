@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
 import { Button } from "@/components/obsidian";
+import { SectionSummaryCard } from "./SectionSummaryCard";
 import {
   createGoal,
   listGoals,
@@ -29,7 +30,15 @@ const STATUS_TONE: Record<string, string> = {
   archived: "var(--text-subtle)",
 };
 
-export function GoalsPanel() {
+export function GoalsPanel({
+  collapsed = false,
+  onExpand,
+}: {
+  /** IA SPINE (2026-07-11): when collapsed, the panel renders as one summary
+   * card (count + last activity) that expands on demand. */
+  collapsed?: boolean;
+  onExpand?: () => void;
+}) {
   const qc = useQueryClient();
   const fList = useServerFn(listGoals);
   const fCreate = useServerFn(createGoal);
@@ -83,6 +92,48 @@ export function GoalsPanel() {
   };
 
   const goals = (goalsQ.data ?? []).filter((g) => g.status !== "archived");
+
+  // Collapsed: one summary card (count + last activity), expanding on demand.
+  if (collapsed) {
+    const lastWorked = goals
+      .map((g) => g.last_worked_at)
+      .filter((v): v is string => Boolean(v))
+      .sort()
+      .at(-1);
+    const when = lastWorked
+      ? new Date(lastWorked).toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+    return (
+      <SectionSummaryCard
+        label="Show goals"
+        loading={goalsQ.isLoading}
+        primary={
+          goalsQ.isLoading
+            ? "Loading goals…"
+            : goalsQ.isError
+              ? "Couldn't load goals"
+              : goals.length === 0
+                ? "No standing goals yet"
+                : `${goals.length} goal${goals.length === 1 ? "" : "s"}`
+        }
+        detail={
+          goalsQ.isError
+            ? "Open to retry"
+            : goals.length === 0
+              ? "Open to set one; Cadence starts working it immediately"
+              : when
+                ? `Last worked ${when}`
+                : "Not worked yet"
+        }
+        onExpand={onExpand}
+      />
+    );
+  }
 
   return (
     <div>
@@ -276,7 +327,8 @@ function GoalCard({
           {goal.recent_opportunities.map((o) => (
             <li key={o.id} style={{ fontSize: 12.5 }}>
               <Link
-                to="/decide"
+                to="/discover"
+                search={{ tab: "queue" } as never}
                 className="outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{ color: "var(--link)", textDecoration: "none" }}
               >

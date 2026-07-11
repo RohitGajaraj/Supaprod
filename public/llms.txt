@@ -45,7 +45,7 @@ Cadence is designed for the agentic era. Every page supports structured agent co
 |---|---|
 | `/` | Landing page: product thesis, core capabilities |
 | `/pricing` | Pricing and plans |
-| `/trust` | Trust and privacy statement |
+| `/security` | Security, trust, and privacy statement |
 | `/subprocessors` | Data sub-processor disclosure |
 | `/.well-known/agent.json` | Machine-readable agent manifest |
 | `/agents.txt` | Agent access policy: allowed paths, auth, rate limits, write scopes |

@@ -1,7 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
-import { EngineRoomSurface, EngineRoomContainer } from "@/components/engine-room/EngineRoomSurface";
+import {
+  EngineRoomGlance,
+  EngineRoomContainer,
+  useEngineRoomGlance,
+} from "@/components/engine-room/EngineRoomSurface";
 import { RoomDetail, ROOM_TABS } from "@/components/engine-room/RoomDetail";
+import { RoomRail } from "@/components/engine-room/RoomRail";
 import type { RoomKey } from "@/lib/engine-room-glance";
 
 // LOOM W2 (audit IA insight #1: ONE Engine Room): the door and its four
@@ -69,21 +74,47 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
 function EngineRoomPage() {
   const { room, view, suite, agent, surface } = Route.useSearch();
   const navigate = useNavigate({ from: "/engine-room" });
+  const { rooms } = useEngineRoomGlance();
 
-  if (!room) return <EngineRoomSurface />;
+  // Normalize the view once so the rail and the detail agree on the active
+  // sub-tab (an unknown ?view= falls back to the room's front tab).
+  const tabs = room ? ROOM_TABS[room] : null;
+  const activeView =
+    room && tabs ? (tabs.some((t) => t.id === view) ? view! : tabs[0]!.id) : undefined;
 
   return (
     <EngineRoomContainer>
-      <RoomDetail
-        room={room}
-        view={view ?? ROOM_TABS[room][0]!.id}
-        drill={{ suite, agent, surface }}
-        // Switching a sub-tab clears any open drill (the /govern tab
-        // contract, inherited): a fresh search object drops suite/agent/
-        // surface.
-        onSetView={(next) => navigate({ search: { room, view: next } })}
-        onBack={() => navigate({ search: {} })}
-      />
+      {/* IA 2026-07-11: the persistent room switcher. The rail (rooms + view
+          sub-tabs, Vercel project-settings pattern) stays visible from the
+          glance and from any room depth; the content column swaps. */}
+      <div
+        className="md:grid"
+        style={{ gridTemplateColumns: "196px minmax(0, 1fr)", gap: 32, alignItems: "start" }}
+      >
+        <RoomRail
+          room={room}
+          view={activeView}
+          rooms={rooms}
+          onOverview={() => navigate({ search: {} })}
+          onSelect={(nextRoom, nextView) =>
+            navigate({ search: { room: nextRoom, view: nextView } })
+          }
+        />
+        {!room ? (
+          <EngineRoomGlance />
+        ) : (
+          <RoomDetail
+            room={room}
+            view={activeView!}
+            drill={{ suite, agent, surface }}
+            // Switching a sub-tab clears any open drill (the /govern tab
+            // contract, inherited): a fresh search object drops suite/agent/
+            // surface.
+            onSetView={(next) => navigate({ search: { room, view: next } })}
+            onBack={() => navigate({ search: {} })}
+          />
+        )}
+      </div>
     </EngineRoomContainer>
   );
 }

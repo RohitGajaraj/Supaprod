@@ -1,10 +1,14 @@
 // PC-03 footer requirement: a security posture stub. Honest about beta
 // stage: no false certification claims, real architecture facts only.
+// 2026-07-11: /trust merged in here (homeless-route homing). Its access,
+// data-isolation, and privacy-controls content now lives on this page and
+// /trust permanently redirects here.
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/cadence/LegalPageShell";
 
 const TITLE = "Security · Cadence";
-const DESC = "How Cadence isolates workspaces, scopes connectors, and gates every AI action.";
+const DESC =
+  "How Cadence handles access, data, and privacy: workspace isolation, connector scopes, and the human gate on every AI action.";
 
 export const Route = createFileRoute("/security")({
   ssr: true,
@@ -28,11 +32,30 @@ function SecurityPage() {
         do not hold yet. This page states what is actually true about how Cadence is built.
       </p>
 
+      <LegalSection title="Access and authentication">
+        <p>
+          Sign-in is handled through our managed authentication provider. Sessions are bound to
+          your account, and every request to backend data is authorized server-side. Workspace
+          membership controls who can read or change data, and roles (owner, admin, member, viewer)
+          gate sensitive actions such as inviting members or transferring ownership.
+        </p>
+      </LegalSection>
+
       <LegalSection title="Workspace isolation">
         <p>
           Every workspace's data lives in its own row-level-security-scoped rows in a shared
           Postgres database (Supabase). One workspace's rows are not queryable from another's
-          session, enforced at the database layer, not just the application layer.
+          session, enforced at the database layer, not just the application layer. Billing
+          identifiers and invitation tokens are restricted to server-side roles and are never
+          exposed to other members.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Secrets and encryption">
+        <p>
+          Connection credentials and API keys you bring into Cadence are encrypted before being
+          stored. Decryption happens only inside server-side code paths. Data in transit uses TLS
+          provided by the hosting platform.
         </p>
       </LegalSection>
 
@@ -60,6 +83,27 @@ function SecurityPage() {
             privacy policy
           </a>{" "}
           for the full statement.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Who processes your data">
+        <p>
+          Cadence relies on infrastructure and AI providers to deliver the product, and on
+          third-party services that you explicitly connect (for example a code repository or
+          calendar). The full, live list of sub-processors and what each one receives is public at{" "}
+          <a href="/subprocessors" style={{ color: "#ff9542" }}>
+            the sub-processor disclosure
+          </a>
+          . Connections you create are scoped to your workspace, and you can disconnect them at
+          any time from Settings.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Retention and deletion">
+        <p>
+          You can delete data you have created (workspaces, products, documents, signals) from
+          inside the app, and export your data in open formats from Settings. Account deletion or
+          data export requests can also be made through the contact address on your account.
         </p>
       </LegalSection>
 

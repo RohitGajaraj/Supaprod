@@ -207,7 +207,8 @@ export function ReceiptDetailSheet({
     if (e.kind === "prd") return () => navigate({ to: "/plan/spec/$id", params: { id: e.id } });
     if (e.kind === "mission")
       return () => navigate({ to: "/build/$missionId", params: { missionId: e.id } });
-    if (e.kind === "opportunity") return () => navigate({ to: "/decide" });
+    if (e.kind === "opportunity")
+      return () => navigate({ to: "/discover", search: { tab: "queue" } as never });
     return null;
   };
 

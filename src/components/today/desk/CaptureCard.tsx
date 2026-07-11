@@ -10,6 +10,7 @@ import { Button } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { createSignal } from "@/lib/discovery.functions";
+import { SIGNAL_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -25,6 +26,14 @@ export function CaptureCard() {
   const fCreate = useServerFn(createSignal);
 
   const [content, setContent] = React.useState("");
+
+  // IA SPINE (2026-07-11): the palette's "Capture a signal" verb opens this
+  // composer in place — focus the always-visible input.
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const focusComposer = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+  useDeskComposeIntent(SIGNAL_COMPOSE_EVENT, focusComposer);
 
   const capture = useMutation({
     mutationFn: () =>
@@ -59,6 +68,7 @@ export function CaptureCard() {
         }}
       >
         <input
+          ref={inputRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={(e) => {

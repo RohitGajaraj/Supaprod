@@ -1,6 +1,7 @@
 import * as React from "react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { Button, VerdictChip, FlashlightTabs } from "@/components/obsidian";
+import { VerdictChip, FlashlightTabs } from "@/components/obsidian";
 import {
   ROOM_QUESTIONS,
   ROOM_TAB_META,
@@ -32,7 +33,7 @@ export function Row({ subject, value, statusWord, statusColor, onOpen }: RowProp
       disabled={!onOpen}
       className={cn(
         "flex w-full items-center gap-3 text-left outline-none",
-        onOpen && "hover:[background-color:#141416] cursor-pointer active:scale-[0.995]",
+        onOpen && "hover:[background-color:var(--raised)] cursor-pointer active:scale-[0.995]",
         !onOpen && "cursor-default",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
       )}
@@ -223,11 +224,10 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
 
   return (
     <div>
-      <Button variant="quiet" onClick={onBack} style={{ marginBottom: "16px" }}>
-        ← ALL ROOMS
-      </Button>
-
-      <div className="flex items-start justify-between" style={{ marginBottom: "20px" }}>
+      <div
+        className="flex items-start justify-between"
+        style={{ gap: "16px", marginBottom: "20px" }}
+      >
         <div>
           <h2
             style={{
@@ -287,17 +287,38 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
             </p>
           ) : null}
         </div>
-        {status?.glance ? (
-          <VerdictChip tone={status.glance.state === "watch" ? "WATCH" : "VALIDATED"}>
-            {status.glance.state === "watch" ? "WATCH" : "HEALTHY"}
-          </VerdictChip>
-        ) : null}
+        <div className="flex shrink-0 items-center" style={{ gap: "12px" }}>
+          {/* The Record room's outward door: the public scorecard at /proof.
+              Glacier, the link role (2026-07-11 ruling); not a second CTA. */}
+          {room === "record" ? (
+            <Link
+              to="/proof"
+              className={cn(
+                "uppercase outline-none hover:underline",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
+              )}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-floor)",
+                letterSpacing: "0.1em",
+                color: "var(--glacier)",
+              }}
+            >
+              Public scorecard
+            </Link>
+          ) : null}
+          {status?.glance ? (
+            <VerdictChip tone={status.glance.state === "watch" ? "WATCH" : "VALIDATED"}>
+              {status.glance.state === "watch" ? "WATCH" : "HEALTHY"}
+            </VerdictChip>
+          ) : null}
+        </div>
       </div>
 
-      {/* Standard tab bar (FlashlightTabs), the same sliding-highlight pattern
-          as Brain and every other surface: consistency across the design
-          principle (founder ruling 2026-07-07), not a bespoke underline. */}
-      <div style={{ marginBottom: "14px" }}>
+      {/* IA 2026-07-11: view switching moved into the persistent RoomRail on
+          desktop; this standard tab bar (FlashlightTabs) stays as the mobile
+          sub-tab switcher, where the rail collapses to a room strip. */}
+      <div className="md:hidden" style={{ marginBottom: "14px" }}>
         <FlashlightTabs
           tabs={tabs.map((t) => ({ id: t.id, label: t.label }))}
           active={activeView}

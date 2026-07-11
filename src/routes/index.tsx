@@ -3672,6 +3672,7 @@ function LandingPage() {
                 { href: "/security", label: "Security" },
                 { href: "/ard", label: "ARD" },
                 { href: "/updates", label: "Changelog" },
+                { href: "/proof", label: "Proof" },
                 { href: "/privacy", label: "Privacy" },
                 { href: "/terms", label: "Terms" },
               ].map((l) => (

@@ -225,7 +225,7 @@ export function ChangelogPanel() {
       <div style={{ marginTop: 24 }}>
         <Link
           to="/brain"
-          search={{ tab: "insights" }}
+          search={{ tab: "decisions" }}
           style={{
             fontSize: 12.5,
             color: "var(--text-subtle)",

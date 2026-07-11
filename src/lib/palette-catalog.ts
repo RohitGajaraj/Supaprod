@@ -46,7 +46,7 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     id: "answer-call",
-    pitch: "Answer the current Call",
+    pitch: "Answer the waiting call",
     kind: "CALL",
     run: { to: "/today" },
   },
@@ -87,7 +87,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "trust-ledger",
     pitch: "Verify the Trust Ledger integrity fingerprint",
-    run: { to: "/trust-ledger" },
+    run: { to: "/engine-room", search: { room: "record" } },
   },
   {
     id: "open-calendar",
@@ -103,7 +103,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "prompt-studio",
     pitch: "Tune the prompts behind the agents",
-    run: { to: "/govern", search: { tab: "prompts" } },
+    run: { to: "/engine-room", search: { room: "quality", view: "prompts" } },
   },
   {
     id: "open-settings",

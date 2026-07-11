@@ -82,6 +82,18 @@ export function SubprocessorsCard() {
           ))}
         </ul>
       )}
+
+      <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--hairline)" }}>
+        <a
+          href="/subprocessors"
+          target="_blank"
+          rel="noreferrer"
+          className="text-label-13 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{ color: "var(--link)", textDecoration: "none" }}
+        >
+          View the public disclosure →
+        </a>
+      </div>
     </div>
   );
 }

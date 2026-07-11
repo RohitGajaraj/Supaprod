@@ -18,12 +18,12 @@ export const Route = createFileRoute("/_authenticated/plan/")({
     };
   },
   component: PlanPage,
-  head: () => ({ meta: [{ title: "Define · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Plan · Cadence" }] }),
   errorComponent: ({ error, reset }) => {
     // Route-level crashes previously threw away the real error - log it so
     // any future occurrence is diagnosable from the console instead of a
-    // silent "COULDN'T LOAD DEFINE" with no trace.
-    console.error("[Define] route crashed:", error);
+    // silent "COULDN'T LOAD PLAN" with no trace.
+    console.error("[Plan] route crashed:", error);
     return (
       <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
         <div
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
           }}
         >
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-            COULDN'T LOAD DEFINE
+            COULDN'T LOAD PLAN
           </div>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
             {(error as Error)?.message ?? "Unknown error"}
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/plan/")({
               cursor: "pointer",
             }}
           >
-            Retry · reloads Define
+            Retry · reloads Plan
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@ function PlanPage() {
   const { view } = Route.useSearch();
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Define"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Plan"]} />
       <PlanSurface view={view} />
       {/* RPT-46: the daily upstream intelligence brief with receipts, mounted as
           a Plan section below the fold. Gate-resilient: honest empty state while

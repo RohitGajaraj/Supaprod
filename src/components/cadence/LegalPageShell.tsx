@@ -36,7 +36,7 @@ export function LegalPageShell({
         color: C.text,
         display: "flex",
         flexDirection: "column",
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif',
+        fontFamily: 'var(--font-sans, "Geist", ui-sans-serif, system-ui, sans-serif)',
       }}
     >
       <header
@@ -133,6 +133,7 @@ export function LegalPageShell({
             { href: "/security", label: "Security" },
             { href: "/ard", label: "ARD" },
             { href: "/updates", label: "Changelog" },
+            { href: "/proof", label: "Proof" },
             { href: "/privacy", label: "Privacy" },
             { href: "/terms", label: "Terms" },
           ].map((l) => (

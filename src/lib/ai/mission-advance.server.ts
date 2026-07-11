@@ -358,10 +358,7 @@ export async function dispatchReadySteps(
     .eq("enabled", true)
     .in("slug", uniqueSlugs);
   const agentBySlug = new Map(
-    (agentRows ?? []).map((a: { id: string; slug: string; name: string }) => [
-      a.slug,
-      a,
-    ]),
+    (agentRows ?? []).map((a: { id: string; slug: string; name: string }) => [a.slug, a]),
   );
 
   for (const step of readyRows) {
@@ -384,9 +381,7 @@ export async function dispatchReadySteps(
     try {
       const to = agentBySlug.get(step.agent_slug);
       if (!to) {
-        throw new Error(
-          `Target agent '${step.agent_slug}' is disabled or not in the roster.`,
-        );
+        throw new Error(`Target agent '${step.agent_slug}' is disabled or not in the roster.`);
       }
 
       // Thread memory relevant to THIS hop into the handoff + mark it used.

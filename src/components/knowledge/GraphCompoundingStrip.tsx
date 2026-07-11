@@ -134,7 +134,7 @@ export function GraphCompoundingStrip({
         marginBottom: 12,
       }}
     >
-      <MonoLabel style={{ marginBottom: 8, display: "block" }}>your brain, compounding</MonoLabel>
+      <MonoLabel style={{ marginBottom: 8, display: "block" }}>your memory, compounding</MonoLabel>
       <div className="flex flex-wrap items-start" style={{ gap: 22 }}>
         <Stat label="memory depth" value={depthValue} sub={depthSub} />
         <Stat label="lift" value={liftValue} sub={liftSub} />

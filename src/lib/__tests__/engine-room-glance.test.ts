@@ -170,11 +170,12 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
 
   it("keeps the exact ?view= ids the room bodies switch on", () => {
     expect(ROOM_TAB_META.spend.map((t) => t.id)).toEqual([
+      // The activation funnel moved to admin observability (IA 2026-07-11):
+      // Spend answers only the cost question.
       "trend",
       "by-agent",
       "caps",
       "usage",
-      "funnel",
     ]);
     expect(ROOM_TAB_META.quality.map((t) => t.id)).toEqual([
       "score",
@@ -193,11 +194,12 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
       "incidents",
     ]);
     expect(ROOM_TAB_META.record.map((t) => t.id)).toEqual([
-      // RPT-31: the verification cockpit opens the Record room.
+      // RPT-31: the verification cockpit opens the Record room; receipts is
+      // the merged Trust Ledger home (IA 2026-07-11, tamper seal lives there).
       "verify",
+      "receipts",
       "traces",
       "approvals",
-      "ledger",
       "support",
     ]);
   });
@@ -205,7 +207,7 @@ describe("Engine Room naming model (plain outcome on top, technical trace beneat
   it("resolves the plain outcome label and falls back to the id when unknown", () => {
     expect(tabLabel("quality", "score")).toBe("Right now");
     expect(tabLabel("quality", "drift")).toBe("Is it slipping?");
-    expect(tabLabel("record", "ledger")).toBe("Tamper check");
+    expect(tabLabel("record", "receipts")).toBe("Paper trail");
     expect(tabLabel("spend", "nonexistent")).toBe("nonexistent");
   });
 });

@@ -385,9 +385,13 @@ function SpecEditorPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // IA SPINE (2026-07-11): the crumbs ARE the way back (Plan is a link); the
+  // bespoke "Back to Define" link is gone.
   const chrome = (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Define", "Spec"]} />
+      <TopBar
+        crumbs={[activeWorkspace?.name ?? "Workspace", { label: "Plan", to: "/plan" }, "Spec"]}
+      />
       <LoopThread />
     </>
   );
@@ -470,7 +474,7 @@ function SpecEditorPage() {
         <div style={container}>
           <div style={{ ...CARD, padding: 32, maxWidth: 560, textAlign: "center" }}>
             <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-              This spec doesn't exist or was deleted. Every live spec is listed on Define.
+              This spec doesn't exist or was deleted. Every live spec is listed on Plan.
             </p>
             <Link
               to="/plan"
@@ -482,7 +486,7 @@ function SpecEditorPage() {
                 color: "var(--glacier)",
               }}
             >
-              Back to Define
+              Go to Plan
             </Link>
           </div>
         </div>
@@ -497,21 +501,6 @@ function SpecEditorPage() {
     <>
       {chrome}
       <div style={{ ...container, animation: "cadRise 260ms var(--ease) both" }}>
-        <Link
-          to="/plan"
-          className="loom-press hover:[color:var(--glacier)]"
-          style={{
-            ...MONO_CAPS,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            color: "var(--text-subtle)",
-            marginBottom: 20,
-          }}
-        >
-          ← Define
-        </Link>
-
         {/* Document metadata row: mono-caps + middots */}
         <div
           style={{
@@ -610,8 +599,10 @@ function SpecEditorPage() {
         {/* Sticky action bar: mode tabs + Save (the ONE primary CTA) + the rest as quiet controls */}
         <div
           style={{
+            // Sticks just below the 52px sticky TopBar (z 30), so the Save
+            // bar never slides under the app chrome.
             position: "sticky",
-            top: 8,
+            top: 60,
             zIndex: 20,
             marginBottom: 28,
             display: "flex",

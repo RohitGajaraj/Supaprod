@@ -6,6 +6,7 @@ import * as React from "react";
 import { Button } from "@/components/obsidian";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { StatusUpdateDialog } from "@/components/today/StatusUpdateDialog";
+import { STATUS_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -17,6 +18,11 @@ const mono: React.CSSProperties = {
 export function StatusRow() {
   const { activeWorkspace } = useWorkspace();
   const [open, setOpen] = React.useState(false);
+
+  // IA SPINE (2026-07-11): the palette's "Share status" verb opens the
+  // dialog in place instead of merely landing on Today.
+  const openComposer = React.useCallback(() => setOpen(true), []);
+  useDeskComposeIntent(STATUS_COMPOSE_EVENT, openComposer);
 
   return (
     <div

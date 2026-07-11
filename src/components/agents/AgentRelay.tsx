@@ -89,7 +89,7 @@ function FullRelay({ missionId }: { missionId: string }) {
                 fontSize: 10.5,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "var(--ink-faint)",
+                color: "var(--text-faint)",
                 marginBottom: 8,
               }}
             >
@@ -108,7 +108,7 @@ function FullRelay({ missionId }: { missionId: string }) {
                         style={{
                           fontSize: 13,
                           fontWeight: 540,
-                          color: s.status === "running" ? undefined : "var(--ink)",
+                          color: s.status === "running" ? undefined : "var(--text-primary)",
                         }}
                       >
                         {s.name}
@@ -121,7 +121,7 @@ function FullRelay({ missionId }: { missionId: string }) {
                             alignItems: "center",
                             gap: 4,
                             fontSize: 11.5,
-                            color: "var(--ink-faint)",
+                            color: "var(--text-faint)",
                           }}
                         >
                           <ArrowRight size={11} strokeWidth={1.75} />
@@ -132,7 +132,7 @@ function FullRelay({ missionId }: { missionId: string }) {
                     <div
                       style={{
                         fontSize: 12.5,
-                        color: s.isGate ? "var(--ember)" : "var(--ink-subtle)",
+                        color: s.isGate ? "var(--ember)" : "var(--text-subtle)",
                         marginTop: 2,
                         lineHeight: 1.45,
                         overflow: "hidden",
@@ -173,7 +173,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
           alignItems: "center",
           gap: 8,
           fontSize: 13,
-          color: "var(--ink-subtle)",
+          color: "var(--text-subtle)",
         }}
       >
         <span className="dot dot-planned" />
@@ -192,7 +192,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       <span
         style={{
           fontSize: 13,
-          color: "var(--ink)",
+          color: "var(--text-primary)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -209,7 +209,8 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
       <Link
         to="/build/$missionId"
         params={{ missionId: r.missionId }}
-        style={{ textDecoration: "none", display: "block" }}
+        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{ textDecoration: "none", display: "block", borderRadius: "var(--radius-control)" }}
       >
         {body}
       </Link>
@@ -260,7 +261,7 @@ function StationRelayLine({
         <span className={run.isGate ? undefined : "agent-live"} style={{ fontWeight: 540 }}>
           {run.name}
         </span>
-        <span style={{ color: run.isGate ? "var(--ember)" : "var(--ink-subtle)" }}>
+        <span style={{ color: run.isGate ? "var(--ember)" : "var(--text-subtle)" }}>
           {" "}
           · {run.isGate ? "needs your sign-off" : `${run.verb}...`}
         </span>
@@ -274,7 +275,8 @@ function StationRelayLine({
       <Link
         to="/build/$missionId"
         params={{ missionId: run.missionId }}
-        style={{ textDecoration: "none", display: "block" }}
+        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{ textDecoration: "none", display: "block", borderRadius: "var(--radius-control)" }}
       >
         {body}
       </Link>

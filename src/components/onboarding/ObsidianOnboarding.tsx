@@ -35,7 +35,8 @@ import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboar
 import { runCriticReview, runWedgeTeardown, listOpportunities } from "@/lib/discovery.functions";
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
-import { ArrivalButterfly } from "@/components/onboarding/ArrivalButterfly";
+import { ArrivalMark } from "@/components/onboarding/ArrivalButterfly";
+import { AiPulse } from "@/components/obsidian/AiPulse";
 import { track } from "@/lib/observability/analytics";
 import { trackFunnelMilestone } from "@/lib/activation-funnel.server";
 
@@ -69,9 +70,31 @@ export function timeEstimateFor(id: ProviderId): string {
   return TIME_ESTIMATE[id] ?? "about 2 minutes";
 }
 
-// The name pre-gate is handled by needsDetails/detailsDone below, not this
-// state machine - it is explicitly not one of the five counted screens.
+// PC-02 step arithmetic (2026-07-11): the name pre-gate folded INTO the
+// product screen, so the counted path is exactly STEP 1 OF 3 (product) ->
+// STEP 2 OF 3 (data) -> STEP 3 OF 3 (critic), then results.
 type Phase = "arrival" | "product" | "data" | "critic" | "results";
+
+// The honest Critic-run stages the AiPulse cycles through while the run is
+// live. Plain words, no theater beyond what the run actually does.
+const CRITIC_STAGES = ["Reading your belief", "Hunting counter-evidence", "Scoring confidence"];
+
+// Tempo v5 input chrome: 36px medium control, 6px everyday radius, gray-400
+// border, token-traced text. Focus ring comes from the global
+// [data-obsidian] :focus-visible rule; never removed here.
+const INPUT_STYLE: React.CSSProperties = {
+  width: "100%",
+  minWidth: 0,
+  height: "var(--ds-size-medium)",
+  background: "var(--ds-background-100)",
+  border: "1px solid var(--ds-gray-400)",
+  borderRadius: "var(--ds-radius-small)",
+  padding: "0 12px",
+  color: "var(--ds-gray-1000)",
+  fontSize: 13,
+  fontFamily: "var(--font-sans)",
+  boxSizing: "border-box",
+};
 
 function Frame({
   eyebrow,
@@ -89,33 +112,20 @@ function Frame({
       style={{
         width: 600,
         maxWidth: "calc(100vw - 48px)",
-        animation: "cadRise 260ms var(--ease) both",
+        animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
           {eyebrow ? <MonoLabel style={{ marginBottom: 10 }}>{eyebrow}</MonoLabel> : null}
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 430,
-              fontSize: 28,
-              lineHeight: 1.2,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
+          <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
             {heading}
           </h1>
         </div>
         {showTimer ? (
           <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 11,
-              color: "var(--text-muted)",
-              textAlign: "right",
-            }}
+            className="text-label-12-mono"
+            style={{ color: "var(--ds-gray-900)", textAlign: "right" }}
           >
             {showTimer}
           </div>
@@ -126,83 +136,223 @@ function Frame({
   );
 }
 
-function ProductNamePreGate({ onDone }: { onDone: (name: string, oneLiner: string) => void }) {
+// A full-width clickable card row (the data step's source/paste/demo
+// choices). Tempo chrome: gray 100/200/300 for default/hover/active, 6px
+// radius, alpha borders; the global focus-visible ring applies. Hover and
+// pressed ride React state because the rows are styled inline.
+function ChoiceCard({
+  onClick,
+  disabled,
+  busy,
+  dimmed,
+  children,
+  ariaLabel,
+  title,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  /** A connect/seed request is in flight for this row. */
+  busy?: boolean;
+  /** Unconfigured providers stay visible but visually recede. */
+  dimmed?: boolean;
+  children: React.ReactNode;
+  ariaLabel?: string;
+  /** Plain-words explanation for a disabled row (contract: disabled pairs
+   * with an explanation). */
+  title?: string;
+}) {
+  const [hover, setHover] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const interactive = !disabled && !busy;
+  const background =
+    interactive && pressed
+      ? "var(--ds-gray-300)"
+      : interactive && hover
+        ? "var(--ds-gray-200)"
+        : "var(--ds-gray-100)";
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-busy={busy || undefined}
+      aria-label={ariaLabel}
+      title={title}
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => {
+        setHover(false);
+        setPressed(false);
+      }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      style={{
+        textAlign: "left",
+        width: "100%",
+        padding: "13px 14px",
+        borderRadius: "var(--ds-radius-small)",
+        background,
+        border: `1px solid ${hover && interactive ? "var(--ds-gray-alpha-500)" : "var(--ds-gray-alpha-400)"}`,
+        opacity: dimmed ? 0.45 : 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        cursor: interactive ? "pointer" : "default",
+        transition:
+          "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// The Critic's confidence, animating in from zero when the verdict lands.
+// Glacier fill: confidence is the machine's own number. The global
+// prefers-reduced-motion override collapses the transition.
+function ConfidenceBar({ value }: { value: number }) {
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setWidth(Math.max(0, Math.min(1, value))));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return (
+    <div
+      role="meter"
+      aria-label="Critic confidence"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(Math.max(0, Math.min(1, value)) * 100)}
+      style={{
+        height: 4,
+        borderRadius: 2,
+        background: "var(--ds-gray-alpha-400)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          height: "100%",
+          width: `${width * 100}%`,
+          background: "var(--ds-blue-600)",
+          transition: "width 0.6s var(--ds-motion-timing-swift)",
+        }}
+      />
+    </div>
+  );
+}
+
+// STEP 1 OF 3 - the product screen, with the old name pre-gate folded in.
+// When the profile has no display name yet, the same screen asks for it
+// first; one submit saves both, so the counted path stays three steps.
+function ProductStep({
+  needsName,
+  onDone,
+}: {
+  needsName: boolean;
+  onDone: (name: string, oneLiner: string) => void;
+}) {
+  const fUpdate = useServerFn(updateProfile);
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
   const [productName, setProductName] = useState("");
   const [oneLiner, setOneLiner] = useState("");
   const [saving, setSaving] = useState(false);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const firstName = first.trim();
+    if (needsName && !firstName) {
+      toast.error("Add at least your first name");
+      return;
+    }
     const name = productName.trim();
     if (!name) {
       toast.error("Give your product a name");
       return;
     }
     setSaving(true);
-    // PC-33: the one-liner is captured here but written to the Brief only
-    // once a workspace is guaranteed to exist (ensureDefaultWorkspace's own
-    // doc comment: a brand-new user reaches this exact screen before their
-    // workspace_members row is reliable, so current_user_default_workspace()
-    // can return null here). The write fires from the parent's
-    // mSeedWorkspace.onSuccess instead, after seeding has resolved a real
-    // workspace, not from this component.
-    onDone(name, oneLiner.trim());
+    try {
+      if (needsName) {
+        const fullName = [firstName, last.trim()].filter(Boolean).join(" ");
+        await fUpdate({ data: { full_name: fullName, display_name: firstName } });
+        await supabase.auth.updateUser({
+          data: { display_name: firstName, full_name: fullName },
+        });
+      }
+      // PC-33: the one-liner is captured here but written to the Brief only
+      // once a workspace is guaranteed to exist (ensureDefaultWorkspace's own
+      // doc comment: a brand-new user reaches this exact screen before their
+      // workspace_members row is reliable, so current_user_default_workspace()
+      // can return null here). The write fires from the parent's
+      // mSeedWorkspace.onSuccess instead, after seeding has resolved a real
+      // workspace, not from this component.
+      onDone(name, oneLiner.trim());
+    } catch (err) {
+      setSaving(false);
+      toast.error(err instanceof Error ? err.message : "Could not save your details");
+    }
   }
+
+  const helpStyle: React.CSSProperties = {
+    fontSize: 13,
+    color: "var(--ds-gray-900)",
+    marginTop: 20,
+    marginBottom: 0,
+    lineHeight: 1.55,
+  };
 
   return (
     <Screen>
       <form onSubmit={save} style={{ width: 420, maxWidth: "calc(100vw - 48px)" }}>
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: 26,
-            color: "var(--text-primary)",
-            margin: 0,
-          }}
-        >
+        <MonoLabel style={{ marginBottom: 10 }}>STEP 1 OF 3</MonoLabel>
+        <h1 className="text-heading-24" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
           What are you building?
-        </p>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10, lineHeight: 1.55 }}>
+        </h1>
+        <p style={{ ...helpStyle, marginTop: 10 }}>
           A product name, feature, or bet. Cadence will challenge your thinking and show its work.
         </p>
+        {needsName ? (
+          <>
+            <p style={helpStyle}>First, your name, so Cadence signs every decision with you.</p>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <input
+                autoFocus
+                required
+                aria-label="First name"
+                placeholder="First name"
+                value={first}
+                onChange={(e) => setFirst(e.target.value)}
+                style={{ ...INPUT_STYLE, flex: 1, width: "auto" }}
+              />
+              <input
+                aria-label="Last name"
+                placeholder="Last name"
+                value={last}
+                onChange={(e) => setLast(e.target.value)}
+                style={{ ...INPUT_STYLE, flex: 1, width: "auto" }}
+              />
+            </div>
+          </>
+        ) : null}
         <input
-          autoFocus
+          autoFocus={!needsName}
           required
+          aria-label="Product name"
           placeholder="e.g. Mobile capture, better notifications"
           value={productName}
           onChange={(e) => setProductName(e.target.value)}
-          style={{
-            width: "100%",
-            minWidth: 0,
-            background: "var(--raised)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            padding: "11px 14px",
-            color: "var(--text-primary)",
-            fontSize: 13,
-            marginTop: 20,
-            boxSizing: "border-box",
-          }}
+          style={{ ...INPUT_STYLE, marginTop: 20 }}
         />
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 20, lineHeight: 1.55 }}>
-          In one sentence, what does it do?
-        </p>
+        <p style={helpStyle}>In one sentence, what does it do?</p>
         <input
+          aria-label="One sentence description"
           placeholder="e.g. Turns customer conversations into a prioritized roadmap"
           value={oneLiner}
           onChange={(e) => setOneLiner(e.target.value)}
-          style={{
-            width: "100%",
-            minWidth: 0,
-            background: "var(--raised)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            padding: "11px 14px",
-            color: "var(--text-primary)",
-            fontSize: 13,
-            marginTop: 8,
-            boxSizing: "border-box",
-          }}
+          style={{ ...INPUT_STYLE, marginTop: 8 }}
         />
         <div style={{ marginTop: 16 }}>
           <Button type="submit" variant="primary" disabled={saving}>
@@ -232,91 +382,6 @@ function Screen({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NamePreGate({ onDone }: { onDone: () => void }) {
-  const fUpdate = useServerFn(updateProfile);
-  const [first, setFirst] = useState("");
-  const [last, setLast] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    const firstName = first.trim();
-    if (!firstName) {
-      toast.error("Add at least your first name");
-      return;
-    }
-    const fullName = [firstName, last.trim()].filter(Boolean).join(" ");
-    setSaving(true);
-    try {
-      await fUpdate({ data: { full_name: fullName, display_name: firstName } });
-      await supabase.auth.updateUser({ data: { display_name: firstName, full_name: fullName } });
-      onDone();
-    } catch (err) {
-      setSaving(false);
-      toast.error(err instanceof Error ? err.message : "Could not save your details");
-    }
-  }
-
-  return (
-    <Screen>
-      <form onSubmit={save} style={{ width: 420, maxWidth: "calc(100vw - 48px)" }}>
-        <p
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: 26,
-            color: "var(--text-primary)",
-            margin: 0,
-          }}
-        >
-          First, your name.
-        </p>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 10, lineHeight: 1.55 }}>
-          So Cadence greets you by name and signs every decision it makes with you.
-        </p>
-        <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
-          <input
-            autoFocus
-            required
-            placeholder="first name"
-            value={first}
-            onChange={(e) => setFirst(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              background: "var(--raised)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              padding: "9px 12px",
-              color: "var(--text-primary)",
-              fontSize: 13,
-            }}
-          />
-          <input
-            placeholder="last name"
-            value={last}
-            onChange={(e) => setLast(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              background: "var(--raised)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              padding: "9px 12px",
-              color: "var(--text-primary)",
-              fontSize: 13,
-            }}
-          />
-        </div>
-        <div style={{ marginTop: 16 }}>
-          <Button type="submit" variant="primary" disabled={saving}>
-            {saving ? "Saving…" : "Continue"}
-          </Button>
-        </div>
-      </form>
-    </Screen>
-  );
-}
-
 export function ObsidianOnboarding() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -324,7 +389,7 @@ export function ObsidianOnboarding() {
 
   const fGetProfile = useServerFn(getProfile);
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: () => fGetProfile() });
-  const [detailsDone, setDetailsDone] = useState(false);
+  // Folded into STEP 1 OF 3 (the product screen) - no standalone pre-gate.
   const needsDetails =
     !!profileQ.data && !(profileQ.data.profile as { display_name?: string } | null)?.display_name;
 
@@ -522,11 +587,7 @@ export function ObsidianOnboarding() {
   // PC-02: Helper to track funnel milestone (async, non-blocking)
   async function trackMilestone(
     stage:
-      | "signup"
-      | "product_named"
-      | "data_connected"
-      | "critic_completed"
-      | "onboarding_completed",
+      "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
     metadata?: Record<string, unknown>,
   ) {
     if (!activeWorkspace?.id) return;
@@ -540,9 +601,19 @@ export function ObsidianOnboarding() {
     }
   }
 
+  // Honest failure (2026-07-11): a failed Critic run is a FAILED state, never
+  // an eternal spinner. The results screen reads this flag and offers Try
+  // again / Continue instead of pretending to load.
+  const [criticFailed, setCriticFailed] = useState(false);
+
+  // Critic-run theater: the AiPulse cycles the honest stages while the run
+  // is live, advancing every 2.4s and holding on the last stage.
+  const [criticStage, setCriticStage] = useState(0);
+
   // PC-02: run Critic and display results, then mark onboarded
   const mFinish = useMutation({
     mutationFn: async () => {
+      setCriticFailed(false);
       const typed = belief.trim();
       const editedBelief =
         typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
@@ -559,7 +630,7 @@ export function ObsidianOnboarding() {
           review = result?.review ?? null;
         }
       } catch (e) {
-        console.error("onboarding critic run failed (non-fatal):", e);
+        console.error("onboarding critic run failed:", e);
       }
 
       // Track critic_completed milestone
@@ -569,6 +640,8 @@ export function ObsidianOnboarding() {
       });
 
       setCriticReview(review);
+      // No verdict = the run did not finish. Say so instead of spinning.
+      setCriticFailed(review === null);
 
       // Move to results display before marking onboarded
       setPhase("results");
@@ -592,6 +665,18 @@ export function ObsidianOnboarding() {
       navigate({ to: "/today" });
     },
   });
+
+  useEffect(() => {
+    if (!mFinish.isPending) {
+      setCriticStage(0);
+      return;
+    }
+    const t = window.setInterval(
+      () => setCriticStage((s) => Math.min(s + 1, CRITIC_STAGES.length - 1)),
+      2400,
+    );
+    return () => window.clearInterval(t);
+  }, [mFinish.isPending]);
 
   // PC-02: product name → data source flow, skip track selection
   const mSeedWorkspace = useMutation({
@@ -644,14 +729,11 @@ export function ObsidianOnboarding() {
   if (profileQ.isLoading)
     return (
       <Screen>
-        <p className="text-label-13" style={{ color: "var(--text-muted)" }}>
+        <p className="text-label-13" style={{ color: "var(--ds-gray-900)" }}>
           Waking your workspace…
         </p>
       </Screen>
     );
-  if (needsDetails && !detailsDone) {
-    return <NamePreGate onDone={() => setDetailsDone(true)} />;
-  }
 
   if (phase === "arrival") {
     return (
@@ -664,23 +746,23 @@ export function ObsidianOnboarding() {
             textAlign: "center",
           }}
         >
-          <ArrivalButterfly />
+          <ArrivalMark />
           {/* Geist Pixel brand moment (DESIGN-TEMPO.md SS3/SS8): the arrival
               headline is this surface's one hero moment - a single line
               shown once, first thing a new user sees. */}
           <p
-            className="font-pixel"
             style={{
+              fontFamily: "var(--font-pixel)",
               fontSize: 34,
               lineHeight: 1.15,
-              color: "var(--text-primary)",
+              color: "var(--ds-gray-1000)",
               marginTop: 24,
               marginBottom: 0,
             }}
           >
             Judgment, with receipts.
           </p>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 12, maxWidth: 380 }}>
+          <p style={{ fontSize: 13, color: "var(--ds-gray-900)", marginTop: 12, maxWidth: 380 }}>
             In the next 10 minutes: name your product, give Cadence one data point, and see what it
             thinks. Receipts included.
           </p>
@@ -701,7 +783,8 @@ export function ObsidianOnboarding() {
 
   if (phase === "product") {
     return (
-      <ProductNamePreGate
+      <ProductStep
+        needsName={needsDetails}
         onDone={(name, oneLiner) => {
           setProductName(name);
           setPendingOneLiner(oneLiner);
@@ -728,90 +811,116 @@ export function ObsidianOnboarding() {
                   const busy = connectingId === spec.id && mConnect.isPending;
                   const estimate = timeEstimateFor(spec.id);
                   return (
-                    <button
+                    <ChoiceCard
                       key={spec.id}
-                      type="button"
                       disabled={on || busy || !configured}
+                      busy={busy}
+                      dimmed={!configured && !on}
+                      title={
+                        !configured && !on
+                          ? `${spec.label} is not set up on this workspace yet`
+                          : undefined
+                      }
+                      ariaLabel={on ? `${spec.label} connected` : `Connect ${spec.label}`}
                       onClick={() => {
                         setConnectError(null);
                         setConnectingId(spec.id);
                         mConnect.mutate(spec);
                       }}
-                      style={{
-                        textAlign: "left",
-                        padding: "13px 14px",
-                        borderRadius: "var(--radius-card)",
-                        background: "var(--card)",
-                        border: "1px solid var(--hairline)",
-                        opacity: configured || on ? 1 : 0.45,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
                     >
                       <span>
-                        <span
-                          style={{
-                            fontFamily: "var(--font-ui)",
-                            fontSize: 13.5,
-                            fontWeight: 550,
-                            color: "var(--text-primary)",
-                          }}
-                        >
+                        <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
                           {spec.label}
                         </span>
                         <MonoLabel style={{ display: "block", marginTop: 3 }}>
                           {estimate.toUpperCase()}
                         </MonoLabel>
                       </span>
-                      <span className="text-label-12-mono" style={{ color: "var(--text-subtle)" }}>
+                      <span
+                        aria-hidden="true"
+                        className="text-label-12-mono"
+                        style={{ color: "var(--ds-gray-700)" }}
+                      >
                         {on ? "✓" : busy ? "…" : "→"}
                       </span>
-                    </button>
+                    </ChoiceCard>
                   );
                 })}
               </div>
 
-              <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 12, marginTop: 4 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowPaste(true)}
-                  style={{
-                    textAlign: "left",
-                    padding: "13px 14px",
-                    borderRadius: "var(--radius-card)",
-                    background: "var(--card)",
-                    border: "1px solid var(--hairline)",
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-ui)",
-                      fontSize: 13.5,
-                      fontWeight: 550,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Or paste your notes
+              <div
+                style={{
+                  borderTop: "1px solid var(--ds-gray-alpha-400)",
+                  paddingTop: 12,
+                  marginTop: 4,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                <ChoiceCard onClick={() => setShowPaste(true)}>
+                  <span>
+                    <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
+                      Or paste your notes
+                    </span>
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 11.5,
+                        color: "var(--ds-gray-600)",
+                        marginTop: 3,
+                      }}
+                    >
+                      Paste a PRD, product notes, or your bet · Cadence will analyze it directly.
+                    </span>
                   </span>
-                  <p
-                    style={{
-                      fontSize: 11.5,
-                      color: "var(--text-faint)",
-                      marginTop: 3,
-                      marginBottom: 0,
+                </ChoiceCard>
+
+                {seedLive ? (
+                  <ChoiceCard
+                    busy={mDemo.isPending}
+                    disabled={mDemo.isPending}
+                    onClick={() => {
+                      setConnectError(null);
+                      mDemo.mutate();
                     }}
                   >
-                    Paste a PRD, product notes, or your bet · Cadence will analyze it directly.
-                  </p>
-                </button>
+                    <span>
+                      <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
+                        Watch it on demo data first
+                      </span>
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 11.5,
+                          color: "var(--ds-gray-600)",
+                          marginTop: 3,
+                        }}
+                      >
+                        Swap in your own sources any time.
+                      </span>
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="text-label-12-mono"
+                      style={{ color: "var(--ds-gray-700)" }}
+                    >
+                      {mDemo.isPending ? "…" : "→"}
+                    </span>
+                  </ChoiceCard>
+                ) : null}
               </div>
 
+              {mDemo.isPending ? (
+                <AiPulse label="Seeding demo data" style={{ marginTop: 4 }} />
+              ) : null}
+
               {connectError ? (
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 4 }}>
-                  {connectError} · try connecting a different source
+                <p
+                  role="alert"
+                  style={{ fontSize: 11.5, color: "var(--ds-red-900)", marginTop: 4 }}
+                >
+                  {connectError} · try a different source
                 </p>
               ) : null}
 
@@ -829,25 +938,29 @@ export function ObsidianOnboarding() {
           ) : (
             <div>
               <textarea
+                autoFocus
+                aria-label="Paste your notes"
                 value={pasteNotes}
                 onChange={(e) => setPasteNotes(e.target.value)}
                 placeholder="Paste your product notes, PRD, or the bet you want to challenge..."
                 style={{
                   width: "100%",
                   minHeight: 180,
-                  background: "var(--raised)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-control)",
-                  padding: "11px 14px",
-                  color: "var(--text-body)",
+                  background: "var(--ds-background-100)",
+                  border: "1px solid var(--ds-gray-400)",
+                  borderRadius: "var(--ds-radius-small)",
+                  padding: "10px 12px",
+                  color: "var(--ds-gray-1000)",
                   fontSize: 13,
-                  fontFamily: "var(--font-ui)",
+                  fontFamily: "var(--font-sans)",
                   boxSizing: "border-box",
+                  resize: "vertical",
                 }}
               />
               <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
                 <Button
                   variant="primary"
+                  disabled={!pasteNotes.trim()}
                   onClick={() => {
                     if (pasteNotes.trim()) {
                       setBelief(pasteNotes.slice(0, 200));
@@ -870,36 +983,48 @@ export function ObsidianOnboarding() {
   }
 
   if (phase === "critic") {
+    const running = mFinish.isPending;
     return (
       <Screen>
-        <Frame eyebrow="STEP 3 OF 3" heading="Challenging your thinking…" showTimer={elapsed}>
+        <Frame
+          eyebrow="STEP 3 OF 3"
+          // Present-progressive only once the run actually starts.
+          heading={running ? "Challenging your thinking…" : "Challenge your thinking."}
+          showTimer={elapsed}
+        >
           <input
+            aria-label="The belief the Critic will challenge"
             value={belief}
+            disabled={running}
             onChange={(e) => setBelief(e.target.value)}
-            style={{
-              width: "100%",
-              background: "var(--raised)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              padding: "11px 14px",
-              color: "var(--text-body)",
-              fontSize: 13.5,
-              boxSizing: "border-box",
-            }}
+            style={{ ...INPUT_STYLE, fontSize: 13.5, opacity: running ? 0.6 : 1 }}
           />
-          <p
-            style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 12, marginBottom: 0 }}
-          >
-            Cadence will show its work with receipts.
-          </p>
+          {running ? (
+            // Critic-run theater: the glacier shimmer cycles the honest
+            // stages of what the run is actually doing.
+            <div style={{ marginTop: 14 }}>
+              <AiPulse label={CRITIC_STAGES[criticStage]} state="working" />
+            </div>
+          ) : (
+            <p
+              style={{
+                fontSize: 11.5,
+                color: "var(--ds-gray-700)",
+                marginTop: 12,
+                marginBottom: 0,
+              }}
+            >
+              Cadence will show its work with receipts.
+            </p>
+          )}
           <div style={{ marginTop: 16 }}>
             <Button
               variant="primary"
-              disabled={mFinish.isPending}
+              disabled={running || belief.trim().length < 3}
               onClick={() => mFinish.mutate()}
               style={{ width: "100%" }}
             >
-              {mFinish.isPending ? "Analyzing…" : "Get the Critic's take"}
+              {running ? "Analyzing…" : "Get the Critic's take"}
             </Button>
           </div>
         </Frame>
@@ -907,166 +1032,162 @@ export function ObsidianOnboarding() {
     );
   }
 
-  // phase === "results" — show Critic findings + brain warming signals
+  // phase === "results" - show Critic findings + brain warming signals
   if (phase === "results") {
+    const verdict: string = criticReview?.verdict ?? "hold";
+    const verdictColor =
+      verdict === "ship"
+        ? "var(--ds-green-900)"
+        : verdict === "kill"
+          ? "var(--ds-red-900)"
+          : "var(--ds-amber-900)";
+    const verdictBg =
+      verdict === "ship"
+        ? "var(--ds-green-100)"
+        : verdict === "kill"
+          ? "var(--ds-red-100)"
+          : "var(--ds-amber-100)";
+    const verdictBorder =
+      verdict === "ship"
+        ? "var(--ds-green-400)"
+        : verdict === "kill"
+          ? "var(--ds-red-400)"
+          : "var(--ds-amber-400)";
+    const sectionLabel: React.CSSProperties = {
+      fontSize: 11,
+      color: "var(--ds-gray-900)",
+      margin: 0,
+      marginBottom: 8,
+      textTransform: "uppercase",
+      fontWeight: 550,
+      letterSpacing: "0.06em",
+    };
+
+    function leave() {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("cadence.onboarding.phase");
+        window.sessionStorage.removeItem("cadence.onboarding.startTime");
+        window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
+      }
+      navigate({ to: "/today" });
+    }
+
     return (
       <Screen>
-        <Frame heading="Here's what Cadence found." showTimer={elapsed}>
-          {criticReview ? (
+        <Frame
+          heading={
+            criticFailed || !criticReview
+              ? "The Critic couldn't finish this run."
+              : "Here's what Cadence found."
+          }
+          showTimer={elapsed}
+        >
+          {criticReview && !criticFailed ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Verdict badge */}
+              {/* Verdict stamp - the results screen's one Geist Pixel brand
+                  moment, landing with the confidence bar below. */}
               <div
                 style={{
                   padding: "12px 14px",
-                  borderRadius: "var(--radius-card)",
-                  background:
-                    criticReview.verdict === "ship"
-                      ? "var(--success-tint)"
-                      : criticReview.verdict === "kill"
-                        ? "var(--danger-tint)"
-                        : "var(--caution-tint)",
-                  border:
-                    criticReview.verdict === "ship"
-                      ? "1px solid var(--success)"
-                      : criticReview.verdict === "kill"
-                        ? "1px solid var(--danger)"
-                        : "1px solid var(--caution)",
+                  borderRadius: "var(--ds-radius-small)",
+                  background: verdictBg,
+                  border: `1px solid ${verdictBorder}`,
+                  animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
                 }}
               >
                 <p
                   style={{
                     margin: 0,
-                    fontSize: 13,
-                    fontWeight: 550,
-                    color: "var(--text-primary)",
-                    textTransform: "capitalize",
+                    fontFamily: "var(--font-pixel)",
+                    fontSize: 22,
+                    lineHeight: 1.2,
+                    textTransform: "uppercase",
+                    color: verdictColor,
                   }}
                 >
-                  Verdict: {criticReview.verdict}
+                  {verdict}
                 </p>
                 {criticReview.summary ? (
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, margin: 0 }}>
+                  <p
+                    className="text-copy-13"
+                    style={{ color: "var(--ds-gray-900)", margin: "6px 0 0" }}
+                  >
                     {criticReview.summary}
                   </p>
                 ) : null}
               </div>
 
               {/* Brain warming: risks + evidence */}
-              <div>
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-muted)",
-                    margin: 0,
-                    marginBottom: 8,
-                    textTransform: "uppercase",
-                    fontWeight: 550,
-                  }}
-                >
-                  Key risks
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
-                    <div
-                      key={i}
-                      style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}
-                    >
-                      • {risk}
-                    </div>
-                  ))}
+              {(criticReview.risks ?? []).length > 0 ? (
+                <div>
+                  <p style={sectionLabel}>Key risks</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
+                      <div
+                        key={i}
+                        style={{ fontSize: 12, color: "var(--ds-gray-900)", lineHeight: 1.5 }}
+                      >
+                        • {risk}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
               {/* Missing evidence / precedent */}
               {(criticReview.missing_evidence ?? []).length > 0 ? (
                 <div>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: "var(--text-muted)",
-                      margin: 0,
-                      marginBottom: 8,
-                      textTransform: "uppercase",
-                      fontWeight: 550,
-                    }}
-                  >
-                    What you need to test
-                  </p>
-                  <div style={{ fontSize: 12, color: "var(--text-body)", lineHeight: 1.5 }}>
+                  <p style={sectionLabel}>What you need to test</p>
+                  <div style={{ fontSize: 12, color: "var(--ds-gray-900)", lineHeight: 1.5 }}>
                     {criticReview.missing_evidence[0]}
                   </div>
                 </div>
               ) : null}
 
-              {/* Confidence */}
+              {/* Confidence, animating in with the verdict */}
               <div
                 style={{
                   padding: "10px 12px",
-                  borderRadius: "var(--radius-control)",
-                  background: "var(--raised)",
+                  borderRadius: "var(--ds-radius-small)",
+                  background: "var(--ds-gray-100)",
                 }}
               >
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: "var(--text-muted)",
-                    margin: 0,
-                    marginBottom: 4,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Confidence
-                </p>
-                <div
-                  style={{
-                    height: 4,
-                    borderRadius: 2,
-                    background: "var(--hairline)",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${(criticReview.confidence ?? 0.5) * 100}%`,
-                      background: "var(--text-muted)",
-                      transition: "width 300ms ease",
-                    }}
-                  />
-                </div>
+                <p style={{ ...sectionLabel, marginBottom: 4 }}>Confidence</p>
+                <ConfidenceBar value={criticReview.confidence ?? 0.5} />
               </div>
 
               <div style={{ marginTop: 8 }}>
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    if (typeof window !== "undefined") {
-                      window.sessionStorage.removeItem("cadence.onboarding.phase");
-                      window.sessionStorage.removeItem("cadence.onboarding.startTime");
-                      window.sessionStorage.setItem("cadence.onboarding.justLanded", "1");
-                    }
-                    navigate({ to: "/today" });
-                  }}
-                  style={{ width: "100%" }}
-                >
+                <Button variant="primary" onClick={leave} style={{ width: "100%" }}>
                   Go to your workspace
                 </Button>
               </div>
             </div>
           ) : (
+            // Honest failure: failed is not loading. Say what happened, offer
+            // a retry, and let the user move on with their belief kept.
             <div>
-              <p className="text-label-13" style={{ color: "var(--text-muted)" }}>
-                Critic review is loading…
-              </p>
-              <Button
-                variant="tertiary"
-                onClick={() => {
-                  navigate({ to: "/today" });
-                }}
-                style={{ marginTop: 12 }}
+              <p
+                className="text-copy-13"
+                style={{ color: "var(--ds-gray-900)", margin: 0, maxWidth: 460 }}
               >
-                Skip to workspace
-              </Button>
+                The run hit an error before it could reach a verdict. Your belief is saved as an
+                opportunity, so nothing is lost.
+              </p>
+              <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+                <Button
+                  variant="primary"
+                  disabled={mFinish.isPending}
+                  onClick={() => {
+                    setPhase("critic");
+                    mFinish.mutate();
+                  }}
+                >
+                  Try again
+                </Button>
+                <Button variant="tertiary" onClick={leave}>
+                  Continue - your belief is saved as an opportunity
+                </Button>
+              </div>
             </div>
           )}
         </Frame>

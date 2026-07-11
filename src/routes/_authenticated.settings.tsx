@@ -16,6 +16,8 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
+import { useTheme, type Theme } from "@/hooks/use-theme";
+import { Sun, Moon, Monitor, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfile, updateProfile } from "@/lib/profile.functions";
 import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
@@ -189,12 +191,14 @@ function DensityToggle() {
   return (
     <div style={{ marginBottom: 20 }}>
       <ObsidianMonoLabel tone="muted">Density</ObsidianMonoLabel>
-      <div className="flex items-center" style={{ gap: 6, marginTop: 8 }}>
+      <div className="flex items-center" role="group" aria-label="Density" style={{ gap: 6, marginTop: 8 }}>
         {(["comfortable", "compact"] as const).map((d) => (
           <button
             key={d}
             type="button"
             onClick={() => setDensity(d)}
+            aria-pressed={density === d}
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontFamily: "var(--font-ui)",
               fontSize: 12.5,
@@ -204,6 +208,7 @@ function DensityToggle() {
               background: density === d ? "var(--raised)" : "transparent",
               color: density === d ? "var(--text-primary)" : "var(--text-subtle)",
               textTransform: "capitalize",
+              cursor: "pointer",
             }}
           >
             {d}
@@ -217,22 +222,156 @@ function DensityToggle() {
   );
 }
 
+// THEME GETS A HOME (founder ask, 2026-07-11): the Light / Dark / System choice
+// finally has UI. Consumes the already-shipped useTheme() trio; dark stays the
+// default (Tempo v5 law), light derives from the same tokens.
+const THEME_CHOICES: { id: Theme; label: string; Icon: typeof Sun }[] = [
+  { id: "light", label: "Light", Icon: Sun },
+  { id: "dark", label: "Dark", Icon: Moon },
+  { id: "system", label: "System", Icon: Monitor },
+];
+
+function AppearanceSection() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <ObsidianMonoLabel tone="muted">Appearance</ObsidianMonoLabel>
+      <div
+        className="flex items-center"
+        role="group"
+        aria-label="Theme"
+        style={{ gap: 6, marginTop: 8 }}
+      >
+        {THEME_CHOICES.map(({ id, label, Icon }) => {
+          const isActive = theme === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTheme(id)}
+              aria-pressed={isActive}
+              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                fontFamily: "var(--font-ui)",
+                fontSize: 12.5,
+                height: 32,
+                padding: "0 12px",
+                borderRadius: "var(--radius-control)",
+                border: "1px solid var(--hairline)",
+                background: isActive ? "var(--raised)" : "transparent",
+                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
+                cursor: "pointer",
+                transitionProperty: "background-color, color",
+                transitionDuration: "var(--dur-press, 140ms)",
+              }}
+            >
+              <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
+        System follows your device. Dark is the default.
+      </p>
+    </div>
+  );
+}
+
+// IA SPINE (2026-07-11): the claim-admin affordance moved OUT of the rail
+// (the rail shows Admin console only to actual admins) and lives here as a
+// dismissible card on Settings > Workspace.
+const CLAIM_ADMIN_DISMISS_KEY = "cadence:claim-admin-dismissed";
+
 function AdminDoor() {
   const fAmIAdmin = useServerFn(amIAdmin);
   const navigate = useNavigate();
   const q = useQuery({ queryKey: ["am-i-admin"], queryFn: () => fAmIAdmin() });
-  if (!q.data?.isAdmin) return null;
-  return (
-    <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
-      {/* Router navigation, not a full page reload (audit D-20). */}
-      <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
-        Admin console →
-      </ObsidianButton>
-      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
-        Members, roles, audit, and billing for the whole workspace
-      </p>
-    </div>
-  );
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(CLAIM_ADMIN_DISMISS_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  if (q.data?.isAdmin) {
+    return (
+      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
+        {/* Router navigation, not a full page reload (audit D-20). */}
+        <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
+          Admin console →
+        </ObsidianButton>
+        <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
+          Members, roles, audit, and billing for the whole workspace
+        </p>
+      </div>
+    );
+  }
+
+  // No admin exists yet: offer the claim, dismissibly.
+  if (q.data && !q.data.anyAdminExists && !dismissed) {
+    const dismiss = () => {
+      setDismissed(true);
+      try {
+        localStorage.setItem(CLAIM_ADMIN_DISMISS_KEY, "1");
+      } catch {
+        // Storage unavailable: the dismissal holds for this session only.
+      }
+    };
+    return (
+      <div
+        role="note"
+        aria-label="Claim admin"
+        style={{
+          marginTop: 24,
+          padding: "14px 16px",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card, 10px)",
+          background: "var(--card)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 12,
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--text-primary)", margin: 0, fontWeight: 500 }}>
+            This workspace has no admin yet
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 10px" }}>
+            Claim the admin console to manage members, roles, audit, and billing.
+          </p>
+          <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
+            Claim admin →
+          </ObsidianButton>
+        </div>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss the claim admin card"
+          className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+          style={{
+            flexShrink: 0,
+            background: "transparent",
+            border: "none",
+            color: "var(--text-subtle)",
+            fontSize: 14,
+            lineHeight: 1,
+            padding: 4,
+            cursor: "pointer",
+            borderRadius: 6,
+          }}
+        >
+          ×
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function SettingsPage() {

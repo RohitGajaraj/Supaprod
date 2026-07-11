@@ -359,10 +359,29 @@ function copyTeardownLink(slug: string) {
   }
 }
 
+const shareBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  height: 32,
+  padding: "0 12px",
+  fontFamily: "var(--font-ui)",
+  fontSize: 12,
+  fontWeight: 500,
+  color: "var(--text-muted)",
+  background: "transparent",
+  border: "1px solid var(--hairline-strong)",
+  borderRadius: "var(--radius-control)",
+  cursor: "pointer",
+};
+const shareBtnClass =
+  "loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-default disabled:opacity-55";
+
 /** Share / Unshare this teardown + copy its public /t/<slug> link (F-SHARE-TEARDOWN,
  *  the viral loop). Mirrors ShareDecisionButton. Pre-migration tolerant: before the
- *  share columns land it shows a quiet "after sync" hint. */
-function ShareTeardownButton({ id }: { id: string }) {
+ *  share columns land it shows a quiet "after sync" hint. Exported so the pinned
+ *  "Your first teardown" card on Today reuses the same flow. */
+export function ShareTeardownButton({ id }: { id: string }) {
   const qc = useQueryClient();
   const fState = useServerFn(getTeardownShareState);
   const fSet = useServerFn(setTeardownShared);
@@ -396,26 +415,33 @@ function ShareTeardownButton({ id }: { id: string }) {
   if (!s.is_public) {
     return (
       <button
-        className="btn btn-ghost btn-sm"
+        type="button"
+        className={shareBtnClass}
+        style={shareBtnStyle}
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(true)}
         title="Make this teardown public and copy a shareable link"
       >
-        <Share2 size={11} /> Share
+        <Share2 size={16} strokeWidth={1.5} aria-hidden="true" />
+        {toggle.isPending ? "Sharing…" : "Share"}
       </button>
     );
   }
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
       <button
-        className="btn btn-ghost btn-sm"
+        type="button"
+        className={shareBtnClass}
+        style={shareBtnStyle}
         onClick={() => s.share_slug && copyTeardownLink(s.share_slug)}
         title="Copy the public link"
       >
-        <Link2 size={11} /> Copy link
+        <Link2 size={16} strokeWidth={1.5} aria-hidden="true" /> Copy link
       </button>
       <button
-        className="btn btn-ghost btn-sm"
+        type="button"
+        className={shareBtnClass}
+        style={{ ...shareBtnStyle, border: "none", padding: "0 4px" }}
         disabled={toggle.isPending}
         onClick={() => toggle.mutate(false)}
         title="Make private again"

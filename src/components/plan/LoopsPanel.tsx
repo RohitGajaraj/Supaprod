@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "@/lib/notify";
 import { Button } from "@/components/obsidian";
+import { SectionSummaryCard } from "./SectionSummaryCard";
 import { LOOP_KINDS, type LoopCadence, type LoopKind } from "@/lib/loops.shared";
 import {
   createLoop,
@@ -43,7 +44,15 @@ const selectStyle: React.CSSProperties = {
   background: "var(--surface-raised)",
 };
 
-export function LoopsPanel() {
+export function LoopsPanel({
+  collapsed = false,
+  onExpand,
+}: {
+  /** IA SPINE (2026-07-11): when collapsed, the panel renders as one summary
+   * card (count + last activity) that expands on demand. */
+  collapsed?: boolean;
+  onExpand?: () => void;
+}) {
   const qc = useQueryClient();
   const fList = useServerFn(listLoops);
   const fCreate = useServerFn(createLoop);
@@ -62,9 +71,9 @@ export function LoopsPanel() {
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["loops"] });
       if (r.firstRun?.ok) {
-        toast.success(`Loop started. First run done: ${r.firstRun.summary}`);
+        toast.success(`Mission started. First run done: ${r.firstRun.summary}`);
       } else {
-        toast.success("Loop started. Its first run lands on the next tick.");
+        toast.success("Mission started. Its first run lands on the next tick.");
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -76,10 +85,10 @@ export function LoopsPanel() {
       qc.invalidateQueries({ queryKey: ["loops"] });
       toast.success(
         v.status === "paused"
-          ? "Loop paused."
+          ? "Mission paused."
           : v.status === "active"
-            ? "Loop resumed."
-            : "Loop archived.",
+            ? "Mission resumed."
+            : "Mission archived.",
       );
     },
     onError: (e: Error) => toast.error(e.message),
@@ -87,6 +96,41 @@ export function LoopsPanel() {
 
   const loops = (loopsQ.data ?? []).filter((l) => l.status !== "archived");
   const activeKinds = new Set(loops.map((l) => l.kind));
+
+  // Collapsed: one summary card (count + last activity), expanding on demand.
+  if (collapsed) {
+    const lastRun = loops
+      .map((l) => l.last_run_at)
+      .filter((v): v is string => Boolean(v))
+      .sort()
+      .at(-1);
+    const when = fmtWhen(lastRun ?? null);
+    return (
+      <SectionSummaryCard
+        label="Show recurring missions"
+        loading={loopsQ.isLoading}
+        primary={
+          loopsQ.isLoading
+            ? "Loading recurring missions…"
+            : loopsQ.isError
+              ? "Couldn't load recurring missions"
+              : loops.length === 0
+                ? "No recurring missions yet"
+                : `${loops.length} recurring mission${loops.length === 1 ? "" : "s"}`
+        }
+        detail={
+          loopsQ.isError
+            ? "Open to retry"
+            : loops.length === 0
+              ? "Open to start one; every run shows up with its cost"
+              : when
+                ? `Last ran ${when}`
+                : "No runs yet"
+        }
+        onExpand={onExpand}
+      />
+    );
+  }
 
   return (
     <div>
@@ -109,7 +153,7 @@ export function LoopsPanel() {
         </span>
         <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
           <select
-            aria-label="Loop kind"
+            aria-label="Mission kind"
             value={kind}
             onChange={(e) => setKind(e.target.value as LoopKind)}
             style={{ ...selectStyle, flex: 1, minWidth: 220 }}
@@ -138,7 +182,7 @@ export function LoopsPanel() {
             onClick={() => create.mutate({ kind, ...(cadence ? { cadence } : {}) })}
             className="loom-press"
           >
-            Start the loop
+            Start the mission
           </Button>
         </div>
         <p style={{ margin: "8px 0 0", fontSize: 12.5, color: "var(--text-subtle)" }}>
@@ -151,7 +195,7 @@ export function LoopsPanel() {
 
       {loopsQ.isLoading ? (
         <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span className="sr-only">Loading loops…</span>
+          <span className="sr-only">Loading recurring missions…</span>
           {[0, 1].map((i) => (
             <div
               key={i}
@@ -170,7 +214,7 @@ export function LoopsPanel() {
           }}
         >
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-            COULDN'T LOAD LOOPS
+            COULDN'T LOAD RECURRING MISSIONS
           </div>
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
             {(loopsQ.error as Error)?.message}
@@ -178,7 +222,7 @@ export function LoopsPanel() {
           <button
             type="button"
             onClick={() => loopsQ.refetch()}
-            className="hover:[color:var(--text-primary)]"
+            className="outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               marginTop: 14,
               fontFamily: "var(--font-mono)",
@@ -189,13 +233,13 @@ export function LoopsPanel() {
               cursor: "pointer",
             }}
           >
-            Retry · reloads loops
+            Retry · reloads recurring missions
           </button>
         </div>
       ) : loops.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
-          No loops yet. Start one above: it runs on its cadence and every run shows up here with its
-          cost.
+          No recurring missions yet. Start one above: it runs on its cadence and every run shows up
+          here with its cost.
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

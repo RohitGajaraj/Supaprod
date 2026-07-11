@@ -187,7 +187,7 @@ export function SwarmActivityLane({
 }) {
   return (
     <LaneSection
-      title="What the swarm did"
+      title="What Cadence did"
       hint={
         lane.total_cost_usd > 0
           ? `${fmtUsd(lane.total_cost_usd)} in the last 24h`
@@ -285,7 +285,7 @@ export function SwarmActivityLane({
 
 const WATCH_LABEL: Record<WatchItem["type"], string> = {
   prediction_risk: "Watch",
-  calibration_miss: "Missed call",
+  calibration_miss: "Prediction missed",
   assumption_challenge: "Challenged",
 };
 

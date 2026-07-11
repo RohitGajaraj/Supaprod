@@ -467,7 +467,10 @@ export function TraceDetail({ id }: { id: string }) {
   const traceAgentSlug =
     spans.find((s) => s.surface === "agent" && s.surface_ref)?.surface_ref ?? null;
 
-  const back = () => navigate({ to: "/govern", search: { tab: "traces" } });
+  // IA SPINE (2026-07-11): the record room's traces view is the canonical
+  // home for this drill layer (the old /govern back target is gone; the
+  // TopBar crumbs Engine Room > Record > trace carry the wayfinding).
+  const back = () => navigate({ to: "/engine-room", search: { room: "record", view: "traces" } });
 
   if (trace.isLoading) {
     return (
@@ -818,7 +821,14 @@ function TraceReplayPage() {
 
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Traces", traceId.slice(0, 8)]} />
+      <TopBar
+        crumbs={[
+          activeWorkspace?.name ?? "Workspace",
+          { label: "Engine Room", to: "/engine-room" },
+          { label: "Record", to: "/engine-room", search: { room: "record", view: "traces" } },
+          traceId.slice(0, 8),
+        ]}
+      />
       <div
         data-screen-label="Trace replay"
         style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}

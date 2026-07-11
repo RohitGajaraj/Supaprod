@@ -161,7 +161,7 @@ export function IntegrationsTab() {
   if (!activeWorkspaceId) {
     return (
       <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
-        Pick a workspace to manage its MCP access.
+        Pick a workspace to manage its agent access.
       </p>
     );
   }
@@ -171,7 +171,7 @@ export function IntegrationsTab() {
       {/* Intro */}
       <div className="material-medium" style={{ padding: "var(--card-pad)" }}>
         <MonoLabel icon={Plug} style={{ marginBottom: 4 }}>
-          MCP access
+          Agent access
         </MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", maxWidth: 560, margin: 0 }}>
           Let an external AI agent use Cadence as a tool. A token grants read access to this

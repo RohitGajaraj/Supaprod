@@ -87,19 +87,10 @@ export function SourceLink({
       </Link>
     );
   }
-  if (d.meeting_id) {
-    return (
-      <Link
-        to="/brain"
-        search={{ tab: "calendar", meeting: d.meeting_id }}
-        className={className}
-        style={style}
-        onClick={onClick}
-      >
-        {children}
-      </Link>
-    );
-  }
+  // Meeting-sourced decisions: the calendar tab left this surface (meetings
+  // live on Today's PM Desk now), so there is no in-surface drill target.
+  // Render no link rather than a circular one; the source label itself still
+  // names the meeting. Re-point here once Today exposes a meeting deep link.
   return null;
 }
 

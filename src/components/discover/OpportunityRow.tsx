@@ -1,5 +1,5 @@
 import { memo, type CSSProperties } from "react";
-import { Button, PencilNote, VerdictChip } from "@/components/obsidian";
+import { Button, VerdictChip } from "@/components/obsidian";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,11 +72,11 @@ export function StatusPill({ status, className }: { status: string; className?: 
   );
 }
 
-/** The pencil-ink color for each non-best designation. The best bet is the one
- * lime pencil wink (rendered as a PencilNote, not a tag), so it is not here;
- * the others read as quiet tags in their own ink: needs validation in blossom,
- * quick win in moss, heavy lift in apricot, watch this week in a quiet muted
- * tone. Semantic tokens only; ember stays reserved for the single Capture CTA. */
+/** The ink color for each non-best designation. The best bet is the one
+ * Pixel-face BestBetStamp in the chip row, so it is not here; the others read
+ * as quiet tags in their own ink: needs validation in blossom, quick win in
+ * moss, heavy lift in apricot, watch this week in a quiet muted tone.
+ * Semantic tokens only; ember stays reserved for the single Capture CTA. */
 export const DESIGNATION_INK: Record<Exclude<NonNullable<Designation>, "best bet">, string> = {
   "needs validation": "var(--pencil-blossom)",
   "quick win": "var(--moss)",
@@ -94,9 +94,9 @@ export const DESIGNATION_MEANING: Record<Exclude<NonNullable<Designation>, "best
 };
 
 /** A quiet system designation tag for a non-best bet: small mono text on a
- * rounded hairline chip, colored by its pencil ink, low emphasis so it informs
- * without shouting. The best bet is the single loud pencil wink (a PencilNote),
- * never a tag; and `null` / "best bet" render nothing here. */
+ * rounded hairline chip, colored by its ink, low emphasis so it informs
+ * without shouting. The best bet is the single BestBetStamp, never a tag;
+ * and `null` / "best bet" render nothing here. */
 export function DesignationTag({
   designation,
   className,
@@ -122,6 +122,36 @@ export function DesignationTag({
       }}
     >
       {designation}
+    </span>
+  );
+}
+
+/** The best-bet designation stamp (founder screenshot ruling 2026-07-11): a
+ * clean inline chip in the card's chip row, replacing the retired Loom-era
+ * handwritten PencilNote wink. Geist Pixel face (the one Pixel brand moment
+ * on the queue: ranking.ts guarantees exactly one best bet), moss family per
+ * the VerdictChip anatomy (12% tinted fill, 45% border, bright text), never
+ * rotated, never overlapping the card boundary. */
+export function BestBetStamp({ className }: { className?: string }) {
+  return (
+    <span
+      className={className}
+      title="The single strongest bet in the queue right now"
+      style={{
+        fontFamily: "var(--font-pixel)",
+        fontSize: "11px",
+        letterSpacing: "0.08em",
+        lineHeight: 1.4,
+        color: "var(--moss-bright)",
+        backgroundColor: "color-mix(in oklab, var(--moss) 12%, transparent)",
+        border: "1px solid color-mix(in oklab, var(--moss) 45%, transparent)",
+        borderRadius: "var(--radius-pill)",
+        padding: "2px 10px",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+      }}
+    >
+      BEST BET
     </span>
   );
 }
@@ -201,8 +231,9 @@ export interface OpportunityRowProps {
   sub: string;
   verdict: VerdictWord;
   /** The system-derived bet designation (from ranking.ts). Drives the single
-   * marker on the card: "best bet" renders the one lime pencil wink; the other
-   * designations render a quiet tag; null renders nothing. */
+   * marker on the card: "best bet" renders the inline BestBetStamp in the
+   * chip row; the other designations render a quiet tag; null renders
+   * nothing. */
   designation?: Designation;
   onChallenge: () => void;
   challengePending: boolean;
@@ -243,9 +274,10 @@ export interface OpportunityRowProps {
 /**
  * One ICE-ranked opportunity. Reuses the canonical `VerdictChip` (its 4
  * scored hues match this row's literal spec values exactly; PENDING keeps
- * VerdictChip's own neutral rather than forking a second PENDING style) and
- * `PencilNote` (the app's one pencil-annotation anatomy) rather than
- * hand-rolling row-local variants, per the "one object, one anatomy" law.
+ * VerdictChip's own neutral rather than forking a second PENDING style), and
+ * the best bet carries the inline `BestBetStamp` in the chip row (the
+ * PencilNote wink is retired, founder ruling 2026-07-11), per the "one
+ * object, one anatomy" law.
  * The card body is a single-click affordance that opens the detail sheet.
  * "Draft spec" is promoted to the one clear primary action; the `⋯` overflow
  * (lineage / move-to / delete) holds the secondary actions, matching
@@ -323,15 +355,6 @@ export const OpportunityRow = memo(function OpportunityRow({
           : undefined
       }
     >
-      {designation === "best bet" ? (
-        <PencilNote
-          ink="best-bet"
-          style={{ position: "absolute", top: "-11px", right: "14px", fontSize: "17px" }}
-        >
-          best bet
-        </PencilNote>
-      ) : null}
-
       <div className="flex flex-none flex-col items-center" style={{ width: "54px" }}>
         <div
           style={{
@@ -447,6 +470,7 @@ export const OpportunityRow = memo(function OpportunityRow({
 
       <div className="flex flex-none flex-col items-end" style={{ gap: "8px" }}>
         <div className="flex items-center" style={{ gap: "6px" }}>
+          {designation === "best bet" ? <BestBetStamp /> : null}
           {designation && designation !== "best bet" ? (
             <DesignationTag designation={designation} />
           ) : null}

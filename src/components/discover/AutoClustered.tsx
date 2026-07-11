@@ -11,6 +11,7 @@ import {
   promoteThemeToOpportunity,
   generatePrd,
 } from "@/lib/discovery.functions";
+import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { sourceCaps, withTimeout } from "./format";
 import { SkeletonBar } from "./SkeletonBar";
 import { ThemeRow } from "./ThemeRow";
@@ -42,11 +43,12 @@ function HeaderRow({ count }: { count: number }) {
             lineHeight: 1.3,
           }}
         >
-          Auto-clustered
+          Clustered into bets
         </h2>
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-subtle)" }}>
           Cadence continuously reads your captured signals and clusters them into themes
-          automatically, ranked by corroboration. Promote one and it moves to Decide.
+          automatically, ranked by corroboration. Promote one and it lands in the queue as a ranked
+          bet.
         </p>
       </div>
       <MonoLabel
@@ -239,8 +241,11 @@ export function AutoClustered() {
     mutationFn: (themeId: string) => fPromoteTheme({ data: { theme_id: themeId } }),
     onMutate: (id) => setBusy(id, true),
     onSuccess: () => {
-      toast.success("Promoted. Now a ranked bet in Decide.", {
-        action: { label: "View in Decide", onClick: () => navigate({ to: "/decide" }) },
+      toast.success("Promoted. Now a ranked bet in the queue.", {
+        action: {
+          label: "View the queue",
+          onClick: () => navigate({ to: "/discover", search: { tab: "queue" } }),
+        },
       });
       invalidate();
     },
@@ -271,6 +276,30 @@ export function AutoClustered() {
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: (_d, _e, id) => setBusy(id, false),
+  });
+
+  // PC-29 layer 6: the theme's one delegation verb ("Frame the bet"), moved
+  // from the retired inline AskInContext trigger into the row overflow menu.
+  // Same goal grammar and hand-off as AskInContext (obsidian/AskInContext.tsx)
+  // so the mission the agent receives is byte-identical.
+  const fAskMission = useServerFn(startOrchestratedMission);
+  const askTheme = useMutation({
+    mutationFn: ({ themeId, title }: { themeId: string; title: string }) =>
+      fAskMission({
+        data: {
+          goal: `Frame the bet on this theme: "${title.trim() || "this theme"}" (ref ${themeId
+            .slice(0, 8)
+            .toUpperCase()})`,
+          title: title.slice(0, 200),
+        },
+      }),
+    onMutate: ({ themeId }) => setBusy(themeId, true),
+    onSuccess: (res) => {
+      toast.success("Frame the bet - mission started.");
+      navigate({ to: "/build", search: { mission: res.mission_id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: (_d, _e, { themeId }) => setBusy(themeId, false),
   });
 
   // PERF: memoize sorted themes to avoid recalculation on every render.
@@ -377,10 +406,6 @@ export function AutoClustered() {
         shown.map((t, i) => {
           const members = signalsByTheme.get(t.id) ?? [];
           const sourceCount = new Set(members.map((m) => m.source)).size;
-          const newest = members.reduce<string | null>(
-            (acc, m) => (!acc || new Date(m.created_at) > new Date(acc) ? m.created_at : acc),
-            null,
-          );
           return (
             <ThemeRow
               key={t.id}
@@ -389,12 +414,11 @@ export function AutoClustered() {
               rank={i + 1}
               signalCount={t.frequency}
               sourceCount={sourceCount}
-              newestCreatedAt={newest}
-              createdAt={t.createdAt}
               actionsPending={busyIds.has(t.id)}
               onOpenDetail={(id) => setOpenThemeId(id)}
               onPromote={() => promoteTheme.mutate(t.id)}
               onDraftSpec={() => draftThemeSpec.mutate(t.id)}
+              onAsk={() => askTheme.mutate({ themeId: t.id, title: t.title })}
             />
           );
         })

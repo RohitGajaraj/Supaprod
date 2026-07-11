@@ -1,72 +1,72 @@
 /**
- * IA-NAV-V11 (v11 #12) → OBS-02 reshape → LOOM W1 (2026-07-04) — the pure
- * navigation model for the app shell.
+ * IA-NAV-V11 (v11 #12) → OBS-02 reshape → LOOM W1 (2026-07-04) → IA SPINE
+ * (2026-07-11) — the pure navigation model for the app shell.
  *
- * History: the left nav had four competing metaphors (a "Workspace" rail, a
- * "Loop" section, a 5-icon Trust row, a floating dock). OBS-02/OBS-10
- * flattened that to five destinations + ONE recessed Engine Room door (a
- * hover menu). The founder's 2026-07-04 production-readiness mission found
- * the door made real surfaces effectively invisible (Settings, Trust Ledger,
- * Connections, Admin had no click path a new user could find), so LOOM
- * retires the hover-menu door for a VISIBLE grouped rail (DESIGN-LOOM §8):
+ * History: the left nav had four competing metaphors, OBS-02/OBS-10 flattened
+ * it, LOOM made every home visible as THE LOOP + THE ENGINE. The 2026-07-11
+ * IA spine reduces the rail to ONE list of seven primary destinations,
+ * keys 1-7, top to bottom:
  *
- *   THE LOOP    01 Today · 02 Discover · 03 Decide · 04 Define · 05 Build · 06 Brain
- *   THE ENGINE  07 Engine Room · 08 Trust Ledger
- *   (footer)    Settings · Admin (role-gated) · the user chip menu
+ *   Today            (pinned above all groups, unnumbered; owns the ONE
+ *                     attention badge fed by the server-computed needsYouCount)
+ *   WORKFLOW         01 Discover · 02 Plan · 03 Design · 04 Build
+ *                     (mono indexes live ONLY in this group)
+ *   Memory           (/brain, unnumbered)
+ *   Engine Room      (/engine-room, unnumbered; the existing "g" alias stays
+ *                     and is shown as a hint on the row)
+ *   (footer)         Settings · Admin console (actual admins only) · account chip
  *
- * Everything reachable by clicking; depth stays on demand behind the visible
- * doors. Features still NEVER add nav items (contract law).
+ * THE ENGINE group header is gone. Decide left the rail (/decide redirects to
+ * /discover?tab=queue); Ledger left the rail (/trust-ledger redirects to
+ * /engine-room?room=record). Features still NEVER add nav items (contract law).
  *
- * LOOM also renames Brain's URL: /knowledge → /brain (label and URL now
- * agree; /knowledge is a permanent redirect).
+ * DERIVATION LAW: the palette JUMP section, displayed key hints, and the
+ * GotoShortcuts key range are DERIVED from PRIMARY_NAV — never hand-copied.
  *
  * PURE: data + active-state math only, no JSX. The shell renders these; the
- * invariants are unit-verified in nav-model.test.ts.
+ * invariants are unit-verified in nav-model.test.ts + __tests__/nav-model.test.ts.
  */
 
 export type NavItemDef = {
   to: string;
   label: string;
+  /** Mono index, shown ONLY on WORKFLOW rows ("01".."04"); "" elsewhere. */
   index: string;
+  /** Rail group. Today, Memory, and Engine Room are ungrouped. */
+  group?: "workflow";
   search?: Record<string, string>;
 };
 
-/** THE LOOP: the seven outcome-named destinations (the calm front). Decide
- * (2026-07-07) is its own stage between Discover (sense) and Plan (define);
- * Design (PC-28, completing the D-family: Discover · Decide · Define ·
- * Design) sits between Define and Build - Prototype + Brand Kit live there
- * (PC-31 builds the full route; a minimal honest placeholder ships with this
- * row so the nav entry is never a dead link). */
-export const PRIMARY_NAV: readonly NavItemDef[] = [
-  { to: "/today", label: "Today", index: "01" },
-  { to: "/discover", label: "Discover", index: "02" },
-  { to: "/decide", label: "Decide", index: "03" },
-  { to: "/plan", label: "Define", index: "04" },
-  { to: "/design", label: "Design", index: "05" },
-  { to: "/build", label: "Build", index: "06" },
-  { to: "/brain", label: "Brain", index: "07" },
-];
-
 /**
- * THE ENGINE: the machinery group, VISIBLE in the rail (LOOM retires the
- * hover-menu door; these are direct rows). The Engine Room row is the glance
- * (four rooms inside; /govern remains its drill layer); Ledger (PC-28: the
- * mechanism word "Trust" drops from the label - the ledger IS the trust) is
- * the receipts surface, still served at /trust-ledger (route slugs do not
- * move). Connections was removed from the rail (2026-07-06): the single
- * connect home is Settings > Connections, and /sync (retitled "Sync &
- * bindings") is reached from there, not the primary nav. Approvals are Calls
- * on Today, NEVER here (contract §8).
+ * The seven primary destinations, in rail order. Position is meaning: the
+ * 1-based position IS the keyboard shortcut (keys 1-7), so the palette JUMP
+ * rows and GotoShortcuts derive from this list and can never drift from it.
  */
-export const ENGINE_GROUP: readonly NavItemDef[] = [
-  { to: "/engine-room", label: "Engine Room", index: "08" },
-  { to: "/trust-ledger", label: "Ledger", index: "09" },
+export const PRIMARY_NAV: readonly NavItemDef[] = [
+  { to: "/today", label: "Today", index: "" },
+  { to: "/discover", label: "Discover", index: "01", group: "workflow" },
+  { to: "/plan", label: "Plan", index: "02", group: "workflow" },
+  { to: "/design", label: "Design", index: "03", group: "workflow" },
+  { to: "/build", label: "Build", index: "04", group: "workflow" },
+  { to: "/brain", label: "Memory", index: "" },
+  { to: "/engine-room", label: "Engine Room", index: "" },
 ];
 
+/** Derived: the WORKFLOW group rows (the only indexed, group-headed rows). */
+export const WORKFLOW_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter(
+  (n) => n.group === "workflow",
+);
+
+/** Derived: the displayed key hint for a destination is its 1-based position. */
+export function navKeyHint(item: NavItemDef): string {
+  const i = PRIMARY_NAV.findIndex((n) => n.to === item.to);
+  return i >= 0 ? String(i + 1) : "";
+}
+
 /**
- * Footer rows. Admin renders only for admins (the shell gates it with its
- * existing amIAdmin query); Settings is always visible — a real user must
- * never need to know a URL (the LOOM visibility law).
+ * Footer rows. Admin renders ONLY for actual admins (the shell gates it with
+ * its existing amIAdmin query); claiming admin moved to Settings > Workspace.
+ * Settings is always visible — a real user must never need to know a URL.
  */
 export const FOOTER_NAV: readonly NavItemDef[] = [
   { to: "/settings", label: "Settings", index: "" },
@@ -74,8 +74,9 @@ export const FOOTER_NAV: readonly NavItemDef[] = [
 ];
 
 /**
- * Paths that live inside the engine room (drive the group's active state).
- * /govern stays: it is the rooms' live drill layer, one level deeper.
+ * Paths that live inside the engine room (drive the Engine Room row's active
+ * state). /govern and /trust-ledger are redirect stubs that land here; /sync
+ * is the bindings drill layer reached from Settings.
  */
 export const ENGINE_ROOM_PATHS: readonly string[] = [
   "/engine-room",

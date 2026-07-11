@@ -37,8 +37,8 @@ describe("palette-catalog", () => {
 });
 
 describe("palette-sections", () => {
-  it("JUMP_DESTINATIONS has exactly five entries", () => {
-    expect(JUMP_DESTINATIONS.length).toBe(5);
+  it("JUMP_DESTINATIONS has exactly seven entries (derived from PRIMARY_NAV)", () => {
+    expect(JUMP_DESTINATIONS.length).toBe(7);
   });
 
   it("every JUMP destination's run.to is a canonical path", () => {
@@ -47,9 +47,9 @@ describe("palette-sections", () => {
     }
   });
 
-  it("JUMP hints are 1-5, unique", () => {
+  it("JUMP hints are the keys 1-7, unique", () => {
     const hints = JUMP_DESTINATIONS.map((d) => d.hint);
-    expect(hints).toEqual(["1", "2", "3", "4", "5"]);
+    expect(hints).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
   });
 
   it("ACT_VERBS is non-empty and every verb has a run target", () => {

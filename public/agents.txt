@@ -23,7 +23,7 @@ Allow: /*?view=machine
 # Public surfaces
 Allow: /
 Allow: /pricing
-Allow: /trust
+Allow: /security
 Allow: /subprocessors
 
 # ── Authenticated read ────────────────────────────────────────────────────────

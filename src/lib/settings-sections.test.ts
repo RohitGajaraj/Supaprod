@@ -114,7 +114,7 @@ describe("settings-sections - derivations", () => {
   });
 
   it("findGroup returns the definition, or undefined when unknown", () => {
-    expect(findGroup("plan")?.label).toBe("Pricing");
+    expect(findGroup("plan")?.label).toBe("Billing");
     // @ts-expect-error - unknown id
     expect(findGroup("nope")).toBeUndefined();
   });

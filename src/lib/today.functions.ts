@@ -96,6 +96,19 @@ export type NeedsYou = {
     title: string;
     updated_at: string;
   }[];
+  /** The workspace's first undecided Critic teardown, ANY verdict. The old
+   *  revise/kill filter silently dropped 'ship' verdicts, so a clean first
+   *  teardown never surfaced. Pinned at the top of the judgment lane with
+   *  Keep / Share until the human answers it. */
+  firstTeardown: {
+    id: string;
+    title: string;
+    verdict: CriticReview["verdict"];
+    summary: string;
+    topRisk: string | null;
+    confidence: number | null;
+    created_at: string;
+  } | null;
   spendTodayUsd: number;
   /** Median minutes from gate raised to human decision, last 7 days.
    *  Null until at least one gate has been decided. Backs the Today
@@ -122,11 +135,31 @@ export type NeedsYouCounts = {
   playbooks: number;
   /** SW-7 (mission 3.4): specs with an undecided design gate. */
   designGates: number;
+  /** Pushed Brain insights sitting in the judgment lane (today's pushes plus
+   *  the open scored judgment kinds — the family queryLane1 renders from). */
+  insights: number;
+  /** PC-12: ready fan-out review batches waiting on the human. */
+  fanouts: number;
   /** Gates that expired unanswered. NOT part of liveCalls. */
   expired: number;
-  /** The one number every "needs you" surface shows: the live calls total. */
+  /** THE one number every "needs you" surface shows (hero, DECIDE pill, lane
+   *  header, shell badge): live calls + pushed insights + ready fan-out
+   *  batches. Computed here, once, server-side — never re-derived client-side. */
   liveCalls: number;
 };
+
+/** Tolerant critic_review reader: jsonb object or a stringified copy. */
+function parseCriticReview(raw: unknown): CriticReview | null {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw) as CriticReview;
+    } catch {
+      return null;
+    }
+  }
+  return raw as CriticReview;
+}
 
 /** Top-level OR predicate: a gate is LIVE while pending and inside its window. */
 const liveGateOr = (nowIso: string) => `expires_at.is.null,expires_at.gt.${nowIso}`;
@@ -181,7 +214,22 @@ export async function countNeedsYouCalls(
     );
   }
 
-  const [live, expired, specs, opps, challenges, playbooks, designGates] = await Promise.all([
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayStartIso = dayStart.toISOString();
+
+  const [
+    live,
+    expired,
+    specs,
+    opps,
+    challenges,
+    playbooks,
+    designGates,
+    firstTd,
+    insightRes,
+    fanoutRes,
+  ] = await Promise.all([
     // A LIVE call is one still awaiting a decision: status='pending'. Bug fix
     // 2026-07-08: escalation_state stays 'pending' even after a gate executes
     // or fails (only the decision-path clears it), so filtering escalation
@@ -229,11 +277,65 @@ export async function countNeedsYouCalls(
           .eq("workspace_id", wsId)
           .is("design_gate_status", null)
       : Promise.resolve({ count: 0 }),
+    // The pinned first teardown: the earliest undecided opportunity that has
+    // a Critic verdict, ANY verdict. Revise/kill rows are already in the
+    // opportunities count above; a 'ship' verdict was silently dropped, so
+    // it is added back below (the first-teardown filter fix).
+    supabase
+      .from("opportunities")
+      .select("id,critic_review")
+      .not("critic_review", "is", null)
+      .eq("status", "backlog")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    // Pushed Brain insights in the judgment lane: today's pushes plus the
+    // open scored judgment kinds (the same predicate family queryLane1
+    // renders from). Pre-migration tolerant — handled after the join.
+    wsId
+      ? supabase
+          .from("insights")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wsId)
+          .eq("status", "open")
+          .or(
+            `and(digest.eq.false,pushed_at.gte.${dayStartIso}),kind.in.(next_best_action,hidden_connection)`,
+          )
+      : Promise.resolve({ count: 0, error: null }),
+    // PC-12: ready fan-out review batches are judgment-lane cards too.
+    wsId
+      ? supabase
+          .from("fanout_batches")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", wsId)
+          .eq("status", "ready")
+      : Promise.resolve({ count: 0, error: null }),
   ]);
+
+  // Pre-migration tolerance: pushed_at/digest postdate older DBs. When the OR
+  // predicate errors on a missing column, fall back to the scored kinds alone;
+  // a missing fanout table simply counts 0.
+  let insightCount = (insightRes as { error?: unknown }).error ? 0 : (insightRes.count ?? 0);
+  if (wsId && (insightRes as { error?: unknown }).error) {
+    const { count } = await supabase
+      .from("insights")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", wsId)
+      .eq("status", "open")
+      .in("kind", ["next_best_action", "hidden_connection"]);
+    insightCount = count ?? 0;
+  }
+  const fanoutCount = (fanoutRes as { error?: unknown }).error ? 0 : (fanoutRes.count ?? 0);
+
+  const ftReview = parseCriticReview(
+    (firstTd.data as { critic_review?: unknown } | null)?.critic_review,
+  );
+  const firstTeardownExtra =
+    ftReview && ftReview.verdict !== "revise" && ftReview.verdict !== "kill" ? 1 : 0;
 
   const approvals = live.count ?? 0;
   const specCount = specs.count ?? 0;
-  const oppCount = opps.count ?? 0;
+  const oppCount = (opps.count ?? 0) + firstTeardownExtra;
   const assumptionCount = challenges.count ?? 0;
   const playbookCount = playbooks.count ?? 0;
   const designGateCount = designGates.count ?? 0;
@@ -244,8 +346,18 @@ export async function countNeedsYouCalls(
     assumptions: assumptionCount,
     playbooks: playbookCount,
     designGates: designGateCount,
+    insights: insightCount,
+    fanouts: fanoutCount,
     expired: expired.count ?? 0,
-    liveCalls: approvals + specCount + oppCount + assumptionCount + playbookCount + designGateCount,
+    liveCalls:
+      approvals +
+      specCount +
+      oppCount +
+      assumptionCount +
+      playbookCount +
+      designGateCount +
+      insightCount +
+      fanoutCount,
   };
 }
 
@@ -300,6 +412,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       challenges,
       proposals,
       designGatePrds,
+      firstTd,
     ] = await Promise.all([
       countNeedsYouCalls(db, userId, workspaceId),
       db
@@ -381,6 +494,16 @@ export const getNeedsYou = createServerFn({ method: "GET" })
             .order("updated_at", { ascending: false })
             .limit(5)
         : Promise.resolve({ data: [] as unknown[] }),
+      // The pinned first teardown (ANY verdict; the revise/kill filter above
+      // dropped 'ship' verdicts from the queue entirely).
+      supabase
+        .from("opportunities")
+        .select("id,title,critic_review,created_at")
+        .not("critic_review", "is", null)
+        .eq("status", "backlog")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     const spendTodayUsd = (events.data ?? []).reduce(
@@ -569,6 +692,28 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       sourceCount: p.source_learning_ids?.length ?? 0,
     }));
 
+    // The pinned first teardown: verdict word, top risk, confidence — the
+    // judgment lane's anchor card until the human answers it (Keep/Share).
+    const ftRow = firstTd.data as {
+      id: string;
+      title: string;
+      critic_review: unknown;
+      created_at: string;
+    } | null;
+    const ftReview = parseCriticReview(ftRow?.critic_review);
+    const firstTeardown: NeedsYou["firstTeardown"] =
+      ftRow && ftReview
+        ? {
+            id: ftRow.id,
+            title: ftRow.title,
+            verdict: ftReview.verdict,
+            summary: ftReview.summary ?? "",
+            topRisk: ftReview.risks?.[0] ?? null,
+            confidence: typeof ftReview.confidence === "number" ? ftReview.confidence : null,
+            created_at: ftRow.created_at,
+          }
+        : null;
+
     return {
       approvals: enrichedApprovals,
       expiredApprovals: (expiredRows.data ?? []) as NeedsYou["expiredApprovals"],
@@ -577,6 +722,7 @@ export const getNeedsYou = createServerFn({ method: "GET" })
       assumptionCalls,
       playbookCalls,
       designGateCalls: (designGatePrds.data ?? []) as NeedsYou["designGateCalls"],
+      firstTeardown,
       spendTodayUsd,
       gateMedianMinutes,
       counts,

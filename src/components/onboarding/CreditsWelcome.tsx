@@ -11,6 +11,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { X } from "lucide-react";
 import { getMyCreditsView } from "@/lib/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
@@ -73,39 +74,61 @@ export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
 
   if (!show) return null;
 
+  // Tempo v5 (2026-07-11): the floating card wears the menu material preset
+  // (12px radius + the border-in-shadow menu stack on background-100); the
+  // grant number is this surface's one Geist Pixel brand moment. A click
+  // anywhere dismisses; the labeled close button carries the keyboard path.
   return (
     <div
       role="status"
       onClick={dismiss}
+      className="material-menu"
       style={{
         position: "fixed",
         top: 22,
         left: "50%",
         transform: "translateX(-50%)",
-        zIndex: 60,
+        zIndex: "var(--ds-z-toast)",
         width: 380,
         maxWidth: "calc(100vw - 32px)",
         padding: "16px 18px",
-        borderRadius: "var(--radius-panel, 14px)",
-        background: "rgba(17,17,19,0.78)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderLeft: "2px solid var(--hairline-strong)",
-        animation: "cadRise 260ms var(--ease) both",
+        animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
         cursor: "pointer",
       }}
     >
-      <p
+      <button
+        type="button"
+        aria-label="Dismiss"
+        onClick={(e) => {
+          e.stopPropagation();
+          dismiss();
+        }}
         style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: 17,
-          color: "var(--text-primary)",
-          margin: 0,
+          position: "absolute",
+          top: 10,
+          right: 10,
+          width: 24,
+          height: 24,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "transparent",
+          border: "none",
+          borderRadius: "var(--ds-radius-small)",
+          color: "var(--ds-gray-700)",
+          cursor: "pointer",
+          padding: 0,
         }}
       >
-        {grant.toLocaleString()} credits, on the house.
+        <X size={16} strokeWidth={1.5} aria-hidden="true" />
+      </button>
+      <p className="text-heading-16" style={{ color: "var(--ds-gray-1000)", margin: 0 }}>
+        <span style={{ fontFamily: "var(--font-pixel)", fontWeight: 400, letterSpacing: 0 }}>
+          {grant.toLocaleString()}
+        </span>{" "}
+        credits, on the house.
       </p>
-      <p style={{ fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.5, margin: "6px 0 0" }}>
+      <p className="text-copy-13" style={{ color: "var(--ds-gray-900)", margin: "6px 18px 0 0" }}>
         That is a full first run: capture what you hear, pressure-test the call, and ship the
         outcome. When the meter runs low, we will say so quietly.
       </p>

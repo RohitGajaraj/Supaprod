@@ -140,7 +140,7 @@ export function LoopHealthBanner() {
           // end of Today's queue (R2-ATTENTION #2), so the action goes there.
           <Link
             to="/today"
-            className="mono-label loom-press"
+            className="mono-label loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontSize: "var(--text-mono-floor)",
               color: "var(--ember-text)",
@@ -151,9 +151,9 @@ export function LoopHealthBanner() {
           </Link>
         ) : (
           <Link
-            to="/govern"
-            search={{ tab: "incidents" }}
-            className="mono-label loom-press"
+            to="/engine-room"
+            search={{ room: "safety", view: "incidents" }}
+            className="mono-label loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               fontSize: "var(--text-mono-floor)",
               color: "var(--glacier)",

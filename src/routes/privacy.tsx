@@ -63,7 +63,12 @@ function PrivacyPage() {
         <p>
           In your workspace's own Postgres database (hosted on Supabase), isolated from other
           workspaces by row-level security. You can export your data in open formats at any time
-          from Settings.
+          from Settings. The third parties that process data on Cadence's behalf, and what each one
+          receives, are listed publicly on{" "}
+          <a href="/subprocessors" style={{ color: "#ff9542" }}>
+            the sub-processor disclosure
+          </a>
+          .
         </p>
       </LegalSection>
 

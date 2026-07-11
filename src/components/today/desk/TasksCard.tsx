@@ -13,6 +13,7 @@ import { useToast } from "@/components/obsidian/toast";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { listTasks, createTask, updateTask } from "@/lib/tasks.functions";
 import { dueRowsOf, isOverdue, openDueCountOf, todayStr, type TaskRow } from "./task-filters";
+import { TASK_COMPOSE_EVENT, useDeskComposeIntent } from "@/lib/desk-compose";
 
 const mono: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
@@ -62,6 +63,14 @@ export function TasksCard() {
   const [draft, setDraft] = React.useState("");
   const [expanded, setExpanded] = React.useState(false);
   const [backlogOpen, setBacklogOpen] = React.useState(false);
+
+  // IA SPINE (2026-07-11): the palette's "Add a task" verb opens this
+  // composer in place — focus the always-visible input.
+  const draftInputRef = React.useRef<HTMLInputElement>(null);
+  const focusComposer = React.useCallback(() => {
+    draftInputRef.current?.focus();
+  }, []);
+  useDeskComposeIntent(TASK_COMPOSE_EVENT, focusComposer);
 
   const addTask = useMutation({
     mutationFn: (title: string) =>
@@ -241,6 +250,7 @@ export function TasksCard() {
         }}
       >
         <input
+          ref={draftInputRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a task for today"

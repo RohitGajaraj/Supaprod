@@ -336,7 +336,10 @@ export function DriftPanel() {
             <button
               key={d.surface}
               onClick={() =>
-                navigate({ to: "/govern", search: { tab: "drift", surface: d.surface } })
+                navigate({
+                  to: "/engine-room",
+                  search: { room: "quality", view: "drift", surface: d.surface },
+                })
               }
               className="lift"
               style={{

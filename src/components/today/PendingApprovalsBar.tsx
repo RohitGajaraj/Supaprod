@@ -17,8 +17,8 @@ export function PendingApprovalsBar({ gates }: { gates: PendingGate[] }) {
 
   return (
     <Link
-      to="/govern"
-      search={{ tab: "approvals" }}
+      to="/engine-room"
+      search={{ room: "record", view: "approvals" }}
       className="lift"
       style={{
         display: "flex",

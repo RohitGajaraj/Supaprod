@@ -94,14 +94,9 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       technical: "Analytics rollup",
       descriptor: "Every call, model, and token, itemized.",
     },
-    {
-      id: "funnel",
-      // Naming law: the plain label is a real outcome rename, never the raw
-      // id echoed back ("Funnel" failed the glance test's own rule).
-      label: "First steps",
-      technical: "Activation funnel",
-      descriptor: "How far new signups get, and where they drop off.",
-    },
+    // The activation funnel (old "funnel" tab) is an operator metric, not a
+    // customer answer; it moved to the admin observability surface
+    // (IA 2026-07-11). Deep links with ?view=funnel fall back to the trend view.
   ],
   quality: [
     {
@@ -184,12 +179,24 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
     {
       // RPT-31: the Agent Inbox, one manager-grade cockpit unifying pending
       // approvals, the just-happened log, and every applied change to verify or
-      // roll back. Ordered first so the Record room opens on the cockpit.
+      // roll back.
       id: "verify",
       label: "What just happened",
       technical: "Verification cockpit",
       descriptor:
         "Approvals waiting on you, the just-happened log, and every applied change to verify or roll back.",
+    },
+    {
+      // TRUST-LEDGER MERGE (IA spine 2026-07-11): the Trust Ledger surface is
+      // the Record room's front tab. Receipts, traces, and the approvals
+      // record are the one Record answer; the tamper seal and public-share
+      // controls live here on the receipts tab. /trust-ledger 301s to this
+      // room, so its old deep links land on this front tab.
+      id: "receipts",
+      label: "Paper trail",
+      technical: "Trust ledger",
+      descriptor:
+        "Every decision and action as a receipt, with its evidence, share controls, and the tamper seal.",
     },
     {
       id: "traces",
@@ -203,12 +210,9 @@ export const ROOM_TAB_META: Record<RoomKey, RoomTabMeta[]> = {
       technical: "Approval log",
       descriptor: "What you approved or declined, and when.",
     },
-    {
-      id: "ledger",
-      label: "Tamper check",
-      technical: "Ledger seal",
-      descriptor: "Proof the record has not been altered.",
-    },
+    // The "ledger" tamper-check tab folded into the receipts tab's seal panel
+    // (one Record answer); an old ?view=ledger link falls back to receipts,
+    // where the same tamper check lives.
     {
       id: "support",
       label: "From your users",

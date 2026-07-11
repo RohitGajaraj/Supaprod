@@ -13,6 +13,7 @@ import {
 import { getStakeholderPack } from "@/lib/stakeholder-pack.functions";
 import type { PackAudience } from "@/lib/stakeholder-pack";
 import { decisionOptionLabel } from "./format";
+import { SectionSummaryCard } from "./SectionSummaryCard";
 
 const AUDIENCE_TABS: { id: PackAudience; label: string }[] = [
   { id: "exec", label: "EXECUTIVE" },
@@ -27,7 +28,15 @@ const AUDIENCE_TABS: { id: PackAudience; label: string }[] = [
  * (SpecList/RoadmapColumns loading/error/empty shapes, RoomDetail's
  * underline tablist for the 3-way switch).
  */
-export function StakeholderPackPanel() {
+export function StakeholderPackPanel({
+  collapsed = false,
+  onExpand,
+}: {
+  /** IA SPINE (2026-07-11): when collapsed, the panel renders as one summary
+   * card (count + last activity) that expands on demand. */
+  collapsed?: boolean;
+  onExpand?: () => void;
+}) {
   const [decisionId, setDecisionId] = useState<string | undefined>(undefined);
   const [audience, setAudience] = useState<PackAudience>("exec");
   const [copied, setCopied] = useState(false);
@@ -51,6 +60,39 @@ export function StakeholderPackPanel() {
     } catch {
       /* clipboard unavailable; the rendered pack below is still selectable */
     }
+  }
+
+  // Collapsed: one summary card (count + last decision), expanding on demand.
+  if (collapsed) {
+    const occurred = query.data?.selected?.brief?.occurredAt;
+    const when = occurred
+      ? new Date(occurred).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      : null;
+    return (
+      <SectionSummaryCard
+        label="Show the stakeholder pack"
+        loading={query.isPending}
+        primary={
+          query.isPending
+            ? "Building the stakeholder pack…"
+            : query.isError
+              ? "Couldn't load the stakeholder pack"
+              : decisions.length === 0
+                ? "No decisions to pack yet"
+                : `${decisions.length} decision${decisions.length === 1 ? "" : "s"} ready to pack`
+        }
+        detail={
+          query.isError
+            ? "Open to retry"
+            : decisions.length === 0
+              ? "Make a few calls in the loop and they show up here"
+              : when
+                ? `Last decision ${when}`
+                : null
+        }
+        onExpand={onExpand}
+      />
+    );
   }
 
   function download() {
@@ -101,6 +143,7 @@ export function StakeholderPackPanel() {
         <button
           type="button"
           onClick={() => query.refetch()}
+          className="outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",

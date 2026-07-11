@@ -347,7 +347,10 @@ export function AnalyticsPanel() {
                     key={x.slug}
                     className="lift"
                     onClick={() =>
-                      navigate({ to: "/govern", search: { tab: "analytics", agent: x.slug } })
+                      navigate({
+                        to: "/engine-room",
+                        search: { room: "spend", view: "usage", agent: x.slug },
+                      })
                     }
                     style={{
                       display: "flex",

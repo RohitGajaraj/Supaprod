@@ -17,13 +17,7 @@ import { LOOM_CARD } from "@/components/studio/studio-ui";
 
 /** The entity kinds the stage_events read side accepts (getStageEvents). */
 export type StageEntityType =
-  | "spec"
-  | "mission"
-  | "opportunity"
-  | "theme"
-  | "decision"
-  | "goal"
-  | "loop";
+  "spec" | "mission" | "opportunity" | "theme" | "decision" | "goal" | "loop";
 
 export interface StageTimelineProps {
   entityType: StageEntityType;
@@ -129,14 +123,15 @@ export function StageTimeline({ entityType, entityId, variant = "detailkit" }: S
           ledger shows the machine's whole decision/action record. */}
       <div style={{ marginTop: "10px" }}>
         <Link
-          to="/trust-ledger"
+          to="/engine-room"
+          search={{ room: "record" }}
           style={{
             fontSize: "12px",
             color: "var(--text-subtle)",
             textDecoration: "none",
           }}
         >
-          See the full chain in the Trust Ledger
+          See the full chain in the record room
         </Link>
       </div>
     </DetailSection>

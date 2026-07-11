@@ -1,26 +1,26 @@
-// Brain — the product's memory, one substrate of everything it knows.
-// Loom W2-BRAIN (2026-07-04): eight tabs (Insights+Impact merged, Docs+
-// Changelog merged; every legacy ?tab= value still resolves), every tab panel
-// lazy-loaded behind a layout-matching skeleton (the 527KB route chunk fix),
-// counts scoped to the active workspace, and the v4 work-surface canvas
-// (container-work, 14px base, mono floor 10.5). The "memory" tab is the
-// compounding agent-recall; "learnings" the human-recorded outcome feed.
-// Founder rulings 2026-06-16 (Knowledge -> Brain) and 2026-07-04 (Loom).
+// Memory. The product's ledger of record: one substrate of everything it
+// knows. Route stays /brain (deep-link honesty); the surface label is Memory
+// (Tempo revamp, 2026-07-11).
 //
-// Drill contract: detail state rides optional search params (?decision= ->
-// DecisionDetail, ?learning= -> LearningDetail, ?meeting= -> the calendar
-// meeting). The detail replaces ONLY the tab body; the hero and count strip
-// stay in every state. setTab navigates with a fresh search object so EVERY
-// drill param (including ?meeting) clears on a tab switch.
+// Four flat tabs: Decisions, Learnings, Docs, Graph. The PC-34 lens layer
+// (front door + lens doors + within-lens sub-nav) is retired as navigation;
+// the tab bar is the navigation again. Insights and the impact ledger fold
+// into Decisions as the outcome record; agent recall and its review gate fold
+// into Learnings; the Brief folds into Docs. Calendar left this surface
+// entirely (meetings live on Today's PM Desk now).
 //
-// PC-34: the opening view is now the front door (ask + what changed +
-// volunteered insights) plus four lens doors (Identity/Judgment/Knowledge/
-// Capability) - no tab bar as the opener. An absent ?tab= renders the front
-// door; any tab value (old or new) renders that panel with a within-lens
-// sub-nav instead of the old flat 9-tab bar. Every previously reachable tab
-// stays reachable; this is a re-parenting, not a removal.
+// Every tab id that ever existed still resolves: LEGACY_TABS maps each old
+// value onto one of the four tabs, and validateSearch normalizes at parse
+// time, so old links land somewhere true. The legacy ids stay in the search
+// TYPE union so out-of-surface links and redirect stubs keep compiling.
+//
+// Drill contract unchanged: detail state rides optional search params
+// (?decision= -> DecisionDetail, ?learning= -> LearningDetail). The detail
+// replaces ONLY the tab body; the hero and count strip stay in every state.
+// setTab navigates with a fresh search object so every drill param clears on
+// a tab switch.
 import { lazy, Suspense, useState } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -35,8 +35,8 @@ import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
 
-/** PC-29 layer 2: Brain's station agent. */
-const BRAIN_STATION_AGENTS = ["data-analyst"];
+/** PC-29 layer 2: Memory's station agent. */
+const MEMORY_STATION_AGENTS = ["data-analyst"];
 
 // Every tab panel is code-split: only the active tab's module loads.
 const InsightsPanel = lazy(() =>
@@ -47,13 +47,10 @@ const ImpactLedgerPanel = lazy(() =>
     default: m.ImpactLedgerPanel,
   })),
 );
-const CalendarPanel = lazy(() =>
-  import("@/components/knowledge/CalendarPanel").then((m) => ({ default: m.CalendarPanel })),
-);
 const MemoryList = lazy(() =>
   import("@/components/memory/MemoryList").then((m) => ({ default: m.MemoryList })),
 );
-// RPT-28: the write review gate sits above the recall list — nothing enters
+// RPT-28: the write review gate sits above the recall list. Nothing enters
 // agent_memory without an approval here.
 const MemoryReviewQueue = lazy(() =>
   import("@/components/memory/MemoryReviewQueue").then((m) => ({ default: m.MemoryReviewQueue })),
@@ -99,246 +96,78 @@ const ShipHistoryPanel = lazy(() =>
     default: m.ShipHistoryPanel,
   })),
 );
-const JudgmentTimeline = lazy(() =>
-  import("@/components/knowledge/JudgmentTimeline").then((m) => ({
-    default: m.JudgmentTimeline,
-  })),
-);
-// RPT-01: the "why did we decide X?" recall card - a named query surface
-// over the same decisions the Judgment timeline already composes.
-const RecallCard = lazy(() =>
-  import("@/components/knowledge/RecallCard").then((m) => ({ default: m.RecallCard })),
-);
-const BrainFrontDoor = lazy(() =>
-  import("@/components/obsidian/BrainFrontDoor").then((m) => ({ default: m.BrainFrontDoor })),
-);
-const CapabilitiesPanel = lazy(() =>
-  import("@/components/knowledge/CapabilitiesPanel").then((m) => ({
-    default: m.CapabilitiesPanel,
-  })),
-);
 
-type Tab =
-  | "insights"
-  | "calendar"
-  | "memory"
-  | "learnings"
-  | "decisions"
-  | "judgment"
-  | "recall"
-  | "brief"
-  | "design"
-  | "graph"
-  | "docs"
-  | "capabilities";
-const TABS: Tab[] = [
-  "insights",
-  "calendar",
-  "memory",
-  "learnings",
-  "decisions",
-  "judgment",
-  "recall",
-  "brief",
-  "design",
-  "graph",
-  "docs",
-  "capabilities",
-];
-
-// PC-34: the IA mirrors the memory model (Identity/Judgment/Knowledge/
-// Capability), not the storage tables. Every tab still lives somewhere real -
-// this only groups them; the flat 9-tab bar retires as the OPENING view, but
-// every tab stays one click away inside its lens. Graph is a shared member of
-// both Judgment and Knowledge (the spec: "the marquee within Judgment/
-// Knowledge... not a peer tab"), reachable from either. PC-30 lands capability
-// lens content here.
-type LensId = "identity" | "judgment" | "knowledge" | "capability";
-const LENS_ORDER: LensId[] = ["identity", "judgment", "knowledge", "capability"];
-const LENS_TABS: Record<LensId, Tab[]> = {
-  identity: ["brief", "design"],
-  judgment: ["judgment", "recall", "insights", "decisions", "learnings", "graph"],
-  knowledge: ["memory", "docs", "calendar", "graph"],
-  capability: ["capabilities"],
-};
-const LENS_LABEL: Record<LensId, string> = {
-  identity: "Identity",
-  judgment: "Judgment",
-  knowledge: "Knowledge",
-  capability: "Capability",
-};
-const LENS_ONE_LINER: Record<LensId, string> = {
-  identity: "What we are building, and why.",
-  judgment: "How belief moved: decisions, outcomes, what was learned.",
-  knowledge: "The evidence: signals, docs, meetings, everything gathered.",
-  capability: "What Cadence knows how to do, with receipts.",
-};
-function lensOf(tab: Tab): LensId {
-  for (const lens of LENS_ORDER) {
-    if (LENS_TABS[lens].includes(tab)) return lens;
-  }
-  return "judgment";
-}
-const TAB_LABEL: Record<Tab, string> = {
-  insights: "Insights & impact",
-  calendar: "Calendar",
-  memory: "Memory",
-  learnings: "Learnings",
-  decisions: "Decisions",
-  judgment: "Timeline",
-  recall: "Recall",
-  brief: "Brief",
-  design: "Design",
-  graph: "Graph",
-  docs: "Docs & changelog",
-  capabilities: "Capabilities",
-};
+type Tab = "decisions" | "learnings" | "docs" | "graph";
+const TABS: Tab[] = ["decisions", "learnings", "docs", "graph"];
 
 // Deep-link honesty: every tab id that ever existed still lands somewhere
-// true. Impact folded into Insights; Changelog folded into Docs.
-const LEGACY_TABS: Record<string, Tab> = {
-  impact: "insights",
+// true. Insights, impact, judgment, recall and calendar fold into Decisions
+// (calendar's meetings themselves moved to Today's PM Desk); the agent memory
+// tab folds into Learnings; brief, design, changelog and capabilities fold
+// into Docs.
+type LegacyTab =
+  | "insights"
+  | "impact"
+  | "judgment"
+  | "recall"
+  | "calendar"
+  | "memory"
+  | "brief"
+  | "design"
+  | "changelog"
+  | "capabilities";
+const LEGACY_TABS: Record<LegacyTab, Tab> = {
+  insights: "decisions",
+  impact: "decisions",
+  judgment: "decisions",
+  recall: "decisions",
+  calendar: "decisions",
+  memory: "learnings",
+  brief: "docs",
+  design: "docs",
   changelog: "docs",
+  capabilities: "docs",
+};
+
+const TAB_LABEL: Record<Tab, string> = {
+  decisions: "Decisions",
+  learnings: "Learnings",
+  docs: "Docs",
+  graph: "Graph",
 };
 
 const TAB_DESC: Record<Tab, string> = {
-  insights:
-    "What you have learned, what still stands, and the portable record of the calls you made.",
-  calendar: "Events and meeting transcripts. Open a meeting to capture and extract.",
-  memory: "What the loop recalls: notes agents wrote and the outcomes they distilled.",
+  decisions:
+    "The ledger of record: every call your team made, captured once, and the outcome each one produced.",
   learnings:
-    "What your team recorded: re-scored opportunities and outcome memos, each with a verdict.",
-  decisions: "Every choice your team made, captured once. Sourced from missions, specs, meetings.",
-  judgment:
-    "How belief moved: decisions and what replaced them, in one narrative timeline, plus how often the calls held up.",
-  recall:
-    "Ask why a call was made. Cadence searches your own record and cites the decision it finds.",
-  brief:
-    "The workspace's standing strategic calls: vision, target user, positioning, and top bets. Every edit is versioned, never lost.",
-  design:
-    "Your workspace's design language, learned not configured: tokens, type, spacing, principles, voice, patterns. Every mockup binds to what you approve here.",
+    "What your team recorded and what the loop recalls: outcome memos with verdicts, playbook proposals, and agent memory behind its review gate.",
+  docs: "The standing record: your brief, workspace pages, announcements, the changelog, and ship history.",
   graph:
     "The living map of how signals, specs, and decisions connect. Watch it grow; click a node to walk its history.",
-  docs: "Workspace pages, plus what shipped: announcements, the changelog, and ship history.",
-  capabilities:
-    "What each specialist knows how to do: instructions they receive, skills with validated-outcome rates, autonomy tier, and change history.",
 };
 
-// The Obsidian tab row (OBS-08), tuned to the v4 type scale: mono floor
-// 10.5px, helper description in muted (never faint) ink.
-function BrainTabRow({
-  tabs,
-  active,
-  onSet,
-  desc,
-}: {
-  tabs: { id: Tab; label: string }[];
-  active: Tab;
-  onSet: (id: Tab) => void;
-  desc?: Record<string, string>;
-}) {
+// The tab row: FlashlightTabs (the standard bar) plus the active tab's
+// one-line description in muted ink.
+function MemoryTabRow({ active, onSet }: { active: Tab; onSet: (id: Tab) => void }) {
   return (
     <div style={{ marginBottom: 20 }}>
       <FlashlightTabs
-        tabs={tabs}
+        tabs={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
         active={active}
         onSelect={(id) => onSet(id as Tab)}
-        ariaLabel="Brain sections"
+        ariaLabel="Memory sections"
       />
-      {desc?.[active] ? (
-        <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>{desc[active]}</p>
-      ) : null}
+      <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>{TAB_DESC[active]}</p>
     </div>
   );
 }
 
-/** PC-34: the front door's four lens doors. Each opens its lens's first tab;
- *  PC-30 lands Capability lens content here. */
-function LensCards({ onOpen }: { onOpen: (tab: Tab) => void }) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        gap: 14,
-        marginTop: 28,
-      }}
-    >
-      {LENS_ORDER.map((lens) => {
-        const primary = LENS_TABS[lens][0];
-        return (
-          <button
-            key={lens}
-            type="button"
-            disabled={!primary}
-            onClick={() => primary && onOpen(primary)}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{
-              textAlign: "left",
-              background: "var(--card)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-card)",
-              boxShadow: "var(--top-light)",
-              padding: "16px 18px",
-              opacity: primary ? 1 : 0.55,
-              cursor: primary ? "pointer" : "default",
-            }}
-          >
-            <MonoLabel style={{ display: "block", marginBottom: 6 }}>{LENS_LABEL[lens]}</MonoLabel>
-            <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-              {LENS_ONE_LINER[lens]}
-            </p>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/** PC-34: the within-lens sub-nav, replacing the old flat 9-tab bar. Shows
- *  only the active lens's siblings (graph is a member of both Judgment and
- *  Knowledge, so it appears in whichever lens the reader entered from) plus
- *  a quiet way back to the front door. */
-function LensSubNav({
-  active,
-  onSet,
-  onBack,
-}: {
-  active: Tab;
-  onSet: (id: Tab) => void;
-  onBack: () => void;
-}) {
-  const lens = lensOf(active);
-  const tabs = LENS_TABS[lens].map((id) => ({ id, label: TAB_LABEL[id] }));
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <button
-        type="button"
-        onClick={onBack}
-        className="loom-press outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          fontFamily: "var(--font-ui)",
-          fontSize: 12.5,
-          color: "var(--text-muted)",
-          background: "transparent",
-          border: "none",
-          padding: 0,
-          marginBottom: 12,
-        }}
-      >
-        ← Brain
-      </button>
-      <BrainTabRow tabs={tabs} active={active} onSet={onSet} desc={TAB_DESC} />
-    </div>
-  );
-}
-
-/** PC-34: the recessed door. Raw substrate counts an agent cares about far
- *  more than a human does, behind one collapsed disclosure (the same idiom
- *  as EngineRoomDisclosure on Build) - never a new room, never hidden
- *  entirely. Only ever shows numbers already fetched for the front door;
- *  never fabricates a decay/embedding figure the codebase can't back yet. */
-function BrainMachineryDisclosure({
+/** The recessed door. Raw substrate counts an agent cares about far more
+ *  than a human does, behind one collapsed disclosure (the same idiom as
+ *  EngineRoomDisclosure on Build). Never a new room, never hidden entirely.
+ *  Only ever shows numbers already fetched for the count strip; never
+ *  fabricates a decay or embedding figure the codebase can't back yet. */
+function MemoryMachineryDisclosure({
   counts,
 }: {
   counts: { label: string; value: string }[] | null;
@@ -351,7 +180,7 @@ function BrainMachineryDisclosure({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="loom-press"
+        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           display: "flex",
           alignItems: "center",
@@ -396,7 +225,7 @@ function BrainMachineryDisclosure({
           }}
         >
           <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 10px" }}>
-            The counts every agent reads before it acts. You never need these to use Brain; they
+            The counts every agent reads before it acts. You never need these to use Memory; they
             exist so a curious eye can see the substrate is real.
           </p>
           <div className="flex flex-wrap" style={{ gap: 16 }}>
@@ -422,8 +251,8 @@ function BrainMachineryDisclosure({
   );
 }
 
-/** v4 work surface: Brain earns the working width (container-work, 1520px). */
-function BrainSurface({ children }: { children: React.ReactNode }) {
+/** v4 work surface: Memory earns the working width (container-work, 1520px). */
+function MemorySurface({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -436,7 +265,7 @@ function BrainSurface({ children }: { children: React.ReactNode }) {
         overflow: "hidden",
       }}
     >
-      {/* Loom §2b glow field: the one ambient wash behind the hero. */}
+      {/* The one ambient wash behind the hero. */}
       <div aria-hidden="true" className="loom-glow-field" />
       {children}
     </div>
@@ -490,18 +319,21 @@ export const Route = createFileRoute("/_authenticated/brain")({
   validateSearch: (
     search: Record<string, unknown>,
   ): {
-    tab?: Tab;
+    // The TYPE union keeps every legacy id so out-of-surface links and the
+    // redirect stubs still compile; the RUNTIME value is always one of the
+    // four tabs (or undefined, which the page reads as Decisions). `meeting`
+    // stays in the type for the same reason; meetings render on Today now.
+    tab?: Tab | LegacyTab;
     meeting?: string;
     decision?: string;
     learning?: string;
     focusKind?: string;
     focusId?: string;
   } => {
-    // PC-34: an absent/empty/unrecognized ?tab= opens the front door (no
-    // default tab anymore) - every PREVIOUSLY valid tab value, and every
-    // legacy alias, still resolves to exactly the panel it always did.
     const raw = typeof search.tab === "string" ? search.tab : "";
-    const tab: Tab | undefined = (TABS as string[]).includes(raw) ? (raw as Tab) : LEGACY_TABS[raw];
+    const tab: Tab | undefined = (TABS as string[]).includes(raw)
+      ? (raw as Tab)
+      : LEGACY_TABS[raw as LegacyTab];
     return {
       tab,
       meeting: typeof search.meeting === "string" ? search.meeting : undefined,
@@ -511,10 +343,10 @@ export const Route = createFileRoute("/_authenticated/brain")({
       focusId: typeof search.focusId === "string" ? search.focusId : undefined,
     };
   },
-  component: BrainPage,
-  head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
+  component: MemoryPage,
+  head: () => ({ meta: [{ title: "Memory · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
-    <BrainSurface>
+    <MemorySurface>
       <div
         style={{
           background: "var(--card)",
@@ -524,7 +356,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
           padding: "16px 18px",
         }}
       >
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brain · failed to load</MonoLabel>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Memory · failed to load</MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
@@ -544,12 +376,12 @@ export const Route = createFileRoute("/_authenticated/brain")({
           Retry · reloads this surface
         </button>
       </div>
-    </BrainSurface>
+    </MemorySurface>
   ),
   notFoundComponent: () => (
-    <BrainSurface>
+    <MemorySurface>
       <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>Not found.</p>
-    </BrainSurface>
+    </MemorySurface>
   ),
 });
 
@@ -611,14 +443,18 @@ function StripSkeleton() {
   );
 }
 
-function BrainPage() {
-  const { tab, meeting, decision, learning, focusKind, focusId } = Route.useSearch();
+function MemoryPage() {
+  const search = Route.useSearch();
+  // validateSearch already normalized legacy ids at parse time, so the
+  // runtime value here is always one of the four tabs (or absent).
+  const tab: Tab = (search.tab as Tab | undefined) ?? "decisions";
+  const { decision, learning, focusKind, focusId } = search;
   const navigate = useNavigate({ from: "/brain" });
   const { activeWorkspace, activeWorkspaceId } = useWorkspace();
   const fBrain = useServerFn(getBrainStatus);
   const brain = useQuery({
-    // Workspace-scoped counts (Loom W2-BRAIN): the key carries the workspace
-    // so a switch refetches, and the fn narrows the counts server-side.
+    // Workspace-scoped counts: the key carries the workspace so a switch
+    // refetches, and the fn narrows the counts server-side.
     queryKey: ["brain-status", activeWorkspaceId],
     queryFn: () => fBrain({ data: { workspaceId: activeWorkspaceId } }),
   });
@@ -627,24 +463,19 @@ function BrainPage() {
     queryKey: ["company-brain-stats", activeWorkspaceId],
     queryFn: () => fStats({ data: { workspaceId: activeWorkspaceId } }),
   });
-  // PC-29 layer 2: shared cache with Build's "By Agent" tab (same
-  // queryKey) - a cache read here, not a second network call, on the same
-  // workspace. Scoped by workspaceId so switching workspaces doesn't show
-  // another workspace's agent activity.
+  // PC-29 layer 2: shared cache with Build's "By Agent" tab (same queryKey).
+  // A cache read here, not a second network call, on the same workspace.
   const fFleet = useServerFn(getAgentFleet);
   const fleet = useQuery({
     queryKey: ["agent-fleet", activeWorkspaceId],
     queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
   });
-  const presenceAgent = fleet.data?.fleet.agents.find((a) => BRAIN_STATION_AGENTS.includes(a.slug));
+  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
+    MEMORY_STATION_AGENTS.includes(a.slug),
+  );
 
-  // Fresh search object: every drill param clears on a tab switch (the old
-  // version carried ?meeting across tabs).
+  // Fresh search object: every drill param clears on a tab switch.
   const setTab = (next: Tab) => navigate({ search: { tab: next } });
-  const setMeeting = (m: string | undefined) => navigate({ search: { tab, meeting: m } });
-  // PC-34: clears every search param, including tab - the way back to the
-  // front door from inside any lens.
-  const goToFrontDoor = () => navigate({ search: {} });
 
   // The count strip: every number is a real head count for THIS workspace.
   const strip: { label: string; value: string; live?: boolean }[] | null =
@@ -663,9 +494,9 @@ function BrainPage() {
 
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
-      <BrainSurface>
-        {/* The Obsidian hero: one ember italic word, mono kicker, no icon. */}
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Memory"]} />
+      <MemorySurface>
+        {/* The hero: one ember italic word, mono kicker, no icon. */}
         <div style={{ marginBottom: 8 }}>
           <div
             style={{
@@ -677,7 +508,7 @@ function BrainPage() {
               marginBottom: 10,
             }}
           >
-            Loop · Brain
+            Loop · Memory
           </div>
           <h1
             style={{
@@ -707,8 +538,8 @@ function BrainPage() {
               />
             </div>
           ) : null}
-          {/* PC-29 layer 4: the inline relay, live only while Measure/Learn has a
-              run going. Brain was the one station missing this among the 5. */}
+          {/* PC-29 layer 4: the inline relay, live only while Measure/Learn
+              has a run going. */}
           <div style={{ marginBottom: 18 }}>
             <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
           </div>
@@ -730,7 +561,7 @@ function BrainPage() {
             minHeight: 41,
           }}
         >
-          <MonoLabel>Product brain</MonoLabel>
+          <MonoLabel>Product memory</MonoLabel>
           {strip ? (
             strip.map((s) => <StripStat key={s.label} {...s} />)
           ) : stripFailed ? (
@@ -774,124 +605,81 @@ function BrainPage() {
 
         <MemoryUpgradeNudge />
 
-        {!tab ? (
-          <>
-            <Suspense fallback={<TabSkeleton />}>
-              <BrainFrontDoor />
-            </Suspense>
-            <LensCards onOpen={setTab} />
-            <BrainMachineryDisclosure counts={strip} />
-          </>
-        ) : (
-          <>
-            <LensSubNav active={tab} onSet={setTab} onBack={goToFrontDoor} />
-            <Suspense fallback={<TabSkeleton />}>
-              {tab === "insights" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                  <section>
-                    <InsightsPanel />
-                  </section>
-                  <section>
-                    <SectionTitle>Your impact record</SectionTitle>
-                    <ImpactLedgerPanel />
-                  </section>
-                </div>
-              )}
-              {tab === "calendar" && (
-                <CalendarPanel meetingId={meeting} onMeetingChange={setMeeting} />
-              )}
-              {tab === "memory" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                  <section>
-                    <SectionTitle>Review gate</SectionTitle>
-                    <MemoryReviewQueue />
-                  </section>
-                  <section>
-                    <SectionTitle>What the loop recalls</SectionTitle>
-                    <MemoryList />
-                  </section>
-                </div>
-              )}
-              {tab === "learnings" &&
-                (learning ? (
-                  <LearningDetail id={learning} />
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    {/* SW-3 (mission 3.8b): the compounding pass's human half -
-                        open playbook proposals render above the feed they
-                        compound from; the panel is invisible when none wait. */}
-                    <PlaybookProposalsPanel />
-                    <CompoundingPanel />
-                  </div>
-                ))}
-              {tab === "decisions" &&
-                (decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />)}
-              {tab === "judgment" && <JudgmentTimeline />}
-              {tab === "recall" && <RecallCard />}
-              {tab === "brief" && <BriefPanel />}
-              {tab === "design" && (
-                <div
-                  style={{
-                    background: "var(--card)",
-                    border: "1px dashed var(--hairline)",
-                    borderRadius: "var(--radius-card)",
-                    padding: "40px 24px",
-                    textAlign: "center",
-                  }}
-                >
-                  <MonoLabel style={{ display: "block", marginBottom: 8 }}>Moved</MonoLabel>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "var(--text-muted)",
-                      maxWidth: 440,
-                      margin: "0 auto 14px",
-                    }}
-                  >
-                    Design now has its own home: your Brand Kit and every prototype, in one place.
-                  </p>
-                  <Link
-                    to="/design"
-                    style={{
-                      display: "inline-block",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "var(--text-primary)",
-                      border: "1px solid var(--hairline-strong)",
-                      borderRadius: "var(--radius-control)",
-                      padding: "8px 16px",
-                    }}
-                  >
-                    Open Design
-                  </Link>
-                </div>
-              )}
-              {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
-              {tab === "docs" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                  <section>
-                    <SectionTitle>Docs</SectionTitle>
-                    <DocsPanel />
-                  </section>
-                  <section>
-                    <SectionTitle>Announcements</SectionTitle>
-                    <AnnouncementsPanel />
-                  </section>
-                  <section>
-                    <SectionTitle>Changelog</SectionTitle>
-                    <ChangelogPanel />
-                  </section>
-                  <section>
-                    <SectionTitle>Ship history</SectionTitle>
-                    <ShipHistoryPanel />
-                  </section>
-                </div>
-              )}
-              {tab === "capabilities" && <CapabilitiesPanel />}
-            </Suspense>
-          </>
-        )}
-      </BrainSurface>
+        <MemoryTabRow active={tab} onSet={setTab} />
+        <Suspense fallback={<TabSkeleton />}>
+          {tab === "decisions" &&
+            (decision ? (
+              <DecisionDetail id={decision} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                <section>
+                  <DecisionsPanel />
+                </section>
+                {/* The outcome record: what each call produced. Folds the
+                    retired Insights and Impact tabs into the ledger. */}
+                <section>
+                  <SectionTitle>Outcomes</SectionTitle>
+                  <InsightsPanel />
+                </section>
+                <section>
+                  <SectionTitle>Your impact record</SectionTitle>
+                  <ImpactLedgerPanel />
+                </section>
+              </div>
+            ))}
+          {tab === "learnings" &&
+            (learning ? (
+              <LearningDetail id={learning} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                <section>
+                  {/* SW-3: open playbook proposals render above the feed they
+                      compound from; the panel is invisible when none wait. */}
+                  <PlaybookProposalsPanel />
+                  <CompoundingPanel />
+                </section>
+                {/* The retired agent-memory tab folds in here: the write
+                    review gate first, then what the loop recalls. */}
+                <section>
+                  <SectionTitle>Review gate</SectionTitle>
+                  <MemoryReviewQueue />
+                </section>
+                <section>
+                  <SectionTitle>What the loop recalls</SectionTitle>
+                  <MemoryList />
+                </section>
+              </div>
+            ))}
+          {tab === "docs" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+              {/* The retired Brief tab folds in as the standing record's
+                  first section: versioned strategic calls, never lost. */}
+              <section>
+                <SectionTitle>Brief</SectionTitle>
+                <BriefPanel />
+              </section>
+              <section>
+                <SectionTitle>Docs</SectionTitle>
+                <DocsPanel />
+              </section>
+              <section>
+                <SectionTitle>Announcements</SectionTitle>
+                <AnnouncementsPanel />
+              </section>
+              <section>
+                <SectionTitle>Changelog</SectionTitle>
+                <ChangelogPanel />
+              </section>
+              <section>
+                <SectionTitle>Ship history</SectionTitle>
+                <ShipHistoryPanel />
+              </section>
+            </div>
+          )}
+          {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
+        </Suspense>
+        <MemoryMachineryDisclosure counts={strip} />
+      </MemorySurface>
     </>
   );
 }

@@ -94,7 +94,8 @@ export function DataSubstrateCard() {
             has not been altered. No blockchain, no keys, just a checksum every user can run.
           </p>
           <Link
-            to="/trust-ledger"
+            to="/engine-room"
+            search={{ room: "record" }}
             style={{
               marginTop: 10,
               display: "inline-flex",

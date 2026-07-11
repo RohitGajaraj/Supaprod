@@ -1,13 +1,10 @@
 import { memo } from "react";
-import { ArrowUpRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AskInContext } from "@/components/obsidian/AskInContext";
-import { relTimeCaps, traceRef } from "./format";
 
 export interface ThemeRowProps {
   themeId: string;
@@ -18,16 +15,12 @@ export interface ThemeRowProps {
   signalCount: number;
   /** Distinct sources among the member signals. */
   sourceCount: number;
-  /** Newest member's created_at, or null when the theme has no members yet. */
-  newestCreatedAt: string | null;
-  /** The theme's own `created_at` (when Cadence clustered it), source of the
-   * quiet "clustered ..." caption on the trace tail. Themes carry no
-   * `updated_at`, so this is the honest freshness stamp; omit and it is
-   * skipped rather than fabricated. */
-  createdAt?: string | null;
   onOpenDetail: (themeId: string) => void;
   onPromote: () => void;
   onDraftSpec: () => void;
+  /** PC-29 layer 6: the theme's one delegation verb ("Frame the bet"), now a
+   * menu item instead of an inline trigger so the row stays quiet. */
+  onAsk: () => void;
   /** Mirrors OpportunityRow: any in-flight mutation disables the row actions. */
   actionsPending?: boolean;
 }
@@ -37,12 +30,12 @@ const plural = (n: number) => (n === 1 ? "" : "s");
 /**
  * One corroboration-ranked theme, the left-column sibling of `OpportunityRow`.
  * Same card shell (card fill, hairline, card radius, top-light + ambient
- * shadow), the same left metric-block anatomy as the ICE numeral, and the same
- * trailing overflow menu. The block leads with the explicit rank (the top one
- * in ember) over the signal count it is scored on. The whole row is a button
- * that opens `ThemeDetail`; the menu stops propagation so a menu press never
- * also opens the drawer. Memoized to prevent re-renders when parent re-renders
- * but props unchanged.
+ * shadow) and the same left metric-block anatomy as the ICE numeral. Rows go
+ * quiet (2026-07-11): rank, title, and "N signals · M sources" only. The
+ * trace ref and "clustered ..." stamp live in ThemeDetail, and every action
+ * lives in the one overflow menu (Promote / Draft spec / Frame the bet); the
+ * row itself is the open affordance. Memoized to prevent re-renders when
+ * parent re-renders but props unchanged.
  */
 export const ThemeRow = memo(function ThemeRow({
   themeId,
@@ -50,16 +43,13 @@ export const ThemeRow = memo(function ThemeRow({
   rank,
   signalCount,
   sourceCount,
-  newestCreatedAt,
-  createdAt,
   onOpenDetail,
   onPromote,
   onDraftSpec,
+  onAsk,
   actionsPending = false,
 }: ThemeRowProps) {
-  const sub =
-    `${sourceCount} source${plural(sourceCount)}` +
-    (newestCreatedAt ? ` · newest ${relTimeCaps(newestCreatedAt)}` : "");
+  const sub = `${signalCount} signal${plural(signalCount)} · ${sourceCount} source${plural(sourceCount)}`;
   const topRanked = rank === 1;
   return (
     <div
@@ -101,13 +91,12 @@ export const ThemeRow = memo(function ThemeRow({
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "10px",
-            letterSpacing: "0.06em",
-            color: "var(--text-subtle)",
+            letterSpacing: "0.14em",
+            color: "var(--text-faint)",
             marginTop: "3px",
-            whiteSpace: "nowrap",
           }}
         >
-          {signalCount} signal{plural(signalCount)}
+          RANK
         </div>
       </div>
 
@@ -127,63 +116,7 @@ export const ThemeRow = memo(function ThemeRow({
           {title}
         </div>
         <div style={{ fontSize: "12px", lineHeight: 1.5, color: "var(--text-subtle)" }}>{sub}</div>
-        <div className="flex flex-wrap items-center" style={{ marginTop: "5px" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9.5px",
-              letterSpacing: "0.06em",
-              color: "var(--text-faint)",
-            }}
-          >
-            THM·{traceRef(themeId)}
-          </span>
-          {createdAt ? (
-            <>
-              <span
-                aria-hidden="true"
-                style={{ margin: "0 8px", fontSize: "9.5px", color: "var(--text-faint)" }}
-              >
-                ·
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "9.5px",
-                  letterSpacing: "0.04em",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                clustered {relTimeCaps(createdAt)}
-              </span>
-            </>
-          ) : null}
-        </div>
       </div>
-
-      <button
-        type="button"
-        title="Promote to opportunity"
-        aria-label="Promote to opportunity"
-        disabled={actionsPending}
-        onClick={(event) => {
-          event.stopPropagation();
-          if (!actionsPending) onPromote();
-        }}
-        className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--ember-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          flexShrink: 0,
-          display: "inline-flex",
-          alignItems: "center",
-          background: "none",
-          border: "none",
-          cursor: actionsPending ? "default" : "pointer",
-          opacity: actionsPending ? 0.5 : 1,
-          padding: "2px 4px",
-        }}
-      >
-        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -192,7 +125,7 @@ export const ThemeRow = memo(function ThemeRow({
             aria-label="Theme actions"
             disabled={actionsPending}
             onClick={(event) => event.stopPropagation()}
-            className="loom-press"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
@@ -211,11 +144,9 @@ export const ThemeRow = memo(function ThemeRow({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={onPromote}>Promote to opportunity</DropdownMenuItem>
           <DropdownMenuItem onClick={onDraftSpec}>Draft spec</DropdownMenuItem>
+          <DropdownMenuItem onClick={onAsk}>Frame the bet</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* PC-29 layer 6: the one contextual delegation verb for a theme. */}
-      <AskInContext stationOrKind="theme" targetId={themeId} targetTitle={title} />
     </div>
   );
 });

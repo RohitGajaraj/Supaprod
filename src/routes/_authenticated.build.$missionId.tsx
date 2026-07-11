@@ -33,6 +33,8 @@ import {
 import { renameMission } from "@/lib/missions.functions";
 import { listDeployments } from "@/lib/deployments.functions";
 import { SessionTimeline } from "@/components/studio/SessionTimeline";
+import { ApprovalCard } from "@/components/studio/ApprovalCard";
+import { AgentRelay } from "@/components/agents/AgentRelay";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { EngineRoomDisclosure } from "@/components/studio/EngineRoomDisclosure";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
@@ -380,6 +382,67 @@ function steerClosedReason(status: string | undefined): string | null {
   return null;
 }
 
+/** The raw mono session log, folded behind one recessed toggle (the
+ *  EngineRoomDisclosure idiom: name the outcome outside, keep the machinery
+ *  behind one door). The relay narrative above is the lede; this is depth.
+ *  Pending gates render OUTSIDE the fold (a gate may never hide). */
+function ExecutionLogFold({
+  runs,
+  steers,
+  onChanged,
+}: {
+  runs: StudioRunDetail[];
+  steers: Steer[];
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const runCount = runs.length;
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{
+          width: "100%",
+          minHeight: 32,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: "var(--surface-recessed)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-control)",
+          boxShadow: "var(--top-light)",
+          padding: "7px 12px",
+          cursor: "pointer",
+          color: "var(--text-subtle)",
+        }}
+      >
+        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        <span className="mono-label" style={{ fontSize: "var(--text-mono-floor)" }}>
+          Full execution log
+        </span>
+        <span
+          className="mono-label tabular-nums"
+          style={{
+            marginLeft: "auto",
+            fontSize: "var(--text-mono-floor)",
+            color: "var(--text-faint)",
+          }}
+        >
+          {runCount} run{runCount === 1 ? "" : "s"}
+        </span>
+      </button>
+      {open ? (
+        <div className="fade-up" style={{ marginTop: 10 }}>
+          <SessionTimeline runs={runs} steers={steers} approvals={[]} onChanged={onChanged} />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 /** Loading skeleton that matches the loaded two-column layout (§9). */
 function SessionSkeleton() {
   return (
@@ -434,8 +497,7 @@ function BuildSessionPage() {
   const mission = (data?.mission ?? null) as MissionRow | null;
   const runs = (data?.runs ?? []) as StudioRunDetail[];
   const changeset = (data?.changeset ?? null) as
-    | (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null })
-    | null;
+    (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null }) | null;
   const changes = (data?.changes ?? []) as ChangeRow[];
   const fileSetPolicy = (data?.fileSetPolicy ?? null) as StudioFileSetPolicy | null;
   const constraints = (data?.constraints ?? null) as StudioConstraints;
@@ -492,10 +554,12 @@ function BuildSessionPage() {
 
   return (
     <>
+      {/* IA SPINE (2026-07-11): the Build crumb navigates; the bespoke
+          "← All missions" back link is gone. */}
       <TopBar
         crumbs={[
           activeWorkspace?.name ?? "Workspace",
-          "Build",
+          { label: "Build", to: "/build" },
           ...(mission ? [stripAutoPrefix(mission.title)] : []),
         ]}
       />
@@ -508,20 +572,6 @@ function BuildSessionPage() {
           margin: "0 auto",
         }}
       >
-        <Link
-          to="/build"
-          className="mono-label loom-press"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            marginBottom: 18,
-            color: "var(--glacier)",
-          }}
-        >
-          ← All missions
-        </Link>
-
         {!isOrchestratorMission && mission && (
           <header style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -738,14 +788,20 @@ function BuildSessionPage() {
                 className="mono-label"
                 style={{ margin: 0, fontSize: "var(--text-mono-floor)", fontWeight: 500 }}
               >
-                Session timeline
+                Mission activity
               </h2>
-              <SessionTimeline
-                runs={runs}
-                steers={steers}
-                approvals={approvals}
-                onChanged={invalidate}
-              />
+              {/* The relay narrative is the lede for EVERY mission kind: named
+                  agents, the current verb, the glacier shimmer on the running
+                  row, handoff arrows. The raw mono log folds below. */}
+              <AgentRelay variant="full" missionId={missionId} />
+              {/* Gates stay outside the fold: a decision waiting on a human
+                  may never hide behind a disclosure. */}
+              {approvals
+                .filter((a) => a.status === "pending")
+                .map((a) => (
+                  <ApprovalCard key={a.id} approval={a} onDecided={invalidate} />
+                ))}
+              <ExecutionLogFold runs={runs} steers={steers} onChanged={invalidate} />
               <SteerComposer
                 missionId={missionId}
                 closedReason={steerClosedReason(mission?.status)}

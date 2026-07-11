@@ -30,7 +30,9 @@ describe("loopIndexForPath — where the operator currently sits", () => {
     expect(loopIndexForPath("/plan")).toBe(2);
     expect(loopIndexForPath("/build")).toBe(3);
     expect(loopIndexForPath("/brain")).toBe(5);
-    expect(loopIndexForPath("/trust-ledger")).toBe(6);
+    // IA SPINE (2026-07-11): the Trust stage's home is the Engine Room
+    // (record room); /trust-ledger is a redirect stub.
+    expect(loopIndexForPath("/engine-room")).toBe(6);
   });
 
   test("matches detail routes via longest-prefix (spec/Build detail)", () => {
@@ -77,7 +79,7 @@ describe("loopNeighbors — the loop wraps (it has no end)", () => {
   });
 
   test("Trust's next wraps back to Today; Today's prev wraps to Trust", () => {
-    const trust = loopNeighbors(loopIndexForPath("/trust-ledger"));
+    const trust = loopNeighbors(loopIndexForPath("/engine-room"));
     expect(trust?.next.id).toBe("today");
     const today = loopNeighbors(loopIndexForPath("/"));
     expect(today?.prev.id).toBe("trust");

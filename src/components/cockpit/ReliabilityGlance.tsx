@@ -61,16 +61,26 @@ export function ReliabilityGlance() {
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
-        <div
-          className="mono-label tabular-nums"
+        {/* A real button (not a div): the details popover must open from the
+            keyboard too, with a visible focus ring. */}
+        <button
+          type="button"
+          className="mono-label tabular-nums outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             display: "flex",
             alignItems: "baseline",
             gap: 8,
             flexWrap: "wrap",
             marginTop: 12,
-            color: "var(--ink-subtle)",
+            color: "var(--text-subtle)",
             cursor: "pointer",
+            background: "none",
+            border: "none",
+            padding: 0,
+            textAlign: "left",
+            font: "inherit",
+            letterSpacing: "inherit",
+            textTransform: "inherit",
           }}
         >
           <span style={{ color: "var(--text-subtle)" }}>Heads up</span>
@@ -86,7 +96,7 @@ export function ReliabilityGlance() {
             {parts.join(" · ")}
           </span>
           <span style={{ color: "var(--text-primary)" }}>details →</span>
-        </div>
+        </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"

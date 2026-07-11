@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listTraces } from "@/lib/traces.functions";
-import { getLedgerSeal, verifyLedgerSeal } from "@/lib/trust-ledger.functions";
 import {
   Row,
   EmptyRow,
@@ -24,6 +23,11 @@ const SupportSignalsPanel = React.lazy(() =>
   import("@/components/governance/SupportSignalsPanel").then((m) => ({
     default: m.SupportSignalsPanel,
   })),
+);
+// TRUST-LEDGER MERGE (IA spine 2026-07-11): the Trust Ledger receipts surface
+// is this room's front tab (public-share controls + tamper seal included).
+const ReceiptsPanel = React.lazy(() =>
+  import("./ReceiptsPanel").then((m) => ({ default: m.ReceiptsPanel })),
 );
 
 function fmtUsd(n: number): string {
@@ -83,63 +87,9 @@ function TracesView() {
   );
 }
 
-function LedgerView() {
-  const fSeal = useServerFn(getLedgerSeal);
-  const fVerify = useServerFn(verifyLedgerSeal);
-  const sealQ = useQuery({ queryKey: ["ledger-seal"], queryFn: () => fSeal({ data: {} }) });
-
-  // A self-check: re-verify the just-computed fingerprint against itself. A
-  // mismatch here means the record changed in the instant between the two
-  // calls, a narrow but real integrity signal, not a historical audit
-  // (persisted seals to compare against arrive with write-time persistence).
-  const verifyQ = useQuery({
-    queryKey: ["ledger-verify-now", sealQ.data?.head],
-    queryFn: () => fVerify({ data: { head: sealQ.data!.head, count: sealQ.data!.count } }),
-    enabled: !!sealQ.data?.available,
-  });
-
-  if (sealQ.isLoading) return <PanelPending />;
-  // Honesty (LOOM §9b): a failed seal read is an error with a retry, never
-  // the "no workspace" sentence.
-  if (sealQ.isError) {
-    return (
-      <ErrorRetry message="The ledger seal did not load." onRetry={() => void sealQ.refetch()} />
-    );
-  }
-  if (!sealQ.data?.available) {
-    return <VerdictSentence>No workspace to seal yet.</VerdictSentence>;
-  }
-  // Three honest self-check outcomes: it ran and passed, it ran and caught a
-  // change, or it did not run. "Verifies" is only claimed when it ran.
-  const checked = verifyQ.data != null;
-  const intact = verifyQ.data?.ok ?? false;
-  const count = sealQ.data.count.toLocaleString("en-US");
-  return (
-    <div>
-      <VerdictSentence>
-        {verifyQ.isError
-          ? `The self-check did not run. ${count} record${sealQ.data.count === 1 ? "" : "s"} on the ledger; the fingerprint below is unchecked.`
-          : checked
-            ? `The ledger ${intact ? "verifies" : "changed mid-check"}. ${count} record${sealQ.data.count === 1 ? "" : "s"}, one ${intact ? "intact" : "broken"} chain.`
-            : `Checking the ledger. ${count} record${sealQ.data.count === 1 ? "" : "s"} on the record.`}
-      </VerdictSentence>
-      <Row
-        subject="Fingerprint"
-        value={sealQ.data.head.slice(0, 12)}
-        statusWord={
-          verifyQ.isError ? "unchecked" : checked ? (intact ? "verified" : "changed") : "checking"
-        }
-        statusColor={
-          verifyQ.isError || !checked
-            ? "var(--text-muted)"
-            : intact
-              ? "var(--moss-bright)"
-              : "var(--marigold)"
-        }
-      />
-    </div>
-  );
-}
+// The old LedgerView (the standalone tamper-check tab) folded into the
+// receipts front tab's SealPanel (TRUST-LEDGER MERGE 2026-07-11): one Record
+// answer, one home for the fingerprint.
 
 function ApprovalsView() {
   return (
@@ -155,10 +105,8 @@ function ApprovalsView() {
 }
 
 export function RecordRoom({ view }: RoomBodyProps) {
-  // RPT-31: the Agent Inbox / verification cockpit is the record room's
-  // default landing view (registered first in ROOM_TAB_META.record).
   if (view === "verify") return <VerifyCockpit view={view} />;
-  if (view === "ledger") return <LedgerView />;
+  if (view === "traces") return <TracesView />;
   if (view === "approvals") return <ApprovalsView />;
   if (view === "support") {
     return (
@@ -167,5 +115,11 @@ export function RecordRoom({ view }: RoomBodyProps) {
       </React.Suspense>
     );
   }
-  return <TracesView />;
+  // The front tab (TRUST-LEDGER MERGE 2026-07-11): receipts, the tamper seal,
+  // and the mission chain. Unknown ids (incl. the old "ledger") land here.
+  return (
+    <React.Suspense fallback={<PanelPending />}>
+      <ReceiptsPanel />
+    </React.Suspense>
+  );
 }

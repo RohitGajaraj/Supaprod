@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
@@ -13,15 +12,21 @@ import {
   isSampleWorkspaceEnabled,
   triggerSampleWorkspace,
 } from "@/lib/onboarding/onboarding.functions";
+import type { DiscoverTab } from "@/routes/_authenticated.discover";
 import { withTimeout } from "./format";
 import { SignalFeed } from "./SignalFeed";
 import { AutoClustered } from "./AutoClustered";
 import { StrategySection } from "./StrategySection";
+import { OpportunityQueue } from "./OpportunityQueue";
 
-/** PC-29 layer 2: Discover's station agents, most-relevant first. The fleet
+/** PC-29 layer 2: the station agents per tab, most-relevant first. The fleet
  * is already sorted attention-first (agent-fleet.ts), so the first candidate
- * present is the one worth showing. */
-const DISCOVER_STATION_AGENTS = ["discovery-scout", "researcher"];
+ * present is the one worth showing. The queue tab absorbed Decide (IA spine
+ * 2026-07-11), so it keeps Decide's strategist/critic pair. */
+const STATION_AGENTS: Record<"signals" | "queue", string[]> = {
+  signals: ["discovery-scout", "researcher"],
+  queue: ["strategist", "critic"],
+};
 
 /** Loom v4 §9: every empty state whispers the moat — a faint, static
  * constellation of nodes and threads. Decorative only, so it is hidden from
@@ -53,18 +58,100 @@ function ConstellationMotif() {
   );
 }
 
+const TABS: { id: "signals" | "queue"; label: string }[] = [
+  { id: "signals", label: "Signals" },
+  { id: "queue", label: "Queue" },
+];
+
+/** The two-tab switch between the signal pipeline and the absorbed Decide
+ * queue. A real tablist (roving tabindex, arrow keys, Home/End) whose active
+ * tab is the URL search param, so deep links and the promote hand-off token
+ * (?tab=queue) select it directly. Ember underline = selection (Tempo v5:
+ * ember owns selection); 36px control height. */
+function TabBar({
+  active,
+  onSelect,
+}: {
+  active: "signals" | "queue";
+  onSelect: (tab: "signals" | "queue") => void;
+}) {
+  const moveTo = (id: "signals" | "queue") => {
+    onSelect(id);
+    // The buttons persist across the re-render; move focus to the newly
+    // selected tab so arrow-key navigation keeps flowing.
+    requestAnimationFrame(() => document.getElementById(`discover-tab-${id}`)?.focus());
+  };
+  return (
+    <div
+      role="tablist"
+      aria-label="Discover sections"
+      className="flex items-center"
+      style={{ gap: "4px", borderBottom: "1px solid var(--hairline)", marginBottom: "24px" }}
+    >
+      {TABS.map((t) => {
+        const selected = active === t.id;
+        const other = t.id === "signals" ? "queue" : "signals";
+        return (
+          <button
+            key={t.id}
+            id={`discover-tab-${t.id}`}
+            role="tab"
+            type="button"
+            aria-selected={selected}
+            aria-controls={`discover-panel-${t.id}`}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onSelect(t.id)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                event.preventDefault();
+                moveTo(other);
+              } else if (event.key === "Home") {
+                event.preventDefault();
+                moveTo("signals");
+              } else if (event.key === "End") {
+                event.preventDefault();
+                moveTo("queue");
+              }
+            }}
+            className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "13px",
+              fontWeight: selected ? 600 : 500,
+              height: "36px",
+              padding: "0 14px",
+              color: selected ? "var(--text-primary)" : "var(--text-muted)",
+              background: "transparent",
+              border: "none",
+              borderBottom: selected ? "2px solid var(--ember)" : "2px solid transparent",
+              marginBottom: "-1px",
+              cursor: "pointer",
+              transitionDuration: "var(--dur-control)",
+              transitionTimingFunction: "var(--ease)",
+            }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
- * The evidence desk: a two-column pipeline on the standard work container that
- * reads left to right as the front of the loop, signals captured (A) then
- * auto-clustered + ranked (B). The ranked opportunity queue moved to its own
- * Decide destination (2026-07-07), so this surface stays two clean columns and
- * never overflows. Owns the surface-level "no sources at all" empty state
- * (OBS-06.md §7, §9). SignalFeed and AutoClustered each own their own
- * loading/error/quiet-empty states independently.
+ * The evidence desk, now the whole front of the loop (IA spine 2026-07-11):
+ * the signals tab holds the capture-and-cluster pipeline (SignalFeed +
+ * AutoClustered + market watch), and the queue tab absorbed the retired
+ * Decide destination (the ranked opportunity queue, red-teamed by the
+ * Critic). /decide 301-redirects to ?tab=queue, and promoting a theme hands
+ * off to the same token, so the whole journey lives on one surface. Owns the
+ * surface-level "no sources at all" empty state (OBS-06.md §7, §9); each
+ * column owns its own loading/error/quiet-empty states independently.
  */
 export function DiscoverSurface() {
   const navigate = useNavigate();
   const { tab } = useSearch({ from: "/_authenticated/discover" });
+  const activeTab: "signals" | "queue" = tab === "queue" ? "queue" : "signals";
   const { activeProductId, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =
     useWorkspace();
   const fSignals = useServerFn(listSignals);
@@ -83,21 +170,16 @@ export function DiscoverSurface() {
     queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
   });
   const presenceAgent = fleet.data?.fleet.agents.find((a) =>
-    DISCOVER_STATION_AGENTS.includes(a.slug),
+    STATION_AGENTS[activeTab].includes(a.slug),
   );
 
-  // Loom W2 (audit D-24): honor the deep-link ?tab= from the legacy redirects
-  // and the palette pass. Only the signals column lives here now (the
-  // opportunities column moved to /decide), so a legacy ?tab=opportunities
-  // link degrades to the plain surface rather than crashing.
-  const signalsRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (tab !== "signals") return;
-    const target = signalsRef.current;
-    if (!target) return;
-    target.scrollIntoView({ block: "start", behavior: "auto" });
-    target.focus({ preventScroll: true });
-  }, [tab]);
+  const selectTab = (next: DiscoverTab) => {
+    navigate({
+      to: "/discover",
+      search: { tab: next === "signals" ? undefined : next },
+      replace: true,
+    });
+  };
 
   // Shared query key with SignalFeed: react-query dedupes this against its own
   // subscription, so it is a cache read, not a second network call.
@@ -157,8 +239,8 @@ export function DiscoverSurface() {
           margin: 0,
         }}
       >
-        The evidence desk. Raw <em style={{ color: "var(--ember-text)" }}>signal</em> on the left,
-        the ranked themes it clusters into on the right.
+        The evidence desk. Raw <em style={{ color: "var(--ember-text)" }}>signal</em> in, ranked
+        bets out.
       </h1>
       {/* Loom v4 §6: the hero underline, the maker's mark, static, 24px wide. */}
       <div
@@ -175,99 +257,101 @@ export function DiscoverSurface() {
         <div style={{ marginBottom: 14 }}>
           <PresenceChip
             agentSlug={presenceAgent.slug}
-            station="discover"
+            station={activeTab === "queue" ? "decide" : "discover"}
             state={presenceAgent.state === "working" ? "working" : "idle"}
             lastActedAt={presenceAgent.lastActiveAt}
           />
         </div>
       ) : null}
-      {/* The sensing framing lives inside Discover: this is where continuous
-          capture becomes ranked themes. */}
+      {/* The pipeline sentence, once at the top: the whole front of the loop
+          in three plain steps. */}
       <p
         style={{
           fontSize: "13px",
           lineHeight: 1.6,
           color: "var(--text-muted)",
           maxWidth: "640px",
-          margin: "0 0 24px",
+          margin: "0 0 20px",
         }}
       >
-        Cadence senses continuously. Every signal you or your tools capture flows in, gets clustered
-        automatically, and rises as a ranked theme.
+        Signals cluster into bets. Bets get decided. Decided bets become specs.
       </p>
 
-      {/* PC-29 layer 4: the inline relay, live only while Sense has a run
-          going. Reuses the same station data as PresenceChip above -
-          quiet when nothing is working. */}
-      <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
+      <TabBar active={activeTab} onSelect={selectTab} />
 
-      {signalsEmpty ? (
+      {activeTab === "queue" ? (
         <div
-          className="material-medium"
-          style={{
-            padding: "44px 40px",
-            textAlign: "center",
-          }}
+          role="tabpanel"
+          id="discover-panel-queue"
+          aria-labelledby="discover-tab-queue"
+          style={{ maxWidth: "880px" }}
         >
-          <ConstellationMotif />
-          {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8): the
-              empty-state headline, short and display-only, never the
-              supporting line beneath it. */}
-          <p
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontSize: "20px",
-              lineHeight: 1.3,
-              color: "var(--text-primary)",
-              margin: "0 0 6px",
-            }}
-          >
-            Nothing sensed yet
-          </p>
           <p
             style={{
               fontSize: "var(--text-base)",
-              color: "var(--text-body)",
-              margin: "0 0 16px",
+              color: "var(--text-muted)",
+              margin: "0 0 20px",
+              maxWidth: "640px",
+              lineHeight: 1.6,
             }}
           >
-            Connect a source and give it ten minutes.
+            The ranked opportunities, red-teamed by the Critic. Promote what is worth building and
+            it moves to Plan.
           </p>
-          <Button
-            variant="primary"
-            style={{
-              background: "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
-              color: "var(--cta-ink)",
-            }}
-            onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
-          >
-            Connect a source
-          </Button>
-          <p
-            style={{
-              fontSize: "12px",
-              color: "var(--text-subtle)",
-              marginTop: "10px",
-            }}
-          >
-            Opens Connections · reading starts the moment a source is linked
-          </p>
-          {sampleOffered ? (
+          {/* PC-29 layer 4: the inline relay, live only while the queue has a
+              run going (e.g. the Critic red-teaming a bet). */}
+          <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
+          <OpportunityQueue />
+        </div>
+      ) : (
+        <div role="tabpanel" id="discover-panel-signals" aria-labelledby="discover-tab-signals">
+          {/* PC-29 layer 4: the inline relay, live only while Sense has a run
+              going. Reuses the same station data as PresenceChip above -
+              quiet when nothing is working. */}
+          <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
+
+          {signalsEmpty ? (
             <div
+              className="material-medium"
               style={{
-                marginTop: "22px",
-                paddingTop: "20px",
-                borderTop: "1px solid var(--hairline)",
+                padding: "44px 40px",
+                textAlign: "center",
               }}
             >
-              <Button
-                variant="tertiary"
-                disabled={sampleMutation.isPending}
-                onClick={() => sampleMutation.mutate()}
+              <ConstellationMotif />
+              {/* The one Pixel brand moment on this surface (Tempo v5 §3/§8):
+                  the empty-state headline, short and display-only, never the
+                  supporting line beneath it. */}
+              <p
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: "20px",
+                  lineHeight: 1.3,
+                  color: "var(--text-primary)",
+                  margin: "0 0 6px",
+                }}
               >
-                {sampleMutation.isPending
-                  ? "Opening sample workspace…"
-                  : "Explore a sample workspace"}
+                Nothing sensed yet
+              </p>
+              <p
+                style={{
+                  fontSize: "var(--text-base)",
+                  color: "var(--text-body)",
+                  margin: "0 0 16px",
+                }}
+              >
+                Connect a source and give it ten minutes.
+              </p>
+              <Button
+                variant="primary"
+                style={{
+                  background:
+                    "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
+                  color: "var(--cta-ink)",
+                }}
+                onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+              >
+                Connect a source
               </Button>
               <p
                 style={{
@@ -276,125 +360,71 @@ export function DiscoverSurface() {
                   marginTop: "10px",
                 }}
               >
-                Opens a separate Explore workspace of clearly labelled example data · your own
-                workspace stays empty · about 5 seconds
+                Opens Connections · reading starts the moment a source is linked
               </p>
-              {sampleMutation.isError ? (
-                <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
-                  Could not open the sample workspace. Try again.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <>
-          {/* The pipeline reads left to right: raw evidence, then the themes
-              Cadence ranks. The two columns below are its two in-surface
-              stations; the ranked bets themselves now live on Decide, so the
-              stepper ends on a quiet hand-off hint. Decorative (each column
-              carries its own heading), so hidden from assistive tech. Ember is
-              the one scarce accent on step 1. */}
-          <div
-            aria-hidden="true"
-            className="mb-5 flex flex-wrap items-center"
-            style={{ gap: "10px" }}
-          >
-            {[
-              { n: "1", label: "Captured" },
-              { n: "2", label: "Clustered + ranked" },
-            ].map((step, i) => (
-              <div key={step.n} className="flex items-center" style={{ gap: "10px" }}>
-                {i > 0 ? (
-                  <span
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "11px",
-                      color: "var(--text-faint)",
-                    }}
-                  >
-                    {"→"}
-                  </span>
-                ) : null}
-                <span
-                  className="flex items-center"
+              {sampleOffered ? (
+                <div
                   style={{
-                    gap: "6px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10.5px",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "var(--text-subtle)",
+                    marginTop: "22px",
+                    paddingTop: "20px",
+                    borderTop: "1px solid var(--hairline)",
                   }}
                 >
-                  <span
+                  <Button
+                    variant="tertiary"
+                    disabled={sampleMutation.isPending}
+                    onClick={() => sampleMutation.mutate()}
+                  >
+                    {sampleMutation.isPending
+                      ? "Opening sample workspace…"
+                      : "Explore a sample workspace"}
+                  </Button>
+                  <p
                     style={{
-                      color: i === 0 ? "var(--ember-text)" : "var(--text-primary)",
-                      fontVariantNumeric: "tabular-nums",
+                      fontSize: "12px",
+                      color: "var(--text-subtle)",
+                      marginTop: "10px",
                     }}
                   >
-                    {step.n}
-                  </span>
-                  <span>{step.label}</span>
-                </span>
+                    Opens a separate Explore workspace of clearly labelled example data · your own
+                    workspace stays empty · about 5 seconds
+                  </p>
+                  {sampleMutation.isError ? (
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
+                      Could not open the sample workspace. Try again.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 items-start lg:grid-cols-2" style={{ gap: "24px" }}>
+                <div className="min-w-0">
+                  <SignalFeed />
+                </div>
+                <div className="min-w-0">
+                  <AutoClustered />
+                </div>
               </div>
-            ))}
-            {/* Hand-off: promoting a theme sends its bet to Decide. Quietest
-                token, no number, so the two numbered steps stay the anchors. */}
-            <div className="flex items-center" style={{ gap: "10px" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "11px",
-                  color: "var(--text-faint)",
-                }}
-              >
-                {"→"}
-              </span>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10.5px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--text-faint)",
-                }}
-              >
-                promote to Decide
-              </span>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 items-start lg:grid-cols-2" style={{ gap: "24px" }}>
-            <div
-              ref={signalsRef}
-              id="signals"
-              tabIndex={-1}
-              className="min-w-0"
-              style={{ outline: "none" }}
-            >
-              <SignalFeed />
-            </div>
-            <div className="min-w-0" style={{ outline: "none" }}>
-              <AutoClustered />
-            </div>
-          </div>
-
-          {/* Market watch: the tracked competitors + platforms and the weekly
-              briefs Cadence writes when one of them moves. Lives below the
-              signal pipeline as its own labelled section so its purpose reads
-              plainly. */}
-          <div style={{ marginTop: 44 }}>
-            <h2 className="text-heading-16" style={{ margin: 0, color: "var(--text-primary)" }}>
-              Market watch
-            </h2>
-            <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
-              Competitors and platforms you track. Cadence writes you a brief the first Monday after
-              one of them actually moves.
-            </p>
-            <StrategySection />
-          </div>
-        </>
+              {/* Market watch: the tracked competitors + platforms and the
+                  weekly briefs Cadence writes when one of them moves. Lives
+                  below the signal pipeline as its own labelled section so its
+                  purpose reads plainly. */}
+              <div style={{ marginTop: 44 }}>
+                <h2 className="text-heading-16" style={{ margin: 0, color: "var(--text-primary)" }}>
+                  Market watch
+                </h2>
+                <p style={{ margin: "3px 0 16px", fontSize: 12.5, color: "var(--text-subtle)" }}>
+                  Competitors and platforms you track. Cadence writes you a brief the first Monday
+                  after one of them actually moves.
+                </p>
+                <StrategySection />
+              </div>
+            </>
+          )}
+        </div>
       )}
     </div>
   );

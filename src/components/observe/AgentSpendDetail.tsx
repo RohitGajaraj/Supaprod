@@ -48,7 +48,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
     queryKey: ["agent-spend-detail", id, DAYS],
     queryFn: () => fDetail({ data: { agentSlug: id, days: DAYS } }),
   });
-  const onBack = () => navigate({ to: "/govern", search: { tab: "analytics" } });
+  const onBack = () => navigate({ to: "/engine-room", search: { room: "spend", view: "usage" } });
 
   if (q.isLoading) {
     return (

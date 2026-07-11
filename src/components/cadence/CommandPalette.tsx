@@ -9,18 +9,20 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, ENGINE_GROUP, FOOTER_NAV } from "@/lib/nav-model";
+import { PRIMARY_NAV, FOOTER_NAV } from "@/lib/nav-model";
+import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
-// parchment cmdk palette. Four sections (JUMP · ACT · ASK · CATALOG), a flat
-// keyboard-navigable row list, and a static searchable catalog that runs
+// parchment cmdk palette. Sections (JUMP · SETTINGS · ACT · ASK · CATALOG), a
+// flat keyboard-navigable row list, and a static searchable catalog that runs
 // capabilities on the user's own workspace via navigate/client-event, never
 // a server call. Built on Radix Dialog (already vendored for the mission
 // slide-over) for the focus-trap contract rather than a hand-rolled trap.
+// IA SPINE (2026-07-11): JUMP is DERIVED from PRIMARY_NAV (all seven
+// destinations, hints = keys 1-7); the separate ENGINE section is gone.
 
 type PaletteRow =
   | { section: "JUMP"; label: string; hint: string; to: string; search?: Record<string, string> }
-  | { section: "ENGINE"; label: string; hint: string; to: string; search?: Record<string, string> }
   | {
       section: "SETTINGS";
       label: string;
@@ -42,18 +44,6 @@ type PaletteRow =
 function jumpToRow(d: JumpDestination): PaletteRow {
   return { section: "JUMP", label: d.label, hint: d.hint, to: d.run.to, search: d.run.search };
 }
-
-// LOOM QA R2 (§9b): the default view mirrors the whole grouped rail — the
-// loop, the engine, settings/admin, and the act verbs (incl. Ask) — so no
-// destination is invisible until the user guesses a search term. The engine
-// row hints reuse the rail indexes; "g" is the Engine Room shortcut.
-const ENGINE_ROWS: PaletteRow[] = ENGINE_GROUP.map((d) => ({
-  section: "ENGINE" as const,
-  label: d.label,
-  hint: d.to === "/engine-room" ? "g" : "",
-  to: d.to,
-  search: d.search,
-}));
 
 const SETTINGS_ROWS: PaletteRow[] = FOOTER_NAV.map((d) => ({
   section: "SETTINGS" as const,
@@ -109,7 +99,6 @@ export function CommandPalette() {
     if (!q) {
       return [
         ...JUMP_DESTINATIONS.map(jumpToRow),
-        ...ENGINE_ROWS,
         ...SETTINGS_ROWS,
         ...ACT_VERBS.map(actToRow),
         ...getRecents().map(recentToRow),
@@ -117,11 +106,10 @@ export function CommandPalette() {
     }
     const ql = q.toLowerCase();
     const jump = JUMP_DESTINATIONS.filter((d) => d.label.toLowerCase().includes(ql)).map(jumpToRow);
-    const engine = ENGINE_ROWS.filter((r) => r.label.toLowerCase().includes(ql));
     const settings = SETTINGS_ROWS.filter((r) => r.label.toLowerCase().includes(ql));
     const act = ACT_VERBS.filter((v) => v.label.toLowerCase().includes(ql)).map(actToRow);
     const catalog = filterCatalog(q).map(catalogToRow);
-    const matched = [...jump, ...engine, ...settings, ...act, ...catalog];
+    const matched = [...jump, ...settings, ...act, ...catalog];
     const ask: PaletteRow[] =
       matched.length === 0 ? [{ section: "ASK", label: `Ask Cadence: "${q}"`, intent: q }] : [];
     return [...matched, ...ask];
@@ -138,6 +126,14 @@ export function CommandPalette() {
       return;
     }
     if (row.section === "ACT" && row.event) {
+      // Desk composers (add a task, capture a signal, share status): fire the
+      // scoped intent so an already-mounted card opens its composer NOW, and
+      // hold it pending so the card consumes it right after the /today landing.
+      if (DESK_COMPOSE_EVENTS.includes(row.event)) {
+        fireDeskCompose(row.event);
+        navigate({ to: row.to, search: row.search as never });
+        return;
+      }
       window.dispatchEvent(new CustomEvent(row.event, { detail: {} }));
       if (row.event === "cadence:open-ask") return;
       // PM Desk: the focus composer opens in place on any page — the dock
@@ -169,18 +165,17 @@ export function CommandPalette() {
     if (!bySection.has(key)) bySection.set(key, []);
     bySection.get(key)!.push({ row, i: renderIndex++ });
   }
-  // Header text per section: the default view reads like the rail (the loop,
-  // the engine, settings), not like an internal enum.
+  // Header text per section: the default view reads like the rail (the seven
+  // destinations, settings), not like an internal enum.
   const SECTION_HEADING: Record<string, string> = {
-    JUMP: "The loop",
-    ENGINE: "The engine",
+    JUMP: "Jump",
     SETTINGS: "Settings",
     ACT: "Act",
     RECENT: "Recent",
     ASK: "Ask",
     CATALOG: "Catalog",
   };
-  for (const label of ["JUMP", "ENGINE", "SETTINGS", "ACT", "RECENT", "ASK", "CATALOG"]) {
+  for (const label of ["JUMP", "SETTINGS", "ACT", "RECENT", "ASK", "CATALOG"]) {
     const items = bySection.get(label);
     if (items?.length) sectioned.push({ label, items });
   }
@@ -288,9 +283,7 @@ export function CommandPalette() {
                     const active = i === activeIndex;
                     const isCatalog = row.section === "CATALOG";
                     const rightHint =
-                      row.section === "JUMP" ||
-                      row.section === "ENGINE" ||
-                      row.section === "SETTINGS"
+                      row.section === "JUMP" || row.section === "SETTINGS"
                         ? row.hint
                         : row.section === "ASK" ||
                             (row.section === "ACT" && row.event === "cadence:open-ask")
@@ -383,10 +376,10 @@ export function CommandPalette() {
   );
 }
 
-// OBS-02 - the Obsidian keyboard map: `1`-`5` switch the five rail
-// destinations (single press, no chord), `g` opens the Engine Room. OBS-11:
-// route map refreshed to the canonical five post-OBS-10 (was /product-era
-// targets). Mount once at app root.
+// OBS-02 → IA SPINE (2026-07-11) - the keyboard map, DERIVED from
+// PRIMARY_NAV: keys `1`-`7` (one per rail destination, single press, no
+// chord — the range is the nav length, never hand-copied), plus the standing
+// `g` alias for the Engine Room. Mount once at app root.
 export function GotoShortcuts() {
   const navigate = useNavigate();
   useEffect(() => {
@@ -404,18 +397,19 @@ export function GotoShortcuts() {
         )
       )
         return;
-      const key = e.key;
-      if (key >= "1" && key <= "6") {
-        const item = PRIMARY_NAV[Number(key) - 1];
-        if (item) {
-          e.preventDefault();
-          navigate({ to: item.to, search: item.search as never });
-        }
+      const n = Number(e.key);
+      if (Number.isInteger(n) && n >= 1 && n <= PRIMARY_NAV.length) {
+        const item = PRIMARY_NAV[n - 1];
+        e.preventDefault();
+        navigate({ to: item.to, search: item.search as never });
         return;
       }
-      if (key.toLowerCase() === "g") {
-        e.preventDefault();
-        navigate({ to: ENGINE_GROUP[0].to });
+      if (e.key.toLowerCase() === "g") {
+        const engineRoom = PRIMARY_NAV.find((item) => item.to === "/engine-room");
+        if (engineRoom) {
+          e.preventDefault();
+          navigate({ to: engineRoom.to });
+        }
       }
     };
     window.addEventListener("keydown", onKey);

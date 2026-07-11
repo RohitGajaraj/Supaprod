@@ -59,7 +59,7 @@ export function HealthCard() {
         }}
       >
         <div>
-          <div className="mono-label">Health</div>
+          <div className="mono-label">Diagnostics</div>
           <p
             className="text-copy-13"
             style={{ color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}

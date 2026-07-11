@@ -36,21 +36,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   PRIMARY_NAV,
-  ENGINE_GROUP,
+  WORKFLOW_NAV,
   FOOTER_NAV,
   navItemActive,
   engineRoomActive,
   type NavItemDef,
 } from "@/lib/nav-model";
 
-// LOOM W1 (2026-07-04) — the grouped rail. OBS-02's hover-menu Engine Room
-// door made real surfaces invisible to a new user (the founder's "homeless
-// features" finding); the rail now SHOWS every home, grouped (DESIGN-LOOM
-// §8): THE LOOP (mono index 01-05) · THE ENGINE (06-08, direct rows) ·
-// footer (Settings · role-gated Admin · the user chip menu). Data hooks and
-// workspace handlers are unchanged; only the presentation and grouping
-// changed. The theme toggle is gone (dark-only law); approvals stay Calls on
-// Today (no badge on Engine Room).
+// IA SPINE (2026-07-11) — ONE rail, seven primary destinations, keys 1-7:
+// Today pinned above all groups (unnumbered, owns the ONE attention badge),
+// the WORKFLOW group (mono indexes 01-04 live only here: Discover · Plan ·
+// Design · Build), then Memory and Engine Room (unnumbered; Engine Room keeps
+// its "g" alias, shown as a hint on the row). THE ENGINE header is gone —
+// Decide and Ledger left the rail (both are redirects now). Footer: Settings ·
+// Admin console (actual admins only) · the account chip. The rail Ask button
+// is gone (Ask = Cmd+J + the palette ASK row); Search stays Cmd+K. Data hooks
+// and workspace handlers are unchanged.
 
 function GroupLabel({ children }: { children: string }) {
   return (
@@ -76,14 +77,17 @@ function NavRow({
   badge,
   badgeAnchor,
   icon: Icon,
+  hint,
 }: {
   item: NavItemDef;
   active: boolean;
   badge?: number;
   /** OBS-14: a stable hook the Today coach mark anchors to on first landing. */
   badgeAnchor?: string;
-  /** Footer rows carry a lucide icon in place of the loop/engine mono index. */
+  /** Footer rows carry a lucide icon in place of the workflow mono index. */
   icon?: React.ComponentType<{ size?: number | string; strokeWidth?: number | string }>;
+  /** Quiet mono key hint on the row's right edge (Engine Room's "g" alias). */
+  hint?: string;
 }) {
   return (
     <Link
@@ -132,6 +136,18 @@ function NavRow({
           }}
         >
           {badge}
+        </span>
+      ) : hint ? (
+        <span
+          aria-hidden="true"
+          className="shrink-0"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 9.5,
+            color: "var(--text-faint)",
+          }}
+        >
+          {hint}
         </span>
       ) : null}
     </Link>
@@ -251,7 +267,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     staleTime: 60_000,
   });
   const isAdmin = !!adminInfo?.isAdmin;
-  const noAdminsYet = adminInfo ? !adminInfo.anyAdminExists : false;
 
   // The one Today badge — shares the "needs-you" cache key with the Today
   // page, so no extra fetch when both are mounted. Hidden at zero.
@@ -339,17 +354,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     "/build":
       "Build surface · live agent activity, PR and CI status, cost per session, build controls.",
     "/brain":
-      "Decision brain and memory layer · beliefs, supersession graph, learnings, precedents.",
-    "/trust-ledger":
-      "Trust Ledger · every decision and outcome with SHA-256 integrity fingerprint. The receipts layer.",
-    "/govern":
-      "Governance and cost controls · agent trust arcs, approval modes, spend caps, pause state.",
-    "/engine-room": "Engine Room · spend, quality, safety, and the record, at a glance.",
+      "Memory · the decision brain and memory layer: beliefs, supersession graph, learnings, precedents.",
+    "/engine-room":
+      "Engine Room · spend, quality, safety, and the record (traces, receipts, the trust ledger), at a glance.",
     "/discover":
-      "Discovery feed · raw signals clustered into ranked themes, analytics, competitor moves.",
-    "/decide":
-      "Decide · the ranked opportunity queue, red-teamed by the Critic before you commit a bet.",
-    "/plan": "Define · cited specs and the outcome-declared roadmap.",
+      "Discovery feed · raw signals clustered into ranked themes, the decision queue, competitor moves.",
+    "/plan": "Plan · cited specs and the outcome-declared roadmap.",
     "/settings": "Settings · account, workspace, connections, AI keys, billing.",
     "/sync": "Sync and bindings · workspace bindings, sync conflicts, recently-synced items.",
     "/trust": "Trust and privacy statement.",
@@ -378,14 +388,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       `| Route | What it contains |`,
       `|---|---|`,
       `| /today | Live dashboard: active missions, recent decisions, signal queue, pending approvals |`,
-      `| /discover | Discovery feed: raw signals clustered into ranked themes, precedents |`,
-      `| /decide | The ranked opportunity queue, red-teamed by the Critic before you commit |`,
-      `| /plan | Define: cited specs and the outcome-declared roadmap |`,
+      `| /discover | Discovery feed: raw signals clustered into ranked themes, the decision queue |`,
+      `| /plan | Cited specs and the outcome-declared roadmap |`,
+      `| /design | Prototypes and the brand kit |`,
       `| /build | Live build surface: agent activity, PR/CI status, cost per session |`,
-      `| /brain | Decision brain and memory layer: beliefs, supersession graph, learnings |`,
-      `| /engine-room | Spend, quality, safety, and the record, at a glance |`,
-      `| /trust-ledger | Audit trail: every decision, every outcome, integrity fingerprint |`,
-      `| /govern | Governance and cost controls: agent trust arcs, spend caps, approval modes |`,
+      `| /brain | Memory: beliefs, supersession graph, learnings, precedents |`,
+      `| /engine-room | Spend, quality, safety, and the record (traces, receipts, ledger) |`,
       ``,
       `## Agent interfaces`,
       ``,
@@ -720,11 +728,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
 
-          {/* Search + Ask affordances — the two summonable utilities get
-              visible doors (founder ruling 2026-07-04: Ask is a most-used
-              feature and may not hide behind ⌘J alone; Loom §8 nothing
-              hidden). Same quiet chrome, one row. */}
-          <div className="flex" style={{ padding: "10px 10px 4px", gap: 6 }}>
+          {/* Search — the one summonable utility with a visible door. Ask
+              lost its rail button (IA SPINE 2026-07-11): Ask = Cmd+J + the
+              palette ASK row. */}
+          <div className="flex" style={{ padding: "10px 10px 4px" }}>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
@@ -743,65 +750,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="flex-1 text-left">Search</span>
               <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘K</span>
             </button>
-            <button
-              type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-ask"))}
-              className="loom-press flex items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-              style={{
-                gap: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--card)",
-                boxShadow: "var(--top-light)",
-                borderRadius: 8,
-                padding: "7px 10px",
-                fontSize: 12,
-                color: "var(--text-subtle)",
-              }}
-              aria-label="Ask about this screen"
-            >
-              <span className="text-left">Ask</span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}>⌘J</span>
-            </button>
           </div>
 
-          {/* Nav — THE LOOP (01-05) then THE ENGINE (06-08), everything
-              visible, mono-caps group labels (LOOM visibility law). */}
+          {/* Nav — Today pinned above all groups, then WORKFLOW (mono 01-04),
+              then Memory and Engine Room, unnumbered (IA SPINE 2026-07-11). */}
           <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-            <GroupLabel>THE LOOP</GroupLabel>
             <nav
               className="flex flex-col"
-              style={{ padding: "0 10px", gap: 2 }}
-              aria-label="The loop"
+              style={{ padding: "8px 10px 0", gap: 2 }}
+              aria-label="Today"
             >
-              {PRIMARY_NAV.map((n) => (
+              {PRIMARY_NAV.filter((n) => n.to === "/today").map((n) => (
                 <NavRow
-                  key={`${n.to}-${n.label}`}
+                  key={n.to}
                   item={n}
                   active={isItemActive(n)}
-                  badge={n.label === "Today" ? callCount : undefined}
-                  badgeAnchor={n.label === "Today" ? "today-badge" : undefined}
+                  badge={callCount}
+                  badgeAnchor="today-badge"
                 />
               ))}
             </nav>
-            <GroupLabel>THE ENGINE</GroupLabel>
+            <GroupLabel>WORKFLOW</GroupLabel>
             <nav
               className="flex flex-col"
               style={{ padding: "0 10px", gap: 2 }}
-              aria-label="The engine"
+              aria-label="Workflow"
             >
-              {ENGINE_GROUP.map((n) => (
+              {WORKFLOW_NAV.map((n) => (
+                <NavRow key={n.to} item={n} active={isItemActive(n)} />
+              ))}
+            </nav>
+            <nav
+              className="flex flex-col"
+              style={{ padding: "12px 10px 0", gap: 2 }}
+              aria-label="Memory and engine room"
+            >
+              {PRIMARY_NAV.filter((n) => n.to === "/brain" || n.to === "/engine-room").map((n) => (
                 <NavRow
-                  key={`${n.to}-${n.label}`}
+                  key={n.to}
                   item={n}
                   active={
-                    // Engine Room is the glance for the whole engine (its drill
-                    // layers /govern and /sync live inside it), so it lights via
-                    // engineRoomActive; Trust Ledger owns its own row and keeps
-                    // the exact-path rule.
-                    n.to === "/engine-room"
-                      ? engineRoomActive(path) && !path.startsWith("/trust-ledger")
-                      : isItemActive(n)
+                    // Engine Room is the glance for the whole engine (its
+                    // drill layers /govern, /sync, and the folded ledger all
+                    // live inside it), so it lights via engineRoomActive.
+                    n.to === "/engine-room" ? engineRoomActive(path) : isItemActive(n)
                   }
+                  hint={n.to === "/engine-room" ? "g" : undefined}
                 />
               ))}
             </nav>
@@ -819,8 +813,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             {pauseState?.paused && (
               <Link
-                to="/govern"
-                search={{ tab: "controls" }}
+                to="/engine-room"
+                search={{ room: "safety" }}
                 className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
                 style={{
                   border: "1px solid var(--hairline-strong)",
@@ -838,10 +832,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 in ONE place, the top-bar LiveTicker (which survives a future
                 sidebar collapse), so the sidebar no longer shows it. */}
 
-            {FOOTER_NAV.filter((n) => n.to !== "/admin" || isAdmin || noAdminsYet).map((n) => (
+            {/* Admin console renders ONLY for actual admins (IA SPINE): the
+                claim-admin affordance moved to Settings > Workspace. */}
+            {FOOTER_NAV.filter((n) => n.to !== "/admin" || isAdmin).map((n) => (
               <NavRow
                 key={n.to}
-                item={n.to === "/admin" && !isAdmin ? { ...n, label: "Claim admin" } : n}
+                item={n}
                 active={isItemActive(n)}
                 icon={n.to === "/admin" ? Shield : SettingsIcon}
               />

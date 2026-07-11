@@ -1,21 +1,25 @@
-// OBS-14 - the Arrival screen's mark: the idle butterfly asset (never
-// redrawn, never recolored) flies in once (cadArrive, 900ms) then settles
-// into the same slow idle flutter (cadFlutter) every other butterfly mark in
-// the app uses. Under prefers-reduced-motion the global animation-duration
-// override (styles.css) collapses both to their final frame - fully visible,
-// no fly-in, no flutter - so no separate reduced-motion branch is needed here.
-export function ArrivalButterfly() {
+// OBS-14 / Tempo v5 port - the Arrival screen's mark. The butterfly asset is
+// retired (DESIGN-TEMPO.md section 8: the compact mark is the pixel "C"
+// monogram, recolored only within gray-1000/ember). The mark rises in once on
+// arrival; the global prefers-reduced-motion override in styles.css collapses
+// the entrance to its final frame, so no separate reduced-motion branch is
+// needed here. Kept as identity chrome, not the screen's Pixel brand moment
+// (that is the arrival headline).
+export function ArrivalMark({ size = 56 }: { size?: number }) {
   return (
-    <img
-      src="/assets/butterfly-idle.svg"
-      width={56}
-      height={56}
-      alt=""
+    <span
       aria-hidden="true"
       style={{
-        animation: "cadArrive 900ms var(--ease) both, cadFlutter 3.4s ease-in-out 900ms infinite",
-        transformOrigin: "12px 12px",
+        fontFamily: "var(--font-pixel)",
+        fontWeight: 400,
+        fontSize: size,
+        lineHeight: 1,
+        color: "var(--ds-gray-1000)",
+        animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
+        display: "inline-block",
       }}
-    />
+    >
+      C
+    </span>
   );
 }

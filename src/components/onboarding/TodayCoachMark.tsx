@@ -51,7 +51,7 @@ export function TodayCoachMark({ onDismiss }: { onDismiss: () => void }) {
       }}
     >
       <p style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.5, margin: 0 }}>
-        Your first teardown is being built. This badge is where decisions find you.
+        Your teardown is here. New calls will find you at this badge.
       </p>
       <button
         type="button"

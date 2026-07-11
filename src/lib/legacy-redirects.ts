@@ -16,13 +16,13 @@
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
 
-/** The seven primary destinations + the door. Decide (2026-07-07) is its own
- * decide-stage destination between Discover (sense) and Plan (define);
- * Design (PC-28) completes the D-family between Define and Build. */
+/** The seven primary destinations (IA SPINE 2026-07-11): Today, the four
+ * WORKFLOW stages (Discover · Plan · Design · Build), Memory (/brain), and
+ * the Engine Room. Decide folded into Discover's queue tab; the ledger
+ * folded into the Engine Room's record room — both are legacy keys below. */
 export const CANONICAL_PATHS = [
   "/today",
   "/discover",
-  "/decide",
   "/plan",
   "/design",
   "/build",
@@ -45,16 +45,9 @@ export const DOOR_INTERNAL_PATHS = [
   "/settings",
   "/onboarding",
   "/admin",
-  "/trust-ledger",
   "/sync",
   "/traces",
   "/traces/$traceId",
-  // LOOM W2 caveat: /govern is a pure redirect stub now (see LEGACY_REDIRECTS
-  // below), but it stays in this allow-list because the ⌘K catalog
-  // (palette-catalog.ts, W1's file) still targets /govern?tab=prompts - that
-  // entry lands correctly via the one-hop redirect. W4: repoint the catalog
-  // entry to /engine-room?room=quality&view=prompts, then remove this line.
-  "/govern",
 ] as const;
 
 /**
@@ -129,6 +122,9 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Discover --
   "/discovery": { to: "/discover", search: { tab: "signals" } },
   "/opportunities": { to: "/discover", search: { tab: "opportunities" } },
+  // IA SPINE (2026-07-11): Decide left the rail; the ranked queue is
+  // Discover's queue tab.
+  "/decide": { to: "/discover", search: { tab: "queue" } },
   // OBS-10 (2026-07-03, lane3, final closure): the bare-URL default (the
   // legacy page's own default tab is "signals"). The real stub branches on
   // ?tab= six ways - see the module doc above and the route stub itself.
@@ -198,6 +194,9 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/prompts": { to: "/engine-room", search: { room: "quality", view: "prompts" } },
   // The old default tab (controls) preserved; the stub branches per ?tab=.
   "/governance": { to: "/engine-room", search: { room: "safety", view: "controls" } },
+  // IA SPINE (2026-07-11): Ledger left the rail; the receipts surface is the
+  // Engine Room's record room (the stub forwards ?view=).
+  "/trust-ledger": { to: "/engine-room", search: { room: "record" } },
 
   // -- Settings --
   "/notifications": { to: "/settings" },

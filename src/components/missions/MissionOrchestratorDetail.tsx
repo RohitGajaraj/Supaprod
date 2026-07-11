@@ -1484,7 +1484,11 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               <RotateCcw size={11} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
             </button>
-            <Link to="/govern" search={{ tab: "guardrails" }} className="btn btn-ghost btn-sm">
+            <Link
+              to="/engine-room"
+              search={{ room: "safety", view: "rules" }}
+              className="btn btn-ghost btn-sm"
+            >
               View guardrails
             </Link>
           </div>

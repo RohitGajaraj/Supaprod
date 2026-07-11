@@ -94,7 +94,7 @@ export const Route = createFileRoute("/_authenticated/build/")({
         </p>
         <button
           onClick={reset}
-          className="loom-press"
+          className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginTop: 14,
             fontFamily: "var(--font-mono)",
@@ -196,11 +196,12 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
   const fStartMission = useServerFn(startOrchestratedMission);
   const fPrds = useServerFn(listPrds);
 
-  // OBS-10: two entry points into the one true missions home. "Ship code"
-  // dispatches Studio's code-gen loop (unchanged). "Run a goal" is the
-  // orchestrator's goal-driven multi-agent DAG, ported from the retired
-  // /missions composer so starting one is still reachable after the fold.
-  const [mode, setMode] = useState<"ship" | "goal">("ship");
+  // OBS-10: two entry points into the one true missions home. "Build from a
+  // spec" dispatches Studio's code-gen loop (unchanged). "Give the agents a
+  // goal" is the orchestrator's goal-driven multi-agent DAG, ported from the
+  // retired /missions composer so starting one is still reachable after the
+  // fold. Outcome-first (2026-07-11): goal is the default first-run mode.
+  const [mode, setMode] = useState<"ship" | "goal">("goal");
   const [prompt, setPrompt] = useState("");
   const [prdId, setPrdId] = useState<string | null>(null);
   const [model] = useState(DEFAULT_MODEL);
@@ -277,6 +278,15 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       : prompt.trim().length >= 4 && !isPending;
   const runStart = () => (mode === "ship" ? void gatedDispatch() : startMission.mutate());
 
+  // The quiet repo-status chip: the connection state is visible BEFORE Start,
+  // so "not connected" is never discovered as a dispatch failure. Silent while
+  // loading or on a check error (calm front; the dispatch gate still catches it).
+  const repoStatus = useQuery({
+    queryKey: ["repo-dispatch-check"],
+    queryFn: () => fCanDispatch({ data: {} }),
+    staleTime: 60_000,
+  });
+
   return (
     <section
       style={{
@@ -290,31 +300,66 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         marginBottom: 18,
       }}
     >
-      <div style={{ display: "flex", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => setMode("ship")}
-          className="loom-press"
-          style={{
-            ...MODE_PILL,
-            color: mode === "ship" ? "var(--text-primary)" : "var(--text-subtle)",
-            background: mode === "ship" ? "var(--surface-raised)" : "none",
-          }}
-        >
-          Ship code
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("goal")}
-          className="loom-press"
-          style={{
-            ...MODE_PILL,
-            color: mode === "goal" ? "var(--text-primary)" : "var(--text-subtle)",
-            background: mode === "goal" ? "var(--surface-raised)" : "none",
-          }}
-        >
-          Run a goal
-        </button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {(
+          [
+            {
+              id: "ship",
+              label: "Build from a spec",
+              explainer: "An approved spec from Plan becomes a pull request on your repo.",
+            },
+            {
+              id: "goal",
+              label: "Give the agents a goal",
+              explainer: "Plain language in. The agents plan the steps and run them.",
+            },
+          ] as const
+        ).map((opt) => {
+          const active = mode === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => setMode(opt.id)}
+              aria-pressed={active}
+              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                flex: "1 1 220px",
+                minWidth: 0,
+                textAlign: "left",
+                padding: "9px 12px",
+                borderRadius: "var(--radius-control)",
+                border: active ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
+                background: active ? "var(--surface-raised)" : "none",
+                cursor: "pointer",
+              }}
+            >
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: active ? "var(--text-primary)" : "var(--text-body)",
+                }}
+              >
+                {opt.label}
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-ui)",
+                  fontSize: 11.5,
+                  lineHeight: 1.45,
+                  color: "var(--text-subtle)",
+                  marginTop: 2,
+                }}
+              >
+                {opt.explainer}
+              </span>
+            </button>
+          );
+        })}
       </div>
       {mode === "goal" && (
         <input
@@ -359,7 +404,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         }}
       />
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        {mode === "ship" ? (
+        {mode === "ship" && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -413,22 +458,51 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
+        )}
+        {/* The quiet repo-status chip, visible before Start. */}
+        {repoStatus.data ? (
           <span
+            className="mono-label"
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              maxWidth: 260,
               fontFamily: "var(--font-mono)",
               fontSize: "var(--text-mono-floor)",
               color: "var(--text-subtle)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "var(--radius-control)",
+              padding: "5px 10px",
             }}
           >
-            The Chief of Staff breaks the goal into steps and sends each to the right specialist.
+            {repoStatus.data.repoResolvable ? (
+              <span
+                style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                title={repoStatus.data.repo ?? undefined}
+              >
+                repo: {repoStatus.data.repo ?? "connected"}
+              </span>
+            ) : (
+              <>
+                <span style={{ whiteSpace: "nowrap" }}>repo: not connected</span>
+                <span aria-hidden="true">-</span>
+                <Link
+                  to="/sync"
+                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{ color: "var(--glacier)", whiteSpace: "nowrap" }}
+                >
+                  connect
+                </Link>
+              </>
+            )}
           </span>
-        )}
+        ) : null}
         <button
           type="button"
           onClick={runStart}
           disabled={!canStart}
-          className="loom-press"
+          className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             marginLeft: "auto",
             flexShrink: 0,
@@ -459,7 +533,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
           color: "var(--text-subtle)",
         }}
       >
-        ⌘Enter to start · gates come back to you
+        ⌘Enter to start. Anything risky comes back to you first.
       </div>
       <RepoGateDialog
         open={repoGate !== null}
@@ -510,7 +584,11 @@ function BuildPage() {
   const archive = useMutation({
     mutationFn: (v: { missionId: string; archived: boolean }) => fArchive({ data: v }),
     onSuccess: (_d, v) => {
-      toast.success(v.archived ? "Session archived" : "Session restored");
+      toast.success(
+        v.archived
+          ? "Mission archived. Its decisions stay in Memory."
+          : "Mission restored. Its decisions stay in Memory.",
+      );
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -518,7 +596,7 @@ function BuildPage() {
   const del = useMutation({
     mutationFn: (missionId: string) => fDelete({ data: { missionId } }),
     onSuccess: () => {
-      toast.success("Session deleted · what was decided stays in your Brain");
+      toast.success("Mission deleted. Its decisions stay in Memory.");
       setDeleteTarget(null);
       invalidate();
     },
@@ -527,6 +605,10 @@ function BuildPage() {
 
   const rows = sessions.data?.sessions ?? [];
   const isEmpty = !sessions.isLoading && !sessions.isError && rows.length === 0;
+  // Calm first run (2026-07-11): fleet glances, the loop-health strip, and the
+  // By Agent / By Lane lenses appear only once the workspace has shipped at
+  // least one mission. Until then the surface is just the composer.
+  const hasCompletedMission = rows.some((s) => s.status === "completed");
 
   // Functional form (not a plain object) so this doesn't clobber the `view`
   // param when opening/closing a mission from the "By Lane" tab (adversarial
@@ -535,7 +617,9 @@ function BuildPage() {
   const openMission = (missionId: string) =>
     navigate({ search: (prev) => ({ ...prev, mission: missionId }) });
   const closeMission = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
-  const viewMode = search.view ?? "missions";
+  // Deep links to ?view=agent|lane fall back to the missions lens until the
+  // workspace has a completed mission (the lens tabs are hidden until then).
+  const viewMode = hasCompletedMission ? (search.view ?? "missions") : "missions";
 
   return (
     <ToastProvider>
@@ -581,7 +665,7 @@ function BuildPage() {
             }}
           />
           <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
-            Validated work becomes shipped code. Approved specs come in · merged work moves on.
+            Approved specs go in. Merged pull requests come out.
           </p>
           {presenceAgent ? (
             <div style={{ marginTop: 10 }}>
@@ -601,45 +685,54 @@ function BuildPage() {
           {/* OBS-10: fleet-wide glances, ported from the retired /missions page —
               genuinely about the whole agent mesh (code-gen + orchestrator goal-runs
               alike), not Build-specific, so they belong on Build's calm front now
-              that it is the one true missions home. Each stays silent when healthy. */}
-          <MissionsCostGlance />
-          <ReliabilityGlance />
+              that it is the one true missions home. Each stays silent when healthy,
+              and none appear before the first completed mission. */}
+          {hasCompletedMission ? (
+            <>
+              <MissionsCostGlance />
+              <ReliabilityGlance />
+            </>
+          ) : null}
         </div>
 
-        <LoopHealthBanner />
+        {hasCompletedMission ? <LoopHealthBanner /> : null}
 
         <Composer textareaRef={textareaRef} />
 
         {/* OBS-10: Fleet and Delegate folded in as two orthogonal lenses on the
             same agent-mesh activity: by mission (default), by agent, by lane.
-            Not merged into one view; each keeps its own model and layout. */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {(
-            [
-              { id: "missions", label: "Missions" },
-              { id: "agent", label: "By Agent" },
-              { id: "lane", label: "By Lane" },
-            ] as const
-          ).map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() =>
-                navigate({
-                  search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
-                })
-              }
-              className="loom-press"
-              style={{
-                ...MODE_PILL,
-                color: viewMode === id ? "var(--text-primary)" : "var(--text-subtle)",
-                background: viewMode === id ? "var(--surface-raised)" : "none",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+            Not merged into one view; each keeps its own model and layout.
+            Hidden until the first mission completes (calm first run). */}
+        {hasCompletedMission ? (
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            {(
+              [
+                { id: "missions", label: "Missions" },
+                { id: "agent", label: "By Agent" },
+                { id: "lane", label: "By Lane" },
+              ] as const
+            ).map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={viewMode === id}
+                onClick={() =>
+                  navigate({
+                    search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
+                  })
+                }
+                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                style={{
+                  ...MODE_PILL,
+                  color: viewMode === id ? "var(--text-primary)" : "var(--text-subtle)",
+                  background: viewMode === id ? "var(--surface-raised)" : "none",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {viewMode === "missions" && (
           <>
@@ -664,7 +757,7 @@ function BuildPage() {
                 </p>
                 <button
                   onClick={() => sessions.refetch()}
-                  className="loom-press"
+                  className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     marginTop: 14,
                     fontFamily: "var(--font-mono)",
@@ -684,7 +777,7 @@ function BuildPage() {
                   <button
                     type="button"
                     onClick={() => setShowArchived((v) => !v)}
-                    className="loom-press"
+                    className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-floor)",
@@ -769,7 +862,7 @@ function BuildPage() {
                   <button
                     type="button"
                     onClick={() => setShowArchived((v) => !v)}
-                    className="loom-press"
+                    className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-floor)",
@@ -837,11 +930,11 @@ function BuildPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this build session?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this mission?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the build's working log and any staged files for{" "}
-              <strong>{deleteTarget?.title}</strong>. What was decided and learned stays in your
-              Brain. To just tidy the list, Archive instead.
+              This removes the mission's working log and any staged files for{" "}
+              <strong>{deleteTarget?.title}</strong>. Its decisions stay in Memory. To just tidy the
+              list, Archive instead.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -851,7 +944,7 @@ function BuildPage() {
               disabled={del.isPending}
               style={{ background: "var(--madder)" }}
             >
-              {del.isPending ? "Deleting…" : "Delete session"}
+              {del.isPending ? "Deleting…" : "Delete mission"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

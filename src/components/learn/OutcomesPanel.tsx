@@ -65,8 +65,8 @@ export function OutcomesPanel() {
           </div>
           {a.status === "pending" && (
             <Link
-              to="/govern"
-              search={{ tab: "approvals" }}
+              to="/engine-room"
+              search={{ room: "record", view: "approvals" }}
               className="mt-3 inline-flex items-center gap-1 text-[11px] text-action-blue hover:underline"
             >
               Review in Approvals <ArrowUpRight className="h-3 w-3" />
