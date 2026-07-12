@@ -148,7 +148,8 @@ Personality lives in the brand voice, the product moments, and feature names —
 
 From §9 COGS (mission ≈ $0.50 cached; small artifacts ≈ pennies; everyday actions free):
 - **Credit sizing (coarse + legible):** mission ≈ **~10 credits**, build ≈ **~20–30**, everyday actions **0**. Internal COGS ≈ **$0.05/credit**. *(Fixes the canon's "150–400 credits/mission" inconsistency; the existing 100→10,000 dropdown works at ~10 cr/mission.)*
-- **Free** $0 / **~50 credits** (~5 missions). **Pro** $20/mo / **~200 credits** (~20 missions, generous for solo). **Team** ~$50/mo base / **~400 pooled credits** (~40 missions). **Enterprise** committed at ~$0.08–0.10/credit volume vs ~$0.12–0.15 self-serve/PAYG.
+- **Free** $0. **The daily-active hook is the free everyday features** (unlimited chat, the Critic teardown wedge, briefs — all 0-credit), so a free user has a reason to come back *every day* without spending a credit. On top of that, a **daily credit trickle that accrues, capped monthly** (recommended **~5 credits/day, cap ~50/mo** — the Lovable pattern) so they can save up over a few days to run a real mission. Daily refresh drives DAU; the monthly cap bounds our COGS; accrual means a mission (~10 cr) is reachable in ~2 days. *(A flat monthly 50 is the simpler fallback, but the daily trickle is the better habit-former for a Chief-of-Staff product.)*
+- **Pro** $20/mo / **~200 credits** (~20 missions, generous for solo). **Team** ~$50/mo base / **~400 pooled credits** (~40 missions). **Enterprise** committed at ~$0.08–0.10/credit volume vs ~$0.12–0.15 self-serve/PAYG.
 - **Margin holds via breakage:** the average PM uses well under the allowance (blended ~4–5x COGS) even though a maxed power user is ~2x. Generous *and* profitable.
 - These are recommendations; the founder sets final Stripe numbers. The one hard rule: keep the sizing self-consistent (base allowance must cover real missions).
 
