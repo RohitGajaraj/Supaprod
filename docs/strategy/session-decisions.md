@@ -10,6 +10,22 @@
 
 ---
 
+## 2026-07-12 - Pricing architecture finalized: seats-free credits, platform-managed models, low-friction billing (the FINAL pricing model)
+
+**Context.** Founder /goal to close the pricing model end-to-end from first principles, then finalize (founder granted finalization authority) and produce a build plan (not build it). Grounded in two research passes ([`pricing/credit-model-and-byok-research.md`](./pricing/credit-model-and-byok-research.md): 8-platform teardown; + a 2026 inference-cost / platform-managed-model / fair-credit-model pass folded into [`pricing/pricing-architecture.md`](./pricing/pricing-architecture.md) §9). All pricing/billing docs consolidated into the hub [`pricing/`](./pricing/README.md), interlinked + referenced from CLAUDE.md/AGENTS.md/README.md/docs/README.md.
+
+**Decisions made (binding, LOCKED).**
+1. **Credit model = "Outcome Credits", re-cut around the founder's friction test:** charge ONLY on delivery of a discrete PM-visible artifact (a mission/PRD/build/deep-research brief); **stop early = free**; everyday actions feel unlimited; **never a per-action dollar shown** (kills the ChatGPT-comparison trap) and **never a mid-flow cost approval**; soft cap + downgrade-to-free; hard cap + pre-approval before overage. Corrects an earlier "outcome-gated" idea (self-scored outcomes = the Parloa efficiency-capture trap, §9d).
+2. **Billing model = seats-free credits (resolves the earlier committed-credits-vs-per-seat back-and-forth):** credits (delivered work, pooled at the account) are the SOLE billing unit at every tier; **seats are never a price lever.** Free = grant; Pro = flat sub + allowance (1 user); Team = higher flat sub (governance layer) + shared pool + UNLIMITED members + per-user caps; Enterprise = committed annual credit envelope (volume rate) + unlimited seats + optional BYOK. Every paid tier: capped top-ups + pay-as-you-go (reuse the existing add-credits feature).
+3. **Model access = platform-managed default for ALL tiers** (Perplexity-style, model abstracted behind credits; cheap ≈ free, frontier costs more — the Poe/Abacus "credits school"); optional Balanced/Deep/Fast menu on Pro+. **No consumer BYOK.**
+4. **BYOK = enterprise-only, never a live dual-meter** (one contract line, provider bills their tokens, we meter/govern/orchestrate); the platform fee is a **thin % of pass-through (drops the now-broken flat $0.25/1M)** — exact % set at enterprise-contract time.
+5. **Tiers = Free / Pro / Team / Enterprise** (renamed Business → Team; DB slug already `team`).
+6. **Recommended numbers (founder delegated, unit-economics-backed, tunable):** 1 credit ≈ $0.05 COGS; mission ≈ ~10 credits; Free ~50 cr, Pro $20/~200 cr, Team ~$50/~400 pooled cr; margin holds via breakage. Fixes the canon's "150–400 credits/mission" inconsistency.
+
+**Why it matters.** This is the FINAL, coherent pricing architecture ([`pricing/pricing-architecture.md`](./pricing/pricing-architecture.md), status FINALIZED). It supersedes `pricing-strategy.md`'s enterprise-per-seat + flat-$0.25 BYOK calls. Fair (pay only for delivered work), simple (one credit wallet, no dollar-per-action, no key management for 99%), hard to exploit (charge on artifact not self-scored outcome; capped overage), sustainable (breakage margin + heavy work draws the meter), model-proof (abstracted + flex-buffered). Build plan (not built here): [`pricing/implementation-plan.md`](./pricing/implementation-plan.md).
+
+---
+
 ## 2026-07-10 (late) - The build-driver ladder: own the experience, never the generator (PC-35 into the beta wave; PC-21 rescoped)
 
 **Context.** The founder's end-to-end question: "the OpenHands handoff isn't fully done - are we building codegen ourselves so one platform covers everything?" Answered at full depth with the day's research evidence; the complete argument (five sufficient reasons: the capital bonfire with 2026 numbers, Amodei's commoditization clock, the no-fast-oracle asymmetry, the seam economics where every frontier release strengthens us, the judge-neutrality position) is documented in [`build-driver-and-dispatch.md`](./build-driver-and-dispatch.md) "The 2026-07-10 re-decision"; the investor one-breath answer in [`../pitch/qa-bank.md`](../pitch/qa-bank.md).
