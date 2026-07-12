@@ -7,6 +7,8 @@
 
 > **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](./session-decisions.md) in the same session.
 
+> **Related research (2026-07-12):** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) — an 8-platform competitor teardown + a per-surface free-vs-charged map for Cadence, with a recommended credit model (unified credits, BYOK-as-model-choice-only, the three-control governance model, outcome-gated ambient-spend billing). It **confirms** this doc's "credits price closed loops, not seats" and platform-cost-absorption stance, and **proposes one revision** — moving enterprise off per-seat to committed-credit + unlimited seats (this doc §0 decision 4). That revision is a pending founder call (research §9); do not treat it as ratified here until recorded.
+
 ---
 
 ## 0. The decision this document records (2026-06-26)
