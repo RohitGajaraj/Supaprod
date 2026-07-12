@@ -58,7 +58,7 @@ export const getCapabilities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (input: { workspaceId?: string | null } | undefined): { workspaceId?: string | null } =>
-      input ?? {}
+      input ?? {},
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
