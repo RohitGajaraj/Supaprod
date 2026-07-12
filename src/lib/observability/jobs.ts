@@ -46,6 +46,7 @@ export const EXPECTED_JOBS: ExpectedJob[] = [
   { job: "ambient.steward-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
   { job: "ambient.researcher-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
   { job: "ambient.prompt-optimize-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
+  { job: "ambient.retro-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
   { job: "cron.admin-expiry-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
   { job: "cron.retention-tick", cadence: "daily", staleAfterMs: 26 * HOUR },
   { job: "cron.credit-tick", cadence: "daily", staleAfterMs: 26 * HOUR },

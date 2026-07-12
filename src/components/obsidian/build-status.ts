@@ -90,7 +90,11 @@ export function studioVerdict(
 export const MISSION_ROW_STEP_LABEL: Record<MissionRowStatus, string> = {
   working: "RUNNING UNATTENDED",
   gate: "ONE ANSWER UNBLOCKS IT",
-  done: "FINISHED",
+  // RPT-09 (amplifier voice): the legwork is done and prepared for your call.
+  // A bare "FINISHED" over-claimed autonomous completion for the common
+  // done-but-unmerged case; the SHIP verdict chip still carries the confirmed
+  // ship signal when a changeset actually merged.
+  done: "READY FOR YOU",
   blocked: "DID NOT SHIP",
   queued: "STARTS SHORTLY",
 };

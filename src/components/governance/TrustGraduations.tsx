@@ -92,7 +92,10 @@ function GraduationCard({
   return (
     <div className="bento" style={{ padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <TrendingUp size={14} style={{ color: "var(--text-subtle)" }} aria-hidden="true" />
+        {/* RPT-09 (needs-human leads in ember): a pending graduation is a needs-you
+            call, so the icon leads in ember like the tool-approval rows beside it;
+            the ghost buttons keep the list's one-ember budget. */}
+        <TrendingUp size={14} style={{ color: "var(--ember)" }} aria-hidden="true" />
         <span
           style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--text-primary)" }}
         >

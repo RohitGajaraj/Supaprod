@@ -1412,8 +1412,10 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </span>
           </div>
           <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginBottom: 12 }}>
-            The loop ran these actions without a gate; the agent had already earned automatic trust.
-            You reviewed nothing in advance; each row notes whether it can be undone.
+            {/* RPT-09 (amplifier voice): the operator set the trust bar these ran under
+                -- frame it as their call, not as the operator being cut out of the loop. */}
+            You set the agent&apos;s trust high enough to run these on its own, so they went ahead
+            without a gate. Here is exactly what ran, and whether each one can be undone.
           </p>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {unattended.map((tc, i) => {

@@ -115,6 +115,7 @@ import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksSenseTickRouteImport } from './routes/api/public/hooks/sense-tick'
 import { Route as ApiPublicHooksSelfImproveTickRouteImport } from './routes/api/public/hooks/self-improve-tick'
 import { Route as ApiPublicHooksScoutTickRouteImport } from './routes/api/public/hooks/scout-tick'
+import { Route as ApiPublicHooksRetroTickRouteImport } from './routes/api/public/hooks/retro-tick'
 import { Route as ApiPublicHooksRetentionTickRouteImport } from './routes/api/public/hooks/retention-tick'
 import { Route as ApiPublicHooksResumeRunsRouteImport } from './routes/api/public/hooks/resume-runs'
 import { Route as ApiPublicHooksResearcherTickRouteImport } from './routes/api/public/hooks/researcher-tick'
@@ -722,6 +723,11 @@ const ApiPublicHooksScoutTickRoute = ApiPublicHooksScoutTickRouteImport.update({
   path: '/api/public/hooks/scout-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksRetroTickRoute = ApiPublicHooksRetroTickRouteImport.update({
+  id: '/api/public/hooks/retro-tick',
+  path: '/api/public/hooks/retro-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksRetentionTickRoute =
   ApiPublicHooksRetentionTickRouteImport.update({
     id: '/api/public/hooks/retention-tick',
@@ -1157,6 +1163,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
+  '/api/public/hooks/retro-tick': typeof ApiPublicHooksRetroTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
@@ -1314,6 +1321,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
+  '/api/public/hooks/retro-tick': typeof ApiPublicHooksRetroTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
@@ -1475,6 +1483,7 @@ export interface FileRoutesById {
   '/api/public/hooks/researcher-tick': typeof ApiPublicHooksResearcherTickRoute
   '/api/public/hooks/resume-runs': typeof ApiPublicHooksResumeRunsRoute
   '/api/public/hooks/retention-tick': typeof ApiPublicHooksRetentionTickRoute
+  '/api/public/hooks/retro-tick': typeof ApiPublicHooksRetroTickRoute
   '/api/public/hooks/scout-tick': typeof ApiPublicHooksScoutTickRoute
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
@@ -1636,6 +1645,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
+    | '/api/public/hooks/retro-tick'
     | '/api/public/hooks/scout-tick'
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
@@ -1793,6 +1803,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
+    | '/api/public/hooks/retro-tick'
     | '/api/public/hooks/scout-tick'
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
@@ -1953,6 +1964,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/researcher-tick'
     | '/api/public/hooks/resume-runs'
     | '/api/public/hooks/retention-tick'
+    | '/api/public/hooks/retro-tick'
     | '/api/public/hooks/scout-tick'
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
@@ -2047,6 +2059,7 @@ export interface RootRouteChildren {
   ApiPublicHooksResearcherTickRoute: typeof ApiPublicHooksResearcherTickRoute
   ApiPublicHooksResumeRunsRoute: typeof ApiPublicHooksResumeRunsRoute
   ApiPublicHooksRetentionTickRoute: typeof ApiPublicHooksRetentionTickRoute
+  ApiPublicHooksRetroTickRoute: typeof ApiPublicHooksRetroTickRoute
   ApiPublicHooksScoutTickRoute: typeof ApiPublicHooksScoutTickRoute
   ApiPublicHooksSelfImproveTickRoute: typeof ApiPublicHooksSelfImproveTickRoute
   ApiPublicHooksSenseTickRoute: typeof ApiPublicHooksSenseTickRoute
@@ -2821,6 +2834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksScoutTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/retro-tick': {
+      id: '/api/public/hooks/retro-tick'
+      path: '/api/public/hooks/retro-tick'
+      fullPath: '/api/public/hooks/retro-tick'
+      preLoaderRoute: typeof ApiPublicHooksRetroTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/retention-tick': {
       id: '/api/public/hooks/retention-tick'
       path: '/api/public/hooks/retention-tick'
@@ -3437,6 +3457,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksResearcherTickRoute: ApiPublicHooksResearcherTickRoute,
   ApiPublicHooksResumeRunsRoute: ApiPublicHooksResumeRunsRoute,
   ApiPublicHooksRetentionTickRoute: ApiPublicHooksRetentionTickRoute,
+  ApiPublicHooksRetroTickRoute: ApiPublicHooksRetroTickRoute,
   ApiPublicHooksScoutTickRoute: ApiPublicHooksScoutTickRoute,
   ApiPublicHooksSelfImproveTickRoute: ApiPublicHooksSelfImproveTickRoute,
   ApiPublicHooksSenseTickRoute: ApiPublicHooksSenseTickRoute,

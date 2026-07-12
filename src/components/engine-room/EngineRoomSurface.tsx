@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
 import { getAnalyticsOverview } from "@/lib/analytics.functions";
+import { getValueReceipts } from "@/lib/value-receipts.functions";
 import { getEvalHealth } from "@/lib/eval-health.functions";
 import { getDriftOverview } from "@/lib/drift.functions";
 import { getGuardrailOverview } from "@/lib/guardrails.functions";
@@ -90,7 +91,10 @@ function roomStatus(
  *
  * Honesty (LOOM §9b): every room reports its own loading/error/ready state;
  * a failed read renders as an error, never as a healthy verdict. */
-export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
+export function useEngineRoomGlance(): {
+  rooms: RoomStatus[];
+  throughput: { totalRuns: number; decisionsClosed: number; prsShipped: number };
+} {
   const fBudget = useServerFn(getBudgetOverview);
   const fAnalytics = useServerFn(getAnalyticsOverview);
   const fEvalHealth = useServerFn(getEvalHealth);
@@ -99,6 +103,7 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
   const fIncidents = useServerFn(getIncidents);
   const fTraces = useServerFn(listTraces);
   const fSeal = useServerFn(getLedgerSeal);
+  const fReceipts = useServerFn(getValueReceipts);
 
   const budgetQ = useQuery({ queryKey: ["budget_overview"], queryFn: () => fBudget() });
   const cost7Q = useQuery({
@@ -118,6 +123,10 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
     queryFn: () => fTraces({ data: { days: 7, status: "all", limit: 200 } }),
   });
   const sealQ = useQuery({ queryKey: ["ledger-seal"], queryFn: () => fSeal({ data: {} }) });
+  // RPT-09: the "While you worked" amplifier strip reads value-receipts (RPT-33 --
+  // honest counted decisions + PRs, no fabricated hours) alongside the already-fetched
+  // 7-day totalRuns from the spend read.
+  const receiptsQ = useQuery({ queryKey: ["value-receipts"], queryFn: () => fReceipts() });
 
   const rooms: RoomStatus[] = [
     roomStatus("spend", [budgetQ, cost7Q], () =>
@@ -148,7 +157,14 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
     ),
   ];
 
-  return { rooms };
+  return {
+    rooms,
+    throughput: {
+      totalRuns: cost7Q.data?.summary.totalRuns ?? 0,
+      decisionsClosed: receiptsQ.data?.decisionsClosed ?? 0,
+      prsShipped: receiptsQ.data?.prsShipped ?? 0,
+    },
+  };
 }
 
 /** The glance: hero, 2x2 room grid, connection strip. Every number is a
@@ -161,7 +177,9 @@ export function useEngineRoomGlance(): { rooms: RoomStatus[] } {
  * content column beside the persistent RoomRail switcher. */
 export function EngineRoomGlance() {
   const navigate = useNavigate({ from: "/engine-room" });
-  const { rooms } = useEngineRoomGlance();
+  const { rooms, throughput } = useEngineRoomGlance();
+  const showThroughput =
+    throughput.totalRuns > 0 || throughput.decisionsClosed > 0 || throughput.prsShipped > 0;
   const allHealthy =
     rooms.length > 0 && rooms.every((r) => r.glance !== null && r.glance.state === "healthy");
   // Loom §2b glow tone: moss on an all-healthy day, ember when any room asks
@@ -199,6 +217,69 @@ export function EngineRoomGlance() {
       >
         Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record.
       </p>
+
+      {/* RPT-09: the "While you worked" amplifier strip. Real counts only (this
+          week's AI actions from the already-fetched analytics read + RPT-33's honest
+          decisions-closed / PRs-shipped, no fabricated hours). Renders only when there
+          is something to show, so a brand-new workspace never sees an empty shell. */}
+      {showThroughput ? (
+        <div
+          style={{
+            marginBottom: allHealthy ? "10px" : "18px",
+            padding: "13px 16px",
+            borderRadius: "var(--radius-card)",
+            border: "1px solid var(--hairline)",
+            background: "var(--surface-recessed)",
+          }}
+        >
+          <div
+            className="uppercase"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.1em",
+              color: "var(--text-subtle)",
+              marginBottom: 6,
+            }}
+          >
+            While you worked
+          </div>
+          {/* Lead with this week's actions when there are any; a flat "ran 0 actions
+              this week" would undercut the amplifier framing, so a quiet week leads
+              with the to-date stats below instead. */}
+          {throughput.totalRuns > 0 ? (
+            <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
+              Cadence ran{" "}
+              <strong style={{ color: "var(--ember-text)" }}>{throughput.totalRuns}</strong>{" "}
+              {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
+            </p>
+          ) : null}
+          {throughput.decisionsClosed > 0 || throughput.prsShipped > 0 ? (
+            <p
+              style={{
+                fontSize: throughput.totalRuns > 0 ? 12.5 : "var(--text-base)",
+                color: throughput.totalRuns > 0 ? "var(--text-subtle)" : "var(--text-primary)",
+                margin: throughput.totalRuns > 0 ? "4px 0 0" : 0,
+              }}
+            >
+              {throughput.decisionsClosed}{" "}
+              {throughput.decisionsClosed === 1 ? "decision" : "decisions"} closed to date ·{" "}
+              {throughput.prsShipped} {throughput.prsShipped === 1 ? "PR" : "PRs"} shipped to date
+            </p>
+          ) : null}
+          <p
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontSize: 13,
+              color: "var(--text-muted)",
+              margin: "8px 0 0",
+            }}
+          >
+            Your judgment, amplified and remembered.
+          </p>
+        </div>
+      ) : null}
 
       {allHealthy ? (
         <p

@@ -14,6 +14,7 @@ import { MonoLabel } from "@/components/cadence/Primitives";
 import { AgentMark } from "@/components/agents/AgentMark";
 import { TrustDial } from "@/components/cockpit/TrustDial";
 import { AgentInspector } from "@/components/cockpit/AgentInspector";
+import { AgentScorecardPanel } from "@/components/engine-room/AgentScorecardPanel";
 import {
   AGENT_STATION_ORDER,
   AGENT_STATIONS,
@@ -142,6 +143,8 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
 
       {/* Relocated from the retired Missions roster grid. */}
       <TrustDial nameById={nameById} />
+      {/* RPT-37: the outcome-graded scorecard, per agent + per task type. */}
+      <AgentScorecardPanel />
       <AgentInspector agents={agents} />
     </div>
   );

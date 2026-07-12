@@ -306,7 +306,9 @@ export function CiPanel({
             padding: 14,
           }}
         >
-          <MonoLabel icon={ShieldAlert} style={{ color: "var(--text-primary)", fontWeight: 700 }}>
+          {/* RPT-09 (needs-human leads in ember): the pending merge-gate pointer
+              leads in ember so the wait-on-you call has an ember cue on the CI tab. */}
+          <MonoLabel icon={ShieldAlert} style={{ color: "var(--ember)", fontWeight: 700 }}>
             Waiting on you
           </MonoLabel>
           <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "var(--text-body)" }}>

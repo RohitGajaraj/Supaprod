@@ -19,7 +19,7 @@ const ROUTES_DIR = join(SRC, "routes");
 const EXEMPT: Record<string, string> = {
   "/trust": "redirect-only stub (301 to /security); kept because URLs are forever",
   "/p/teardown":
-    "RPT-03 launch-gate demo wedge (shipped 2026-07-12); its inbound link belongs on the public landing, which is frozen until the landing revamp lands. Remove this exemption when the landing links it.",
+    "RPT-03 no-signup public demo wedge, reached via external marketing/discovery links; its internal inbound link belongs on the public landing, frozen until the landing revamp lands. Remove this exemption when the landing links it.",
 };
 
 /** Top-level public route files: not _authenticated/_root, not api/, not
