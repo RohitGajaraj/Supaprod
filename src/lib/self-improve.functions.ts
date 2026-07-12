@@ -574,17 +574,15 @@ async function touchHumanInteraction(
 ): Promise<void> {
   try {
     const nowIso = new Date().toISOString();
-    await db
-      .from("self_improve_settings")
-      .upsert(
-        {
-          workspace_id: workspaceId,
-          last_human_touch_at: nowIso,
-          updated_at: nowIso,
-          updated_by: userId,
-        },
-        { onConflict: "workspace_id" },
-      );
+    await db.from("self_improve_settings").upsert(
+      {
+        workspace_id: workspaceId,
+        last_human_touch_at: nowIso,
+        updated_at: nowIso,
+        updated_by: userId,
+      },
+      { onConflict: "workspace_id" },
+    );
   } catch {
     // The staleness clock is a nudge input, not load-bearing.
   }
@@ -669,6 +667,10 @@ const SetModeSchema = z.object({
  * Set a workspace's self-improvement mode. Choosing 'auto' IS the human accepting
  * the graduation to unattended apply (a standing, revocable consent) -- consistent
  * with the trust-ramp doctrine that autonomy never silently flips.
+ *
+ * Changing the mode also stamps last_human_touch_at: picking a mode IS engaging with
+ * the engine, so the staleness clock resets. That way the "off too long" nudge only
+ * fires after genuine neglect, never the instant someone deliberately turns it off.
  */
 export const setSelfImproveMode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -677,11 +679,15 @@ export const setSelfImproveMode = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
     const nowIso = new Date().toISOString();
-    await db
-      .from("self_improve_settings")
-      .upsert(
-        { workspace_id: data.workspaceId, mode: data.mode, updated_at: nowIso, updated_by: userId },
-        { onConflict: "workspace_id" },
-      );
+    await db.from("self_improve_settings").upsert(
+      {
+        workspace_id: data.workspaceId,
+        mode: data.mode,
+        updated_at: nowIso,
+        updated_by: userId,
+        last_human_touch_at: nowIso,
+      },
+      { onConflict: "workspace_id" },
+    );
     return { mode: data.mode };
   });
