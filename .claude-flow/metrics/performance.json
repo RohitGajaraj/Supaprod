@@ -1,17 +1,63 @@
 {
-  "timestamp": "2026-07-10T14:43:35.124Z",
-  "mode": "local",
-  "memoryUsage": {
-    "rss": 34848768,
-    "heapTotal": 35667968,
-    "heapUsed": 31418856,
-    "external": 4258193,
-    "arrayBuffers": 343631
+  "timestamp": "2026-07-12T16:38:22.878Z",
+  "mode": "headless",
+  "workerType": "optimize",
+  "model": "sonnet",
+  "durationMs": 484849,
+  "executionId": "optimize_1783873818029_wy3yhz",
+  "success": true,
+  "findings": {
+    "sections": [
+      {
+        "title": "Performance Audit — cadence-lane-2",
+        "content": "\nGood news: this codebase already went through two rounds of perf hardening (2026-07-09 baseline, fully fixed by 2026-07-12), so I scoped this fresh pass to areas those rounds didn't touch. The `ecc:performance-optimizer` agent found only **4 new issues** — the repo is genuinely clean, not padded to a round number.\n\n",
+        "level": 2
+      },
+      {
+        "title": "1. N+1 sequential DB writes — HIGH impact",
+        "content": "**`src/lib/orchestrator.functions.ts:290-317`** (`dispatchPRDToLinear`). Each task in the dispatch loop does its own sequential `supabase.from(\"sync_mappings\").insert(...)` after the Linear GraphQL call. A 30-task PRD = 30 sequential round trips.\n\n```ts\n// before: insert per task, inside the loop\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) {\n    await supabase.from(\"sync_mappings\").insert({ ...t });\n  }\n}\n\n// after: collect, then one batched insert\nconst rows = [];\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) rows.push({ user_id: userId, provider: \"linear\", local_kind: \"task\", local_id: t.id, external_id: r.issueCreate.issue.id, external_url: r.issueCreate.issue.url, last_pushed_at: new Date().toISOString(), version_local: 1 });\n}\nawait supabase.from(\"sync_mappings\").insert(rows);\n```\n\n",
+        "level": 3
+      },
+      {
+        "title": "2. Undebounced external-API search — HIGH impact",
+        "content": "**`src/components/knowledge/DocsPanel.tsx:171-175, 645-646`**. Notion search fires a live Notion API call per keystroke — the `useQuery` key is the raw input state. The fix already exists in-repo (`useDebouncedValue` in `src/components/admin/admin-ui.tsx`), just unapplied here.\n\n```tsx\n// after\nconst debouncedNotionQuery = useDebouncedValue(notionQuery, 300);\nconst notionSearch = useQuery({\n  queryKey: [\"notion-search\", debouncedNotionQuery],\n  queryFn: () => fSearchNotion({ data: { query: debouncedNotionQuery } }),\n  enabled: notionOpen && debouncedNotionQuery.trim().length > 0,\n});\n```\n\n",
+        "level": 3
+      },
+      {
+        "title": "3. Unconditional 60fps render loop — MEDIUM impact",
+        "content": "**`src/components/knowledge/GraphUniverseCanvas.tsx:531-561`**. Unlike its sibling `GraphForceCanvas.tsx` (which only self-schedules while animating), this loop calls `requestAnimationFrame` forever with no tab-visibility guard.\n\n```ts\nconst loop = () => {\n  if (document.hidden) { rafId.current = requestAnimationFrame(loop); return; }\n  // ... existing tick + render\n};\n```\n\n",
+        "level": 3
+      },
+      {
+        "title": "4. Unmemoized recompute on a polling component — LOW-MEDIUM impact",
+        "content": "**`src/components/missions/MissionOrchestratorDetail.tsx:847-853`**. `unattended` (flatMap+filter+sort) is recomputed every render on a component polling every 2.5-4s.\n\n```tsx\nconst unattended = useMemo(\n  () => hops.flatMap(h => h.tool_calls.filter(tc => tc.is_unattended).map(tc => ({...tc, agent_slug: h.agent_slug})))\n    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),\n  [hops],\n);\n```\n\n",
+        "level": 3
+      },
+      {
+        "title": "Confirmed clean (no action needed)",
+        "content": "- `src/lib/ai/cache.server.ts` — solid SHA-256 content-hash response cache already in place\n- `src/lib/rag/retriever.server.ts` — batched ANN + keyword fallback, MMR rerank, no N+1\n- `src/lib/lineage.functions.ts` `getProvenance` BFS — already groups by kind + `.in()` per level\n- `OpportunityQueue.tsx`/`OpportunityRow.tsx` — `React.memo` + stable `useCallback`, no cascade re-renders\n- Every other `setInterval`/RAF site repo-wide has matching cleanup\n\nAll 7 items from the 2026-07-09 baseline (interval leaks, undebounced search elsewhere, sequential insert/upsert, unmemoized sorts, sequential BFS, unmemoized draw-loop label) remain fixed — verified live, not re-reported. I saved both audits to memory (`project_perf-audit-2026-07-12.md`) so a future pass can jump straight to fixes instead of re-scanning.",
+        "level": 3
+      }
+    ],
+    "codeBlocks": [
+      {
+        "language": "ts",
+        "code": "// before: insert per task, inside the loop\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) {\n    await supabase.from(\"sync_mappings\").insert({ ...t });\n  }\n}\n\n// after: collect, then one batched insert\nconst rows = [];\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) rows.push({ user_id: userId, provider: \"linear\", local_kind: \"task\", local_id: t.id, external_id: r.issueCreate.issue.id, external_url: r.issueCreate.issue.url, last_pushed_at: new Date().toISOString(), version_local: 1 });\n}\nawait supabase.from(\"sync_mappings\").insert(rows);"
+      },
+      {
+        "language": "tsx",
+        "code": "// after\nconst debouncedNotionQuery = useDebouncedValue(notionQuery, 300);\nconst notionSearch = useQuery({\n  queryKey: [\"notion-search\", debouncedNotionQuery],\n  queryFn: () => fSearchNotion({ data: { query: debouncedNotionQuery } }),\n  enabled: notionOpen && debouncedNotionQuery.trim().length > 0,\n});"
+      },
+      {
+        "language": "ts",
+        "code": "const loop = () => {\n  if (document.hidden) { rafId.current = requestAnimationFrame(loop); return; }\n  // ... existing tick + render\n};"
+      },
+      {
+        "language": "tsx",
+        "code": "const unattended = useMemo(\n  () => hops.flatMap(h => h.tool_calls.filter(tc => tc.is_unattended).map(tc => ({...tc, agent_slug: h.agent_slug})))\n    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),\n  [hops],\n);"
+      }
+    ]
   },
-  "uptime": 30849.184361292,
-  "optimizations": {
-    "cacheHitRate": 0.78,
-    "avgResponseTime": 45
-  },
-  "note": "Install Claude Code CLI for AI-powered optimization suggestions"
+  "rawOutputPreview": "## Performance Audit — cadence-lane-2\n\nGood news: this codebase already went through two rounds of perf hardening (2026-07-09 baseline, fully fixed by 2026-07-12), so I scoped this fresh pass to areas those rounds didn't touch. The `ecc:performance-optimizer` agent found only **4 new issues** — the repo is genuinely clean, not padded to a round number.\n\n### 1. N+1 sequential DB writes — HIGH impact\n**`src/lib/orchestrator.functions.ts:290-317`** (`dispatchPRDToLinear`). Each task in the dispatch loop does its own sequential `supabase.from(\"sync_mappings\").insert(...)` after the Linear GraphQL call. A 30-task PRD = 30 sequential round trips.\n\n```ts\n// before: insert per task, inside the loop\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) {\n    await supabase.from(\"sync_mappings\").insert({ ...t });\n  }\n}\n\n// after: collect, then one batched insert\nconst rows = [];\nfor (const t of toDispatch) {\n  const r = await linearGql(...);\n  if (r.issueCreate.success) rows.push({ user_id: userId, provider: \"linear\", local_kind: \"task\", local_id: t.id, external_id: r.issueCreate.issue.id, external_url: r.issueCreate.issue.url, last_pushed_at: new Date().toISOString(), version_local: 1 });\n}\nawait supabase.from(\"sync_mappings\").insert(rows);\n```\n\n### 2. Undebounced external-API search — HIGH impact\n**`src/components/knowledge/DocsPanel.tsx:171-175, 645-646`**. Notion search fires a live Notion API call per keystroke — the `useQuery` key is the raw input state. The fix already exists in-repo (`useDebouncedValue` in `src/components/admin/admin-ui.tsx`), just unapplied here.\n\n```tsx\n// after\nconst debouncedNotionQuery = useDebouncedValue(notionQuery, 300);\nconst notionSearch = useQuery({\n  queryKey: [\"notion-search\", debouncedNotionQuery],\n  queryFn: () => fSearchNotion({ data: { query: debouncedNotionQuery } }),\n  enabled: notionOpen && debouncedNotionQuery.trim().length > 0,\n});\n```\n\n### 3. Unconditional 60fps render loop — MEDIUM impact\n",
+  "rawOutputLength": 3730
 }

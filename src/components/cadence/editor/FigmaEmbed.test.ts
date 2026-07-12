@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { Editor } from "@tiptap/core";
+import StarterKit from "@tiptap/starter-kit";
 import { toEmbedUrl, FigmaEmbed } from "./FigmaEmbed";
 
 describe("toEmbedUrl", () => {
@@ -513,7 +515,7 @@ describe("FigmaEmbed round-trip: render → parse cycle", () => {
  * DEPENDENCIES: bun:test + @tiptap/core + @tiptap/starter-kit
  * SETUP: Instantiate Editor with FigmaEmbed extension + testee chains
  */
-describe.skip("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () => {
+describe("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)", () => {
   /**
    * SKELETON: Full editor round-trip test
    *
@@ -535,60 +537,191 @@ describe.skip("FigmaEmbed.parseHTML round-trip via TipTap Editor (CRITICAL GAP)"
    * - parseHTML rule correctly extracts src from div[data-figma-embed] iframe child
    */
   test("preserves figmaEmbed node src through HTML serialization and re-parse", () => {
-    // TODO: Implement round-trip test
-    // 1. Create Editor with FigmaEmbed
-    // 2. Insert a figmaEmbed node with src = "https://www.figma.com/file/test123/Design"
-    // 3. Serialize to HTML
-    // 4. Verify HTML is: <div data-figma-embed="true" ...><iframe src="https://www.figma.com/embed?embed_host=cadence&url=..." /></div>
-    // 5. Create fresh editor and setContent(html)
-    // 6. Query document state and verify figmaEmbed node exists with original src
-    // 7. Assert node.attrs.src === "https://www.figma.com/file/test123/Design" (NOT the embed URL)
+    const testSrc = "https://www.figma.com/file/test123/Design";
+
+    // Step 1-2: Create editor with FigmaEmbed extension
+    const editor1 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+
+    // Step 3: Insert figmaEmbed node
+    editor1.commands.setFigmaEmbed({ src: testSrc });
+    const html = editor1.getHTML();
+
+    // Step 4-5: Verify HTML structure
+    expect(html).toContain('data-figma-embed="true"');
+    expect(html).toContain("<iframe");
+    expect(html).toContain("figma.com/embed");
+    expect(html).toContain(encodeURIComponent(testSrc));
+
+    // Step 6-7: Create fresh editor and re-parse
+    const editor2 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html,
+    });
+
+    // Step 8-9: Verify figmaEmbed node persists with original src
+    const state = editor2.getJSON();
+    const content = state.content;
+
+    expect(content).toBeDefined();
+    expect(Array.isArray(content)).toBe(true);
+
+    // Find the figmaEmbed node
+    let figmaNode: unknown = null;
+    for (const node of content as any[]) {
+      if (node.type === "figmaEmbed") {
+        figmaNode = node;
+        break;
+      }
+    }
+
+    expect(figmaNode).toBeDefined();
+    // parseHTML preserves the original src from HTMLAttributes
+    expect((figmaNode as any).attrs?.src).toBe(testSrc);
+
+    editor1.destroy();
+    editor2.destroy();
   });
 
   test("parseHTML correctly extracts src from iframe[src] child within div[data-figma-embed]", () => {
-    // TODO: Implement parseHTML extraction test
-    // Test the parseHTML rule directly by feeding it HTML with nested iframe
-    // STEPS:
-    // 1. Create test HTML: <div data-figma-embed="true"><iframe src="https://..." /></div>
-    // 2. Query parseHTML rule and invoke it (TipTap parseHTML rules have a getAttrs callback)
-    // 3. Verify getAttrs extracts the iframe src correctly
-    // 4. Assert extracted value matches the iframe[src] attribute
-    //
-    // EDGE CASES to test:
-    // - iframe src is empty string → should extract as ""
-    // - iframe src is malformed URL → should extract as-is
-    // - multiple iframes present → should extract first one
-    // - no iframe child → should return null or empty
-    // - iframe without src → should extract as ""
+    const testSrc = "https://www.figma.com/file/abc/Design";
+    const embedUrl = toEmbedUrl(testSrc);
+
+    // Create test HTML with nested iframe
+    const testHtml = `<div data-figma-embed="true"><iframe src="${embedUrl}" sandbox="allow-same-origin" allowfullscreen="true" style="width:100%;height:480px;border:0;display:block;"></iframe></div>`;
+
+    // Create editor and setContent with test HTML
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: testHtml,
+    });
+
+    const state = editor.getJSON();
+    const content = state.content as any[];
+
+    // Find figmaEmbed node
+    const figmaNode = content.find((n) => n.type === "figmaEmbed");
+    expect(figmaNode).toBeDefined();
+
+    // Verify src was extracted from iframe (should be the original, not the embed URL)
+    // The parseHTML getAttrs extracts from iframe src, which is the embed URL
+    // So the node.attrs.src should be the embed URL after parsing
+    expect(figmaNode?.attrs?.src).toBe(embedUrl);
+
+    editor.destroy();
   });
 
   test("handles round-trip with query params and node-id fragments in figma URL", () => {
-    // TODO: Complex URL with proto mode parameters
-    // 1. Original URL: "https://www.figma.com/proto/abc123?node-id=1%3A2&scaling=min-zoom"
-    // 2. Serialize to HTML
-    // 3. Re-parse
-    // 4. Assert src is exactly the original (query params preserved)
+    const complexUrl = "https://www.figma.com/proto/abc123?node-id=1%3A2&scaling=min-zoom";
+
+    const editor1 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+
+    editor1.commands.setFigmaEmbed({ src: complexUrl });
+    const html = editor1.getHTML();
+
+    // Verify query params are preserved in embed URL
+    expect(html).toContain(encodeURIComponent(complexUrl));
+
+    // Re-parse in fresh editor
+    const editor2 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html,
+    });
+
+    const state = editor2.getJSON();
+    const content = state.content as any[];
+    const figmaNode = content.find((n) => n.type === "figmaEmbed");
+
+    // Verify src survived round-trip with query params intact
+    expect(figmaNode?.attrs?.src).toBeDefined();
+    expect(figmaNode?.attrs?.src).toBe(complexUrl);
+
+    editor1.destroy();
+    editor2.destroy();
   });
 
   test("survives multiple figmaEmbed nodes in same document", () => {
-    // TODO: Multi-embed persistence
-    // 1. Create editor with 2+ figmaEmbed nodes with different src values
-    // 2. Serialize to HTML
-    // 3. Re-parse and verify both nodes and their distinct src values are preserved
+    const src1 = "https://www.figma.com/file/abc/Design1";
+    const src2 = "https://www.figma.com/file/xyz/Design2";
+
+    const editor1 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: `<p>First embed:</p>`,
+    });
+
+    // Insert two figmaEmbed nodes
+    editor1.commands.setFigmaEmbed({ src: src1 });
+    editor1.commands.setFigmaEmbed({ src: src2 });
+
+    const html = editor1.getHTML();
+
+    // Verify both embeds are in HTML
+    expect(html).toContain(encodeURIComponent(src1));
+    expect(html).toContain(encodeURIComponent(src2));
+
+    // Re-parse
+    const editor2 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html,
+    });
+
+    const state = editor2.getJSON();
+    const content = state.content as any[];
+    const figmaNodes = content.filter((n) => n.type === "figmaEmbed");
+
+    // Should have both nodes
+    expect(figmaNodes.length).toBe(2);
+    // Verify distinct src values are preserved (original URLs)
+    const srcs = figmaNodes.map((n) => n.attrs?.src);
+    expect(srcs).toContain(src1);
+    expect(srcs).toContain(src2);
+
+    editor1.destroy();
+    editor2.destroy();
   });
 
   test("parseHTML fails gracefully if iframe has no src attribute", () => {
-    // TODO: Edge case: malformed HTML
-    // 1. HTML: <div data-figma-embed="true"><iframe /></div> (no src)
-    // 2. setContent with this HTML
-    // 3. Verify editor either extracts empty src or ignores the node
-    // 4. No crash/error
+    const testHtml = `<div data-figma-embed="true"><iframe sandbox="allow-same-origin"></iframe></div>`;
+
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: testHtml,
+    });
+
+    // Should not crash; node should have empty src
+    const state = editor.getJSON();
+    const content = state.content as any[];
+    const figmaNode = content.find((n) => n.type === "figmaEmbed");
+
+    // Node should exist but src should be empty (from getAttribute fallback "")
+    expect(figmaNode).toBeDefined();
+    expect(figmaNode?.attrs?.src).toBe("");
+
+    editor.destroy();
   });
 
   test("parseHTML fails gracefully if div[data-figma-embed] has no child iframe", () => {
-    // TODO: Edge case: empty embed div
-    // 1. HTML: <div data-figma-embed="true"></div> (no iframe child)
-    // 2. setContent with this HTML
-    // 3. Verify graceful handling (empty src or no node inserted)
+    const testHtml = `<div data-figma-embed="true"></div>`;
+
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: testHtml,
+    });
+
+    // Should not crash
+    const state = editor.getJSON();
+    const content = state.content as any[];
+    const figmaNode = content.find((n) => n.type === "figmaEmbed");
+
+    // Node should exist with empty src (no iframe to extract from)
+    expect(figmaNode).toBeDefined();
+    expect(figmaNode?.attrs?.src).toBe("");
+
+    editor.destroy();
   });
 });

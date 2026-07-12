@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-10T13:59:12.085Z",
+  "timestamp": "2026-07-12T14:07:29.479Z",
   "flywheel": {
     "ran": false,
     "reason": "opt-in required (RUFLO_HARNESS_LOOP=1)",
@@ -19,7 +19,9 @@
       "lineageIntact": false,
       "allReplayable": true,
       "nodes": [],
-      "problems": ["expected exactly one immutable root, found 0"]
+      "problems": [
+        "expected exactly one immutable root, found 0"
+      ]
     },
     "plateau": {
       "status": "insufficient-data",

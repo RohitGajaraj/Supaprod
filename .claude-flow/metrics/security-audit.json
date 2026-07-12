@@ -1,70 +1,76 @@
 {
-  "timestamp": "2026-07-10T14:56:07.384Z",
+  "timestamp": "2026-07-12T16:31:23.554Z",
   "mode": "headless",
   "workerType": "audit",
   "model": "haiku",
-  "durationMs": 62157,
-  "executionId": "audit_1783695305227_l8hyg0",
+  "durationMs": 65661,
+  "executionId": "audit_1783873817893_5io8vq",
   "success": true,
   "findings": {
     "vulnerabilities": [
       {
-        "severity": "medium",
+        "severity": "high",
         "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 17,
-        "description": "Weak random ID generation in fallback path. The idFactory fallback uses Math.random().toString(16).slice(2, 10) instead of cryptographically secure randomness. While crypto.randomUUID() is preferred, the fallback should use a secure alternative or fail safely.",
-        "remediation": "Remove the Math.random() fallback or use a proper CSPRNG. If crypto.randomUUID() is unavailable, throw an error or use the browser's crypto.getRandomValues()."
+        "line": 21,
+        "description": "Weak cryptographic randomness for session token generation. Fallback uses Math.random() instead of crypto.randomUUID(). While the code prefers crypto.randomUUID(), the fallback at line 21 is inadequate for security-sensitive tokens. Math.random() is not cryptographically secure and can be predicted."
       },
       {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 32,
-        "description": "Token injection via window object globals (TOKEN, PORT). While guards exist, injecting security-sensitive values as window properties creates an XSS attack surface. If page scripts are compromised, tokens can be exfiltrated.",
-        "remediation": "Use postMessage() with strict origin checking instead of window globals. Implement Content Security Policy (CSP) headers to prevent script injection. Consider using sessionStorage with HTTPOnly flag if available."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 58,
-        "description": "Unvalidated JSON.parse() of stored session data. Malformed or malicious session data in localStorage could cause crashes or unexpected behavior. No schema validation before use.",
-        "remediation": "Add schema validation using a parsing library (e.g., zod, valibot). Validate that parsed.checkpointRevision is a number before using it."
-      },
-      {
-        "severity": "low",
+        "severity": "high",
         "file": ".kiro/skills/impeccable/scripts/live-browser-dom.js",
-        "line": 28,
-        "description": "CSS escape function relies on String.replace() fallback when CSS.escape is unavailable. This may not handle all CSS injection vectors (e.g., unicode escapes, property names).",
-        "remediation": "Use a tested CSS sanitization library or ensure CSS.escape() is always available via polyfill. Add unit tests for CSS injection payloads."
+        "line": 30,
+        "description": "Weak randomness in ID generation: Math.random().toString(16).slice(2) + Date.now().toString(16). This fallback pattern is predictable and unsuitable for security tokens or session identifiers."
+      },
+      {
+        "severity": "high",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 17,
+        "description": "Sensitive token stored in global window object. `window.__IMPECCABLE_TOKEN__` is accessible to any JavaScript in the page, including third-party scripts and XSS payloads. Token should be stored securely (HttpOnly cookie or encrypted memory storage)."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
+        "line": 30,
+        "description": "Sensitive session data stored in localStorage without encryption. Session information including session ID and checkpoint revisions are stored as plaintext JSON. localStorage is vulnerable to XSS attacks and persistent to page navigation."
+      },
+      {
+        "severity": "medium",
+        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
+        "line": 20,
+        "description": "No validation of injected token and port values. The script blindly trusts `window.__IMPECCABLE_TOKEN__` and `window.__IMPECCABLE_PORT__` without validating their format, origin, or authenticity. Could allow injection of malicious values."
+      },
+      {
+        "severity": "medium",
+        "file": ".output/public/assets/ChatMarkdown-Bx0Eb_0P.js",
+        "line": 35,
+        "description": "Potential XSS via inline style concatenation. While the code has some protection (CSS.escape usage elsewhere), dynamic style/class injection patterns could be exploited if user content reaches styling contexts without proper sanitization."
       },
       {
         "severity": "low",
         "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 37,
-        "description": "Session state stored in unencrypted localStorage. XSS attacks or browser storage inspection can expose session IDs and application state.",
-        "remediation": "Encrypt sensitive session data before storing. Use sessionStorage for ephemeral data. Implement automatic session expiration. Consider using IndexedDB with encryption for large state."
+        "line": 35,
+        "description": "Unvalidated localStorage access. The code silently fails when localStorage is unavailable but doesn't distinguish between storage quota exceeded, private mode, or other security contexts. This could mask actual security issues."
       },
       {
         "severity": "low",
         "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 70,
-        "description": "Double-init guard checks window.__IMPECCABLE_LIVE_INIT__ but doesn't validate the guard itself. A malicious script could set this flag to prevent legitimate initialization or set it falsely to enable re-execution.",
-        "remediation": "Use Symbol or Object.defineProperty() with non-configurable flag to make guard tamper-resistant: Object.defineProperty(window, '__IMPECCABLE_LIVE_INIT__', { value: true, writable: false })."
+        "line": 45,
+        "description": "No Content Security Policy (CSP) directives visible. Injected script lacks CSP headers to restrict what the injected code can do. An attacker could potentially exfiltrate data or perform unauthorized actions."
       }
     ],
-    "riskScore": 28,
+    "riskScore": 68,
     "recommendations": [
-      "Implement Content Security Policy (CSP) headers to restrict script injection and inline style execution",
-      "Use postMessage() with origin validation instead of window global injection for security tokens",
-      "Add schema validation to all JSON.parse() calls (use zod, valibot, or similar)",
-      "Replace Math.random() with crypto.getRandomValues() for all security-sensitive randomness",
-      "Encrypt sensitive session data before storing in localStorage or migrate to sessionStorage",
-      "Implement rate limiting and DDoS protections on the token injection endpoint",
-      "Add automated security scanning to CI/CD (e.g., npm audit, snyk, ESLint security plugins)",
-      "Use tamper-resistant guards via Object.defineProperty() with non-configurable, non-writable flags",
-      "Audit the server-side token generation and injection mechanism (not fully visible in provided code)",
-      "Consider implementing Subresource Integrity (SRI) checks for externally injected scripts"
+      "Replace all Math.random() usage with crypto.getRandomValues() for generating security tokens and session IDs. Never use Math.random() for cryptographic purposes.",
+      "Move authentication tokens from window object and localStorage to HttpOnly, Secure, SameSite cookies managed server-side. Sensitive tokens should never be accessible to client-side JavaScript.",
+      "Encrypt session data before storing in localStorage using a client-side encryption library (e.g., TweetNaCl.js). Include expiration checks.",
+      "Validate the format, origin, and authenticity of `window.__IMPECCABLE_TOKEN__` and `window.__IMPECCABLE_PORT__` before use. Implement CSRF tokens and origin verification.",
+      "Implement Content Security Policy (CSP) headers restricting script-src, limiting external connections, and preventing unsafe inline styles.",
+      "Add comprehensive input validation and output encoding for all user-controlled data before using in DOM manipulation, styles, or HTML contexts.",
+      "Use a security-focused markdown parser (e.g., DOMPurify) to sanitize user-generated markdown before rendering.",
+      "Implement subresource integrity (SRI) checks for all injected external scripts.",
+      "Add request signing (HMAC or similar) for sensitive API calls to prevent token replay attacks.",
+      "Audit all dependencies for known vulnerabilities. The bundled code shows signs of large build artifacts that may contain vulnerable libraries (review package-lock.json and bun.lock)."
     ]
   },
-  "rawOutputPreview": "```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 17,\n      \"description\": \"Weak random ID generation in fallback path. The idFactory fallback uses Math.random().toString(16).slice(2, 10) instead of cryptographically secure randomness. While crypto.randomUUID() is preferred, the fallback should use a secure alternative or fail safely.\",\n      \"remediation\": \"Remove the Math.random() fallback or use a proper CSPRNG. If crypto.randomUUID() is unavailable, throw an error or use the browser's crypto.getRandomValues().\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 32,\n      \"description\": \"Token injection via window object globals (TOKEN, PORT). While guards exist, injecting security-sensitive values as window properties creates an XSS attack surface. If page scripts are compromised, tokens can be exfiltrated.\",\n      \"remediation\": \"Use postMessage() with strict origin checking instead of window globals. Implement Content Security Policy (CSP) headers to prevent script injection. Consider using sessionStorage with HTTPOnly flag if available.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 58,\n      \"description\": \"Unvalidated JSON.parse() of stored session data. Malformed or malicious session data in localStorage could cause crashes or unexpected behavior. No schema validation before use.\",\n      \"remediation\": \"Add schema validation using a parsing library (e.g., zod, valibot). Validate that parsed.checkpointRevision is a number before using it.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-dom.js\",\n      \"line\": 28,\n      \"description\": \"CSS escape function relies on String.replace() fallback when CSS.escape is unavailable. This may not handle all CSS injection",
-  "rawOutputLength": 4816
+  "rawOutputPreview": "```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 21,\n      \"description\": \"Weak cryptographic randomness for session token generation. Fallback uses Math.random() instead of crypto.randomUUID(). While the code prefers crypto.randomUUID(), the fallback at line 21 is inadequate for security-sensitive tokens. Math.random() is not cryptographically secure and can be predicted.\"\n    },\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-dom.js\",\n      \"line\": 30,\n      \"description\": \"Weak randomness in ID generation: Math.random().toString(16).slice(2) + Date.now().toString(16). This fallback pattern is predictable and unsuitable for security tokens or session identifiers.\"\n    },\n    {\n      \"severity\": \"high\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 17,\n      \"description\": \"Sensitive token stored in global window object. `window.__IMPECCABLE_TOKEN__` is accessible to any JavaScript in the page, including third-party scripts and XSS payloads. Token should be stored securely (HttpOnly cookie or encrypted memory storage).\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 30,\n      \"description\": \"Sensitive session data stored in localStorage without encryption. Session information including session ID and checkpoint revisions are stored as plaintext JSON. localStorage is vulnerable to XSS attacks and persistent to page navigation.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 20,\n      \"description\": \"No validation of injected token and port values. The script blindly trusts `window.__IMPECCABLE_TOKEN__` and `window.__IMPECCABLE_PORT__` without validating their format, origin, or authenticity. Could allow injection of malicious values.\"\n   ",
+  "rawOutputLength": 5242
 }

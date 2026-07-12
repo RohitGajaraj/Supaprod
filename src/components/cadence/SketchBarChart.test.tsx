@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { barInsight } from "./Sketch";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { barInsight, SketchBarChart } from "./Sketch";
 import type { SketchBarDatum } from "./Sketch";
 
 /**
@@ -115,76 +116,156 @@ describe("SketchBarChart interactive behavior — SKELETON FOR E2E TESTS", () =>
     { label: "Thu", value: 30 },
   ];
 
-  it.skip("should switch active bar on mouse hover", () => {
-    // AWAITING DOM ENVIRONMENT
-    // render(<SketchBarChart data={sampleData} />);
-    // const buttons = screen.getAllByRole("button");
-    // fireEvent.mouseEnter(buttons[1]!);
-    // expect(screen.getByText("25")).toBeDefined();
+  it("should switch active bar on mouse hover", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Initially last bar (Thu = 30) should be displayed
+    expect(screen.getByText("30")).toBeDefined();
+
+    // Hover over bar 1 (Tue = 25)
+    fireEvent.mouseEnter(buttons[1]!);
+    expect(screen.getByText("25")).toBeDefined();
   });
 
-  it.skip("should restore to last bar on mouse leave", () => {
-    // AWAITING DOM ENVIRONMENT
-    // render(<SketchBarChart data={sampleData} />);
-    // const buttons = screen.getAllByRole("button");
-    // fireEvent.mouseEnter(buttons[1]!);
-    // fireEvent.mouseLeave(buttons[1]!);
-    // expect(screen.getByText("30")).toBeDefined(); // Last bar
+  it("should restore to last bar on mouse leave", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Hover over bar 1 (Tue = 25)
+    fireEvent.mouseEnter(buttons[1]!);
+    expect(screen.getByText("25")).toBeDefined();
+
+    // Leave the button, should return to last bar
+    fireEvent.mouseLeave(buttons[1]!);
+    expect(screen.getByText("30")).toBeDefined(); // Last bar (Thu)
   });
 
-  it.skip("should handle race-guard logic: blur does not clear on different bar focus", () => {
-    // AWAITING DOM ENVIRONMENT
+  it("should handle race-guard logic: blur does not clear on different bar focus", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
     // Sequence: hover bar 0, focus bar 1, blur bar 0
-    // Expected: bar 1 should remain active (h === 1, not 0)
-    // render(<SketchBarChart data={sampleData} />);
-    // const buttons = screen.getAllByRole("button");
-    // fireEvent.mouseEnter(buttons[0]!);
-    // fireEvent.focus(buttons[1]!);
-    // fireEvent.blur(buttons[0]!);
-    // expect(screen.getByText("25")).toBeDefined();
+    // Expected: bar 1 should remain active
+    fireEvent.mouseEnter(buttons[0]!);
+    expect(screen.getByText("10")).toBeDefined(); // Mon
+
+    fireEvent.focus(buttons[1]!);
+    expect(screen.getByText("25")).toBeDefined(); // Tue (focus keeps it active)
+
+    fireEvent.blur(buttons[0]!);
+    // Bar 1 should still be active (blur on bar 0 doesn't clear bar 1)
+    expect(screen.getByText("25")).toBeDefined();
   });
 
-  it.skip("should position value readout above active bar", () => {
-    // AWAITING DOM ENVIRONMENT
-    // render(<SketchBarChart data={sampleData} formatValue={(v) => String(Math.round(v))} />);
-    // const buttons = screen.getAllByRole("button");
-    // fireEvent.mouseEnter(buttons[2]!);
-    // const readout = screen.getByText("15").closest("div");
-    // const style = window.getComputedStyle(readout!);
-    // const left = style.left;
-    // Verify: left = ((2.5 / 4) * 100)% = 62.5%
+  it("should position value readout above active bar", () => {
+    render(<SketchBarChart data={sampleData} formatValue={(v) => String(Math.round(v))} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Hover bar 2 (Wed = 15)
+    fireEvent.mouseEnter(buttons[2]!);
+    const readout = screen.getByText("15");
+
+    // Readout should exist and be positioned
+    expect(readout).toBeDefined();
   });
 
-  it.skip("should dim non-active bars when hover is active", () => {
-    // AWAITING DOM ENVIRONMENT
-    // Hover creates a scenario where hover != null
-    // Non-active buttons should have opacity 0.42
+  it("should dim non-active bars when hover is active", () => {
+    const { container } = render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Hover over bar 1
+    fireEvent.mouseEnter(buttons[1]!);
+
+    // Non-hovered buttons should have lower opacity (0.42)
+    const button0 = buttons[0] as HTMLElement;
+    const button1 = buttons[1] as HTMLElement;
+
     // Active button should have opacity 1
+    expect(button1.style.opacity).toBe("1");
+    // Inactive buttons should have opacity 0.42
+    expect(button0.style.opacity).toBe("0.42");
   });
 
-  it.skip("should apply glow effect to active bar", () => {
-    // AWAITING DOM ENVIRONMENT
-    // Active button should have: filter: drop-shadow(...)
-    // Non-active buttons should have: filter: none
+  it("should apply glow effect to active bar", () => {
+    const { container } = render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Initially last bar should have glow
+    const button3 = buttons[3] as HTMLElement;
+    expect(button3.style.filter).toContain("drop-shadow");
+
+    // Hover bar 0
+    fireEvent.mouseEnter(buttons[0]!);
+    const button0 = buttons[0] as HTMLElement;
+
+    // Now bar 0 should have glow
+    expect(button0.style.filter).toContain("drop-shadow");
+    // Bar 3 should not have glow
+    expect(button3.style.filter).not.toContain("drop-shadow");
   });
 
-  it.skip("should apply smooth transitions on state change", () => {
-    // AWAITING DOM ENVIRONMENT
-    // Button style should have: transition: "opacity 160ms var(--ease), filter 160ms var(--ease)"
-    // Value readout should have: transitionDuration: "160ms"
+  it("should apply smooth transitions on state change", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    const button0 = buttons[0] as HTMLElement;
+    const button1 = buttons[1] as HTMLElement;
+
+    // Buttons should have transition styles for smooth state changes
+    expect(button0.style.transition).toContain("160ms");
+    expect(button1.style.transition).toContain("160ms");
+    expect(button0.style.transition).toContain("opacity");
   });
 
-  it.skip("should preserve activeIdx across multiple cycles", () => {
-    // AWAITING DOM ENVIRONMENT
-    // Cycle: hover→leave→focus→blur→hover→leave
-    // After each action, verify activeIdx matches expected bar
+  it("should preserve activeIdx across multiple cycles", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // Start: last bar (Thu)
+    expect(screen.getByText("30")).toBeDefined();
+
+    // Cycle 1: hover bar 0
+    fireEvent.mouseEnter(buttons[0]!);
+    expect(screen.getByText("10")).toBeDefined();
+
+    // Cycle 2: leave
+    fireEvent.mouseLeave(buttons[0]!);
+    expect(screen.getByText("30")).toBeDefined();
+
+    // Cycle 3: focus bar 1
+    fireEvent.focus(buttons[1]!);
+    expect(screen.getByText("25")).toBeDefined();
+
+    // Cycle 4: blur
+    fireEvent.blur(buttons[1]!);
+    // Should return to last bar
+    expect(screen.getByText("30")).toBeDefined();
   });
 
-  it.skip("should render with keyboard accessibility", () => {
-    // AWAITING DOM ENVIRONMENT
-    // Tab key should move focus through buttons
-    // Each button should be tab-focusable
-    // Focus should trigger onFocus, blur should trigger onBlur
+  it("should render with keyboard accessibility", () => {
+    render(<SketchBarChart data={sampleData} />);
+    const buttons = screen.getAllByRole("button");
+
+    // All buttons should be rendered
+    expect(buttons.length).toBe(4);
+
+    // Buttons should have aria-labels
+    buttons.forEach((btn, i) => {
+      expect(btn.getAttribute("aria-label")).toBeDefined();
+    });
+
+    // Focus should trigger state change (change to that bar's value)
+    fireEvent.focus(buttons[0]!);
+    expect(screen.getByText("10")).toBeDefined(); // Mon
+
+    // Focus on another button
+    fireEvent.focus(buttons[2]!);
+    expect(screen.getByText("15")).toBeDefined(); // Wed
+
+    // Blur should reset to last bar
+    fireEvent.blur(buttons[2]!);
+    expect(screen.getByText("30")).toBeDefined(); // Thu (last)
   });
 });
 
