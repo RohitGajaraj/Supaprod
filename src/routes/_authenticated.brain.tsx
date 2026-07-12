@@ -83,6 +83,11 @@ const GraphPanel = lazy(() =>
 const DocsPanel = lazy(() =>
   import("@/components/knowledge/DocsPanel").then((m) => ({ default: m.DocsPanel })),
 );
+const CapabilitiesPanel = lazy(() =>
+  import("@/components/knowledge/CapabilitiesPanel").then((m) => ({
+    default: m.CapabilitiesPanel,
+  })),
+);
 const AnnouncementsPanel = lazy(() =>
   import("@/components/knowledge/AnnouncementsPanel").then((m) => ({
     default: m.AnnouncementsPanel,
@@ -688,6 +693,10 @@ function MemoryPage() {
               <section>
                 <SectionTitle>Brief</SectionTitle>
                 <BriefPanel />
+              </section>
+              <section>
+                <SectionTitle>Capabilities</SectionTitle>
+                <CapabilitiesPanel />
               </section>
               <section>
                 <SectionTitle>Docs</SectionTitle>
