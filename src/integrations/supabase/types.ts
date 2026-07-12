@@ -1736,6 +1736,50 @@ export type Database = {
           },
         ]
       }
+      byok_fee_accrual: {
+        Row: {
+          account_id: string
+          ai_event_id: string | null
+          created_at: string
+          fee_pct: number
+          fee_usd: number
+          id: string
+          rated_spend_usd: number
+          surface: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id: string
+          ai_event_id?: string | null
+          created_at?: string
+          fee_pct: number
+          fee_usd: number
+          id?: string
+          rated_spend_usd: number
+          surface?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          ai_event_id?: string | null
+          created_at?: string
+          fee_pct?: number
+          fee_usd?: number
+          id?: string
+          rated_spend_usd?: number
+          surface?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "byok_fee_accrual_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           all_day: boolean
