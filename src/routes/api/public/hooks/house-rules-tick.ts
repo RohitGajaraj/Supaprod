@@ -91,13 +91,20 @@ async function distillWorkspace(
 ): Promise<{ drafted: number; skipped: string }> {
   const db = supabaseAdmin as unknown as SupabaseClient;
 
-  // Skip if this workspace already drafted a rule this ISO week.
-  const { count: draftedThisWeek } = await db
+  // Skip if this workspace already drafted an RF-04 rule this ISO week. Scope
+  // the guard to RF-04's OWN drafts (empty source_run_ids): the nightly retro
+  // (RPT-39, retro-tick) also writes house_rules but marks each with a non-empty
+  // source_run_ids, and must NOT suppress this weekly outcome pass. Checked in JS
+  // to avoid depending on PostgREST array-operator semantics for "empty".
+  const { data: thisWeekRows } = await db
     .from("house_rules")
-    .select("id", { count: "exact", head: true })
+    .select("source_run_ids")
     .eq("workspace_id", workspaceId)
     .gte("created_at", startOfIsoWeekUtc(new Date()));
-  if ((draftedThisWeek ?? 0) > 0) return { drafted: 0, skipped: "already drafted this week" };
+  const rf04DraftedThisWeek = ((thisWeekRows ?? []) as { source_run_ids: string[] | null }[]).some(
+    (r) => (r.source_run_ids ?? []).length === 0,
+  );
+  if (rf04DraftedThisWeek) return { drafted: 0, skipped: "already drafted this week" };
 
   // A rejected draft's source learnings are eligible again: a human rejecting
   // one framing of a pattern should not permanently block that pattern from
