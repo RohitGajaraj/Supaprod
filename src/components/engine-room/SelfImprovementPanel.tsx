@@ -12,11 +12,14 @@
 // madder; medium and low stay on the muted grays. The severity word rides beside
 // the icon so state is never color-only (the RoomCard grayscale rule).
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { TriangleAlert, Circle } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { TriangleAlert, Circle, Sparkles } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
-import { getSelfImprovementProposals } from "@/lib/self-improve.functions";
+import {
+  getSelfImprovementProposals,
+  enrichSelfImproveProposal,
+} from "@/lib/self-improve.functions";
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { PanelPending, ErrorRetry } from "./RoomDetail";
 
@@ -48,6 +51,96 @@ function MonoChip({ children }: { children: React.ReactNode }) {
     >
       {children}
     </span>
+  );
+}
+
+/**
+ * RPT-50 AI rung (the LAYER over a flag): an on-demand, grounded "why + suggested
+ * fix". The deterministic flag above decides the problem; this only explains one the
+ * numbers already earned, grounded in the real records, clearly marked AI-composed.
+ * Human-triggered so the AI call runs at most once per flag (cost-controlled).
+ */
+function ProposalEnricher({
+  workspaceId,
+  kind,
+  subjectRef,
+}: {
+  workspaceId: string;
+  kind: "eval" | "agent" | "playbook";
+  subjectRef: string;
+}) {
+  const fEnrich = useServerFn(enrichSelfImproveProposal);
+  const enrich = useMutation({
+    mutationFn: () => fEnrich({ data: { workspaceId, kind, subjectRef } }),
+  });
+  const data = enrich.data;
+
+  if (!data) {
+    return (
+      <button
+        type="button"
+        disabled={enrich.isPending}
+        onClick={() => enrich.mutate()}
+        className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          marginTop: 12,
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--text-subtle)",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: enrich.isPending ? "wait" : "pointer",
+        }}
+      >
+        <Sparkles size={12} aria-hidden="true" />
+        {enrich.isPending ? "Reading the records..." : "Explain + suggest a fix"}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        marginTop: 12,
+        padding: "12px 14px",
+        borderRadius: "var(--radius-control)",
+        background: "var(--surface-recessed)",
+        border: "1px solid var(--hairline)",
+      }}
+    >
+      <MonoLabel style={{ display: "block", marginBottom: 5 }}>Why this is happening</MonoLabel>
+      <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+        {data.explanation}
+      </p>
+      {data.suggested_fix ? (
+        <>
+          <MonoLabel style={{ display: "block", margin: "10px 0 5px" }}>Suggested fix</MonoLabel>
+          <p style={{ fontSize: 12.5, color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
+            {data.suggested_fix}
+          </p>
+        </>
+      ) : null}
+      {/* Transparency: this half IS AI-composed (unlike the flag), and it says how many
+          real records it was grounded on. */}
+      <span
+        style={{
+          display: "inline-block",
+          marginTop: 10,
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          color: "var(--text-faint)",
+        }}
+      >
+        AI-composed ·{" "}
+        {data.grounded_on > 0 ? `grounded in ${data.grounded_on} records` : "not enough records"}
+      </span>
+    </div>
   );
 }
 
@@ -174,6 +267,13 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
                       <MonoChip>{p.kind}</MonoChip>
                       <MonoChip>{p.evidence}</MonoChip>
                     </div>
+                    {wsId && p.subject_ref ? (
+                      <ProposalEnricher
+                        workspaceId={wsId}
+                        kind={p.kind}
+                        subjectRef={p.subject_ref}
+                      />
+                    ) : null}
                   </div>
                 </div>
               </article>
