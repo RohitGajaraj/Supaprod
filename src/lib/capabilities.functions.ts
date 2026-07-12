@@ -11,6 +11,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SPECIALIST_CATALOG, type AgentStation, type CatalogEntry } from "@/lib/agent-vocabulary";
 import { PLAYBOOK_REGISTRY } from "@/lib/playbooks/registry";
+import { getActiveHouseRulesForWorkspace, renderHouseRulesBlock } from "@/lib/house-rules.functions";
+import { renderBriefBlock } from "@/lib/briefs.functions";
 
 /** Capability info per agent. */
 export interface AgentCapability {
@@ -86,15 +88,52 @@ async function buildCapabilityForAgent(
   agent: CatalogEntry,
   workspaceId: string | null,
 ): Promise<AgentCapability> {
-  // Instructions: for now, a placeholder. In the future, this would be
-  // the agent's system prompt + house_rules scoped to their station.
-  // (PC-30 spec: "house_rules scoped to the agent + the Brief injection preview").
-  const instructions = `[Instructions for ${agent.name} coming soon]`;
+  // Instructions: what this agent is told every run.
+  // Assembles: system prompt (from agents table) + Strategic Brief + house rules.
+  // PC-30 spec defers scoped "house_rules scoped to the agent" and "Brief injection preview" details,
+  // so we show the workspace-scoped context that EVERY agent receives at runtime.
+  let instructions = "";
+
+  // Load agent's system prompt from the agents table.
+  try {
+    const { data: agentRow } = await supabase
+      .from("agents")
+      .select("system_prompt")
+      .eq("slug", agent.slug)
+      .maybeSingle();
+    instructions = agentRow?.system_prompt ?? "";
+  } catch (e) {
+    console.warn(`Failed to load system prompt for ${agent.name}:`, e);
+  }
+
+  // Append workspace context (Brief + house rules) if available.
+  if (workspaceId && instructions) {
+    try {
+      const { data: brief } = await supabase
+        .from("workspace_briefs")
+        .select("id,workspace_id,mission,target_user,current_focus,anti_goals,notes,updated_at")
+        .eq("workspace_id", workspaceId)
+        .maybeSingle();
+      const briefBlock = renderBriefBlock(brief as any);
+      if (briefBlock) {
+        instructions += briefBlock;
+      }
+      const activeRules = await getActiveHouseRulesForWorkspace(supabase, workspaceId);
+      const houseRulesBlock = renderHouseRulesBlock(activeRules);
+      if (houseRulesBlock) {
+        instructions += houseRulesBlock;
+      }
+    } catch (e) {
+      // Non-fatal: if brief/rules load fails, still show base prompt.
+      console.warn(`Failed to load workspace context for ${agent.name}:`, e);
+    }
+  }
 
   // Skills: playbooks used by this agent's station, with win-rates.
   const skills = await getStationSkills(supabase, workspaceId, agent.station);
 
   // Autonomy: basic info from the catalog.
+  // PC-30 spec remainder: arc, tool modes, and graduation history are documented placeholders.
   const autonomy: AutonomyInfo = {
     station: agent.station,
     tier: agent.tier,
