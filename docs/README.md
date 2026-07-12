@@ -127,6 +127,8 @@ One canonical page per shipped, user-facing feature. The **single place** to ope
 
 **[`strategy/README.md`](./strategy/README.md) is the single arbiter of which strategy doc is current for what** - it holds the full version index, the archive, the role map, and the cascade rule. Read it first; do not hardcode a "current" version here. As of 2026-06-19 the layered canon is v7 positioning / v8 structure / v9 wedge / **v10 the current build-next canon**. Engine / expansion map: [`strategy/archive/v4-feature-map.md`](./strategy/archive/v4-feature-map.md) (+ adversarial companion [`strategy/archive/v4-stress-test.md`](./strategy/archive/v4-stress-test.md)). Wedge UX detail: [`strategy/archive/v5-chief-of-staff.md`](./strategy/archive/v5-chief-of-staff.md). Personas: [`strategy/archive/v3-positioning-cadence.md`](./strategy/archive/v3-positioning-cadence.md). Superseded iterations (v1/v2/v3-audit\*) live in [`strategy/archive/`](./strategy/archive/). Cross-session decisions: [`strategy/session-decisions.md`](./strategy/session-decisions.md).
 
+**💳 Pricing & billing** has its own sub-hub: [`strategy/pricing/`](./strategy/pricing/README.md) is the single front door for the credit model, BYOK, model access, tiers, and the billing rail. Start at [`strategy/pricing/pricing-architecture.md`](./strategy/pricing/pricing-architecture.md) (the finalized end-to-end system).
+
 ## Conventions (durable cross-tool rules)
 
 Git-tracked rules every tool follows. One file per rule. Index + how to add: [`conventions/README.md`](./conventions/README.md).

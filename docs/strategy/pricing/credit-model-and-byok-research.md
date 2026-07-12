@@ -5,7 +5,7 @@
 
 > **Status: RESEARCH + RECOMMENDATION (not yet ratified).** This doc holds the evidence and a recommended credit model. It does NOT override the canonical [`pricing-strategy.md`](./pricing-strategy.md) until the founder ratifies the calls in §6. Where this research CONFIRMS the existing canon it says so; where it PROPOSES A REVISION (notably enterprise per-seat → committed credits) it flags it as an open founder decision, never a silent change.
 
-> **Cross-links:** strategy layer = [`pricing-strategy.md`](./pricing-strategy.md) (canonical WHY/tiers) · implementation = [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) · technical rail = [`../features/billing.md`](../features/billing.md) · decision log = [`session-decisions.md`](./session-decisions.md). Any call ratified from §6 must be recorded in `pricing-strategy.md` AND `session-decisions.md` in the same session.
+> **Cross-links:** strategy layer = [`pricing-strategy.md`](./pricing-strategy.md) (canonical WHY/tiers) · implementation = [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) · technical rail = [`../features/billing.md`](../../features/billing.md) · decision log = [`session-decisions.md`](../session-decisions.md). Any call ratified from §6 must be recorded in `pricing-strategy.md` AND `session-decisions.md` in the same session.
 
 ---
 
@@ -190,7 +190,7 @@ The canonical [`pricing-strategy.md`](./pricing-strategy.md) already settled sev
 4. **Free-vs-charged map** — ratify §4 as written (this becomes the billing spec)?
 5. **Post-trial Auto mechanics** — ratify §6 (outcome-gated, downgrade-to-free, transparent ledger) as the billing behavior?
 
-Once ratified, record each in `pricing-strategy.md` + `session-decisions.md`, and the free-vs-charged map flows into [`../features/billing.md`](../features/billing.md) + [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md).
+Once ratified, record each in `pricing-strategy.md` + `session-decisions.md`, and the free-vs-charged map flows into [`../features/billing.md`](../../features/billing.md) + [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md).
 
 ---
 
