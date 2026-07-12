@@ -19,11 +19,17 @@ const TEST_VAULT_KEY = Buffer.from(new Uint8Array(32)).toString("base64");
 
 const savedLovable = process.env.LOVABLE_API_KEY;
 const savedVault = process.env.CONNECTOR_SECRETS_KEY;
+const savedCohere = process.env.COHERE_API_KEY;
 afterEach(() => {
   if (savedLovable === undefined) delete process.env.LOVABLE_API_KEY;
   else process.env.LOVABLE_API_KEY = savedLovable;
   if (savedVault === undefined) delete process.env.CONNECTOR_SECRETS_KEY;
   else process.env.CONNECTOR_SECRETS_KEY = savedVault;
+  // Step 3 of resolveEmbedRoute's priority order (COHERE_API_KEY) must be cleared for the
+  // gateway-fallback tests below, which assert step 4 specifically. A real deployment may
+  // set this var, so the test controls it explicitly rather than assuming it is unset.
+  if (savedCohere === undefined) delete process.env.COHERE_API_KEY;
+  else process.env.COHERE_API_KEY = savedCohere;
 });
 
 describe("back-compat exports", () => {
@@ -65,6 +71,7 @@ describe("resolveEmbedRoute", () => {
   });
 
   it("falls back to the gateway when context has no BYO key", async () => {
+    delete process.env.COHERE_API_KEY;
     process.env.LOVABLE_API_KEY = "lov-key";
     const r = await resolveEmbedRoute({ supabase: stubSupabaseRow(null), userId: "u1" });
     expect(r.via).toBe("gateway");
@@ -75,12 +82,14 @@ describe("resolveEmbedRoute", () => {
   });
 
   it("uses the gateway with no context (today's default path)", async () => {
+    delete process.env.COHERE_API_KEY;
     process.env.LOVABLE_API_KEY = "lov-key";
     const r = await resolveEmbedRoute({});
     expect(r.via).toBe("gateway");
   });
 
   it("throws a clear error when neither a BYO key nor the gateway key is available", async () => {
+    delete process.env.COHERE_API_KEY;
     delete process.env.LOVABLE_API_KEY;
     await expect(resolveEmbedRoute({})).rejects.toThrow("LOVABLE_API_KEY missing");
   });
