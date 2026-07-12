@@ -27,6 +27,7 @@ import { getEvalHealthImpl } from "@/lib/eval-health.functions";
 import { summarizeGateSignals } from "@/lib/gate-signals";
 import { rankPlaybooksByOutcome, type PlaybookStation } from "@/lib/playbooks/registry";
 import { callModel } from "@/lib/ai/runtime.server";
+import { assessAndQuarantine } from "@/lib/injection-classifier";
 
 const PLAYBOOK_STATIONS: readonly PlaybookStation[] = [
   "discovery",
@@ -393,4 +394,131 @@ export const enrichSelfImproveProposal = createServerFn({ method: "POST" })
     );
 
     return { explanation, suggested_fix, grounded_on: count, cached: false };
+  });
+
+// --- RPT-50 rung 3 (increment 1): the governed APPLY primitive ---
+
+export type ApplyFixResult = {
+  applied: boolean;
+  house_rule_id: string | null;
+  rule_text: string;
+  cached: boolean;
+  reason?: string;
+};
+
+/**
+ * RPT-50 rung 3 (increment 1): APPLY a flag's grounded suggested fix as a
+ * GOVERNED, REVERSIBLE workspace change -- closing the loop the diagnose rung
+ * opened (detect -> diagnose -> propose -> APPLY). Turns the AI's suggested fix
+ * into an injection-screened house_rule (live in every agent's system prompt at
+ * the chokepoint) + a receipted decision on the ledger, and marks the proposal
+ * applied. Undoable via house_rule supersession + the PC-10 rewind, so nothing is
+ * one-way. Human-triggered for now (the "Apply" click IS the action, one step);
+ * the unattended auto-apply mode is the Routine toggle increment on top of this.
+ *
+ * Targets DATA-backed config (house_rules), NOT code -- so it is safe, needs no
+ * repo, and is the SAME mechanism a customer's own self-improvement uses on their
+ * own workspace config (RPT-39). The code-PR path (against Cadence's own repo) is
+ * a separate, internal-only rung.
+ */
+export const applySelfImproveFix = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => EnrichSchema.parse(i))
+  .handler(async ({ context, data }): Promise<ApplyFixResult> => {
+    const { supabase, userId } = context;
+    const db = supabase as unknown as SupabaseClient;
+
+    // The proposal must already be enriched (there is a suggested fix to apply).
+    const { data: prop } = await db
+      .from("self_improve_proposals")
+      .select("id,title,ai_suggested_fix,applied_at,applied_house_rule_id")
+      .eq("workspace_id", data.workspaceId)
+      .eq("kind", data.kind)
+      .eq("subject_ref", data.subjectRef)
+      .maybeSingle();
+
+    if (prop?.applied_at) {
+      return {
+        applied: true,
+        house_rule_id: (prop.applied_house_rule_id as string) ?? null,
+        rule_text: "",
+        cached: true,
+      };
+    }
+    const suggested = typeof prop?.ai_suggested_fix === "string" ? prop.ai_suggested_fix.trim() : "";
+    if (!suggested) {
+      return {
+        applied: false,
+        house_rule_id: null,
+        rule_text: "",
+        cached: false,
+        reason: "Explain the fix first, then apply it.",
+      };
+    }
+
+    // Safety floor: the suggested fix is AI text about to enter every agent's
+    // system prompt, so it MUST pass the injection screen (the same gate the
+    // steward-drafted and human-drafted house-rule paths use). Quarantined = refuse.
+    const screened = assessAndQuarantine(suggested);
+    if (screened.quarantined) {
+      return {
+        applied: false,
+        house_rule_id: null,
+        rule_text: "",
+        cached: false,
+        reason: "The suggested fix did not pass the safety screen, so it was not applied.",
+      };
+    }
+    const ruleText = screened.text.slice(0, 2000);
+    const title = typeof prop?.title === "string" ? prop.title : "a quality flag";
+
+    // 1. Create the house_rule (APPROVED = live now; reversible via supersession).
+    const { data: rule, error: ruleErr } = await db
+      .from("house_rules")
+      .insert({
+        workspace_id: data.workspaceId,
+        rule_text: ruleText,
+        rationale: `Cadence self-improvement: applied to fix "${title}".`,
+        status: "approved",
+      })
+      .select("id")
+      .single();
+    if (ruleErr || !rule) {
+      return {
+        applied: false,
+        house_rule_id: null,
+        rule_text: "",
+        cached: false,
+        reason: `Could not apply: ${ruleErr?.message ?? "unknown error"}`,
+      };
+    }
+    const houseRuleId = (rule as { id: string }).id;
+
+    // 2. Record it on the ledger as a receipted decision (the outcome window follows).
+    try {
+      await db.from("decisions").insert({
+        user_id: userId,
+        workspace_id: data.workspaceId,
+        title: `Self-tuned: ${title}`.slice(0, 280),
+        rationale:
+          `Cadence flagged "${title}" from its own signals and applied a house rule to fix it: ${ruleText}`.slice(
+            0,
+            2000,
+          ),
+        status: "approved",
+        source_kind: "manual",
+      });
+    } catch {
+      // Best-effort ledger stamp: the applied rule already stands on its own.
+    }
+
+    // 3. Mark the proposal applied (loop closed; the UI shows the applied state).
+    await db
+      .from("self_improve_proposals")
+      .update({ applied_at: new Date().toISOString(), applied_house_rule_id: houseRuleId })
+      .eq("workspace_id", data.workspaceId)
+      .eq("kind", data.kind)
+      .eq("subject_ref", data.subjectRef);
+
+    return { applied: true, house_rule_id: houseRuleId, rule_text: ruleText, cached: false };
   });
