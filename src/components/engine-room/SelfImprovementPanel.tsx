@@ -11,11 +11,13 @@
 // stays inside the existing destructive/muted tokens. High wears the destructive
 // madder; medium and low stay on the muted grays. The severity word rides beside
 // the icon so state is never color-only (the RoomCard grayscale rule).
+import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { TriangleAlert, Circle, Sparkles } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
+import { StepDot } from "@/components/cadence/Primitives";
 import {
   getSelfImprovementProposals,
   enrichSelfImproveProposal,
@@ -56,6 +58,41 @@ function MonoChip({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * RPT-50: a LIVE, pulsing status line for the async AI steps (Explain / Apply).
+ * Rule (founder): never a grayed-out dead label. While work runs in the background,
+ * this cycles through the REAL steps it's doing (reading records -> composing;
+ * screening -> writing the rule -> recording) beside a pulsing ember dot, so the
+ * user always sees motion + what's happening and never assumes it stalled.
+ */
+function ActivePulse({ messages }: { messages: string[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (messages.length <= 1) return;
+    // Cycle the step messages while the work runs; cleans up when the parent
+    // stops rendering this (i.e. the moment the result arrives).
+    const t = setInterval(() => setI((v) => (v + 1) % messages.length), 1500);
+    return () => clearInterval(t);
+  }, [messages.length]);
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+      {/* the ember gate dot pulses continuously (dot-gate keyframes) = the live signal */}
+      <StepDot status="gate" />
+      <span
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "var(--text-mono-floor)",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--ember-text)",
+        }}
+      >
+        {messages[i % messages.length]}
+      </span>
+    </span>
+  );
+}
+
+/**
  * RPT-50 AI rung (the LAYER over a flag): an on-demand, grounded "why + suggested
  * fix". The deterministic flag above decides the problem; this only explains one the
  * numbers already earned, grounded in the real records, clearly marked AI-composed.
@@ -82,10 +119,20 @@ function ProposalEnricher({
   const data = enrich.data;
 
   if (!data) {
+    if (enrich.isPending) {
+      return (
+        <ActivePulse
+          messages={[
+            "Reading the records...",
+            "Spotting the pattern...",
+            "Composing a grounded fix...",
+          ]}
+        />
+      );
+    }
     return (
       <button
         type="button"
-        disabled={enrich.isPending}
         onClick={() => enrich.mutate()}
         className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
@@ -101,11 +148,11 @@ function ProposalEnricher({
           background: "none",
           border: "none",
           padding: 0,
-          cursor: enrich.isPending ? "wait" : "pointer",
+          cursor: "pointer",
         }}
       >
         <Sparkles size={12} aria-hidden="true" />
-        {enrich.isPending ? "Reading the records..." : "Explain + suggest a fix"}
+        Explain + suggest a fix
       </button>
     );
   }
@@ -161,26 +208,35 @@ function ProposalEnricher({
             </p>
           ) : (
             <>
-              <button
-                type="button"
-                disabled={apply.isPending}
-                onClick={() => apply.mutate()}
-                className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "var(--text-body)",
-                  background: "transparent",
-                  border: "1px solid var(--hairline-strong)",
-                  borderRadius: "var(--radius-control)",
-                  padding: "6px 12px",
-                  cursor: apply.isPending ? "wait" : "pointer",
-                }}
-              >
-                {apply.isPending ? "Applying..." : "Apply this fix"}
-              </button>
+              {apply.isPending ? (
+                <ActivePulse
+                  messages={[
+                    "Screening the fix for safety...",
+                    "Writing the house rule...",
+                    "Recording it on the Trust Ledger...",
+                  ]}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => apply.mutate()}
+                  className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "var(--text-mono-floor)",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: "var(--text-body)",
+                    background: "transparent",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: "var(--radius-control)",
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Apply this fix
+                </button>
+              )}
               {apply.data && !apply.data.applied && apply.data.reason ? (
                 <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "6px 0 0" }}>
                   {apply.data.reason}
