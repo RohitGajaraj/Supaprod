@@ -18,6 +18,7 @@ const ROUTES_DIR = join(SRC, "routes");
 // Add here ONLY with a reason; an empty reason should fail review.
 const EXEMPT: Record<string, string> = {
   "/trust": "redirect-only stub (301 to /security); kept because URLs are forever",
+  "/p/teardown": "no-signup public demo (RPT-03) linked via external marketing/discovery, not internal nav",
 };
 
 /** Top-level public route files: not _authenticated/_root, not api/, not

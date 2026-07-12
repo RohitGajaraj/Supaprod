@@ -31,9 +31,9 @@ describe("runStatusLabel", () => {
     expect(runStatusLabel("completed_with_failures")).toBe("BLOCKED");
   });
 
-  it("maps both completed and done to SHIPPED", () => {
-    expect(runStatusLabel("completed")).toBe("SHIPPED");
-    expect(runStatusLabel("done")).toBe("SHIPPED");
+  it("maps both completed and done to READY FOR YOU (work done, not yet shipped)", () => {
+    expect(runStatusLabel("completed")).toBe("READY FOR YOU");
+    expect(runStatusLabel("done")).toBe("READY FOR YOU");
   });
 
   it("maps queued to QUEUED", () => {
