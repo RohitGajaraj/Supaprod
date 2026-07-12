@@ -109,11 +109,7 @@ describe("quarantineUntrustedCorpus (per-chunk + cross-chunk classifier wrapper)
   });
 
   it("preserves benign chunks unchanged", () => {
-    const benignChunks = [
-      "This is safe content",
-      "More safe content",
-      "Even more safe content",
-    ];
+    const benignChunks = ["This is safe content", "More safe content", "Even more safe content"];
     const result = quarantineUntrustedCorpus(benignChunks);
 
     expect(result.chunks.length).toBe(3);

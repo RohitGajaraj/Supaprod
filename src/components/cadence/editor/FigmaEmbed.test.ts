@@ -649,7 +649,8 @@ describe("FigmaEmbed.parseHTML round-trip (extracting src from iframe)", () => {
     const parseRule = parseRules[0];
 
     // This is what an already-embedded URL looks like in the iframe src
-    const embedUrl = "https://www.figma.com/embed?embed_host=cadence&url=https%3A%2F%2Fwww.figma.com%2Ffile%2Fabc%2FDesign";
+    const embedUrl =
+      "https://www.figma.com/embed?embed_host=cadence&url=https%3A%2F%2Fwww.figma.com%2Ffile%2Fabc%2FDesign";
 
     const divElement = document.createElement("div");
     divElement.setAttribute("data-figma-embed", "true");

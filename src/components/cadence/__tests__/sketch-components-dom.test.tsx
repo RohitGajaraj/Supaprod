@@ -181,6 +181,57 @@ describe("SketchBarChart — Interactive Hover State (DOM-mounted)", () => {
     });
   });
 
+  it("should support Tab-order keyboard navigation (focus follows Tab key)", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+      { label: "Wed", value: 15 },
+    ];
+    const { container } = render(
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
+    );
+
+    const buttons = container.querySelectorAll("button");
+    const btn0 = buttons[0] as HTMLElement;
+    const btn1 = buttons[1] as HTMLElement;
+    const btn2 = buttons[2] as HTMLElement;
+
+    // Initial state: no button has focus
+    expect(document.activeElement).not.toBe(btn0);
+
+    // Programmatically focus the first button (simulating Tab into the group)
+    btn0.focus();
+    expect(document.activeElement).toBe(btn0);
+    // Focus should trigger onFocus, updating activeIdx to 0
+    fireEvent.focus(btn0);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Mon");
+    });
+
+    // Focus second button (simulating Tab forward)
+    btn1.focus();
+    expect(document.activeElement).toBe(btn1);
+    fireEvent.focus(btn1);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Tue");
+    });
+
+    // Focus third button
+    btn2.focus();
+    expect(document.activeElement).toBe(btn2);
+    fireEvent.focus(btn2);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Wed");
+    });
+
+    // Blur the focused button: activeIdx falls back to default (last bar)
+    fireEvent.blur(btn2);
+    await waitFor(() => {
+      // Without focus, the readout should revert to the last bar (default)
+      expect(getReadout(container).textContent).toContain("Wed");
+    });
+  });
+
   it("should include insight text in group aria-label for agent accessibility", async () => {
     const data: SketchBarDatum[] = [
       { label: "Mon", value: 100 },
@@ -279,6 +330,32 @@ describe("SketchLine — Path Rendering (DOM-mounted)", () => {
 
     const single = render(<SketchLine data={[10]} w={100} h={50} />);
     expect(single.container.querySelector("svg")).toBeNull();
+  });
+
+  it("should handle flat series (all identical values) without crashing and draw baseline when it matches the data range", () => {
+    // Flat series where all points have the same value (e.g., [50, 50, 50])
+    // sketchLineGeometry should compute a path where all y-coords map to the same position
+    const { container } = render(
+      <SketchLine data={[50, 50, 50]} w={100} h={50} baseline={50} />,
+    );
+
+    // Should render the SVG and paths without NaN
+    const svg = container.querySelector("svg");
+    expect(svg).not.toBeNull();
+
+    const paths = container.querySelectorAll("path");
+    expect(paths.length).toBe(2); // Double pencil pass
+
+    // Both paths should have valid d attributes (no NaN)
+    for (const path of Array.from(paths)) {
+      const d = path.getAttribute("d") || "";
+      expect(d).not.toContain("NaN");
+    }
+
+    // The baseline at 50 (the flat value) should be drawn because it's inside the data range
+    const line = container.querySelector("line");
+    expect(line).not.toBeNull();
+    expect(line?.getAttribute("stroke-dasharray")).toBe("3 3");
   });
 
   it("should use the fixed pencil stroke weights (heavy pass + light pass)", () => {

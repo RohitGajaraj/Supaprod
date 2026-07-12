@@ -49,7 +49,14 @@ describe("SignalCard", () => {
 
   test("calls onOpen when clicked and clickable", () => {
     let clicked = false;
-    const { container } = render(<SignalCard {...baseProps} onOpen={() => { clicked = true; }} />);
+    const { container } = render(
+      <SignalCard
+        {...baseProps}
+        onOpen={() => {
+          clicked = true;
+        }}
+      />,
+    );
     const rootDiv = container.querySelector("div");
     if (rootDiv) {
       fireEvent.click(rootDiv);
@@ -69,7 +76,14 @@ describe("SignalCard", () => {
 
   test("calls onOpen when Enter key pressed and clickable", () => {
     let opened = false;
-    const { container } = render(<SignalCard {...baseProps} onOpen={() => { opened = true; }} />);
+    const { container } = render(
+      <SignalCard
+        {...baseProps}
+        onOpen={() => {
+          opened = true;
+        }}
+      />,
+    );
     const rootDiv = container.querySelector("div");
     if (rootDiv) {
       fireEvent.keyDown(rootDiv, { key: "Enter" });
@@ -79,7 +93,14 @@ describe("SignalCard", () => {
 
   test("calls onOpen when Space key pressed and clickable", () => {
     let opened = false;
-    const { container } = render(<SignalCard {...baseProps} onOpen={() => { opened = true; }} />);
+    const { container } = render(
+      <SignalCard
+        {...baseProps}
+        onOpen={() => {
+          opened = true;
+        }}
+      />,
+    );
     const rootDiv = container.querySelector("div");
     if (rootDiv) {
       fireEvent.keyDown(rootDiv, { key: " " });
@@ -89,7 +110,14 @@ describe("SignalCard", () => {
 
   test("does not call onOpen for other keys", () => {
     let opened = false;
-    const { container } = render(<SignalCard {...baseProps} onOpen={() => { opened = true; }} />);
+    const { container } = render(
+      <SignalCard
+        {...baseProps}
+        onOpen={() => {
+          opened = true;
+        }}
+      />,
+    );
     const rootDiv = container.querySelector("div");
     if (rootDiv) {
       fireEvent.keyDown(rootDiv, { key: "Escape" });
@@ -204,7 +232,6 @@ describe("SignalCard", () => {
     expect(screen.getByText("⋯")).toBeDefined();
   });
 
-
   test("applies grid display layout", () => {
     const { container } = render(<SignalCard {...baseProps} />);
     const rootDiv = container.querySelector("div");
@@ -226,7 +253,7 @@ describe("SignalCard", () => {
         onOpen={() => {}}
         onPromote={() => {}}
         isLast={false}
-      />
+      />,
     );
     expect(screen.getByText("GitHub")).toBeDefined();
     expect(screen.getByText("2 days ago")).toBeDefined();

@@ -125,6 +125,18 @@ describe("compareOpportunities tie-break chain", () => {
     const b = mk({ id: "dup" });
     expect(compareOpportunities(a, b, noCorr)).toBe(0);
   });
+
+  test("ice_score primary sort handles mixed numeric/string types (PostgREST quirk)", () => {
+    // PostgREST serializes NUMERIC columns as strings; when one ice_score is
+    // a number and another is a string, compareOpportunities should still sort
+    // by numeric value, not lexicographic string order. "9" > "10" as strings,
+    // but 9 < 10 as numbers.
+    const numericHigh = mk({ id: "numeric_9", ice_score: 9 });
+    const stringLow = mk({ id: "string_10", ice_score: "10" as unknown as number });
+    // stringLow should rank higher (10 > 9 numerically)
+    expect(compareOpportunities(numericHigh, stringLow, noCorr)).toBeGreaterThan(0);
+    expect(compareOpportunities(stringLow, numericHigh, noCorr)).toBeLessThan(0);
+  });
 });
 
 describe("rankOpportunities", () => {

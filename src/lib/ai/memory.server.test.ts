@@ -140,7 +140,13 @@ describe("recallMemoryRefs (semantic + recent memory recall)", () => {
   it("recalls memory from both semantic match and recent reflections", async () => {
     const { client } = memorySpy();
 
-    const result = await recallMemoryRefs(client, "user-1", "agent-slug", "What did I learn?", "ws-1");
+    const result = await recallMemoryRefs(
+      client,
+      "user-1",
+      "agent-slug",
+      "What did I learn?",
+      "ws-1",
+    );
 
     expect(result).toBeDefined();
     expect(Array.isArray(result.lines)).toBe(true);
@@ -179,14 +185,9 @@ describe("recallMemoryRefs (semantic + recent memory recall)", () => {
   it("respects maxItems option (default 8)", async () => {
     const { client } = memorySpy();
 
-    const result = await recallMemoryRefs(
-      client,
-      "user-1",
-      "agent-slug",
-      "query",
-      "ws-1",
-      { maxItems: 2 },
-    );
+    const result = await recallMemoryRefs(client, "user-1", "agent-slug", "query", "ws-1", {
+      maxItems: 2,
+    });
 
     expect(result.lines.length).toBeLessThanOrEqual(2);
     expect(result.refs.length).toBeLessThanOrEqual(2);
@@ -229,14 +230,9 @@ describe("recallMemoryRefs (semantic + recent memory recall)", () => {
   it("calls touch on recalled IDs when opts.touch=true", async () => {
     const { client } = memorySpy();
 
-    const result = await recallMemoryRefs(
-      client,
-      "user-1",
-      "agent-slug",
-      "query",
-      "ws-1",
-      { touch: true },
-    );
+    const result = await recallMemoryRefs(client, "user-1", "agent-slug", "query", "ws-1", {
+      touch: true,
+    });
 
     // Touch should have been called internally if there were recalled refs
     // We can't directly verify the touch call, but we can verify the function completes
@@ -246,14 +242,9 @@ describe("recallMemoryRefs (semantic + recent memory recall)", () => {
   it("skips touch call when opts.touch=false or omitted", async () => {
     const { client } = memorySpy();
 
-    const result = await recallMemoryRefs(
-      client,
-      "user-1",
-      "agent-slug",
-      "query",
-      "ws-1",
-      { touch: false },
-    );
+    const result = await recallMemoryRefs(client, "user-1", "agent-slug", "query", "ws-1", {
+      touch: false,
+    });
 
     expect(result).toBeDefined();
   });

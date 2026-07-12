@@ -190,7 +190,7 @@ describe("DesignationTag", () => {
 
   test("applies custom className when provided", () => {
     const { container } = render(
-      <DesignationTag designation="quick win" className="custom-class" />
+      <DesignationTag designation="quick win" className="custom-class" />,
     );
     const span = container.querySelector("span");
     expect(span?.className).toContain("custom-class");
