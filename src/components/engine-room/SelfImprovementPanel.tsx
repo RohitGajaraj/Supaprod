@@ -13,7 +13,7 @@
 // the icon so state is never color-only (the RoomCard grayscale rule).
 import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TriangleAlert, Circle, Sparkles } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
@@ -22,8 +22,11 @@ import {
   getSelfImprovementProposals,
   enrichSelfImproveProposal,
   applySelfImproveFix,
+  getSelfImproveSettings,
+  setSelfImproveMode,
 } from "@/lib/self-improve.functions";
 import type { ProposalSeverity } from "@/lib/self-improve";
+import { SELF_IMPROVE_MODES, type SelfImproveMode } from "@/lib/self-improve-governance";
 import { PanelPending, ErrorRetry } from "./RoomDetail";
 
 /** Severity presentation, held to the destructive/muted palette (no loud hues):
@@ -250,6 +253,141 @@ function ProposalEnricher({
   );
 }
 
+/**
+ * RPT-50 increment 2: the spend + autonomy control. The founder's requirement --
+ * give the owner an explicit choice with the trade-offs shown, and nudge if the
+ * engine is left off so long it dies. Three modes, each with its outcome AND its
+ * con stated plainly (no dark pattern nudging toward the expensive one).
+ */
+const MODE_COPY: Record<SelfImproveMode, { label: string; outcome: string; con: string }> = {
+  auto: {
+    label: "Auto",
+    outcome:
+      "Cadence enriches and applies fixes on its own, as flags fire. You only step in for the exceptions.",
+    con: "Highest AI spend, and changes land before you look (each one is screened, reversible, and on the Trust Ledger).",
+  },
+  scheduled: {
+    label: "Scheduled",
+    outcome:
+      "On a regular pass, Cadence explains open flags and readies a fix for your one-tap Apply.",
+    con: "Bounded AI spend, but not real-time, and you still click Apply.",
+  },
+  off: {
+    label: "Off",
+    outcome: "Nothing runs on its own. You click Explain and Apply yourself.",
+    con: "Zero AI spend, but the engine stops learning. Left off too long it goes stale, so we nudge you.",
+  },
+};
+
+function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
+  const qc = useQueryClient();
+  const fGet = useServerFn(getSelfImproveSettings);
+  const settings = useQuery({
+    queryKey: ["self-improve-settings", workspaceId],
+    queryFn: () => fGet({ data: { workspaceId } }),
+  });
+  const fSet = useServerFn(setSelfImproveMode);
+  const setMode = useMutation({
+    mutationFn: (mode: SelfImproveMode) => fSet({ data: { workspaceId, mode } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["self-improve-settings", workspaceId] }),
+  });
+
+  if (settings.isLoading || !settings.data) return null;
+
+  // Optimistic: reflect the mode being switched to while the write is in flight.
+  const current = setMode.isPending && setMode.variables ? setMode.variables : settings.data.mode;
+  const copy = MODE_COPY[current];
+  const nudge = settings.data.staleness;
+
+  return (
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--radius-card)",
+        padding: "16px 18px",
+      }}
+    >
+      {nudge.stale && nudge.message ? (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: "9px 11px",
+            borderRadius: "var(--radius-control)",
+            background: "var(--ember-wash, var(--surface-recessed))",
+            border: "1px solid var(--ember-line, var(--hairline-strong))",
+            fontSize: 12.5,
+            lineHeight: 1.5,
+            color: "var(--ember-text)",
+          }}
+        >
+          {nudge.message}
+        </div>
+      ) : null}
+
+      <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
+        <MonoLabel>How it runs</MonoLabel>
+        {settings.data.open_flag_count > 0 ? (
+          <MonoLabel tone="muted" style={{ flexShrink: 0 }}>
+            {settings.data.open_flag_count} open
+          </MonoLabel>
+        ) : null}
+      </div>
+
+      <div
+        role="radiogroup"
+        aria-label="Self-improvement mode"
+        style={{
+          display: "inline-flex",
+          marginTop: 10,
+          border: "1px solid var(--hairline-strong)",
+          borderRadius: "var(--radius-control)",
+          overflow: "hidden",
+        }}
+      >
+        {SELF_IMPROVE_MODES.map((m, idx) => {
+          const selected = m === current;
+          return (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              disabled={setMode.isPending}
+              onClick={() => {
+                if (m !== settings.data!.mode) setMode.mutate(m);
+              }}
+              className="loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "var(--text-mono-floor)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "6px 14px",
+                borderLeft: idx === 0 ? "none" : "1px solid var(--hairline-strong)",
+                background: selected ? "var(--ember-text)" : "transparent",
+                color: selected ? "var(--ember-on, #fff)" : "var(--text-subtle)",
+                cursor: setMode.isPending ? "wait" : "pointer",
+              }}
+            >
+              {MODE_COPY[m].label}
+            </button>
+          );
+        })}
+      </div>
+
+      <p
+        style={{ fontSize: 12.5, color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
+      >
+        {copy.outcome}
+      </p>
+      <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "5px 0 0", lineHeight: 1.5 }}>
+        Trade-off: {copy.con}
+      </p>
+    </div>
+  );
+}
+
 export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } = {}) {
   const { activeWorkspace } = useWorkspace();
   const wsId = workspaceId ?? activeWorkspace?.id;
@@ -296,6 +434,8 @@ export function SelfImprovementPanel({ workspaceId }: { workspaceId?: string } =
           sample. Nothing here is an AI guess.
         </p>
       </div>
+
+      {wsId ? <SelfImproveModeControl workspaceId={wsId} /> : null}
 
       {proposals.length === 0 ? (
         <div
