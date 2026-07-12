@@ -133,7 +133,7 @@
 
 **Context.** The founder reviewed six reference pricing pages (Lovable with credit dropdown, Replit, Bolt.new, Claude Individual, Claude Team & Enterprise) and resolved the open WM-M17/M19 packaging questions.
 
-**Decisions made (all binding; full rationale in [`pricing-strategy.md`](./pricing-strategy.md)):**
+**Decisions made (all binding; full rationale in [`pricing-strategy.md`](./pricing/pricing-strategy.md)):**
 
 1. **4 public tiers, not 5.** Free / Pro / Business / Enterprise. The separate "Max/Constellation" tier is dropped from public pricing. A credit dropdown on Pro covers the power-individual persona Max was designed for. The `max` DB slug remains valid for backward compat but is not marketed.
 
@@ -151,7 +151,7 @@
 
 **What this supersedes:** the 5-tier Anthropic-style packaging from `workspace-tenancy-and-monetization-plan.md` §2.4.1 (Max 5x/20x + Team Standard/Premium variants). That section is retained as historical reasoning; this decision governs.
 
-**Implementation:** WM-M17 + WM-M18 + WM-M19 in [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2. Full strategy: [`pricing-strategy.md`](./pricing-strategy.md).
+**Implementation:** WM-M17 + WM-M18 + WM-M19 in [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2. Full strategy: [`pricing-strategy.md`](./pricing/pricing-strategy.md).
 
 ---
 

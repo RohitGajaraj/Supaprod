@@ -1,8 +1,8 @@
-# Cadence pricing architecture — the finalized end-to-end system (PROPOSED)
+# Cadence pricing architecture — the FINALIZED end-to-end system
 
-> _Created: 2026-07-12 (founder /goal: move from research to a finalized, implementation-ready pricing architecture — credit model, BYOK, model access, metering, billing, and the full 4-tier packaging as ONE coherent system)._
+> _Created: 2026-07-12 (founder /goal: move from research to a finalized, implementation-ready pricing architecture — credit model, BYOK, model access, metering, billing, and the full 4-tier packaging as ONE coherent system). Finalized 2026-07-12 under the founder's explicit grant to finalize the what/how/why; the founder does not build from this — it is the spec agents build from._
 
-> **Status: PROPOSED — pending founder approval.** This doc is the single finalized architecture the founder asked to "close end to end." On approval it becomes canonical and the tweaks in §8 fold into [`pricing-strategy.md`](./pricing-strategy.md); the numbers flow into [`../features/billing.md`](./../features/billing.md) + [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md). Nothing here is built until approved.
+> **Status: FINALIZED (structure/model) — this is the canonical pricing architecture.** The MODEL is locked (credit model, model-access, BYOK stance + fee structure, enterprise pricing, tier naming — §10). The only open values are the exact **numbers** the founder sets in Stripe/config (base prices, the exact margin %, the exact allowances) — those are configuration, not design, and do not block the build. When this and any older pricing doc disagree, THIS wins. The §8 tweaks are now folded into [`pricing-strategy.md`](./pricing-strategy.md); build tasks live in [`implementation-plan.md`](./implementation-plan.md).
 
 > **Evidence base:** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) (8-platform teardown + surface map) + a 2026 inference-cost / platform-managed-model / fair-credit-model research pass, findings in §9 (primary-source, complete). Existing canon it builds on: [`pricing-strategy.md`](./pricing-strategy.md) (4-tier model, closed-loop credits, value matrix).
 
@@ -31,15 +31,15 @@ The canon already made the right core call: **a credit prices a finished result 
 
 **Rule 1 — Charge for the takeaway, free the trust layer.** A credit is drawn only when an AI call PRODUCES the customer's own work product (agent, Build, chat, copilot, PRD, discovery, brief, decision, governed foresight). Cadence **bears** the cost of everything that grades, verifies, screens, or self-diagnoses its own output (evals, judge/Critic, self-improvement, guardrails, injection screening) and of plumbing (embeddings, scheduling, connection tests). *Charging users to verify our quality would suppress the exact trust mechanism that is the moat — so we eat it.* (The full per-surface map is §4 of the research doc; it becomes the billing spec.)
 
-**Rule 2 — Charge per a discrete, PM-visible unit of delivered work — NOT a self-scored outcome.** The unit is a countable thing the PM can point at and audit: a PRD generated, a mission run, a decision recorded, a merged PR. Zero-rate the non-work: a diagnostic pass that finds nothing, a retry, a waiting VM, a failed op (Devin/Replit zero-rate these; Bolt's failure to is *the* "hidden cost" complaint). **Critically, do NOT bill on an interpreted "was this a kept improvement?" that the system self-scores** — that is the Intercom/Zendesk "what counts as a resolution" trust war and the Forbes/Parloa efficiency-capture trap (§9d). A visible artifact is legible, forecastable, and hard for either side to fabricate; a self-scored outcome is none of those.
+**Rule 2 — Charge only on DELIVERY, and only for substantial work. Stop it early and it is free.** A credit is spent when Cadence hands you a finished deliverable you can point at (a PRD, a completed mission, a build, a deep-research brief) — never mid-run, never on a stopped/abandoned run, never on a retry or a failed attempt. Stop a mission after it has churned for an hour but before it delivers, and you are NOT charged; Cadence eats that (cheap-routed) cost. This kills the "it burned an hour then charged me for nothing" resentment (Bolt/Replit's exact failure) and dissolves the "what happens to the tokens I already spent if I stop?" anxiety: nothing is spent until something is delivered. It is NOT a self-scored "was this good?" outcome (the Intercom/Zendesk trust-war, §9d) — the trigger is the simple, observable fact that an artifact was produced.
 
-**Rule 2b — Two guardrails, launch-gating (the feature whose absence sank Replit + Devin).** (a) A **hard spend cap + pre-approval before any overage** — credits never silently overspend; the customer opts into overage. (b) A **bounded overage rate** (Zapier's 1.25x-up-to-a-3x-hard-stop is the model). Ambient/autonomous work additionally *downgrades to the free floor* at the cap rather than dead-stopping (Rule 4).
+**Rule 2b — Everyday work feels unlimited; only heavy deliverables touch the meter.** The high-frequency, cheap actions — chat, viewing, the Critic teardown, briefs, discovery, manual edits — are effectively free and never visibly metered (Copilot makes completions unlimited; Perplexity makes chat unlimited). Only substantial, expensive deliverables (missions, builds, deep research) draw from the monthly allowance. So for typical use the meter is invisible; it only becomes real for a power user running many missions.
 
-**Rule 3 — Model-abstracted, with a flex buffer.** The customer never sees a model price. We route each call to the cheapest adequate model (the `COST_ROUTABLE_SURFACES` mechanism already exists), and we carry a **flex buffer** on top of the included grant (Copilot's move) so a model-cost swing never re-prices the user. The credit is a stable, dollar-anchored unit; the model economics sit behind it.
+**Rule 3 — The user NEVER sees a dollar cost per action, and is NEVER asked to approve a cost mid-flow.** The meter is an abstract, generous monthly allowance, shown at most as a simple "120 of your 300 this month" bar — never "$0.38 for this spec." Per-action dollars invite the "I could paste this into ChatGPT for 5 cents" comparison and make the PM second-guess every click; that is pure friction and we refuse it. The dollar/model economics stay entirely INTERNAL (our routing + margin). The credit is a stable allowance unit abstracted from any model price; a flex buffer (Copilot's move) absorbs model-cost swings so the allowance never re-prices.
 
-**Rule 4 — Stop at budget, downgrade don't die.** Default is **never silently overspend** (Copilot). When the included grant + any user-set cap is hit, ambient/autonomous work **downgrades to the free floor** (Scheduled) rather than dead-stopping value. The customer always keeps the baseline; they only lose the acceleration.
+**Rule 4 — Never a surprise bill. Soft cap, gentle nudge, graceful downgrade.** Default is stop-at-allowance, never silent overspend (Copilot). Near the limit, a quiet "you're running low," not a wall. Overage is opt-in only, capped, at a bounded rate (Zapier's 1.25x-to-3x hard stop). Ambient/autonomous work downgrades to the free floor (Scheduled) at the cap rather than dead-stopping — you keep the baseline, you only lose the acceleration.
 
-**Why this beats a raw token meter or a pure per-seat model:** it is legible (work-replaced ranges), fair (only kept outcomes), hard to game (no per-call farming), model-proof (abstraction + buffer), and it prices exactly Cadence's value event. It is not a random mix — it's the closed-loop-credit spine the canon already chose, hardened with outcome-gating + a flex buffer + the free-trust-layer, each borrowed from the incumbent that proved it.
+**Why this is the low-friction answer (the founder's test):** the PM never sees a dollar per action (no comparison trap, no second-guessing), never loses the allowance to a stopped run (no "charged for nothing"), never manages a key or reconciles two meters (no BYOK confusion — §4), and for normal use never feels a meter at all. It is simple (one abstract allowance), fair (pay only for delivered substantial work), hard to game (the trigger is a produced artifact, not a self-scored outcome or a raw call), model-proof (abstracted + buffered), and sustainable (the heavy deliverables that cost us real money are exactly the ones that draw the meter). This is the closed-loop-credit spine the canon chose, re-cut around the friction test.
 
 ---
 
@@ -68,6 +68,8 @@ This kills the confusion the founder was worried about (platform credits vs brin
 - **Their own fine-tuned / private models:** an enterprise with a domain model wants Cadence to orchestrate it.
 - **Cost control at extreme scale:** a very heavy account may prefer its own negotiated provider rate.
 
+**BYOK is NEVER a live dual-meter (the founder's confusion point).** The regular customer never sees BYOK at all — models are included, one allowance, one wallet. Even for the enterprise that uses it, BYOK is a **contract term, not a real-time reconciliation**: their provider bills them for tokens on their own key (as they already do), and Cadence's thin platform fee is a **single line on the committed invoice**, not a per-call meter the admin watches tick alongside a credit balance. So there is never "your tokens billed here + my credits billed there" to map in the moment — the two are separated cleanly: raw inference is their provider's bill (invisible to Cadence's UI), platform value is one contract line. That is the whole reason BYOK stays enterprise-only: the moment it becomes a self-serve dual-meter, it creates exactly the friction the founder flagged.
+
 **How BYOK works (the architecture) — see §5.**
 
 **The platform fee on BYOK (the Cursor move) — and is $0.25/1M still right?**
@@ -80,7 +82,7 @@ Even on a BYOK call, Cadence still does the expensive, valuable part: the decisi
 - It scales fairly across a 100x flash-to-frontier spread (a % is proportional; a flat per-token fee is not).
 - It reads honestly to the customer: *"you cover the tokens on your key; you pay for the Cadence work that wraps them."*
 
-**Provisional number:** set it equal to Cadence's standard credit **gross margin** (the same margin a managed credit carries over COGS — e.g. if managed credits sell at ~2–3x COGS, the BYOK fee is that ~50–65% margin slice, applied to the call's rated-equivalent cost). Founder sets the exact margin target; the *structure* (a % / margin-slice, not a flat per-1M) is the locked recommendation. A tiered flat-per-1M by model band is the fallback only if enterprise procurement demands a fixed number — and even then, banded so it is always a fraction of, never a multiple of, the model price.
+**Provisional number: a THIN ~10–20% of the call's rated pass-through spend** (the research's recommendation) — NOT the full managed product margin. A full-margin fee would make BYOK cost the same as managed (just splitting the bill) and kill the reason to use it. The customer's key covers the raw tokens; we take a small orchestration cut on top. So BYOK stays genuinely *cheaper* for the customer (they keep the model markup + get compliance) while we capture margin on work we'd otherwise not touch. Founder sets the exact % inside the 10–20% band; the *structure* (a % of pass-through, not a flat per-1M) is the locked recommendation. A tiered flat-per-1M by model band is the fallback only if enterprise procurement demands a fixed number — banded so it is always a fraction of, never a multiple of, the model price. Worked dollars in §11.
 
 ---
 
@@ -103,7 +105,7 @@ This is the honest answer to "should they just plug in their providers while we 
 
 The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) stands — memory, connectors (read on Pro / write on Business), collaboration/governance, workspaces, support, security are **confirmed as written**. This section locks the **prices**, the **new model/BYOK dimensions**, and the **enterprise pricing revision**, and consolidates everything into one table the pricing page renders from.
 
-| Dimension | **Free** | **Pro** (Tier 1 paid) | **Business** (Tier 2) | **Enterprise** (Tier 3) |
+| Dimension | **Free** | **Pro** (Tier 1 paid) | **Team** (Tier 2) | **Enterprise** (Tier 3) |
 |-----------|----------|----------------------|----------------------|------------------------|
 | **Target customer** | Solo PM trying the loop | Power individual PM | Accountable PM team | Governed org (procurement/compliance) |
 | **Monthly price** | $0 | $20 (100 cr base) + credit dropdown | $50 (100 cr base, pooled) + dropdown | Committed-credit contract (contact sales) |
@@ -119,14 +121,16 @@ The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) st
 
 > **Base prices ($20 Pro / $50 Business / $0 Free) are the canon's placeholders — the founder sets the final Stripe numbers.** The dropdown ladder (linear, no volume discount; annual ~17% off) is unchanged from canon §2.
 
-### 6a. Tier naming — recommendation: keep the clear names
+### 6a. Tier naming — DECIDED: Free / Pro / Team / Enterprise (founder, 2026-07-12)
 
-**Recommendation: keep Free / Pro / Business / Enterprise.** Reasoning:
-- **Clarity converts.** The pricing page is decoded in seconds by a buyer under time pressure; a clever tier name makes them work at the exact moment of purchase. Every strong comparable — Perplexity (Pro/Max), Cursor, Copilot (Pro/Business/Enterprise), Lovable, Linear, Notion — uses boring-clear tier names for this reason.
-- **We already learned this.** Cadence retired thematic names (Constellation / Galaxy / Cosmos) precisely because they added cognitive load (canon §10). Reintroducing cleverness would re-make a mistake we already fixed.
-- **The DB keys on slugs anyway** (`free` / `pro` / `team` / `enterprise`), so display names are a one-file skin — this is reversible if we ever want to test one.
+Keep the clear, self-explaining names; **rename the middle tier from "Business" to "Team"** (its DB slug is already `team`, so this is a zero-migration display change). Final set: **Free / Pro / Team / Enterprise.**
 
-**Where the personality belongs instead:** the brand voice, the credit/feature names, the product moments — not the tier selector. If we *do* want an on-brand thematic layer someday, the only candidate that still telegraphs scale is a music metaphor (Cadence is a musical term): e.g. **Solo → Studio → Ensemble → Orchestra**. But it costs a decode step, "Solo-Pro" (paid individual) reads awkward, and I would not ship it as the default. **Founder call in §10; my strong lean is keep the clear names.**
+Reasoning (why clear names, not a clever theme):
+- **Clarity converts.** The pricing page is decoded in seconds by a buyer under time pressure; a clever tier name makes them work at the exact moment of purchase. Every strong comparable — Perplexity (Pro/Max), Cursor, Copilot (Pro/Business/Enterprise), Lovable, Linear, Notion — uses boring-clear tier names.
+- **We already learned this.** Cadence retired thematic names (Constellation / Galaxy / Cosmos) precisely because they added cognitive load (canon §10). Reintroducing cleverness would re-make a fixed mistake.
+- **"Team" over "Business"** reads more human and describes the actual jump (solo → a team working together), which is the felt Pro→Team upgrade (shared accountability), and it matches the code slug.
+
+Personality lives in the brand voice, the product moments, and feature names — not the tier selector.
 
 ---
 
@@ -143,7 +147,7 @@ The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) st
 
 ## 8. Tweaks to the existing canon (with justification)
 
-On approval, these fold into [`pricing-strategy.md`](./pricing-strategy.md) + [`session-decisions.md`](./session-decisions.md):
+On approval, these fold into [`pricing-strategy.md`](./pricing-strategy.md) + [`session-decisions.md`](../session-decisions.md):
 
 1. **Enterprise pricing: per-seat → committed credits + unlimited seats.** Canon §8 = "platform fee + per-seat + metered usage." Revise to committed-credit envelope + unlimited seats (per-seat only as a procurement fallback). *Justification:* Cadence's value is agent work, not licenses; per-seat taxes the cross-functional collaboration we want; Replit/Lovable/Devin all dropped per-seat for exactly this reason. (Founder ratified 2026-07-12.)
 2. **Add the model-access + BYOK strategy** (canon only mentioned BYOK as enterprise option (d)): platform-managed default for all; BYOK enterprise/advanced-only, metered + governed + platform fee. *Justification:* Perplexity-style abstraction removes key/wallet confusion for non-technical PMs; §3–5.
@@ -186,13 +190,53 @@ Full evidence with sources: this session's research outputs + [`credit-model-and
 
 ---
 
-## 10. Open items for founder approval
+## 10. The finalized decisions (LOCKED 2026-07-12)
 
-1. **Credit model (§2)** — ratify: a credit prices a **discrete, PM-visible unit of delivered work** (per-artifact ranges), model-abstracted, with a flex buffer, a hard cap + pre-approval before overage, and a bounded overage rate. (This *corrects* the earlier "outcome-gated" idea — we bill on a visible artifact, never a self-scored outcome; §9d.)
-2. **Model access (§3)** — ratify platform-managed default for **all** tiers + optional Balanced/Deep/Fast menu on Pro+, credits-school (cheap ≈ free, frontier costs more), no consumer BYOK.
-3. **BYOK fee (§4)** — ratify: **drop the flat $0.25/1M** (now structurally broken), charge the **orchestration-margin slice of a credit (a %), auto-deflating**. Founder sets the exact margin % (= Cadence's standard credit gross margin).
-4. **Enterprise pricing (§6, §8.1)** — committed credits + unlimited seats (ratified 2026-07-12); confirm no default per-seat.
-5. **Tier naming (§6a)** — keep Free / Pro / Business / Enterprise (my strong lean), or explore the music-metaphor thematic set?
-6. **Prices (§6)** — keep $0 / $20 / $50 base + the dropdown ladder, or adjust?
+These are the design decisions, now finalized. The only remaining inputs are the exact **numbers** (marked "founder-config") — configuration set in Stripe/admin, not design, and not build blockers.
 
-Once you make these calls, I fold the tweaks into `pricing-strategy.md` + `session-decisions.md`, the free-vs-charged map + credit economics into `billing.md`, and it's ready to build.
+1. **Credit model (§2) — LOCKED.** A credit prices a **discrete, PM-visible delivered artifact** (a PRD, a mission, a build, a deep-research brief), model-abstracted, with a flex buffer. **Charge only on delivery** (stop early = free), everyday actions feel unlimited, **no per-action dollar ever shown**, no per-action approval, hard cap + pre-approval before overage, bounded overage rate, ambient downgrades to free. (Corrects the earlier "outcome-gated" framing — never a self-scored outcome; §9d.)
+2. **Model access (§3) — LOCKED.** Platform-managed models default for **all** tiers; optional Balanced/Deep/Fast menu on Pro+; credits-school (cheap ≈ free, frontier costs more); **no consumer BYOK**.
+3. **BYOK fee (§4) — LOCKED (structure).** Drop the flat $0.25/1M; charge a **thin % of pass-through spend, auto-deflating**. *Founder-config:* the exact % (research band ~10–20%).
+4. **Enterprise pricing (§6, §8.1) — LOCKED.** Committed credits + unlimited seats; no default per-seat (seat-floor only as a procurement fallback).
+5. **Tier naming (§6a) — LOCKED.** Free / Pro / Team / Enterprise (renamed Business → Team).
+6. **Prices (§6) — founder-config.** Base $0 / $20 / $50 + the dropdown ladder are placeholders; the founder sets final Stripe numbers. The credit calibration must be self-consistent (§11b) so the base allowance covers real missions.
+
+The design is locked; the build spec is [`implementation-plan.md`](./implementation-plan.md). Decisions recorded in [`session-decisions.md`](../session-decisions.md).
+
+---
+
+## 11. Worked economics (INTERNAL — the customer never sees these numbers)
+
+> Everything here is our own cost/margin/routing math. Per Rule 3, none of it is ever shown to the customer as a per-action dollar. It exists to size the allowances and prove the margin.
+
+### 11a. COGS per deliverable (from §9 anchors, cost-routed)
+
+| Deliverable | Rough COGS (blended, cached) | Note |
+|---|---|---|
+| Chat turn / brief / view | ~$0.001–0.01 | cheap flash; treated as free (Rule 2b) |
+| Critic teardown | ~$0.05–0.10 | one focused judge pass; free (it's the wedge, §4 research) |
+| Discovery synthesis | ~$0.03–0.10 | a few flash calls |
+| Decision record | ~$0.02–0.08 | one mid call |
+| **Spec→PR mission** | **~$0.30–0.80** | multi-step agent loop; ~1 hr Opus-equiv = $0.53 cached (§9b) |
+| **Build (code-gen)** | **~$1–3+** | heaviest COGS |
+
+### 11b. The credit calibration — and a canon inconsistency to fix
+
+**⚠ The canon is internally inconsistent:** `pricing-strategy.md` quotes a mission at "150–400 credits" but sets Pro's base at "100 credits" — so Pro couldn't run a single mission. That must be resolved. Recommended coherent scale (legible, Rule-3-compatible):
+
+- **1 credit ≈ one substantial deliverable's worth**, coarse enough to be legible: a **mission ≈ 5–10 credits**, a **build ≈ 10–30 credits**, everyday actions **0 credits** (free). Not "150–400."
+- **Pro base ~150–300 credits/mo** → ~20–40 missions or a handful of builds — a real power-PM allowance (vs the canon's unworkable 100).
+- Retail: at Pro $20 / ~200 credits, a credit sells at ~$0.10; a mission (5–10 cr) = $0.50–1.00 retail against ~$0.50 COGS → **~1.5–3x margin on the heavy work**, with everyday free work carried by the plan.
+- **Present it as a simple allowance ("200 runs/mo"), never as credits-with-dollar-tags.** The internal $0.01-rated-spend peg (§9b) is for COGS accounting; the customer-facing unit is a coarse, legible "run/credit."
+
+*(Final numbers are the founder's to set in Stripe; the point here is a self-consistent scale where the base allowance comfortably covers real missions.)*
+
+### 11c. BYOK worked dollars (enterprise) — why it's cheaper for them, still margin for us
+
+Sample heavy team, 500M input + 150M output tokens/month, Sonnet-5-class ($2/$10 per 1M):
+- **Rated model spend = $2,500/mo.**
+- **BYOK:** their key pays the $2,500 to their provider directly. Cadence platform fee at **15% of pass-through = $375/mo** (one invoice line). Their total ≈ **$2,875**.
+- **Managed equivalent** (credits at ~2.5x COGS): ≈ **$6,250/mo**.
+- **So BYOK saves them ~$3,375/mo** (they keep the model markup) *and* gives them compliance/their-own-model — while Cadence still nets **~$375/mo** of orchestration margin on work it would otherwise not touch.
+
+This is the concrete proof that the thin ~10–20% fee (not a full-margin slice, not a flat $0.25/1M) is the right structure: BYOK is genuinely valuable to the enterprise, and still profitable for us.

@@ -1,11 +1,11 @@
 # Cadence Pricing Strategy
 
 > _Created: 2026-06-26 (founder session — 4-tier model decision + credit-dropdown architecture)_
-> _Last updated: 2026-07-10 (research merge: Critic teardown moves INTO Free; the value-metric evolution note — credits price closed loops, never tokens or seats; the labor-budget anchor line. Executed under the founder's full-tweak-authority grant, [`session-decisions.md`](./session-decisions.md) 2026-07-10 decision 7; every change carries its evidence pointer inline.)_
+> _Last updated: 2026-07-10 (research merge: Critic teardown moves INTO Free; the value-metric evolution note — credits price closed loops, never tokens or seats; the labor-budget anchor line. Executed under the founder's full-tweak-authority grant, [`session-decisions.md`](../session-decisions.md) 2026-07-10 decision 7; every change carries its evidence pointer inline.)_
 
-> **Status: CANONICAL.** This is the single source of truth for WHY Cadence prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../features/billing.md). This doc is the strategy layer those two reference.
+> **Status: CANONICAL.** This is the single source of truth for WHY Cadence prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../../features/billing.md). This doc is the strategy layer those two reference.
 
-> **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](./session-decisions.md) in the same session.
+> **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](../session-decisions.md) in the same session.
 
 > **Related research (2026-07-12):** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) — an 8-platform competitor teardown + a per-surface free-vs-charged map for Cadence, with a recommended credit model (unified credits, BYOK-as-model-choice-only, the three-control governance model, outcome-gated ambient-spend billing). It **confirms** this doc's "credits price closed loops, not seats" and platform-cost-absorption stance, and **proposes one revision** — moving enterprise off per-seat to committed-credit + unlimited seats (this doc §0 decision 4). That revision is a pending founder call (research §9); do not treat it as ratified here until recorded.
 
@@ -23,7 +23,7 @@ The founder reviewed six reference pricing pages (Lovable, Lovable with credit d
 4. **Enterprise = platform fee + per-seat + API usage rates.** Contact sales path. No public self-serve price.
 5. **Credits are account-level pooled**, not per-seat. Admins set per-user spend limits from the existing `credit_caps` engine (WM-M14). The pool is shared; control is per-user.
 
-These decisions supersede the 5-tier Anthropic-style packaging described in [`workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
+These decisions supersede the 5-tier Anthropic-style packaging described in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
 
 ---
 
@@ -57,7 +57,7 @@ Cadence's value is the decision layer, not the raw AI compute. Credits are the m
 
 ### Value-metric evolution — credits price closed loops and finished results, never tokens or seats (2026-07-10 research merge)
 
-**The standing direction for every future pricing/packaging decision:** a credit is a proxy for **finished results — closed decision loops** (decision → dispatched work → shipped → outcome recorded), never for tokens, API calls, or seats. Fits because Cadence's value event IS the closed decision loop, so the loop is the honest unit to price — the five-source market convergence corroborates rather than decides: seat pricing is visibly dying at the agentic frontier (Warp's Zach Lloyd: "fixed price per seat... doesn't work that well," 2025-09-27; Braintrust removed user-based pricing entirely, 2026-03-20; Pendo's Todd Olson naming Fin's "99 cents per support ticket closed" his favorite model, 2025-12-03 — [`../references/podcast-corpus-aakash.md`](../references/podcast-corpus-aakash.md) synthesis #1), Sierra's Bret Taylor: "tokens are not correlated with value" (2026-03-10, [`../references/podcast-corpus-frontier.md`](../references/podcast-corpus-frontier.md) §15), a16z: "'users' is being replaced by 'output'" (2024-12 / 2025-10-03, [`../references/investor-corpus-yc-vc.md`](../references/investor-corpus-yc-vc.md) §7), and Meng To: "you pay for the finished result" (2026-05-06 transcript, [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §13.6).
+**The standing direction for every future pricing/packaging decision:** a credit is a proxy for **finished results — closed decision loops** (decision → dispatched work → shipped → outcome recorded), never for tokens, API calls, or seats. Fits because Cadence's value event IS the closed decision loop, so the loop is the honest unit to price — the five-source market convergence corroborates rather than decides: seat pricing is visibly dying at the agentic frontier (Warp's Zach Lloyd: "fixed price per seat... doesn't work that well," 2025-09-27; Braintrust removed user-based pricing entirely, 2026-03-20; Pendo's Todd Olson naming Fin's "99 cents per support ticket closed" his favorite model, 2025-12-03 — [`../references/podcast-corpus-aakash.md`](../../references/podcast-corpus-aakash.md) synthesis #1), Sierra's Bret Taylor: "tokens are not correlated with value" (2026-03-10, [`../references/podcast-corpus-frontier.md`](../../references/podcast-corpus-frontier.md) §15), a16z: "'users' is being replaced by 'output'" (2024-12 / 2025-10-03, [`../references/investor-corpus-yc-vc.md`](../../references/investor-corpus-yc-vc.md) §7), and Meng To: "you pay for the finished result" (2026-05-06 transcript, [`../references/pm-voice-and-ai-tooling-research.md`](../../references/pm-voice-and-ai-tooling-research.md) §13.6).
 
 Presentation follows the metric: the pricing page and the in-app meter lead with **per-artifact outcome ranges, never token math**, and adopt the **labor-budget anchor copy line** (investor corpus §A move 8): each mission pack lists its credit range against the work it replaces — e.g. _"a Critic teardown ≈ 15–40 credits; a spec→PR mission ≈ 150–400 credits — an afternoon of coordination work."_ (a16z: the budget line agentic products tap is labor, and "per-seat is no longer the atomic unit of software," 2024-12; Huang at Sequoia AI Ascent: "you pay them salaries; you pay agents tokens," 2026-04-20.) True per-outcome billing (pay per resolved decision / merged PR) is **NOT adopted — FOUNDER-CALL**: the migration evidence points there, but outcome-attribution disputes pre-launch cut the other way (v13 §6); registered as G18 row RPT-20.
 
@@ -128,7 +128,7 @@ Memory is why someone pays. It is the primary charge lever and the lock-in mecha
 | Decision Brain (supersession engine) | Critic teardown included (capped by the credit allowance — see 2026-07-10 note below) | Yes (Critic red-teams every PRD + bet)    | Yes + custom Critic profiles               | Yes + approved-model lists + custom profiles |
 | Trust Ledger history                 | 30 days (mirrors memory)                                                              | Full persistent history                   | Full persistent history                    | Full + compliance-grade export + legal hold  |
 
-> **2026-07-10 research merge — the Critic teardown moves INTO Free (supersedes the old "No" in the cell above and §7.1's old first sentence; authority: [`session-decisions.md`](./session-decisions.md) 2026-07-10 decision 7).** The teardown IS the first-ten-minutes wedge ([`moat.md`](./moat.md); v13 PC-02), and a wedge behind a paywall is not a wedge — this resolves the pricing-strategy-§7.1-vs-moat.md contradiction surfaced by [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §16.2.1. It is an entitlement flip, not a new meter: Free's existing credit allowance already caps usage, and **memory decay stays the Free→Pro lever** (§5/§6 unchanged in that role). Fits because the product's first undeniable receipt — a red-teamed bet with checkable evidence — must land in the wedge persona's first session: the $28K bakeoff's survivors won by being narrow and evidence-grounded in minutes (research §2), and the founder's overwhelm bar makes a first-session receipt launch-gating (research §10). Pro keeps Critic-everywhere depth; Business keeps custom profiles; Enterprise keeps approved-model lists.
+> **2026-07-10 research merge — the Critic teardown moves INTO Free (supersedes the old "No" in the cell above and §7.1's old first sentence; authority: [`session-decisions.md`](../session-decisions.md) 2026-07-10 decision 7).** The teardown IS the first-ten-minutes wedge ([`moat.md`](../moat.md); v13 PC-02), and a wedge behind a paywall is not a wedge — this resolves the pricing-strategy-§7.1-vs-moat.md contradiction surfaced by [`../references/pm-voice-and-ai-tooling-research.md`](../../references/pm-voice-and-ai-tooling-research.md) §16.2.1. It is an entitlement flip, not a new meter: Free's existing credit allowance already caps usage, and **memory decay stays the Free→Pro lever** (§5/§6 unchanged in that role). Fits because the product's first undeniable receipt — a red-teamed bet with checkable evidence — must land in the wedge persona's first session: the $28K bakeoff's survivors won by being narrow and evidence-grounded in minutes (research §2), and the founder's overwhelm bar makes a first-session receipt launch-gating (research §10). Pro keeps Critic-everywhere depth; Business keeps custom profiles; Enterprise keeps approved-model lists.
 
 ### 3.2 Agent Execution Capacity (the loop engine)
 
@@ -410,7 +410,7 @@ Enterprise (Cosmos slug) is not a self-serve tier. The contact-sales path is del
 > | Surface connector tiers in settings/billing                          | `src/components/billing/PlanPicker.tsx` | Update highlights                                                           |
 > | Update `planPresentation()` highlights                               | `src/lib/entitlements.ts`               | Pro highlights get "read connectors"; Business gets "write-back connectors" |
 
-This section maps the strategy to the build items. Full per-file specs live in [`workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
+This section maps the strategy to the build items. Full per-file specs live in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
 
 | What                                                                   | File                                          | Change                                                                                                                                                                              |
 | ---------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -429,7 +429,7 @@ This section maps the strategy to the build items. Full per-file specs live in [
 
 ## 10. What this document supersedes
 
-- The 5-tier Anthropic-style packaging in [`workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
+- The 5-tier Anthropic-style packaging in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
 - The `billing.md` tier shape section (which describes an old 5-tier individual/business split). `billing.md` documents the technical rail; this doc documents the strategy it executes.
 - Any prior reference to "Constellation/Galaxy/Cosmos" as the public tier names. Those names are now internal only (slug presentation aliases). The public names are Free / Pro / Business / Enterprise.
 
@@ -437,12 +437,12 @@ This section maps the strategy to the build items. Full per-file specs live in [
 
 ## 11. Cross-references
 
-- **Implementation specs (build tasks):** [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) — WM-M17 (credit dropdown), WM-M18 (plan-card states), WM-M19 (enterprise usage model)
-- **Technical billing rail:** [`../features/billing.md`](../features/billing.md) — how Stripe, checkout, webhooks, and the pricing catalog work
-- **Credit engine:** [`../features/credits.md`](../features/credits.md) — the debit/grant/top-up engine
+- **Implementation specs (build tasks):** [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) — WM-M17 (credit dropdown), WM-M18 (plan-card states), WM-M19 (enterprise usage model)
+- **Technical billing rail:** [`../features/billing.md`](../../features/billing.md) — how Stripe, checkout, webhooks, and the pricing catalog work
+- **Credit engine:** [`../features/credits.md`](../../features/credits.md) — the debit/grant/top-up engine
 - **Entitlements code:** `src/lib/entitlements.ts` — the 5-tier capability matrix (code-level source of truth)
 - **Billing-tier code:** `src/lib/billing-tier.ts` — Stripe lookup key generation and parsing
-- **Monetization moat:** [`moat.md`](./moat.md) §7 — why account-level pooling deepens the moat
-- **Decision record:** [`session-decisions.md`](./session-decisions.md) — 2026-06-26 entry for this decision
-- **v11 Guiding Star:** [`v11-guiding-star.md`](./v11-guiding-star.md) — the product direction that pricing supports
-- **Feature dashboard:** [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) — WM-M17/M19 build status
+- **Monetization moat:** [`moat.md`](../moat.md) §7 — why account-level pooling deepens the moat
+- **Decision record:** [`session-decisions.md`](../session-decisions.md) — 2026-06-26 entry for this decision
+- **v11 Guiding Star:** [`v11-guiding-star.md`](../v11-guiding-star.md) — the product direction that pricing supports
+- **Feature dashboard:** [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) — WM-M17/M19 build status
