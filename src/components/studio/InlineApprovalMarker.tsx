@@ -18,7 +18,7 @@ export function InlineApprovalMarker({ approvals }: { approvals: MissionApproval
   return (
     <Link
       to="/engine-room"
-      search={{ tab: "approvals" }}
+      search={{ room: "record", view: "approvals" }}
       onClick={(e) => e.stopPropagation()}
       title={`${agentNames.join(", ")} wants to ${toolNames.join(", ")}`}
       style={{
@@ -32,12 +32,11 @@ export function InlineApprovalMarker({ approvals }: { approvals: MissionApproval
         textDecoration: "none",
         padding: "4px 8px",
         borderRadius: "var(--radius-micro)",
-        background: "rgba(255, 107, 44, 0.08)", // ember @ 8%
+        background: "rgba(255, 107, 44, 0.08)",
         border: "1px solid var(--hairline)",
-        "&:hover": {
-          background: "rgba(255, 107, 44, 0.12)",
-        },
       }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 107, 44, 0.12)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255, 107, 44, 0.08)")}
     >
       <Lock size={10} style={{ flexShrink: 0 }} />
       <span style={{ textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>

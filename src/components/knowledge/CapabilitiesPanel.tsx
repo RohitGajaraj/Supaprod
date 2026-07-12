@@ -6,13 +6,13 @@ import { getCapabilities, type AgentCapability } from "@/lib/capabilities.functi
 import { useWorkspace } from "@/hooks/use-workspace";
 
 export function CapabilitiesPanel() {
-  const workspace = useWorkspace();
+  const { activeWorkspace, isLoading: isLoadingWorkspace } = useWorkspace();
   const capsFn = useServerFn(getCapabilities);
 
   const { data, isPending } = useQuery({
-    queryKey: ["capabilities", workspace?.id],
-    queryFn: () => capsFn({ workspaceId: workspace?.id ?? null }),
-    enabled: !!workspace,
+    queryKey: ["capabilities", activeWorkspace?.id],
+    queryFn: () => capsFn({ data: { workspaceId: activeWorkspace?.id ?? null } }),
+    enabled: !!activeWorkspace && !isLoadingWorkspace,
   });
 
   const capabilities = data?.capabilities ?? [];
@@ -101,7 +101,8 @@ function CapabilityCard({
           transition: "background-color var(--dur-control) var(--ease)",
         }}
         onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = "color-mix(in srgb, var(--canvas) 50%, transparent)")
+          (e.currentTarget.style.backgroundColor =
+            "color-mix(in srgb, var(--canvas) 50%, transparent)")
         }
         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
@@ -186,7 +187,8 @@ function CapabilityCard({
                   >
                     <div style={{ fontWeight: 500 }}>{change.description}</div>
                     <div style={{ color: "var(--text-muted)", marginTop: "4px" }}>
-                      {change.changedBy ? `by ${change.changedBy}` : "by system"} · {change.changedAt}
+                      {change.changedBy ? `by ${change.changedBy}` : "by system"} ·{" "}
+                      {change.changedAt}
                     </div>
                   </div>
                 ))}
@@ -199,13 +201,7 @@ function CapabilityCard({
   );
 }
 
-function CapabilitySection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function CapabilitySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <div

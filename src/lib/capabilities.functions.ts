@@ -56,7 +56,10 @@ export interface CapabilityChange {
 /** Get capabilities for all active cast members in a workspace. */
 export const getCapabilities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { workspaceId?: string | null } | undefined) => input ?? {})
+  .inputValidator(
+    (input: { workspaceId?: string | null } | undefined): { workspaceId?: string | null } =>
+      input ?? {}
+  )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
     let workspaceId = data.workspaceId ?? null;
