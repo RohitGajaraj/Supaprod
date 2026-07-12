@@ -24,6 +24,8 @@ import {
   COMPLETION_EVIDENCE_REASON,
   COMPLETION_EVIDENCE_TONE,
 } from "@/lib/build/verification";
+import { InlineApprovalMarker } from "@/components/studio/InlineApprovalMarker";
+import { useMissionApprovals } from "@/hooks/use-mission-approvals";
 import type { StudioSessionListItem } from "@/lib/studio.functions";
 
 const EVIDENCE_COLOR: Record<"moss" | "ember" | "faint", string> = {
@@ -108,6 +110,7 @@ export function BuildMissionRow({
   const rawStatus = session.run_status ?? session.status;
   const status = studioToMissionRowStatus(rawStatus, session.pending_approvals);
   const verdict = studioVerdict(rawStatus, session.changeset?.status);
+  const approvals = useMissionApprovals(session.mission_id);
 
   return (
     <div className="flex items-center">
@@ -124,6 +127,9 @@ export function BuildMissionRow({
         onOpen={onOpen}
       />
       <CompletionEvidenceBadge session={session} />
+      {/* PC-29 Layer 7a: inline approval marker shows which gate is blocking
+          this mission — trust plane made felt on the card itself. */}
+      {approvals.data && <InlineApprovalMarker approvals={approvals.data} />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
