@@ -351,7 +351,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               marginTop: 4,
             }}
           >
-            Platform fee + $20/seat
+            Committed credits, unlimited seats
           </span>
           <span
             style={{
@@ -361,7 +361,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               marginTop: 2,
             }}
           >
-            Usage at API rates
+            Volume rate as you scale
           </span>
         </div>
       ) : isFree ? (

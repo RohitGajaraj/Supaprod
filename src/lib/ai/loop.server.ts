@@ -9,7 +9,8 @@
  *   a review (mode=review). Memory is recalled and prepended.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { callModel, GovernanceHaltError } from "./runtime.server";
+import { callModel, GovernanceHaltError, resolveCreditAccountId } from "./runtime.server";
+import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
@@ -35,6 +36,28 @@ import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
+
+// G-PRICE PR-A1: hand back a run's already-drawn credits when it ends ABANDONED
+// (governance-halted or provider-failed) rather than delivered. Best-effort, never
+// throws — a metering hiccup must never mask or delay the halt/fail handling it sits
+// beside. No-op while the credit engine is dormant (refundAbandonedRunCredits's own
+// guard).
+async function refundIfAbandoned(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string | null | undefined,
+  runId: string | null | undefined,
+  surface: string,
+): Promise<void> {
+  if (!runId) return;
+  try {
+    const accountId = await resolveCreditAccountId(supabase, userId, workspaceId ?? null);
+    if (!accountId) return;
+    await refundAbandonedRunCredits(accountId, userId, runId, surface);
+  } catch (e) {
+    console.error("refundIfAbandoned failed:", e);
+  }
+}
 
 /**
  * F-STUDIO gate semantics. Studio's shipping tools are sequential — the PR
@@ -871,6 +894,8 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
             .from("agent_runs")
             .update({ status: "halted", output: msg })
             .eq("id", runId);
+        // G-PRICE PR-A1: a halted run never delivered an artifact — refund its draw.
+        await refundIfAbandoned(supabase, userId, workspaceId, runId, agent.slug);
         return {
           trace_id: traceId,
           agent_slug: agent.slug,
@@ -894,6 +919,8 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         } catch (err) {
           console.error("agent_runs fail-mark failed:", err);
         }
+        // G-PRICE PR-A1: a failed run never delivered an artifact — refund its draw.
+        await refundIfAbandoned(supabase, userId, workspaceId, runId, agent.slug);
       }
       if (ctx.missionId) {
         // KI-07 ordering: nothing may run before the halt-mark inside this

@@ -44,6 +44,86 @@ export function resetDelta(currentIncluded: number, monthlyGrant: number): numbe
   return Math.floor(monthlyGrant) - Math.floor(currentIncluded);
 }
 
+// --- G-PRICE PR-A1: refund the credits an ABANDONED run already drew --------
+// A mission/run that is stopped, halted, or fails before delivering an artifact must
+// never keep the credits its steps already debited (pricing-architecture §2 Rule 2:
+// "stop it early and it is free"). This sums that run's own debit rows (scoped by
+// ai_events.trace_id / agent_runs.id via the surface_ref-tagged ledger rows written
+// during the run) and hands the total back via refund_account_credits, in one
+// best-effort, never-throwing pass. A no-op while the credit engine is dormant.
+
+/** A single credit_ledger row shaped for run-level refund summation. */
+export type RunLedgerRow = { delta_credits: number; ai_event_id: string | null };
+
+/**
+ * Total credits debited under a specific ai_event id set (a run's own calls), as a
+ * positive number. Mirrors sumDebitCredits but scoped to already-fetched rows for one
+ * run rather than a window; pure.
+ */
+export function sumRunDebits(rows: RunLedgerRow[]): number {
+  let total = 0;
+  for (const r of rows) {
+    const d = Number(r.delta_credits);
+    if (Number.isFinite(d) && d < 0) total += -d;
+  }
+  return total;
+}
+
+/**
+ * Refund every credit a run's own AI calls debited, once, and mark the run so it is
+ * never refunded twice. No-op while the credit engine is dormant, while the run has
+ * already been refunded, or when there is nothing to refund. Never throws (a metering
+ * failure must not fail the caller's abandon/halt handling).
+ */
+export async function refundAbandonedRunCredits(
+  accountId: string,
+  userId: string,
+  runId: string,
+  surface: string,
+): Promise<void> {
+  if (!(await creditsEngineEnabled())) return;
+  const admin = supabaseAdmin as unknown as SupabaseClient;
+  try {
+    const { data: run } = await admin
+      .from("agent_runs")
+      .select("credits_refunded")
+      .eq("id", runId)
+      .maybeSingle();
+    if ((run as { credits_refunded?: boolean } | null)?.credits_refunded) return;
+
+    const { data: aiEvents } = await admin
+      .from("ai_events")
+      .select("id")
+      .eq("surface_ref", runId);
+    const eventIds = ((aiEvents ?? []) as { id: string }[]).map((e) => e.id);
+    if (eventIds.length === 0) {
+      await admin.from("agent_runs").update({ credits_refunded: true }).eq("id", runId);
+      return;
+    }
+
+    const { data: ledgerRows } = await admin
+      .from("credit_ledger")
+      .select("delta_credits, ai_event_id")
+      .eq("account_id", accountId)
+      .eq("reason", "debit")
+      .in("ai_event_id", eventIds);
+    const total = sumRunDebits((ledgerRows ?? []) as RunLedgerRow[]);
+    if (total > 0) {
+      await admin.rpc("refund_account_credits", {
+        _account_id: accountId,
+        _credits: total,
+        _user_id: userId,
+        _surface: surface,
+        _ai_event_id: null,
+        _product_id: null,
+      });
+    }
+    await admin.from("agent_runs").update({ credits_refunded: true }).eq("id", runId);
+  } catch (e) {
+    console.error("refundAbandonedRunCredits failed:", e);
+  }
+}
+
 async function creditsEngineEnabled(): Promise<boolean> {
   try {
     const { data, error } = await (supabaseAdmin as unknown as SupabaseClient).rpc(

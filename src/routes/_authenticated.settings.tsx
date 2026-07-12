@@ -55,6 +55,7 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import { useConfirm } from "@/hooks/use-confirm";
 import { PlanTable, TIER_ICON } from "@/components/billing/PlanPicker";
 import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
+import { UsageIndicator } from "@/components/billing/UsageIndicator";
 import { getPricingCatalog } from "@/lib/pricing.functions";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
@@ -1253,6 +1254,14 @@ function CreditsTabInner() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {data && data.enabled && data.monthlyGrantCredits > 0 && (
+          <div style={{ marginTop: "var(--space-3)", maxWidth: 260 }}>
+            <UsageIndicator
+              used={Math.max(0, data.monthlyGrantCredits - data.balanceCredits)}
+              allowance={data.monthlyGrantCredits}
+            />
           </div>
         )}
         {data && !data.enabled && (

@@ -6,7 +6,9 @@ import {
   rollupAttribution,
   capExceeded,
   creditWindowStartIso,
+  sumRunDebits,
   type LedgerDebitRow,
+  type RunLedgerRow,
 } from "./credits.functions";
 
 describe("monthlyGrantCredits", () => {
@@ -167,5 +169,25 @@ describe("creditWindowStartIso", () => {
 
   it("cycle -> the month start when no anchor is set", () => {
     expect(creditWindowStartIso("cycle", null, now)).toBe("2026-06-01T00:00:00.000Z");
+  });
+});
+
+describe("sumRunDebits (G-PRICE PR-A1 abandon-refund)", () => {
+  it("sums only negative (debit) deltas as a positive total", () => {
+    const rows: RunLedgerRow[] = [
+      { delta_credits: -3, ai_event_id: "a" },
+      { delta_credits: -7, ai_event_id: "b" },
+      { delta_credits: 10, ai_event_id: "c" }, // a grant/reset row, ignored
+    ];
+    expect(sumRunDebits(rows)).toBe(10);
+  });
+
+  it("is 0 for no debit rows", () => {
+    expect(sumRunDebits([])).toBe(0);
+    expect(sumRunDebits([{ delta_credits: 5, ai_event_id: null }])).toBe(0);
+  });
+
+  it("ignores non-finite deltas defensively", () => {
+    expect(sumRunDebits([{ delta_credits: Number.NaN, ai_event_id: null }])).toBe(0);
   });
 });

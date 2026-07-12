@@ -8,6 +8,14 @@
 >
 > **Update rule.** When a session produces a strategic decision, a major tradeoff resolution, or a significant positioning or architecture change, add an entry here in the same session. This is not a one-time activity; it is a constant update obligation. Reference: `docs/strategy/README.md` (cascade rule).
 
+## 2026-07-13: tier naming correction — Business stays Business, not Team
+
+**Context.** The G-PRICE implementation session (building `pricing/implementation-plan.md`'s PR-E1) initially carried forward the 2026-07-12 pricing-architecture decision to rename the `team`-slug tier's display name from "Business" to "Team". The founder corrected this mid-session: keep "Business."
+
+**Decision:** Tier names are **Free / Pro / Business / Enterprise** — unchanged from the pre-2026-07-12 naming. The DB slug (`team`) is untouched either way (it was never going to be migrated). All code (`entitlements.ts` `planPresentation`, `pricing.tsx`, `PlanPicker.tsx`) and docs (`pricing-architecture.md` §6a/§10, `implementation-plan.md` PR-E1) reverted to "Business" in the same session.
+
+**Why it matters.** A same-day flip-flop on customer-facing naming is exactly the kind of drift the doc-truth conventions exist to catch fast — recorded here so no future session re-proposes the Team rename without first reading this entry.
+
 ---
 
 ## 2026-07-12 - Pricing architecture finalized: seats-free credits, platform-managed models, low-friction billing (the FINAL pricing model)
@@ -19,8 +27,8 @@
 2. **Billing model = seats-free credits (resolves the earlier committed-credits-vs-per-seat back-and-forth):** credits (delivered work, pooled at the account) are the SOLE billing unit at every tier; **seats are never a price lever.** Free = grant; Pro = flat sub + allowance (1 user); Team = higher flat sub (governance layer) + shared pool + UNLIMITED members + per-user caps; Enterprise = committed annual credit envelope (volume rate) + unlimited seats + optional BYOK. Every paid tier: capped top-ups + pay-as-you-go (reuse the existing add-credits feature).
 3. **Model access = platform-managed default for ALL tiers** (Perplexity-style, model abstracted behind credits; cheap ≈ free, frontier costs more — the Poe/Abacus "credits school"); optional Balanced/Deep/Fast menu on Pro+. **No consumer BYOK.**
 4. **BYOK = enterprise-only, never a live dual-meter** (one contract line, provider bills their tokens, we meter/govern/orchestrate); the platform fee is a **thin % of pass-through (drops the now-broken flat $0.25/1M)** — exact % set at enterprise-contract time.
-5. **Tiers = Free / Pro / Team / Enterprise** (renamed Business → Team; DB slug already `team`).
-6. **Recommended numbers (founder delegated, unit-economics-backed, tunable):** 1 credit ≈ $0.05 COGS; mission ≈ ~10 credits; Free ~50 cr, Pro $20/~200 cr, Team ~$50/~400 pooled cr; margin holds via breakage. Fixes the canon's "150–400 credits/mission" inconsistency.
+5. **Tiers = Free / Pro / Business / Enterprise** (a same-day 2026-07-12 proposal to rename Business → Team was reverted by founder correction 2026-07-13; DB slug stays `team` regardless).
+6. **Recommended numbers (founder delegated, unit-economics-backed, tunable):** 1 credit ≈ $0.05 COGS; mission ≈ ~10 credits; Free ~50 cr, Pro $20/~200 cr, Business ~$50/~400 pooled cr; margin holds via breakage. Fixes the canon's "150–400 credits/mission" inconsistency.
 
 **Why it matters.** This is the FINAL, coherent pricing architecture ([`pricing/pricing-architecture.md`](./pricing/pricing-architecture.md), status FINALIZED). It supersedes `pricing-strategy.md`'s enterprise-per-seat + flat-$0.25 BYOK calls. Fair (pay only for delivered work), simple (one credit wallet, no dollar-per-action, no key management for 99%), hard to exploit (charge on artifact not self-scored outcome; capped overage), sustainable (breakage margin + heavy work draws the meter), model-proof (abstracted + flex-buffered). Build plan (not built here): [`pricing/implementation-plan.md`](./pricing/implementation-plan.md).
 

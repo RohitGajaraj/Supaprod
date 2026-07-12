@@ -22,6 +22,7 @@ import {
   sumDebitCredits,
   type LedgerDebitRow,
 } from "../credits.functions";
+import { isChargeableSurface, isAmbientSurface } from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
@@ -882,7 +883,10 @@ async function creditsEnabled(supabase: SupabaseClient): Promise<boolean> {
 
 // Resolve the account that owns this call: the workspace's account, else the user's
 // default account. Best-effort, never throws on the hot path (null on any error).
-async function resolveCreditAccountId(
+// Exported (G-PRICE PR-A1): the abandon-refund path in loop.server.ts resolves the
+// same account a run's debits were drawn from, so a refund targets the right pool
+// without re-deriving the workspace-to-account lookup a second way.
+export async function resolveCreditAccountId(
   supabase: SupabaseClient,
   userId: string,
   workspaceId: string | null | undefined,
@@ -962,21 +966,72 @@ async function logCreditExhausted(
   );
 }
 
+// G-PRICE PR-D2: log the ambient-surface downgrade-to-free as an informational (not
+// blocked) ai_events row, so the account owner can see in their trace that an ambient
+// tick ran on the free floor rather than silently drawing (or silently skipping).
+async function logAmbientDowngrade(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: CallOpts,
+  accountId: string,
+  balance: number,
+  projected: number,
+): Promise<void> {
+  try {
+    await supabase.from("ai_events").insert({
+      user_id: userId,
+      trace_id: opts.traceId ?? null,
+      parent_event_id: opts.parentEventId ?? null,
+      surface: opts.surface,
+      surface_ref: opts.surface_ref ?? null,
+      ...(opts.workspaceId ? { workspace_id: opts.workspaceId } : {}),
+      provider: "credits",
+      via: "gateway",
+      model: opts.model,
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+      est_cost_usd: 0,
+      latency_ms: 0,
+      status: "ok",
+      error_message: `ambient_downgrade: account ${accountId} balance ${balance} below projected ${projected}, routed to free floor`,
+      input_preview: "",
+      system_preview: "",
+      output_preview: "",
+    });
+  } catch (e) {
+    console.error("ambient downgrade event insert failed:", e);
+  }
+}
+
 /**
  * Pre-call: when credits are enabled, project the call's cost and halt with
  * CreditExhaustedError (after logging a blocked ai_events row) if the account pool
  * (included + top-up) cannot cover it. No-op while dormant. A read failure degrades to
  * "allow" so the engine can never block a real call by accident.
+ *
+ * G-PRICE PR-D2 — returns a model-id OVERRIDE (or null) rather than plain void: an
+ * AMBIENT surface (sense — autonomous, self-initiated signal ingestion) that would
+ * otherwise halt on an empty pool instead DOWNGRADES to the free floor (the cheapest
+ * live model, whose call then costs 0 credits at the coarse artifact-cost table used
+ * everywhere else) rather than dead-stopping. Every other surface still hard-halts
+ * (pricing-architecture §2 Rule 4: default stop-at-allowance, never silent overspend —
+ * the downgrade-to-free is an EXCEPTION carved out only for ambient/autonomous work,
+ * never a general bypass).
  */
 async function assertAccountCredits(
   supabase: SupabaseClient,
   userId: string,
   opts: CallOpts,
   effectiveModel: string,
-): Promise<void> {
-  if (!(await creditsEnabled(supabase))) return;
+): Promise<string | null> {
+  if (!(await creditsEnabled(supabase))) return null;
+  // G-PRICE PR-A2: a FREE surface (eval/judge/embed/scheduler/test) never halts on an
+  // empty pool either — it must always be able to run so it can keep grading/screening
+  // even when the account is out of billable credits.
+  if (!isChargeableSurface(opts.surface)) return null;
   const accountId = await resolveCreditAccountId(supabase, userId, opts.workspaceId ?? null);
-  if (!accountId) return;
+  if (!accountId) return null;
   const admin = supabaseAdmin as unknown as SupabaseClient;
   let balance = 0;
   let cycleAnchorIso: string | null = null;
@@ -994,10 +1049,21 @@ async function assertAccountCredits(
     balance = Number(row.balance_credits ?? 0) + Number(row.topup_credits ?? 0);
     cycleAnchorIso = row.cycle_anchor ?? null;
   } catch {
-    return;
+    return null;
   }
   const projected = projectCallCredits(effectiveModel, opts.messages);
   if (balance <= 0 || balance < projected) {
+    // G-PRICE PR-D2: ambient/autonomous work downgrades to the free floor at the cap
+    // rather than dead-stopping (pricing-architecture §2 Rule 4, §5). `sense` is the
+    // one ambient-tick surface that runs unattended (cron-driven signal ingestion);
+    // route it to the cheapest live model instead of halting, so the account keeps its
+    // baseline ambient intelligence even at zero credits. Every other chargeable
+    // surface still hard-halts below — this is a narrow, named exception, not a bypass.
+    if (isAmbientSurface(opts.surface)) {
+      const downgraded = cheapestLiveModel();
+      await logAmbientDowngrade(supabase, userId, opts, accountId, balance, projected);
+      return downgraded;
+    }
     await logCreditExhausted(supabase, userId, opts, accountId, balance, projected);
     throw new CreditExhaustedError(
       accountId,
@@ -1007,6 +1073,7 @@ async function assertAccountCredits(
   // WM-M14: the account pool can cover the call, but an owner-set per-product / per-member
   // cap may still halt this one scope. Only runs when an enabled cap exists.
   await assertCreditCaps(supabase, userId, opts, accountId, projected, cycleAnchorIso);
+  return null;
 }
 
 /**
@@ -1106,6 +1173,11 @@ async function debitAccountCredits(
   model: string,
 ): Promise<void> {
   if (!(await creditsEnabled(supabase))) return;
+  // G-PRICE PR-A2: the free-vs-charged surface map. eval/judge/embed/scheduler/test
+  // are the trust + plumbing layer (pricing-architecture §2 Rule 1) and never draw
+  // the meter, no matter their token cost — charging for verifying our own output
+  // would suppress the exact mechanism that is the moat.
+  if (!isChargeableSurface(opts.surface)) return;
   // WM-M15: meter the credit RATE on the model that ACTUALLY ran (cost-routed and/or
   // fallback), matching the est_cost_usd basis, not the originally-requested opts.model.
   const credits = creditsForCost(estCostUsd, model);
@@ -1333,11 +1405,13 @@ export async function callModel(
     isAvailable: modelAvailability(),
     enabled: capabilityRoutingEnabled(),
   });
-  const effectiveModel = costRoutingEnabled()
+  let effectiveModel = costRoutingEnabled()
     ? costRoutedModel(opts.surface, capabilityResolved)
     : capabilityResolved;
   // WM-M4: dormant account-level credit pre-check (no-op while credits_enabled() is false).
-  await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  // G-PRICE PR-D2: a non-null return is the ambient-surface downgrade-to-free override.
+  const ambientOverride = await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
   const rules = useGuards ? await loadGuardrails(supabase, userId) : [];
@@ -1850,11 +1924,13 @@ export async function callModelStream(
     isAvailable: modelAvailability(),
     enabled: capabilityRoutingEnabled(),
   });
-  const effectiveModel = costRoutingEnabled()
+  let effectiveModel = costRoutingEnabled()
     ? costRoutedModel(opts.surface, capabilityResolved)
     : capabilityResolved;
   // WM-M4: dormant account-level credit pre-check (no-op while credits_enabled() is false).
-  await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  // G-PRICE PR-D2: a non-null return is the ambient-surface downgrade-to-free override.
+  const ambientOverride = await assertAccountCredits(supabase, userId, opts, effectiveModel);
+  if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
   const rules = useGuards ? await loadGuardrails(supabase, userId) : [];

@@ -105,7 +105,7 @@ This is the honest answer to "should they just plug in their providers while we 
 
 The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) stands — memory, connectors (read on Pro / write on Business), collaboration/governance, workspaces, support, security are **confirmed as written**. This section locks the **prices**, the **new model/BYOK dimensions**, and the **enterprise pricing revision**, and consolidates everything into one table the pricing page renders from.
 
-| Dimension | **Free** | **Pro** (Tier 1 paid) | **Team** (Tier 2) | **Enterprise** (Tier 3) |
+| Dimension | **Free** | **Pro** (Tier 1 paid) | **Business** (Tier 2) | **Enterprise** (Tier 3) |
 |-----------|----------|----------------------|----------------------|------------------------|
 | **Target customer** | Solo PM trying the loop | Power individual PM | Accountable PM team | Governed org (procurement/compliance) |
 | **Monthly price** | $0 | $20 (100 cr base) + credit dropdown | $50 (100 cr base, pooled) + dropdown | Committed-credit contract (contact sales) |
@@ -121,14 +121,14 @@ The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) st
 
 > **Base prices ($20 Pro / $50 Business / $0 Free) are the canon's placeholders — the founder sets the final Stripe numbers.** The dropdown ladder (linear, no volume discount; annual ~17% off) is unchanged from canon §2.
 
-### 6a. Tier naming — DECIDED: Free / Pro / Team / Enterprise (founder, 2026-07-12)
+### 6a. Tier naming — DECIDED: Free / Pro / Business / Enterprise (founder, 2026-07-12; corrected 2026-07-13)
 
-Keep the clear, self-explaining names; **rename the middle tier from "Business" to "Team"** (its DB slug is already `team`, so this is a zero-migration display change). Final set: **Free / Pro / Team / Enterprise.**
+Keep the clear, self-explaining names, **as originally named: Free / Pro / Business / Enterprise.** A same-day 2026-07-12 proposal to rename the middle tier to "Team" was reverted by founder correction on 2026-07-13 — the DB slug stays `team` either way (zero-migration display name), but the customer-facing name is **Business**, not Team.
 
 Reasoning (why clear names, not a clever theme):
 - **Clarity converts.** The pricing page is decoded in seconds by a buyer under time pressure; a clever tier name makes them work at the exact moment of purchase. Every strong comparable — Perplexity (Pro/Max), Cursor, Copilot (Pro/Business/Enterprise), Lovable, Linear, Notion — uses boring-clear tier names.
 - **We already learned this.** Cadence retired thematic names (Constellation / Galaxy / Cosmos) precisely because they added cognitive load (canon §10). Reintroducing cleverness would re-make a fixed mistake.
-- **"Team" over "Business"** reads more human and describes the actual jump (solo → a team working together), which is the felt Pro→Team upgrade (shared accountability), and it matches the code slug.
+- **Reverted 2026-07-13.** The original rationale for "Team over Business" (reads more human, describes the solo→team jump) was sound in isolation, but the founder corrected this the same day: keep **Business**, the originally-decided name. Not applied.
 
 Personality lives in the brand voice, the product moments, and feature names — not the tier selector.
 
@@ -138,7 +138,7 @@ Personality lives in the brand voice, the product moments, and feature names —
 
 - **Free:** $0 + a small monthly grant (30-day decay).
 - **Pro:** flat monthly subscription including a credit allowance (credit dropdown to size up), 1 user.
-- **Team:** a higher flat subscription (the higher base buys the governance/collaboration layer — RBAC, approval lanes, write-back connectors, audit) + a **shared credit pool** (dropdown) + **unlimited members** + admin per-user caps.
+- **Business:** a higher flat subscription (the higher base buys the governance/collaboration layer — RBAC, approval lanes, write-back connectors, audit) + a **shared credit pool** (dropdown) + **unlimited members** + admin per-user caps.
 - **Enterprise:** a **committed annual credit envelope** at a volume rate (per-credit declines with commitment) + **unlimited seats** + custom contract + optional BYOK (contract term).
 - **Every paid tier:** capped **top-ups + true pay-as-you-go** (reuse the existing add-credits feature) — add credits anytime, user-set cap.
 
@@ -149,7 +149,7 @@ Personality lives in the brand voice, the product moments, and feature names —
 From §9 COGS (mission ≈ $0.50 cached; small artifacts ≈ pennies; everyday actions free):
 - **Credit sizing (coarse + legible):** mission ≈ **~10 credits**, build ≈ **~20–30**, everyday actions **0**. Internal COGS ≈ **$0.05/credit**. *(Fixes the canon's "150–400 credits/mission" inconsistency; the existing 100→10,000 dropdown works at ~10 cr/mission.)*
 - **Free** $0. **The daily-active hook is the free everyday features** (unlimited chat, the Critic teardown wedge, briefs — all 0-credit), so a free user has a reason to come back *every day* without spending a credit. On top of that, a **daily credit trickle that accrues, capped monthly** (recommended **~5 credits/day, cap ~50/mo** — the Lovable pattern) so they can save up over a few days to run a real mission. Daily refresh drives DAU; the monthly cap bounds our COGS; accrual means a mission (~10 cr) is reachable in ~2 days. *(A flat monthly 50 is the simpler fallback, but the daily trickle is the better habit-former for a Chief-of-Staff product.)*
-- **Pro** $20/mo / **~200 credits** (~20 missions, generous for solo). **Team** ~$50/mo base / **~400 pooled credits** (~40 missions). **Enterprise** committed at ~$0.08–0.10/credit volume vs ~$0.12–0.15 self-serve/PAYG.
+- **Pro** $20/mo / **~200 credits** (~20 missions, generous for solo). **Business** ~$50/mo base / **~400 pooled credits** (~40 missions). **Enterprise** committed at ~$0.08–0.10/credit volume vs ~$0.12–0.15 self-serve/PAYG.
 - **Margin holds via breakage:** the average PM uses well under the allowance (blended ~4–5x COGS) even though a maxed power user is ~2x. Generous *and* profitable.
 - These are recommendations; the founder sets final Stripe numbers. The one hard rule: keep the sizing self-consistent (base allowance must cover real missions).
 
@@ -219,7 +219,7 @@ These are the design decisions, now finalized. The only remaining inputs are the
 2. **Model access (§3) — LOCKED.** Platform-managed models default for **all** tiers; optional Balanced/Deep/Fast menu on Pro+; credits-school (cheap ≈ free, frontier costs more); **no consumer BYOK**.
 3. **BYOK fee (§4) — LOCKED (structure).** Drop the flat $0.25/1M; charge a **thin % of pass-through spend, auto-deflating**. *Founder-config:* the exact % (research band ~10–20%).
 4. **Enterprise pricing (§6, §8.1) — LOCKED.** Committed credits + unlimited seats; no default per-seat (seat-floor only as a procurement fallback).
-5. **Tier naming (§6a) — LOCKED.** Free / Pro / Team / Enterprise (renamed Business → Team).
+5. **Tier naming (§6a) — LOCKED (corrected 2026-07-13).** Free / Pro / Business / Enterprise. A same-day proposal to rename Business to Team was reverted by founder correction.
 6. **Prices (§6) — founder-config.** Base $0 / $20 / $50 + the dropdown ladder are placeholders; the founder sets final Stripe numbers. The credit calibration must be self-consistent (§11b) so the base allowance covers real missions.
 
 The design is locked; the build spec is [`implementation-plan.md`](./implementation-plan.md). Decisions recorded in [`session-decisions.md`](../session-decisions.md).

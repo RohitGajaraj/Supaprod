@@ -34,7 +34,7 @@ export const PUBLIC_PLAN_TIERS: readonly PlanTier[] = [
 ] as const;
 
 /**
- * Credit dropdown ladder for Pro and Business (team) tiers.
+ * Credit dropdown ladder for Pro and Business tiers.
  * Linear pricing — no volume discount on credit selection.
  * The annual/monthly toggle is the only discount mechanism (~17% off annual).
  * Source: pricing-strategy.md §2.
@@ -375,14 +375,14 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         highlights: [
           "Everything in Business, plus:",
           "Platform fee based on company size",
-          "Per-seat pricing with usage at API rates",
+          "Committed annual credit envelope, unlimited seats",
           "SSO, SCIM, and full audit logs",
           "Data residency and custom credit model",
           "Dedicated support with a signed SLA",
           "Security review, DPA, and procurement help",
           "Custom connectors and connector development",
           "Dedicated CSM and quarterly business reviews",
-          "Volume pricing on credits and seats",
+          "Volume pricing on committed credits",
           "24/7 incident response with named contacts",
         ],
       };

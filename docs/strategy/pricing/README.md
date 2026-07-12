@@ -10,7 +10,7 @@
 
 | If you need… | Pick this | Role |
 |---|---|---|
-| **THE finalized end-to-end pricing system** (credit model, BYOK, model access, metering, 4-tier packaging, worked economics) | [**pricing-architecture.md**](./pricing-architecture.md) ⭐ | the canonical finalized architecture (2026-07-12, PROPOSED). "Outcome Credits" (charge on delivery, no dollar-per-action, stop-free), platform-managed models default + enterprise-only BYOK with a thin margin-% fee, enterprise = committed credits + unlimited seats, tiers Free/Pro/Team/Enterprise |
+| **THE finalized end-to-end pricing system** (credit model, BYOK, model access, metering, 4-tier packaging, worked economics) | [**pricing-architecture.md**](./pricing-architecture.md) ⭐ | the canonical finalized architecture (2026-07-12, PROPOSED). "Outcome Credits" (charge on delivery, no dollar-per-action, stop-free), platform-managed models default + enterprise-only BYOK with a thin margin-% fee, enterprise = committed credits + unlimited seats, tiers Free/Pro/Business/Enterprise |
 | **WHY we price the way we do** (tier rationale, value matrix per tier, upgrade narrative, credit-pool architecture) | [**pricing-strategy.md**](./pricing-strategy.md) | the strategy layer (2026-06-26 4-tier decision + the full per-tier value matrix). Its enterprise-per-seat + flat-$0.25 BYOK calls are superseded by pricing-architecture.md on approval |
 | **The market evidence** (8-platform competitor teardown + the per-surface free-vs-charged map) | [**credit-model-and-byok-research.md**](./credit-model-and-byok-research.md) | the research/evidence base behind the architecture (Lovable, Cursor, Replit, v0, Bolt, Devin, Windsurf, Copilot) |
 | **The build spec** (per-task WHAT/WHY/INCLUDES any agent can pick up) | [**implementation-plan.md**](./implementation-plan.md) | the agent-pickup-able build plan (Groups A–E, PR-A1…PR-E2) for the finalized architecture; not built here, and not yet on the dashboard until greenlit |
@@ -27,7 +27,7 @@ Nothing in this folder is a bare conclusion; every decision traces to evidence a
 2. **The market realities we priced against** → [`pricing-architecture.md`](./pricing-architecture.md) §9: 2026 inference costs + the trend (why the flat $0.25/1M BYOK fee is now structurally broken), how the Perplexity-style "include the models, no BYOK" players meter, and the fair-vs-gameable analysis of non-token credit models.
 3. **The first principles + the decision** → `pricing-architecture.md` §1 (what problem / who for / how it should feel) → §2–§6 (the credit model, model access, BYOK, enterprise pricing, the 4-tier packaging).
 4. **The downsides / risks we accepted** → `pricing-architecture.md` §9d (the Forbes/Parloa "outcome-based pricing myth" — efficiency capture, attribution debates, definition-gaming) + the "⚠ strongest risk" section in the research doc (spend-without-a-click, the Bolt "hidden cost" trap) + the friction traps the founder surfaced (per-action dollar anxiety, stopped-work billing, BYOK dual-metering) and how §2/§4 defuse each.
-5. **The rationale for each tier** → [`pricing-strategy.md`](./pricing-strategy.md) §3 (the value matrix + upgrade narrative — the felt reason to move Free→Pro→Team→Enterprise).
+5. **The rationale for each tier** → [`pricing-strategy.md`](./pricing-strategy.md) §3 (the value matrix + upgrade narrative — the felt reason to move Free→Pro→Business→Enterprise).
 
 So the honest answer to "why did we choose this, and what does it cost us?" lives in the docs, interlinked — not just the "what."
 
