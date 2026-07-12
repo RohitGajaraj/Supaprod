@@ -8,6 +8,14 @@
 
 ---
 
+## How to hand this to a coding agent (founder guide)
+
+To have another agent build this without you re-explaining anything, give it a prompt like:
+
+> _"Build the Cadence pricing architecture. The finalized design is `docs/strategy/pricing/pricing-architecture.md` (read it + `credit-model-and-byok-research.md` for the WHY — do NOT change the design, it's finalized). The per-task build plan is `docs/strategy/pricing/implementation-plan.md` — work the tasks in the build order (PR-A1 first). For each task: implement it, gate it (tsc + build + tests), commit with a WHY, and push. The exact numbers (prices, allowances, the BYOK %) are config I set in Stripe/admin — leave TODOs, don't block on them. Claim each task on the feature dashboard (group G-PRICE) before starting so parallel lanes don't collide."_
+
+The agent has everything it needs from those two files: **what** to build (the task cards), **why** (the reasoning chain in the architecture doc), and the **order**. The tasks are self-contained (each lists its `touches`/`depends`), so an agent can pick up any unblocked task cold. See the `G-PRICE` rows in [`../../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) once greenlit — those are the claimable units.
+
 ## The build, in one line
 Turn the finalized architecture into product: **seats-free credits** metered **only on delivered artifacts** (never a per-action dollar), **platform-managed models** for everyone with **enterprise-only BYOK**, the **Free/Pro/Team/Enterprise** packaging, and the **top-ups + PAYG + guardrails** that keep it fair — reusing the existing credit/billing/entitlements engine wherever possible.
 
