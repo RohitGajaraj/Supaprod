@@ -18,6 +18,7 @@ import {
   type BriefItemKind,
 } from "@/lib/briefs.functions";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
 
 const SINGLETON_KINDS: readonly BriefItemKind[] = ["vision", "icp", "positioning"];
 
@@ -70,6 +71,10 @@ export function BriefPanel() {
   const [editing, setEditing] = useState<EditTarget>(null);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftBody, setDraftBody] = useState("");
+  // RPT-47: the guided formation flow, opened on demand. It writes through the
+  // same brief_items machinery + ["brief-items"] cache, so this panel updates
+  // live as the flow saves each call.
+  const [showFlow, setShowFlow] = useState(false);
 
   const save = useMutation({
     mutationFn: (v: {
@@ -142,6 +147,17 @@ export function BriefPanel() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {showFlow ? <BriefFormationFlow onClose={() => setShowFlow(false)} /> : null}
+
+      <div className="flex items-center justify-between">
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: 0, maxWidth: 420 }}>
+          The standing calls that steer the machine. Edit any in place, or walk them in order.
+        </p>
+        <Button variant="secondary" size="sm" onClick={() => setShowFlow(true)}>
+          Form the brief
+        </Button>
+      </div>
+
       {SINGLETON_KINDS.map((kind) => {
         const current = byKind.get(kind)?.[0];
         return (
