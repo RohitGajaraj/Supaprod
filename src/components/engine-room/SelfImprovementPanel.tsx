@@ -19,6 +19,7 @@ import { MonoLabel, type MonoLabelTone } from "@/components/obsidian";
 import {
   getSelfImprovementProposals,
   enrichSelfImproveProposal,
+  applySelfImproveFix,
 } from "@/lib/self-improve.functions";
 import type { ProposalSeverity } from "@/lib/self-improve";
 import { PanelPending, ErrorRetry } from "./RoomDetail";
@@ -73,6 +74,11 @@ function ProposalEnricher({
   const enrich = useMutation({
     mutationFn: () => fEnrich({ data: { workspaceId, kind, subjectRef } }),
   });
+  const fApply = useServerFn(applySelfImproveFix);
+  const apply = useMutation({
+    mutationFn: () => fApply({ data: { workspaceId, kind, subjectRef } }),
+  });
+  const applied = apply.data?.applied ?? false;
   const data = enrich.data;
 
   if (!data) {
@@ -140,6 +146,50 @@ function ProposalEnricher({
         AI-composed ·{" "}
         {data.grounded_on > 0 ? `grounded in ${data.grounded_on} records` : "not enough records"}
       </span>
+
+      {/* RPT-50 rung 3 (increment 1): APPLY closes the loop. The fix becomes a
+          governed, injection-screened, reversible house rule (live in every agent's
+          prompt) + a receipted decision on the ledger. Human-triggered here (the
+          Apply click is the action); the unattended auto-apply mode is the Routine
+          toggle increment. */}
+      {data.suggested_fix ? (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
+          {applied ? (
+            <p style={{ fontSize: 12.5, color: "var(--moss-bright)", margin: 0, lineHeight: 1.5 }}>
+              Applied. Your agents now follow this as a house rule, and the change is on the Trust
+              Ledger. It is reversible.
+            </p>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={apply.isPending}
+                onClick={() => apply.mutate()}
+                className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-mono-floor)",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "var(--text-body)",
+                  background: "transparent",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: "var(--radius-control)",
+                  padding: "6px 12px",
+                  cursor: apply.isPending ? "wait" : "pointer",
+                }}
+              >
+                {apply.isPending ? "Applying..." : "Apply this fix"}
+              </button>
+              {apply.data && !apply.data.applied && apply.data.reason ? (
+                <p style={{ fontSize: 12, color: "var(--text-subtle)", margin: "6px 0 0" }}>
+                  {apply.data.reason}
+                </p>
+              ) : null}
+            </>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
