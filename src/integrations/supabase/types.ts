@@ -511,6 +511,7 @@ export type Database = {
           agent_name: string
           agent_slug: string
           created_at: string
+          credits_refunded: boolean
           delegate_meta: Json | null
           duration_ms: number | null
           failure_kind: string | null
@@ -536,6 +537,7 @@ export type Database = {
           agent_name: string
           agent_slug: string
           created_at?: string
+          credits_refunded?: boolean
           delegate_meta?: Json | null
           duration_ms?: number | null
           failure_kind?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           agent_name?: string
           agent_slug?: string
           created_at?: string
+          credits_refunded?: boolean
           delegate_meta?: Json | null
           duration_ms?: number | null
           failure_kind?: string | null
@@ -9035,6 +9038,17 @@ export type Database = {
       }
       redeem_voucher: { Args: { _code: string }; Returns: Json }
       refresh_observability_mvs: { Args: never; Returns: undefined }
+      refund_account_credits: {
+        Args: {
+          _account_id: string
+          _ai_event_id: string
+          _credits: number
+          _product_id: string
+          _surface: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       reset_subscription_cycle: { Args: { _account_id: string }; Returns: Json }
       revoke_mcp_token: { Args: { _token_id: string }; Returns: undefined }
       right_to_erasure_enabled: { Args: never; Returns: boolean }
