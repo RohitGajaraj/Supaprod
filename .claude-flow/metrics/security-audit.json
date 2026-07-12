@@ -1,70 +1,12 @@
 {
-  "timestamp": "2026-07-10T14:56:07.384Z",
-  "mode": "headless",
-  "workerType": "audit",
-  "model": "haiku",
-  "durationMs": 62157,
-  "executionId": "audit_1783695305227_l8hyg0",
-  "success": true,
-  "findings": {
-    "vulnerabilities": [
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 17,
-        "description": "Weak random ID generation in fallback path. The idFactory fallback uses Math.random().toString(16).slice(2, 10) instead of cryptographically secure randomness. While crypto.randomUUID() is preferred, the fallback should use a secure alternative or fail safely.",
-        "remediation": "Remove the Math.random() fallback or use a proper CSPRNG. If crypto.randomUUID() is unavailable, throw an error or use the browser's crypto.getRandomValues()."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 32,
-        "description": "Token injection via window object globals (TOKEN, PORT). While guards exist, injecting security-sensitive values as window properties creates an XSS attack surface. If page scripts are compromised, tokens can be exfiltrated.",
-        "remediation": "Use postMessage() with strict origin checking instead of window globals. Implement Content Security Policy (CSP) headers to prevent script injection. Consider using sessionStorage with HTTPOnly flag if available."
-      },
-      {
-        "severity": "medium",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 58,
-        "description": "Unvalidated JSON.parse() of stored session data. Malformed or malicious session data in localStorage could cause crashes or unexpected behavior. No schema validation before use.",
-        "remediation": "Add schema validation using a parsing library (e.g., zod, valibot). Validate that parsed.checkpointRevision is a number before using it."
-      },
-      {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-dom.js",
-        "line": 28,
-        "description": "CSS escape function relies on String.replace() fallback when CSS.escape is unavailable. This may not handle all CSS injection vectors (e.g., unicode escapes, property names).",
-        "remediation": "Use a tested CSS sanitization library or ensure CSS.escape() is always available via polyfill. Add unit tests for CSS injection payloads."
-      },
-      {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser-session.js",
-        "line": 37,
-        "description": "Session state stored in unencrypted localStorage. XSS attacks or browser storage inspection can expose session IDs and application state.",
-        "remediation": "Encrypt sensitive session data before storing. Use sessionStorage for ephemeral data. Implement automatic session expiration. Consider using IndexedDB with encryption for large state."
-      },
-      {
-        "severity": "low",
-        "file": ".kiro/skills/impeccable/scripts/live-browser.js",
-        "line": 70,
-        "description": "Double-init guard checks window.__IMPECCABLE_LIVE_INIT__ but doesn't validate the guard itself. A malicious script could set this flag to prevent legitimate initialization or set it falsely to enable re-execution.",
-        "remediation": "Use Symbol or Object.defineProperty() with non-configurable flag to make guard tamper-resistant: Object.defineProperty(window, '__IMPECCABLE_LIVE_INIT__', { value: true, writable: false })."
-      }
-    ],
-    "riskScore": 28,
-    "recommendations": [
-      "Implement Content Security Policy (CSP) headers to restrict script injection and inline style execution",
-      "Use postMessage() with origin validation instead of window global injection for security tokens",
-      "Add schema validation to all JSON.parse() calls (use zod, valibot, or similar)",
-      "Replace Math.random() with crypto.getRandomValues() for all security-sensitive randomness",
-      "Encrypt sensitive session data before storing in localStorage or migrate to sessionStorage",
-      "Implement rate limiting and DDoS protections on the token injection endpoint",
-      "Add automated security scanning to CI/CD (e.g., npm audit, snyk, ESLint security plugins)",
-      "Use tamper-resistant guards via Object.defineProperty() with non-configurable, non-writable flags",
-      "Audit the server-side token generation and injection mechanism (not fully visible in provided code)",
-      "Consider implementing Subresource Integrity (SRI) checks for externally injected scripts"
-    ]
+  "timestamp": "2026-07-12T16:03:08.264Z",
+  "mode": "local",
+  "checks": {
+    "envFilesProtected": true,
+    "gitIgnoreExists": true,
+    "noHardcodedSecrets": true
   },
-  "rawOutputPreview": "```json\n{\n  \"vulnerabilities\": [\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 17,\n      \"description\": \"Weak random ID generation in fallback path. The idFactory fallback uses Math.random().toString(16).slice(2, 10) instead of cryptographically secure randomness. While crypto.randomUUID() is preferred, the fallback should use a secure alternative or fail safely.\",\n      \"remediation\": \"Remove the Math.random() fallback or use a proper CSPRNG. If crypto.randomUUID() is unavailable, throw an error or use the browser's crypto.getRandomValues().\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser.js\",\n      \"line\": 32,\n      \"description\": \"Token injection via window object globals (TOKEN, PORT). While guards exist, injecting security-sensitive values as window properties creates an XSS attack surface. If page scripts are compromised, tokens can be exfiltrated.\",\n      \"remediation\": \"Use postMessage() with strict origin checking instead of window globals. Implement Content Security Policy (CSP) headers to prevent script injection. Consider using sessionStorage with HTTPOnly flag if available.\"\n    },\n    {\n      \"severity\": \"medium\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-session.js\",\n      \"line\": 58,\n      \"description\": \"Unvalidated JSON.parse() of stored session data. Malformed or malicious session data in localStorage could cause crashes or unexpected behavior. No schema validation before use.\",\n      \"remediation\": \"Add schema validation using a parsing library (e.g., zod, valibot). Validate that parsed.checkpointRevision is a number before using it.\"\n    },\n    {\n      \"severity\": \"low\",\n      \"file\": \".kiro/skills/impeccable/scripts/live-browser-dom.js\",\n      \"line\": 28,\n      \"description\": \"CSS escape function relies on String.replace() fallback when CSS.escape is unavailable. This may not handle all CSS injection",
-  "rawOutputLength": 4816
+  "riskLevel": "low",
+  "recommendations": [],
+  "note": "Install Claude Code CLI for AI-powered security analysis"
 }

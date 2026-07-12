@@ -79,6 +79,19 @@ describe("compareOpportunities tie-break chain", () => {
     expect(order([b, a], corr)).toEqual(["a", "b"]);
   });
 
+  test("3.5. equal ice + verdict + corroboration falls through to briefAlignment", () => {
+    // Two opportunities tied on all major discriminators; briefAlignment decides.
+    // Without briefAlignment, id alone decides: alphabetically first wins.
+    // With briefAlignment, a tied bet to a standing top bet outranks an untied one.
+    const tied = mk({ id: "zzz" }); // Would sort LAST without briefAlignment
+    const untied = mk({ id: "aaa" }); // Would sort FIRST without briefAlignment
+    const briefAlignment = (o: RankableOpportunity) => (o.id === "zzz" ? 1 : 0);
+    // Without briefAlignment, untied wins (lower id = earlier sort).
+    expect(compareOpportunities(tied, untied, noCorr)).toBeGreaterThan(0);
+    // With briefAlignment, tied wins (higher briefAlignment overrides id order).
+    expect(compareOpportunities(tied, untied, noCorr, undefined, briefAlignment)).toBeLessThan(0);
+  });
+
   test("4. equal ice + verdict + corroboration falls through to confidence", () => {
     const a = mk({ id: "a", confidence: 9 });
     const b = mk({ id: "b", confidence: 2 });

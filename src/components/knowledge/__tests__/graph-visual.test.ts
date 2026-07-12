@@ -10,6 +10,7 @@ import {
   truncateTitle,
   resolveKindColors,
   usePrefersReducedMotion,
+  computeReducedMotion,
 } from "../graph-visual";
 
 // dim 17: every graph node carries a typed trace-ref prefix. The shared object
@@ -105,6 +106,31 @@ describe("truncateTitle", () => {
     const out = truncateTitle(long, 26);
     expect(out).toBe(`${"A".repeat(25)}…`);
     expect(out.length).toBe(26);
+  });
+});
+
+describe("computeReducedMotion (pure function)", () => {
+  test("false when neither the OS preference nor the toggle asks for reduced motion", () => {
+    expect(computeReducedMotion(false, undefined)).toBe(false);
+  });
+
+  test("true when the OS preference is set, regardless of toggle", () => {
+    expect(computeReducedMotion(true, undefined)).toBe(true);
+    expect(computeReducedMotion(true, "on")).toBe(true);
+  });
+
+  test("true when the in-product toggle is 'off', regardless of the OS preference", () => {
+    expect(computeReducedMotion(false, "off")).toBe(true);
+  });
+
+  test("false when the toggle is some other value, even if OS prefers reduced motion", () => {
+    // The toggle only acts when it is exactly "off"; other values (like "on" or "auto") are falsy.
+    expect(computeReducedMotion(false, "on")).toBe(false);
+    expect(computeReducedMotion(false, "auto")).toBe(false);
+  });
+
+  test("true when both the OS preference AND the toggle are active", () => {
+    expect(computeReducedMotion(true, "off")).toBe(true);
   });
 });
 
