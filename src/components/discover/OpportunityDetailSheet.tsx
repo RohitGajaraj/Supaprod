@@ -1,6 +1,8 @@
 import { Copy, GitBranch } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { listBriefItems } from "@/lib/briefs.functions";
+import { setOpportunityBriefLink } from "@/lib/brief-opportunity.functions";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
 import { PulsePrompt } from "@/components/cadence/PulsePrompt";
 import { getOpportunityJudgment } from "@/lib/decision-judgment.functions";
@@ -54,6 +56,8 @@ export interface OpportunityDetailRecord {
   theme_id: string | null;
   created_at: string;
   updated_at: string;
+  // RPT-47: the strategic top bet a human tied this opportunity to (nullable).
+  linked_brief_item_id?: string | null;
 }
 
 /** A label/value block: a quiet mono caps label over a readable body value. */
@@ -198,6 +202,81 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
         )}
       </DetailSection>
     </>
+  );
+}
+
+/**
+ * RPT-47: tie this opportunity to a strategic top bet, the human action that
+ * lets a watched assumption feed the ranking. A standing bet lifts the
+ * opportunity in the queue; if that bet's assumption is later challenged, the
+ * opportunity sinks. Never inferred: the operator chooses. Hidden until at least
+ * one top bet exists to tie to, so it never offers an empty choice.
+ */
+function BriefLinkSection({ opportunity }: { opportunity: OpportunityDetailRecord }) {
+  const qc = useQueryClient();
+  const fList = useServerFn(listBriefItems);
+  const fSetLink = useServerFn(setOpportunityBriefLink);
+
+  const bets = useQuery({ queryKey: ["brief-items"], queryFn: () => fList({ data: {} }) });
+  const topBets = (bets.data ?? []).filter((b) => b.kind === "top_bet");
+  const linkedId = opportunity.linked_brief_item_id ?? null;
+  const linkedBet = topBets.find((b) => b.id === linkedId) ?? null;
+
+  const setLink = useMutation({
+    mutationFn: (briefItemId: string | null) =>
+      fSetLink({ data: { opportunityId: opportunity.id, briefItemId } }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      void qc.invalidateQueries({ queryKey: ["brief-alignment"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (topBets.length === 0) return null;
+
+  return (
+    <div style={{ display: "grid", gap: "7px" }}>
+      <MonoLabel style={{ fontSize: "10px", letterSpacing: "0.1em", color: "var(--text-subtle)" }}>
+        Strategic bet
+      </MonoLabel>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            disabled={setLink.isPending}
+            className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-primary)] hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              alignSelf: "flex-start",
+              fontFamily: "var(--font-ui)",
+              fontSize: "12.5px",
+              border: "1px solid var(--hairline-strong)",
+              borderRadius: "var(--radius-control)",
+              padding: "5px 11px",
+              cursor: "pointer",
+            }}
+          >
+            {linkedBet ? linkedBet.title : "Not tied to a bet"}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={() => setLink.mutate(null)}>
+            Not tied to a bet
+          </DropdownMenuItem>
+          {topBets.map((b) => (
+            <DropdownMenuItem key={b.id} onClick={() => setLink.mutate(b.id)}>
+              {b.title}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <p style={{ fontSize: "11px", color: "var(--text-subtle)", lineHeight: 1.5, margin: 0 }}>
+        Tie this to a top bet so its watched assumptions steer where it ranks. A challenged
+        assumption sinks it.
+      </p>
+    </div>
   );
 }
 
@@ -360,6 +439,8 @@ export function OpportunityDetailSheet({
                 </button>
               }
             />
+
+            <BriefLinkSection opportunity={opportunity} />
 
             {/* Priority band: the agent-and-human priority cue, high in the
                 view. The queue position, the single best bet, the recommended

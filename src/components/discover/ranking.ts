@@ -24,6 +24,11 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
   ease: number;
   created_at: string;
   theme_id?: string | null;
+  // RPT-47: the strategic top bet a human tied this opportunity to, if any. The
+  // ranking reads it (via briefAlignmentOf) so a watched assumption on that bet
+  // feeds the order. Optional so pre-migration rows and non-discover callers are
+  // unaffected.
+  linked_brief_item_id?: string | null;
 }
 
 /** A system-derived bet designation drawn from a self-explanatory PM vocabulary,
@@ -31,12 +36,7 @@ export interface RankableOpportunity extends OpportunityVerdictInput {
  * `null` means the bet earns no designation (a plain ranked bet). More PM terms
  * (sure thing, long shot, table stakes) are available spares if the set grows. */
 export type Designation =
-  | "best bet"
-  | "needs validation"
-  | "quick win"
-  | "heavy lift"
-  | "watch this week"
-  | null;
+  "best bet" | "needs validation" | "quick win" | "heavy lift" | "watch this week" | null;
 
 /** One ranked bet: the source opportunity, its 1-based position, the single
  * best-bet flag, its system-derived designation, and the human-and-agent
@@ -51,6 +51,9 @@ export interface RankedOpportunity<T> {
   rationale: string;
   nextAction: string;
   outcomeSupport: number;
+  // RPT-47: the brief-alignment signal that informed the order (+1 on a standing
+  // top bet, -1 when that bet's assumption is challenged, 0 untied).
+  briefAlignment: number;
 }
 
 /**
@@ -106,15 +109,22 @@ function timeOf(iso: string): number {
  * The deterministic comparator. The tie-break chain, in strict order:
  *   1. ice_score       desc  (the primary priority signal)
  *   2. verdict rank    desc  (the Critic's strongest bets first)
- *   3. outcome support desc  (recorded outcomes on the same evidence: what
+ *   3. brief alignment desc  (RPT-47: a watched assumption feeding the order.
+ *                             An opportunity tied to a STANDING strategic top
+ *                             bet lifts (+1); one tied to a bet with a
+ *                             CHALLENGED assumption sinks (-1); untied is 0.
+ *                             Sits below the Critic's verdict so alignment can
+ *                             never lift a KILL over a SHIP, but above raw
+ *                             history so live strategy outranks signal volume)
+ *   4. outcome support desc  (recorded outcomes on the same evidence: what
  *                             actually happened beats what might - a theme
  *                             with validated history lifts its new bets, a
  *                             theme with missed history sinks them)
- *   4. corroboration   desc  (backing signal count via corroborationOf)
- *   5. confidence      desc
- *   6. impact          desc
- *   7. created_at      asc   (the older, proven bet first)
- *   8. id              asc   (absolute stable finalizer, never random)
+ *   5. corroboration   desc  (backing signal count via corroborationOf)
+ *   6. confidence      desc
+ *   7. impact          desc
+ *   8. created_at      asc   (the older, proven bet first)
+ *   9. id              asc   (absolute stable finalizer, never random)
  *
  * Returns a negative number when `a` should sort before `b`.
  */
@@ -123,12 +133,16 @@ export function compareOpportunities<T extends RankableOpportunity>(
   b: T,
   corroborationOf: (opp: T) => number,
   outcomeSupportOf: (opp: T) => number = () => 0,
+  briefAlignmentOf: (opp: T) => number = () => 0,
 ): number {
   const byIce = scoreOf(b) - scoreOf(a);
   if (byIce !== 0) return byIce;
 
   const byVerdict = verdictRankOf(verdictFor(b)) - verdictRankOf(verdictFor(a));
   if (byVerdict !== 0) return byVerdict;
+
+  const byBrief = briefAlignmentOf(b) - briefAlignmentOf(a);
+  if (byBrief !== 0) return byBrief;
 
   const bySupport = outcomeSupportOf(b) - outcomeSupportOf(a);
   if (bySupport !== 0) return bySupport;
@@ -158,6 +172,7 @@ function rationaleFor(
   rank: number,
   corroboration: number,
   outcomeSupport: number = 0,
+  briefAlignment: number = 0,
 ): string {
   const verdict = verdictFor(opp);
   const clauses: string[] = [];
@@ -180,6 +195,10 @@ function rationaleFor(
   // the record. The receipts live on the theme's outcome history.
   if (outcomeSupport > 0) clauses.push("outcomes on this theme run proven");
   else if (outcomeSupport < 0) clauses.push("outcomes on this theme have missed");
+
+  // RPT-47: name the strategic-brief signal so the reorder is legible, not silent.
+  if (briefAlignment > 0) clauses.push("on a standing top bet");
+  else if (briefAlignment < 0) clauses.push("a linked bet's assumption is challenged");
 
   if (corroboration > 0) {
     clauses.push(`backed by ${corroboration} signal${corroboration === 1 ? "" : "s"}`);
@@ -238,14 +257,16 @@ export function rankOpportunities<T extends RankableOpportunity>(
   opps: readonly T[],
   corroborationOf: (opp: T) => number,
   outcomeSupportOf: (opp: T) => number = () => 0,
+  briefAlignmentOf: (opp: T) => number = () => 0,
 ): RankedOpportunity<T>[] {
   const sorted = [...opps].sort((a, b) =>
-    compareOpportunities(a, b, corroborationOf, outcomeSupportOf),
+    compareOpportunities(a, b, corroborationOf, outcomeSupportOf, briefAlignmentOf),
   );
   return sorted.map((opp, index) => {
     const rank = index + 1;
     const corroboration = corroborationOf(opp);
     const outcomeSupport = outcomeSupportOf(opp);
+    const briefAlignment = briefAlignmentOf(opp);
     return {
       opp,
       rank,
@@ -257,9 +278,10 @@ export function rankOpportunities<T extends RankableOpportunity>(
         ease: opp.ease,
         corroboration,
       }),
-      rationale: rationaleFor(opp, rank, corroboration, outcomeSupport),
+      rationale: rationaleFor(opp, rank, corroboration, outcomeSupport, briefAlignment),
       nextAction: nextActionFor(opp),
       outcomeSupport,
+      briefAlignment,
     };
   });
 }
