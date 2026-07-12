@@ -28,6 +28,11 @@ import { summarizeGateSignals } from "@/lib/gate-signals";
 import { rankPlaybooksByOutcome, type PlaybookStation } from "@/lib/playbooks/registry";
 import { callModel } from "@/lib/ai/runtime.server";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
+import {
+  computeStaleness,
+  type SelfImproveMode,
+  type StalenessNudge,
+} from "@/lib/self-improve-governance";
 
 const PLAYBOOK_STATIONS: readonly PlaybookStation[] = [
   "discovery",
@@ -269,132 +274,147 @@ export const enrichSelfImproveProposal = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<ProposalEnrichment> => {
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
-
-    // 1. Cache: never re-spend on a flag already enriched.
-    const { data: existing } = await db
-      .from("self_improve_proposals")
-      .select("ai_explanation,ai_suggested_fix,ai_grounded_on,ai_enriched_at")
-      .eq("workspace_id", data.workspaceId)
-      .eq("kind", data.kind)
-      .eq("subject_ref", data.subjectRef)
-      .maybeSingle();
-    if (existing?.ai_enriched_at && existing.ai_explanation) {
-      return {
-        explanation: existing.ai_explanation as string,
-        suggested_fix: (existing.ai_suggested_fix as string) ?? "",
-        grounded_on: (existing.ai_grounded_on as number) ?? 0,
-        cached: true,
-      };
-    }
-
-    // 2. Re-derive the authoritative flag (the deterministic truth), so we enrich a
-    // flag that actually fires now and materialize its real title/detail/evidence.
-    const { proposals } = await computeSelfImprovementForWorkspace(db, {
-      userId,
-      workspaceId: data.workspaceId,
-    });
-    const flag = proposals.find((p) => p.kind === data.kind && p.subject_ref === data.subjectRef);
-    if (!flag) {
-      return {
-        explanation:
-          "This flag no longer fires -- the underlying numbers have changed since it was raised.",
-        suggested_fix: "",
-        grounded_on: 0,
-        cached: false,
-      };
-    }
-
-    // 3. Load the real records behind it.
-    const { records, count } = await loadFlagEvidence(db, {
-      kind: data.kind,
-      subjectRef: data.subjectRef,
-      workspaceId: data.workspaceId,
-      userId,
-    });
-    if (count === 0) {
-      // Nothing to ground on -> do NOT call the model (no guess, no spend).
-      return {
-        explanation:
-          "The individual records behind this flag are not readable here, so there is nothing to ground an explanation on yet.",
-        suggested_fix: "Gather more of this signal, then ask again.",
-        grounded_on: 0,
-        cached: false,
-      };
-    }
-
-    // 4. Grounded AI call, through the chokepoint. Internal judge surface, guardrails
-    // off (no user-facing generation), strict JSON out.
-    let explanation = "";
-    let suggested_fix = "";
-    try {
-      const res = await callModel(db as never, userId, {
-        surface: "judge",
-        surface_ref: `self-improve:${data.kind}:${data.subjectRef}`,
-        model: "google/gemini-2.5-flash",
-        guardrails: false,
-        responseFormat: "json_object",
-        workspaceId: data.workspaceId,
-        messages: [
-          {
-            role: "system",
-            content:
-              'You are Cadence\'s own quality analyst, reviewing a problem that Cadence\'s DETERMINISTIC self-check raised about Cadence itself. A rule (not you) already decided this is a real problem, from a real number over a real sample. Your ONLY job, using the ACTUAL records provided: (1) explain the specific pattern behind the flag in one or two sentences, and (2) propose exactly one concrete, specific fix. Rules: ground every statement in the provided records; do not restate the headline number; do not invent problems the records do not show; do not comment on how severe it is (already decided); if the records do not reveal a clear pattern, say so plainly and suggest gathering more signal. Reply as strict JSON: {"explanation": string, "suggested_fix": string}. Keep each under 60 words, plain language, no em dashes.',
-          },
-          {
-            role: "user",
-            content: `FLAG: ${flag.title}\nDETERMINISTIC EVIDENCE: ${flag.evidence}\n\nTHE ACTUAL RECORDS BEHIND IT (${count}):\n${records}`,
-          },
-        ],
-      });
-      const parsed = JSON.parse(res.output || "{}") as {
-        explanation?: unknown;
-        suggested_fix?: unknown;
-      };
-      explanation = typeof parsed.explanation === "string" ? parsed.explanation.trim() : "";
-      suggested_fix = typeof parsed.suggested_fix === "string" ? parsed.suggested_fix.trim() : "";
-    } catch {
-      // Model or parse failure: leave the deterministic flag untouched; return a plain
-      // note rather than a fabricated explanation.
-      return {
-        explanation:
-          "The explanation could not be generated just now. The flag above still stands on its own evidence.",
-        suggested_fix: "",
-        grounded_on: count,
-        cached: false,
-      };
-    }
-    if (!explanation) {
-      return {
-        explanation: "The records did not reveal a clear pattern to explain yet.",
-        suggested_fix: "Gather more of this signal, then ask again.",
-        grounded_on: count,
-        cached: false,
-      };
-    }
-
-    // 5. Cache on the proposal row (materialize it if the tick has not). Deterministic
-    // fields come from the authoritative recompute, never the client.
-    const enrichedAt = new Date().toISOString();
-    await db.from("self_improve_proposals").upsert(
-      {
-        workspace_id: data.workspaceId,
-        user_id: userId,
-        kind: flag.kind,
-        severity: flag.severity,
-        title: flag.title,
-        detail: flag.detail,
-        evidence: flag.evidence,
-        subject_ref: flag.subject_ref,
-        ai_explanation: explanation,
-        ai_suggested_fix: suggested_fix,
-        ai_grounded_on: count,
-        ai_enriched_at: enrichedAt,
-      },
-      { onConflict: "workspace_id,kind,subject_ref" },
-    );
-
-    return { explanation, suggested_fix, grounded_on: count, cached: false };
+    const result = await enrichProposalCore(db, data, userId);
+    // A human drove this flag: keep the engine's staleness clock warm.
+    await touchHumanInteraction(db, data.workspaceId, userId);
+    return result;
   });
+
+/**
+ * The enrichment core, shared by the authenticated server fn and the scheduled
+ * tick (admin client). Takes any supabase client + the flag key + the acting user
+ * id, so both run identical grounded logic.
+ */
+export async function enrichProposalCore(
+  db: SupabaseClient,
+  data: { workspaceId: string; kind: "eval" | "agent" | "playbook"; subjectRef: string },
+  userId: string,
+): Promise<ProposalEnrichment> {
+  // 1. Cache: never re-spend on a flag already enriched.
+  const { data: existing } = await db
+    .from("self_improve_proposals")
+    .select("ai_explanation,ai_suggested_fix,ai_grounded_on,ai_enriched_at")
+    .eq("workspace_id", data.workspaceId)
+    .eq("kind", data.kind)
+    .eq("subject_ref", data.subjectRef)
+    .maybeSingle();
+  if (existing?.ai_enriched_at && existing.ai_explanation) {
+    return {
+      explanation: existing.ai_explanation as string,
+      suggested_fix: (existing.ai_suggested_fix as string) ?? "",
+      grounded_on: (existing.ai_grounded_on as number) ?? 0,
+      cached: true,
+    };
+  }
+
+  // 2. Re-derive the authoritative flag (the deterministic truth), so we enrich a
+  // flag that actually fires now and materialize its real title/detail/evidence.
+  const { proposals } = await computeSelfImprovementForWorkspace(db, {
+    userId,
+    workspaceId: data.workspaceId,
+  });
+  const flag = proposals.find((p) => p.kind === data.kind && p.subject_ref === data.subjectRef);
+  if (!flag) {
+    return {
+      explanation:
+        "This flag no longer fires -- the underlying numbers have changed since it was raised.",
+      suggested_fix: "",
+      grounded_on: 0,
+      cached: false,
+    };
+  }
+
+  // 3. Load the real records behind it.
+  const { records, count } = await loadFlagEvidence(db, {
+    kind: data.kind,
+    subjectRef: data.subjectRef,
+    workspaceId: data.workspaceId,
+    userId,
+  });
+  if (count === 0) {
+    // Nothing to ground on -> do NOT call the model (no guess, no spend).
+    return {
+      explanation:
+        "The individual records behind this flag are not readable here, so there is nothing to ground an explanation on yet.",
+      suggested_fix: "Gather more of this signal, then ask again.",
+      grounded_on: 0,
+      cached: false,
+    };
+  }
+
+  // 4. Grounded AI call, through the chokepoint. Internal judge surface, guardrails
+  // off (no user-facing generation), strict JSON out.
+  let explanation = "";
+  let suggested_fix = "";
+  try {
+    const res = await callModel(db as never, userId, {
+      surface: "judge",
+      surface_ref: `self-improve:${data.kind}:${data.subjectRef}`,
+      model: "google/gemini-2.5-flash",
+      guardrails: false,
+      responseFormat: "json_object",
+      workspaceId: data.workspaceId,
+      messages: [
+        {
+          role: "system",
+          content:
+            'You are Cadence\'s own quality analyst, reviewing a problem that Cadence\'s DETERMINISTIC self-check raised about Cadence itself. A rule (not you) already decided this is a real problem, from a real number over a real sample. Your ONLY job, using the ACTUAL records provided: (1) explain the specific pattern behind the flag in one or two sentences, and (2) propose exactly one concrete, specific fix. Rules: ground every statement in the provided records; do not restate the headline number; do not invent problems the records do not show; do not comment on how severe it is (already decided); if the records do not reveal a clear pattern, say so plainly and suggest gathering more signal. Reply as strict JSON: {"explanation": string, "suggested_fix": string}. Keep each under 60 words, plain language, no em dashes.',
+        },
+        {
+          role: "user",
+          content: `FLAG: ${flag.title}\nDETERMINISTIC EVIDENCE: ${flag.evidence}\n\nTHE ACTUAL RECORDS BEHIND IT (${count}):\n${records}`,
+        },
+      ],
+    });
+    const parsed = JSON.parse(res.output || "{}") as {
+      explanation?: unknown;
+      suggested_fix?: unknown;
+    };
+    explanation = typeof parsed.explanation === "string" ? parsed.explanation.trim() : "";
+    suggested_fix = typeof parsed.suggested_fix === "string" ? parsed.suggested_fix.trim() : "";
+  } catch {
+    // Model or parse failure: leave the deterministic flag untouched; return a plain
+    // note rather than a fabricated explanation.
+    return {
+      explanation:
+        "The explanation could not be generated just now. The flag above still stands on its own evidence.",
+      suggested_fix: "",
+      grounded_on: count,
+      cached: false,
+    };
+  }
+  if (!explanation) {
+    return {
+      explanation: "The records did not reveal a clear pattern to explain yet.",
+      suggested_fix: "Gather more of this signal, then ask again.",
+      grounded_on: count,
+      cached: false,
+    };
+  }
+
+  // 5. Cache on the proposal row (materialize it if the tick has not). Deterministic
+  // fields come from the authoritative recompute, never the client.
+  const enrichedAt = new Date().toISOString();
+  await db.from("self_improve_proposals").upsert(
+    {
+      workspace_id: data.workspaceId,
+      user_id: userId,
+      kind: flag.kind,
+      severity: flag.severity,
+      title: flag.title,
+      detail: flag.detail,
+      evidence: flag.evidence,
+      subject_ref: flag.subject_ref,
+      ai_explanation: explanation,
+      ai_suggested_fix: suggested_fix,
+      ai_grounded_on: count,
+      ai_enriched_at: enrichedAt,
+    },
+    { onConflict: "workspace_id,kind,subject_ref" },
+  );
+
+  return { explanation, suggested_fix, grounded_on: count, cached: false };
+}
 
 // --- RPT-50 rung 3 (increment 1): the governed APPLY primitive ---
 
@@ -413,8 +433,9 @@ export type ApplyFixResult = {
  * into an injection-screened house_rule (live in every agent's system prompt at
  * the chokepoint) + a receipted decision on the ledger, and marks the proposal
  * applied. Undoable via house_rule supersession + the PC-10 rewind, so nothing is
- * one-way. Human-triggered for now (the "Apply" click IS the action, one step);
- * the unattended auto-apply mode is the Routine toggle increment on top of this.
+ * one-way. Driven two ways through the SAME `applyFixCore`: a human's "Apply" click
+ * (this server fn), or the scheduled tick's unattended auto-apply when the workspace
+ * is in Auto mode (gated by `mayAutoApply` + this same injection screen).
  *
  * Targets DATA-backed config (house_rules), NOT code -- so it is safe, needs no
  * repo, and is the SAME mechanism a customer's own self-improvement uses on their
@@ -427,98 +448,240 @@ export const applySelfImproveFix = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<ApplyFixResult> => {
     const { supabase, userId } = context;
     const db = supabase as unknown as SupabaseClient;
+    const result = await applyFixCore(db, data, userId);
+    // A human drove the apply: keep the engine's staleness clock warm.
+    await touchHumanInteraction(db, data.workspaceId, userId);
+    return result;
+  });
 
-    // The proposal must already be enriched (there is a suggested fix to apply).
-    const { data: prop } = await db
-      .from("self_improve_proposals")
-      .select("id,title,ai_suggested_fix,applied_at,applied_house_rule_id")
-      .eq("workspace_id", data.workspaceId)
-      .eq("kind", data.kind)
-      .eq("subject_ref", data.subjectRef)
-      .maybeSingle();
+/**
+ * The apply core, shared by the authenticated server fn and the scheduled tick's
+ * unattended auto-apply. Any supabase client + the flag key + the acting user id.
+ * Every path here stays injection-screened, reversible, and receipted.
+ */
+export async function applyFixCore(
+  db: SupabaseClient,
+  data: { workspaceId: string; kind: "eval" | "agent" | "playbook"; subjectRef: string },
+  userId: string,
+): Promise<ApplyFixResult> {
+  // The proposal must already be enriched (there is a suggested fix to apply).
+  const { data: prop } = await db
+    .from("self_improve_proposals")
+    .select("id,title,ai_suggested_fix,applied_at,applied_house_rule_id")
+    .eq("workspace_id", data.workspaceId)
+    .eq("kind", data.kind)
+    .eq("subject_ref", data.subjectRef)
+    .maybeSingle();
 
-    if (prop?.applied_at) {
-      return {
-        applied: true,
-        house_rule_id: (prop.applied_house_rule_id as string) ?? null,
-        rule_text: "",
-        cached: true,
-      };
-    }
-    const suggested = typeof prop?.ai_suggested_fix === "string" ? prop.ai_suggested_fix.trim() : "";
-    if (!suggested) {
-      return {
-        applied: false,
-        house_rule_id: null,
-        rule_text: "",
-        cached: false,
-        reason: "Explain the fix first, then apply it.",
-      };
-    }
+  if (prop?.applied_at) {
+    return {
+      applied: true,
+      house_rule_id: (prop.applied_house_rule_id as string) ?? null,
+      rule_text: "",
+      cached: true,
+    };
+  }
+  const suggested = typeof prop?.ai_suggested_fix === "string" ? prop.ai_suggested_fix.trim() : "";
+  if (!suggested) {
+    return {
+      applied: false,
+      house_rule_id: null,
+      rule_text: "",
+      cached: false,
+      reason: "Explain the fix first, then apply it.",
+    };
+  }
 
-    // Safety floor: the suggested fix is AI text about to enter every agent's
-    // system prompt, so it MUST pass the injection screen (the same gate the
-    // steward-drafted and human-drafted house-rule paths use). Quarantined = refuse.
-    const screened = assessAndQuarantine(suggested);
-    if (screened.quarantined) {
-      return {
-        applied: false,
-        house_rule_id: null,
-        rule_text: "",
-        cached: false,
-        reason: "The suggested fix did not pass the safety screen, so it was not applied.",
-      };
-    }
-    const ruleText = screened.text.slice(0, 2000);
-    const title = typeof prop?.title === "string" ? prop.title : "a quality flag";
+  // Safety floor: the suggested fix is AI text about to enter every agent's
+  // system prompt, so it MUST pass the injection screen (the same gate the
+  // steward-drafted and human-drafted house-rule paths use). Quarantined = refuse.
+  const screened = assessAndQuarantine(suggested);
+  if (screened.quarantined) {
+    return {
+      applied: false,
+      house_rule_id: null,
+      rule_text: "",
+      cached: false,
+      reason: "The suggested fix did not pass the safety screen, so it was not applied.",
+    };
+  }
+  const ruleText = screened.text.slice(0, 2000);
+  const title = typeof prop?.title === "string" ? prop.title : "a quality flag";
 
-    // 1. Create the house_rule (APPROVED = live now; reversible via supersession).
-    const { data: rule, error: ruleErr } = await db
-      .from("house_rules")
-      .insert({
-        workspace_id: data.workspaceId,
-        rule_text: ruleText,
-        rationale: `Cadence self-improvement: applied to fix "${title}".`,
-        status: "approved",
-      })
-      .select("id")
-      .single();
-    if (ruleErr || !rule) {
-      return {
-        applied: false,
-        house_rule_id: null,
-        rule_text: "",
-        cached: false,
-        reason: `Could not apply: ${ruleErr?.message ?? "unknown error"}`,
-      };
-    }
-    const houseRuleId = (rule as { id: string }).id;
+  // 1. Create the house_rule (APPROVED = live now; reversible via supersession).
+  const { data: rule, error: ruleErr } = await db
+    .from("house_rules")
+    .insert({
+      workspace_id: data.workspaceId,
+      rule_text: ruleText,
+      rationale: `Cadence self-improvement: applied to fix "${title}".`,
+      status: "approved",
+    })
+    .select("id")
+    .single();
+  if (ruleErr || !rule) {
+    return {
+      applied: false,
+      house_rule_id: null,
+      rule_text: "",
+      cached: false,
+      reason: `Could not apply: ${ruleErr?.message ?? "unknown error"}`,
+    };
+  }
+  const houseRuleId = (rule as { id: string }).id;
 
-    // 2. Record it on the ledger as a receipted decision (the outcome window follows).
-    try {
-      await db.from("decisions").insert({
-        user_id: userId,
-        workspace_id: data.workspaceId,
-        title: `Self-tuned: ${title}`.slice(0, 280),
-        rationale:
-          `Cadence flagged "${title}" from its own signals and applied a house rule to fix it: ${ruleText}`.slice(
-            0,
-            2000,
-          ),
-        status: "approved",
-        source_kind: "manual",
-      });
-    } catch {
-      // Best-effort ledger stamp: the applied rule already stands on its own.
-    }
+  // 2. Record it on the ledger as a receipted decision (the outcome window follows).
+  try {
+    await db.from("decisions").insert({
+      user_id: userId,
+      workspace_id: data.workspaceId,
+      title: `Self-tuned: ${title}`.slice(0, 280),
+      rationale:
+        `Cadence flagged "${title}" from its own signals and applied a house rule to fix it: ${ruleText}`.slice(
+          0,
+          2000,
+        ),
+      status: "approved",
+      source_kind: "manual",
+    });
+  } catch {
+    // Best-effort ledger stamp: the applied rule already stands on its own.
+  }
 
-    // 3. Mark the proposal applied (loop closed; the UI shows the applied state).
+  // 3. Mark the proposal applied (loop closed; the UI shows the applied state).
+  await db
+    .from("self_improve_proposals")
+    .update({ applied_at: new Date().toISOString(), applied_house_rule_id: houseRuleId })
+    .eq("workspace_id", data.workspaceId)
+    .eq("kind", data.kind)
+    .eq("subject_ref", data.subjectRef);
+
+  return { applied: true, house_rule_id: houseRuleId, rule_text: ruleText, cached: false };
+}
+
+// --- RPT-50 increment 2: spend + autonomy governance (Auto / Scheduled / Off) ---
+
+/**
+ * Stamp last_human_touch_at whenever a human drives Explain/Apply. Best-effort:
+ * the timestamp only feeds the staleness nudge, so a failure here must never break
+ * the actual enrich/apply. Omits `mode` from the payload so an existing choice is
+ * preserved (and a first touch seeds the DB default, 'scheduled').
+ */
+async function touchHumanInteraction(
+  db: SupabaseClient,
+  workspaceId: string,
+  userId: string,
+): Promise<void> {
+  try {
+    const nowIso = new Date().toISOString();
     await db
-      .from("self_improve_proposals")
-      .update({ applied_at: new Date().toISOString(), applied_house_rule_id: houseRuleId })
-      .eq("workspace_id", data.workspaceId)
-      .eq("kind", data.kind)
-      .eq("subject_ref", data.subjectRef);
+      .from("self_improve_settings")
+      .upsert(
+        {
+          workspace_id: workspaceId,
+          last_human_touch_at: nowIso,
+          updated_at: nowIso,
+          updated_by: userId,
+        },
+        { onConflict: "workspace_id" },
+      );
+  } catch {
+    // The staleness clock is a nudge input, not load-bearing.
+  }
+}
 
-    return { applied: true, house_rule_id: houseRuleId, rule_text: ruleText, cached: false };
+const SettingsGetSchema = z.object({ workspaceId: z.string().uuid() });
+
+export type SelfImproveSettings = {
+  mode: SelfImproveMode;
+  last_auto_run_at: string | null;
+  last_human_touch_at: string | null;
+  open_flag_count: number;
+  staleness: StalenessNudge;
+};
+
+/**
+ * Read a workspace's self-improvement governance: the chosen mode (default
+ * 'scheduled' when no row yet), the two clocks, the count of firing flags not yet
+ * applied, and the computed staleness nudge (only ever set when the engine is off
+ * with open flags going unaddressed).
+ */
+export const getSelfImproveSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => SettingsGetSchema.parse(i))
+  .handler(async ({ context, data }): Promise<SelfImproveSettings> => {
+    const { supabase, userId } = context;
+    const db = supabase as unknown as SupabaseClient;
+
+    const { data: row } = await db
+      .from("self_improve_settings")
+      .select("mode,last_auto_run_at,last_human_touch_at")
+      .eq("workspace_id", data.workspaceId)
+      .maybeSingle();
+    const mode = ((row?.mode as SelfImproveMode) ?? "scheduled") as SelfImproveMode;
+
+    // Open flags = deterministic flags firing NOW that no human/tick has applied.
+    let openFlagCount = 0;
+    try {
+      const { proposals } = await computeSelfImprovementForWorkspace(db, {
+        userId,
+        workspaceId: data.workspaceId,
+      });
+      const { data: applied } = await db
+        .from("self_improve_proposals")
+        .select("kind,subject_ref")
+        .eq("workspace_id", data.workspaceId)
+        .not("applied_at", "is", null);
+      const appliedSet = new Set(
+        ((applied ?? []) as Array<{ kind: string; subject_ref: string }>).map(
+          (a) => `${a.kind}::${a.subject_ref}`,
+        ),
+      );
+      openFlagCount = proposals.filter(
+        (p) => !appliedSet.has(`${p.kind}::${p.subject_ref}`),
+      ).length;
+    } catch {
+      openFlagCount = 0;
+    }
+
+    const staleness = computeStaleness({
+      mode,
+      lastHumanTouchAt: (row?.last_human_touch_at as string) ?? null,
+      openFlagCount,
+      now: Date.now(),
+    });
+
+    return {
+      mode,
+      last_auto_run_at: (row?.last_auto_run_at as string) ?? null,
+      last_human_touch_at: (row?.last_human_touch_at as string) ?? null,
+      open_flag_count: openFlagCount,
+      staleness,
+    };
+  });
+
+const SetModeSchema = z.object({
+  workspaceId: z.string().uuid(),
+  mode: z.enum(["auto", "scheduled", "off"]),
+});
+
+/**
+ * Set a workspace's self-improvement mode. Choosing 'auto' IS the human accepting
+ * the graduation to unattended apply (a standing, revocable consent) -- consistent
+ * with the trust-ramp doctrine that autonomy never silently flips.
+ */
+export const setSelfImproveMode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => SetModeSchema.parse(i))
+  .handler(async ({ context, data }): Promise<{ mode: SelfImproveMode }> => {
+    const { supabase, userId } = context;
+    const db = supabase as unknown as SupabaseClient;
+    const nowIso = new Date().toISOString();
+    await db
+      .from("self_improve_settings")
+      .upsert(
+        { workspace_id: data.workspaceId, mode: data.mode, updated_at: nowIso, updated_by: userId },
+        { onConflict: "workspace_id" },
+      );
+    return { mode: data.mode };
   });
