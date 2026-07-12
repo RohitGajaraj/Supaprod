@@ -76,6 +76,29 @@ export function CreditCapsCard() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to remove cap"),
   });
 
+  // A failed read must not silently vanish the owner's spend-cap surface
+  // (error never wears the empty state's clothes, checklist point 7).
+  if (caps.isError) {
+    return (
+      <div className="bento" style={{ padding: "var(--card-pad, 18px)" }}>
+        <div className="mono-label" style={{ fontSize: 9, color: "var(--madder, #E06557)" }}>
+          Couldn't load spending caps
+        </div>
+        <p style={{ fontSize: 12, color: "var(--ink-subtle, #6b6457)", margin: "6px 0 0" }}>
+          {caps.error instanceof Error ? caps.error.message : "Unknown error"}
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 10 }}
+          onClick={() => caps.refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const data = caps.data;
   if (!data || !data.isOwner) return null;
 

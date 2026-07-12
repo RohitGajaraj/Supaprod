@@ -39,7 +39,7 @@ export const MissionRow = React.forwardRef<HTMLButtonElement, MissionRowProps>(
       onClick={onOpen}
       className={cn(
         "flex w-full items-center gap-3 text-left outline-none",
-        "hover:[background-color:#141416]",
+        "hover:[background-color:var(--hover)]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]",
         className,
       )}

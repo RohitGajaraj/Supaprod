@@ -93,8 +93,9 @@ function NavRow({
     <Link
       to={item.to}
       search={item.search as never}
+      aria-current={active ? "page" : undefined}
       data-coach-anchor={badgeAnchor ? `${badgeAnchor}-row` : undefined}
-      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] ${
+      className={`loom-press flex w-full items-center gap-[11px] rounded-[8px] px-[10px] py-[8px] text-[13px] outline-none transition-colors duration-150 ease-(--ds-motion-timing-swift) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] ${
         active
           ? "loom-thread-active bg-[var(--surface-active)] font-semibold text-[var(--text-primary)]"
           : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--raised)] hover:text-[var(--text-primary)]"
@@ -572,8 +573,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="loom-press w-full flex items-center text-left outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
-                  style={{ gap: 11 }}
+                  className="loom-press w-full flex items-center rounded-[8px] text-left outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                  style={{ gap: 11, padding: "6px 8px", margin: "-6px -8px" }}
                   aria-label="Workspace switcher"
                 >
                   {/* Pixel C monogram (DESIGN-TEMPO §8): THE compact mark; the
@@ -672,7 +673,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   );
                 })}
                 {workspaces.length === 0 && (
-                  <div className="px-2 py-1.5 text-xs text-ink-faint italic">No workspaces yet</div>
+                  <div className="px-2 py-1.5 text-xs text-ink-faint">
+                    No workspaces yet. Create one below to get started.
+                  </div>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={createWorkspace} className="cursor-pointer">
@@ -708,11 +711,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <DropdownMenuItem onClick={createProduct} className="cursor-pointer">
                       New product
                     </DropdownMenuItem>
-                    <Link to="/settings" search={{ section: "workspace" } as never}>
-                      <DropdownMenuItem className="cursor-pointer">
+                    <DropdownMenuItem asChild className="cursor-pointer">
+                      <Link to="/settings" search={{ section: "workspace" } as never}>
                         Workspace settings
-                      </DropdownMenuItem>
-                    </Link>
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={leaveActiveWorkspace} className="cursor-pointer">
                       Leave
                     </DropdownMenuItem>
@@ -735,16 +738,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-cmdk"))}
-              className="loom-press flex flex-1 items-center outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+              className="loom-press flex flex-1 items-center rounded-[8px] border border-[var(--hairline)] bg-[var(--card)] text-[var(--text-subtle)] outline-none transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
               style={{
                 gap: 8,
-                border: "1px solid var(--hairline)",
-                background: "var(--card)",
                 boxShadow: "var(--top-light)",
-                borderRadius: 8,
                 padding: "7px 10px",
                 fontSize: 12,
-                color: "var(--text-subtle)",
               }}
             >
               <span className="flex-1 text-left">Search</span>
@@ -815,7 +814,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 to="/engine-room"
                 search={{ room: "safety" }}
-                className="block rounded-[8px] outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+                className="block rounded-[8px] outline-none transition-colors duration-150 hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                 style={{
                   border: "1px solid var(--hairline-strong)",
                   padding: "7px 10px",
@@ -852,7 +851,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   aria-label="Account menu"
-                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+                  className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                   style={{ gap: 11, padding: "8px 10px" }}
                 >
                   <span
@@ -891,14 +890,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent side="top" align="start" className="w-52">
                 <DropdownMenuLabel className="mono-label">Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link to="/settings" search={{ section: "you" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-                </Link>
-                <Link to="/settings" search={{ section: "plan" } as never}>
-                  <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/settings" search={{ section: "you" } as never}>
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to="/settings" search={{ section: "plan" } as never}>
                     Pricing and billing
-                  </DropdownMenuItem>
-                </Link>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="cursor-pointer">
                   Sign out

@@ -325,13 +325,12 @@ export const OpportunityRow = memo(function OpportunityRow({
   const subParts = sub.split(" · ").filter(Boolean);
   return (
     <div
-      className={`relative flex items-center transition-[background-color,box-shadow,transform] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
+      className={`relative flex items-center transition-[background-color,box-shadow,transform] [background-color:var(--card)] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)]${
         clickable
           ? " loom-press cursor-pointer outline-none hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           : ""
       }`}
       style={{
-        backgroundColor: "var(--card)",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "16px 18px",
@@ -520,12 +519,12 @@ export const OpportunityRow = memo(function OpportunityRow({
                   aria-label="Opportunity actions"
                   disabled={actionsPending}
                   onClick={(event) => event.stopPropagation()}
-                  className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  title={actionsPending ? "Working on this bet…" : undefined}
+                  className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     flexShrink: 0,
                     fontFamily: "var(--font-mono)",
                     fontSize: "14px",
-                    color: "var(--text-subtle)",
                     background: "none",
                     border: "none",
                     cursor: actionsPending ? "default" : "pointer",

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Button, MonoLabel, rgba } from "./primitives";
+import { Button, MonoLabel } from "./primitives";
 
 export interface CallCardEvidence {
   src: string;
@@ -119,7 +119,8 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
         }
         style={{
           backgroundColor: "var(--surface-card-deep)",
-          border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
+          // Token-traced ember hairline (was rgba over a hardcoded hex).
+          border: "1px solid color-mix(in srgb, var(--ember) 25%, transparent)",
           borderRadius: "var(--radius-card)",
           padding: compact ? "16px 18px" : "var(--density-card-pad) var(--density-card-pad-lg)",
           gap: "12px",
@@ -132,7 +133,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
           <span
             className="inline-flex items-center"
             style={{
-              border: `1px solid ${rgba("#FF6B2C", 0.25)}`,
+              border: "1px solid color-mix(in srgb, var(--ember) 25%, transparent)",
               borderRadius: "var(--radius-pill)",
               padding: "3px 10px",
             }}

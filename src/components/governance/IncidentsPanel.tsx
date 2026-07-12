@@ -50,23 +50,18 @@ function IncidentCard({ n }: { n: Incident }) {
             }
           : undefined
       }
-      className={clickable ? "loom-press" : undefined}
+      // Hover via a conditional CSS class, not JS mouse handlers, so keyboard
+      // focus and touch never strand a stuck hover fill (checklist 1).
+      className={clickable ? "loom-press hover:[background-color:var(--raised)]" : undefined}
       style={{
         padding: "14px 16px",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         background: "var(--card)",
         cursor: clickable ? "pointer" : "default",
-        outline: "none",
         transitionProperty: "background-color",
         transitionDuration: "var(--dur-control)",
         transitionTimingFunction: "var(--ease)",
-      }}
-      onMouseEnter={(e) => {
-        if (clickable) e.currentTarget.style.background = "var(--raised)";
-      }}
-      onMouseLeave={(e) => {
-        if (clickable) e.currentTarget.style.background = "var(--card)";
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -206,7 +201,7 @@ export function IncidentsPanel() {
         </p>
         <button
           type="button"
-          className="uppercase cursor-pointer"
+          className="uppercase cursor-pointer hover:underline active:opacity-80"
           onClick={() => void q.refetch()}
           style={{
             fontFamily: "var(--font-mono)",

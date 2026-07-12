@@ -14,43 +14,67 @@ interface FunnelStageRow {
   label: string;
   count: number;
   percentage: number;
-  bar: string;
 }
 
 export function ActivationFunnelPanel() {
   const { activeProductId } = useWorkspace();
   const fGetFunnel = useServerFn(getFunnelSnapshot);
 
-  if (!activeProductId) {
-    return (
-      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
-        No workspace selected
-      </div>
-    );
-  }
-
   const today = new Date().toISOString().split("T")[0];
+  // Hook order must not depend on activeProductId (Rules of Hooks): the query
+  // is always declared and gated with `enabled` instead of an early return.
   const {
     data: snapshot,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["activation-funnel", activeProductId, today],
-    queryFn: () => fGetFunnel(activeProductId, today, 30),
+    enabled: !!activeProductId,
+    queryFn: () => fGetFunnel(activeProductId!, today, 30),
   });
 
-  if (isLoading) {
+  if (!activeProductId) {
     return (
       <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
-        Loading funnel...
+        No workspace selected. Pick a workspace to see its funnel.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    // Skeleton bars shaped like the funnel rows, never a dead text frame
+    // (checklist point 5). animate-pulse is killed by the global
+    // prefers-reduced-motion block in styles.css.
+    return (
+      <div style={{ padding: 16, display: "grid", gap: 12 }} aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="animate-pulse"
+            style={{ height: 20, borderRadius: 4, background: "var(--surface-recessed)" }}
+          />
+        ))}
       </div>
     );
   }
 
   if (error || !snapshot) {
+    // Cause + one action, never a mute shrug (checklist point 7).
     return (
-      <div className="text-label-13" style={{ padding: 16, color: "var(--text-muted)" }}>
-        Unable to load funnel data
+      <div className="text-label-13" style={{ padding: 16 }}>
+        <span style={{ color: "var(--madder)" }}>
+          Couldn't load funnel data.{" "}
+          {error instanceof Error ? error.message : "The snapshot came back empty."}
+        </span>{" "}
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="cursor-pointer underline outline-none hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{ background: "none", border: "none", padding: 0, color: "var(--text-primary)" }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -60,13 +84,11 @@ export function ActivationFunnelPanel() {
       label: "Signups",
       count: snapshot.totalSignups,
       percentage: 100,
-      bar: "🟦",
     },
     {
       label: "Connected",
       count: Math.round((snapshot.totalSignups * snapshot.conversionToConnected) / 100),
       percentage: snapshot.conversionToConnected,
-      bar: "🟦",
     },
     {
       label: "First teardown",
@@ -77,7 +99,6 @@ export function ActivationFunnelPanel() {
           10000,
       ),
       percentage: snapshot.conversionToFirstTeardown,
-      bar: "🟦",
     },
     {
       label: "First mission",
@@ -89,7 +110,6 @@ export function ActivationFunnelPanel() {
           1000000,
       ),
       percentage: snapshot.conversionToFirstMission,
-      bar: "🟦",
     },
     {
       label: "Week 2 return",
@@ -102,7 +122,6 @@ export function ActivationFunnelPanel() {
           100000000,
       ),
       percentage: snapshot.conversionToWeek2Return,
-      bar: "🟩",
     },
   ];
 
@@ -149,7 +168,8 @@ export function ActivationFunnelPanel() {
                   height: "100%",
                   width: `${stage.percentage}%`,
                   background: "var(--text-faint)",
-                  transition: "width 0.3s ease",
+                  // One easing family; killed globally under reduced motion.
+                  transition: "width 0.3s var(--ease, ease)",
                 }}
               />
             </div>

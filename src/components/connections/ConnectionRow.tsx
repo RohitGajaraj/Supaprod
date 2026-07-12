@@ -65,14 +65,16 @@ function GhostAction({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      // Background lives in classes so hover/active can win over rest state
+      // (inline styles beat utilities). Transitions are killed globally under
+      // prefers-reduced-motion.
+      className="outline-none transition-colors [background-color:var(--raised)] enabled:hover:[background-color:var(--hover)] enabled:active:scale-[0.985] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-ui)",
         fontSize: 13,
         fontWeight: 500,
         padding: "7px 14px",
         borderRadius: "var(--radius-control)",
-        background: "var(--raised)",
         color: "var(--text-primary)",
         border: "none",
         flexShrink: 0,
@@ -104,7 +106,7 @@ function QuietTextAction({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="uppercase outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      className="uppercase outline-none enabled:hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
         fontFamily: "var(--font-mono)",
         fontSize: 9.5,

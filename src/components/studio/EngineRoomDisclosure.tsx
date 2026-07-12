@@ -159,15 +159,16 @@ export function EngineRoomDisclosure({
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="loom-press"
+          // Hover lives in the class (never inline) so it can resolve; the
+          // Tailwind preflight already gives the button a transparent base.
+          className="loom-press outline-none rounded-[var(--radius-control)] transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
             width: "100%",
             textAlign: "left",
-            padding: "6px 0",
-            background: "none",
+            padding: "6px 8px",
             border: "none",
             cursor: "pointer",
           }}

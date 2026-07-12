@@ -152,9 +152,14 @@ export function GraphNodeStory({
           tracing…
         </MonoLabel>
       ) : story.isError ? (
-        <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
-          Could not trace this node: {(story.error as Error)?.message ?? "unknown error"}
-        </p>
+        <div style={{ marginTop: 10 }}>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+            Could not trace this node: {(story.error as Error)?.message ?? "unknown error"}
+          </p>
+          <GhostButton onClick={() => void story.refetch()} style={{ marginTop: 6 }}>
+            Retry · traces again
+          </GhostButton>
+        </div>
       ) : (
         <>
           <SupersessionSection story={supersession} onFocus={onFocus} />

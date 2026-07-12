@@ -77,6 +77,28 @@ export function AgentRosterPanel({ workspaceId }: { workspaceId: string | null }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      {/* The roster below is static catalog data, but the dial + inspector
+          feed on the live HUD read: a failed read must say so rather than
+          render them silently empty (checklist 7). */}
+      {q.isError ? (
+        <div style={{ fontSize: 12.5, color: "var(--madder-bright)" }}>
+          Live agent status did not load; trust dials and the inspector may look empty.{" "}
+          <button
+            type="button"
+            className="cursor-pointer hover:underline active:opacity-80"
+            onClick={() => void q.refetch()}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "var(--text-primary)",
+              fontSize: 12.5,
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
       <section
         style={{
           border: "1px solid var(--hairline)",

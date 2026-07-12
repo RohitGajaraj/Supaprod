@@ -1,5 +1,4 @@
 import * as React from "react";
-import { rgba } from "./primitives";
 
 export const TOAST_DURATION_MS = 3600;
 
@@ -92,13 +91,15 @@ export function Toast({ message }: { message: string | null }) {
       className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2"
       style={{
         backgroundColor: "var(--raised)",
-        border: `1px solid ${rgba("#7FBF8E", 0.4)}`,
+        // Token-traced moss tint (was a hardcoded hex; both themes resolve).
+        border: "1px solid color-mix(in srgb, var(--moss) 40%, transparent)",
         borderRadius: "var(--radius-pill)",
         padding: "12px 20px",
         color: "var(--text-primary)",
         fontFamily: "var(--font-ui)",
         fontSize: "13px",
-        boxShadow: "0 8px 30px rgba(0,0,0,0.5), 0 0 18px rgba(127,191,142,0.12)",
+        boxShadow:
+          "var(--shadow-overlay), 0 0 18px color-mix(in srgb, var(--moss) 12%, transparent)",
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? "auto" : "none",
         animation: visible ? "cadRise 200ms var(--ease)" : undefined,

@@ -207,7 +207,7 @@ function TodaySpotlight({
                 type="button"
                 onClick={onOpenCall}
                 title="Open this call"
-                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                className="loom-press min-w-0 flex-1 truncate text-left outline-none transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   color: "var(--text-primary)",
                   background: "transparent",
@@ -265,10 +265,13 @@ function TodaySpotlight({
           <button
             type="button"
             onClick={() => setFullOpen((v) => !v)}
-            className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            aria-expanded={fullOpen}
+            // Base color rides the class so the hover color can win over the
+            // monoLabel spread's inline color.
+            className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               ...monoLabel,
-              color: "var(--text-subtle)",
+              color: undefined,
               background: "transparent",
               border: "none",
               padding: 0,
@@ -300,10 +303,10 @@ function TodaySpotlight({
             <button
               type="button"
               onClick={onRefreshBrief}
-              className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 ...monoLabel,
-                color: "var(--text-subtle)",
+                color: undefined,
                 background: "transparent",
                 border: "none",
                 padding: 0,
@@ -1281,7 +1284,12 @@ function Dashboard() {
                 </Button>
               </div>
             ) : !needsYouLoaded ? (
-              <div aria-hidden="true" className="flex flex-col" style={{ gap: 10 }}>
+              <div
+                role="status"
+                aria-label="Loading your calls"
+                className="flex flex-col"
+                style={{ gap: 10 }}
+              >
                 <div
                   style={{
                     height: 12,
@@ -1303,7 +1311,7 @@ function Dashboard() {
               <div
                 style={{
                   background: "var(--card)",
-                  border: "1px solid rgba(127,191,142,0.3)",
+                  border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
                   borderRadius: "var(--radius-card)",
                   padding: "28px 26px",
                   boxShadow: "var(--top-light)",
@@ -1356,7 +1364,10 @@ function Dashboard() {
             )}
             {totalCalls > 0 && needsYouLoaded && (
               <div>
+                {/* Decorative: the "N answered · M open" line below carries the
+                    same numbers for AT, so the bar itself stays hidden. */}
                 <div
+                  aria-hidden="true"
                   style={{
                     height: 3,
                     background: "var(--hairline)",
@@ -1408,7 +1419,8 @@ function Dashboard() {
           ) : null}
           {/* PC-32 block 4: "While you slept" — the receipts strip, max 5
               one-line acts with real actor bylines, replacing the swarm
-              card grid. */}
+              card grid. A failed lanes fetch names itself with a retry —
+              never a skeleton that loads forever (audit fix 2026-07-12). */}
           {lanesData ? (
             <ReceiptsStrip
               lane={lanesData.lane2}
@@ -1417,9 +1429,28 @@ function Dashboard() {
               }
               onOpenActivity={() => navigate({ to: "/build" })}
             />
+          ) : lanes.isError ? (
+            <div
+              style={{
+                background: "var(--card)",
+                border: "1px solid var(--hairline-strong)",
+                borderRadius: "var(--radius-card)",
+                padding: "16px 18px",
+                boxShadow: "var(--top-light)",
+              }}
+            >
+              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+                The activity lanes didn't load.{" "}
+                {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
+              </p>
+              <Button variant="secondary" onClick={() => void lanes.refetch()}>
+                Try again
+              </Button>
+            </div>
           ) : (
             <div
-              aria-hidden="true"
+              role="status"
+              aria-label="Loading the night's activity"
               style={{
                 height: 140,
                 borderRadius: "var(--radius-card)",
@@ -1470,9 +1501,20 @@ function Dashboard() {
       <SlideOver open={watchOpen} onClose={() => setWatchOpen(false)} title="At risk / watch">
         {lanesData ? (
           <WatchLane lane={lanesData.lane3} bare />
+        ) : lanes.isError ? (
+          <div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 10px" }}>
+              The watch list didn't load.{" "}
+              {lanes.error instanceof Error ? lanes.error.message : "The request failed."}
+            </p>
+            <Button variant="secondary" onClick={() => void lanes.refetch()}>
+              Try again
+            </Button>
+          </div>
         ) : (
           <div
-            aria-hidden="true"
+            role="status"
+            aria-label="Loading the watch list"
             style={{
               height: 120,
               borderRadius: "var(--radius-card)",

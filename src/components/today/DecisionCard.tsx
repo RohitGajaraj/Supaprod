@@ -183,14 +183,14 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           {item.estCostUsd != null && <MetaChip>{fmtCost(item.estCostUsd)}</MetaChip>}
           {item.model && <MetaChip>{item.model}</MetaChip>}
           <button
+            type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="mono-label"
+            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
             style={{
               fontSize: 9.5,
               display: "inline-flex",
               alignItems: "center",
               gap: 3,
-              color: "var(--ink-faint)",
               background: "transparent",
             }}
             aria-expanded={expanded}
@@ -262,6 +262,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
             />
             <div style={{ display: "flex", gap: 6 }}>
               <button
+                type="button"
                 className="btn btn-reject btn-sm disabled:opacity-60"
                 disabled={isDeciding}
                 onClick={() => onReject(item.id, reason.trim() || null)}
@@ -270,6 +271,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
                 Reject · nothing runs
               </button>
               <button
+                type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
                   setRejecting(false);
@@ -283,6 +285,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
         ) : (
           <div style={{ marginLeft: 22, display: "flex", gap: 6, alignItems: "center" }}>
             <button
+              type="button"
               className="btn btn-approve btn-sm disabled:opacity-60"
               disabled={isDeciding}
               onClick={() => onApprove(item.id)}
@@ -291,6 +294,7 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               Approve · run {item.toolName}
             </button>
             <button
+              type="button"
               className="btn btn-reject btn-sm disabled:opacity-60"
               disabled={isDeciding}
               onClick={() => setRejecting(true)}
@@ -299,10 +303,10 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
               Reject
             </button>
             <button
-              className="mono-label"
+              type="button"
+              className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
               style={{
                 fontSize: 9.5,
-                color: "var(--ink-faint)",
                 marginLeft: "auto",
                 background: "transparent",
               }}
@@ -356,10 +360,10 @@ export function DecisionCard({ item, onApprove, onReject, onDefer, isDeciding }:
           </Link>
         )}
         <button
-          className="mono-label"
+          type="button"
+          className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
           style={{
             fontSize: 9.5,
-            color: "var(--ink-faint)",
             marginLeft: "auto",
             background: "transparent",
           }}

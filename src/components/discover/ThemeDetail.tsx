@@ -63,13 +63,12 @@ function SignalDetailView({ member, onBack }: { member: ThemeMember; onBack: () 
       <button
         type="button"
         onClick={onBack}
-        className="loom-press w-fit outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        className="loom-press w-fit outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "10.5px",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "var(--text-muted)",
           background: "transparent",
           border: "none",
           padding: 0,
@@ -190,14 +189,13 @@ export function ThemeDetail({
                   }}
                   aria-label="Copy trace id"
                   title="Copy the full trace id"
-                  className="loom-press flex items-center outline-none hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  className="loom-press flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     marginLeft: "auto",
                     gap: "6px",
                     fontFamily: "var(--font-mono)",
                     fontSize: "10px",
                     letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
                     background: "transparent",
                     border: "none",
                     padding: "3px 2px",
@@ -254,12 +252,10 @@ export function ThemeDetail({
                       key={m.id}
                       type="button"
                       onClick={() => setActiveSignalId(m.id)}
-                      className="loom-press w-full text-left outline-none transition-[background-color,border-color] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      className="loom-press w-full border text-left outline-none transition-[background-color,border-color] [background-color:transparent] [border-color:var(--hairline)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--hairline-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         display: "grid",
                         gap: "4px",
-                        background: "transparent",
-                        border: "1px solid var(--hairline)",
                         borderRadius: "var(--radius-control)",
                         padding: "10px 12px",
                         cursor: "pointer",

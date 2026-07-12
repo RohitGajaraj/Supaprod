@@ -63,9 +63,8 @@ export const ThemeRow = memo(function ThemeRow({
           onOpenDetail(themeId);
         }
       }}
-      className="relative flex cursor-pointer items-center outline-none transition-[background-color,box-shadow] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      className="loom-press relative flex cursor-pointer items-center outline-none transition-[background-color,box-shadow] [background-color:var(--card)] [box-shadow:var(--top-light),var(--shadow-ambient)] hover:[background-color:var(--raised)] hover:[box-shadow:var(--top-light-hover),var(--shadow-ambient)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
       style={{
-        backgroundColor: "var(--card)",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-card)",
         padding: "16px 18px",
@@ -125,12 +124,12 @@ export const ThemeRow = memo(function ThemeRow({
             aria-label="Theme actions"
             disabled={actionsPending}
             onClick={(event) => event.stopPropagation()}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            title={actionsPending ? "Working on this theme…" : undefined}
+            className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
               fontSize: "14px",
-              color: "var(--text-subtle)",
               background: "none",
               border: "none",
               cursor: actionsPending ? "default" : "pointer",

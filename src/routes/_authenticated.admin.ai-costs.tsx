@@ -115,7 +115,9 @@ function AdminAiCosts() {
           Higher outcome rate means more decisions closed by a real result, not a guess.
         </p>
         {supersessionRate.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>No data yet.</p>
+          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>
+            No outcomes recorded yet. Rates appear once agents start closing decisions.
+          </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
@@ -161,7 +163,9 @@ function AdminAiCosts() {
           decision.
         </p>
         {agentCost.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>No data yet.</p>
+          <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>
+            No spend recorded yet. Costs appear once agents run against real decisions.
+          </p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>

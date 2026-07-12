@@ -96,6 +96,7 @@ export function ProviderCard({
                   onClick={() => onRemove(c)}
                   disabled={busy}
                   title="Remove connection and its workspace bindings"
+                  aria-label="Remove connection and its workspace bindings"
                   className="text-muted-foreground hover:text-destructive disabled:opacity-50"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -120,7 +121,7 @@ export function ProviderCard({
                   title={
                     configured
                       ? ""
-                      : "⚙ setup pending. Admin must configure the GitHub App credentials."
+                      : "Setup pending. Admin must configure the GitHub App credentials."
                   }
                   className="btn-pill text-xs px-3 py-1.5 inline-flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -158,7 +159,7 @@ export function ProviderCard({
                 key="oauth_gateway"
                 type="button"
                 disabled
-                title="⚙ setup pending. OAuth connect for this provider lands in a later phase."
+                title="Setup pending. OAuth connect for this provider lands in a later phase."
                 className="btn-pill text-xs px-3 py-1.5 inline-flex items-center gap-1.5 opacity-40 cursor-not-allowed"
               >
                 <Plug className="h-3.5 w-3.5" /> Connect

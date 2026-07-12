@@ -79,6 +79,8 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
           variant={mode === "capture" ? "secondary" : "primary"}
           size="sm"
           style={mode === "capture" ? undefined : emberFill}
+          aria-expanded={mode === "capture"}
+          aria-controls="signal-capture-form"
           onClick={() => setMode(mode === "capture" ? "none" : "capture")}
         >
           + Capture
@@ -87,6 +89,8 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
           variant="tertiary"
           size="sm"
           title="Paste many signals, one per line"
+          aria-expanded={mode === "bulk"}
+          aria-controls="signal-bulk-form"
           onClick={() => setMode(mode === "bulk" ? "none" : "bulk")}
         >
           Paste
@@ -94,7 +98,11 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
         <Button
           variant="tertiary"
           size="sm"
-          title="Groups loose signals into themes"
+          title={
+            unclusteredCount === 0
+              ? "Every signal already sits in a theme"
+              : "Groups loose signals into themes"
+          }
           onClick={() => cluster.mutate()}
           loading={cluster.isPending}
           disabled={unclusteredCount === 0}
@@ -105,6 +113,7 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
 
       {mode === "capture" ? (
         <form
+          id="signal-capture-form"
           onSubmit={(e) => {
             e.preventDefault();
             if (content.trim().length >= 2) capture.mutate();
@@ -117,10 +126,10 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             onChange={(e) => setContent(e.target.value)}
             placeholder="What did you hear, and from where?"
             aria-label="New signal"
+            className="border outline-none transition-[border-color] [border-color:var(--hairline-strong)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               flex: 1,
               background: "var(--surface-recessed)",
-              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               padding: "8px 10px",
               fontSize: "var(--text-base)",
@@ -133,6 +142,7 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             style={emberFill}
             loading={capture.isPending}
             disabled={content.trim().length < 2}
+            title={content.trim().length < 2 ? "Type the signal first" : undefined}
           >
             Capture
           </Button>
@@ -140,7 +150,7 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
       ) : null}
 
       {mode === "bulk" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div id="signal-bulk-form" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <textarea
             autoFocus
             value={bulkText}
@@ -148,9 +158,9 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             rows={4}
             placeholder={"One signal per line…"}
             aria-label="Signals to import, one per line"
+            className="border outline-none transition-[border-color] [border-color:var(--hairline-strong)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               background: "var(--surface-recessed)",
-              border: "1px solid var(--hairline-strong)",
               borderRadius: "var(--radius-control)",
               padding: "10px",
               fontSize: "var(--text-base)",
@@ -163,6 +173,7 @@ export function SignalComposer({ unclusteredCount }: { unclusteredCount: number 
             className="self-start"
             loading={bulkImport.isPending}
             disabled={bulkText.trim().length < 2}
+            title={bulkText.trim().length < 2 ? "Paste at least one line first" : undefined}
             onClick={() => bulkImport.mutate()}
           >
             Import lines

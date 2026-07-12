@@ -77,6 +77,7 @@ export function FocusNext({
             text-button; it is now a real tertiary control. */}
         <Button
           variant="tertiary"
+          aria-expanded={showWhy}
           onClick={() => setShowWhy((v) => !v)}
           style={{ fontSize: 12, padding: "6px 14px" }}
         >

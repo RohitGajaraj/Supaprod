@@ -103,7 +103,9 @@ function BriefCard({ brief, isLast }: { brief: IntelBrief; isLast: boolean }) {
               transitionDuration: "140ms",
             }}
           >
-            {revealed ? "Hide receipts" : `${brief.receiptCount} ${brief.receiptCount === 1 ? "receipt" : "receipts"}`}
+            {revealed
+              ? "Hide receipts"
+              : `${brief.receiptCount} ${brief.receiptCount === 1 ? "receipt" : "receipts"}`}
           </button>
           {revealed ? (
             <ul
@@ -201,12 +203,18 @@ export function IntelBriefPanel() {
             <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "8px" }}>
               {(briefsQ.error as Error).message}
             </p>
-            <Button variant="secondary" style={{ marginTop: "12px" }} onClick={() => briefsQ.refetch()}>
+            <Button
+              variant="secondary"
+              style={{ marginTop: "12px" }}
+              onClick={() => briefsQ.refetch()}
+            >
               Retry
             </Button>
           </div>
         ) : briefs.length === 0 ? (
-          <p style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}>
+          <p
+            style={{ fontSize: "12.5px", lineHeight: 1.6, color: "var(--text-subtle)", margin: 0 }}
+          >
             No briefs yet. Lands when a tracked surface actually changes; nothing to configure.
           </p>
         ) : (
@@ -217,15 +225,17 @@ export function IntelBriefPanel() {
             {briefs.length > VISIBLE_BRIEFS ? (
               <button
                 type="button"
+                aria-expanded={showAll}
                 onClick={() => setShowAll((v) => !v)}
-                className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                // Border color rides a class: an inline `border` shorthand
+                // would defeat the hover:[border-color:…] variant.
+                className="loom-press w-full outline-none transition-colors [color:var(--text-muted)] [border-color:var(--hairline-strong)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   fontFamily: "var(--font-ui)",
                   fontSize: 12.5,
                   fontWeight: 500,
-                  color: "var(--text-muted)",
                   background: "transparent",
-                  border: "1px solid var(--hairline-strong)",
+                  border: "1px solid",
                   borderRadius: "var(--radius-control)",
                   padding: "8px 14px",
                 }}

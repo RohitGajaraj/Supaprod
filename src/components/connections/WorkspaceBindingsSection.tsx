@@ -233,6 +233,7 @@ export function WorkspaceBindingsSection() {
                         <Link
                           to="/settings"
                           search={{ section: "connections" }}
+                          className="hover:underline"
                           style={{ color: "var(--link)" }}
                         >
                           Settings · Connections

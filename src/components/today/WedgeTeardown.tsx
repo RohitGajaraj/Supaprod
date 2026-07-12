@@ -143,7 +143,7 @@ export function WedgeTeardown() {
             onChange={(e) => setIdea(e.target.value)}
             maxLength={200}
             placeholder="e.g. Add an AI summary to the top of every report"
-            className="wedge-input focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="wedge-input outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={inputStyle}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canRun) run.mutate();
@@ -157,7 +157,7 @@ export function WedgeTeardown() {
             maxLength={2000}
             rows={2}
             placeholder="Who is hurting, and how? One or two sentences is plenty."
-            className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{ ...inputStyle, resize: "vertical", minHeight: 52 }}
           />
         </Field>
@@ -167,15 +167,17 @@ export function WedgeTeardown() {
             onChange={(e) => setTargetUser(e.target.value)}
             maxLength={200}
             placeholder="The user or segment this is for"
+            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={inputStyle}
           />
         </Field>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 2 }}>
           <button
+            type="button"
             onClick={() => run.mutate()}
             disabled={!canRun}
-            className="btn"
+            className="btn enabled:hover:brightness-[1.08]"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -244,9 +246,10 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
             <ArrowRight size={12} strokeWidth={2} style={{ marginLeft: 4 }} />
           </Link>
           <button
+            type="button"
             onClick={onAnother}
-            className="mono-label"
-            style={{ color: "var(--ink-faint)", fontSize: 10 }}
+            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+            style={{ fontSize: 10 }}
           >
             Try another idea
           </button>
@@ -335,9 +338,10 @@ function Teardown({ result, onAnother }: { result: Result; onAnother: () => void
             <ArrowRight size={12} strokeWidth={2} style={{ marginLeft: 4 }} />
           </Link>
           <button
+            type="button"
             onClick={onAnother}
-            className="mono-label"
-            style={{ color: "var(--ink-faint)", fontSize: 10 }}
+            className="mono-label transition-colors [color:var(--ink-faint)] hover:[color:var(--ink-muted)]"
+            style={{ fontSize: 10 }}
           >
             Tear down another
           </button>
@@ -359,6 +363,8 @@ function copyTeardownLink(slug: string) {
   }
 }
 
+// Color/background ride the class (not inline style) so the hover variants
+// can actually win: an inline declaration always beats a hover class.
 const shareBtnStyle: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -368,14 +374,12 @@ const shareBtnStyle: React.CSSProperties = {
   fontFamily: "var(--font-ui)",
   fontSize: 12,
   fontWeight: 500,
-  color: "var(--text-muted)",
-  background: "transparent",
   border: "1px solid var(--hairline-strong)",
   borderRadius: "var(--radius-control)",
   cursor: "pointer",
 };
 const shareBtnClass =
-  "loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-default disabled:opacity-55";
+  "loom-press outline-none transition-colors [color:var(--text-muted)] [background-color:transparent] hover:[color:var(--text-body)] hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-default disabled:opacity-55";
 
 /** Share / Unshare this teardown + copy its public /t/<slug> link (F-SHARE-TEARDOWN,
  *  the viral loop). Mirrors ShareDecisionButton. Pre-migration tolerant: before the
@@ -507,6 +511,9 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
   );
 }
 
+// No inline `outline: none` here: an inline declaration beats the
+// focus-visible outline classes on these fields, which removed the focus
+// ring entirely (audit fix 2026-07-12). The classes own the ring.
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "9px 11px",
@@ -515,5 +522,4 @@ const inputStyle: React.CSSProperties = {
   background: "var(--canvas)",
   border: "1px solid var(--hairline)",
   borderRadius: 8,
-  outline: "none",
 };

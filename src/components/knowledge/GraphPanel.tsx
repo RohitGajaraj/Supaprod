@@ -34,6 +34,15 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
         className="flex w-fit"
         role="tablist"
         aria-label="Graph view"
+        // Tabs keyboard contract: Left/Right move between the two views.
+        onKeyDown={(e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          const next = view === "graph" ? "list" : "graph";
+          setUserChose(true);
+          setView(next);
+          e.currentTarget.querySelector<HTMLButtonElement>(`[data-tab-id="${next}"]`)?.focus();
+        }}
         style={{
           gap: 2,
           marginBottom: 12,
@@ -48,6 +57,8 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
             type="button"
             role="tab"
             aria-selected={view === id}
+            tabIndex={view === id ? 0 : -1}
+            data-tab-id={id}
             onClick={() => {
               setUserChose(true);
               setView(id);

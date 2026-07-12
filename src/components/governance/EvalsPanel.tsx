@@ -100,6 +100,7 @@ export function EvalsPanel() {
           {(suitesQ.error as Error).message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => suitesQ.refetch()}
@@ -114,7 +115,9 @@ export function EvalsPanel() {
     <div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
+          aria-expanded={createOpen}
           onClick={() => {
             setPrefill(null); // a manual open is unseeded; only a gap chip pre-targets
             setCreateOpen((v) => !v);
@@ -339,7 +342,8 @@ export function EvalsPanel() {
             return (
               <button
                 key={s.id}
-                className="hover:[background-color:#141416] hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-12px_rgba(0,0,0,0.55)] active:scale-[0.98] cursor-pointer"
+                type="button"
+                className="hover:[background-color:var(--hover)] hover:[box-shadow:inset_0_1px_0_var(--ds-gray-alpha-200),0_8px_24px_-12px_rgba(0,0,0,0.55)] active:scale-[0.98] cursor-pointer"
                 onClick={() => openSuite(s.id)}
                 style={{
                   textAlign: "left",
@@ -547,12 +551,14 @@ function CreateSuiteForm({
         </label>
       </div>
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
-        <button className="btn btn-ghost btn-sm" onClick={onClose}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
           Dismiss
         </button>
         <button
+          type="button"
           className="btn btn-primary btn-sm"
           disabled={!form.name || m.isPending}
+          title={!form.name ? "Name the suite first" : undefined}
           onClick={() => m.mutate()}
         >
           {m.isPending ? "Creating…" : "Create suite · add cases next"}

@@ -617,7 +617,23 @@ function SpecEditorPage() {
             boxShadow: "var(--shadow-elevated)",
           }}
         >
-          <div role="tablist" aria-label="Spec views" style={{ display: "flex", gap: 14 }}>
+          <div
+            role="tablist"
+            aria-label="Spec views"
+            style={{ display: "flex", gap: 14 }}
+            // Tabs keyboard contract: Left/Right move between tabs (roving focus).
+            onKeyDown={(e) => {
+              if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+              e.preventDefault();
+              const idx = MODE_DISPLAY.findIndex((t) => t.id === mode);
+              const delta = e.key === "ArrowRight" ? 1 : -1;
+              const next = MODE_DISPLAY[(idx + delta + MODE_DISPLAY.length) % MODE_DISPLAY.length];
+              setMode(next.id);
+              e.currentTarget
+                .querySelector<HTMLButtonElement>(`[data-tab-id="${next.id}"]`)
+                ?.focus();
+            }}
+          >
             {MODE_DISPLAY.map((m) => {
               const active = mode === m.id;
               return (
@@ -626,6 +642,8 @@ function SpecEditorPage() {
                   type="button"
                   role="tab"
                   aria-selected={active}
+                  tabIndex={active ? 0 : -1}
+                  data-tab-id={m.id}
                   title={m.hint}
                   onClick={() => setMode(m.id)}
                   className={`loom-press ${active ? "" : "hover:[color:var(--text-body)]"}`}
@@ -815,7 +833,9 @@ function SpecEditorPage() {
                         </span>
                       ) : null}
                       {t.risk ? (
-                        <span style={{ ...MONO_CAPS, color: "var(--ember-text)" }} title={t.risk}>
+                        // Risk is a warning status: amber, never the ember
+                        // brand accent (status color on status only, Tempo §2).
+                        <span style={{ ...MONO_CAPS, color: "var(--amber)" }} title={t.risk}>
                           risk
                         </span>
                       ) : null}
@@ -864,7 +884,8 @@ function SpecEditorPage() {
                 borderRadius: "var(--radius-control)",
                 padding: "5px 8px",
                 fontSize: 12.5,
-                outline: "none",
+                // No outline:none here: the global [data-obsidian] :focus-visible
+                // ring is the select's focus indicator (Tempo: never removed).
               }}
             >
               <option value="">Select team…</option>

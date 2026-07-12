@@ -180,6 +180,7 @@ function MemoryMachineryDisclosure({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-controls="memory-machinery-panel"
         className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           display: "flex",
@@ -194,9 +195,19 @@ function MemoryMachineryDisclosure({
         }}
       >
         {open ? (
-          <ChevronDown size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
+          />
         ) : (
-          <ChevronRight size={12} style={{ color: "var(--text-subtle)", flexShrink: 0 }} />
+          <ChevronRight
+            size={16}
+            strokeWidth={1.5}
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
+          />
         )}
         <MonoLabel>Under the hood</MonoLabel>
         {!open && (
@@ -214,6 +225,7 @@ function MemoryMachineryDisclosure({
       </button>
       {open && (
         <div
+          id="memory-machinery-panel"
           className="fade-up"
           style={{
             marginTop: 8,
@@ -306,11 +318,14 @@ function TabSkeleton() {
     />
   );
   return (
-    <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {bar(64)}
-      {bar(120)}
-      {bar(120)}
-      {bar(64, "70%")}
+    <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <span className="sr-only">Loading this section…</span>
+      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {bar(64)}
+        {bar(120)}
+        {bar(120)}
+        {bar(64, "70%")}
+      </div>
     </div>
   );
 }
@@ -380,7 +395,22 @@ export const Route = createFileRoute("/_authenticated/brain")({
   ),
   notFoundComponent: () => (
     <MemorySurface>
-      <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>Not found.</p>
+      <p style={{ fontSize: 13, color: "var(--text-subtle)", margin: 0 }}>
+        This record doesn't exist or was removed. Everything Memory holds is on its four tabs.
+      </p>
+      <a
+        href="/brain"
+        className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        style={{
+          display: "inline-block",
+          marginTop: 12,
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          color: "var(--glacier)",
+        }}
+      >
+        Go to Memory
+      </a>
     </MemorySurface>
   ),
 });
@@ -406,7 +436,8 @@ function StripStat({ label, value, live }: { label: string; value: string; live?
             height: 6,
             borderRadius: "50%",
             background: "var(--glacier)",
-            boxShadow: "0 0 10px rgba(132, 179, 236,0.6)",
+            // Token-traced glow (was a hardcoded rgba of the retired chalky blue).
+            boxShadow: "0 0 10px color-mix(in srgb, var(--glacier) 60%, transparent)",
             animation: "cadPulse 2s ease-in-out infinite",
           }}
         />

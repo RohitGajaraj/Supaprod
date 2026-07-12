@@ -120,6 +120,23 @@ function OpportunityJudgmentBlocks({ opportunityId }: { opportunityId: string })
     margin: 0,
   };
 
+  // An error never wears the empty state's clothes (a failed judgment read
+  // used to render "No recorded outcome matches this bet yet"): cause + retry.
+  if (q.isError) {
+    return (
+      <DetailSection heading="Precedent">
+        <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
+          <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+            Could not read this bet's judgment. {(q.error as Error).message}
+          </p>
+          <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
+            Retry
+          </Button>
+        </div>
+      </DetailSection>
+    );
+  }
+
   return (
     <>
       <DetailSection heading="Precedent">
@@ -283,13 +300,11 @@ export function OpportunityDetailSheet({
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                        className="loom-press outline-none transition-colors [background-color:transparent] [color:var(--text-muted)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                         style={{
                           fontFamily: "var(--font-ui)",
                           fontSize: "11.5px",
                           fontWeight: 500,
-                          color: "var(--text-muted)",
-                          background: "transparent",
                           border: "1px solid var(--hairline-strong)",
                           borderRadius: "var(--radius-control)",
                           padding: "3px 10px",
@@ -328,13 +343,12 @@ export function OpportunityDetailSheet({
                   onClick={copyTraceId}
                   aria-label="Copy trace id"
                   title="Copy the full trace id"
-                  className="loom-press flex items-center outline-none hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  className="loom-press flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     gap: "6px",
                     fontFamily: "var(--font-mono)",
                     fontSize: "10px",
                     letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
                     background: "transparent",
                     border: "none",
                     padding: "3px 2px",
@@ -474,11 +488,10 @@ export function OpportunityDetailSheet({
                   <button
                     type="button"
                     onClick={onViewLineage}
-                    className="loom-press flex items-center outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    className="loom-press flex items-center outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       gap: "6px",
                       fontSize: "12px",
-                      color: "var(--text-muted)",
                       background: "transparent",
                       border: "none",
                       padding: 0,
@@ -613,6 +626,8 @@ export function OpportunityDetailSheet({
                 variant="tertiary"
                 size="sm"
                 onClick={onDelete}
+                disabled={busy}
+                title={busy ? "Working on this bet…" : undefined}
                 style={{ marginLeft: "auto", color: "var(--madder)" }}
               >
                 Delete

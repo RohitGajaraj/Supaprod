@@ -134,7 +134,7 @@ export function ColdStartOnramp() {
               </div>
               <Link
                 to={s.to}
-                className="btn btn-sm"
+                className="btn btn-sm hover:underline"
                 style={{
                   flexShrink: 0,
                   display: "inline-flex",

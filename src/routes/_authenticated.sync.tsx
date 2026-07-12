@@ -334,8 +334,11 @@ function SyncInboxPage() {
                     flexWrap: "wrap",
                   }}
                 >
+                  {/* Secondary, not primary: N conflict rows would otherwise
+                      stack N ember fills (restraint budget, one primary CTA
+                      per view). */}
                   <button
-                    className="btn btn-primary btn-sm loom-press"
+                    className="btn btn-secondary btn-sm loom-press"
                     disabled={mResolve.isPending}
                     onClick={() => mResolve.mutate({ id: m.id, strategy: "keep_local" })}
                   >
@@ -393,6 +396,22 @@ function SyncInboxPage() {
         <div style={{ marginBottom: 12 }}>
           <SectionTitle>Recently synced ({q.error ? "?" : synced.length})</SectionTitle>
         </div>
+        {q.isLoading && (
+          <div style={{ display: "grid", gap: 4 }} aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse"
+                style={{
+                  height: 38,
+                  borderRadius: 8,
+                  border: "1px solid var(--hairline)",
+                  background: "var(--surface-1)",
+                }}
+              />
+            ))}
+          </div>
+        )}
         {!q.isLoading && !q.error && synced.length === 0 && (
           <p style={{ fontSize: 13, color: "var(--ink-subtle)", margin: 0 }}>
             Nothing synced yet. Connect Notion or Google Docs in{" "}
@@ -556,6 +575,7 @@ function WebhookIngestCard() {
 
   const [revealed, setRevealed] = useState(false);
   const [rotateArmed, setRotateArmed] = useState(false);
+  const [revokeArmed, setRevokeArmed] = useState(false);
   const [curlOpen, setCurlOpen] = useState(false);
   const [freshToken, setFreshToken] = useState<string | null>(null);
 
@@ -564,6 +584,11 @@ function WebhookIngestCard() {
     const t = setTimeout(() => setRotateArmed(false), 4000);
     return () => clearTimeout(t);
   }, [rotateArmed]);
+  useEffect(() => {
+    if (!revokeArmed) return;
+    const t = setTimeout(() => setRevokeArmed(false), 4000);
+    return () => clearTimeout(t);
+  }, [revokeArmed]);
 
   const q = useQuery({ queryKey: ["ingest-token"], queryFn: () => fGet() });
   const token = (q.data?.token ?? null) as IngestToken | null;
@@ -589,9 +614,13 @@ function WebhookIngestCard() {
       toast.success("Token revoked");
       setRevealed(false);
       setFreshToken(null);
+      setRevokeArmed(false);
       qc.invalidateQueries({ queryKey: ["ingest-token"] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Revoke failed"),
+    onError: (e: unknown) => {
+      setRevokeArmed(false);
+      toast.error(e instanceof Error ? e.message : "Revoke failed");
+    },
   });
 
   const copy = (text: string, label: string) =>
@@ -731,16 +760,34 @@ function WebhookIngestCard() {
                 )}
                 {rotateArmed ? "Confirm rotate?" : "Rotate"}
               </button>
+              {/* Destructive: armed two-step like Rotate, so a stray click
+                  can't kill live integrations (destructive-action contract). */}
               <button
                 className={`loom-press ${FOCUS_RING} hover:[background-color:var(--surface-2)]`}
                 disabled={mRevoke.isPending}
-                onClick={() => mRevoke.mutate()}
-                style={{ ...pillBtn, opacity: mRevoke.isPending ? 0.5 : 1 }}
+                onClick={() => (revokeArmed ? mRevoke.mutate() : setRevokeArmed(true))}
+                style={{
+                  ...pillBtn,
+                  color: revokeArmed ? "var(--rose, #E06557)" : "var(--ink-subtle)",
+                  borderColor: revokeArmed ? "var(--rose, #E06557)" : "var(--hairline)",
+                  opacity: mRevoke.isPending ? 0.5 : 1,
+                }}
               >
                 {mRevoke.isPending && <Loader2 size={12} className="animate-spin" />}
-                Revoke
+                {revokeArmed ? "Confirm revoke?" : "Revoke"}
               </button>
             </>
+          ) : q.isError ? (
+            // A failed token read must not dress as "no token yet" and offer
+            // Generate (checklist point 7).
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 12, color: "var(--rose)" }}>
+                Couldn't load the token. {(q.error as Error)?.message ?? "Unknown error"}
+              </span>
+              <button className="btn btn-ghost btn-sm loom-press" onClick={() => q.refetch()}>
+                Retry
+              </button>
+            </span>
           ) : (
             <button
               className="btn btn-primary btn-sm loom-press"

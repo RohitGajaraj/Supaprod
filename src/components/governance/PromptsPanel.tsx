@@ -173,6 +173,8 @@ export function PromptsPanel() {
             }}
           >
             <button
+              type="button"
+              className="cursor-pointer hover:underline active:opacity-80"
               style={{ fontWeight: 500, textAlign: "left" }}
               onClick={() => setSelectedId(p.id)}
             >
@@ -210,6 +212,11 @@ export function PromptsPanel() {
                 className="btn btn-ghost btn-sm"
                 style={{ fontSize: 11 }}
                 disabled={rolling || !p.active_version || p.active_version.version <= 1}
+                title={
+                  !p.active_version || p.active_version.version <= 1
+                    ? "Nothing earlier to roll back to"
+                    : undefined
+                }
                 onClick={() => rollback.mutate({ id: p.id, name: p.name })}
               >
                 {rolling ? "Rolling back…" : "Roll back"}
@@ -338,6 +345,31 @@ function TemplateDetail({
       </p>
     );
   }
+  // An error may never wear the not-found state's clothes (checklist 7).
+  if (detail.isError) {
+    return (
+      <div className="bento" style={{ padding: 24 }}>
+        <p style={{ fontSize: 12.5, color: "var(--madder)" }}>
+          This template did not load. {(detail.error as Error)?.message}
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 12 }}
+          onClick={() => void detail.refetch()}
+        >
+          Retry
+        </button>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 12, marginLeft: 8 }}
+          onClick={onBack}
+        >
+          ← Back to prompts
+        </button>
+      </div>
+    );
+  }
   if (!template) {
     return (
       <div className="bento" style={{ padding: 24 }}>
@@ -355,7 +387,8 @@ function TemplateDetail({
     <div className="fade-up">
       <div style={{ marginBottom: 16 }}>
         <button
-          className="mono-label"
+          type="button"
+          className="mono-label cursor-pointer hover:underline active:opacity-80"
           style={{ color: "var(--text-subtle)", marginBottom: 10 }}
           onClick={onBack}
         >
@@ -552,8 +585,10 @@ function VersionColumn({
           return (
             <button
               key={v.id}
+              type="button"
+              aria-pressed={selected}
               onClick={() => onSelect(v.id)}
-              className="mono-label"
+              className={`mono-label${selected ? "" : " hover:[background-color:var(--raised)]"} active:opacity-80`}
               style={{
                 padding: "4px 10px",
                 borderRadius: 99,

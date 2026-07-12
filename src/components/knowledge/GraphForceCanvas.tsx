@@ -130,6 +130,7 @@ export function GraphForceCanvas({
     label: "#9c978f",
     labelBright: "#f2f0ed",
     pearl: "#edeae4",
+    thread: "#c6c0b8",
   });
   const pulseStarts = useRef(new Map<string, number>());
   const userMovedCam = useRef(false);
@@ -225,7 +226,8 @@ export function GraphForceCanvas({
         ctx.strokeStyle = chrome.selected;
         ctx.globalAlpha = 0.42;
       } else {
-        ctx.strokeStyle = "#c6c0b8";
+        // Token-resolved thread color (was a hardcoded hex; both themes resolve).
+        ctx.strokeStyle = chrome.thread;
         ctx.globalAlpha = pass ? 0.25 : 0.07;
       }
       ctx.stroke();
@@ -406,6 +408,7 @@ export function GraphForceCanvas({
       label: read("--text-muted", "#9c978f"),
       labelBright: read("--text-primary", "#f2f0ed"),
       pearl: read("--pearl", "#edeae4"),
+      thread: read("--text-faint", "#c6c0b8"),
     };
     spriteCache.current.clear();
     wake();
@@ -831,10 +834,11 @@ function GraphHoverCard({
         bottom: flipY ? bounds.h - sy + 14 : undefined,
         maxWidth: 260,
         pointerEvents: "none",
-        background: "rgba(17,17,19,0.82)",
+        // Token-traced glass (was dark-only rgba literals; both themes resolve).
+        background: "color-mix(in srgb, var(--surface-card) 82%, transparent)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--hairline)",
         borderRadius: "var(--radius-panel)",
         boxShadow: "var(--shadow-overlay)",
         padding: "10px 12px",

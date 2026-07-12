@@ -59,6 +59,7 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
   if (!review) {
     return (
       <button
+        type="button"
         onClick={() => run.mutate()}
         disabled={run.isPending}
         className="mono-label inline-flex items-center gap-1 rounded-full border hairline px-2 py-0.5 text-ink-faint transition hover:text-ink-muted disabled:opacity-50"
@@ -102,8 +103,10 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
     <>
       <span className="inline-flex items-center" style={{ gap: 5 }}>
         <button
+          type="button"
           onClick={() => setOpen(true)}
-          className="hover:brightness-110"
+          className="hover:brightness-110 active:opacity-80"
+          aria-expanded={open}
           title="Open Critic review"
         >
           <VerdictChip tone={v.tone} style={size === "md" ? { fontSize: 10.5 } : undefined}>
@@ -208,6 +211,7 @@ export function CriticBadge({ review, target, invalidateKey, size = "sm" }: Prop
             ) : null}
 
             <button
+              type="button"
               onClick={() => run.mutate()}
               disabled={run.isPending}
               className="inline-flex items-center gap-1.5 rounded-md border hairline px-3 py-1.5 text-xs hover:bg-secondary/50 disabled:opacity-50"

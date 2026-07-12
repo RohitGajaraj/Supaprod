@@ -592,7 +592,9 @@ export function DecisionDetail({ id }: { id: string }) {
                     disabled={update.isPending}
                     onClick={() => update.mutate({ id: d.id, status: s })}
                     aria-pressed={selected}
-                    className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    className={`outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${
+                      selected ? "" : " hover:opacity-80"
+                    }`}
                     style={{
                       background: "transparent",
                       border: "none",

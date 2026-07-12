@@ -155,7 +155,33 @@ export function EvalSuiteDetail({ id }: { id: string }) {
     );
   }
 
-  if (suiteQ.error || !suiteQ.data?.suite) {
+  if (suiteQ.error) {
+    return (
+      <div className="fade-up">
+        <DrillHeader
+          onBack={back}
+          backLabel="All eval suites"
+          kicker="Eval suite"
+          title="Could not load"
+        />
+        <div className="bento" style={{ padding: "var(--card-pad)" }}>
+          <p style={{ fontSize: 12.5, color: "var(--rose)", margin: 0 }}>
+            This suite did not load. {(suiteQ.error as Error).message}
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 12 }}
+            onClick={() => void suiteQ.refetch()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!suiteQ.data?.suite) {
     return (
       <div className="fade-up">
         <DrillHeader
@@ -168,7 +194,7 @@ export function EvalSuiteDetail({ id }: { id: string }) {
           <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: 0 }}>
             This eval suite doesn't exist in this workspace; it may have been deleted.
           </p>
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={back}>
+          <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={back}>
             Back · all eval suites
           </button>
         </div>
@@ -210,8 +236,10 @@ export function EvalSuiteDetail({ id }: { id: string }) {
         title={suite.name}
         right={
           <button
+            type="button"
             className="btn btn-ghost btn-sm"
             disabled={run.isPending || enabledCases === 0}
+            title={enabledCases === 0 ? "Add and enable at least one case first" : undefined}
             onClick={() => run.mutate()}
           >
             {run.isPending
@@ -376,7 +404,8 @@ export function EvalSuiteDetail({ id }: { id: string }) {
                   </span>
                   <span style={{ textAlign: "right" }}>
                     <button
-                      className="mono-label"
+                      type="button"
+                      className="mono-label cursor-pointer hover:underline"
                       style={{ color: "var(--ink-subtle)", fontSize: 8.5 }}
                       onClick={() => {
                         setFailRunId(r.id);
@@ -432,9 +461,10 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             <span className="mono-label">Suite</span>
             <span style={{ fontSize: 12.5 }}>
               <button
+                type="button"
                 role="switch"
                 aria-checked={suite.enabled}
-                className="mono-label"
+                className="mono-label cursor-pointer hover:underline"
                 style={{
                   fontSize: 8.5,
                   color: suite.enabled ? "var(--emerald)" : "var(--ink-faint)",
@@ -459,7 +489,8 @@ export function EvalSuiteDetail({ id }: { id: string }) {
             <span className="mono-label">Delete</span>
             <span style={{ fontSize: 12.5 }}>
               <button
-                className="mono-label"
+                type="button"
+                className="mono-label cursor-pointer hover:underline"
                 style={{ fontSize: 8.5, color: "var(--rose)" }}
                 onClick={async () => {
                   const ok = await confirm({
@@ -510,6 +541,23 @@ function FailingCases({ runId }: { runId: string | null }) {
       <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
         Loading cases…
       </span>
+    );
+  }
+  if (q.isError) {
+    return (
+      <div className="bento" style={{ padding: 24 }}>
+        <p style={{ fontSize: 12.5, color: "var(--rose)", margin: 0 }}>
+          This run's cases did not load. {(q.error as Error).message}
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 12 }}
+          onClick={() => void q.refetch()}
+        >
+          Retry
+        </button>
+      </div>
     );
   }
 
@@ -615,7 +663,12 @@ function CaseList({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => setFormOpen((v) => !v)}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          aria-expanded={formOpen}
+          onClick={() => setFormOpen((v) => !v)}
+        >
           Add case · joins the suite
         </button>
       </div>
@@ -654,12 +707,14 @@ function CaseList({
             />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setFormOpen(false)}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFormOpen(false)}>
               Dismiss
             </button>
             <button
+              type="button"
               className="btn btn-primary btn-sm"
               disabled={!form.name || !form.input}
+              title={!form.name || !form.input ? "A case needs a name and an input" : undefined}
               onClick={async () => {
                 await createFn({
                   data: {
@@ -695,9 +750,10 @@ function CaseList({
               <span style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</span>
               <span style={{ flex: 1 }}></span>
               <button
+                type="button"
                 role="switch"
                 aria-checked={c.enabled}
-                className="mono-label"
+                className="mono-label cursor-pointer hover:underline"
                 style={{
                   fontSize: 8.5,
                   color: c.enabled ? "var(--emerald)" : "var(--ink-faint)",
@@ -710,6 +766,7 @@ function CaseList({
                 {c.enabled ? "on" : "off"}
               </button>
               <button
+                type="button"
                 className="btn btn-ghost btn-sm"
                 style={{ fontSize: 11, color: "var(--rose)" }}
                 onClick={async () => {

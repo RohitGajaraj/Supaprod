@@ -203,8 +203,49 @@ export function MissionSlideOver({
       title={stripAutoPrefix(mission?.title ?? "Mission")}
       footer="Every hop cites the memory it drew on · Esc closes"
     >
-      {!mission ? (
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading mission…</p>
+      {session.isError ? (
+        // An error never wears the loading state's clothes: name the cause, offer retry.
+        <div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+            Couldn't load this mission. {(session.error as Error)?.message ?? ""}
+          </p>
+          <button
+            type="button"
+            onClick={() => void session.refetch()}
+            className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{
+              marginTop: 10,
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--text-subtle)",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+            }}
+          >
+            Retry · reloads the mission
+          </button>
+        </div>
+      ) : !mission ? (
+        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span className="sr-only">Loading the mission…</span>
+          {["40%", "100%", "80%"].map((w) => (
+            <div
+              key={w}
+              aria-hidden="true"
+              style={{
+                height: 14,
+                width: w,
+                borderRadius: 4,
+                backgroundImage: "var(--shimmer-gradient)",
+                backgroundSize: "280% 100%",
+                animation: "cadShimmer 5s linear infinite",
+                opacity: 0.35,
+              }}
+            />
+          ))}
+        </div>
       ) : isOrchestratorMission ? (
         // OBS-10: an orchestrator goal-run, not a Studio session — no changeset,
         // no build steps. The rich detail (hops, replay, cancel, the Compounding
@@ -245,6 +286,7 @@ export function MissionSlideOver({
             <Link
               to="/build/$missionId"
               params={{ missionId }}
+              className="hover:underline"
               style={{
                 alignSelf: "flex-start",
                 fontFamily: "var(--font-mono)",
@@ -281,6 +323,7 @@ export function MissionSlideOver({
             <Link
               to="/build/$missionId"
               params={{ missionId }}
+              className="hover:underline hover:[color:var(--text-primary)]"
               style={{
                 alignSelf: "flex-start",
                 fontFamily: "var(--font-mono)",
@@ -366,7 +409,7 @@ export function MissionSlideOver({
             type="button"
             onClick={() => setTraceOpen((v) => !v)}
             aria-expanded={traceOpen}
-            className="loom-press"
+            className="loom-press transition-colors hover:[color:var(--text-primary)]"
             style={{
               alignSelf: "flex-start",
               fontFamily: "var(--font-mono)",

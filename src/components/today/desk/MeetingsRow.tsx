@@ -56,7 +56,8 @@ export function MeetingsRow() {
         aria-expanded={open}
         aria-label={open ? "Hide today's calendar" : "Show today's calendar"}
         onClick={() => setOpen((v) => !v)}
-        className="loom-press flex w-full items-center text-left outline-none transition-colors hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        // Background rides classes so the hover variant wins (inline beats classes).
+        className="loom-press flex w-full items-center text-left outline-none transition-colors [background:transparent] hover:[background:var(--raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           gap: 10,
           padding: "10px 6px 8px",
@@ -65,7 +66,6 @@ export function MeetingsRow() {
           borderRight: "none",
           borderBottom: "none",
           borderRadius: "var(--radius-control)",
-          background: "transparent",
           cursor: "pointer",
         }}
       >

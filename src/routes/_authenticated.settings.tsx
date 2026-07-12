@@ -148,12 +148,15 @@ function SettingsIndex({
             key={g.id}
             type="button"
             onClick={() => onSet(g.id)}
-            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${isActive ? " loom-thread-active" : ""}`}
+            aria-current={isActive ? "true" : undefined}
+            className={`loom-press flex items-center outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]${isActive ? " loom-thread-active" : ""}`}
             style={{
               gap: 10,
               padding: "8px 12px",
               borderRadius: "var(--radius-control)",
-              background: isActive ? "var(--surface-active)" : "transparent",
+              // No inline background when inactive so the hover class can win
+              // (inline styles beat utility classes).
+              background: isActive ? "var(--surface-active)" : undefined,
               textAlign: "left",
               transitionProperty: "background-color",
               transitionDuration: "var(--dur-press, 140ms)",
@@ -203,7 +206,7 @@ function DensityToggle() {
             type="button"
             onClick={() => setDensity(d)}
             aria-pressed={density === d}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
             style={{
               fontFamily: "var(--font-ui)",
               fontSize: 12.5,
@@ -211,7 +214,7 @@ function DensityToggle() {
               padding: "0 12px",
               borderRadius: "var(--radius-control)",
               border: "1px solid var(--hairline)",
-              background: density === d ? "var(--raised)" : "transparent",
+              background: density === d ? "var(--raised)" : undefined,
               color: density === d ? "var(--text-primary)" : "var(--text-subtle)",
               textTransform: "capitalize",
               cursor: "pointer",
@@ -256,7 +259,7 @@ function AppearanceSection() {
               type="button"
               onClick={() => setTheme(id)}
               aria-pressed={isActive}
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -267,7 +270,7 @@ function AppearanceSection() {
                 padding: "0 12px",
                 borderRadius: "var(--radius-control)",
                 border: "1px solid var(--hairline)",
-                background: isActive ? "var(--raised)" : "transparent",
+                background: isActive ? "var(--raised)" : undefined,
                 color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
                 cursor: "pointer",
                 transitionProperty: "background-color, color",
@@ -358,10 +361,9 @@ function AdminDoor() {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss the claim admin card"
-          className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)]"
+          className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"
           style={{
             flexShrink: 0,
-            background: "transparent",
             border: "none",
             color: "var(--text-subtle)",
             fontSize: 14,
@@ -460,7 +462,7 @@ function SettingsPage() {
                       type="button"
                       onClick={() => setTab(s.id)}
                       aria-pressed={isActive}
-                      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: "var(--text-mono-floor, 10.5px)",
@@ -468,7 +470,7 @@ function SettingsPage() {
                         letterSpacing: "0.08em",
                         padding: "5px 10px",
                         borderRadius: "var(--radius-control)",
-                        background: isActive ? "var(--raised)" : "transparent",
+                        background: isActive ? "var(--raised)" : undefined,
                         color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
                       }}
                     >
@@ -666,6 +668,55 @@ function BillingTab({ checkout }: { checkout?: string }) {
     : isPastDue
       ? "0 0 8px rgba(224, 101, 87, 0.5)"
       : "0 0 8px rgba(127, 191, 142, 0.5)";
+
+  // Loading: a skeleton, not a misleading flash of the "Free" plan card
+  // (checklist point 5).
+  if (billing.isLoading) {
+    return (
+      <div style={{ display: "grid", gap: "var(--space-4)" }} aria-hidden="true">
+        <div style={cardStyle()}>
+          <div style={{ display: "grid", gap: 10 }}>
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse"
+                style={{
+                  height: 14,
+                  width: `${68 - i * 16}%`,
+                  borderRadius: 4,
+                  background: "var(--raised)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // An error never wears an empty state's clothes: a failed billing read must
+  // not render as a silent "Free" plan (checklist point 7).
+  if (billing.isError) {
+    return (
+      <div style={{ display: "grid", gap: "var(--space-4)" }}>
+        <div style={cardStyle()}>
+          <div className="mono-label" style={{ color: "var(--rose)" }}>
+            Couldn't load your billing state
+          </div>
+          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+            {(billing.error as Error)?.message ?? "Unknown error"}
+          </p>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 12 }}
+            onClick={() => billing.refetch()}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "grid", gap: "var(--space-4)" }}>
@@ -929,7 +980,14 @@ function BundleGrid({
             disabled={wouldExceed}
             onClick={() => onSelect(b.key)}
             title={wouldExceed ? "Exceeds your per-cycle top-up limit." : undefined}
-            className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            aria-pressed={selected}
+            className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${
+              // Border color lives in classes (not inline) so hover can win;
+              // inline styles would beat the hover utility.
+              selected
+                ? " border [border-color:var(--hairline-strong)]"
+                : " border [border-color:var(--hairline)] enabled:hover:[border-color:var(--hairline-strong)]"
+            }`}
             style={{
               textAlign: "left",
               padding: "var(--space-3)",
@@ -938,7 +996,6 @@ function BundleGrid({
               opacity: wouldExceed ? 0.5 : 1,
               // Selected reads with a neutral high-contrast border + wash,
               // never ember, which stays reserved for the Buy action below.
-              border: selected ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
               background: selected ? "var(--surface-active)" : "var(--raised)",
               display: "flex",
               flexDirection: "column",
@@ -1109,27 +1166,43 @@ function CreditsTabInner() {
 
       <div style={cardStyle()}>
         <ObsidianMonoLabel>Balance</ObsidianMonoLabel>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 28,
-            fontWeight: 500,
-            color: "var(--text-primary)",
-            marginTop: "var(--space-1)",
-          }}
-        >
-          {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "--"}
-          <span
+        {/* Error is its own state: a failed balance read must not sit behind
+            an eternal unexplained "--" (checklist point 7). */}
+        {credits.isError && (
+          <div style={{ marginTop: "var(--space-2)" }}>
+            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+              Couldn't load your balance. {(credits.error as Error)?.message ?? "Unknown error"}
+            </p>
+            <div style={{ marginTop: "var(--space-2)" }}>
+              <ObsidianButton variant="quiet" onClick={() => credits.refetch()}>
+                Retry
+              </ObsidianButton>
+            </div>
+          </div>
+        )}
+        {!credits.isError && (
+          <div
             style={{
-              fontFamily: "var(--font-ui)",
-              fontSize: "var(--text-sm)",
-              color: "var(--text-subtle)",
-              marginLeft: "var(--space-2)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 28,
+              fontWeight: 500,
+              color: "var(--text-primary)",
+              marginTop: "var(--space-1)",
             }}
           >
-            credits
-          </span>
-        </div>
+            {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "--"}
+            <span
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-subtle)",
+                marginLeft: "var(--space-2)",
+              }}
+            >
+              credits
+            </span>
+          </div>
+        )}
         {data && (
           <div
             style={{
@@ -1197,6 +1270,22 @@ function CreditsTabInner() {
           const a = attribution.data;
           if (attribution.isLoading) {
             return <p style={helperTextStyle()}>Loading…</p>;
+          }
+          // Error never wears the empty state's clothes (checklist point 7).
+          if (attribution.isError) {
+            return (
+              <div style={{ marginTop: "var(--space-2)" }}>
+                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--madder, #E06557)" }}>
+                  Couldn't load the usage breakdown.{" "}
+                  {(attribution.error as Error)?.message ?? "Unknown error"}
+                </p>
+                <div style={{ marginTop: "var(--space-2)" }}>
+                  <ObsidianButton variant="quiet" onClick={() => attribution.refetch()}>
+                    Retry
+                  </ObsidianButton>
+                </div>
+              </div>
+            );
           }
           if (!a || a.totalDebited <= 0) {
             return (
@@ -1462,6 +1551,10 @@ function CreditsTabInner() {
         <ObsidianMonoLabel>Recent activity</ObsidianMonoLabel>
         {credits.isLoading ? (
           <p style={helperTextStyle()}>Loading…</p>
+        ) : credits.isError ? (
+          <p style={{ ...helperTextStyle(), color: "var(--madder, #E06557)" }}>
+            Couldn't load recent activity. Use Retry above to reload.
+          </p>
         ) : data && data.ledger.length === 0 && data.topups.length === 0 ? (
           <p style={helperTextStyle()}>
             No activity yet. Your grants, debits, and top-ups will appear here.
@@ -1779,15 +1872,40 @@ function ModelsTab() {
   const current = MODELS.find((m) => m.id === defaultModel);
   const currentAgentic = agenticModel ? MODELS.find((m) => m.id === agenticModel) : null;
 
+  // A failed profile read must not render the model rows with silent defaults
+  // (checklist point 7). BYO keys load independently, so they stay.
+  if (profile.isError) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="bento" style={{ padding: 24 }}>
+          <div className="mono-label" style={{ color: "var(--rose)" }}>
+            Couldn't load your model settings
+          </div>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+            {(profile.error as Error)?.message ?? "Unknown error"}
+          </p>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 14 }}
+            onClick={() => profile.refetch()}
+          >
+            Retry
+          </button>
+        </div>
+        <ByoKeysSection />
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
         {profile.isLoading ? (
-          <div
-            className="mono-label"
-            style={{ padding: "24px 0", textAlign: "center", color: "var(--ink-faint)" }}
-          >
-            loading…
+          <div style={{ padding: "13px 18px" }} aria-hidden="true">
+            <div
+              className="animate-pulse"
+              style={{ height: 14, width: "58%", borderRadius: 4, background: "var(--raised)" }}
+            />
           </div>
         ) : (
           <div
@@ -1815,7 +1933,11 @@ function ModelsTab() {
                     : "byo"
                   : "unknown"}
             </span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditing((v) => !v)}>
+            <button
+              className="btn btn-ghost btn-sm"
+              aria-expanded={editing}
+              onClick={() => setEditing((v) => !v)}
+            >
               Change
             </button>
           </div>
@@ -1863,11 +1985,11 @@ function ModelsTab() {
       {/* MA-2: agentic model for automatic/background runs (researcher-tick, cluster-tick, etc) */}
       <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
         {profile.isLoading ? (
-          <div
-            className="mono-label"
-            style={{ padding: "24px 0", textAlign: "center", color: "var(--ink-faint)" }}
-          >
-            loading…
+          <div style={{ padding: "13px 18px" }} aria-hidden="true">
+            <div
+              className="animate-pulse"
+              style={{ height: 14, width: "58%", borderRadius: 4, background: "var(--raised)" }}
+            />
           </div>
         ) : (
           <div
@@ -1895,7 +2017,11 @@ function ModelsTab() {
                     : "byo"
                   : "unknown"}
             </span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditingAgentic((v) => !v)}>
+            <button
+              className="btn btn-ghost btn-sm"
+              aria-expanded={editingAgentic}
+              onClick={() => setEditingAgentic((v) => !v)}
+            >
               Change
             </button>
           </div>
@@ -2136,8 +2262,35 @@ function ByoKeysSection() {
       {isEnterprise || keyList.length > 0 ? (
         <div style={{ marginTop: 12 }}>
           {keys.isLoading ? (
-            <div className="mono-label" style={{ color: "var(--ink-faint)" }}>
-              loading…
+            <div style={{ display: "grid", gap: 8 }} aria-hidden="true">
+              {[0, 1].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse"
+                  style={{
+                    height: 14,
+                    width: `${64 - i * 14}%`,
+                    borderRadius: 4,
+                    background: "var(--raised)",
+                  }}
+                />
+              ))}
+            </div>
+          ) : keys.isError ? (
+            <div>
+              <div className="mono-label" style={{ color: "var(--rose)" }}>
+                Couldn't load your keys
+              </div>
+              <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "6px 0 0" }}>
+                {(keys.error as Error)?.message ?? "Unknown error"}
+              </p>
+              <button
+                className="btn btn-ghost btn-sm"
+                style={{ marginTop: 10 }}
+                onClick={() => keys.refetch()}
+              >
+                Retry
+              </button>
             </div>
           ) : keyList.length === 0 ? (
             <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>No BYO keys saved yet.</div>
@@ -2248,6 +2401,8 @@ function AgentToolCap({ agent }: { agent: AgentRow }) {
         disabled={m.isPending}
         onChange={(e) => m.mutate(e.target.value)}
         title="Cap the blast radius of the tools this agent can call"
+        aria-label={`Tool reach for ${agent.name}`}
+        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           flex: 1,
           minWidth: 0,
@@ -2294,12 +2449,28 @@ function StaffTab() {
   }
 
   if (agentsQ.isLoading) {
+    // Skeleton shaped like the agent card grid, never a dead text frame
+    // (checklist point 5).
     return (
       <div
-        className="mono-label"
-        style={{ padding: "32px 0", textAlign: "center", color: "var(--ink-faint)" }}
+        aria-hidden="true"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+          gap: 12,
+        }}
       >
-        loading…
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="animate-pulse"
+            style={{
+              height: 92,
+              borderRadius: "var(--radius-card, 10px)",
+              background: "var(--raised)",
+            }}
+          />
+        ))}
       </div>
     );
   }
@@ -2314,7 +2485,15 @@ function StaffTab() {
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+    <div
+      // auto-fit so the card grid wraps instead of crushing at 1024/768
+      // (checklist point 10); 4-up at full width, fewer columns as it narrows.
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+        gap: 12,
+      }}
+    >
       {agents.map((a) => (
         <div
           key={a.slug}
@@ -2333,6 +2512,7 @@ function StaffTab() {
             <button
               role="switch"
               aria-checked={a.enabled}
+              aria-label={`${a.name} ${a.enabled ? "enabled" : "disabled"}. Changing this is gated in Govern.`}
               title={`${a.name} ${a.enabled ? "enabled" : "disabled"}`}
               onClick={() =>
                 toast(
@@ -2341,6 +2521,9 @@ function StaffTab() {
                     : `${a.name} stays off. Enabling agents is gated in Govern.`,
                 )
               }
+              // Focus ring never removed (checklist point 2); background
+              // transition rides the global reduced-motion kill switch.
+              className="cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 width: 30,
                 height: 17,
@@ -2348,6 +2531,8 @@ function StaffTab() {
                 background: a.enabled ? "var(--deep-green)" : "var(--surface-2)",
                 position: "relative",
                 flexShrink: 0,
+                transitionProperty: "background-color",
+                transitionDuration: "var(--dur-press, 140ms)",
               }}
             >
               <span
@@ -2513,7 +2698,7 @@ function WorkspaceBriefSection({
   const getFn = useServerFn(getActiveBrief);
   const upsertFn = useServerFn(upsertBrief);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["workspace-brief", activeWorkspaceId],
     queryFn: () => getFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
   });
@@ -2587,8 +2772,37 @@ function WorkspaceBriefSection({
       </div>
 
       {isLoading ? (
-        <div className="mono-label" style={{ color: "var(--ink-faint)", padding: "16px 0" }}>
-          loading…
+        <div style={{ display: "grid", gap: 10, padding: "16px 0" }} aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="animate-pulse"
+              style={{
+                height: 14,
+                width: `${76 - i * 18}%`,
+                borderRadius: 4,
+                background: "var(--raised)",
+              }}
+            />
+          ))}
+        </div>
+      ) : isError ? (
+        // A failed brief read must not render blank fields whose Save would
+        // wipe the real brief (checklist point 7).
+        <div style={{ padding: "8px 0" }}>
+          <div className="mono-label" style={{ color: "var(--rose)" }}>
+            Couldn't load the brief
+          </div>
+          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
+            {(error as Error)?.message ?? "Unknown error"}
+          </p>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 12 }}
+            onClick={() => refetch()}
+          >
+            Retry
+          </button>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -2712,10 +2926,44 @@ function ProfileTab() {
   if (profile.isLoading) {
     return (
       <div
-        className="mono-label"
-        style={{ padding: "32px 0", textAlign: "center", color: "var(--ink-faint)" }}
+        className="bento"
+        style={{ padding: "var(--card-pad)", display: "grid", gap: 10, maxWidth: 480 }}
+        aria-hidden="true"
       >
-        loading…
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="animate-pulse"
+            style={{
+              height: 14,
+              width: `${72 - i * 16}%`,
+              borderRadius: 4,
+              background: "var(--raised)",
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // A failed profile read must not render an empty identity form that would
+  // overwrite real data on save (checklist point 7).
+  if (profile.isError) {
+    return (
+      <div className="bento" style={{ padding: 24 }}>
+        <div className="mono-label" style={{ color: "var(--rose)" }}>
+          Couldn't load your profile
+        </div>
+        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          {(profile.error as Error)?.message ?? "Unknown error"}
+        </p>
+        <button
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 14 }}
+          onClick={() => profile.refetch()}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -2842,7 +3090,8 @@ function ProfileTab() {
               href={l.href}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: 12, color: "var(--ink-subtle)", textDecoration: "none" }}
+              className="outline-none [color:var(--ink-subtle)] hover:underline hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              style={{ fontSize: 12, textDecoration: "none" }}
             >
               {l.label} ↗
             </a>

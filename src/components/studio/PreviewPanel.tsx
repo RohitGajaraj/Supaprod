@@ -87,6 +87,26 @@ export function PreviewPanel({
     );
   }
 
+  // An error never wears the empty state's clothes: name the cause, offer retry.
+  if (preview.isError) {
+    return (
+      <div style={{ ...LOOM_CARD, padding: 24 }}>
+        <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the preview</MonoLabel>
+        <p style={{ marginTop: 6, fontSize: 12.5, color: "var(--text-subtle)" }}>
+          {(preview.error as Error)?.message?.slice(0, 160)}
+        </p>
+        <button
+          type="button"
+          onClick={() => preview.refetch()}
+          className="btn btn-ghost btn-sm loom-press"
+          style={{ marginTop: 12 }}
+        >
+          Retry · reloads the preview
+        </button>
+      </div>
+    );
+  }
+
   const data = preview.data ?? null;
 
   if (!data) {

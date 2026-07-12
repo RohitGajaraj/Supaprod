@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MoreHorizontal } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -335,19 +336,18 @@ export function SpecList({ onOpen }: SpecListProps) {
                     type="button"
                     aria-label="Spec actions"
                     onClick={(e) => e.stopPropagation()}
-                    className="loom-press"
+                    className="loom-press transition-colors hover:[color:var(--text-body)]"
                     style={{
                       flexShrink: 0,
                       padding: "4px 16px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 14,
                       color: "var(--text-faint)",
                       background: "none",
                       border: "none",
                       cursor: "pointer",
                     }}
                   >
-                    ⋯
+                    {/* Tempo §8: lucide outline icon, one treatment (was a text "⋯" glyph). */}
+                    <MoreHorizontal size={16} strokeWidth={1.5} aria-hidden="true" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

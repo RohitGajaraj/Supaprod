@@ -4,10 +4,12 @@
 // list-of-cards shape every Brain tab resolves into.
 export function PanelSkeleton({ rows = [64, 120, 120] }: { rows?: number[] }) {
   return (
-    <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <span className="sr-only">Loading…</span>
       {rows.map((h, i) => (
         <div
           key={i}
+          aria-hidden="true"
           style={{
             width: i === rows.length - 1 ? "70%" : "100%",
             height: h,

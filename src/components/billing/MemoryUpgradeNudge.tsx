@@ -71,11 +71,11 @@ export function MemoryUpgradeNudge() {
         onClick={snooze}
         aria-label="Dismiss"
         title="Dismiss"
+        className="outline-none [color:var(--ink-subtle)] hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           border: "none",
           background: "transparent",
           cursor: "pointer",
-          color: "var(--ink-subtle, #6b6457)",
           fontSize: 16,
           lineHeight: 1,
           padding: 2,

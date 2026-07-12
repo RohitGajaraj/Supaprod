@@ -143,7 +143,8 @@ export function CreateRepoModal({
           <button
             type="button"
             onClick={() => setIsPrivate((p) => !p)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-full text-left"
+            aria-pressed={isPrivate}
+            className="flex w-full items-center gap-2 rounded-md text-left text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           >
             {isPrivate ? (
               <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" />

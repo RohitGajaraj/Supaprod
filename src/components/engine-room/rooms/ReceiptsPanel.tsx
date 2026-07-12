@@ -131,7 +131,9 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
           onOpen();
         }
       }}
-      className="loom-press"
+      // Hover in CSS (conditional class), not JS mouse handlers, so the
+      // state can never stick after a keyboard interaction (checklist 1).
+      className={`loom-press${pendingGate ? "" : " hover:[background-color:var(--raised)]"}`}
       data-superseded={superseded ? "true" : undefined}
       style={{
         padding: "16px 18px",
@@ -140,16 +142,9 @@ function ReceiptCard({ r, onOpen }: { r: TrustReceipt; onOpen: () => void }) {
         opacity: superseded ? 0.72 : 1,
         border: `1px solid ${pendingGate ? "var(--ember-line)" : "var(--hairline)"}`,
         background: pendingGate ? "var(--ember-tint)" : "var(--card)",
-        outline: "none",
         transitionProperty: "background-color, border-color",
         transitionDuration: "var(--dur-control)",
         transitionTimingFunction: "var(--ease)",
-      }}
-      onMouseEnter={(e) => {
-        if (!pendingGate) e.currentTarget.style.background = "var(--raised)";
-      }}
-      onMouseLeave={(e) => {
-        if (!pendingGate) e.currentTarget.style.background = "var(--card)";
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -283,6 +278,37 @@ function SealPanel() {
   const [copied, setCopied] = useState(false);
 
   const seal = sealQ.data;
+  // A failed seal read may not vanish silently (an error never wears an empty
+  // state's clothes): name it and offer the one retry.
+  if (sealQ.isError) {
+    return (
+      <section
+        style={{
+          padding: "12px 16px",
+          marginBottom: 18,
+          background: "var(--card)",
+          border: "1px solid var(--hairline)",
+          borderRadius: "var(--radius-card)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ fontSize: 12.5, color: "var(--madder-bright)" }}>
+          The tamper check did not load.
+        </span>
+        <button
+          type="button"
+          onClick={() => void sealQ.refetch()}
+          className="hover:underline active:opacity-80"
+          style={chipStyle}
+        >
+          Retry
+        </button>
+      </section>
+    );
+  }
   // Hide when there is nothing to fingerprint: an empty ledger hashes to a fixed
   // genesis constant (identical across workspaces), so showing it would offer a
   // meaningless "match", guard on count === 0.
@@ -327,6 +353,7 @@ function SealPanel() {
                 /* clipboard blocked, the full head is in the title attribute */
               }
             }}
+            className="hover:[background-color:var(--raised)] active:opacity-80"
             style={chipStyle}
             title="Copy the full fingerprint to save it"
           >
@@ -336,6 +363,7 @@ function SealPanel() {
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
+            className="hover:[background-color:var(--raised)] active:opacity-80"
             style={chipStyle}
             aria-expanded={open}
           >
@@ -371,16 +399,22 @@ function SealPanel() {
               borderRadius: 8,
               background: "var(--surface-recessed)",
               color: "var(--text-primary)",
-              outline: "none",
             }}
           />
           <button
             type="button"
             onClick={() => paste.trim() && verify.mutate(paste)}
             disabled={verify.isPending || paste.trim().length < 8}
+            title={
+              paste.trim().length < 8
+                ? "Paste a saved fingerprint first (at least 8 characters)"
+                : undefined
+            }
+            className="hover:enabled:[background-color:var(--raised)] active:enabled:opacity-80"
             style={{
               ...chipStyle,
               opacity: verify.isPending || paste.trim().length < 8 ? 0.55 : 1,
+              cursor: verify.isPending || paste.trim().length < 8 ? "not-allowed" : "pointer",
             }}
           >
             {verify.isPending ? "Checking" : "Check"}
@@ -533,12 +567,40 @@ function MissionChainPanel() {
         ) : null}
       </div>
       {missionsQ.isError ? (
-        <div style={{ fontSize: 12.5, color: "var(--text-faint)", padding: "10px 0" }}>
-          Could not load missions for the chain. {(missionsQ.error as Error)?.message}
+        <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "10px 0" }}>
+          Could not load missions for the chain. {(missionsQ.error as Error)?.message}{" "}
+          <button
+            type="button"
+            onClick={() => void missionsQ.refetch()}
+            className="cursor-pointer hover:underline active:opacity-80"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "var(--text-primary)",
+              fontSize: 12.5,
+            }}
+          >
+            Retry
+          </button>
         </div>
       ) : chainQ.isError ? (
-        <div style={{ fontSize: 12.5, color: "var(--text-faint)", padding: "10px 0" }}>
-          Could not walk this mission's chain. {(chainQ.error as Error)?.message}
+        <div style={{ fontSize: 12.5, color: "var(--madder-bright)", padding: "10px 0" }}>
+          Could not walk this mission's chain. {(chainQ.error as Error)?.message}{" "}
+          <button
+            type="button"
+            onClick={() => void chainQ.refetch()}
+            className="cursor-pointer hover:underline active:opacity-80"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "var(--text-primary)",
+              fontSize: 12.5,
+            }}
+          >
+            Retry
+          </button>
         </div>
       ) : chainQ.data ? (
         <MissionChain chain={chainQ.data} />
@@ -627,7 +689,7 @@ export function ReceiptsPanel() {
               type="button"
               onClick={() => setOutcome(o)}
               aria-pressed={outcome === o}
-              className="tabular-nums loom-press"
+              className="tabular-nums loom-press hover:[color:var(--text-primary)]"
               style={{
                 fontSize: 11.5,
                 padding: "4px 11px",
@@ -666,9 +728,10 @@ export function ReceiptsPanel() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search what, why, or who"
             aria-label="Search receipts"
+            // No outline:none here: the focus ring is never removed (Tempo
+            // law); the global [data-obsidian] :focus-visible rule draws it.
             style={{
               border: "none",
-              outline: "none",
               background: "transparent",
               fontSize: 12.5,
               width: "100%",
@@ -684,7 +747,21 @@ export function ReceiptsPanel() {
         </div>
       ) : query.isError ? (
         <div style={{ fontSize: 13, color: "var(--madder)", padding: "32px 0" }}>
-          Could not load the receipts. {(query.error as Error)?.message}
+          Could not load the receipts. {(query.error as Error)?.message}{" "}
+          <button
+            type="button"
+            onClick={() => void query.refetch()}
+            className="cursor-pointer hover:underline active:opacity-80"
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              color: "var(--text-primary)",
+              fontSize: 13,
+            }}
+          >
+            Retry
+          </button>
         </div>
       ) : receipts.length === 0 ? (
         <EmptyState

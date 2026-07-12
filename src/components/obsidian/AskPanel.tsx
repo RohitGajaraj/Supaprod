@@ -164,6 +164,8 @@ const AskAiMessage = React.memo(function AskAiMessage({
           <button
             type="button"
             onClick={() => setTraceOpen((v) => !v)}
+            aria-expanded={traceOpen}
+            className="transition-colors hover:[color:var(--text-primary)]"
             style={{
               marginLeft: "auto",
               fontFamily: "var(--font-mono)",
@@ -184,7 +186,8 @@ const AskAiMessage = React.memo(function AskAiMessage({
         <div
           style={{
             marginTop: 8,
-            background: "#0B0B0D",
+            // Token-traced (was a dark-only hex): the recessed trace well.
+            background: "var(--surface-recessed)",
             borderRadius: 10,
             padding: "10px 12px",
             fontFamily: "var(--font-mono)",
@@ -254,11 +257,12 @@ function AskComposer({
             left: 0,
             right: 0,
             marginBottom: 6,
-            background: "#151517",
+            // Token-traced (was a dark-only hex + hand-rolled shadow).
+            background: "var(--raised)",
             border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-card)",
             overflow: "hidden",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            boxShadow: "var(--shadow-overlay)",
           }}
         >
           {matches.map((command, i) => (
@@ -272,6 +276,9 @@ function AskComposer({
                 e.preventDefault();
                 selectCommand(command);
               }}
+              // Pointer hover moves the active option (combobox convention),
+              // so mouse users get the same highlight the arrows drive.
+              onMouseEnter={() => setPaletteIndex(i)}
               style={{
                 display: "flex",
                 width: "100%",
@@ -304,7 +311,7 @@ function AskComposer({
       <div
         style={{
           border: "1px solid var(--hairline)",
-          background: "#0E0E10",
+          background: "var(--surface-card-deep)",
           borderRadius: "var(--radius-card)",
           padding: "10px 12px",
         }}
@@ -341,13 +348,15 @@ function AskComposer({
             }
           }}
           placeholder="Ask about this screen, or type / for commands"
+          aria-label="Ask about this screen"
           rows={1}
           style={{
             width: "100%",
             resize: "none",
             background: "transparent",
             border: "none",
-            outline: "none",
+            // No outline:none: the global [data-obsidian] :focus-visible ring
+            // is this borderless composer's focus indicator (never removed).
             fontFamily: "var(--font-ui)",
             fontSize: 13,
             lineHeight: 1.55,
@@ -572,6 +581,7 @@ export function AskPanel() {
             <DialogPrimitive.Close asChild>
               <button
                 type="button"
+                className="transition-colors hover:[color:var(--text-primary)]"
                 style={{
                   marginLeft: "auto",
                   fontFamily: "var(--font-mono)",
@@ -613,12 +623,13 @@ export function AskPanel() {
                       key={suggestion}
                       type="button"
                       onClick={() => send(suggestion)}
+                      className="transition-colors hover:[background:var(--hover)] hover:[color:var(--text-primary)]"
                       style={{
                         textAlign: "left",
                         padding: "9px 12px",
                         borderRadius: "var(--radius-card)",
                         border: "1px solid var(--hairline)",
-                        background: "#0E0E10",
+                        background: "var(--surface-card-deep)",
                         fontFamily: "var(--font-ui)",
                         fontSize: 12.5,
                         color: "var(--text-body)",

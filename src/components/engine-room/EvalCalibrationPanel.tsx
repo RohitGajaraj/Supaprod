@@ -49,10 +49,10 @@ export function EvalCalibrationPanel() {
   const coverageQ = useQuery({ queryKey: ["eval_coverage"], queryFn: () => coverageFn() });
 
   if (suitesQ.isError || coverageQ.isError) {
-    const error = suitesQ.error || coverageQ.error;
+    const cause = suitesQ.error ?? coverageQ.error;
     return (
       <ErrorRetry
-        message="Calibration data did not load."
+        message={`Calibration data did not load. ${cause instanceof Error ? cause.message : "The read failed."}`}
         onRetry={() => {
           suitesQ.refetch();
           coverageQ.refetch();
@@ -121,6 +121,22 @@ export function EvalCalibrationPanel() {
     navigate({ to: "/engine-room", search: { room: "quality", view: "suites", surface } });
   };
 
+  if (calibrations.length === 0) {
+    return (
+      <p
+        style={{
+          fontFamily: "var(--font-ui)",
+          fontSize: "var(--text-base)",
+          color: "var(--text-subtle)",
+          padding: "18px 0",
+        }}
+      >
+        No AI surfaces are registered for calibration yet. Add an eval suite under Quality, then its
+        surface appears here with a coverage verdict.
+      </p>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -130,14 +146,19 @@ export function EvalCalibrationPanel() {
               ? { dot: "var(--moss)", label: "Covered" }
               : cal.coverageState === "stale"
                 ? { dot: "var(--text-faint)", label: "Unproven" }
-                : { dot: "var(--tangerine)", label: "Unguarded" };
+                : { dot: "var(--marigold)", label: "Unguarded" };
 
           const passRatePct = cal.passRate != null ? Math.round(cal.passRate * 100) : null;
 
           return (
             <button
               key={cal.surface}
+              type="button"
               onClick={() => drillToSurface(cal.surface)}
+              // Hover in CSS, not JS mouse handlers, so keyboard focus and
+              // reduced-motion behave; the transition names its properties
+              // (checklist 1/2/8).
+              className="active:scale-[0.995] hover:[border-color:var(--text-faint)] hover:[background-color:var(--surface-2)]"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -147,15 +168,9 @@ export function EvalCalibrationPanel() {
                 border: "1px solid var(--hairline)",
                 borderRadius: "var(--radius-card)",
                 cursor: "pointer",
-                transition: "all 160ms var(--ease)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--text-faint)";
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--surface-2)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline)";
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--card)";
+                transitionProperty: "background-color, border-color, transform",
+                transitionDuration: "160ms",
+                transitionTimingFunction: "var(--ease)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
@@ -229,7 +244,7 @@ export function EvalCalibrationPanel() {
                         color: "var(--text-faint)",
                       }}
                     >
-                      —
+                      no runs
                     </div>
                   )}
                   {cal.runCount > 0 ? (

@@ -23,6 +23,8 @@ import {
 } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
+import { useTheme } from "@/hooks/use-theme";
+import { MonoLabel } from "@/components/cadence/Primitives";
 import { ChangesetChip, LOOM_CARD } from "./studio-ui";
 import { fmtCompact } from "./studio-format";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
@@ -78,6 +80,14 @@ function isMarkdownFile(path: string): boolean {
   return ext === "md" || ext === "mdx";
 }
 
+/* Shared interaction affordances (state audit 2026-07-12): the token-traced
+   focus ring (never removed, ember via --focus-ring) plus a hover that can
+   actually resolve — base/hover backgrounds live in the class because an
+   inline `background` always beats a stylesheet hover. */
+const PRESS =
+  "loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
+const PRESS_HOVER = `${PRESS} hover:enabled:[background:var(--surface-hover)]`;
+
 const spinnerBox = (
   <div
     style={{
@@ -112,6 +122,10 @@ export function ChangesPanel({
 }) {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [docView, setDocView] = useState<"diff" | "preview">("diff");
+  // Both themes resolve (Tempo law): Monaco follows the app theme instead of
+  // hard-coding vs-dark into the light theme.
+  const { resolvedTheme } = useTheme();
+  const monacoTheme = resolvedTheme === "light" ? "light" : "vs-dark";
   const fDiff = useServerFn(getChangesetDiff);
   const diff = useQuery({
     queryKey: ["studio-diff", changeset?.id],
@@ -439,13 +453,13 @@ export function ChangesPanel({
             type="button"
             onClick={triggerRollback}
             disabled={rollbackMut.isPending}
+            className={PRESS_HOVER}
             style={{
               marginLeft: "auto",
               padding: "4px 10px",
               fontSize: 11.5,
               borderRadius: 6,
               border: "1px solid var(--hairline)",
-              background: "transparent",
               color: "var(--text-body)",
               cursor: rollbackMut.isPending ? "default" : "pointer",
               whiteSpace: "nowrap",
@@ -460,12 +474,12 @@ export function ChangesPanel({
             type="button"
             onClick={triggerAbandon}
             disabled={abandonMut.isPending}
+            className={PRESS_HOVER}
             style={{
               padding: "4px 10px",
               fontSize: 11.5,
               borderRadius: 6,
               border: "1px solid var(--hairline)",
-              background: "transparent",
               color: "var(--text-body)",
               cursor: abandonMut.isPending ? "default" : "pointer",
               whiteSpace: "nowrap",
@@ -482,6 +496,7 @@ export function ChangesPanel({
           style={{
             display: "flex",
             alignItems: "center",
+            flexWrap: "wrap",
             gap: 12,
             padding: "10px 18px",
             ...LOOM_CARD,
@@ -532,13 +547,13 @@ export function ChangesPanel({
               type="button"
               onClick={() => promoteMut.mutate()}
               disabled={promoteMut.isPending}
+              className={PRESS_HOVER}
               style={{
                 marginLeft: "auto",
                 padding: "4px 10px",
                 fontSize: 11.5,
                 borderRadius: 6,
                 border: "1px solid var(--hairline)",
-                background: "transparent",
                 color: "var(--text-body)",
                 cursor: promoteMut.isPending ? "default" : "pointer",
                 whiteSpace: "nowrap",
@@ -569,12 +584,11 @@ export function ChangesPanel({
               type="button"
               onClick={() => genNotesMut.mutate()}
               disabled={genNotesMut.isPending}
-              className="mono-label"
+              className={`mono-label ${PRESS_HOVER}`}
               style={{
                 border: "1px solid var(--hairline)",
                 borderRadius: 6,
                 padding: "3px 10px",
-                background: "transparent",
                 color: "var(--text-body)",
                 cursor: genNotesMut.isPending ? "default" : "pointer",
               }}
@@ -624,12 +638,11 @@ export function ChangesPanel({
               type="button"
               onClick={() => genKitMut.mutate()}
               disabled={genKitMut.isPending}
-              className="mono-label"
+              className={`mono-label ${PRESS_HOVER}`}
               style={{
                 border: "1px solid var(--hairline)",
                 borderRadius: 6,
                 padding: "3px 10px",
-                background: "transparent",
                 color: "var(--text-body)",
                 cursor: genKitMut.isPending ? "default" : "pointer",
               }}
@@ -664,12 +677,11 @@ export function ChangesPanel({
                             .then(() => toast.success(`${label} copied`))
                             .catch(() => toast.error("Could not copy"))
                         }
-                        className="mono-label"
+                        className={`mono-label ${PRESS_HOVER}`}
                         style={{
                           border: "1px solid var(--hairline)",
                           borderRadius: 6,
                           padding: "2px 8px",
-                          background: "transparent",
                           color: "var(--text-body)",
                           cursor: "pointer",
                         }}
@@ -782,6 +794,7 @@ export function ChangesPanel({
                   type="button"
                   onClick={() => noteMut.mutate(rb.id)}
                   disabled={noteMut.isPending}
+                  className={`${PRESS} hover:enabled:underline`}
                   style={{
                     fontSize: 11,
                     color: "var(--text-body)",
@@ -879,7 +892,7 @@ export function ChangesPanel({
               {canRevert && i > 0 ? (
                 <button
                   type="button"
-                  className="mono-label"
+                  className={`mono-label ${PRESS_HOVER}`}
                   disabled={revertMut.isPending}
                   onClick={async () => {
                     if (!changeset) return;
@@ -897,7 +910,6 @@ export function ChangesPanel({
                     padding: "2px 8px",
                     fontSize: 10,
                     color: "var(--text-body)",
-                    background: "transparent",
                     cursor: revertMut.isPending ? "default" : "pointer",
                   }}
                 >
@@ -954,12 +966,11 @@ export function ChangesPanel({
                 type="button"
                 onClick={() => enforceMut.mutate()}
                 disabled={enforceMut.isPending}
-                className="mono-label"
+                className={`mono-label ${PRESS_HOVER}`}
                 style={{
                   border: "1px solid var(--hairline)",
                   borderRadius: 6,
                   padding: "3px 10px",
-                  background: "transparent",
                   color: "var(--text-body)",
                   cursor: enforceMut.isPending ? "default" : "pointer",
                 }}
@@ -970,12 +981,12 @@ export function ChangesPanel({
             <button
               type="button"
               onClick={() => (editScope ? setEditScope(false) : openScopeEditor())}
-              className="mono-label"
+              className={`mono-label ${PRESS_HOVER}`}
+              aria-expanded={editScope}
               style={{
                 border: "1px solid var(--hairline)",
                 borderRadius: 6,
                 padding: "3px 10px",
-                background: "transparent",
                 color: "var(--text-body)",
                 cursor: "pointer",
               }}
@@ -998,6 +1009,8 @@ export function ChangesPanel({
                 placeholder={"src/lib/\nsrc/components/studio/**"}
                 rows={4}
                 spellCheck={false}
+                aria-label="Touch list, one path per line"
+                className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   width: "100%",
                   resize: "vertical",
@@ -1021,6 +1034,8 @@ export function ChangesPanel({
                   value={capDraft}
                   onChange={(e) => setCapDraft(e.target.value)}
                   placeholder="none"
+                  aria-label="Max files"
+                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     width: 90,
                     fontFamily: "var(--font-mono)",
@@ -1036,13 +1051,12 @@ export function ChangesPanel({
                   type="button"
                   onClick={saveScope}
                   disabled={setScopeMut.isPending}
-                  className="mono-label"
+                  className={`mono-label ${PRESS_HOVER}`}
                   style={{
                     marginLeft: "auto",
                     border: "1px solid var(--hairline)",
                     borderRadius: 6,
                     padding: "4px 12px",
-                    background: "transparent",
                     color: "var(--text-primary)",
                     cursor: setScopeMut.isPending ? "default" : "pointer",
                   }}
@@ -1086,6 +1100,8 @@ export function ChangesPanel({
               key={c.id}
               type="button"
               onClick={() => setSelectedPath(active ? null : c.path)}
+              aria-expanded={active}
+              className={PRESS_HOVER}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1094,8 +1110,8 @@ export function ChangesPanel({
                 textAlign: "left",
                 padding: "11px 18px",
                 borderBottom: i < changes.length - 1 ? "1px solid var(--hairline)" : "none",
-                background: active ? "var(--surface-raised)" : "transparent",
-                transition: "background var(--dur-fast, 140ms)",
+                // Inline background only when selected so the hover class resolves.
+                background: active ? "var(--surface-raised)" : undefined,
               }}
             >
               <span
@@ -1209,12 +1225,13 @@ export function ChangesPanel({
                     key={mode}
                     type="button"
                     onClick={() => setDocView(mode)}
-                    className="mono-label"
+                    aria-pressed={docView === mode}
+                    className={`mono-label ${PRESS_HOVER}`}
                     style={{
                       border: "none",
                       borderRadius: 5,
                       padding: "3px 10px",
-                      background: docView === mode ? "var(--surface-raised)" : "transparent",
+                      background: docView === mode ? "var(--surface-raised)" : undefined,
                       color: docView === mode ? "var(--text-primary)" : "var(--text-subtle)",
                       cursor: "pointer",
                     }}
@@ -1229,12 +1246,11 @@ export function ChangesPanel({
                 type="button"
                 onClick={() => rejectFileMut.mutate(selectedPath!)}
                 disabled={rejectFileMut.isPending}
-                className="mono-label"
+                className={`mono-label ${PRESS_HOVER}`}
                 style={{
                   border: "1px solid var(--hairline)",
                   borderRadius: 6,
                   padding: "3px 8px",
-                  background: "transparent",
                   color: "var(--text-body)",
                   cursor: rejectFileMut.isPending ? "default" : "pointer",
                 }}
@@ -1243,7 +1259,24 @@ export function ChangesPanel({
               </button>
             ) : null}
           </div>
-          {diff.isLoading || !selected ? (
+          {diff.isError ? (
+            // A failed diff fetch previously sat in the spinner forever (the
+            // !selected branch). An error names its cause and offers retry.
+            <div style={{ padding: 24 }}>
+              <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the diff</MonoLabel>
+              <p style={{ marginTop: 6, fontSize: 12.5, color: "var(--text-subtle)" }}>
+                {(diff.error as Error)?.message?.slice(0, 160)}
+              </p>
+              <button
+                type="button"
+                onClick={() => diff.refetch()}
+                className="btn btn-ghost btn-sm loom-press"
+                style={{ marginTop: 12 }}
+              >
+                Retry · reloads the diff
+              </button>
+            </div>
+          ) : diff.isLoading || !selected ? (
             spinnerBox
           ) : isMarkdownFile(selectedPath) && docView === "preview" ? (
             <div style={{ height: 420, overflowY: "auto", padding: "16px 20px" }}>
@@ -1253,7 +1286,7 @@ export function ChangesPanel({
             <Suspense fallback={spinnerBox}>
               <DiffEditor
                 height="420px"
-                theme="vs-dark"
+                theme={monacoTheme}
                 language={languageFor(selectedPath)}
                 original={selected.base_content ?? ""}
                 modified={selected.new_content ?? ""}
@@ -1293,7 +1326,8 @@ export function ChangesPanel({
                     })
                   }
                   disabled={applyMut.isPending || rejected.size === 0}
-                  className="mono-label"
+                  title={rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined}
+                  className={`mono-label ${PRESS}`}
                   style={{
                     border: "1px solid var(--hairline)",
                     borderRadius: 6,
@@ -1321,6 +1355,8 @@ export function ChangesPanel({
                         return next;
                       })
                     }
+                    aria-pressed={isRejected}
+                    className={PRESS_HOVER}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -1330,7 +1366,7 @@ export function ChangesPanel({
                       padding: "8px 10px",
                       borderRadius: 8,
                       border: "1px solid var(--hairline)",
-                      background: isRejected ? "var(--surface-raised)" : "transparent",
+                      background: isRejected ? "var(--surface-raised)" : undefined,
                       opacity: isRejected ? 0.6 : 1,
                       transition: "opacity var(--dur-fast, 140ms)",
                     }}

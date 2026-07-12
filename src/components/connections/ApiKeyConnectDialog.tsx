@@ -63,12 +63,14 @@ export function ApiKeyConnectDialog({
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={method?.kind === "api_key" ? method.placeholder : "API key"}
+            aria-label="API key"
             autoFocus
           />
           <Input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Label (optional, e.g. Acme workspace)"
+            aria-label="Connection label"
             maxLength={80}
           />
           <DialogFooter>

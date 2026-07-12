@@ -188,6 +188,7 @@ export function SpecDetail({ id, onClose }: SpecDetailProps) {
               <Link
                 to="/plan/spec/$id"
                 params={{ id }}
+                className="hover:underline"
                 style={{ color: "var(--glacier)", fontFamily: "var(--font-mono)", fontSize: 11 }}
               >
                 Open full spec →

@@ -89,7 +89,7 @@ export function ConnectionStrip() {
             width: 180,
             height: 8,
             background:
-              "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.11), rgba(255,255,255,0.05))",
+              "linear-gradient(90deg, var(--ds-gray-alpha-100), var(--ds-gray-alpha-300), var(--ds-gray-alpha-100))",
             backgroundSize: "280% 100%",
             animation: "cadShimmer 1.6s linear infinite",
           }}
@@ -114,7 +114,7 @@ export function ConnectionStrip() {
         </span>
         <button
           type="button"
-          className={`uppercase cursor-pointer ${focusRing}`}
+          className={`uppercase cursor-pointer hover:underline active:opacity-80 ${focusRing}`}
           onClick={() => {
             void q.refetch();
             if (sync.isError) void sync.refetch();
@@ -152,7 +152,7 @@ export function ConnectionStrip() {
         width: 72,
         height: 8,
         background:
-          "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.11), rgba(255,255,255,0.05))",
+          "linear-gradient(90deg, var(--ds-gray-alpha-100), var(--ds-gray-alpha-300), var(--ds-gray-alpha-100))",
         backgroundSize: "280% 100%",
         animation: "cadShimmer 1.6s linear infinite",
       }}

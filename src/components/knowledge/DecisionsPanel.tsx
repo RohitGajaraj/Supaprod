@@ -115,7 +115,8 @@ function FilterGroup<T extends string>({
           key={o}
           type="button"
           onClick={() => onChange(o)}
-          className="outline-none uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          aria-pressed={value === o}
+          className="outline-none uppercase transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-mono)",
             fontSize: "var(--text-mono-floor)",
@@ -195,6 +196,7 @@ export function DecisionsPanel() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          aria-label="Search decision titles"
           placeholder="Search titles"
           className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
@@ -237,7 +239,7 @@ export function DecisionsPanel() {
         <div
           style={{
             background: "var(--card)",
-            border: "1px solid rgba(127,191,142,0.3)",
+            border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
             borderRadius: "var(--radius-card)",
             padding: "28px 26px",
           }}
@@ -284,7 +286,7 @@ export function DecisionsPanel() {
               onClick={() =>
                 navigate({ to: "/brain", search: { tab: "decisions", decision: d.id } })
               }
-              className="w-full text-left outline-none hover:[background-color:#141416] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              className="w-full text-left outline-none transition-colors hover:[background-color:var(--hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,
@@ -335,10 +337,18 @@ export function DecisionsPanel() {
                         nested button is invalid HTML (hydration warning). */}
                     <span
                       role="link"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate({ to: "/today" });
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.stopPropagation();
+                          navigate({ to: "/today" });
+                        }
+                      }}
+                      className="hover:underline"
                       style={{ fontSize: 11, color: "var(--link)", cursor: "pointer" }}
                     >
                       Decide on Today &rarr;

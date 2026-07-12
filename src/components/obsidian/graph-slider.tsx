@@ -234,7 +234,8 @@ export function GraphSlider({
         maxWidth: "100%",
         touchAction: "none",
         cursor: "ew-resize",
-        outline: "none",
+        // No outline:none: the global [data-obsidian] :focus-visible ring is
+        // this slider's keyboard focus indicator (Tempo: never removed).
         borderRadius: "var(--radius-control)",
       }}
       onPointerMove={(e) => {

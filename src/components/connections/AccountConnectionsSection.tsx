@@ -243,7 +243,8 @@ function RailRow({
     <button
       type="button"
       onClick={onClick}
-      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+      aria-pressed={active}
+      className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
       style={{
         display: "flex",
         alignItems: "center",
@@ -253,7 +254,8 @@ function RailRow({
         textAlign: "left",
         padding: "6px 10px",
         borderRadius: "var(--radius-control)",
-        background: active ? "var(--surface-raised)" : "transparent",
+        // No inline background when inactive so the hover utility can win.
+        background: active ? "var(--surface-raised)" : undefined,
         border: "none",
         cursor: "pointer",
       }}
@@ -561,7 +563,12 @@ export function AccountConnectionsSection({
   });
 
   return (
-    <div id="connections" style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+    <div
+      id="connections"
+      // flexWrap: the rail stacks above the grid instead of forcing a
+      // horizontal scroll at 768-wide panes (checklist point 10).
+      style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}
+    >
       {/* LEFT RAIL: search, status counts, categories, request box + sync link. */}
       <aside
         style={{
@@ -647,14 +654,15 @@ export function AccountConnectionsSection({
           >
             <MonoLabel style={{ display: "block", marginBottom: 6 }}>Vendor neutral</MonoLabel>
             Your agents will change. Your decision history should not. Cadence drives whichever
-            builders you connect and keeps the outcome ledger yours, so swapping a model or a
-            vendor never resets what the workspace has learned.
+            builders you connect and keeps the outcome ledger yours, so swapping a model or a vendor
+            never resets what the workspace has learned.
           </div>
         </div>
       </aside>
 
-      {/* RIGHT PANE: compact hero + one unified, filtered card grid. */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      {/* RIGHT PANE: compact hero + one unified, filtered card grid.
+          flex-basis 320 so it wraps under the rail instead of crushing. */}
+      <div style={{ flex: "1 1 320px", minWidth: 0 }}>
         <header style={{ marginBottom: 16 }}>
           <h3
             style={{
@@ -681,8 +689,46 @@ export function AccountConnectionsSection({
         </header>
 
         {list.isLoading ? (
-          <div className="mono-label" style={{ color: "var(--text-faint)", padding: "24px 0" }}>
-            loading…
+          // Skeleton cards shaped like the grid, never a dead text frame
+          // (checklist point 5).
+          <div
+            aria-hidden="true"
+            style={{
+              display: "grid",
+              gap: 10,
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
+            }}
+          >
+            {[0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse"
+                style={{
+                  height: 76,
+                  borderRadius: "var(--radius-card, 12px)",
+                  background: "var(--raised)",
+                }}
+              />
+            ))}
+          </div>
+        ) : list.isError ? (
+          // A failed read must not paint every provider "coming soon"
+          // (error never wears another state's clothes).
+          <div className="bento" style={{ padding: 20 }}>
+            <div className="mono-label" style={{ color: "var(--rose)" }}>
+              Couldn't load your connections
+            </div>
+            <p style={{ fontSize: 12.5, color: "var(--text-subtle)", margin: "8px 0 0" }}>
+              {(list.error as Error)?.message ?? "Unknown error"}
+            </p>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              style={{ marginTop: 12 }}
+              onClick={() => list.refetch()}
+            >
+              Retry
+            </button>
           </div>
         ) : filtered.length === 0 ? (
           <p style={{ fontSize: 12.5, color: "var(--text-subtle)", padding: "12px 0" }}>
@@ -690,6 +736,7 @@ export function AccountConnectionsSection({
             <button
               type="button"
               onClick={resetAll}
+              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:no-underline"
               style={{
                 background: "none",
                 border: "none",
@@ -708,7 +755,9 @@ export function AccountConnectionsSection({
             style={{
               display: "grid",
               gap: 10,
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+              // min(320px, 100%) so a pane narrower than 320 clamps the card
+              // instead of overflowing horizontally.
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(320px, 100%), 1fr))",
             }}
           >
             {filtered.map(({ entry: e }) => {
@@ -734,7 +783,10 @@ export function AccountConnectionsSection({
                         }
                       : undefined
                   }
-                  className={clickable ? "loom-press" : undefined}
+                  // Focus ring never removed: an inline outline:none would beat
+                  // the global :focus-visible rule, so the reset lives in the
+                  // class where focus-visible can override it.
+                  className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] border [border-color:var(--hairline)]${clickable ? " loom-press hover:[border-color:var(--hairline-strong)]" : ""}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -742,10 +794,8 @@ export function AccountConnectionsSection({
                     padding: 14,
                     borderRadius: "var(--radius-card, 12px)",
                     background: "var(--card)",
-                    border: "1px solid var(--hairline)",
                     cursor: clickable ? "pointer" : "default",
                     opacity: status === "soon" ? 0.62 : 1,
-                    outline: "none",
                   }}
                 >
                   <ProviderLogo provider={e.id} size={34} />
@@ -919,6 +969,13 @@ export function ConnectorDetail({
     enabled: isSuite,
   });
 
+  // RPT-02 - this drill-down is independently reachable via ?connector=
+  // (deep link / bookmark / stale tab) for a provider that isn't connected
+  // yet, so it needs its own trust-dialog gate too, not just the grid's.
+  // Declared BEFORE the early returns below (Rules of Hooks: the hook count
+  // must not change when the loading render gives way to the loaded one).
+  const [showTrust, setShowTrust] = useState(false);
+
   // The route validates ?connector= against the registry; this guards a
   // hand-edited URL that slips a non-user-facing provider through.
   if (!spec || spec.userFacing === false) {
@@ -949,6 +1006,42 @@ export function ConnectorDetail({
     );
   }
 
+  // A failed read must not fall through to "not connected" (checklist point 7:
+  // an error never wears another state's clothes).
+  if (list.isError || bindingsQ.isError || (isSuite && suite.isError)) {
+    const err = (list.error ?? bindingsQ.error ?? suite.error) as Error | null;
+    return (
+      <div className="fade-up">
+        <DrillHeader
+          onBack={onBack}
+          backLabel="All connections"
+          kicker="Connector"
+          title={spec.label}
+        />
+        <div className="bento" style={{ padding: "var(--card-pad)" }}>
+          <div className="mono-label" style={{ color: "var(--rose)" }}>
+            Couldn't load {spec.label}
+          </div>
+          <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: "8px 0 0" }}>
+            {err?.message ?? "Unknown error"}
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 12 }}
+            onClick={() => {
+              void list.refetch();
+              void bindingsQ.refetch();
+              if (isSuite) void suite.refetch();
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const configured = providerConfigured(spec, list.data?.providerAvailability);
   const envActive = providerEnvActive(spec, list.data?.providerAvailability);
   const hint = setupHintFor(spec);
@@ -965,11 +1058,6 @@ export function ConnectorDetail({
     else if (spec.authMethods.some((m) => m.kind === "oauth_native")) mNative.mutate(spec);
     else mGateway.mutate(spec);
   };
-  // RPT-02 - this drill-down is independently reachable via ?connector=
-  // (deep link / bookmark / stale tab) for a provider that isn't connected
-  // yet, so it needs its own trust-dialog gate too, not just the grid's.
-  const [showTrust, setShowTrust] = useState(false);
-
   /* -- Active via an admin-managed env credential (envConfigured), no
      per-user OAuth registered (gatewayConfigured false): Cadence is already
      reading through the workspace token, so there is nothing for THIS user
@@ -1244,7 +1332,15 @@ export function ConnectorDetail({
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 3fr", gap: 12 }}>
+      {/* auto-fit so the bindings card and the account table stack instead of
+          crushing at 768-wide panes (checklist point 10). */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))",
+          gap: 12,
+        }}
+      >
         <div className="bento" style={{ padding: "var(--card-pad)" }}>
           <MonoLabel style={{ marginBottom: 10 }}>What it feeds · workspace bindings</MonoLabel>
           {provBindings.length === 0 ? (

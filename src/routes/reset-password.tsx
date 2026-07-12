@@ -112,7 +112,12 @@ function ResetPasswordPage() {
             gap: 10,
           }}
         >
-          <Loader2 size={18} className="animate-spin" style={{ color: "var(--text-subtle)" }} />
+          <Loader2
+            size={18}
+            className="animate-spin"
+            aria-hidden="true"
+            style={{ color: "var(--text-subtle)" }}
+          />
           <p
             style={{
               fontSize: 12.5,
@@ -171,6 +176,8 @@ function ResetPasswordPage() {
               type="button"
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="loom-press transition-colors hover:[color:var(--text-primary)]"
               style={{
                 position: "absolute",
                 right: 10,
@@ -211,10 +218,14 @@ function ResetPasswordPage() {
             className="btn btn-primary"
             type="submit"
             disabled={loading}
+            aria-busy={loading || undefined}
             style={{ width: "100%", justifyContent: "center" }}
           >
             {loading ? (
-              <Loader2 size={14} className="animate-spin" />
+              <>
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                Updating
+              </>
             ) : (
               "Update password · takes effect now"
             )}

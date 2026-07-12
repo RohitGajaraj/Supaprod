@@ -24,7 +24,7 @@ export function ShareStatusButton({ workspaceName }: { workspaceName: string | n
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button onClick={() => setOpen(true)} className="btn btn-ghost">
+      <button type="button" onClick={() => setOpen(true)} className="btn btn-ghost">
         <Share2 className="h-3.5 w-3.5" />
         Share status
       </button>
@@ -75,9 +75,21 @@ export function StatusUpdateDialog({
         </DialogHeader>
 
         {q.isLoading ? (
-          <p className="text-sm text-muted-foreground">Reading the latest.</p>
+          <p role="status" className="text-sm text-muted-foreground">
+            Reading the latest.
+          </p>
         ) : q.isError ? (
-          <p className="text-sm text-muted-foreground">Couldn't build the update right now.</p>
+          // An error never wears the empty state's clothes: name the cause,
+          // offer the one action.
+          <div className="space-y-2">
+            <p className="text-sm" style={{ color: "var(--madder)" }}>
+              Couldn't build the update.{" "}
+              {q.error instanceof Error ? q.error.message : "The request failed."}
+            </p>
+            <button type="button" className="btn btn-ghost" onClick={() => void q.refetch()}>
+              Try again
+            </button>
+          </div>
         ) : q.data ? (
           <div className="space-y-4">
             <div className="rounded-md border hairline bg-card p-4 space-y-3 text-sm">
@@ -95,7 +107,7 @@ export function StatusUpdateDialog({
                 </div>
               ))}
             </div>
-            <button onClick={copy} className="btn btn-ghost" disabled={!q.data}>
+            <button type="button" onClick={copy} className="btn btn-ghost" disabled={!q.data}>
               {copied ? (
                 <>
                   <Check className="h-3.5 w-3.5" /> Copied

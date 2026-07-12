@@ -186,6 +186,10 @@ export function RoomRail({ room, view, rooms, onOverview, onSelect }: RoomRailPr
               className={cn(
                 "cursor-pointer rounded-full outline-none",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]",
+                // Pointer answer parity with the desktop rail: inactive pills
+                // lift one surface step on hover; press dims (checklist 1/3).
+                !active && "hover:[background-color:var(--raised)]",
+                "active:opacity-80",
               )}
               style={{
                 height: 32,

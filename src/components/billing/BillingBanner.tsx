@@ -125,7 +125,7 @@ export function BillingBanner() {
             type="button"
             onClick={openPortal}
             disabled={opening}
-            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium hover:opacity-90 disabled:opacity-60"
+            className="rounded-[8px] px-2.5 py-1 text-[11px] font-medium outline-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-60"
             style={{ background: "var(--rose)", color: "var(--destructive-foreground)" }}
           >
             {opening ? "Opening..." : "Update card"}
@@ -145,13 +145,19 @@ export function BillingBanner() {
             Running low: {balance} AI {balance === 1 ? "credit" : "credits"} left. Top up or upgrade
             so the loop keeps running.
           </span>
-          <Link to="/settings" style={{ color: "var(--action-blue)", fontWeight: 500 }}>
+          <Link
+            to="/settings"
+            search={{ section: "credits" }}
+            className="outline-none hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{ color: "var(--action-blue)", fontWeight: 500 }}
+          >
             Add credits
           </Link>
           <button
             type="button"
             onClick={dismissLow}
-            style={{ color: "var(--text-subtle)", background: "transparent", border: "none" }}
+            className="cursor-pointer outline-none [color:var(--text-subtle)] hover:underline hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            style={{ background: "transparent", border: "none" }}
           >
             Later
           </button>

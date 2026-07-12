@@ -89,16 +89,49 @@ export function FleetView() {
   const fleet = query.data?.fleet;
 
   if (query.isPending) {
+    // Skeleton matching the loaded row list (never a bare text placeholder).
     return (
-      <div style={{ fontSize: 13, color: "var(--ink-subtle)", padding: "32px 0" }}>
-        Scanning the fleet…
+      <div role="status" style={{ padding: "16px 0" }}>
+        <span className="sr-only">Scanning the fleet…</span>
+        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                height: 56,
+                borderRadius: 10,
+                border: "1px solid var(--hairline)",
+                opacity: 0.4,
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
   if (query.isError) {
     return (
-      <div style={{ fontSize: 13, color: "var(--rose)", padding: "32px 0" }}>
-        Could not load the fleet. {(query.error as Error)?.message}
+      <div style={{ padding: "32px 0" }}>
+        <p style={{ fontSize: 13, color: "var(--rose)", margin: 0 }}>
+          Could not load the fleet. {(query.error as Error)?.message}
+        </p>
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            marginTop: 10,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--ink-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · rescans the fleet
+        </button>
       </div>
     );
   }

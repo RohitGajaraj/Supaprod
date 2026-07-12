@@ -113,7 +113,7 @@ export function ErrorRetry({ message, onRetry }: { message: string; onRetry: () 
       </p>
       <button
         type="button"
-        className="uppercase cursor-pointer"
+        className="uppercase cursor-pointer hover:underline active:opacity-80"
         onClick={onRetry}
         style={{
           fontFamily: "var(--font-mono)",
@@ -142,7 +142,7 @@ export function PanelPending() {
           width: 220,
           height: 3,
           background:
-            "linear-gradient(90deg, rgba(132, 179, 236,0), rgba(132, 179, 236,0.5), rgba(132, 179, 236,0))",
+            "linear-gradient(90deg, transparent, color-mix(in srgb, var(--glacier) 50%, transparent), transparent)",
           backgroundSize: "280% 100%",
           animation: "cadShimmer 1.6s linear infinite",
         }}
@@ -216,7 +216,18 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
 
   React.useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onBack();
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      // Escape closes the innermost layer only: an open overlay (Radix marks
+      // its dismissal via defaultPrevented) or a focused field keeps it.
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.closest("input, textarea, select, [contenteditable='true']") ||
+          t.closest("[role='dialog'], [role='menu'], [role='listbox']"))
+      ) {
+        return;
+      }
+      onBack();
     };
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);

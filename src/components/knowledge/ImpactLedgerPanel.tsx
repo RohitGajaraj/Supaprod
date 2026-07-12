@@ -92,9 +92,25 @@ export function ImpactLedgerPanel() {
     return (
       <Card>
         <MonoLabel style={{ marginBottom: 8 }}>Impact Ledger · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(query.error as Error)?.message ?? "Unknown error"}
         </p>
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+            color: "var(--text-subtle)",
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          Retry · reloads the ledger
+        </button>
       </Card>
     );
   }
@@ -173,6 +189,7 @@ export function ImpactLedgerPanel() {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
+          aria-label="Your name, optional, for the record header"
           placeholder="Your name (optional, for the record header)"
           className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
@@ -180,7 +197,7 @@ export function ImpactLedgerPanel() {
             minWidth: 220,
             background: "var(--card)",
             border: "1px solid var(--hairline)",
-            borderRadius: 8,
+            borderRadius: "var(--radius-control)",
             padding: "7px 11px",
             fontSize: 12.5,
             color: "var(--text-primary)",

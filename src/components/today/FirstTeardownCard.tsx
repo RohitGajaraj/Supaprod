@@ -149,7 +149,9 @@ export function FirstTeardownCard({
           type="button"
           onClick={onKeep}
           disabled={deciding}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-default disabled:opacity-55"
+          // Color/background ride the class so the hover variants win over
+          // inline styles.
+          className="loom-press outline-none transition-colors [color:var(--text-muted)] [background-color:transparent] hover:[color:var(--text-body)] hover:[background-color:var(--surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:cursor-default disabled:opacity-55"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -158,8 +160,6 @@ export function FirstTeardownCard({
             fontFamily: "var(--font-ui)",
             fontSize: 12,
             fontWeight: 500,
-            color: "var(--text-muted)",
-            background: "transparent",
             border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             cursor: deciding ? "default" : "pointer",

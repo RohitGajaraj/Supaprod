@@ -102,6 +102,7 @@ export function CreditsWelcome({ onDismiss }: { onDismiss: () => void }) {
       <button
         type="button"
         aria-label="Dismiss"
+        className="loom-press"
         onClick={(e) => {
           e.stopPropagation();
           dismiss();

@@ -26,6 +26,27 @@ export function NotificationsPanel() {
     );
   }
 
+  if (q.isError) {
+    return (
+      <div className="bento" style={{ padding: 24 }}>
+        <div className="mono-label" style={{ color: "var(--rose)" }}>
+          Couldn't load notifications
+        </div>
+        <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+          {(q.error as Error)?.message ?? "The read failed."}
+        </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          style={{ marginTop: 14 }}
+          onClick={() => void q.refetch()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="bento" style={{ padding: 24 }}>
@@ -46,7 +67,7 @@ export function NotificationsPanel() {
           <a
             key={n.id}
             href={n.href}
-            className="bento"
+            className="bento lift"
             style={{ padding: 16, display: "block", textDecoration: "none", color: "inherit" }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -69,7 +69,8 @@ export function BindingPicker({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-(--ds-size-small) items-center gap-1.5 rounded-md border hairline px-3 text-xs text-muted-foreground hover:text-foreground"
+          disabled={mBind.isPending}
+          className="inline-flex h-(--ds-size-small) items-center gap-1.5 rounded-md border hairline px-3 text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] disabled:opacity-50"
         >
           {mBind.isPending ? (
             <Loader2 className="h-3 w-3 animate-spin" />

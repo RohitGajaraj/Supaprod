@@ -73,6 +73,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
             {(q.error as Error).message}
           </p>
           <button
+            type="button"
             className="btn btn-ghost btn-sm"
             style={{ marginTop: 14 }}
             onClick={() => q.refetch()}
@@ -186,6 +187,8 @@ export function AgentSpendDetail({ id }: { id: string }) {
                   >
                     {m.missionId ? (
                       <button
+                        type="button"
+                        className="hover:underline"
                         style={{
                           color: "var(--action-blue)",
                           textAlign: "left",

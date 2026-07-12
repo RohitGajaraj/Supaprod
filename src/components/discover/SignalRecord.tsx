@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
 import { ArrowDownRight, ArrowUpRight, Copy, ExternalLink, Radio } from "lucide-react";
-import { MonoLabel } from "@/components/obsidian";
+import { Button, MonoLabel } from "@/components/obsidian";
 import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
 import {
@@ -15,6 +15,7 @@ import {
 import { getLineage } from "@/lib/lineage.functions";
 import { toast } from "@/lib/notify";
 import { DetailHeader, DetailSection, StatCell, StatStrip, type StatTone } from "./DetailKit";
+import { SkeletonBar } from "./SkeletonBar";
 import { relTimeCaps, signalCleanBody, signalHasRaw, sourceCaps, traceRef } from "./format";
 
 /** The verbatim signal record, shared by the raw-signal detail sheet (Column
@@ -135,7 +136,10 @@ function LineageSection({
         </MonoLabel>
       </div>
       {loading ? (
-        <p style={{ fontSize: "12px", color: "var(--text-subtle)", margin: 0 }}>Loading</p>
+        <div className="grid gap-2" role="status" aria-label={`Loading ${heading.toLowerCase()}`}>
+          <SkeletonBar width="70%" height={11} />
+          <SkeletonBar width="45%" height={11} />
+        </div>
       ) : peers.length === 0 ? (
         <p
           style={{ fontSize: "12px", color: "var(--text-subtle)", fontStyle: "italic", margin: 0 }}
@@ -276,13 +280,12 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
             }}
             aria-label="Copy trace id"
             title="Copy the full trace id"
-            className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+            className="loom-press flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={{
               gap: "6px",
               fontFamily: "var(--font-mono)",
               fontSize: "10px",
               letterSpacing: "0.06em",
-              color: "var(--text-faint)",
               background: "transparent",
               border: "none",
               padding: "3px 2px",
@@ -324,8 +327,8 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                 target="_blank"
                 rel="noreferrer"
                 title="Open source"
-                className="loom-press flex items-center hover:[color:var(--text-primary)]"
-                style={{ gap: 7, color: "var(--text-body)" }}
+                className="loom-press flex items-center outline-none transition-colors [color:var(--text-body)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                style={{ gap: 7 }}
               >
                 {sourceGlyph}
                 <span
@@ -413,12 +416,12 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
         {signalHasRaw(record.content) ? (
           <details style={{ marginTop: "10px" }}>
             <summary
+              className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: "10.5px",
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "var(--text-subtle)",
                 cursor: "pointer",
                 userSelect: "none",
               }}
@@ -458,11 +461,10 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
                   href={s.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="loom-press flex items-start hover:[color:var(--text-primary)]"
+                  className="loom-press flex items-start outline-none transition-colors [color:var(--link)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     gap: 7,
                     fontSize: "12.5px",
-                    color: "var(--link)",
                     lineHeight: 1.4,
                     width: "fit-content",
                   }}
@@ -480,34 +482,49 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
         )}
       </DetailSection>
 
-      {/* Lineage: the cross-impact, in and out. */}
+      {/* Lineage: the cross-impact, in and out. An error never wears the
+          empty state's clothes (a failed read used to render "Captured
+          directly, no upstream artifact"): cause + retry. */}
       <DetailSection heading="Lineage">
-        <div style={{ display: "grid", gap: "14px" }}>
-          <LineageSection
-            heading="Came from"
-            icon={<ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--text-subtle)" }} />}
-            loading={q.isLoading}
-            emptyText="Captured directly, no upstream artifact."
-            peers={ancestors.map((e) => ({
-              kind: e.parent_kind,
-              title: e.peer_title ?? "(untitled)",
-              key: e.id,
-            }))}
-          />
-          <LineageSection
-            heading="Became"
-            icon={
-              <ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />
-            }
-            loading={q.isLoading}
-            emptyText="Nothing promoted from this yet."
-            peers={descendants.map((e) => ({
-              kind: e.child_kind,
-              title: e.peer_title ?? "(untitled)",
-              key: e.id,
-            }))}
-          />
-        </div>
+        {q.isError ? (
+          <div style={{ display: "grid", gap: "8px", justifyItems: "start" }}>
+            <p style={{ fontSize: "12px", color: "var(--madder)", margin: 0 }}>
+              Could not load this signal's lineage. {(q.error as Error).message}
+            </p>
+            <Button variant="tertiary" size="sm" onClick={() => q.refetch()}>
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: "14px" }}>
+            <LineageSection
+              heading="Came from"
+              icon={
+                <ArrowUpRight className="h-3.5 w-3.5" style={{ color: "var(--text-subtle)" }} />
+              }
+              loading={q.isLoading}
+              emptyText="Captured directly, no upstream artifact."
+              peers={ancestors.map((e) => ({
+                kind: e.parent_kind,
+                title: e.peer_title ?? "(untitled)",
+                key: e.id,
+              }))}
+            />
+            <LineageSection
+              heading="Became"
+              icon={
+                <ArrowDownRight className="h-3.5 w-3.5" style={{ color: "var(--moss-bright)" }} />
+              }
+              loading={q.isLoading}
+              emptyText="Nothing promoted from this yet."
+              peers={descendants.map((e) => ({
+                kind: e.child_kind,
+                title: e.peer_title ?? "(untitled)",
+                key: e.id,
+              }))}
+            />
+          </div>
+        )}
       </DetailSection>
     </div>
   );

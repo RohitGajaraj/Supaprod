@@ -322,7 +322,10 @@ function SteerComposer({
           type="button"
           onClick={() => steer.mutate()}
           disabled={!canSend}
-          className="loom-press"
+          // Disabled explains itself: closedReason renders below when terminal;
+          // while open, the title names what unlocks Send.
+          title={!canSend && !disabled && !steer.isPending ? "Type a steer first" : undefined}
+          className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             flexShrink: 0,
             display: "inline-flex",
@@ -403,14 +406,15 @@ function ExecutionLogFold({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+        // Base background lives in the class so the hover state can resolve
+        // (an inline background always beats a stylesheet hover).
+        className="loom-press outline-none transition-colors [background:var(--surface-recessed)] hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{
           width: "100%",
           minHeight: 32,
           display: "flex",
           alignItems: "center",
           gap: 6,
-          background: "var(--surface-recessed)",
           border: "1px solid var(--hairline)",
           borderRadius: "var(--radius-control)",
           boxShadow: "var(--top-light)",
@@ -449,7 +453,9 @@ function SessionSkeleton() {
     <div aria-hidden="true">
       <SkeletonBlock height={64} style={{ maxWidth: 560, marginBottom: 16 }} />
       <SkeletonBlock height={44} style={{ marginBottom: 16 }} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      {/* Same responsive collapse as the loaded grid, so the skeleton never
+          overflows at narrow widths while the real layout stacks. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 14 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SkeletonBlock height={180} />
           <SkeletonBlock height={88} />
@@ -578,6 +584,7 @@ function BuildSessionPage() {
               {renamingTitle ? (
                 <input
                   autoFocus
+                  aria-label="Mission title"
                   value={titleDraft}
                   onChange={(e) => setTitleDraft(e.target.value)}
                   onBlur={commitTitleRename}
@@ -619,6 +626,7 @@ function BuildSessionPage() {
                   tabIndex={0}
                   aria-label={`Rename mission: ${stripAutoPrefix(mission.title)}`}
                   title="Click to rename"
+                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontFamily: "var(--font-serif)",
                     fontSize: 25,
@@ -670,7 +678,7 @@ function BuildSessionPage() {
                 }}
                 aria-label="Copy trace id"
                 title="Copy the full trace id"
-                className="loom-press"
+                className="loom-press outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -678,7 +686,6 @@ function BuildSessionPage() {
                   fontFamily: "var(--font-mono)",
                   fontSize: "var(--text-mono-floor)",
                   letterSpacing: "0.06em",
-                  color: "var(--text-faint)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
@@ -693,12 +700,11 @@ function BuildSessionPage() {
                   <Link
                     to="/plan/spec/$id"
                     params={{ id: spec.id }}
-                    className="loom-press hover:[color:var(--text-primary)]"
+                    className="loom-press outline-none [color:var(--glacier)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: "var(--text-mono-floor)",
                       letterSpacing: "0.06em",
-                      color: "var(--glacier)",
                     }}
                     title={`Built from spec: ${spec.title}`}
                   >
@@ -723,7 +729,7 @@ function BuildSessionPage() {
                 type="button"
                 onClick={() => setShowBrief((v) => !v)}
                 aria-expanded={showBrief}
-                className="mono-label loom-press"
+                className="mono-label loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",

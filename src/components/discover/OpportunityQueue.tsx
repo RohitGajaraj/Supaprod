@@ -369,14 +369,12 @@ export function OpportunityQueue() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="loom-press outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+          className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",
             fontSize: 12.5,
             fontWeight: 500,
-            color: "var(--text-muted)",
             background: "transparent",
-            border: "1px solid var(--hairline-strong)",
             borderRadius: "var(--radius-control)",
             padding: "8px 14px",
             margin: "0 4px",

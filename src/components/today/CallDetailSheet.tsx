@@ -229,11 +229,10 @@ function ProvenanceSection({
         <button
           type="button"
           onClick={onOpen}
-          className="loom-press flex items-center hover:[color:var(--text-primary)]"
+          className="loom-press flex items-center transition-colors [color:var(--link)] hover:underline"
           style={{
             gap: "6px",
             fontSize: "12px",
-            color: "var(--link)",
             background: "transparent",
             border: "none",
             padding: 0,
@@ -569,13 +568,12 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
                 onClick={copyId}
                 aria-label="Copy trace id"
                 title="Copy the full trace id"
-                className="loom-press flex items-center hover:[color:var(--text-subtle)]"
+                className="loom-press flex items-center transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)]"
                 style={{
                   gap: "6px",
                   fontFamily: "var(--font-mono)",
                   fontSize: "10px",
                   letterSpacing: "0.06em",
-                  color: "var(--text-faint)",
                   background: "transparent",
                   border: "none",
                   padding: "3px 2px",

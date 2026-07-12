@@ -2,6 +2,7 @@ import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button, MonoLabel } from "@/components/obsidian";
+import { useToast } from "@/components/obsidian/toast";
 import {
   listBriefItems,
   upsertBriefItem,
@@ -27,6 +28,7 @@ const SINGLETON_KINDS: BriefItemKind[] = ["vision", "icp", "positioning"];
  * restraint budget (this card owns zero ember — nothing here is a gate). */
 export function StrategicBriefCard() {
   const qc = useQueryClient();
+  const showToast = useToast();
   const fList = useServerFn(listBriefItems);
   const fUpsert = useServerFn(upsertBriefItem);
   const fRetire = useServerFn(retireBriefItem);
@@ -62,11 +64,14 @@ export function StrategicBriefCard() {
       setDraftTitle("");
       setDraftBody("");
     },
+    // A failed save must never end silently with the form still open.
+    onError: (e: Error) => showToast(e.message),
   });
 
   const retire = useMutation({
     mutationFn: (id: string) => fRetire({ data: { id } }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["brief-items"] }),
+    onError: (e: Error) => showToast(e.message),
   });
 
   function startEdit(kind: BriefItemKind, existing?: BriefItem) {
@@ -109,10 +114,11 @@ export function StrategicBriefCard() {
   const bets = byKind.get("top_bet") ?? [];
   const unsetKinds = SINGLETON_KINDS.filter((k) => !byKind.get(k)?.[0]);
   const nothingSet = unsetKinds.length === SINGLETON_KINDS.length && bets.length === 0;
+  // No `color` here: it rides the [color:…] class on each quiet link so the
+  // hover:[color:…] variant can win (inline style beats classes).
   const quietLinkStyle: React.CSSProperties = {
     fontFamily: "var(--font-mono)",
     fontSize: 9,
-    color: "var(--text-subtle)",
     background: "transparent",
     border: "none",
     textTransform: "uppercase",
@@ -158,7 +164,7 @@ export function StrategicBriefCard() {
           <button
             type="button"
             onClick={() => setReveal(true)}
-            className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+            className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
             style={quietLinkStyle}
           >
             Set the brief
@@ -179,11 +185,10 @@ export function StrategicBriefCard() {
                     <button
                       type="button"
                       onClick={() => startEdit(kind, current)}
-                      className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+                      className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: 9,
-                        color: "var(--text-subtle)",
                         background: "transparent",
                         border: "none",
                         textTransform: "uppercase",
@@ -216,10 +221,10 @@ export function StrategicBriefCard() {
                       <button
                         type="button"
                         onClick={cancelEdit}
+                        className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)]"
                         style={{
                           fontFamily: "var(--font-mono)",
                           fontSize: 9,
-                          color: "var(--text-faint)",
                           background: "transparent",
                           border: "none",
                           textTransform: "uppercase",
@@ -253,17 +258,17 @@ export function StrategicBriefCard() {
                     type="button"
                     onClick={() => retire.mutate(bet.id)}
                     disabled={retire.isPending}
+                    className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)] disabled:cursor-default disabled:opacity-45"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 9,
-                      color: "var(--text-faint)",
                       background: "transparent",
                       border: "none",
                       textTransform: "uppercase",
                       flexShrink: 0,
                     }}
                   >
-                    Retire
+                    {retire.isPending ? "Retiring…" : "Retire"}
                   </button>
                 </div>
               ))}
@@ -297,10 +302,10 @@ export function StrategicBriefCard() {
                     <button
                       type="button"
                       onClick={cancelEdit}
+                      className="transition-colors [color:var(--text-faint)] hover:[color:var(--text-muted)]"
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: 9,
-                        color: "var(--text-faint)",
                         background: "transparent",
                         border: "none",
                         textTransform: "uppercase",
@@ -314,11 +319,10 @@ export function StrategicBriefCard() {
                 <button
                   type="button"
                   onClick={() => startEdit("top_bet")}
-                  className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+                  className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: 9,
-                    color: "var(--text-subtle)",
                     background: "transparent",
                     border: "none",
                     textTransform: "uppercase",
@@ -335,7 +339,7 @@ export function StrategicBriefCard() {
             <button
               type="button"
               onClick={() => setReveal(true)}
-              className="outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--ember)]"
+              className="outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={quietLinkStyle}
             >
               Set the rest of the brief

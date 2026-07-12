@@ -89,7 +89,11 @@ export function BriefPanel() {
 
   const retire = useMutation({
     mutationFn: (id: string) => fRetire({ data: { id } }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["brief-items"] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["brief-items"] });
+      // Destructive action pairs with a confirming toast (Tempo component contract).
+      toast.success("Bet retired. Its versions stay on the record.");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -406,6 +410,7 @@ function BriefForm({
         autoFocus
         value={titleValue}
         onChange={(e) => onTitleChange(e.target.value)}
+        aria-label={`${KIND_LABEL[kind]} title`}
         placeholder={KIND_TITLE_PLACEHOLDER[kind]}
       />
       <textarea
@@ -413,6 +418,7 @@ function BriefForm({
         value={bodyValue}
         onChange={(e) => onBodyChange(e.target.value)}
         rows={kind === "top_bet" ? 2 : 3}
+        aria-label={`${KIND_LABEL[kind]} body`}
         placeholder={KIND_BODY_PLACEHOLDER[kind]}
         style={{ resize: "vertical" }}
       />

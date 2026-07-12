@@ -70,7 +70,7 @@ export function ShipHistoryPanel() {
       <div
         style={{
           background: "var(--card)",
-          border: "1px solid rgba(127,191,142,0.3)",
+          border: "1px solid color-mix(in srgb, var(--moss) 30%, transparent)",
           borderRadius: "var(--radius-card)",
           padding: "28px 26px",
         }}

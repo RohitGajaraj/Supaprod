@@ -37,17 +37,20 @@ function RoutineToggle({
   on,
   onToggle,
   disabled,
+  name,
 }: {
   on: boolean;
   onToggle: () => void;
   disabled?: boolean;
+  name: string;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
-      aria-label={on ? "Turn off" : "Turn on"}
+      aria-label={`${on ? "Turn off" : "Turn on"} ${name}`}
+      aria-busy={disabled || undefined}
       disabled={disabled}
       onClick={onToggle}
       style={{
@@ -122,10 +125,23 @@ function RoutineRowView({ routine }: { routine: RoutineRow }) {
           Last run {relativeTime(routine.lastRunAt, () => "not yet tracked")} · Next run{" "}
           {nextRunLabel(routine.nextRunAt)}
         </p>
+        {mut.isError ? (
+          <p
+            role="alert"
+            style={{
+              fontSize: "var(--text-xs)",
+              color: "var(--madder-bright)",
+              margin: "4px 0 0",
+            }}
+          >
+            The change did not save. Flip the switch again to retry.
+          </p>
+        ) : null}
       </div>
       <RoutineToggle
         on={routine.enabled}
         disabled={mut.isPending}
+        name={routine.name}
         onToggle={() => mut.mutate(!routine.enabled)}
       />
     </div>
@@ -142,7 +158,9 @@ export function RoutinesPanel() {
   if (q.isLoading) return <PanelPending />;
   const routines = q.data ?? [];
   if (routines.length === 0) {
-    return <EmptyRow message="No routines registered yet." />;
+    return (
+      <EmptyRow message="No routines registered yet. The platform's background routines appear here as they come online, each with its own on and off switch." />
+    );
   }
   return (
     <div

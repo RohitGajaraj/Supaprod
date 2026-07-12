@@ -103,14 +103,14 @@ export function TriageQueue({
               {rest.length > 0 && !isOpen ? (
                 <button
                   type="button"
-                  className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                  aria-expanded={false}
+                  className="loom-press w-full text-left outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   onClick={() => setExpanded((e) => ({ ...e, [group.family]: true }))}
                   style={{
                     fontFamily: "var(--font-mono)",
                     fontSize: 10.5,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "var(--text-muted)",
                     background: "transparent",
                     border: "1px dashed var(--hairline-strong)",
                     borderRadius: "var(--radius-card)",
@@ -127,14 +127,14 @@ export function TriageQueue({
                   ))}
                   <button
                     type="button"
-                    className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                    aria-expanded={true}
+                    className="loom-press self-start outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                     onClick={() => setExpanded((e) => ({ ...e, [group.family]: false }))}
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 10.5,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
-                      color: "var(--text-muted)",
                       background: "transparent",
                       border: "none",
                       padding: "2px 0",
@@ -158,14 +158,14 @@ export function TriageQueue({
           {!expiredOpen ? (
             <button
               type="button"
-              className="loom-press w-full text-left outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+              aria-expanded={false}
+              className="loom-press w-full text-left outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               onClick={() => setExpiredOpen(true)}
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 10.5,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: "var(--text-subtle)",
                 background: "transparent",
                 border: "1px dashed var(--hairline)",
                 borderRadius: "var(--radius-card)",
@@ -231,17 +231,17 @@ export function TriageQueue({
                   <div className="flex items-baseline" style={{ gap: 14, flexShrink: 0 }}>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      className="loom-press outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onRun}
-                      style={{ ...monoBtn, color: "var(--text-muted)" }}
+                      style={monoBtn}
                     >
                       Run it now
                     </button>
                     <button
                       type="button"
-                      className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                      className="loom-press outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                       onClick={call.onDismiss}
-                      style={{ ...monoBtn, color: "var(--text-muted)" }}
+                      style={monoBtn}
                     >
                       Dismiss
                     </button>
@@ -263,9 +263,10 @@ export function TriageQueue({
               ) : null}
               <button
                 type="button"
-                className="loom-press self-start outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+                aria-expanded={true}
+                className="loom-press self-start outline-none transition-colors [color:var(--text-muted)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 onClick={() => setExpiredOpen(false)}
-                style={{ ...monoBtn, color: "var(--text-muted)" }}
+                style={monoBtn}
               >
                 Hide expired
               </button>

@@ -113,14 +113,19 @@ function TabBar({
                 moveTo("queue");
               }
             }}
-            className="loom-press outline-none transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
+            className={`loom-press outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] ${
+              // Color lives in classes, not inline style: an inline color would
+              // beat the hover class in the cascade and kill the hover state.
+              selected
+                ? "[color:var(--text-primary)]"
+                : "[color:var(--text-muted)] hover:[color:var(--text-body)]"
+            }`}
             style={{
               fontFamily: "var(--font-ui)",
               fontSize: "13px",
               fontWeight: selected ? 600 : 500,
               height: "36px",
               padding: "0 14px",
-              color: selected ? "var(--text-primary)" : "var(--text-muted)",
               background: "transparent",
               border: "none",
               borderBottom: selected ? "2px solid var(--ember)" : "2px solid transparent",
@@ -390,7 +395,8 @@ export function DiscoverSurface() {
                     workspace stays empty · about 5 seconds
                   </p>
                   {sampleMutation.isError ? (
-                    <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "6px" }}>
+                    // An error wears error clothes (madder), never quiet gray.
+                    <p style={{ fontSize: "12px", color: "var(--madder)", marginTop: "6px" }}>
                       Could not open the sample workspace. Try again.
                     </p>
                   ) : null}

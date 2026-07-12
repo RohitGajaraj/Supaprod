@@ -32,12 +32,15 @@ function ClusterCard({
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            {/* Neutral bullet: ember is reserved for interactive/selected/
+                primary elements, and a decorative list marker is none of
+                those (accent restraint, checklist 12). */}
             <span
               style={{
                 width: 7,
                 height: 7,
                 borderRadius: 999,
-                background: "var(--ember)",
+                background: "var(--text-faint)",
                 flexShrink: 0,
               }}
             />
@@ -91,7 +94,9 @@ function ClusterCard({
                 style={{
                   fontSize: 11,
                   color: "var(--emerald, #4f8a59)",
-                  fontFamily: "monospace",
+                  // Geist Mono via the token, never the raw browser monospace
+                  // stack (checklist 12).
+                  fontFamily: "var(--font-mono)",
                 }}
               >
                 Signal sent to Discover
@@ -100,8 +105,10 @@ function ClusterCard({
           )}
         </div>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ flexShrink: 0, marginTop: 2 }}
+          aria-expanded={draftOpen}
           onClick={() => onDraft(cluster.clusterKey)}
         >
           {draftOpen ? "Close reply" : "Reply template"}
@@ -215,6 +222,7 @@ export function SupportSignalsPanel() {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
+          aria-label="Support tickets, one per line"
           placeholder="Users can't export to CSV after the latest update..."
           rows={5}
           style={{
@@ -228,31 +236,50 @@ export function SupportSignalsPanel() {
             border: "1px solid var(--hairline, rgba(0,0,0,0.1))",
             background: "var(--paper)",
             color: "var(--ink)",
-            outline: "none",
           }}
         />
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
           <button
+            type="button"
             className="btn btn-sm"
             disabled={importing || !text.trim()}
+            title={!text.trim() ? "Paste at least one ticket first" : undefined}
             onClick={handleImport}
             style={{ background: "var(--ember)", color: "var(--cta-ink)", border: "none" }}
           >
             {importing ? "Adding..." : "Add tickets"}
           </button>
-          <button className="btn btn-ghost btn-sm" disabled={running} onClick={handleTriage}>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={running}
+            onClick={handleTriage}
+          >
             {running ? "Extracting..." : "Extract signals"}
           </button>
           {importResult && (
-            <span style={{ fontSize: 12, color: "var(--ink-muted)" }}>{importResult}</span>
+            <span
+              role={importResult.startsWith("Import failed") ? "alert" : undefined}
+              style={{
+                fontSize: 12,
+                color: importResult.startsWith("Import failed")
+                  ? "var(--rose)"
+                  : "var(--ink-muted)",
+              }}
+            >
+              {importResult}
+            </span>
           )}
         </div>
         {triageResult && (
           <div
+            role={triageResult.startsWith("Something went wrong") ? "alert" : undefined}
             style={{
               marginTop: 10,
               fontSize: 13,
-              color: "var(--emerald, #4f8a59)",
+              color: triageResult.startsWith("Something went wrong")
+                ? "var(--rose)"
+                : "var(--emerald, #4f8a59)",
               fontWeight: 500,
             }}
           >
@@ -265,6 +292,23 @@ export function SupportSignalsPanel() {
       {clustersQ.isLoading ? (
         <div className="mono-label" style={{ color: "var(--ink-muted)", padding: 8 }}>
           Loading
+        </div>
+      ) : clustersQ.isError ? (
+        <div className="bento" style={{ padding: 24 }}>
+          <div className="mono-label" style={{ color: "var(--rose)" }}>
+            Couldn't load recurring themes
+          </div>
+          <p style={{ fontSize: 13, color: "var(--ink-muted)", marginTop: 8 }}>
+            {(clustersQ.error as Error)?.message ?? "The read failed."}
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: 14 }}
+            onClick={() => void clustersQ.refetch()}
+          >
+            Retry
+          </button>
         </div>
       ) : clusters.length === 0 ? (
         <div className="bento" style={{ padding: 24 }}>

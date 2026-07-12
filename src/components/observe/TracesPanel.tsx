@@ -47,6 +47,7 @@ export function TracesPanel() {
           {(traces.error as Error).message}
         </p>
         <button
+          type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 14 }}
           onClick={() => traces.refetch()}
@@ -107,7 +108,7 @@ export function TracesPanel() {
       ) : rows.length === 0 ? (
         <div className="bento" style={{ padding: 32, textAlign: "center" }}>
           <p style={{ fontSize: 12.5, color: "var(--ink-subtle)" }}>
-            No traces in this window. Run an agent or a chat — every AI call lands here as a
+            No traces in this window. Run an agent or a chat, and every AI call lands here as a
             replayable trace.
           </p>
         </div>
@@ -152,6 +153,7 @@ export function TracesPanel() {
                 {t.trace_id.slice(0, 8)}
               </Link>
               <button
+                type="button"
                 className="hover:underline"
                 style={{
                   fontWeight: 500,

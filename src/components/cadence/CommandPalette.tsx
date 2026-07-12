@@ -119,6 +119,15 @@ export function CommandPalette() {
     setActiveIndex(0);
   }, [rows.length]);
 
+  // Keyboard nav must keep the active row in view inside the scrolling list
+  // (block: "nearest" jumps without smooth-scroll, so no reduced-motion leak).
+  useEffect(() => {
+    if (!open) return;
+    document.getElementById(`cadence-cmdk-row-${activeIndex}`)?.scrollIntoView({
+      block: "nearest",
+    });
+  }, [activeIndex, open]);
+
   const runRow = (row: PaletteRow) => {
     setOpen(false);
     if (row.section === "ASK") {
@@ -212,6 +221,11 @@ export function CommandPalette() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onInputKeyDown}
               placeholder="Search, act, or ask what it can do"
+              role="combobox"
+              aria-expanded={rows.length > 0}
+              aria-controls="cadence-cmdk-listbox"
+              aria-activedescendant={rows.length ? `cadence-cmdk-row-${activeIndex}` : undefined}
+              aria-label="Search, act, or ask what it can do"
               className="flex-1 bg-transparent outline-none"
               style={{
                 fontFamily: "var(--font-ui)",
@@ -235,7 +249,14 @@ export function CommandPalette() {
               ESC
             </span>
           </div>
-          <div style={{ maxHeight: 420, overflowY: "auto" }}>
+          <div
+            id="cadence-cmdk-listbox"
+            role="listbox"
+            aria-label="Results"
+            // Menu anatomy (patterns/command-palette.md): 6px interior
+            // padding around 36px rows with 6px row radius.
+            style={{ maxHeight: 420, overflowY: "auto", padding: 6 }}
+          >
             {sectioned.length === 0 ? (
               <div style={{ textAlign: "center", padding: "24px 16px" }}>
                 {/* The palette's one Pixel accent (DESIGN-TEMPO §3), matching
@@ -266,15 +287,20 @@ export function CommandPalette() {
               </div>
             ) : (
               sectioned.map((group) => (
-                <div key={group.label}>
+                <div
+                  key={group.label}
+                  role="group"
+                  aria-label={SECTION_HEADING[group.label] ?? group.label}
+                >
                   <div
+                    aria-hidden="true"
                     style={{
                       fontFamily: "var(--font-mono)",
                       fontSize: 9.5,
                       letterSpacing: "0.11em",
                       textTransform: "uppercase",
                       color: "var(--text-subtle)",
-                      padding: "12px 16px 6px",
+                      padding: "12px 10px 6px",
                     }}
                   >
                     {SECTION_HEADING[group.label] ?? group.label}
@@ -297,6 +323,7 @@ export function CommandPalette() {
                     return (
                       <div
                         key={`${row.section}-${row.label}-${i}`}
+                        id={`cadence-cmdk-row-${i}`}
                         onMouseEnter={() => setActiveIndex(i)}
                         onClick={() => runRow(row)}
                         role="option"
@@ -307,7 +334,9 @@ export function CommandPalette() {
                           gridTemplateColumns: "28px 1fr auto",
                           alignItems: "center",
                           gap: 10,
-                          padding: "9px 16px",
+                          minHeight: 36,
+                          padding: "0 10px",
+                          borderRadius: 6,
                           background: active ? "var(--surface-active)" : "transparent",
                           outline: active ? "2px solid var(--ember)" : "none",
                           outlineOffset: -2,
@@ -338,14 +367,11 @@ export function CommandPalette() {
                               e.stopPropagation();
                               runRow(row);
                             }}
+                            className="loom-press rounded-[var(--radius-control)] border border-[var(--hairline)] bg-transparent text-[var(--text-muted)] transition-colors duration-150 hover:border-[var(--hairline-strong)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]"
                             style={{
                               fontFamily: "var(--font-ui)",
                               fontSize: 12,
-                              color: "var(--text-muted)",
-                              border: "1px solid var(--hairline)",
-                              borderRadius: "var(--radius-control)",
                               padding: "3px 9px",
-                              background: "transparent",
                             }}
                           >
                             Try it

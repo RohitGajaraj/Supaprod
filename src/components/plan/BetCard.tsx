@@ -238,6 +238,12 @@ function BetCardComponent({
             <button
               type="button"
               disabled={saveDisabled}
+              // Disabled pairs with an explanation (Tempo component contract).
+              title={
+                saveDisabled && !editPending
+                  ? "Both the outcome and the measure are required"
+                  : undefined
+              }
               onClick={saveEdit}
               className="loom-press outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
               style={{
@@ -270,6 +276,8 @@ function BetCardComponent({
                 key={t.bucket}
                 type="button"
                 disabled={isCurrent}
+                // Disabled pairs with an explanation (Tempo component contract).
+                title={isCurrent ? "Already in this column" : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
                   onMoveTo(t.bucket);

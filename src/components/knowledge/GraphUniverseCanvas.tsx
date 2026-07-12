@@ -969,10 +969,11 @@ export function GraphUniverseCanvas({
             top: hover ? hover.sy + 14 : 0,
             maxWidth: 260,
             pointerEvents: "none",
-            background: "rgba(17,17,19,0.82)",
+            // Token-traced glass (was dark-only rgba literals; both themes resolve).
+            background: "color-mix(in srgb, var(--surface-card) 82%, transparent)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid var(--hairline)",
             borderRadius: "var(--radius-panel)",
             boxShadow: "var(--shadow-overlay)",
             padding: "10px 12px",

@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { buttonVariants } from "@/components/ui/button";
 import { toast } from "@/lib/notify";
 import { provisionRepoForSpec } from "@/lib/new-build.functions";
 import { provisionThenRetry } from "@/lib/build/repo-gate";
@@ -73,6 +74,10 @@ export function RepoGateDialog({
               navigate({ to: "/sync" });
             }}
             disabled={provision.isPending}
+            // One primary CTA per view: when the provision path is also
+            // offered it is the primary (it auto-retries the dispatch), so
+            // Connect steps down to the outline treatment.
+            className={prdId ? buttonVariants({ variant: "outline" }) : undefined}
           >
             Connect a repo
           </AlertDialogAction>

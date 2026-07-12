@@ -215,7 +215,22 @@ export function StakeholderPackPanel({
         className="flex items-center justify-between"
         style={{ marginBottom: 20, borderBottom: "1px solid var(--hairline)" }}
       >
-        <div role="tablist" aria-label="Audience" className="flex" style={{ gap: 20 }}>
+        <div
+          role="tablist"
+          aria-label="Audience"
+          className="flex"
+          style={{ gap: 20 }}
+          // Tabs keyboard contract: Left/Right move between audiences (roving focus).
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            const idx = AUDIENCE_TABS.findIndex((t) => t.id === audience);
+            const delta = e.key === "ArrowRight" ? 1 : -1;
+            const next = AUDIENCE_TABS[(idx + delta + AUDIENCE_TABS.length) % AUDIENCE_TABS.length];
+            setAudience(next.id);
+            e.currentTarget.querySelector<HTMLButtonElement>(`[data-tab-id="${next.id}"]`)?.focus();
+          }}
+        >
           {AUDIENCE_TABS.map((tab) => {
             const active = tab.id === audience;
             return (
@@ -224,6 +239,8 @@ export function StakeholderPackPanel({
                 type="button"
                 role="tab"
                 aria-selected={active}
+                tabIndex={active ? 0 : -1}
+                data-tab-id={tab.id}
                 onClick={() => setAudience(tab.id)}
                 className={`loom-press ${active ? "" : "hover:[color:var(--text-body)]"}`}
                 style={{

@@ -5,7 +5,7 @@
  * and nesting an interactive `<button>` inside another is invalid HTML, so the
  * quiet `⋯` trigger is a flex sibling rather than a fork of the primitive.
  */
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,18 +129,18 @@ export function BuildMissionRow({
           <button
             type="button"
             aria-label="Session actions"
+            className="loom-press transition-colors hover:[color:var(--text-body)]"
             style={{
               flexShrink: 0,
               padding: "4px 12px",
-              fontFamily: "var(--font-mono)",
-              fontSize: 14,
               color: "var(--text-faint)",
               background: "none",
               border: "none",
               cursor: "pointer",
             }}
           >
-            ⋯
+            {/* Tempo §8: lucide outline icon, one treatment (was a text "⋯" glyph). */}
+            <MoreHorizontal size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

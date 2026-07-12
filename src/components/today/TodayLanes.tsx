@@ -151,15 +151,15 @@ export function PushedInsights({
             <button
               type="button"
               onClick={pushAction ? () => onAct!(ins) : onOpen}
-              className="loom-press transition-colors hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
+              // Color/background/border ride classes so the hover variants win
+              // (an inline declaration always beats a hover class).
+              className="loom-press transition-colors [color:var(--text-muted)] [background-color:transparent] [border-color:var(--hairline-strong)] hover:[background-color:var(--surface-raised)] hover:[border-color:var(--text-faint)]"
               style={{
                 alignSelf: "flex-start",
                 fontFamily: "var(--font-ui)",
                 fontSize: 12,
                 fontWeight: 500,
-                color: "var(--text-muted)",
-                background: "transparent",
-                border: "1px solid var(--hairline-strong)",
+                border: "1px solid",
                 borderRadius: "var(--radius-control)",
                 padding: "5px 11px",
                 cursor: "pointer",
@@ -203,8 +203,16 @@ export function SwarmActivityLane({
             return (
               <div
                 key={g.key}
+                // The hover border must live in classes: the inline `border`
+                // shorthand would always win over a hover class.
+                className={
+                  clickable
+                    ? "loom-press transition-colors [border-color:var(--hairline)] hover:[border-color:var(--text-faint)]"
+                    : undefined
+                }
                 style={{
                   ...card,
+                  ...(clickable ? { border: "1px solid" } : {}),
                   cursor: clickable ? "pointer" : "default",
                 }}
                 onClick={clickable ? () => onOpenMission(g.key) : undefined}
