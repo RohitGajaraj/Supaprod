@@ -49,6 +49,8 @@ export type Database = {
           balance_credits: number
           cycle_anchor: string
           monthly_grant_credits: number
+          overage_cap_multiplier: number
+          overage_enabled: boolean
           topup_credits: number
           updated_at: string
         }
@@ -57,6 +59,8 @@ export type Database = {
           balance_credits?: number
           cycle_anchor?: string
           monthly_grant_credits?: number
+          overage_cap_multiplier?: number
+          overage_enabled?: boolean
           topup_credits?: number
           updated_at?: string
         }
@@ -65,6 +69,8 @@ export type Database = {
           balance_credits?: number
           cycle_anchor?: string
           monthly_grant_credits?: number
+          overage_cap_multiplier?: number
+          overage_enabled?: boolean
           topup_credits?: number
           updated_at?: string
         }
