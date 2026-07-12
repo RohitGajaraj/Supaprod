@@ -128,6 +128,13 @@
   --color-ember-soft: var(--ember-soft);
   --color-agent: var(--agent);
   --color-saffron: var(--saffron);
+
+  /* Density tokens (PC-37) — compact spacing scale */
+  --spacing-page-gutter: var(--page-gutter);
+  --spacing-card-pad: var(--card-pad);
+  --spacing-section-gap: var(--section-gap);
+  --spacing-control-h: var(--control-h);
+  --spacing-row-h: var(--row-h);
 }
 
 :root {
@@ -198,8 +205,14 @@
   --hero-ink: oklch(0.965 0.008 85);
   --dark-navy: var(--hero-bg);
 
-  --card-pad: 18px;
-  --bento-pad: 14px;
+  /* PC-37 density pass (2026-07-12): compact spacing for world-class density
+     (Linear/Raycast-grade). 12px readability floor maintained. */
+  --page-gutter: 24px; /* page/section horizontal margins */
+  --card-pad: 16px; /* card content padding (was 18px) */
+  --section-gap: 16px; /* gap between major sections (was 24px) */
+  --control-h: 32px; /* button/input height (was 40px) */
+  --row-h: 38px; /* table/list row height (was 48px) */
+  --bento-pad: 14px; /* bento grid cell padding (from aurora cards) */
 
   --background: var(--paper);
   --foreground: var(--ink);
