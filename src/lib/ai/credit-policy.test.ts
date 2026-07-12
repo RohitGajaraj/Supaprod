@@ -6,6 +6,9 @@ import {
   isDeliveredStatus,
   isAbandonedStatus,
   ARTIFACT_CREDIT_COST,
+  isMoatSurfaceLockedToManaged,
+  byokFeeUsd,
+  BYOK_FEE_PCT,
 } from "./credit-policy";
 
 describe("isChargeableSurface (PR-A2 free-vs-charged map)", () => {
@@ -79,5 +82,47 @@ describe("isDeliveredStatus / isAbandonedStatus (PR-A1 charge-on-delivery)", () 
     for (const s of all) {
       expect(isDeliveredStatus(s) && isAbandonedStatus(s)).toBe(false);
     }
+  });
+});
+
+describe("isMoatSurfaceLockedToManaged (PR-C1 enterprise BYOK moat guard)", () => {
+  it("locks judge/eval/decision to managed models by default", () => {
+    expect(isMoatSurfaceLockedToManaged("judge")).toBe(true);
+    expect(isMoatSurfaceLockedToManaged("eval")).toBe(true);
+    expect(isMoatSurfaceLockedToManaged("decision")).toBe(true);
+  });
+
+  it("never locks a non-moat surface", () => {
+    for (const s of ["agent", "chat", "prd", "sense", "brief"] as const) {
+      expect(isMoatSurfaceLockedToManaged(s)).toBe(false);
+    }
+  });
+
+  it("unlocks a moat surface explicitly on the approved-model list", () => {
+    expect(isMoatSurfaceLockedToManaged("judge", new Set(["judge"]))).toBe(false);
+    // an approval for one surface does not leak to another
+    expect(isMoatSurfaceLockedToManaged("eval", new Set(["judge"]))).toBe(true);
+  });
+});
+
+describe("byokFeeUsd (PR-C2 the thin platform-fee %)", () => {
+  it("is the rated spend times the fee pct", () => {
+    expect(byokFeeUsd(2500, 0.15)).toBeCloseTo(375, 5);
+  });
+
+  it("uses BYOK_FEE_PCT (15%, inside the founder's 10-20% band) by default", () => {
+    expect(BYOK_FEE_PCT).toBeGreaterThanOrEqual(0.1);
+    expect(BYOK_FEE_PCT).toBeLessThanOrEqual(0.2);
+    expect(byokFeeUsd(100)).toBeCloseTo(100 * BYOK_FEE_PCT, 5);
+  });
+
+  it("is 0 for a non-positive or non-finite spend", () => {
+    expect(byokFeeUsd(0)).toBe(0);
+    expect(byokFeeUsd(-5)).toBe(0);
+    expect(byokFeeUsd(Number.NaN)).toBe(0);
+  });
+
+  it("never exceeds the rated spend itself for any pct in [0,1]", () => {
+    expect(byokFeeUsd(1000, 0.2)).toBeLessThan(1000);
   });
 });

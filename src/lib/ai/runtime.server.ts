@@ -22,7 +22,13 @@ import {
   sumDebitCredits,
   type LedgerDebitRow,
 } from "../credits.functions";
-import { isChargeableSurface, isAmbientSurface } from "./credit-policy";
+import {
+  isChargeableSurface,
+  isAmbientSurface,
+  isMoatSurfaceLockedToManaged,
+  byokFeeUsd,
+  BYOK_FEE_PCT,
+} from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
@@ -448,6 +454,11 @@ async function byokAllowedForCall(
  *
  * Resolving per-attempt-model (rather than once for the primary) means a cross-provider
  * fallback uses the RIGHT key for the model it actually tries.
+ *
+ * G-PRICE PR-C1: `surface` gates the vault-key branch (step 2) — a moat surface
+ * (judge/eval/decision) never resolves to an enterprise's BYOK vault key, so it always
+ * stays on Cadence's own managed models (pricing-architecture §5's "approved-model
+ * lists" default). The byoOverride test path and the platform's own key are unaffected.
  */
 async function resolveCallKey(
   supabase: SupabaseClient,
@@ -455,6 +466,7 @@ async function resolveCallKey(
   provider: string,
   byoOverride?: { provider: string; apiKey: string; baseUrl?: string },
   workspaceId?: string | null,
+  surface?: CallSurface,
 ): Promise<{
   apiKey: string;
   baseUrl: string | null;
@@ -463,7 +475,8 @@ async function resolveCallKey(
   if (byoOverride) {
     return { apiKey: byoOverride.apiKey, baseUrl: byoOverride.baseUrl ?? null, source: "override" };
   }
-  if (await byokAllowedForCall(supabase, userId, workspaceId)) {
+  const vaultEligible = !surface || !isMoatSurfaceLockedToManaged(surface);
+  if (vaultEligible && (await byokAllowedForCall(supabase, userId, workspaceId))) {
     const { loadBYOKey } = await import("@/lib/byokeys-vault.server");
     const vault = await loadBYOKey(supabase, userId, provider);
     if (vault?.api_key) return { apiKey: vault.api_key, baseUrl: vault.base_url, source: "vault" };
@@ -1198,6 +1211,42 @@ async function debitAccountCredits(
   }
 }
 
+/**
+ * G-PRICE PR-C2: accrue the thin BYOK platform fee for one enterprise BYOK call. The
+ * customer's own key already paid the raw model tokens (pricing-architecture §4) - this
+ * writes ONE byok_fee_accrual row of Cadence's orchestration-margin cut on that rated
+ * spend, read back later as a single contract-invoice line, never a live meter. Runs
+ * independently of credits_enabled() (a contract-billing concern, not the consumer
+ * credit engine) but is itself always a no-op unless the call actually resolved a BYOK
+ * vault key (via === "byo"), checked by the caller before this is invoked. Best-effort;
+ * never throws (a metering failure must not fail a completed call).
+ */
+async function accrueByokFee(
+  supabase: SupabaseClient,
+  userId: string,
+  opts: CallOpts,
+  estCostUsd: number,
+  aiEventId: string | null,
+): Promise<void> {
+  const feeUsd = byokFeeUsd(estCostUsd);
+  if (feeUsd <= 0) return;
+  try {
+    const accountId = await resolveCreditAccountId(supabase, userId, opts.workspaceId ?? null);
+    if (!accountId) return;
+    await (supabaseAdmin as unknown as SupabaseClient).from("byok_fee_accrual").insert({
+      account_id: accountId,
+      user_id: userId,
+      ai_event_id: aiEventId,
+      surface: opts.surface,
+      rated_spend_usd: estCostUsd,
+      fee_pct: BYOK_FEE_PCT,
+      fee_usd: feeUsd,
+    });
+  } catch (e) {
+    console.error("accrueByokFee failed:", e);
+  }
+}
+
 async function incrementBudget(
   supabase: SupabaseClient,
   userId: string,
@@ -1536,6 +1585,7 @@ export async function callModel(
       prov,
       opts.byoOverride,
       opts.workspaceId,
+      opts.surface,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
@@ -1717,6 +1767,9 @@ export async function callModel(
       await recordMissionUsage(supabase, opts.runId ?? null, totalTok, est);
       // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
       await debitAccountCredits(supabase, userId, opts, est, eventId, modelUsed);
+      // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin platform
+      // fee on the rated spend, independent of the consumer credit meter above.
+      if ((via as string) === "byo") await accrueByokFee(supabase, userId, opts, est, eventId);
     }
     if (resolvedPrompt && eventId) {
       await logPromptRun(supabase, userId, {
@@ -2022,6 +2075,7 @@ export async function callModelStream(
       prov,
       opts.byoOverride,
       opts.workspaceId,
+      opts.surface,
     );
     if (keyInfo) {
       const route = providerRoute(model, { baseUrl: keyInfo.baseUrl });
@@ -2341,6 +2395,9 @@ export async function callModelStream(
             await recordMissionUsage(supabase, opts.runId ?? null, inTok + outTok, estCost);
             // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
             await debitAccountCredits(supabase, userId, opts, estCost, eventId, modelUsed);
+            // G-PRICE PR-C2: an enterprise BYOK call still accrues Cadence's thin
+            // platform fee on the rated spend, independent of the credit meter above.
+            if (via === "byo") await accrueByokFee(supabase, userId, opts, estCost, eventId);
           }
 
           if (resolvedPrompt && eventId) {

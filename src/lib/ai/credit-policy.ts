@@ -53,6 +53,48 @@ export function isAmbientSurface(surface: CallSurface): boolean {
 }
 
 /**
+ * PR-C1 — the moat surfaces (decision-layer judgment: the Critic and its eval harness,
+ * plus decision-record work) stay on Cadence's own managed models even for an
+ * enterprise account with BYOK configured, UNLESS that surface is on the account's
+ * explicit approved-model list (pricing-architecture §5: "the moat surfaces still run
+ * on Cadence's own managed models by default unless the enterprise explicitly approves
+ * a model for them"). This is the DEFAULT the chokepoint enforces; an approved-model
+ * override is a data lookup the caller supplies (no such list exists yet in this pass,
+ * so today this is unconditional for these three surfaces).
+ */
+const MOAT_SURFACES: ReadonlySet<CallSurface> = new Set<CallSurface>(["judge", "eval", "decision"]);
+
+/**
+ * True when a BYOK vault key must NOT be used for this surface's call, i.e. it stays on
+ * the platform's own managed key even for an enterprise account with BYOK configured.
+ * `approvedSurfaces` is the account's explicit approved-model allowlist (empty/omitted
+ * by default, since no admin surface exists yet to populate it); a moat surface on that
+ * list is allowed to use BYOK. Pure.
+ */
+export function isMoatSurfaceLockedToManaged(
+  surface: CallSurface,
+  approvedSurfaces: ReadonlySet<CallSurface> = new Set(),
+): boolean {
+  return MOAT_SURFACES.has(surface) && !approvedSurfaces.has(surface);
+}
+
+/**
+ * PR-C2 — the BYOK platform fee: a thin % of the rated pass-through spend on an
+ * enterprise BYOK call (pricing-architecture §4, §11c). Provisional default inside the
+ * founder's stated 10-20% research band; founder-config to tune per contract. A %,
+ * never a flat per-token fee, so it auto-deflates with the market and scales fairly
+ * across the flash-to-frontier price spread.
+ */
+export const BYOK_FEE_PCT = 0.15;
+
+/** The platform-fee USD for a BYOK call's rated spend, at the given fee %. Pure. Non-finite/negative input costs 0. */
+export function byokFeeUsd(ratedSpendUsd: number, feePct: number = BYOK_FEE_PCT): number {
+  if (!Number.isFinite(ratedSpendUsd) || ratedSpendUsd <= 0) return 0;
+  if (!Number.isFinite(feePct) || feePct <= 0) return 0;
+  return ratedSpendUsd * feePct;
+}
+
+/**
  * PR-A3 — the artifact-type -> coarse credit cost table (pricing-architecture §6c,
  * §11b). Deliberately coarse so it is legible ("a mission is about 10 credits"), not a
  * token-derived number. Founder-tunable; the mechanism (one flat cost per artifact type)
