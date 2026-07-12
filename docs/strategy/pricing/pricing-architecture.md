@@ -132,6 +132,26 @@ Reasoning (why clear names, not a clever theme):
 
 Personality lives in the brand voice, the product moments, and feature names — not the tier selector.
 
+### 6b. The billing model — seats-free credits (LOCKED 2026-07-12; resolves the "credits + seats" back-and-forth)
+
+**One meter: credits. Seats are never a price lever, at any tier.** You pay for *work delivered* (credits, pooled at the account), not for headcount.
+
+- **Free:** $0 + a small monthly grant (30-day decay).
+- **Pro:** flat monthly subscription including a credit allowance (credit dropdown to size up), 1 user.
+- **Team:** a higher flat subscription (the higher base buys the governance/collaboration layer — RBAC, approval lanes, write-back connectors, audit) + a **shared credit pool** (dropdown) + **unlimited members** + admin per-user caps.
+- **Enterprise:** a **committed annual credit envelope** at a volume rate (per-credit declines with commitment) + **unlimited seats** + custom contract + optional BYOK (contract term).
+- **Every paid tier:** capped **top-ups + true pay-as-you-go** (reuse the existing add-credits feature) — add credits anytime, user-set cap.
+
+**Why seats-free is the resolution:** COGS lives entirely in *consumption* (a mission costs real money; a person in the workspace costs nothing). A shared credit pool already bounds cost, so unlimited members is free to offer — more people just draw the pool faster and buy a bigger pool. Per-seat would tax the cross-functional collaboration we want; every value-compounds-with-usage platform (Anthropic, OpenAI, Vercel, Replit) pools at the account. Enterprise's committed-credits + unlimited-seats (§3) is this same principle at contract scale.
+
+### 6c. Recommended numbers (founder delegated; unit-economics-backed, tunable)
+
+From §9 COGS (mission ≈ $0.50 cached; small artifacts ≈ pennies; everyday actions free):
+- **Credit sizing (coarse + legible):** mission ≈ **~10 credits**, build ≈ **~20–30**, everyday actions **0**. Internal COGS ≈ **$0.05/credit**. *(Fixes the canon's "150–400 credits/mission" inconsistency; the existing 100→10,000 dropdown works at ~10 cr/mission.)*
+- **Free** $0 / **~50 credits** (~5 missions). **Pro** $20/mo / **~200 credits** (~20 missions, generous for solo). **Team** ~$50/mo base / **~400 pooled credits** (~40 missions). **Enterprise** committed at ~$0.08–0.10/credit volume vs ~$0.12–0.15 self-serve/PAYG.
+- **Margin holds via breakage:** the average PM uses well under the allowance (blended ~4–5x COGS) even though a maxed power user is ~2x. Generous *and* profitable.
+- These are recommendations; the founder sets final Stripe numbers. The one hard rule: keep the sizing self-consistent (base allowance must cover real missions).
+
 ---
 
 ## 7. How it all works as one system
