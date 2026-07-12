@@ -95,6 +95,41 @@ export function byokFeeUsd(ratedSpendUsd: number, feePct: number = BYOK_FEE_PCT)
 }
 
 /**
+ * PR-D2 — bounded, opt-in overage: the default is still stop-at-allowance (never
+ * silent overspend), but an account that has explicitly opted in may draw past its
+ * pool up to a bounded multiplier of its monthly grant (Zapier's 1.25x-to-3x
+ * precedent, pricing-architecture §9d - "the single missing feature that sank Replit
+ * and Devin"). `monthlyGrant` of 0 (no grant configured, e.g. enterprise's custom
+ * model) never has an overage ceiling to compute against, so overage is unavailable.
+ * Pure.
+ */
+export function overageCeiling(monthlyGrant: number, capMultiplier: number): number {
+  if (!Number.isFinite(monthlyGrant) || monthlyGrant <= 0) return 0;
+  const clamped = Number.isFinite(capMultiplier)
+    ? Math.max(1, Math.min(3, capMultiplier))
+    : 1.25;
+  return monthlyGrant * clamped;
+}
+
+/**
+ * True when drawing `projected` more credits, having already spent `spentSinceGrant`
+ * against a `monthlyGrant`-sized allowance, would still fit inside the bounded overage
+ * ceiling. Only meaningful when the account has explicitly opted in (`overageEnabled`);
+ * a non-opted-in account never gets this allowance (the caller checks that flag before
+ * consulting this at all - this function is pure math, not the opt-in gate itself). Pure.
+ */
+export function withinBoundedOverage(
+  spentSinceGrant: number,
+  projected: number,
+  monthlyGrant: number,
+  capMultiplier: number,
+): boolean {
+  const ceiling = overageCeiling(monthlyGrant, capMultiplier);
+  if (ceiling <= 0) return false;
+  return Math.max(0, spentSinceGrant) + Math.max(0, projected) <= ceiling;
+}
+
+/**
  * PR-A3 — the artifact-type -> coarse credit cost table (pricing-architecture §6c,
  * §11b). Deliberately coarse so it is legible ("a mission is about 10 credits"), not a
  * token-derived number. Founder-tunable; the mechanism (one flat cost per artifact type)

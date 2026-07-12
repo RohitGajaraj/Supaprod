@@ -28,6 +28,7 @@ import {
   isMoatSurfaceLockedToManaged,
   byokFeeUsd,
   BYOK_FEE_PCT,
+  withinBoundedOverage,
 } from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
@@ -1048,19 +1049,30 @@ async function assertAccountCredits(
   const admin = supabaseAdmin as unknown as SupabaseClient;
   let balance = 0;
   let cycleAnchorIso: string | null = null;
+  let monthlyGrant = 0;
+  let overageEnabled = false;
+  let overageCapMultiplier = 1.25;
   try {
     const { data } = await admin
       .from("account_credits")
-      .select("balance_credits, topup_credits, cycle_anchor")
+      .select(
+        "balance_credits, topup_credits, cycle_anchor, monthly_grant_credits, overage_enabled, overage_cap_multiplier",
+      )
       .eq("account_id", accountId)
       .maybeSingle();
     const row = (data ?? {}) as {
       balance_credits?: number;
       topup_credits?: number;
       cycle_anchor?: string | null;
+      monthly_grant_credits?: number;
+      overage_enabled?: boolean;
+      overage_cap_multiplier?: number;
     };
     balance = Number(row.balance_credits ?? 0) + Number(row.topup_credits ?? 0);
     cycleAnchorIso = row.cycle_anchor ?? null;
+    monthlyGrant = Number(row.monthly_grant_credits ?? 0);
+    overageEnabled = row.overage_enabled === true;
+    overageCapMultiplier = Number(row.overage_cap_multiplier ?? 1.25);
   } catch {
     return null;
   }
@@ -1076,6 +1088,18 @@ async function assertAccountCredits(
       const downgraded = cheapestLiveModel();
       await logAmbientDowngrade(supabase, userId, opts, accountId, balance, projected);
       return downgraded;
+    }
+    // G-PRICE PR-D2: bounded, opt-in overage. The account must have explicitly turned
+    // this on (never a default); even then the draw is capped at a bounded multiplier
+    // of the monthly grant (1.0-3.0x, Zapier's precedent), never unlimited. The "spent
+    // since grant" basis is (monthlyGrant - balance) clamped to 0 - the pool's own
+    // draw-down already tracks this without a second ledger scan.
+    if (overageEnabled) {
+      const spentSinceGrant = Math.max(0, monthlyGrant - balance);
+      if (withinBoundedOverage(spentSinceGrant, projected, monthlyGrant, overageCapMultiplier)) {
+        await assertCreditCaps(supabase, userId, opts, accountId, projected, cycleAnchorIso);
+        return null;
+      }
     }
     await logCreditExhausted(supabase, userId, opts, accountId, balance, projected);
     throw new CreditExhaustedError(

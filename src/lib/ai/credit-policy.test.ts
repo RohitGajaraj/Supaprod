@@ -9,6 +9,8 @@ import {
   isMoatSurfaceLockedToManaged,
   byokFeeUsd,
   BYOK_FEE_PCT,
+  overageCeiling,
+  withinBoundedOverage,
 } from "./credit-policy";
 
 describe("isChargeableSurface (PR-A2 free-vs-charged map)", () => {
@@ -124,5 +126,33 @@ describe("byokFeeUsd (PR-C2 the thin platform-fee %)", () => {
 
   it("never exceeds the rated spend itself for any pct in [0,1]", () => {
     expect(byokFeeUsd(1000, 0.2)).toBeLessThan(1000);
+  });
+});
+
+describe("overageCeiling / withinBoundedOverage (PR-D2 bounded, opt-in overage)", () => {
+  it("is 0 (no overage available) when there is no monthly grant to bound against", () => {
+    expect(overageCeiling(0, 1.25)).toBe(0);
+    expect(withinBoundedOverage(0, 5, 0, 1.25)).toBe(false);
+  });
+
+  it("clamps the multiplier into the 1.0-3.0 Zapier-precedent band", () => {
+    expect(overageCeiling(100, 10)).toBe(300); // clamped to 3x
+    expect(overageCeiling(100, 0.1)).toBe(100); // clamped to 1x
+    expect(overageCeiling(100, Number.NaN)).toBe(125); // falls back to 1.25x
+  });
+
+  it("allows a draw that fits inside the bounded ceiling", () => {
+    // 100 grant, 1.25x cap = 125 ceiling. Already spent 100 (fully drawn), 20 more fits.
+    expect(withinBoundedOverage(100, 20, 100, 1.25)).toBe(true);
+  });
+
+  it("refuses a draw that would exceed the bounded ceiling", () => {
+    // 100 grant, 1.25x cap = 125 ceiling. Already spent 100, 30 more does not fit.
+    expect(withinBoundedOverage(100, 30, 100, 1.25)).toBe(false);
+  });
+
+  it("never allows unlimited overage regardless of how small the projected draw is", () => {
+    // Even a tiny draw fails once spentSinceGrant already exceeds the ceiling.
+    expect(withinBoundedOverage(1000, 1, 100, 1.25)).toBe(false);
   });
 });
