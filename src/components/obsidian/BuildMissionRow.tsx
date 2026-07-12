@@ -128,7 +128,7 @@ export function BuildMissionRow({
       />
       <CompletionEvidenceBadge session={session} />
       {/* PC-29 Layer 7a: inline approval marker shows which gate is blocking
-          this mission — trust plane made felt on the card itself. */}
+          this mission - trust plane made felt on the card itself. */}
       {approvals.data && <InlineApprovalMarker approvals={approvals.data} />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
