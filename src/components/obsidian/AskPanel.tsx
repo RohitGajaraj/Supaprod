@@ -1,11 +1,12 @@
 import * as React from "react";
+import { Sparkles, ArrowUp } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
 import { findAuditIds } from "@/lib/audit-id";
 import { openLineage } from "@/components/cadence/AuditLineageSheet";
-import { MonoLabel, MissionCanvasBlocks } from "@/components/obsidian";
+import { MissionCanvasBlocks } from "@/components/obsidian";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
@@ -316,11 +317,13 @@ function AskComposer({
         </div>
       ) : null}
       <div
+        className="ask-composer"
         style={{
           border: "1px solid var(--hairline)",
           background: "var(--surface-card-deep)",
-          borderRadius: "var(--radius-card)",
-          padding: "10px 12px",
+          borderRadius: 14,
+          padding: "11px 13px 9px",
+          boxShadow: "inset 0 1px 0 0 color-mix(in oklab, #fff 6%, transparent)",
         }}
       >
         <textarea
@@ -354,8 +357,8 @@ function AskComposer({
               }
             }
           }}
-          placeholder="Ask about this screen, or type / for commands"
-          aria-label="Ask about this screen"
+          placeholder="Ask anything in Cadence, or / for commands"
+          aria-label="Ask anything in Cadence"
           rows={1}
           style={{
             width: "100%",
@@ -372,16 +375,43 @@ function AskComposer({
           }}
         />
         <div
-          style={{
-            marginTop: 6,
-            fontFamily: "var(--font-mono)",
-            fontSize: 9,
-            textTransform: "uppercase",
-            letterSpacing: "0.09em",
-            color: "var(--text-faint)",
-          }}
+          className="flex items-center justify-between"
+          style={{ marginTop: 6, gap: 8 }}
         >
-          Enter to send · Esc closes · / for commands
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 9,
+              textTransform: "uppercase",
+              letterSpacing: "0.09em",
+              color: "var(--text-faint)",
+            }}
+          >
+            / for commands · Enter to send
+          </span>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={disabled || !value.trim()}
+            aria-label="Send"
+            className="loom-press inline-flex items-center justify-center outline-none transition-[background,transform,opacity] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 999,
+              border: "none",
+              background: value.trim() && !disabled ? "var(--ember)" : "var(--hover)",
+              color: value.trim() && !disabled ? "#fff" : "var(--text-faint)",
+              cursor: value.trim() && !disabled ? "pointer" : "default",
+              opacity: value.trim() && !disabled ? 1 : 0.7,
+              boxShadow:
+                value.trim() && !disabled
+                  ? "0 4px 12px -4px color-mix(in oklab, var(--ember) 70%, transparent)"
+                  : "none",
+            }}
+          >
+            <ArrowUp size={15} strokeWidth={2.4} />
+          </button>
         </div>
       </div>
     </div>
@@ -566,42 +596,84 @@ export function AskPanel() {
         >
           <DialogPrimitive.Title className="sr-only">Ask</DialogPrimitive.Title>
           <div
-            className="flex items-center gap-3"
-            style={{ padding: "16px 20px", borderBottom: "1px solid var(--hairline)" }}
+            style={{
+              position: "relative",
+              padding: "15px 20px",
+              borderBottom: "1px solid var(--hairline)",
+              overflow: "hidden",
+            }}
           >
-            <MonoLabel>ASK</MonoLabel>
-            <span
+            {/* Ambient wash — a soft ember→blue glow so the panel opens with
+                life, not a flat header. */}
+            <div
+              aria-hidden="true"
               style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "var(--text-muted)",
-                background: "var(--hover)",
-                border: "1px solid var(--hairline-strong)",
-                borderRadius: "var(--radius-pill, 999px)",
-                padding: "3px 8px",
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(120% 180% at 0% -40%, color-mix(in oklab, var(--ember) 16%, transparent) 0%, transparent 55%), radial-gradient(120% 180% at 100% -40%, color-mix(in oklab, var(--action-blue) 14%, transparent) 0%, transparent 55%)",
+                pointerEvents: "none",
               }}
-            >
-              {`About: ${context}`}
-            </span>
-            <DialogPrimitive.Close asChild>
-              <button
-                type="button"
-                className="transition-colors hover:[color:var(--text-primary)]"
+            />
+            <div className="flex items-center gap-3" style={{ position: "relative" }}>
+              <span
+                aria-hidden="true"
+                className="inline-flex items-center justify-center shrink-0"
                 style={{
-                  marginLeft: "auto",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 10,
-                  color: "var(--text-subtle)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  background: "color-mix(in oklab, var(--ember) 14%, var(--card))",
+                  border: "1px solid var(--ember-line)",
+                  boxShadow: "0 0 14px -2px color-mix(in oklab, var(--ember) 45%, transparent)",
                 }}
               >
-                Close
-              </button>
-            </DialogPrimitive.Close>
+                <Sparkles size={14} strokeWidth={2} style={{ color: "var(--ember)" }} />
+              </span>
+              <div className="min-w-0">
+                <div
+                  style={{
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    lineHeight: 1.15,
+                  }}
+                >
+                  Ask Cadence
+                </div>
+                <div
+                  className="truncate"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 9.5,
+                    letterSpacing: "0.05em",
+                    color: "var(--text-faint)",
+                    marginTop: 1,
+                  }}
+                >
+                  Anything in the platform · reads {context}
+                </div>
+              </div>
+              <DialogPrimitive.Close asChild>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  className="transition-colors hover:[color:var(--text-primary)]"
+                  style={{
+                    marginLeft: "auto",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 10,
+                    color: "var(--text-subtle)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Close
+                </button>
+              </DialogPrimitive.Close>
+            </div>
           </div>
           <div
             ref={scrollContainerRef}
@@ -614,16 +686,32 @@ export function AskPanel() {
           >
             {messages.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <p
-                  style={{
-                    fontFamily: "var(--font-ui)",
-                    fontSize: 13,
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  Ask about this screen. I read what is in front of you, so you can skip the setup.
-                  Most answers land in a few seconds.
-                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--text-primary)",
+                      margin: 0,
+                    }}
+                  >
+                    Ask anything in Cadence
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-ui)",
+                      fontSize: 12.5,
+                      lineHeight: 1.5,
+                      color: "var(--text-muted)",
+                      margin: 0,
+                    }}
+                  >
+                    Answers across your whole workspace. I can also read{" "}
+                    <span style={{ color: "var(--text-body)" }}>{context}</span> in front of you, so
+                    you can skip the setup.
+                  </p>
+                </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {suggestedAsksForContext(context).map((suggestion) => (
                     <button

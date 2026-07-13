@@ -2395,6 +2395,17 @@ html[data-motion="off"] .flow-pulse {
     animation: none;
   }
 }
+/* Ask composer — a premium focus state: an ember-tinted border + soft halo the
+   moment the field is focused, so the input reads as a live, inviting surface. */
+.ask-composer {
+  transition:
+    border-color 160ms var(--ease, ease),
+    box-shadow 160ms var(--ease, ease);
+}
+.ask-composer:focus-within {
+  border-color: var(--ember-line) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ember) 13%, transparent);
+}
 
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {
