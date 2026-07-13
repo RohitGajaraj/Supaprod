@@ -439,8 +439,9 @@ export function ShareTeardownButton({ id }: { id: string }) {
         style={shareBtnStyle}
         onClick={() => s.share_slug && copyTeardownLink(s.share_slug)}
         title="Copy the public link"
+        aria-label="Copy the public link"
       >
-        <Link2 size={16} strokeWidth={1.5} aria-hidden="true" /> Copy link
+        <Link2 size={16} strokeWidth={1.5} aria-hidden="true" />
       </button>
       <button
         type="button"

@@ -18,7 +18,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Link2 } from "lucide-react";
 import { AuditTag } from "@/components/cadence/AuditTag";
 import { toast } from "@/lib/notify";
 import { listDecisions, updateDecision, type DecisionSource } from "@/lib/decisions.functions";
@@ -161,8 +161,9 @@ export function ShareDecisionButton({ id }: { id: string }) {
         size="sm"
         onClick={() => s.share_slug && copyDecisionLink(s.share_slug)}
         title="Copy the public link"
+        aria-label="Copy the public link"
       >
-        Copy link
+        <Link2 size={14} strokeWidth={1.7} />
       </Button>
       <Button
         variant="tertiary"
