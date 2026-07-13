@@ -2324,6 +2324,49 @@ html[data-motion="off"] .flow-pulse {
   }
 }
 
+/* Living aurora — the Today hero's ambient wash, brought back from Loom (the
+   ember+maroon "needs you" aura / the moss+gold "all clear" aura). Two slow,
+   offset radial blooms that drift so the surface feels alive without pulling
+   focus. Colors are set inline per state; these classes only move them. */
+.hero-aurora {
+  position: absolute;
+  inset: -30%;
+  filter: blur(40px) saturate(1.2);
+  opacity: 0.9;
+  pointer-events: none;
+  will-change: transform;
+}
+.hero-aurora-a {
+  animation: heroAuroraA 16s ease-in-out infinite;
+}
+.hero-aurora-b {
+  animation: heroAuroraB 21s ease-in-out infinite;
+}
+@keyframes heroAuroraA {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-5%, 4%, 0) scale(1.12);
+  }
+}
+@keyframes heroAuroraB {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(6%, -5%, 0) scale(1.18);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora-a,
+  .hero-aurora-b {
+    animation: none;
+  }
+}
+
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {
   position: relative;
