@@ -9,6 +9,7 @@ import { CallCard } from "@/components/obsidian/callcard";
 import type { QueueCall, ExpiredCall } from "./TriageQueue";
 import type { PushedInsight } from "@/lib/today-lanes.functions";
 import { AgentBadge } from "@/components/agents/AgentMark";
+import { PixelStat } from "@/components/cadence/PixelStat";
 
 const VISIBLE_SLOTS = 3;
 
@@ -177,7 +178,7 @@ export function JudgmentLane({
             cursor: "pointer",
           }}
         >
-          {folded.length} more waiting →
+          <PixelStat value={folded.length} tone="primary" size={12} /> more waiting →
         </button>
       ) : null}
       {open ? (

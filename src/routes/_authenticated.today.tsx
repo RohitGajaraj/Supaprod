@@ -7,6 +7,7 @@ import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
 import { TodayHeroCard } from "@/components/today/TodayHeroCard";
+import { PixelStat } from "@/components/cadence/PixelStat";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -1225,16 +1226,12 @@ function Dashboard() {
                 Needs your judgment
               </h2>
               {needsYouLoaded ? (
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 10.5,
-                    letterSpacing: "0.12em",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  {callCount}
-                </span>
+                <PixelStat
+                  value={callCount}
+                  tone={callCount > 0 ? "ember" : "moss"}
+                  size={15}
+                  glow={callCount > 0}
+                />
               ) : null}
               <div
                 style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }}
@@ -1401,7 +1398,14 @@ function Dashboard() {
                   {/* LOOM W4 honesty: the old "N of M answered" denominator
                         shifted as new calls arrived mid-session. State the two
                         real numbers instead. */}
-                  {clearedSession} answered · {callCount} open
+                  <PixelStat value={clearedSession} tone="neutral" size={12} /> answered ·{" "}
+                  <PixelStat
+                    value={callCount}
+                    tone={callCount > 0 ? "ember" : "moss"}
+                    size={12}
+                    glow={callCount > 0}
+                  />{" "}
+                  open
                 </div>
               </div>
             )}

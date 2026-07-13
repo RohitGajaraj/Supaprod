@@ -51,14 +51,25 @@ export function DeskRail({ bare, compact }: { bare?: boolean; compact?: boolean 
       {/* PC-32 block 5: inside the Desk slide-over the SlideOver header already
           names the zone, so `bare` skips the duplicate section header. */}
       {!bare ? (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 99,
+              background: "var(--ember)",
+              boxShadow: "0 0 10px color-mix(in oklab, var(--ember) 60%, transparent)",
+              flexShrink: 0,
+            }}
+          />
           <h2
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 11,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              color: "var(--text-subtle)",
+              color: "var(--text-body)",
               margin: 0,
             }}
           >
