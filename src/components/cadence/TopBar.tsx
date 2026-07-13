@@ -145,10 +145,10 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         })}
       </nav>
       <span style={{ flex: 1 }} />
-      <ThemeToggle />
       <AskButton />
       <DayWeather />
       <LiveTicker />
+      <ThemeToggle />
       {actions}
     </header>
   );
