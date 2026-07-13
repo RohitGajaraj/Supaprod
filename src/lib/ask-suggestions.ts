@@ -39,8 +39,8 @@ const CONTEXT_SUGGESTIONS: Record<string, string[]> = {
   Plan: ["What's blocking the roadmap?", "Why did we decide this priority?"],
   Build: ["What's the status of the last mission?", "Show me open pull requests"],
   "a mission": ["What's the status of this mission?", "Show me its receipts", "Why did this fail?"],
-  Memory: ["Why did we decide this?", "What do we know about our top user?"],
-  "the Engine Room": ["What's the current model routing?", "Show me recent guardrail triggers"],
+  Brain: ["Why did we decide this?", "What do we know about our top user?"],
+  Pulse: ["What's the current model routing?", "Show me recent guardrail triggers"],
   "this screen": ["What am I looking at?", "What changed here recently?"],
 };
 

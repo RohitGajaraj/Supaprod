@@ -34,7 +34,7 @@ describe("nav-model - the ten primary destinations (the Loop)", () => {
       "Ship",
       "Learn",
       "Brain",
-      "Engine Room",
+      "Pulse",
     ]);
     expect(PRIMARY_NAV.map((n) => n.to)).toEqual([
       "/today",
@@ -82,8 +82,8 @@ describe("nav-model - the ten primary destinations (the Loop)", () => {
     }
   });
 
-  it("INTELLIGENCE is Brain and Engine Room (always-on layers, unnumbered)", () => {
-    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Engine Room"]);
+  it("INTELLIGENCE is Brain and Pulse (always-on layers, unnumbered on the rail body)", () => {
+    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Pulse"]);
     expect(INTELLIGENCE_NAV.map((n) => n.to)).toEqual(["/brain", "/engine-room"]);
     for (const n of INTELLIGENCE_NAV) expect(n.index).toBe("");
   });
@@ -124,8 +124,9 @@ describe("nav-model - the ten primary destinations (the Loop)", () => {
     expect(targets).not.toContain("/knowledge");
   });
 
-  it("navKeyHint is the digit 1-9 for the first nine, and `g` for Engine Room (the 10th)", () => {
+  it("navKeyHint = the visible number: Today 0, the loop 1-7, Brain 8, Pulse 9", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
+      "0",
       "1",
       "2",
       "3",
@@ -135,7 +136,6 @@ describe("nav-model - the ten primary destinations (the Loop)", () => {
       "7",
       "8",
       "9",
-      "g",
     ]);
   });
 });

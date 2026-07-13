@@ -25,9 +25,9 @@ export function contextForPath(pathname: string, missionId: string | null): stri
   if (pathname.startsWith("/discover")) return "Discover";
   if (pathname.startsWith("/plan")) return "Plan";
   if (pathname.startsWith("/build")) return missionId ? "a mission" : "Build";
-  if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) return "Memory";
+  if (pathname.startsWith("/brain") || pathname.startsWith("/knowledge")) return "Brain";
   if (pathname.startsWith("/engine-room") || pathname.startsWith("/govern")) {
-    return "the Engine Room";
+    return "Pulse";
   }
   return "this screen";
 }

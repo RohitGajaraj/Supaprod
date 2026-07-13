@@ -9,7 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, FOOTER_NAV } from "@/lib/nav-model";
+import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 
 // OBS-11 - the glass ⌘K palette + capability catalog, superseding the
@@ -459,19 +459,18 @@ export function GotoShortcuts() {
         )
       )
         return;
-      const n = Number(e.key);
-      if (Number.isInteger(n) && n >= 1 && n <= PRIMARY_NAV.length) {
-        const item = PRIMARY_NAV[n - 1];
+      // The bound key EQUALS the visible hint (navKeyHint): 0 Today, 1-7 the
+      // loop, 8 Brain, 9 Engine, s Settings, a Admin — so pressing what you
+      // see does what you expect. `g` stays a standing Engine alias.
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const target =
+        [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
+          const hint = navKeyHint(item);
+          return hint !== "" && hint === key;
+        }) ?? (key === "g" ? PRIMARY_NAV.find((item) => item.to === "/engine-room") : undefined);
+      if (target) {
         e.preventDefault();
-        navigate({ to: item.to, search: item.search as never });
-        return;
-      }
-      if (e.key.toLowerCase() === "g") {
-        const engineRoom = PRIMARY_NAV.find((item) => item.to === "/engine-room");
-        if (engineRoom) {
-          e.preventDefault();
-          navigate({ to: engineRoom.to });
-        }
+        navigate({ to: target.to, search: target.search as never });
       }
     };
     window.addEventListener("keydown", onKey);

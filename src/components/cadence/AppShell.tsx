@@ -41,6 +41,7 @@ import {
   INTELLIGENCE_NAV,
   FOOTER_NAV,
   navItemActive,
+  navKeyHint,
   engineRoomActive,
   type NavItemDef,
 } from "@/lib/nav-model";
@@ -133,10 +134,12 @@ function NavRow({
         >
           <Icon size={15} strokeWidth={1.75} />
         </span>
-      ) : spine && item.index ? (
-        // A node on the loop spine: a small chip carrying the stage index.
-        // Active = ember-filled (this is where you are); otherwise a quiet
-        // outlined node. The connecting line is drawn by the LoopRail wrapper.
+      ) : navKeyHint(item) ? (
+        // Every primary destination wears its shortcut as a node chip: Today 0,
+        // the loop 1-7 (in order), Brain 8, Pulse 9 — the number you SEE is the
+        // key you PRESS (both derive from navKeyHint, so they can't drift). The
+        // loop rows additionally sit on the connecting spine drawn by LoopRail;
+        // Today/Brain/Pulse are standalone nodes off the line.
         <span
           className="relative z-10 shrink-0 inline-flex items-center justify-center"
           style={{
@@ -144,7 +147,7 @@ function NavRow({
             height: 18,
             borderRadius: 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 8.5,
+            fontSize: 9,
             fontWeight: 600,
             background: active ? "var(--ember)" : "var(--card)",
             color: active ? "#fff" : "var(--text-faint)",
@@ -152,14 +155,7 @@ function NavRow({
             boxShadow: active ? "0 0 10px color-mix(in srgb, var(--ember) 45%, transparent)" : "none",
           }}
         >
-          {item.index}
-        </span>
-      ) : item.index ? (
-        <span
-          className={`shrink-0 ${active ? "text-[var(--ember-text)]" : "text-[var(--text-faint)]"}`}
-          style={{ fontFamily: "var(--font-mono)", fontSize: 9.5 }}
-        >
-          {item.index}
+          {navKeyHint(item)}
         </span>
       ) : null}
       <span className="flex-1 min-w-0">
@@ -430,7 +426,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     "/brain":
       "Brain · the decision record and knowledge layer: beliefs, supersession graph, learnings, precedents.",
     "/engine-room":
-      "Engine Room · spend, quality, safety, and the record (traces, receipts, the ledger), at a glance.",
+      "Pulse · spend, quality, safety, and the record (traces, receipts, the ledger), at a glance.",
     "/discover":
       "Discovery feed · raw signals clustered into ranked themes, the decision queue, competitor moves.",
     "/decide":
@@ -854,7 +850,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 />
               ))}
             </nav>
-            <ZoneHeader label="THE LOOP" caption="signal → shipped" />
+            <ZoneHeader label="THE LOOP" />
             <nav
               className="flex flex-col"
               style={{ padding: "0 10px", gap: 2 }}
@@ -866,7 +862,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 ))}
               </LoopRail>
             </nav>
-            <ZoneHeader label="INTELLIGENCE" caption="always on" />
+            <ZoneHeader label="INTELLIGENCE" />
             <nav
               className="flex flex-col"
               style={{ padding: "0 10px", gap: 2 }}
@@ -877,12 +873,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={n.to}
                   item={n}
                   active={
-                    // Engine Room is the glance for the whole engine (its
-                    // drill layers /govern, /sync, and the folded ledger all
-                    // live inside it), so it lights via engineRoomActive.
+                    // Pulse is the glance for the whole engine (its drill layers
+                    // /govern, /sync, and the folded ledger all live inside it),
+                    // so it lights via engineRoomActive.
                     n.to === "/engine-room" ? engineRoomActive(path) : isItemActive(n)
                   }
-                  hint={n.to === "/engine-room" ? "g" : undefined}
                 />
               ))}
             </nav>
@@ -927,6 +922,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 item={n}
                 active={isItemActive(n)}
                 icon={n.to === "/admin" ? Shield : SettingsIcon}
+                hint={navKeyHint(n)}
               />
             ))}
 

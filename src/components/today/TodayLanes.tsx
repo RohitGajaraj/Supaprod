@@ -118,7 +118,7 @@ export function PushedInsights({
         // sentence: dumping the goal into a mono-caps label produced an
         // all-uppercase sentence (a Loom section 1 violation). The goal already
         // reads in the headline and detail above.
-        const actionLabel = pushAction?.label?.trim() || "Open in Memory";
+        const actionLabel = pushAction?.label?.trim() || "Open in Brain";
         return (
           <div
             key={ins.id}

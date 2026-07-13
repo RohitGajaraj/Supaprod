@@ -37,9 +37,9 @@ describe("derivation law - the shortcut range", () => {
     expect(PRIMARY_NAV[n]).toBeUndefined();
   });
 
-  it("the last destination is the Engine Room, which uses its g alias", () => {
+  it("the last destination is Pulse (the /engine-room route), keyed 9 (with a standing g alias)", () => {
     const last = PRIMARY_NAV[PRIMARY_NAV.length - 1];
     expect(last.to).toBe("/engine-room");
-    expect(navKeyHint(last)).toBe("g");
+    expect(navKeyHint(last)).toBe("9");
   });
 });

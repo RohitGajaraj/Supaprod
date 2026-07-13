@@ -6,7 +6,7 @@ describe("ask-context - contextForPath", () => {
     expect(contextForPath("/today", null)).toBe("Today");
     expect(contextForPath("/discover", null)).toBe("Discover");
     expect(contextForPath("/plan", null)).toBe("Plan");
-    expect(contextForPath("/knowledge", null)).toBe("Memory");
+    expect(contextForPath("/knowledge", null)).toBe("Brain");
   });
 
   it("Build without an open mission reads as Build", () => {
@@ -18,8 +18,8 @@ describe("ask-context - contextForPath", () => {
   });
 
   it("maps both engine-room paths to the same plain-words label", () => {
-    expect(contextForPath("/engine-room", null)).toBe("the Engine Room");
-    expect(contextForPath("/govern", null)).toBe("the Engine Room");
+    expect(contextForPath("/engine-room", null)).toBe("Pulse");
+    expect(contextForPath("/govern", null)).toBe("Pulse");
   });
 
   it("falls back to a generic label for an unrecognized path", () => {

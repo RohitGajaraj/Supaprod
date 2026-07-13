@@ -40,7 +40,7 @@ function InsightRow({
   onOpen: () => void;
 }) {
   const pushAction = insight.action?.kind && onAct ? insight.action : null;
-  const actionLabel = pushAction?.label?.trim() || "Open in Memory";
+  const actionLabel = pushAction?.label?.trim() || "Open in Brain";
   const slug = insight.action?.agent_slug ?? null;
   return (
     <div

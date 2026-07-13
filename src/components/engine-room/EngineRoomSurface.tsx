@@ -196,7 +196,7 @@ export function EngineRoomGlance() {
           renders as this column's ancestor). */}
       <div aria-hidden="true" className="loom-glow-field" data-tone={glowTone} />
       <PageHeader
-        eyebrow="Intelligence · Engine Room"
+        eyebrow="Intelligence · Pulse"
         title="The engine, at a"
         accent="glance."
         subtitle="Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record."

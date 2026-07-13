@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
     surface: typeof search.surface === "string" ? search.surface : undefined,
   }),
   component: EngineRoomPage,
-  head: () => ({ meta: [{ title: "Engine Room · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Pulse · Cadence" }] }),
   // OBS-02 hoisted the Obsidian shell into _authenticated.tsx, so this route
   // renders bare. No AppShell wrap here.
   errorComponent: ({ error, reset }) => (
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
           color: "var(--text-primary)",
         }}
       >
-        Could not open the Engine Room.
+        Could not open Pulse.
       </p>
       <p
         style={{
@@ -87,7 +87,7 @@ function EngineRoomPage() {
 
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Engine Room"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Pulse"]} />
       <EngineRoomContainer>
       {/* IA 2026-07-11: the persistent room switcher. The rail (rooms + view
           sub-tabs, Vercel project-settings pattern) stays visible from the
