@@ -2450,6 +2450,17 @@ html[data-motion="off"] .flow-pulse {
     stroke-dasharray: none;
   }
 }
+/* Hero brand watermark — a large monochrome mark that bleeds into a corner,
+   turning very slowly. Subtle brand presence, never a focal point. */
+.hero-watermark-spin {
+  transform-origin: center;
+  animation: cadenceSpin 90s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-watermark-spin {
+    animation: none;
+  }
+}
 
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
 import { computeHero } from "@/components/obsidian/today/Hero";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 // TodayHeroCard — the daily-landing hero, rethought (founder addendum
 // 2026-07-13). A single card-based "command" band that grounds the user and
@@ -60,9 +61,24 @@ export function TodayHeroCard({
           background: `radial-gradient(52% 84% at 8% 34%, color-mix(in oklab, ${accent2} 26%, transparent) 0%, transparent 72%)`,
         }}
       />
-      {/* No emblem or sweep (founder 2026-07-13): the slow ambient aurora
-          alone carries the surface; the left-to-right shimmer + the motif were
-          removed. A mark may return later. */}
+      {/* Brand watermark (founder 2026-07-14): a large monochrome mark bleeding
+          into the empty bottom-right, cropped by the card, very faint and
+          turning very slowly. A subtle brand touch, never overpowering. */}
+      <div
+        aria-hidden="true"
+        className="hero-watermark-spin"
+        style={{
+          position: "absolute",
+          right: -66,
+          bottom: -84,
+          width: 248,
+          height: 248,
+          opacity: 0.07,
+          pointerEvents: "none",
+        }}
+      >
+        <CadenceMark size={248} mono glow={false} />
+      </div>
 
       <div style={{ position: "relative" }}>
         {/* Spotlighted greeting: the localized hello (Namaste / Buenos días /

@@ -37,6 +37,7 @@ export function CadenceMark({
   animated = false,
   strokeWidth = 3.2,
   glow = true,
+  mono = false,
   title = "Cadence",
 }: {
   size?: number;
@@ -44,6 +45,8 @@ export function CadenceMark({
   animated?: boolean;
   strokeWidth?: number;
   glow?: boolean;
+  /** Monochrome watermark: silver/gray spiral + core, no ember/gold. */
+  mono?: boolean;
   title?: string;
 }) {
   const id = React.useId().replace(/[:]/g, "");
@@ -96,7 +99,7 @@ export function CadenceMark({
           ) : null}
           <path
             d={PATH}
-            stroke={`url(#pet-${id})`}
+            stroke="var(--text-primary)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -104,26 +107,29 @@ export function CadenceMark({
             pathLength={animated ? 100 : undefined}
           />
         </g>
-        {/* Core = Brain + Pulse: an ember centre with a small GOLD bead at its
-            heart (the lit point — a nod to the tilak / diya). The still,
-            glowing centre; the whole core pulses in loader mode. */}
-        <g
-          className={animated ? "cadence-core" : undefined}
-          style={{
-            transformBox: "fill-box",
-            transformOrigin: "center",
-            filter: "drop-shadow(0 0 4px color-mix(in oklab, var(--ember) 55%, transparent))",
-          }}
-        >
-          <circle cx="50" cy="50" r="6.2" fill={`url(#core-${id})`} />
-          <circle
-            cx="50"
-            cy="50"
-            r="2.15"
-            fill="var(--marigold)"
-            style={{ filter: "drop-shadow(0 0 2px color-mix(in oklab, var(--marigold) 70%, transparent))" }}
-          />
-        </g>
+        {/* Core = Brain + Pulse: an ember centre with a small GOLD bead (the
+            tilak / diya). Mono renders it in the metallic instead (watermark). */}
+        {mono ? (
+          <circle cx="50" cy="50" r="6.2" fill="var(--text-subtle)" />
+        ) : (
+          <g
+            className={animated ? "cadence-core" : undefined}
+            style={{
+              transformBox: "fill-box",
+              transformOrigin: "center",
+              filter: "drop-shadow(0 0 4px color-mix(in oklab, var(--ember) 55%, transparent))",
+            }}
+          >
+            <circle cx="50" cy="50" r="6.2" fill={`url(#core-${id})`} />
+            <circle
+              cx="50"
+              cy="50"
+              r="2.15"
+              fill="var(--marigold)"
+              style={{ filter: "drop-shadow(0 0 2px color-mix(in oklab, var(--marigold) 70%, transparent))" }}
+            />
+          </g>
+        )}
       </svg>
     </span>
   );
