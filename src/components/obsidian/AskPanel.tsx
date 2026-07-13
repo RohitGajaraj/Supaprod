@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
 import { findAuditIds } from "@/lib/audit-id";
 import { openLineage } from "@/components/cadence/AuditLineageSheet";
+import { CadenceLoader } from "@/components/cadence/CadenceMark";
 import { MissionCanvasBlocks } from "@/components/obsidian";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
@@ -42,10 +43,14 @@ class AskUiError extends Error {}
 function ShimmerStatus({ label }: { label: string }) {
   // The codified platform pairing for "the machine is working" copy: the
   // shared .ai-working-word utility (Pixel face + glacier shimmer, reduced
-  // motion gated in styles.css). Never re-roll the shimmer per surface.
+  // motion gated in styles.css) + the brand loader (the spiral spinning), so
+  // the working moment is unmistakably ours. Never re-roll the shimmer.
   return (
-    <span className="ai-working-word" style={{ fontSize: 12 }}>
-      {label}
+    <span className="inline-flex items-center" style={{ gap: 8 }}>
+      <CadenceLoader size={16} />
+      <span className="ai-working-word" style={{ fontSize: 12 }}>
+        {label}
+      </span>
     </span>
   );
 }

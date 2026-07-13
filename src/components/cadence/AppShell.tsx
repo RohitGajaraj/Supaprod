@@ -46,6 +46,7 @@ import {
   type NavItemDef,
 } from "@/lib/nav-model";
 import { Avatar } from "@/components/cadence/Avatar";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 
 // IA — THE CADENCE LOOP (Tempo revamp, 2026-07-13): the rail tells the
@@ -660,27 +661,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   style={{ gap: 11, padding: "6px 8px", margin: "-6px -8px" }}
                   aria-label="Workspace switcher"
                 >
-                  {/* Pixel C monogram (DESIGN-TEMPO §8): THE compact mark; the
-                      retired Butterfly is not carried into v5. Rail chrome, not
-                      a per-screen brand moment, so it does not consume the
-                      one-Pixel-per-screen budget. Gray-1000 only; the ember
-                      variant is reserved for active/brand states. The 22px box
-                      around the ~15px glyph plus the header padding gives clear
-                      space roughly equal to the monogram's own width. */}
-                  <span
-                    aria-hidden="true"
-                    className="shrink-0 inline-flex items-center justify-center"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      fontFamily: "var(--font-pixel)",
-                      fontWeight: 400,
-                      fontSize: 15,
-                      lineHeight: 1,
-                      color: "var(--ds-gray-1000)",
-                    }}
-                  >
-                    C
+                  {/* The Cadence mark (DESIGN-TEMPO §8, founder ruling
+                      2026-07-14): the six-petal spiral brand, an ember→blue
+                      gradient. Rail chrome, not a per-screen brand moment. The
+                      22px box gives clear space roughly equal to the mark. */}
+                  <span aria-hidden="true" className="shrink-0">
+                    <CadenceMark size={30} />
                   </span>
                   <span className="flex-1 min-w-0">
                     {/* Wordmark: Geist Sans 600 with tight tracking, per the

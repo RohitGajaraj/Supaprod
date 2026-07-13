@@ -2406,6 +2406,50 @@ html[data-motion="off"] .flow-pulse {
   border-color: var(--ember-line) !important;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ember) 13%, transparent);
 }
+/* CadenceMark loader — the brand spiral as a live loader: a slow rotation with
+   a bright energy comet flowing along the curve (over a faint full-curve
+   track). Premium + alive; pauses under prefers-reduced-motion. */
+.cadence-spin {
+  animation: cadenceSpin 18s linear infinite;
+}
+.cadence-flow {
+  stroke-dasharray: 20 80;
+  animation: cadenceFlow 2.7s linear infinite;
+}
+.cadence-core {
+  animation: cadenceCore 3s ease-in-out infinite;
+}
+@keyframes cadenceSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes cadenceFlow {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+@keyframes cadenceCore {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cadence-spin,
+  .cadence-core {
+    animation: none;
+  }
+  .cadence-flow {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
 
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {
