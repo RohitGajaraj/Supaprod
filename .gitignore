@@ -104,6 +104,12 @@ docs/screenshots/
 # deploys and link previews work.
 !public/og-cadence.png
 
+# Brand kit (GTM): the ready-to-upload logo / icon / social raster set MUST be
+# committed so we never rebuild the branding assets. Exception to the global
+# *.png/*.jpg ignore, scoped to the branding folder only.
+!docs/Growth Strategy/branding/**/*.png
+!docs/Growth Strategy/branding/**/*.jpg
+
 # Claude Code runtime lock (machine-local state, never commit)
 .claude/scheduled_tasks.lock
 
