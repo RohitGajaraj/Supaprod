@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/cadence/PageHeader";
+import { PixelStat } from "@/components/cadence/PixelStat";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
@@ -235,17 +236,7 @@ export function EngineRoomGlance() {
           {throughput.totalRuns > 0 ? (
             <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
               Cadence ran{" "}
-              <strong
-                style={{
-                  fontFamily: "var(--font-pixel)",
-                  fontWeight: 400,
-                  fontSize: 18,
-                  fontVariantNumeric: "tabular-nums",
-                  color: "var(--ember-text)",
-                }}
-              >
-                {throughput.totalRuns}
-              </strong>{" "}
+              <PixelStat value={throughput.totalRuns} tone="blue" size={18} glow />{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
           ) : null}
