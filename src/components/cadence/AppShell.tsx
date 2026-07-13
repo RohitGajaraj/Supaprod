@@ -45,6 +45,8 @@ import {
   engineRoomActive,
   type NavItemDef,
 } from "@/lib/nav-model";
+import { Avatar } from "@/components/cadence/Avatar";
+import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 
 // IA — THE CADENCE LOOP (Tempo revamp, 2026-07-13): the rail tells the
 // product's story in three narrative zones so a first-time user sees what
@@ -370,6 +372,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const [avatarChoice] = useAvatarChoice(userName);
 
   const activeProduct = products.find((p) => p.id === activeProductId) ?? null;
   const { isMachineView } = useMachineView();
@@ -938,20 +941,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   className="loom-press flex w-full items-center rounded-[8px] outline-none hover:bg-[var(--raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                   style={{ gap: 11, padding: "6px 10px" }}
                 >
-                  <span
-                    className="inline-flex shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      width: 24,
-                      height: 24,
-                      background: "var(--hover)",
-                      border: "1px solid var(--ember-line)",
-                      color: "var(--text-primary)",
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {userInitials}
-                  </span>
+                  <Avatar
+                    seed={userName}
+                    variant={avatarChoice}
+                    initials={userInitials}
+                    size={26}
+                    title="Your account"
+                  />
                   <span
                     className="flex-1 truncate text-left"
                     style={{ fontSize: 12, color: "var(--text-muted)" }}

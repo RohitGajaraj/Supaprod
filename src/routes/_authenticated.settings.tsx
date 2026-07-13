@@ -14,6 +14,8 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
 import { MonoLabel } from "@/components/cadence/Primitives";
+import { Avatar, orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/cadence/Avatar";
+import { useAvatarChoice } from "@/hooks/use-avatar-choice";
 import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
 import { useDensity } from "@/hooks/use-density";
 import { useTheme, type Theme } from "@/hooks/use-theme";
@@ -2872,6 +2874,7 @@ function ProfileTab() {
   const [timezone, setTimezone] = useState("");
   const [whStart, setWhStart] = useState(9);
   const [whEnd, setWhEnd] = useState(18);
+  const [avatarChoice, chooseAvatar] = useAvatarChoice();
 
   useEffect(() => {
     const p = profile.data?.profile as {
@@ -2988,21 +2991,7 @@ function ProfileTab() {
       <div className="bento" style={{ padding: "var(--card-pad)" }}>
         {name ? (
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <span
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 99,
-                background: "var(--soft-stone)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
-              {initials}
-            </span>
+            <Avatar seed={name} variant={avatarChoice} initials={initials} size={38} />
             <div>
               <div style={{ fontWeight: 550 }}>{name}</div>
               <div style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
@@ -3012,6 +3001,36 @@ function ProfileTab() {
             </div>
           </div>
         ) : null}
+
+        {/* Avatar library — a default is assigned; the user picks their own. */}
+        <MonoLabel style={{ marginBottom: 8 }}>Avatar</MonoLabel>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginBottom: 16 }}>
+          {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
+            const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => chooseAvatar(i)}
+                aria-label={`Avatar option ${i + 1}`}
+                aria-pressed={selected}
+                title={`Avatar option ${i + 1}`}
+                className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 99,
+                  background: orbBackground(i),
+                  border: selected ? "2px solid var(--ember)" : "1px solid var(--hairline-strong)",
+                  boxShadow: selected
+                    ? "0 0 0 3px color-mix(in oklab, var(--ember) 26%, transparent)"
+                    : "inset 0 1px 0 0 color-mix(in oklab, #fff 12%, transparent)",
+                  cursor: "pointer",
+                }}
+              />
+            );
+          })}
+        </div>
 
         <MonoLabel style={{ marginBottom: 12 }}>Identity</MonoLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
