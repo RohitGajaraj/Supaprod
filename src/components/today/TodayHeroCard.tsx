@@ -60,32 +60,9 @@ export function TodayHeroCard({
           background: `radial-gradient(52% 84% at 8% 34%, color-mix(in oklab, ${accent2} 26%, transparent) 0%, transparent 72%)`,
         }}
       />
-      {/* Liquid-glass sheen — a slow flowing highlight sweep over the aurora. */}
-      <div aria-hidden="true" className="hero-sheen" />
-      {/* Origami motif — folded, faceted geometry (a nod to the Hogami
-          direction): a paper-fold diamond with two facets lit in the day's
-          tone. Replaces the old mountain-range polyline. */}
-      <svg
-        aria-hidden="true"
-        width="132"
-        height="104"
-        viewBox="0 0 132 104"
-        fill="none"
-        style={{ position: "absolute", right: 24, top: 16, opacity: 0.6, pointerEvents: "none" }}
-      >
-        <path d="M66 6 L120 52 L66 52 Z" fill={accent} opacity="0.16" />
-        <path d="M66 52 L12 52 L66 98 Z" fill={accent2} opacity="0.14" />
-        <path
-          d="M66 6 L120 52 L66 98 L12 52 Z M66 6 L66 98 M12 52 L120 52"
-          stroke="var(--hairline-strong)"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        <circle cx="66" cy="6" r="2.4" fill={accent} opacity="0.85" />
-        <circle cx="120" cy="52" r="2" fill="var(--text-subtle)" />
-        <circle cx="12" cy="52" r="2" fill="var(--text-faint)" />
-        <circle cx="66" cy="98" r="2" fill={accent2} opacity="0.75" />
-      </svg>
+      {/* No emblem or sweep (founder 2026-07-13): the slow ambient aurora
+          alone carries the surface; the left-to-right shimmer + the motif were
+          removed. A mark may return later. */}
 
       <div style={{ position: "relative" }}>
         {/* Spotlighted greeting: the localized hello (Namaste / Buenos días /
