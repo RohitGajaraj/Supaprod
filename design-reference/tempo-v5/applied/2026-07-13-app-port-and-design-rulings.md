@@ -254,3 +254,42 @@ A calm, slow ambient aurora (ember/maroon when a call needs you, moss/gold at al
 - Migrate remaining ad-hoc ember buttons to `variant="accent"` (grammar is defined; rollout is ongoing).
 - Broader liquid-glass / 3D-embossed rollout across more content cards.
 - Extend the `PixelStat` metric tone to every remaining numeral surface.
+
+---
+
+## Addendum 2 — the brand mark + kit (2026-07-14)
+
+The logo (earlier deferred) was designed and shipped, and a full brand kit built.
+
+### 18. CadenceMark — the product brand mark
+`src/components/cadence/CadenceMark.tsx`. A **seven-petal spiral epitrochoid**
+(`u(t) = ((R-r)cos t + d cos((R-r)t/r), (R-r)sin t − d sin((R-r)t/r)`, R=7, r=1,
+d=3) revolving around a **glowing core**. The meaning is the product:
+- **7 petals = the 7 loop stages** (Discover→Learn), one continuous curve.
+- **The core = the intelligence the loop revolves around** — the **Brain** (what
+  it knows) keeping the **Pulse** (the beat): an ember disc with a small **gold
+  bead** at its heart (a tilak / diya nod), the one warm pop of color.
+- **Theme-aware:** the spiral is **silver/white with a glow on dark**, **black on
+  light** (via `--text-primary`/`--text-subtle`), so it belongs in both modes;
+  the core stays ember + gold. A gradient (ember→blue) variant is the hero form.
+- **Loader:** `animated` (a.k.a. `CadenceLoader`) rotates the loop, flows energy
+  along the curve, and pulses the core — "the machine is working." Slowed so the
+  moment is felt; reduced-motion safe.
+- **Rollout:** replaced the sidebar `C` monogram (larger, for presence), the live
+  top-bar activity ticker (`AiPulse` — so the brand plays wherever AI works via
+  the one consolidated indicator), and the Ask thinking state. New reusable
+  `AiWorking` (loader + shimmer) is the standard AI-working indicator.
+- _Why the iterations:_ six→seven petals (tied to the loop), a brush-ribbon
+  variable-width attempt reverted (weighting too extreme), and the color moved
+  from an ember→blue gradient to the theme-aware metallic + ember/gold core per
+  founder feedback that it should read premium and differentiated, not generated.
+
+### 19. Brand kit (GTM)
+`docs/Growth Strategy/branding/` — the ready-to-upload base kit, generated from
+the SAME mark curve (`generate.ts`) so it never drifts: SVGs (dark/light/gradient/
+mono/lockups/app-icons/favicon/animated), PNGs at 32-1024 + mono + lockups, app
+icons + apple-touch + android-chrome + `favicon.ico`, dark+light OG/social cards,
+a self-contained tweakable animated HTML reference, and a full guidelines README
+(mark meaning, variations, palette hex + roles, type, clear space, do/don't). A
+scoped `.gitignore` exception keeps the raster set committed.
+

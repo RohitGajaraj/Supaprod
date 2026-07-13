@@ -1,6 +1,6 @@
 # UI/UX REVAMP — SESSION HANDOFF (resume here)
 
-_Last updated 2026-07-13 · branch `main` · everything below is VERIFIED GREEN._ _(Latest this session: the AUDIT-ID verifiable-lineage system + app-wide trace-tag rollout + mission-chain enrichment, plus comprehensive design-system documentation — see DONE items 10-14.)_
+_Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN._ _(Latest: the 2026-07-14 platform UX pass — nav shortcuts + Pulse rename, Today hero + count/desk polish, TopBar weather, avatar library, button grammar, Ask redesign, and the CadenceMark brand logo + full GTM brand kit — see DONE items 15-24.)_
 
 ## How to resume (founder → agent)
 1. `cd "/Users/rohitgajaraj/Projects/My Projects/My Builds/project_cadence_v5"`
@@ -32,6 +32,20 @@ _Last updated 2026-07-13 · branch `main` · everything below is VERIFIED GREEN.
 12. **Engine Room** — `RoomRail` is an accordion (only the active room expands its sub-views); the MissionChain / Record dropdown moved to a themed Radix `Select`.
 13. **AUDIT-ID — verifiable audit id + one-click lineage (founder ruling 2026-07-13).** Every entity's `PREFIX·XXXXXX` chip is now a clickable `AuditTag` that opens its verifiable lineage in a global sheet; a mission id also renders the full nine-link trust chain; Ask detects a named id and opens it with no model call. P1 resolver `src/lib/audit-id.ts` (12 kinds, 9 tests) · P2 `getEntityLineage` (RLS-scoped, generic) · P3 `AuditLineageSheet` + `AuditTag` + Ask id-detection. Chip rollout across Discover / Decide / Plan / Build / Learn / Today / Brain (incl. the graph node story + call-detail sheet; kinds with no standalone entity stay plain refs). `AuditTag` is a `<span role="button">` so it nests inside clickable rows. Feature: `docs/features/audit-id-lineage.md`; pattern: `design-reference/tempo-v5/patterns/audit-trace-tag.md`.
 14. **Design-system documentation** — the full app-port design rulings + rationale ("why + what" for tomorrow's builds) are captured in `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`; DESIGN-TEMPO §9, the tempo-v5 README, the `docs/features/README.md` index, and `feature-dashboard.md` (#401) are all updated + interlinked (trust-ledger / o1-provenance / knowledge-graph-explorer).
+
+## PASS 2 — platform UX + brand (2026-07-14, founder-directed, all VERIFIED GREEN + pushed)
+15. **Nav shortcuts fixed + "Engine Room" → "Pulse"** — the rail shortcut now equals the visible number (Today 0, loop 1-7, Brain 8, Pulse 9, Settings s, Admin a), derived from `navKeyHint`; pressing 2 opens Decide (verified). "Engine Room" renamed to **Pulse** (single word, pairs with Brain as the living-system Intelligence layer; route `/engine-room` unchanged). Zone captions simplified.
+16. **Today hero** — full **Geist Pixel** headline (ember lead + white tail), the person's name in Pixel, a calm slow ambient **aurora** (ember/maroon; moss/gold at all-clear) that gels in both themes; sheen + emblem removed per founder.
+17. **Count/desk/metric polish** — reusable **`PixelStat`** (Geist Pixel numerals, tone + glow, sized to sit with labels); needs-your-judgment count + answered/open + "N more waiting" now Pixel; **blue = the data/attention number tone**, ember reserved for needs-human/CTA + hero. "Your desk" header highlighted.
+18. **TopBar** — weather chip = colored, condition-animated glyph + status + **locale-unit temperature** (°F for verified holdouts, °C else) + **location**, no date/time; **ThemeToggle** moved to the far right by "Waiting on you".
+19. **Avatar library** — `Avatar` (8 theme-token orbs muted into the surface, calm in both themes) with a per-account default + a **user picker in Settings → You** (`useAvatarChoice`).
+20. **Button color grammar** — first-class ember **`accent`** Button variant + documented one-rule grammar (accent=primary/human · default=neutral · secondary/tertiary=support · link=blue/machine · destructive/warning=risk; one accent per screen).
+21. **Icon-only copy** — "Copy link" is icon-only in the share clusters (teardown, decision receipt); Share/Unshare stay labeled.
+22. **Ask panel redesign** — "Ask Cadence" framing (platform-wide, current screen as a secondary cue), ember sparkle + ambient wash, and a liquid-glass composer with an ember send button + focus glow.
+23. **CadenceMark brand logo + loader** — `src/components/cadence/CadenceMark.tsx`: a seven-petal spiral (the loop) around a glowing ember/gold core (Brain + Pulse); theme-aware metallic (silver/white on dark, black on light); the animated `CadenceLoader` plays in the sidebar/ticker/Ask (via `AiWorking`) wherever AI works.
+24. **Brand kit (GTM)** — `docs/Growth Strategy/branding/`: the mark in every form (SVG + PNG at all sizes + favicon.ico + apple-touch/PWA icons + dark/light OG social) + an animated HTML reference + `generate.ts` + a full guidelines README. `.gitignore` exception keeps the raster set committed.
+
+Design record for this pass: `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md` (2026-07-14 addendums 11-19).
 
 ## REMAINING (visual-QA-gated — do WITH screenshots now that browser is on)
 - **Broad `.glass-panel` rollout** onto content cards (Today Spotlight, Engine Room RoomCard, ui/card) — screenshot each; glass only reads over the ambient wash / on overlaps, don't muddy flat cards.

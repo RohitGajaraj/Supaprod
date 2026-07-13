@@ -8,6 +8,25 @@
 >
 > **Update rule.** When a session produces a strategic decision, a major tradeoff resolution, or a significant positioning or architecture change, add an entry here in the same session. This is not a one-time activity; it is a constant update obligation. Reference: `docs/strategy/README.md` (cascade rule).
 
+## 2026-07-14: platform UX polish pass + the Cadence brand mark & kit
+
+**Context.** A founder-directed, live-steered UX pass across the authenticated app, then the brand mark and a GTM brand kit.
+
+**Decisions made (design; founder granted full creative latitude).**
+1. **Nav shortcut = the visible number.** The rail shortcut equals the shown lifecycle number (Today 0, loop 1-7, Brain 8, Pulse 9, Settings s, Admin a), derived from `navKeyHint`; the displayed hint and key binding can no longer drift.
+2. **"Engine Room" → "Pulse."** A single word from the same living-system family as Brain (the Brain is what the product knows; the Pulse is how it lives and runs). Route `/engine-room` + doctrine unchanged.
+3. **Number tone = blue (data/attention); ember = needs-human/CTA + the hero brand moment.** All metric numerals use Geist Pixel via the reusable `PixelStat`, sized to sit with their labels.
+4. **Button color grammar** codified with a first-class ember `accent` variant (one primary CTA per view); everything else neutral. Blue = links/machine.
+5. **Avatar = a theme-aligned orb library**, muted into the surface (calm in both themes), per-account default + user-pickable in Settings.
+6. **Weather chip** = location + colored, animated condition + locale-unit temperature (no date/time). **Ask** reframed platform-wide ("Ask Cadence") with a liquid-glass composer.
+7. **The brand mark = a seven-petal spiral (the 7 loop stages) around a glowing ember/gold core (Brain + Pulse).** Theme-aware metallic (silver/white on dark, black on light); the animated form is the loader that plays wherever AI works. Arrived at by iterating six→seven petals, rejecting a too-extreme brush-ribbon, and moving from an ember→blue gradient to the metallic + ember/gold core for a premium, differentiated read.
+
+**What shipped.** All of the above, verified live + committed. Brand kit at `docs/Growth Strategy/branding/` (SVG + PNG at all sizes + favicon.ico + PWA/apple-touch icons + dark/light OG social + animated HTML + generator + guidelines README), generated from the same mark curve the app renders. Design record: [`../../design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](../../design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
+
+**Verification.** `bunx tsc --noEmit` 0; `bun test` 4696 (4651 pass / 0 fail); Playwright live-verified across the surfaces; both themes. All pushed to `main`.
+
+---
+
 ## 2026-07-13: every entity gets a verifiable audit id (one-click lineage) + the Tempo app-port design rulings are written down
 
 **Context.** Founder ruling, same day: "everything should have a traceable audit id generated out of this platform." Entities already displayed a `PREFIX·XXXXXX` trace ref, but it was a static label — it looked auditable and did nothing. Separately, the authenticated app had been ported to the Tempo V5 design system across the session, accumulating standing design rulings that were not yet recorded.

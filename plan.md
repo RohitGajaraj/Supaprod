@@ -286,6 +286,23 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-14 (platform UX polish pass + the Cadence brand mark & GTM brand kit)
+
+**Context:** A founder-directed, live-steered pass across the authenticated app, then the brand mark and a ready-to-upload brand kit.
+
+**What shipped (all verified: tsc 0; bun test 4651 pass / 0 fail; Playwright live, both themes; pushed to main):**
+
+- **Nav + IA:** rail shortcut now equals the visible number (Today 0, loop 1-7, Brain 8, Pulse 9, Settings s, Admin a) via `navKeyHint`; "Engine Room" renamed to **Pulse**; zone captions simplified. Memory→Brain label sweep on Today.
+- **Today:** heroic full-Pixel headline + calm ambient aurora + spotlighted localized greeting; reusable **`PixelStat`** metric numerals (blue = data tone); count-glow + "Your desk" highlight + priority micro-details.
+- **TopBar:** weather chip (location + colored animated condition + locale-unit temperature, no date/time); ThemeToggle moved to the far right.
+- **Avatar:** theme-aligned orb library + per-account default + Settings picker (`Avatar`, `useAvatarChoice`).
+- **Buttons:** first-class ember `accent` variant + documented color grammar. **Copy** icon-only in share clusters.
+- **Ask:** platform-wide "Ask Cadence" framing + liquid-glass composer with an ember send button + focus glow.
+- **Brand mark:** `src/components/cadence/CadenceMark.tsx` — a seven-petal spiral (the loop) around a glowing ember/gold core (Brain + Pulse), theme-aware metallic; the animated `CadenceLoader` / `AiWorking` plays wherever AI works (sidebar/ticker/Ask).
+- **Brand kit (GTM):** `docs/Growth Strategy/branding/` — the mark in every form (SVG + PNG at all sizes + favicon.ico + apple-touch/PWA + dark/light OG social) + animated HTML + `generate.ts` + guidelines README, generated from the same mark curve.
+
+**Design record:** [`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md) (2026-07-14 addendums). Session handoff: [`UI-REVAMP-HANDOFF.md`](./UI-REVAMP-HANDOFF.md) DONE items 15-24.
+
 ### 2026-07-13 (AUDIT-ID — verifiable audit id + one-click lineage; app-wide chip rollout + mission-chain enrichment; Tempo V5 app-port design rulings documented)
 
 **Context:** Founder ruling 2026-07-13 — "everything should have a traceable audit id generated out of this platform." An entity's `PREFIX·XXXXXX` trace ref looked auditable but did nothing.
