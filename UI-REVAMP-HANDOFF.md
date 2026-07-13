@@ -47,12 +47,16 @@ _Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN.
 
 Design record for this pass: `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md` (2026-07-14 addendums 11-19).
 
-## REMAINING (visual-QA-gated — do WITH screenshots now that browser is on)
-- **Broad `.glass-panel` rollout** onto content cards (Today Spotlight, Engine Room RoomCard, ui/card) — screenshot each; glass only reads over the ambient wash / on overlaps, don't muddy flat cards.
-- **Deeper Today "reduce overwhelm"** + make `src/components/today/desk/FocusCard.tsx` genuinely useful (founder wants a real refactor, not just rehome).
-- **Per-detail-screen polish** (OpportunityRow/ThemeRow/SpecList/SpecDetail/RoomDetail, settings tabs, admin.*, pricing/PlanPicker, onboarding) — Tempo-clean already, add bespoke USP framing where it earns it.
-- **Dark-contrast palette polish** with real screenshots (founder: "add life/color", premium "liquid crystal glass" direction).
-- **Multi-persona visual walkthrough** (Senior PM / power user / investor / engineer / product director / designer) once screens are shot.
+25. **Favicon** — the actual Cadence mark, transparent (NO box), theme-aware (white on dark tabs / black on light) + ember/gold core (`public/favicon.svg`); raster fallbacks (`public/favicon.png`, `apple-touch-icon.png`, `favicon.ico`) + `__root.tsx` updated; retired Butterfly favicon + its R2 png import removed.
+26. **Hero brand watermark + crisp mark** — a large monochrome mark bleeds subtly into the Today hero's bottom-right (cropped, ~7% opacity, very slow turn, `.hero-watermark-spin`); the in-app mark is now crisp white/black (not dull silver).
+
+## PENDING (tomorrow's pickup — nothing blocking; foundations in place)
+- **Brand revisit (founder-owned):** the founder will revisit the brand mark/logo + the brand-kit logo files later; the favicon + app mark are set. The full GTM brand kit is at `docs/Growth Strategy/branding/` (SVG/PNG/favicon/social + `generate.ts` + guidelines README).
+- **Liquid-glass / 3D-embossed rollout** to more content cards (`.glass-panel` + embossed hero/composer/avatar exist; extend to Today Spotlight, Pulse/Engine RoomCards, ui/card — glass only reads over the ambient wash, don't muddy flat cards).
+- **Metrics → Geist Pixel sweep:** finish applying `PixelStat` (blue = data tone) to every remaining numeral (Today + Pulse headline done; foundation + rule set).
+- **Migrate ad-hoc ember buttons to `variant="accent"`** (grammar defined in `src/components/ui/button.tsx`).
+- **Deeper Today "reduce overwhelm"** + make `src/components/today/desk/FocusCard.tsx` genuinely useful (founder wants a real refactor).
+- **Per-detail-screen polish** (OpportunityRow/ThemeRow/SpecList/SpecDetail/RoomDetail, settings tabs, admin.*, pricing/PlanPicker, onboarding) + a **multi-persona visual walkthrough** once screens are shot.
 
 ## Design law (obey)
 DESIGN-TEMPO.md is the contract: dark-first, Geist Sans/Mono/Pixel (Pixel = brand moments, ≥ once), ember = only brand accent (one primary CTA/view), rich blue = machine voice, purple ONLY for categorical graph nodes, ≥90% neutral. Humanized copy (no em/en dashes in UI strings).

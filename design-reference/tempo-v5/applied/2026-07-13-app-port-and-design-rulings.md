@@ -269,9 +269,14 @@ d=3) revolving around a **glowing core**. The meaning is the product:
 - **The core = the intelligence the loop revolves around** — the **Brain** (what
   it knows) keeping the **Pulse** (the beat): an ember disc with a small **gold
   bead** at its heart (a tilak / diya nod), the one warm pop of color.
-- **Theme-aware:** the spiral is **silver/white with a glow on dark**, **black on
-  light** (via `--text-primary`/`--text-subtle`), so it belongs in both modes;
-  the core stays ember + gold. A gradient (ember→blue) variant is the hero form.
+- **Theme-aware:** the in-app spiral is **crisp solid white on dark**, **black on
+  light** (via `--text-primary`), so it reads sharp in both modes (the earlier
+  dull silver gradient was reverted per founder: "white was great"); the core
+  stays ember + gold. A `mono` variant (silver/gray, no ember) is used only by the
+  subtle hero watermark. A gradient (ember→blue) variant is a hero form. _(The
+  brand-kit SVG/PNG logo files still carry the metallic treatment pending a later
+  founder-owned brand pass; only the app mark + favicon were switched to crisp
+  white/black this turn.)_
 - **Loader:** `animated` (a.k.a. `CadenceLoader`) rotates the loop, flows energy
   along the curve, and pulses the core — "the machine is working." Slowed so the
   moment is felt; reduced-motion safe.
@@ -292,4 +297,17 @@ icons + apple-touch + android-chrome + `favicon.ico`, dark+light OG/social cards
 a self-contained tweakable animated HTML reference, and a full guidelines README
 (mark meaning, variations, palette hex + roles, type, clear space, do/don't). A
 scoped `.gitignore` exception keeps the raster set committed.
+
+### 20. Favicon + hero watermark
+- **Favicon = the mark itself, no box.** `public/favicon.svg` is the bare
+  CadenceMark on a transparent field (no tile/background), **theme-aware** via
+  `prefers-color-scheme` (white spiral on dark browser tabs, black on light) with
+  the ember/gold core. Raster fallbacks (`public/favicon.png`, `apple-touch-icon.png`,
+  `favicon.ico`) + the brand-kit favicons were regenerated to match (white default
+  + a black light variant); `src/routes/__root.tsx` points at the local files, and
+  the retired Butterfly favicon + its R2 png import were removed. The served PNGs
+  are un-ignored in `.gitignore` so they deploy.
+- **Hero brand watermark.** A large monochrome (`mono`) CadenceMark bleeds into the
+  Today hero's empty bottom-right — cropped by the card, ~7% opacity, a very slow
+  turn (`.hero-watermark-spin`) — a quiet brand touch, not decoration.
 
