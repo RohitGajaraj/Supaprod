@@ -212,3 +212,45 @@ AI fingerprints.
 - Pattern library: [`../patterns/`](../patterns/) (new: `audit-trace-tag.md`)
 - Feature: [`docs/features/audit-id-lineage.md`](../../../docs/features/audit-id-lineage.md)
 - Session handoff (full DONE list): [`/UI-REVAMP-HANDOFF.md`](../../../UI-REVAMP-HANDOFF.md)
+
+
+---
+
+## Addendum — 2026-07-14 UX pass (founder feedback)
+
+A second wave of founder-directed polish. New standing rulings, with the why:
+
+### 11. Button color grammar (one rule, platform-wide)
+A button's color states its role. Codified in `src/components/ui/button.tsx` (new `accent` variant):
+- **accent (ember)** = the SINGLE primary "needs-human" CTA per view. Prefer `variant="accent"` over ad-hoc inline ember so the brand action is identical everywhere.
+- **default (neutral high-contrast invert)** = ordinary confirmations (Save, Apply, Add).
+- **secondary / tertiary / ghost / outline** = supporting, low-emphasis.
+- **link (blue)** = navigation / the machine's voice.
+- **destructive (red) / warning (amber)** = risk + caution.
+- At most one accent button per screen; everything else stays neutral. _Why:_ the founder asked "what is the logic?" — inconsistency came from primary CTAs being ad-hoc inline while everything else used the neutral variant. A first-class accent variant makes the grammar enforceable.
+
+### 12. Number tone — blue is data, ember is human
+All metric numerals render in **Geist Pixel** via the reusable `PixelStat` (`src/components/cadence/PixelStat.tsx`): tabular figures, tone + optional glow, sized to sit WITH their label (never an oversized floating number), center-aligned. **Blue is the number/attention tone** (the landing "Receipt" data blue) — numbers are data/machine output. **Ember stays for needs-human/CTA + the single hero brand moment.** _Why:_ founder ruling that numbers should read consistently and use the blue data tone; ember was over-applied and numerals were misaligned/oversized.
+
+### 13. Account avatar = a theme-aligned orb library
+`src/components/cadence/Avatar.tsx`: a library of orb templates built from theme tokens **muted into the surface** (`color-mix` with `--card`), so each is calm and on-theme in BOTH light and dark — never a loud saturated disc. A default is assigned per account (seed hash); the user picks their own in **Settings → You** (`useAvatarChoice`, device-local, live-syncing). _Why:_ founder rejected both the too-subtle single style and the too-loud cosmic gradients; wanted per-user distinctness that still respects the calm theme, plus user control.
+
+### 14. TopBar weather chip
+`DayWeather`: **weather icon + status + temperature + location**, no date/time (the OS has those). Colored, condition-tinted (overcast = calm slate-blue, not flat gray), gently animated (`.weather-live` breath). Temperature unit follows the **country** (Fahrenheit for the US + verified holdouts, Celsius elsewhere).
+
+### 15. Ask panel — platform-wide + liquid-glass
+`AskPanel`: framed **"Ask Cadence · Anything in the platform · reads {screen}"** (the whole platform, with the current screen as a secondary cue), an ember sparkle + soft ember/blue header wash, and a liquid-glass composer with an ember send button + `.ask-composer:focus-within` glow. _Why:_ founder said Ask is for the whole platform (not just the screen) and the old input read like a bland placeholder.
+
+### 16. Intelligence layer names + nav shortcuts
+"Memory" → **Brain**; "Engine Room" → **Pulse** (a single word from the same living-system family as Brain — the Brain is what the product knows, the Pulse is how it lives; route `/engine-room` + doctrine unchanged). The rail shortcut now **equals the visible number**: Today 0, the loop 1-7, Brain 8, Pulse 9, Settings s, Admin a — displayed hint and key binding both derive from `navKeyHint`. Zone captions simplified to clean section labels.
+
+### 17. Ambient aurora (Today hero)
+A calm, slow ambient aurora (ember/maroon when a call needs you, moss/gold at all-clear) that drifts like air; no left-to-right shimmer sweep, no emblem (both removed as "cheap"). Tuned to gel in light mode (opacity pulled back so it tints, not stains). Liquid-glass embossed card retained.
+
+### Icon-only affordances
+"Copy link" is icon-only in the share clusters (teardown, decision receipt); Share/Unshare stay labeled (state toggles, not one-shot actions).
+
+### Still open (this pass)
+- Migrate remaining ad-hoc ember buttons to `variant="accent"` (grammar is defined; rollout is ongoing).
+- Broader liquid-glass / 3D-embossed rollout across more content cards.
+- Extend the `PixelStat` metric tone to every remaining numeral surface.
