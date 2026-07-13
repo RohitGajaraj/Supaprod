@@ -418,7 +418,7 @@ function UserDrawer({ userId, onClose }: { userId: string | null; onClose: () =>
         <SheetHeader>
           <SheetTitle
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: "var(--text-card-title)",
               lineHeight: 1.3,

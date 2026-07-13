@@ -12,6 +12,8 @@ import { type ReactNode } from "react";
 import { Copy, ExternalLink } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button, MonoLabel, VerdictChip } from "@/components/obsidian";
+import { AuditTag } from "@/components/cadence/AuditTag";
+import type { AuditKind } from "@/lib/audit-id";
 import {
   Sheet,
   SheetContent,
@@ -100,6 +102,15 @@ const PREFIX: Record<CallDetail["kind"], string> = {
   opportunity: "OPP",
   assumption: "ASM",
   playbook: "PBP",
+};
+
+// Which call-detail kinds resolve to a standalone traceable audit entity. A
+// "ship" item is a mission; assumption/playbook have no audit id of their own,
+// so those keep the plain copy chip.
+const CALL_AUDIT_KIND: Record<string, AuditKind> = {
+  ship: "mission",
+  spec: "spec",
+  opportunity: "opportunity",
 };
 
 function fmtUsd(n: number): string {
@@ -563,26 +574,30 @@ export function CallDetailSheet({ open, onOpenChange, detail, deciding }: CallDe
               ) : null
             }
             traceRef={
-              <button
-                type="button"
-                onClick={copyId}
-                aria-label="Copy trace id"
-                title="Copy the full trace id"
-                className="loom-press flex items-center transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)]"
-                style={{
-                  gap: "6px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.06em",
-                  background: "transparent",
-                  border: "none",
-                  padding: "3px 2px",
-                  cursor: "pointer",
-                }}
-              >
-                {PREFIX[detail.kind]}·{traceRef(detail.id)}
-                <Copy className="h-3 w-3" />
-              </button>
+              CALL_AUDIT_KIND[detail.kind] ? (
+                <AuditTag kind={CALL_AUDIT_KIND[detail.kind]} id={detail.id} copyable />
+              ) : (
+                <button
+                  type="button"
+                  onClick={copyId}
+                  aria-label="Copy trace id"
+                  title="Copy the full trace id"
+                  className="loom-press flex items-center transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)]"
+                  style={{
+                    gap: "6px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    background: "transparent",
+                    border: "none",
+                    padding: "3px 2px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {PREFIX[detail.kind]}·{traceRef(detail.id)}
+                  <Copy className="h-3 w-3" />
+                </button>
+              )
             }
           />
 

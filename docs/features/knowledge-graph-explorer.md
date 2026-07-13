@@ -113,3 +113,7 @@ Gate: `npx tsc --noEmit` 0, `bun run build` green, `bun test` 2369 pass / only t
 ## Gate
 
 `bunx tsc --noEmit` + `bun run build` + the projector tests, all green -> adversarial self-review (RLS scope, SVG title-escaping, fail-safe paths) -> doc-loop -> commit explicit paths with a WHY -> fast-forward push.
+
+## Related — the audit id / one-click lineage
+
+A graph node's trace chip is now a clickable **audit tag** wherever the node maps to a standalone entity (signal / opportunity / spec / meeting / decision / mission): clicking it opens that entity's verifiable lineage in the global sheet. Node kinds with no standalone audit entity (theme / roadmap_item / task / design_memory) stay plain, non-clickable refs. See [`audit-id-lineage.md`](./audit-id-lineage.md).

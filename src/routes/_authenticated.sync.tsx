@@ -167,7 +167,7 @@ function SyncInboxPage() {
       <header style={{ margin: "14px 0 30px" }}>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontWeight: 460,
             fontSize: "var(--text-h1, 32px)",
             lineHeight: 1.15,

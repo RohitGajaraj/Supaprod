@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
-import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -60,7 +61,6 @@ function ConstellationMotif() {
 
 const TABS: { id: "signals" | "queue"; label: string }[] = [
   { id: "signals", label: "Signals" },
-  { id: "queue", label: "Queue" },
 ];
 
 /** The two-tab switch between the signal pipeline and the absorbed Decide
@@ -156,8 +156,12 @@ function TabBar({
 export function DiscoverSurface() {
   const navigate = useNavigate();
   const { tab } = useSearch({ from: "/_authenticated/discover" });
-  const activeTab: "signals" | "queue" = tab === "queue" ? "queue" : "signals";
-  const { activeProductId, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =
+  // Decide (Option B, 2026-07-13) is the home of the ranked judgment queue.
+  // Discover is now the sense + cluster surface only; a stale ?tab=queue link
+  // simply lands on Signals. The queue lives at /decide.
+  void tab;
+  const activeTab = "signals" as "signals" | "queue";
+  const { activeProductId, activeWorkspace, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =
     useWorkspace();
   const fSignals = useServerFn(listSignals);
   const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
@@ -219,6 +223,8 @@ export function DiscoverSurface() {
   const sampleOffered = signalsEmpty && (sampleEnabledQ.data?.enabled ?? false);
 
   return (
+    <>
+    <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Discover"]} />
     <div
       className="mx-auto animate-[cadRise_260ms_var(--ease)_both]"
       style={{
@@ -232,31 +238,12 @@ export function DiscoverSurface() {
       {/* Loom §2b glow field: the one ambient wash behind the hero (default
           glacier, the machine surface light). */}
       <div aria-hidden="true" className="loom-glow-field" />
-      <ProductMasthead />
-      <h1
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 430,
-          fontSize: "var(--text-h1)",
-          letterSpacing: "-0.015em",
-          lineHeight: 1.2,
-          color: "var(--text-primary)",
-          margin: 0,
-        }}
-      >
-        The evidence desk. Raw <em style={{ color: "var(--ember-text)" }}>signal</em> in, ranked
-        bets out.
-      </h1>
-      {/* Loom v4 §6: the hero underline, the maker's mark, static, 24px wide. */}
-      <div
-        aria-hidden="true"
-        style={{
-          width: "24px",
-          height: "1px",
-          background: "var(--thread-gradient)",
-          opacity: 0.4,
-          margin: "10px 0 14px",
-        }}
+      <PageHeader
+        eyebrow="The Loop · 01 Discover"
+        title="Raw signal in,"
+        accent="ranked bets out."
+        subtitle="The evidence desk: every opportunity ranked and cited back to the signals behind it."
+        usp="The reasoning engine clusters raw signals into ranked, cited bets, so you decide what matters instead of sifting noise."
       />
       {presenceAgent ? (
         <div style={{ marginBottom: 14 }}>
@@ -281,8 +268,6 @@ export function DiscoverSurface() {
       >
         Signals cluster into bets. Bets get decided. Decided bets become specs.
       </p>
-
-      <TabBar active={activeTab} onSelect={selectTab} />
 
       {activeTab === "queue" ? (
         <div
@@ -433,5 +418,6 @@ export function DiscoverSurface() {
         </div>
       )}
     </div>
+    </>
   );
 }

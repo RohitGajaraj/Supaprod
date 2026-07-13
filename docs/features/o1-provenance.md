@@ -44,3 +44,7 @@ UI: `OpportunityDetail.tsx` (`["provenance","opportunity",id]`), `_authenticated
 
 - A typed, navigable graph explorer across all artifact kinds.
 - O3: fact currency / drift flags + versioned skill-pack export over MCP.
+
+## Related — the audit id / one-click lineage
+
+The provenance this surface renders is now reachable from anywhere via the entity's audit id: every `PREFIX·XXXXXX` tag in the app is a clickable control that opens the entity's lineage in a global sheet, and Ask opens it when a question names an id. See [`audit-id-lineage.md`](./audit-id-lineage.md).

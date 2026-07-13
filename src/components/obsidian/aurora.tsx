@@ -109,7 +109,7 @@ export const AuroraCard = React.forwardRef<HTMLDivElement, AuroraCardProps>(
           <span
             className="tabular-nums"
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: "var(--text-score)",
               color: "var(--text-primary)",

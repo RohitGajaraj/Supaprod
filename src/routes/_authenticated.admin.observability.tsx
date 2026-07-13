@@ -130,7 +130,7 @@ function AdminObservability() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <p
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: "var(--text-card-title)",
               lineHeight: 1.3,
@@ -375,7 +375,7 @@ function CardTitle({ children }: { children: ReactNode }) {
   return (
     <h2
       style={{
-        fontFamily: "var(--font-serif)",
+        fontFamily: "var(--font-sans)",
         fontWeight: 460,
         fontSize: "var(--text-card-title)",
         lineHeight: 1.3,

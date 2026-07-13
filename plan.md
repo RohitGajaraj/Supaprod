@@ -286,6 +286,19 @@ Sequencing rule unchanged: architecture first, so later stages are _additions, n
 
 ## 4. Active build log (update as we ship)
 
+### 2026-07-13 (AUDIT-ID — verifiable audit id + one-click lineage; app-wide chip rollout + mission-chain enrichment; Tempo V5 app-port design rulings documented)
+
+**Context:** Founder ruling 2026-07-13 — "everything should have a traceable audit id generated out of this platform." An entity's `PREFIX·XXXXXX` trace ref looked auditable but did nothing.
+
+**What shipped:**
+
+- **Audit-ID system (P1-P3):** pure resolver `src/lib/audit-id.ts` (12 traceable kinds; `parseAuditId` / `findAuditIds` / `formatAuditId`; 9 unit tests); RLS-scoped `getEntityLineage` (`src/lib/audit-lineage.functions.ts`, generic over all kinds — never assumes a column, raw-uuid actor suppressed); global `AuditLineageSheet` + clickable `AuditTag` + Ask id-detection (`AskPanel`). Doc: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md).
+- **Chip rollout:** the static `PREFIX·traceRef` chips became `AuditTag` across Discover (SignalCard / SignalRecord), Decide/Plan (BetCard / OpportunityRow / OpportunityDetailSheet / SpecList / SpecDetail), Decisions (DecisionsPanel / DecisionDetail), Learnings (CompoundingPanel / LearningDetail), the Mission slide-over, the Today call-detail sheet, and the Brain graph node story. Detail views use the `copyable` variant (trace + copy in one chip), retiring the old standalone copy buttons and their orphaned helpers. Dynamic surfaces (graph node story, call-detail) map their local kind to an AuditKind and fall back to a plain ref for kinds with no standalone entity. `AuditTag` renders as a `<span role="button">` (not a `<button>`) so it nests safely inside clickable rows.
+- **Mission-chain enrichment:** a mission's lineage sheet now also renders the full nine-link trust chain, reusing `getMissionChain` + `MissionChain`; `getEntityLineage` now returns the full `entityId` so the client can fetch it.
+- **Design-system documentation (Tempo V5 app-port):** the full set of design rulings from the authenticated-app port, with rationale, is recorded in [`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md) (IA "The Cadence Loop"; ember=needs-human / blue=machine color grammar, purple retired from machine treatments; glass chrome; Geist Pixel usage; monotone source logos; agent liquid-glass gems; TopBar/PageHeader chrome; the audit trace-tag). New pattern doc [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md); DESIGN-TEMPO §9 + the tempo-v5 README updated; `docs/features/README.md` index + `trust-ledger.md` / `o1-provenance.md` / `knowledge-graph-explorer.md` interlinked; feature-dashboard row #401.
+
+**Gate:** `bunx tsc --noEmit` 0; `bun test` 4696 pass / 0 fail / 311 files. Live (Playwright): `OPP·005C82` chip → lineage sheet; `MIS·BA3F97` → record walk + full trust chain; Ask id-detection opens lineage with no model call.
+
 ### 2026-07-08 (SW-5 deliverable B — Trust Ledger's unbroken per-mission chain; lane 3 / goal session)
 
 **Context:** SW-5 (mission 3.11) — "the moat made visible." The Trust Ledger was a flat receipt list + tamper seal; it never walked a mission's pipeline. This adds the orthogonal per-mission chain read model.

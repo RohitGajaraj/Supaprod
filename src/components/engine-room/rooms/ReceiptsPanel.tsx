@@ -11,6 +11,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useMemo, useState, type CSSProperties } from "react";
 import { useDebouncedValue } from "@/components/admin/admin-ui";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ScrollText,
   Gavel,
   Zap,
@@ -551,19 +558,21 @@ function MissionChainPanel() {
         </span>
         <div style={{ flex: 1, height: 1, background: "var(--hairline)", alignSelf: "center" }} />
         {missions.length > 0 ? (
-          <select
-            className="input"
-            aria-label="Choose a mission"
-            value={active ?? ""}
-            onChange={(e) => setSelected(e.target.value)}
-            style={{ fontSize: 12, maxWidth: 260, padding: "4px 8px" }}
-          >
-            {missions.map((m) => (
-              <option key={m.id} value={m.id}>
-                {stripAutoPrefix(m.title)}
-              </option>
-            ))}
-          </select>
+          <Select value={active ?? ""} onValueChange={(v) => setSelected(v)}>
+            <SelectTrigger
+              aria-label="Choose a mission"
+              style={{ maxWidth: 260, fontSize: 12, height: 32 }}
+            >
+              <SelectValue placeholder="Choose a mission" />
+            </SelectTrigger>
+            <SelectContent>
+              {missions.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {stripAutoPrefix(m.title)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : null}
       </div>
       {missionsQ.isError ? (

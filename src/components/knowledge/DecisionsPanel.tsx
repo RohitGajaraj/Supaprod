@@ -34,7 +34,7 @@ import { VerdictChip, type VerdictTone } from "@/components/obsidian/verdict";
 import { ageOf, displayWho, SOURCE_LABEL } from "./decisions-shared";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { AutoChip } from "@/components/cadence/AutoChip";
-import { traceRef } from "@/components/discover/format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 
 type SourceFilter = "all" | DecisionSource;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
@@ -316,17 +316,8 @@ export function DecisionsPanel() {
                   {isAutoTitle(d.title) ? <AutoChip /> : null}
                 </span>
                 {/* dim 17: the quiet, copyable-in-detail trace ref on the row. */}
-                <span
-                  style={{
-                    display: "block",
-                    marginTop: 5,
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                  }}
-                >
-                  DEC·{traceRef(d.id)}
+                <span style={{ display: "block", marginTop: 5 }}>
+                  <AuditTag kind="decision" id={d.id} />
                 </span>
                 {d.status === "pending" ? (
                   // LOOM QA R2 (one-home law, §9b): approvals have ONE

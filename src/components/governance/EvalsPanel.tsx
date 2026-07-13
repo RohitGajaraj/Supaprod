@@ -383,7 +383,7 @@ export function EvalsPanel() {
                       <span
                         className="tabular-nums"
                         style={{
-                          fontFamily: "var(--font-serif)",
+                          fontFamily: "var(--font-sans)",
                           fontSize: 30,
                           color: "var(--text-primary)",
                         }}

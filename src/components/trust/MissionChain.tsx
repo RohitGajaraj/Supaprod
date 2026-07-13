@@ -126,7 +126,7 @@ export function MissionChain({ chain }: { chain: MissionChainData }) {
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
         <h3
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 17,
             fontWeight: 460,
             color: "var(--text-primary)",

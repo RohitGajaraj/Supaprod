@@ -2,7 +2,8 @@ import { useState, memo } from "react";
 import { VerdictChip } from "@/components/obsidian";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
-import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { relTimeCaps } from "@/components/discover/format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
@@ -366,16 +367,7 @@ function BetCardComponent({
             {relTimeCaps(updatedAt)}
           </span>
         ) : null}
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
-            letterSpacing: "0.06em",
-            color: "var(--text-faint)",
-          }}
-        >
-          OPP·{traceRef(id)}
-        </span>
+        <AuditTag kind="opportunity" id={id} />
       </span>
     </div>
   );

@@ -17,6 +17,20 @@ import {
 import { relTimeCaps, traceRef } from "@/components/discover/format";
 import { kindCssColor, kindLabel, kindTracePrefix } from "./graph-visual";
 import { GraphNodeActions } from "./GraphNodeActions";
+import { AuditTag } from "@/components/cadence/AuditTag";
+import type { AuditKind } from "@/lib/audit-id";
+
+// Graph node kinds that resolve to a standalone traceable audit entity. The
+// others (theme, roadmap_item, task, design_memory) have no audit id of their
+// own, so their chip stays a plain, non-clickable ref.
+const GRAPH_AUDIT_KIND: Record<string, AuditKind> = {
+  signal: "signal",
+  opportunity: "opportunity",
+  prd: "spec",
+  meeting: "meeting",
+  decision: "decision",
+  mission: "mission",
+};
 
 type StoryRow = { id: string; relation: string; peer_title?: string | null };
 
@@ -129,17 +143,21 @@ export function GraphNodeStory({
             {relTimeCaps(node.createdAt)}
           </span>
         ) : null}
-        <span
-          title={node.id}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
-            letterSpacing: "0.06em",
-            color: "var(--text-faint)",
-          }}
-        >
-          {kindTracePrefix(node.kind)}·{traceRef(node.id)}
-        </span>
+        {GRAPH_AUDIT_KIND[node.kind] ? (
+          <AuditTag kind={GRAPH_AUDIT_KIND[node.kind]} id={node.id} title={node.id} />
+        ) : (
+          <span
+            title={node.id}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-mono-floor)",
+              letterSpacing: "0.06em",
+              color: "var(--text-faint)",
+            }}
+          >
+            {kindTracePrefix(node.kind)}·{traceRef(node.id)}
+          </span>
+        )}
       </div>
       <GhostButton onClick={() => onFocus(node.kind, node.id)} style={{ marginBottom: 4 }}>
         Center the graph here

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import { PresenceChip } from "@/components/obsidian/PresenceChip";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { AgentRelay } from "@/components/agents/AgentRelay";
@@ -229,35 +230,14 @@ export function PlanSurface({ view }: { view?: PlanView }) {
         }}
       >
         <div aria-hidden="true" className="loom-glow-field" />
-        <ProductMasthead />
+        <PageHeader
+          eyebrow="The Loop · 03 Plan"
+          title="The bets you have"
+          accent="committed to."
+          subtitle="Every bet declares an outcome and a measure. Nothing hides in a backlog."
+          usp="Every spec line is cited back to the signals and decision behind it, so the plan is evidence, not opinion."
+        />
         <div style={{ marginBottom: 20 }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "var(--text-hero)",
-              fontWeight: 420,
-              letterSpacing: "-0.015em",
-              lineHeight: 1.12,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            The bets you have{" "}
-            <em style={{ color: "var(--ember-text)", fontStyle: "italic" }}>committed</em> to.
-          </h1>
-          <div
-            aria-hidden="true"
-            style={{
-              width: 24,
-              height: 1,
-              marginTop: 12,
-              background: "var(--thread-gradient)",
-              opacity: 0.4,
-            }}
-          />
-          <p style={{ fontSize: 14, color: "var(--text-body)", margin: "10px 0 0" }}>
-            Every bet declares an outcome and a measure. Nothing hides in a backlog.
-          </p>
           {presenceAgent ? (
             <div style={{ marginTop: 14 }}>
               <PresenceChip

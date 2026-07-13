@@ -40,7 +40,7 @@ export function SlideOver({ open, onClose, title, footer, children }: SlideOverP
           >
             <DialogPrimitive.Title
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 // components.md "Mission slide-over": title Newsreader
                 // 21px/460 - the one literal size given for this exact
                 // header, distinct from CallCard's 20px --text-card-title.

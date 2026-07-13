@@ -22,7 +22,14 @@ import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 // destinations, hints = keys 1-7); the separate ENGINE section is gone.
 
 type PaletteRow =
-  | { section: "JUMP"; label: string; hint: string; to: string; search?: Record<string, string> }
+  | {
+      section: "JUMP";
+      label: string;
+      hint: string;
+      sub?: string;
+      to: string;
+      search?: Record<string, string>;
+    }
   | {
       section: "SETTINGS";
       label: string;
@@ -42,7 +49,14 @@ type PaletteRow =
     };
 
 function jumpToRow(d: JumpDestination): PaletteRow {
-  return { section: "JUMP", label: d.label, hint: d.hint, to: d.run.to, search: d.run.search };
+  return {
+    section: "JUMP",
+    label: d.label,
+    hint: d.hint,
+    sub: d.tagline,
+    to: d.run.to,
+    search: d.run.search,
+  };
 }
 
 const SETTINGS_ROWS: PaletteRow[] = FOOTER_NAV.map((d) => ({
@@ -353,12 +367,34 @@ export function CommandPalette() {
                         </span>
                         <span
                           style={{
-                            fontFamily: "var(--font-ui)",
-                            fontSize: 13,
-                            color: active ? "var(--text-primary)" : "var(--text-body)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                            minWidth: 0,
                           }}
                         >
-                          {row.label}
+                          <span
+                            style={{
+                              fontFamily: "var(--font-ui)",
+                              fontSize: 13,
+                              color: active ? "var(--text-primary)" : "var(--text-body)",
+                            }}
+                          >
+                            {row.label}
+                          </span>
+                          {row.section === "JUMP" && row.sub ? (
+                            <span
+                              className="truncate"
+                              style={{
+                                fontFamily: "var(--font-ui)",
+                                fontSize: 11,
+                                lineHeight: 1.3,
+                                color: "var(--text-subtle)",
+                              }}
+                            >
+                              {row.sub}
+                            </span>
+                          ) : null}
                         </span>
                         {isCatalog ? (
                           <button

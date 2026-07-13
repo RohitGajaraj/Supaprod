@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROOM_NAMES, ROOM_TAB_META, type RoomKey } from "@/lib/engine-room-glance";
 import type { RoomStatus } from "./EngineRoomSurface";
@@ -101,7 +102,7 @@ export function RoomRail({ room, view, rooms, onOverview, onSelect }: RoomRailPr
           Overview
         </button>
 
-        <div className="flex flex-col" style={{ gap: 16 }}>
+        <div className="flex flex-col" style={{ gap: 4 }}>
           {ROOM_ORDER.map((key) => {
             const status = statusOf(key);
             const tabs = ROOM_TAB_META[key];
@@ -111,52 +112,72 @@ export function RoomRail({ room, view, rooms, onOverview, onSelect }: RoomRailPr
                 <button
                   type="button"
                   onClick={() => onSelect(key, tabs[0]!.id)}
-                  className={railItemClass(false)}
+                  aria-expanded={isActiveRoom}
+                  className={railItemClass(isActiveRoom)}
                   style={{
                     ...railItemStyle,
-                    height: 28,
+                    height: 30,
                     fontFamily: "var(--font-mono)",
                     fontSize: "var(--text-mono-floor)",
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
                     color: isActiveRoom ? "var(--text-primary)" : "var(--text-subtle)",
-                    marginBottom: 2,
+                    marginBottom: isActiveRoom ? 2 : 0,
                   }}
                 >
+                  <ChevronRight
+                    size={12}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className="shrink-0"
+                    style={{
+                      color: "var(--text-faint)",
+                      transform: isActiveRoom ? "rotate(90deg)" : "none",
+                      transitionProperty: "transform",
+                      transitionDuration: "var(--dur-control)",
+                      transitionTimingFunction: "var(--ease)",
+                    }}
+                  />
                   {ROOM_NAMES[key]}
                   <StateDot status={status} />
                 </button>
-                <div className="flex flex-col" style={{ gap: 1 }}>
-                  {tabs.map((t) => {
-                    const active = isActiveRoom && view === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => onSelect(key, t.id)}
-                        aria-current={active ? "page" : undefined}
-                        className={railItemClass(active)}
-                        style={{
-                          ...railItemStyle,
-                          color: active ? "var(--text-primary)" : "var(--text-muted)",
-                          fontWeight: active ? 600 : 400,
-                        }}
-                      >
-                        {/* Selection marker: the one ember touch on the rail. */}
-                        <span
-                          aria-hidden="true"
-                          className="shrink-0 rounded-full"
+                {/* Accordion (founder ruling 2026-07-13): only the OPEN room
+                    shows its view sub-tabs; the other rooms collapse to their
+                    header, so the rail never grows long enough to scroll. */}
+                {isActiveRoom ? (
+                  <div className="flex flex-col" style={{ gap: 1, marginBottom: 6 }}>
+                    {tabs.map((t) => {
+                      const active = view === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => onSelect(key, t.id)}
+                          aria-current={active ? "page" : undefined}
+                          className={railItemClass(active)}
                           style={{
-                            width: 2,
-                            height: 14,
-                            background: active ? "var(--ember)" : "transparent",
+                            ...railItemStyle,
+                            paddingLeft: 22,
+                            color: active ? "var(--text-primary)" : "var(--text-muted)",
+                            fontWeight: active ? 600 : 400,
                           }}
-                        />
-                        <span className="min-w-0 truncate">{t.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        >
+                          {/* Selection marker: the one ember touch on the rail. */}
+                          <span
+                            aria-hidden="true"
+                            className="shrink-0 rounded-full"
+                            style={{
+                              width: 2,
+                              height: 14,
+                              background: active ? "var(--ember)" : "transparent",
+                            }}
+                          />
+                          <span className="min-w-0 truncate">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             );
           })}

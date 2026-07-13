@@ -1,12 +1,27 @@
 # Strategic Decisions Log
 
-> _Created: 2026-06-03 · Last updated: 2026-07-10_
+> _Created: 2026-06-03 · Last updated: 2026-07-13_
 
 > **What this is.** A running record of major strategic decisions, tradeoffs evaluated, and facts presented during development sessions. Not a transcript, only decisions that shaped the product direction, architecture, or operating model.
 >
 > **Who reads this.** Any agent or human starting a new session who needs to understand _why_ things are the way they are without re-reading the full conversation history. This file is a shortcut to institutional reasoning.
 >
 > **Update rule.** When a session produces a strategic decision, a major tradeoff resolution, or a significant positioning or architecture change, add an entry here in the same session. This is not a one-time activity; it is a constant update obligation. Reference: `docs/strategy/README.md` (cascade rule).
+
+## 2026-07-13: every entity gets a verifiable audit id (one-click lineage) + the Tempo app-port design rulings are written down
+
+**Context.** Founder ruling, same day: "everything should have a traceable audit id generated out of this platform." Entities already displayed a `PREFIX·XXXXXX` trace ref, but it was a static label — it looked auditable and did nothing. Separately, the authenticated app had been ported to the Tempo V5 design system across the session, accumulating standing design rulings that were not yet recorded.
+
+**Decisions made.**
+1. **The audit id is a first-class, platform-generated primitive.** Every core entity (12 kinds) resolves tag ⇄ kind ⇄ table through one pure resolver; every tag in the UI is a live `AuditTag` that opens the entity's verifiable, RLS-scoped lineage in a global sheet; a mission id also renders its full nine-link trust chain; Ask opens lineage deterministically when a question names an id. Kinds with no standalone audit entity (theme, playbook, assumption, roadmap_item, task, design_memory) stay non-clickable plain refs — the system never fabricates a trail. Feature: [`../features/audit-id-lineage.md`](../features/audit-id-lineage.md).
+2. **The trace tag is a design-system pattern, not a `<button>`.** It renders as `<span role="button">` so it nests inside clickable rows without invalid DOM nesting, and stays quiet mono metadata at rest (no border/fill, no ember) so id-dense screens keep the ≥90%-neutral restraint budget. Pattern: [`../../design-reference/tempo-v5/patterns/audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md).
+3. **The Tempo app-port design rulings are recorded with rationale** so future builds inherit the intent, not just the result: [`../../design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](../../design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md). Load-bearing rulings: the lifecycle IA ("The Cadence Loop"); the **ember = needs-human / blue = machine** color grammar (purple retired from all machine treatments); glass as a chrome-only material; Geist Pixel reserved for titles/metrics/agent names; **monotone source-provider logos** (reverted from brand colors — IP + cognitive-load + friction); agent liquid-glass gems; uniform TopBar/PageHeader chrome on every surface.
+
+**Why it matters.** (1) Trust is verifiable provenance; an id that only *looks* auditable is a broken promise. This closes the gap between looking and being auditable, uniformly, with one resolver so a new traceable entity is a one-line add. (2) Writing the design rulings + rationale down means tomorrow's work knows *why* (why provider logos are monotone, why ember is rationed to "needs-human") and will not re-litigate settled calls.
+
+**Verification.** `bunx tsc --noEmit` 0; `bun test` 4696 pass / 0 fail / 311 files; Playwright live-verified (`OPP·005C82` → lineage sheet; `MIS·BA3F97` → record walk + full trust chain; Ask id-detection opens lineage with no model call).
+
+---
 
 ## 2026-07-13: tier naming correction — Business stays Business, not Team
 

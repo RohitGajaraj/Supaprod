@@ -16,16 +16,22 @@
 
 export type RedirectTarget = { to: string; search?: Record<string, string> };
 
-/** The seven primary destinations (IA SPINE 2026-07-11): Today, the four
- * WORKFLOW stages (Discover · Plan · Design · Build), Memory (/brain), and
- * the Engine Room. Decide folded into Discover's queue tab; the ledger
- * folded into the Engine Room's record room — both are legacy keys below. */
+/** The nine primary destinations (THE CADENCE LOOP, Tempo revamp 2026-07-13):
+ * Today (home), the six loop stages (Discover · Plan · Design · Build · Ship ·
+ * Learn), and the two always-on intelligence layers (Memory /brain, Engine
+ * Room). Ship (/ship) and Learn (/learn) are now first-class loop pages, no
+ * longer folded into Brain's tabs. Decide folded into Discover's queue tab;
+ * the ledger folded into the Engine Room's record room — both are legacy keys
+ * below. */
 export const CANONICAL_PATHS = [
   "/today",
   "/discover",
+  "/decide",
   "/plan",
   "/design",
   "/build",
+  "/ship",
+  "/learn",
   "/brain",
   "/engine-room",
 ] as const;
@@ -122,9 +128,8 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   // -- Discover --
   "/discovery": { to: "/discover", search: { tab: "signals" } },
   "/opportunities": { to: "/discover", search: { tab: "opportunities" } },
-  // IA SPINE (2026-07-11): Decide left the rail; the ranked queue is
-  // Discover's queue tab.
-  "/decide": { to: "/discover", search: { tab: "queue" } },
+  // Decide is now a first-class Loop stage (canonical /decide, Option B
+  // 2026-07-13) — the ranked judgment queue is its own destination.
   // OBS-10 (2026-07-03, lane3, final closure): the bare-URL default (the
   // legacy page's own default tab is "signals"). The real stub branches on
   // ?tab= six ways - see the module doc above and the route stub itself.
@@ -143,8 +148,8 @@ export const LEGACY_REDIRECTS: Record<string, RedirectTarget> = {
   "/knowledge": { to: "/brain" },
   "/memory": { to: "/brain", search: { tab: "memory" } },
   "/docs": { to: "/brain", search: { tab: "docs" } },
-  "/learn": { to: "/brain", search: { tab: "learnings" } },
-  "/outcome": { to: "/brain", search: { tab: "learnings" } },
+  // /learn is now a first-class Loop stage (canonical), not a Brain tab.
+  "/outcome": { to: "/learn" },
   "/calendar": { to: "/brain", search: { tab: "calendar" } },
   "/meetings": { to: "/brain", search: { tab: "calendar" } },
   "/impact": { to: "/brain", search: { tab: "impact" } },

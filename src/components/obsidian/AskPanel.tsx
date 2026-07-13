@@ -3,6 +3,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useAsk } from "@/lib/ask-context";
+import { findAuditIds } from "@/lib/audit-id";
+import { openLineage } from "@/components/cadence/AuditLineageSheet";
 import { MonoLabel, MissionCanvasBlocks } from "@/components/obsidian";
 import { supabase } from "@/integrations/supabase/client";
 import { createConversation } from "@/lib/conversations.functions";
@@ -235,6 +237,11 @@ function AskComposer({
   const submit = () => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
+    // Audit-ID (founder ruling 2026-07-13): if the question names an id
+    // (MIS·7E7D59, OPP·005C82, LRN·...), open its verifiable lineage instantly
+    // alongside the conversational answer.
+    const ids = findAuditIds(trimmed);
+    if (ids.length > 0) openLineage(`${ids[0].meta.prefix}·${ids[0].short}`);
     onSend(trimmed);
     setValue("");
     setPaletteIndex(0);

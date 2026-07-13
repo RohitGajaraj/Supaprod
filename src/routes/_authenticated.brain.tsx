@@ -25,6 +25,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import { MonoLabel } from "@/components/obsidian/primitives";
 import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
@@ -364,7 +365,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
     };
   },
   component: MemoryPage,
-  head: () => ({ meta: [{ title: "Memory · Cadence" }] }),
+  head: () => ({ meta: [{ title: "Brain · Cadence" }] }),
   errorComponent: ({ error, reset }) => (
     <MemorySurface>
       <div
@@ -376,7 +377,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
           padding: "16px 18px",
         }}
       >
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Memory · failed to load</MonoLabel>
+        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brain · failed to load</MonoLabel>
         <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
           {(error as Error)?.message ?? "Unknown error"}
         </p>
@@ -530,56 +531,30 @@ function MemoryPage() {
 
   return (
     <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Memory"]} />
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Brain"]} />
       <MemorySurface>
-        {/* The hero: one ember italic word, mono kicker, no icon. */}
-        <div style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
-              letterSpacing: "0.14em",
-              color: "var(--text-subtle)",
-              textTransform: "uppercase",
-              marginBottom: 10,
-            }}
-          >
-            Loop · Memory
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontWeight: 430,
-              fontSize: "var(--text-hero)",
-              lineHeight: 1.12,
-              letterSpacing: "-0.015em",
-              color: "var(--text-primary)",
-              margin: "0 0 8px",
-            }}
-          >
-            Your <em style={{ fontStyle: "italic", color: "var(--ember)" }}>record</em>.
-          </h1>
-          <p
-            style={{ fontSize: "var(--text-base)", color: "var(--text-body)", margin: "0 0 18px" }}
-          >
-            Every call you made, what it became, and how belief moved.
-          </p>
+        {/* The hero: Tempo PageHeader (retires the Loom serif/italic hero). */}
+        <PageHeader
+          eyebrow="Intelligence · Brain"
+          title="Your product's"
+          accent="brain."
+          subtitle="Every call you made, what it became, and how belief moved, on one substrate the whole loop reads from and reasons over."
+          usp="The brain compounds: every decision and outcome makes the next call faster and better-cited."
+        >
           {presenceAgent ? (
-            <div style={{ marginBottom: 18 }}>
-              <PresenceChip
-                agentSlug={presenceAgent.slug}
-                station="brain"
-                state={presenceAgent.state === "working" ? "working" : "idle"}
-                lastActedAt={presenceAgent.lastActiveAt}
-              />
-            </div>
+            <PresenceChip
+              agentSlug={presenceAgent.slug}
+              station="brain"
+              state={presenceAgent.state === "working" ? "working" : "idle"}
+              lastActedAt={presenceAgent.lastActiveAt}
+            />
           ) : null}
           {/* PC-29 layer 4: the inline relay, live only while Measure/Learn
               has a run going. */}
-          <div style={{ marginBottom: 18 }}>
+          <div style={{ marginTop: 12 }}>
             <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
           </div>
-        </div>
+        </PageHeader>
 
         <BrainStatTrio />
 

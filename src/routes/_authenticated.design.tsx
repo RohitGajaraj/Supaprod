@@ -10,6 +10,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { MonoLabel, Button } from "@/components/obsidian/primitives";
+import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
 import { SkeletonBar } from "@/components/discover/SkeletonBar";
 import { listPrds } from "@/lib/discovery.functions";
@@ -233,58 +236,38 @@ function PrototypesPane() {
 }
 
 function DesignSurface() {
+  const { activeWorkspace } = useWorkspace();
   return (
-    <div
-      style={{
-        maxWidth: "var(--container-work, 1520px)",
-        width: "100%",
-        margin: "0 auto",
-        padding: "36px 32px 64px",
-      }}
-    >
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-mono-floor)",
-            letterSpacing: "0.14em",
-            color: "var(--text-subtle)",
-            textTransform: "uppercase",
-            marginBottom: 10,
-          }}
-        >
-          Loop · Design
-        </div>
-        <h1
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontWeight: 430,
-            fontSize: "var(--text-hero)",
-            lineHeight: 1.12,
-            letterSpacing: "-0.015em",
-            color: "var(--text-primary)",
-            margin: "0 0 8px",
-          }}
-        >
-          Your <em style={{ fontStyle: "italic", color: "var(--ember)" }}>brand</em>, in every
-          build.
-        </h1>
-        <p style={{ fontSize: "var(--text-base)", color: "var(--text-body)", margin: 0 }}>
-          Import your brand once, then every mockup and prototype renders through it.
-        </p>
-      </div>
+    <>
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Design"]} />
+      <div
+        style={{
+          maxWidth: "var(--container-work, 1520px)",
+          width: "100%",
+          margin: "0 auto",
+          padding: "36px 32px 64px",
+        }}
+      >
+        <PageHeader
+          eyebrow="The Loop · 04 Design"
+          title="Your brand, in every"
+          accent="build."
+          subtitle="Import your brand once, then every mockup and prototype renders through it."
+          usp="One brand kit flows into every generated build, so what agents ship already looks like you."
+        />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-        <section>
-          <MonoLabel style={{ display: "block", marginBottom: 10 }}>Brand kit</MonoLabel>
-          <DesignMemoryPanel />
-        </section>
-        <section>
-          <MonoLabel style={{ display: "block", marginBottom: 10 }}>Prototypes</MonoLabel>
-          <PrototypesPane />
-        </section>
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <section>
+            <MonoLabel style={{ display: "block", marginBottom: 10 }}>Brand kit</MonoLabel>
+            <DesignMemoryPanel />
+          </section>
+          <section>
+            <MonoLabel style={{ display: "block", marginBottom: 10 }}>Prototypes</MonoLabel>
+            <PrototypesPane />
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

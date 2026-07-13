@@ -1,4 +1,5 @@
-import { Copy, GitBranch } from "lucide-react";
+import { GitBranch } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listBriefItems } from "@/lib/briefs.functions";
@@ -27,6 +28,8 @@ import { tierFromProbability } from "@/lib/confidence";
 import { DetailHeader, DetailSection, StatCell, StatStrip, toneForScore } from "./DetailKit";
 import { relTimeCaps, traceRef, type VerdictWord } from "./format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import type { Designation } from "./ranking";
 import {
   BestBetStamp,
@@ -338,12 +341,7 @@ export function OpportunityDetailSheet({
   challengePending = false,
   draftPending = false,
 }: OpportunityDetailSheetProps) {
-  const copyTraceId = () => {
-    if (!opportunity) return;
-    void navigator.clipboard?.writeText(opportunity.id);
-    toast("Trace id copied");
-  };
-
+  const { activeWorkspaceId } = useWorkspace();
   const isBestBet = rank === 1;
   // The one-line meaning shown in the band for a non-best designation, so the
   // reader knows what the bet is and what to do about it. Best bet is already
@@ -417,26 +415,7 @@ export function OpportunityDetailSheet({
                 </span>
               }
               traceRef={
-                <button
-                  type="button"
-                  onClick={copyTraceId}
-                  aria-label="Copy trace id"
-                  title="Copy the full trace id"
-                  className="loom-press flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    gap: "6px",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "10px",
-                    letterSpacing: "0.06em",
-                    background: "transparent",
-                    border: "none",
-                    padding: "3px 2px",
-                    cursor: "pointer",
-                  }}
-                >
-                  OPP·{traceRef(opportunity.id)}
-                  <Copy className="h-3 w-3" />
-                </button>
+                <AuditTag kind="opportunity" id={opportunity.id} copyable />
               }
             />
 
@@ -659,6 +638,17 @@ export function OpportunityDetailSheet({
             {/* Stage history: real per-transition rows; renders nothing until
                 the first transition lands. */}
             <StageTimeline entityType="opportunity" entityId={opportunity.id} />
+
+            {/* Post-ship product analytics for this bet (adoption vs. the
+                outcome it declared). Self-fetches; renders nothing until real
+                analytics exist. Rehomed here from orphan status + restyled to
+                Tempo (2026-07-13). */}
+            {activeWorkspaceId ? (
+              <ProductAnalyticsPanel
+                opportunityId={opportunity.id}
+                workspaceId={activeWorkspaceId}
+              />
+            ) : null}
 
             {/* Activity: when it was promoted and last changed. */}
             <DetailSection heading="Activity">

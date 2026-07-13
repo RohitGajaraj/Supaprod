@@ -274,7 +274,7 @@ export function DesignScaffoldPanel({ prdId, specBody }: { prdId: string; specBo
             // The mockup document is the artifact: it styles its own canvas and
             // assumes a light page, so the iframe keeps a white base to avoid a
             // dark flash before srcDoc paints. The chrome around it is tokens.
-            className="w-full rounded-lg border hairline bg-white"
+            className="w-full rounded-lg border hairline bg-card"
             style={{ height: 540 }}
           />
           <div className="mt-2 flex items-center justify-between">

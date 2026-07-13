@@ -80,14 +80,14 @@ export function ProductAnalyticsPanel({
   const latestAdj = d.iceAdjustments[0];
 
   return (
-    <div className="mt-4 rounded-xl border border-slate-200 bg-white">
+    <div className="mt-4 rounded-xl border border-border bg-card">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-100">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
         <div className="flex items-center gap-2">
           <BarChart2 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs font-semibold text-slate-700">Post-ship analytics</span>
+          <span className="text-xs font-semibold text-foreground">Post-ship analytics</span>
           {d.ingestGated && (
-            <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5">
+            <span className="text-[10px] bg-muted text-amber-500 border border-border rounded px-1.5 py-0.5">
               Key needed
             </span>
           )}
@@ -98,7 +98,7 @@ export function ProductAnalyticsPanel({
               onClick={() => mIngest.mutate()}
               disabled={mIngest.isPending}
               title="Pull latest PostHog data"
-              className="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+              className="p-1 rounded text-muted-foreground hover:text-muted-foreground hover:bg-muted disabled:opacity-40"
             >
               {mIngest.isPending ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -111,7 +111,7 @@ export function ProductAnalyticsPanel({
             <button
               onClick={() => mAdjust.mutate()}
               disabled={mAdjust.isPending}
-              className="inline-flex items-center gap-1 rounded border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-accent disabled:opacity-50"
             >
               {mAdjust.isPending ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : null}
               Auto-adjust ICE
@@ -129,7 +129,7 @@ export function ProductAnalyticsPanel({
               value={eventDraft}
               onChange={(e) => setEventDraft(e.target.value)}
               placeholder="e.g. decision_made"
-              className="flex-1 text-xs border border-slate-200 rounded px-2 py-1 outline-none focus:border-foreground"
+              className="flex-1 text-xs border border-border rounded px-2 py-1 outline-none focus:border-foreground"
             />
             <button
               onClick={() => mLink.mutate(eventDraft.trim() || null)}
@@ -139,19 +139,19 @@ export function ProductAnalyticsPanel({
               {mLink.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Link"}
             </button>
             <button onClick={() => setEditingEvent(false)}>
-              <X className="h-3.5 w-3.5 text-slate-400 hover:text-slate-600" />
+              <X className="h-3.5 w-3.5 text-muted-foreground hover:text-muted-foreground" />
             </button>
           </div>
         ) : d.featureEvent ? (
           <div className="flex items-center gap-1.5">
             <CheckCircle className="h-3 w-3 shrink-0" style={{ color: "var(--emerald)" }} />
-            <code className="text-[11px] text-slate-600">{d.featureEvent}</code>
+            <code className="text-[11px] text-muted-foreground">{d.featureEvent}</code>
             <button
               onClick={() => {
                 setEventDraft(d.featureEvent ?? "");
                 setEditingEvent(true);
               }}
-              className="ml-auto text-[10px] text-slate-400 hover:text-slate-600"
+              className="ml-auto text-[10px] text-muted-foreground hover:text-muted-foreground"
             >
               change
             </button>
@@ -159,7 +159,7 @@ export function ProductAnalyticsPanel({
               <button
                 onClick={() => mLink.mutate(null)}
                 disabled={mLink.isPending}
-                className="text-[10px] text-slate-400 hover:text-[var(--rose)]"
+                className="text-[10px] text-muted-foreground hover:text-[var(--rose)]"
               >
                 unlink
               </button>
@@ -171,7 +171,7 @@ export function ProductAnalyticsPanel({
               setEventDraft("");
               setEditingEvent(true);
             }}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             <Link2 className="h-3 w-3" />
             Link a PostHog event to track adoption
@@ -181,9 +181,9 @@ export function ProductAnalyticsPanel({
         {/* Cohort sparkline */}
         {hasData && (
           <div>
-            <div className="flex items-baseline justify-between text-[11px] text-slate-500">
+            <div className="flex items-baseline justify-between text-[11px] text-muted-foreground">
               <span>30-day distinct users</span>
-              <span className="font-semibold text-slate-700">{totalUsers} total</span>
+              <span className="font-semibold text-foreground">{totalUsers} total</span>
             </div>
             <div className="mt-2">
               <GraphSlider
@@ -196,7 +196,7 @@ export function ProductAnalyticsPanel({
               />
             </div>
             {latestDay && (
-              <div className="text-[10px] text-slate-400 mt-1 text-right">
+              <div className="text-[10px] text-muted-foreground mt-1 text-right">
                 Latest: {latestDay.distinct_users} users on {latestDay.cohort_date}
               </div>
             )}
@@ -204,7 +204,7 @@ export function ProductAnalyticsPanel({
         )}
 
         {!hasData && d.featureEvent && (
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-muted-foreground">
             {d.ingestGated
               ? "Set POSTHOG_PERSONAL_API_KEY + POSTHOG_PROJECT_ID to pull cohort data."
               : "No data yet. Click refresh to pull from PostHog."}
@@ -213,20 +213,20 @@ export function ProductAnalyticsPanel({
 
         {/* ICE adjustment history */}
         {d.iceAdjustments.length > 0 && (
-          <div className="border-t border-slate-100 pt-2.5">
-            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+          <div className="border-t border-border pt-2.5">
+            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
               ICE auto-adjustments
             </div>
             {d.iceAdjustments.map((adj, i) => (
               <div key={i} className="flex items-start gap-2 py-1">
-                <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-300 shrink-0" />
+                <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[var(--action-blue)] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-slate-700 leading-snug">
+                  <div className="text-[11px] text-foreground leading-snug">
                     Impact {adj.old_impact}→{adj.new_impact} · Confidence {adj.old_confidence}→
                     {adj.new_confidence}
-                    <span className="text-slate-400 ml-1">· {adj.sample_users} users</span>
+                    <span className="text-muted-foreground ml-1">· {adj.sample_users} users</span>
                   </div>
-                  <div className="text-[10px] text-slate-400">{when(adj.adjusted_at)}</div>
+                  <div className="text-[10px] text-muted-foreground">{when(adj.adjusted_at)}</div>
                 </div>
               </div>
             ))}
@@ -234,7 +234,7 @@ export function ProductAnalyticsPanel({
         )}
 
         {latestAdj && (
-          <p className="text-[10px] text-slate-400 leading-relaxed">{latestAdj.reason}</p>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">{latestAdj.reason}</p>
         )}
       </div>
     </div>

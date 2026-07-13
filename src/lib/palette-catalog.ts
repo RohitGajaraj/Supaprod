@@ -36,7 +36,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     id: "export-record",
     pitch: "Export my decision record",
-    run: { to: "/brain", search: { tab: "insights" } },
+    run: { to: "/brain", search: { tab: "decisions" } },
   },
   {
     id: "point-critic",
@@ -91,8 +91,8 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     id: "open-calendar",
-    pitch: "Open the calendar and meetings",
-    run: { to: "/brain", search: { tab: "calendar" } },
+    pitch: "Open your meetings and calendar",
+    run: { to: "/today" },
   },
   {
     id: "memory-graph",

@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AskInContext } from "@/components/obsidian/AskInContext";
-import { signalPreview, traceRef } from "./format";
+import { signalPreview } from "./format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 
 export interface SignalCardProps {
   src: string;
@@ -228,16 +229,7 @@ export const SignalCard = memo(function SignalCard({
         </span>
       ) : null}
       {id ? (
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "9.5px",
-            letterSpacing: "0.06em",
-            color: "var(--text-faint)",
-          }}
-        >
-          SIG·{traceRef(id)}
-        </span>
+        <AuditTag kind="signal" id={id} />
       ) : null}
     </div>
   );

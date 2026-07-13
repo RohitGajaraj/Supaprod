@@ -599,7 +599,7 @@ function BuildSessionPage() {
                     }
                   }}
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 25,
                     fontWeight: 460,
                     letterSpacing: "-0.015em",
@@ -628,7 +628,7 @@ function BuildSessionPage() {
                   title="Click to rename"
                   className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 25,
                     fontWeight: 460,
                     letterSpacing: "-0.015em",

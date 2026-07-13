@@ -30,7 +30,7 @@ export function FocusNext({
       <MonoLabel style={{ fontSize: 9.5 }}>Cadence suggests</MonoLabel>
       <h3
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: 17,
           fontWeight: 460,
           lineHeight: 1.3,

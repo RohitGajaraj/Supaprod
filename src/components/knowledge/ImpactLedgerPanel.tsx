@@ -42,7 +42,7 @@ function StatCard({ value, label, sub }: { value: string; label: string; sub?: s
       <div
         className="tabular-nums"
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontWeight: 450,
           fontSize: 22,
           color: "var(--text-primary)",

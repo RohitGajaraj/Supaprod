@@ -403,7 +403,7 @@ function CardHeader({
       </div>
       <div
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontWeight: 460,
           fontSize: "var(--text-card-title)",
           lineHeight: 1.3,

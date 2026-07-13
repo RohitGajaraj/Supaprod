@@ -12,6 +12,7 @@ import { useRef, useState, type CSSProperties, type RefObject } from "react";
 import { z } from "zod";
 import { toast } from "@/lib/notify";
 import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -685,35 +686,14 @@ function BuildPage() {
       >
         {/* Loom §2b glow field: the one ambient wash behind the hero. */}
         <div aria-hidden="true" className="loom-glow-field" />
-        <ProductMasthead />
         <div style={{ marginBottom: 22 }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: "var(--text-hero)",
-              fontWeight: 420,
-              letterSpacing: "-0.015em",
-              lineHeight: 1.12,
-              color: "var(--text-primary)",
-              margin: 0,
-            }}
-          >
-            <em style={{ color: "var(--ember-text)", fontStyle: "italic" }}>Build</em>
-          </h1>
-          {/* §6: the maker's mark — a static 24px thread under the surface title. */}
-          <div
-            aria-hidden="true"
-            style={{
-              width: 24,
-              height: 1,
-              background: "var(--thread-gradient)",
-              opacity: 0.4,
-              marginTop: 8,
-            }}
+          <PageHeader
+            eyebrow="The Loop · 05 Build"
+            title="Approved specs in,"
+            accent="merged PRs out."
+            subtitle="Agents pick up approved specs, write the code, run the tests, and open the pull request. You appear only at the gates."
+            usp="Agents build, test, and open the PR autonomously, so your team ships without hand-coding every change."
           />
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 6 }}>
-            Approved specs go in. Merged pull requests come out.
-          </p>
           {presenceAgent ? (
             <div style={{ marginTop: 10 }}>
               <PresenceChip

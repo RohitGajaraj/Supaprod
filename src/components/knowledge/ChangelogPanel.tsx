@@ -157,7 +157,7 @@ export function ChangelogPanel() {
                   <div className="flex items-baseline justify-between" style={{ gap: 12 }}>
                     <h3
                       style={{
-                        fontFamily: "var(--font-serif)",
+                        fontFamily: "var(--font-sans)",
                         fontWeight: 460,
                         fontSize: 15,
                         color: "var(--text-primary)",

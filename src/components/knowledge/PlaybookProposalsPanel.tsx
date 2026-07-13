@@ -79,7 +79,7 @@ function ProposalCard({
 
       <p
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: 15,
           fontWeight: 450,
           color: "var(--text-primary)",

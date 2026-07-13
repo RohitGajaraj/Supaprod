@@ -153,7 +153,7 @@ export const CallCard = React.forwardRef<HTMLDivElement, CallCardProps>(
 
         <h3
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: compact ? "17px" : "var(--text-card-title)",
             fontWeight: 460,
             lineHeight: 1.3,

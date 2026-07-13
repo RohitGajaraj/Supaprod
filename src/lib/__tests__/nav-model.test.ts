@@ -3,10 +3,10 @@ import { PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { JUMP_DESTINATIONS } from "@/lib/palette-sections";
 
 /**
- * IA SPINE (2026-07-11) - the DERIVATION LAW: the palette JUMP section, the
- * displayed key hints, and the GotoShortcuts key range are DERIVED from
- * PRIMARY_NAV, never hand-copied. These tests fail the moment anything
- * drifts back to a parallel list.
+ * THE CADENCE LOOP (Option B, 2026-07-13) - the DERIVATION LAW: the palette
+ * JUMP section, the displayed key hints, and the GotoShortcuts key range are
+ * DERIVED from PRIMARY_NAV, never hand-copied. These tests fail the moment
+ * anything drifts back to a parallel list.
  */
 
 describe("derivation law - palette JUMP mirrors PRIMARY_NAV exactly", () => {
@@ -22,27 +22,24 @@ describe("derivation law - palette JUMP mirrors PRIMARY_NAV exactly", () => {
     });
   });
 
-  it("displays the derived key hint: the 1-based rail position", () => {
-    expect(JUMP_DESTINATIONS.map((d) => d.hint)).toEqual(PRIMARY_NAV.map((_, i) => String(i + 1)));
+  it("displays the derived key hint (digits 1-9, then g for Engine Room)", () => {
     expect(JUMP_DESTINATIONS.map((d) => d.hint)).toEqual(PRIMARY_NAV.map((n) => navKeyHint(n)));
   });
 });
 
-describe("derivation law - the shortcut range is the nav length", () => {
-  it("keys 1..N cover every destination and nothing else (N = PRIMARY_NAV.length)", () => {
-    // GotoShortcuts binds Number(e.key) in [1, PRIMARY_NAV.length]; verify the
-    // range maps 1:1 onto the rail with no gap and no orphan key.
+describe("derivation law - the shortcut range", () => {
+  it("has ten destinations; digit keys 1-9 map 1:1, the 10th uses g", () => {
     const n = PRIMARY_NAV.length;
-    expect(n).toBe(7);
-    for (let key = 1; key <= n; key++) {
+    expect(n).toBe(10);
+    for (let key = 1; key <= 9; key++) {
       expect(PRIMARY_NAV[key - 1]).toBeDefined();
     }
     expect(PRIMARY_NAV[n]).toBeUndefined();
   });
 
-  it("key 7 (the last) is the Engine Room, which also keeps its g alias", () => {
+  it("the last destination is the Engine Room, which uses its g alias", () => {
     const last = PRIMARY_NAV[PRIMARY_NAV.length - 1];
     expect(last.to).toBe("/engine-room");
-    expect(navKeyHint(last)).toBe("7");
+    expect(navKeyHint(last)).toBe("g");
   });
 });

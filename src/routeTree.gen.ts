@@ -41,6 +41,7 @@ import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedSyncRouteImport } from './routes/_authenticated.sync'
 import { Route as AuthenticatedSwarmRouteImport } from './routes/_authenticated.swarm'
 import { Route as AuthenticatedStakeholderRouteImport } from './routes/_authenticated.stakeholder'
+import { Route as AuthenticatedShipRouteImport } from './routes/_authenticated.ship'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedRoadmapRouteImport } from './routes/_authenticated.roadmap'
 import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated.prompts'
@@ -330,6 +331,11 @@ const AuthenticatedStakeholderRoute =
     path: '/stakeholder',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedShipRoute = AuthenticatedShipRouteImport.update({
+  id: '/ship',
+  path: '/ship',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -1092,6 +1098,7 @@ export interface FileRoutesByFullPath {
   '/prompts': typeof AuthenticatedPromptsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
@@ -1250,6 +1257,7 @@ export interface FileRoutesByTo {
   '/prompts': typeof AuthenticatedPromptsRoute
   '/roadmap': typeof AuthenticatedRoadmapRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ship': typeof AuthenticatedShipRoute
   '/stakeholder': typeof AuthenticatedStakeholderRoute
   '/swarm': typeof AuthenticatedSwarmRoute
   '/sync': typeof AuthenticatedSyncRoute
@@ -1412,6 +1420,7 @@ export interface FileRoutesById {
   '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
   '/_authenticated/roadmap': typeof AuthenticatedRoadmapRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/ship': typeof AuthenticatedShipRoute
   '/_authenticated/stakeholder': typeof AuthenticatedStakeholderRoute
   '/_authenticated/swarm': typeof AuthenticatedSwarmRoute
   '/_authenticated/sync': typeof AuthenticatedSyncRoute
@@ -1574,6 +1583,7 @@ export interface FileRouteTypes {
     | '/prompts'
     | '/roadmap'
     | '/settings'
+    | '/ship'
     | '/stakeholder'
     | '/swarm'
     | '/sync'
@@ -1732,6 +1742,7 @@ export interface FileRouteTypes {
     | '/prompts'
     | '/roadmap'
     | '/settings'
+    | '/ship'
     | '/stakeholder'
     | '/swarm'
     | '/sync'
@@ -1893,6 +1904,7 @@ export interface FileRouteTypes {
     | '/_authenticated/prompts'
     | '/_authenticated/roadmap'
     | '/_authenticated/settings'
+    | '/_authenticated/ship'
     | '/_authenticated/stakeholder'
     | '/_authenticated/swarm'
     | '/_authenticated/sync'
@@ -2314,6 +2326,13 @@ declare module '@tanstack/react-router' {
       path: '/stakeholder'
       fullPath: '/stakeholder'
       preLoaderRoute: typeof AuthenticatedStakeholderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ship': {
+      id: '/_authenticated/ship'
+      path: '/ship'
+      fullPath: '/ship'
+      preLoaderRoute: typeof AuthenticatedShipRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/settings': {
@@ -3311,6 +3330,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
   AuthenticatedRoadmapRoute: typeof AuthenticatedRoadmapRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedShipRoute: typeof AuthenticatedShipRoute
   AuthenticatedStakeholderRoute: typeof AuthenticatedStakeholderRoute
   AuthenticatedSwarmRoute: typeof AuthenticatedSwarmRoute
   AuthenticatedSyncRoute: typeof AuthenticatedSyncRoute
@@ -3369,6 +3389,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
   AuthenticatedRoadmapRoute: AuthenticatedRoadmapRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedShipRoute: AuthenticatedShipRoute,
   AuthenticatedStakeholderRoute: AuthenticatedStakeholderRoute,
   AuthenticatedSwarmRoute: AuthenticatedSwarmRoute,
   AuthenticatedSyncRoute: AuthenticatedSyncRoute,

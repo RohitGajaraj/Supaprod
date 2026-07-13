@@ -21,7 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { relTimeCaps, traceRef } from "@/components/discover/format";
+import { relTimeCaps } from "@/components/discover/format";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { stateChip, citesLabel } from "./format";
 
 export interface SpecListProps {
@@ -318,17 +319,7 @@ export function SpecList({ onOpen }: SpecListProps) {
                 >
                   {relTimeCaps(spec.updated_at)}
                 </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-floor)",
-                    letterSpacing: "0.06em",
-                    color: "var(--text-faint)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  PRD·{traceRef(spec.id)}
-                </span>
+                <AuditTag kind="spec" id={spec.id} />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

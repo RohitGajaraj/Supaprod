@@ -945,9 +945,9 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               style={{
                 fontSize: 30,
                 margin: "8px 0 6px",
-                fontFamily: "var(--font-serif)",
-                fontWeight: 430,
-                letterSpacing: "-0.015em",
+                fontFamily: "var(--font-sans)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
                 color: "var(--text-primary)",
               }}
             >

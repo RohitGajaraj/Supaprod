@@ -1,17 +1,67 @@
-// IA SPINE (2026-07-11): Decide left the rail. The ranked opportunity queue
-// lives as the queue tab on Discover; /decide 301-redirects there so every
-// old deep link keeps landing. The route file stays (URLs are forever),
-// permanent redirect stub, same pattern as /govern. DecideSurface was fully
-// absorbed into Discover's queue tab (OpportunityQueue) and no longer exists
-// as a file.
-import { createFileRoute, redirect } from "@tanstack/react-router";
+// Decide (02) — the judgment gate of THE CADENCE LOOP, promoted to a
+// first-class stage (founder ruling, Option B, 2026-07-13). This is the
+// product's whole thesis made visible: everything else runs autonomously; the
+// human appears here, to keep or kill each ranked bet. The ranked queue
+// (OpportunityQueue) previously lived only as a tab on Discover; it now has a
+// named home so the lifecycle spine states the differentiator outright.
+import { lazy, Suspense } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { TopBar } from "@/components/cadence/TopBar";
+import { PageHeader } from "@/components/cadence/PageHeader";
+import { MonoLabel } from "@/components/obsidian/primitives";
+import { AgentRelay } from "@/components/agents/AgentRelay";
+import { useWorkspace } from "@/hooks/use-workspace";
+
+const OpportunityQueue = lazy(() =>
+  import("@/components/discover/OpportunityQueue").then((m) => ({ default: m.OpportunityQueue })),
+);
+
+function DecideSurface() {
+  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
+  return (
+    <>
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Decide"]} />
+      <div
+        style={{
+          maxWidth: "var(--container-standard)",
+          width: "100%",
+          margin: "0 auto",
+          padding: "36px 32px 64px",
+          animation: "cadRise 260ms var(--ease) both",
+        }}
+      >
+        <PageHeader
+          eyebrow="The Loop · 02 Decide"
+          title="Keep it, or"
+          accent="kill it."
+          subtitle="Every ranked bet Cadence surfaced, waiting on the one thing it will never do for you: the call. Approve to move it into Plan, send it back, or drop it."
+          usp="You make the judgment calls; Cadence runs everything else. This is the gate that is yours alone."
+        />
+        <div style={{ marginBottom: 18 }}>
+          <AgentRelay variant="station" station="decide" workspaceId={activeWorkspaceId} />
+        </div>
+        <Suspense fallback={<div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading the queue…</div>}>
+          <OpportunityQueue />
+        </Suspense>
+      </div>
+    </>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/decide")({
-  beforeLoad: () => {
-    throw redirect({
-      to: "/discover",
-      search: { tab: "queue" } as never,
-      statusCode: 301,
-    });
+  component: DecideSurface,
+  head: () => ({ meta: [{ title: "Decide · Cadence" }] }),
+  errorComponent: ({ error }) => {
+    console.error("[Decide] route crashed:", error);
+    return (
+      <div style={{ padding: "64px 32px", textAlign: "center" }}>
+        <MonoLabel tone="madder" style={{ fontSize: "10.5px" }}>
+          Could not load Decide
+        </MonoLabel>
+        <p style={{ fontSize: "var(--text-base)", color: "var(--text-muted)", marginTop: "8px" }}>
+          Reload the page. Nothing here is lost.
+        </p>
+      </div>
+    );
   },
 });

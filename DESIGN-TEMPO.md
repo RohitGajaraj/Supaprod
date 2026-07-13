@@ -267,6 +267,17 @@ settings screens; onboarding & empty states; **AI interfaces** (chat/ask surface
 streaming output, agent activity & run timelines, approval/HITL gates, receipts & trust
 evidence, model/tool pickers); **workflow & pipeline builders**.
 
+**Named extensions shipped for the v5 app port.** The **audit trace-tag** — the clickable
+`PREFIX·XXXXXX` id chip that opens an entity's verifiable lineage (founder ruling 2026-07-13:
+"everything should have a traceable audit id generated out of this platform") — is documented at
+[`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md)
+(feature: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md)). The full
+reasoning behind every design ruling applied when porting the authenticated app to Tempo — the
+lifecycle IA ("The Cadence Loop"), the **ember = needs-human / blue = machine** color grammar (with
+purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage, monotone source
+logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
+[`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
+
 ## 10. What survives from the old contracts
 
 These Cadence operating laws are **orthogonal to the visual system and remain in force**:

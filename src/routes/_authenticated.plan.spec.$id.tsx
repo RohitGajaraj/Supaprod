@@ -170,7 +170,7 @@ const PREVIEW_COMPONENTS = {
   h1: ({ children }: { children?: ReactNode }) => (
     <h1
       style={{
-        fontFamily: "var(--font-serif)",
+        fontFamily: "var(--font-sans)",
         fontSize: "var(--text-h2)",
         fontWeight: 460,
         color: "var(--text-primary)",
@@ -183,7 +183,7 @@ const PREVIEW_COMPONENTS = {
   h2: ({ children }: { children?: ReactNode }) => (
     <h2
       style={{
-        fontFamily: "var(--font-serif)",
+        fontFamily: "var(--font-sans)",
         fontSize: 20,
         fontWeight: 460,
         color: "var(--text-primary)",
@@ -196,7 +196,7 @@ const PREVIEW_COMPONENTS = {
   h3: ({ children }: { children?: ReactNode }) => (
     <h3
       style={{
-        fontFamily: "var(--font-serif)",
+        fontFamily: "var(--font-sans)",
         fontSize: "var(--text-emphasis)",
         fontWeight: 500,
         color: "var(--text-primary)",
@@ -570,7 +570,7 @@ function SpecEditorPage() {
             style={{
               width: "100%",
               background: "transparent",
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontSize: "var(--text-h1)",
               fontWeight: 440,
               letterSpacing: "-0.015em",
@@ -939,7 +939,7 @@ function SpecEditorPage() {
             style={{
               ...CARD,
               padding: "36px 40px",
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontSize: 15,
               lineHeight: 1.7,
               color: "var(--text-body)",

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { PageHeader } from "@/components/cadence/PageHeader";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { getBudgetOverview } from "@/lib/budgets.functions";
@@ -194,29 +195,13 @@ export function EngineRoomGlance() {
           anchored + clipped by EngineRoomContainer, which the route still
           renders as this column's ancestor). */}
       <div aria-hidden="true" className="loom-glow-field" data-tone={glowTone} />
-      <h1
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontWeight: 430,
-          fontSize: "var(--text-h1)",
-          letterSpacing: "-0.015em",
-          lineHeight: 1.15,
-          color: "var(--text-primary)",
-          margin: "0 0 6px",
-        }}
-      >
-        The engine, at a <em style={{ fontStyle: "italic", color: "var(--ember-text)" }}>glance</em>
-        .
-      </h1>
-      <p
-        style={{
-          fontSize: "var(--text-base)",
-          color: "var(--text-subtle)",
-          marginBottom: allHealthy ? "10px" : "24px",
-        }}
-      >
-        Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record.
-      </p>
+      <PageHeader
+        eyebrow="Intelligence · Engine Room"
+        title="The engine, at a"
+        accent="glance."
+        subtitle="Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record."
+        usp="Full observability for autonomous work: spend, quality, safety, and a receipt for every action the machine takes."
+      />
 
       {/* RPT-09: the "While you worked" amplifier strip. Real counts only (this
           week's AI actions from the already-fetched analytics read + RPT-33's honest
@@ -250,7 +235,17 @@ export function EngineRoomGlance() {
           {throughput.totalRuns > 0 ? (
             <p style={{ fontSize: "var(--text-base)", color: "var(--text-primary)", margin: 0 }}>
               Cadence ran{" "}
-              <strong style={{ color: "var(--ember-text)" }}>{throughput.totalRuns}</strong>{" "}
+              <strong
+                style={{
+                  fontFamily: "var(--font-pixel)",
+                  fontWeight: 400,
+                  fontSize: 18,
+                  fontVariantNumeric: "tabular-nums",
+                  color: "var(--ember-text)",
+                }}
+              >
+                {throughput.totalRuns}
+              </strong>{" "}
               {throughput.totalRuns === 1 ? "action" : "actions"} for you this week.
             </p>
           ) : null}
@@ -269,8 +264,7 @@ export function EngineRoomGlance() {
           ) : null}
           <p
             style={{
-              fontFamily: "var(--font-serif)",
-              fontStyle: "italic",
+              fontFamily: "var(--font-sans)",
               fontSize: 13,
               color: "var(--text-muted)",
               margin: "8px 0 0",

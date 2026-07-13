@@ -382,6 +382,11 @@ export function OpportunityQueue() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
+          title={
+            showAll
+              ? "Collapse back to the strongest few bets, so the queue stays scannable"
+              : "Show every ranked bet in the queue, not just the strongest few at the top"
+          }
           className="loom-press border outline-none transition-colors [border-color:var(--hairline-strong)] [color:var(--text-muted)] hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
           style={{
             fontFamily: "var(--font-ui)",

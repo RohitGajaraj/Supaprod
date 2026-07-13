@@ -20,7 +20,8 @@ evidence and tooling under it. When look/feel/IA disagreement arises anywhere, t
 | `tokens/spacing.css`    | The 4px-base space ramp and gap rhythm.                                                                                                                                                                                                            |
 | `tokens/fonts.css`      | `@font-face` for self-hosted Geist Sans/Mono variable + 5 Pixel faces (files in `/public/fonts/geist/`, SIL OFL 1.1).                                                                                                                              |
 | `research/`             | Re-implementation-grade specs of every documented Geist component (one file per component; index in its `README.md`), plus `_foundations.md` and `_public-sources.md` (what is publicly liftable vs re-implemented).                               |
-| `patterns/`             | The extension library (contract §9): AI-interface and enterprise workflow patterns beyond the Geist catalog, each marked Extension with its sources (Linear/Stripe/Notion/Figma/Arc/Anthropic/Perplexity — inspiration only, never a second base). |
+| `patterns/`             | The extension library (contract §9): AI-interface and enterprise workflow patterns beyond the Geist catalog, each marked Extension with its sources (Linear/Stripe/Notion/Figma/Arc/Anthropic/Perplexity — inspiration only, never a second base). Includes `audit-trace-tag.md` (the clickable id chip). |
+| `applied/`              | Dated build records: the "why + what" behind the design rulings applied to real surfaces. `2026-07-13-app-port-and-design-rulings.md` captures the full authenticated-app port (IA, ember=needs-human/blue=machine grammar, glass chrome, Pixel usage, monotone source logos, agent gems, TopBar/PageHeader chrome, audit trace-tag). |
 
 ## Provenance & licensing
 

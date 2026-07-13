@@ -7,7 +7,73 @@
 // screen shows what the machine is doing while it runs.
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { Sparkles, Sun, Moon, Monitor } from "lucide-react";
 import { LiveTicker } from "@/components/cadence/LivePulse";
+import { DayWeather } from "@/components/cadence/DayWeather";
+import { useTheme } from "@/hooks/use-theme";
+
+/** A one-tap theme switcher (light → dark → system), so a user never has to
+ *  open Settings to change the look (founder ruling 2026-07-13). Shows the
+ *  current mode's icon; the label announces the next mode for a11y. */
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
+  const next = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={`Theme: ${theme}. Switch to ${next}.`}
+      title={`Theme: ${theme} — click for ${next}`}
+      className="loom-press inline-flex items-center justify-center outline-none transition-colors duration-150 hover:text-[var(--text-primary)] hover:border-[var(--hairline-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: 999,
+        border: "1px solid var(--hairline)",
+        background: "color-mix(in oklab, var(--card) 70%, transparent)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        color: "var(--text-muted)",
+        cursor: "pointer",
+      }}
+    >
+      <Icon size={14} strokeWidth={1.9} />
+    </button>
+  );
+}
+
+/** The visible home for Ask (the reasoning engine you can talk to). Opens the
+ *  same panel as Cmd+J / the palette ASK row via the shared window event, so
+ *  a first-time user can always find it without knowing the shortcut. */
+function AskButton() {
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new CustomEvent("cadence:open-ask"))}
+      aria-label="Ask Cadence"
+      className="loom-press inline-flex items-center outline-none transition-colors duration-150 hover:border-[var(--ember-line)] hover:text-[var(--text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+      style={{
+        gap: 7,
+        padding: "5px 11px",
+        borderRadius: 999,
+        border: "1px solid var(--hairline)",
+        background: "color-mix(in oklab, var(--card) 70%, transparent)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        color: "var(--text-muted)",
+        fontSize: 12.5,
+        cursor: "pointer",
+      }}
+    >
+      <Sparkles size={13} strokeWidth={1.9} style={{ color: "var(--ember)" }} />
+      <span>Ask</span>
+      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, color: "var(--text-faint)" }}>
+        ⌘J
+      </span>
+    </button>
+  );
+}
 
 /** A crumb is plain text (context only) or a link (navigates on click). */
 export type Crumb = string | { label: string; to: string; search?: Record<string, string> };
@@ -29,7 +95,9 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         height: 52,
         flexShrink: 0,
         borderBottom: "1px solid var(--hairline-faint)",
-        background: "var(--canvas)",
+        background: "color-mix(in oklab, var(--canvas) 68%, transparent)",
+        backdropFilter: "blur(14px) saturate(1.5)",
+        WebkitBackdropFilter: "blur(14px) saturate(1.5)",
         position: "sticky",
         top: 0,
         zIndex: 30,
@@ -77,6 +145,9 @@ export function TopBar({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNo
         })}
       </nav>
       <span style={{ flex: 1 }} />
+      <ThemeToggle />
+      <AskButton />
+      <DayWeather />
       <LiveTicker />
       {actions}
     </header>

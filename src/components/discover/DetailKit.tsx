@@ -113,7 +113,7 @@ export function StatCell({ label, value, tone = "neutral" }: StatCellProps) {
     >
       <div
         style={{
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: "15px",
           fontWeight: 460,
           color,

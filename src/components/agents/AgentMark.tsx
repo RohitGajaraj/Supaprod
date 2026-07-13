@@ -60,7 +60,7 @@ function iconForGlyph(glyph: string): LucideIcon {
 export function AgentMark({ slug, size = 22 }: { slug: string | null | undefined; size?: number }) {
   const { hue, glyph } = agentMark(slug);
   const Icon = iconForGlyph(glyph);
-  const inner = Math.round(size * 0.56);
+  const inner = Math.round(size * 0.54);
   return (
     <span
       aria-hidden
@@ -70,15 +70,20 @@ export function AgentMark({ slug, size = 22 }: { slug: string | null | undefined
         justifyContent: "center",
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.3),
-        // hue is an oklch from the warm agent palette; mix for the tint + border.
-        background: `color-mix(in oklab, ${hue} 14%, transparent)`,
-        border: `1px solid color-mix(in oklab, ${hue} 30%, transparent)`,
+        borderRadius: Math.round(size * 0.32),
+        // Liquid-glass gem (founder direction 2026-07-13): a dimensional tile
+        // per agent — a soft top-lit gradient in the agent's hue, a bright
+        // catch-light on the top edge, and a low outer glow. The hue still
+        // lives only on this small identity mark (DESIGN-TEMPO §2 restraint);
+        // the glyph, not color, is the primary differentiator.
+        background: `linear-gradient(155deg, color-mix(in oklab, ${hue} 26%, var(--card)) 0%, color-mix(in oklab, ${hue} 9%, var(--card)) 100%)`,
+        border: `1px solid color-mix(in oklab, ${hue} 34%, var(--hairline))`,
+        boxShadow: `inset 0 1px 0 color-mix(in oklab, #fff 16%, transparent), 0 3px 8px -4px color-mix(in oklab, ${hue} 45%, transparent)`,
         color: hue,
         flexShrink: 0,
       }}
     >
-      <Icon size={inner} strokeWidth={1.9} />
+      <Icon size={inner} strokeWidth={2} />
     </span>
   );
 }
@@ -91,6 +96,7 @@ export function AgentBadge({
   showVerb = false,
   live = false,
   fallbackName,
+  pixelName = false,
 }: {
   slug: string | null | undefined;
   /** An explicit verb line. If omitted and showVerb is true, the catalog relay verb is used. */
@@ -100,6 +106,10 @@ export function AgentBadge({
   /** When true, the name shimmers (a live/running agent), respecting motion settings. */
   live?: boolean;
   fallbackName?: string | null;
+  /** When true, the agent name renders in Geist Pixel (the brand display face)
+   *  at a legible size — for prominent/heading agent identities. Kept off by
+   *  default because Pixel reads poorly below ~14px. */
+  pixelName?: boolean;
 }) {
   const name = agentDisplayName(slug, fallbackName);
   const v = verb ?? (showVerb ? agentRelayVerb(slug) : null);
@@ -110,8 +120,9 @@ export function AgentBadge({
         <span
           className={live ? "agent-live" : undefined}
           style={{
-            fontSize: 13,
-            fontWeight: 540,
+            fontFamily: pixelName ? "var(--font-pixel)" : undefined,
+            fontSize: pixelName ? 14 : 13,
+            fontWeight: pixelName ? 400 : 540,
             // Idle names are gray (restraint); only the live shimmer colors the name.
             color: live ? undefined : "var(--ink-muted)",
             lineHeight: 1.2,

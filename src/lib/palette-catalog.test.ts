@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { CATALOG, filterCatalog } from "./palette-catalog";
 import { ACT_VERBS, JUMP_DESTINATIONS } from "./palette-sections";
 import { CANONICAL_PATHS, DOOR_INTERNAL_PATHS } from "./legacy-redirects";
+import { PRIMARY_NAV, navKeyHint } from "./nav-model";
 
 const KNOWN_ROUTES = new Set<string>([...CANONICAL_PATHS, ...DOOR_INTERNAL_PATHS]);
 
@@ -37,8 +38,9 @@ describe("palette-catalog", () => {
 });
 
 describe("palette-sections", () => {
-  it("JUMP_DESTINATIONS has exactly seven entries (derived from PRIMARY_NAV)", () => {
-    expect(JUMP_DESTINATIONS.length).toBe(7);
+  it("JUMP_DESTINATIONS has one entry per primary destination (derived from PRIMARY_NAV)", () => {
+    expect(JUMP_DESTINATIONS.length).toBe(PRIMARY_NAV.length);
+    expect(JUMP_DESTINATIONS.length).toBe(10);
   });
 
   it("every JUMP destination's run.to is a canonical path", () => {
@@ -47,9 +49,10 @@ describe("palette-sections", () => {
     }
   });
 
-  it("JUMP hints are the keys 1-7, unique", () => {
+  it("JUMP hints are the derived rail hints, unique", () => {
     const hints = JUMP_DESTINATIONS.map((d) => d.hint);
-    expect(hints).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+    expect(hints).toEqual(PRIMARY_NAV.map((n) => navKeyHint(n)));
+    expect(new Set(hints).size).toBe(hints.length);
   });
 
   it("ACT_VERBS is non-empty and every verb has a run target", () => {

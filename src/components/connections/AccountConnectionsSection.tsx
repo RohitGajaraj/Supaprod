@@ -666,7 +666,7 @@ export function AccountConnectionsSection({
         <header style={{ marginBottom: 16 }}>
           <h3
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 460,
               fontSize: 20,
               lineHeight: 1.2,

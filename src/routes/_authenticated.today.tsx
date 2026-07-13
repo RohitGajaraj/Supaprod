@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/cadence/TopBar";
 import { Button, SlideOver, SpotlightCard } from "@/components/obsidian";
 import { useToast } from "@/components/obsidian/toast";
-import { Hero } from "@/components/obsidian/today/Hero";
+import { TodayHeroCard } from "@/components/today/TodayHeroCard";
 import { ColdStartOnramp } from "@/components/today/ColdStartOnramp";
 import { type WhatChangedItem } from "@/components/obsidian/today/WhatChanged";
 import { WatchLane } from "@/components/today/TodayLanes";
@@ -1157,10 +1157,12 @@ function Dashboard() {
             {isCold ? (
               <ColdStartOnramp />
             ) : (
-              <Hero
+              <TodayHeroCard
                 greeting={greeting.data?.greeting ?? "Hello"}
                 userName={userName}
                 pendingCalls={callCount}
+                pulseLine={lp && lp.total > 0 ? pulseSentence(lp) : undefined}
+                onAnswer={featured ? () => setActiveCallId(featured.id) : undefined}
               />
             )}
           </>
@@ -1179,12 +1181,6 @@ function Dashboard() {
             />
           </>
         )}
-        {/* PC-32 block 2 (PC-33): the product masthead — one quiet line
-            grounding the ritual in the product's story. */}
-        <ProductMasthead
-          ctx={productContext.data}
-          onOpen={() => navigate({ to: "/settings", search: { section: "workspace" } as never })}
-        />
         {/* Founder ruling (2026-07-04): the brief LEADS the ritual — a
             spotlight composed from live objects (the call that matters, what
             proved out), never a paragraph dump; the AI prose is one
@@ -1204,7 +1200,16 @@ function Dashboard() {
         {/* PC-32: ONE column, one question. The judgment lane leads; the
             receipts strip narrates the night; four quiet doors hold the rest.
             The old two-column grid (8 sections, 8 questions) is retired. */}
-        <div className="flex flex-col" style={{ gap: 26 }}>
+        {/* Founder addendum (2026-07-13): the PM's daily tools were buried
+            behind the Desk door. On wide screens they now ride an EVIDENT
+            right rail (Focus · Tasks · Capture) beside the judgment column —
+            a single-purpose rail, not the retired 8-section grid. Narrow
+            screens keep the Desk door below. */}
+        <div
+          className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_312px] items-start"
+          style={{ gap: 24 }}
+        >
+          <div className="flex flex-col" style={{ gap: 26, minWidth: 0 }}>
           <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
               <h2
@@ -1265,7 +1270,7 @@ function Dashboard() {
               >
                 <h3
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 19,
                     fontWeight: 460,
                     color: "var(--text-primary)",
@@ -1320,7 +1325,7 @@ function Dashboard() {
                 <ConstellationMotif />
                 <h3
                   style={{
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     fontSize: 21,
                     fontWeight: 450,
                     color: "var(--text-primary)",
@@ -1491,6 +1496,10 @@ function Dashboard() {
               onClick={() => setWatchOpen(true)}
             />
           </nav>
+          </div>
+          <aside className="hidden xl:block" aria-label="Your desk">
+            <DeskRail compact />
+          </aside>
         </div>
       </div>
       {/* PC-32 block 5: the Desk slide-over — personal tools are not

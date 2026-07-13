@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
-import { ArrowDownRight, ArrowUpRight, Copy, ExternalLink, Radio } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ExternalLink, Radio } from "lucide-react";
+import { AuditTag } from "@/components/cadence/AuditTag";
 import { Button, MonoLabel } from "@/components/obsidian";
 import { ProviderLogo } from "@/components/connections/ProviderLogo";
 import { CONNECTOR_REGISTRY, type ProviderId } from "@/lib/connectors/registry";
@@ -13,7 +14,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { getLineage } from "@/lib/lineage.functions";
-import { toast } from "@/lib/notify";
 import { DetailHeader, DetailSection, StatCell, StatStrip, type StatTone } from "./DetailKit";
 import { SkeletonBar } from "./SkeletonBar";
 import { relTimeCaps, signalCleanBody, signalHasRaw, sourceCaps, traceRef } from "./format";
@@ -272,29 +272,7 @@ export function SignalRecordBody({ record }: { record: SignalRecord }) {
           </span>
         }
         traceRef={
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard?.writeText(record.id);
-              toast("Trace id copied");
-            }}
-            aria-label="Copy trace id"
-            title="Copy the full trace id"
-            className="loom-press flex items-center outline-none transition-colors [color:var(--text-faint)] hover:[color:var(--text-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{
-              gap: "6px",
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              letterSpacing: "0.06em",
-              background: "transparent",
-              border: "none",
-              padding: "3px 2px",
-              cursor: "pointer",
-            }}
-          >
-            SIG·{traceRef(record.id)}
-            <Copy className="h-3 w-3" />
-          </button>
+          <AuditTag kind="signal" id={record.id} copyable />
         }
       />
 

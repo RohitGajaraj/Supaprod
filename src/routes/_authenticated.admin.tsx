@@ -54,7 +54,7 @@ function AdminLayout() {
       <div style={{ padding: "36px 32px 64px", maxWidth: 1100, margin: "0 auto" }}>
         <p
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontWeight: 460,
             fontSize: 20,
             lineHeight: 1.3,
@@ -150,7 +150,7 @@ function NoAccessCard({ anyAdminExists }: { anyAdminExists: boolean }) {
         gap: 12,
       }}
     >
-      <div style={{ fontFamily: "var(--font-serif)", fontSize: 20, color: "var(--text-primary)" }}>
+      <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, color: "var(--text-primary)" }}>
         Admin access required
       </div>
       <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0, maxWidth: 520 }}>

@@ -2,6 +2,9 @@ import { describe, it, expect } from "bun:test";
 import {
   PRIMARY_NAV,
   WORKFLOW_NAV,
+  LOOP_NAV,
+  HOME_NAV,
+  INTELLIGENCE_NAV,
   FOOTER_NAV,
   ENGINE_ROOM_PATHS,
   navItemActive,
@@ -11,65 +14,103 @@ import {
 import { CANONICAL_PATHS } from "./legacy-redirects";
 
 /**
- * IA SPINE (2026-07-11): ONE rail, seven primary destinations, keys 1-7:
- * Today (pinned, unnumbered) · WORKFLOW (01 Discover · 02 Plan · 03 Design ·
- * 04 Build — mono indexes live only here) · Memory (/brain) · Engine Room.
- * THE ENGINE group is gone; Decide and Ledger left the rail (redirect stubs).
- * These tests lock the invariants; the derivation law (palette JUMP + key
- * hints + shortcut range derive from PRIMARY_NAV) is locked in
- * __tests__/nav-model.test.ts.
+ * IA — THE CADENCE LOOP (Option B, 2026-07-13): the rail tells the product
+ * story in three zones — HOME (Today) · THE LOOP (01 Discover · 02 Decide · 03
+ * Plan · 04 Design · 05 Build · 06 Ship · 07 Learn) · INTELLIGENCE (Memory ·
+ * Engine Room). Ten primary destinations; digit keys 1-9 plus Engine Room's
+ * `g` alias (the 10th has no single-digit key).
  */
 
-describe("nav-model - the seven primary destinations", () => {
-  it("is one flat ordered list of exactly seven destinations", () => {
-    expect(PRIMARY_NAV.length).toBe(7);
+describe("nav-model - the ten primary destinations (the Loop)", () => {
+  it("is one flat ordered list of exactly ten destinations", () => {
+    expect(PRIMARY_NAV.length).toBe(10);
     expect(PRIMARY_NAV.map((n) => n.label)).toEqual([
       "Today",
       "Discover",
+      "Decide",
       "Plan",
       "Design",
       "Build",
-      "Memory",
+      "Ship",
+      "Learn",
+      "Brain",
       "Engine Room",
     ]);
     expect(PRIMARY_NAV.map((n) => n.to)).toEqual([
       "/today",
       "/discover",
+      "/decide",
       "/plan",
       "/design",
       "/build",
+      "/ship",
+      "/learn",
       "/brain",
       "/engine-room",
     ]);
   });
 
-  it("Today is pinned first, unnumbered, and ungrouped", () => {
+  it("Today is pinned first, in the home zone, unnumbered", () => {
     expect(PRIMARY_NAV[0].to).toBe("/today");
     expect(PRIMARY_NAV[0].index).toBe("");
-    expect(PRIMARY_NAV[0].group).toBeUndefined();
+    expect(PRIMARY_NAV[0].zone).toBe("home");
+    expect(HOME_NAV.map((n) => n.to)).toEqual(["/today"]);
   });
 
-  it("the WORKFLOW group is Discover, Plan, Design, Build with mono indexes 01-04", () => {
-    expect(WORKFLOW_NAV.map((n) => n.label)).toEqual(["Discover", "Plan", "Design", "Build"]);
-    expect(WORKFLOW_NAV.map((n) => n.index)).toEqual(["01", "02", "03", "04"]);
-    for (const n of WORKFLOW_NAV) expect(n.group).toBe("workflow");
+  it("THE LOOP is the seven lifecycle stages with mono indexes 01-07", () => {
+    expect(WORKFLOW_NAV).toBe(LOOP_NAV);
+    expect(LOOP_NAV.map((n) => n.label)).toEqual([
+      "Discover",
+      "Decide",
+      "Plan",
+      "Design",
+      "Build",
+      "Ship",
+      "Learn",
+    ]);
+    expect(LOOP_NAV.map((n) => n.index)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    for (const n of LOOP_NAV) {
+      expect(n.zone).toBe("loop");
+      expect(n.group).toBe("workflow");
+    }
   });
 
-  it("mono indexes live ONLY in the WORKFLOW group", () => {
+  it("mono indexes live ONLY in the loop zone", () => {
     for (const n of PRIMARY_NAV) {
-      if (n.group === "workflow") expect(n.index).toMatch(/^0[1-4]$/);
+      if (n.zone === "loop") expect(n.index).toMatch(/^0[1-7]$/);
       else expect(n.index).toBe("");
     }
   });
 
-  it("Memory's URL is /brain (label renamed, slug unchanged)", () => {
-    const memory = PRIMARY_NAV.find((n) => n.label === "Memory");
-    expect(memory?.to).toBe("/brain");
+  it("INTELLIGENCE is Brain and Engine Room (always-on layers, unnumbered)", () => {
+    expect(INTELLIGENCE_NAV.map((n) => n.label)).toEqual(["Brain", "Engine Room"]);
+    expect(INTELLIGENCE_NAV.map((n) => n.to)).toEqual(["/brain", "/engine-room"]);
+    for (const n of INTELLIGENCE_NAV) expect(n.index).toBe("");
   });
 
-  it("Decide and Ledger left the rail (both are redirect stubs now)", () => {
+  it("Decide is a first-class loop stage (the judgment gate), not a Discover tab", () => {
+    const decide = PRIMARY_NAV.find((n) => n.label === "Decide");
+    expect(decide?.to).toBe("/decide");
+    expect(decide?.zone).toBe("loop");
+    expect(decide?.index).toBe("02");
+  });
+
+  it("Decide, Ship and Learn are first-class loop stages, not folded away", () => {
+    const targets = PRIMARY_NAV.map((n) => n.to);
+    expect(targets).toContain("/decide");
+    expect(targets).toContain("/ship");
+    expect(targets).toContain("/learn");
+  });
+
+  it("every destination carries a non-empty tagline (the reason-for-everything)", () => {
+    for (const n of PRIMARY_NAV) {
+      expect(typeof n.tagline).toBe("string");
+      expect(n.tagline.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("the Ledger stays off the rail (a redirect stub into the Engine Room)", () => {
     const all = [...PRIMARY_NAV, ...FOOTER_NAV].map((n) => n.to);
-    expect(all).not.toContain("/decide");
     expect(all).not.toContain("/trust-ledger");
   });
 
@@ -83,8 +124,19 @@ describe("nav-model - the seven primary destinations", () => {
     expect(targets).not.toContain("/knowledge");
   });
 
-  it("navKeyHint is the 1-based rail position (keys 1-7)", () => {
-    expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+  it("navKeyHint is the digit 1-9 for the first nine, and `g` for Engine Room (the 10th)", () => {
+    expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "g",
+    ]);
   });
 });
 

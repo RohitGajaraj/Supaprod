@@ -242,7 +242,7 @@ export function RoomDetail({ room, view, drill, onSetView, onBack }: RoomDetailP
         <div>
           <h2
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontWeight: 450,
               fontSize: "var(--text-h2)",
               lineHeight: 1.25,

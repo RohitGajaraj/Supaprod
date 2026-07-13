@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/obsidian";
+import { TopBar } from "@/components/cadence/TopBar";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   EngineRoomGlance,
   EngineRoomContainer,
@@ -75,6 +77,7 @@ function EngineRoomPage() {
   const { room, view, suite, agent, surface } = Route.useSearch();
   const navigate = useNavigate({ from: "/engine-room" });
   const { rooms } = useEngineRoomGlance();
+  const { activeWorkspace } = useWorkspace();
 
   // Normalize the view once so the rail and the detail agree on the active
   // sub-tab (an unknown ?view= falls back to the room's front tab).
@@ -83,7 +86,9 @@ function EngineRoomPage() {
     room && tabs ? (tabs.some((t) => t.id === view) ? view! : tabs[0]!.id) : undefined;
 
   return (
-    <EngineRoomContainer>
+    <>
+      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Engine Room"]} />
+      <EngineRoomContainer>
       {/* IA 2026-07-11: the persistent room switcher. The rail (rooms + view
           sub-tabs, Vercel project-settings pattern) stays visible from the
           glance and from any room depth; the content column swaps. */}
@@ -116,5 +121,6 @@ function EngineRoomPage() {
         )}
       </div>
     </EngineRoomContainer>
+    </>
   );
 }

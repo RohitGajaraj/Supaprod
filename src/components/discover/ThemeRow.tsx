@@ -76,7 +76,7 @@ export const ThemeRow = memo(function ThemeRow({
       <div className="flex-none text-center" style={{ width: "60px" }}>
         <div
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: "23px",
             fontWeight: 460,
             color: topRanked ? "var(--ember-text)" : "var(--text-primary)",
