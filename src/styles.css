@@ -2366,6 +2366,53 @@ html[data-motion="off"] .flow-pulse {
     animation: none;
   }
 }
+/* Light mode: the tone must gel with a white surface, not stain it. Pull the
+   blooms back so they read as a warm tint, not a spill. */
+[data-theme="light"] .hero-aurora,
+.light-theme .hero-aurora {
+  opacity: 0.38;
+  filter: blur(52px) saturate(1);
+}
+/* Liquid-glass sheen — a slow specular highlight that flows diagonally across
+   the aurora, giving the card a living, glassy surface. */
+.hero-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    transparent 34%,
+    color-mix(in oklab, #fff 11%, transparent) 49%,
+    color-mix(in oklab, #fff 5%, transparent) 55%,
+    transparent 68%
+  );
+  background-size: 240% 240%;
+  animation: heroSheen 13s ease-in-out infinite;
+}
+[data-theme="light"] .hero-sheen,
+.light-theme .hero-sheen {
+  background: linear-gradient(
+    118deg,
+    transparent 36%,
+    color-mix(in oklab, #fff 55%, transparent) 50%,
+    transparent 64%
+  );
+  background-size: 240% 240%;
+}
+@keyframes heroSheen {
+  0% {
+    background-position: 130% -10%;
+  }
+  100% {
+    background-position: -30% 110%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-sheen {
+    animation: none;
+    opacity: 0.4;
+  }
+}
 
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {

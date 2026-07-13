@@ -60,21 +60,31 @@ export function TodayHeroCard({
           background: `radial-gradient(52% 84% at 8% 34%, color-mix(in oklab, ${accent2} 26%, transparent) 0%, transparent 72%)`,
         }}
       />
-      {/* Faint constellation motif — grid-born delight, threaded in the tone. */}
+      {/* Liquid-glass sheen — a slow flowing highlight sweep over the aurora. */}
+      <div aria-hidden="true" className="hero-sheen" />
+      {/* Origami motif — folded, faceted geometry (a nod to the Hogami
+          direction): a paper-fold diamond with two facets lit in the day's
+          tone. Replaces the old mountain-range polyline. */}
       <svg
         aria-hidden="true"
-        width="200"
-        height="72"
-        viewBox="0 0 200 72"
+        width="132"
+        height="104"
+        viewBox="0 0 132 104"
         fill="none"
-        style={{ position: "absolute", right: 20, top: 18, opacity: 0.5, pointerEvents: "none" }}
+        style={{ position: "absolute", right: 24, top: 16, opacity: 0.6, pointerEvents: "none" }}
       >
-        <path d="M14 52 L58 24 L100 44 L140 16 L184 38" stroke="var(--hairline-strong)" strokeWidth="1" />
-        <circle cx="58" cy="24" r="2.5" fill={accent} opacity="0.7" />
-        <circle cx="140" cy="16" r="2.5" fill={accent2} opacity="0.6" />
-        <circle cx="14" cy="52" r="2" fill="var(--text-faint)" />
-        <circle cx="100" cy="44" r="2" fill="var(--text-faint)" />
-        <circle cx="184" cy="38" r="2" fill="var(--text-subtle)" />
+        <path d="M66 6 L120 52 L66 52 Z" fill={accent} opacity="0.16" />
+        <path d="M66 52 L12 52 L66 98 Z" fill={accent2} opacity="0.14" />
+        <path
+          d="M66 6 L120 52 L66 98 L12 52 Z M66 6 L66 98 M12 52 L120 52"
+          stroke="var(--hairline-strong)"
+          strokeWidth="1"
+          strokeLinejoin="round"
+        />
+        <circle cx="66" cy="6" r="2.4" fill={accent} opacity="0.85" />
+        <circle cx="120" cy="52" r="2" fill="var(--text-subtle)" />
+        <circle cx="12" cy="52" r="2" fill="var(--text-faint)" />
+        <circle cx="66" cy="98" r="2" fill={accent2} opacity="0.75" />
       </svg>
 
       <div style={{ position: "relative" }}>
@@ -93,10 +103,12 @@ export function TodayHeroCard({
           {greeting},{" "}
           <span
             style={{
-              fontWeight: 680,
-              fontSize: 17,
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              fontSize: 18,
+              letterSpacing: "0.02em",
               color: "var(--text-primary)",
-              textShadow: `0 0 22px color-mix(in oklab, ${accent} 40%, transparent)`,
+              textShadow: `0 0 20px color-mix(in oklab, ${accent} 45%, transparent)`,
             }}
           >
             {userName}
@@ -104,30 +116,27 @@ export function TodayHeroCard({
         </div>
         <h1
           style={{
+            fontFamily: "var(--font-pixel)",
+            fontWeight: 400,
+            fontVariantNumeric: "tabular-nums",
             color: "var(--text-primary)",
             margin: 0,
             textWrap: "balance",
-            maxWidth: "20ch",
-            fontSize: "clamp(30px, 3.4vw, 42px)",
-            lineHeight: 1.08,
-            letterSpacing: "-0.015em",
-            fontWeight: 600,
+            maxWidth: "17ch",
+            fontSize: "clamp(26px, 3vw, 38px)",
+            lineHeight: 1.18,
+            letterSpacing: "-0.005em",
           }}
         >
-          <em
+          <span
             style={{
-              fontFamily: "var(--font-pixel)",
-              fontWeight: 400,
-              fontStyle: "normal",
-              fontVariantNumeric: "tabular-nums",
               color: accent,
-              marginRight: "0.12em",
-              textShadow: `0 0 26px color-mix(in oklab, ${accent} 45%, transparent)`,
+              textShadow: `0 0 28px color-mix(in oklab, ${accent} 48%, transparent)`,
             }}
           >
             {heroA}
-          </em>
-          {heroB}
+          </span>
+          <span style={{ color: "var(--text-primary)" }}>{heroB}</span>
         </h1>
 
         {pulseLine ? (
