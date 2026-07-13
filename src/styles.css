@@ -2373,6 +2373,28 @@ html[data-motion="off"] .flow-pulse {
   opacity: 0.38;
   filter: blur(52px) saturate(1);
 }
+/* Weather glyph — a slow living breath so the top-bar weather reads as dynamic,
+   not a static icon (paused under prefers-reduced-motion). */
+.weather-live {
+  animation: weatherBreathe 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes weatherBreathe {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .weather-live {
+    animation: none;
+  }
+}
 
 /* Rail active-thread indicator (§6): a static 2px thread on the active row. */
 [data-obsidian] .loom-thread-active {

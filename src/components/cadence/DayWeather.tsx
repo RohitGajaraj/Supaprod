@@ -1,25 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import { Cloud, CloudRain, CloudSnow, Sun, CloudSun, Zap } from "lucide-react";
 
-// DayWeather — the top-right "grounding" widget (founder addendum 2026-07-13):
-// day, date, and a live local clock, always, plus temperature/conditions as a
-// graceful, keyless enhancement. It is deliberately NOT bolted on: the clock is
-// the reliable core (it never fails), and weather is progressive — fetched from
-// Open-Meteo (free, no API key, CORS-enabled) ONLY when the browser already
-// has geolocation permission, or when the user opts in via the location chip.
-// No surprise permission prompt on landing. SSR-safe: every browser API is
-// guarded and only touched inside effects.
+// DayWeather — the top-right "grounding" chip (founder ruling 2026-07-14): just
+// the weather (a colored, condition-animated glyph + its status + temperature)
+// and the location. Date/time were dropped on purpose: the OS already shows
+// them; this chip earns its space with the one thing Cadence adds here, the
+// sky where you are. Temperature follows the COUNTRY'S preference (°F for the
+// US + the few Fahrenheit holdouts, °C everywhere else). Keyless + progressive:
+// place, country, and conditions come from an IP lookup (no permission prompt),
+// upgraded to precise geolocation only when the browser has already granted it.
 
-type Weather = { tempC: number; code: number } | null;
+type Weather = { temp: number; code: number } | null;
+type Unit = "celsius" | "fahrenheit";
 
-// WMO weather-code → { label, icon, tint } (the ranges Open-Meteo documents).
-// The tint gives the top bar a small living hit of color that tracks the sky:
-// sun = warm amber, rain = rich blue, snow = cool blue, cloud/fog = neutral.
+// The countries/territories that still read everyday temperature in Fahrenheit
+// (verified 2026-07-14): the US + its territories, plus the Bahamas, Cayman
+// Islands, Belize, Liberia, Palau, a few Caribbean nations, and Micronesia /
+// Marshall Islands. Everyone else gets Celsius.
+const FAHRENHEIT = new Set([
+  "US", "PR", "GU", "VI", "AS", "MP", // United States + territories
+  "BS", "KY", "BZ", "LR", "PW", // Bahamas, Cayman, Belize, Liberia, Palau
+  "AG", "VG", "MS", "KN", // Antigua & Barbuda, BVI, Montserrat, St Kitts & Nevis
+  "FM", "MH", // Micronesia, Marshall Islands
+]);
+
+// WMO weather-code -> { label, icon, tint }. Every state is COLORED: sun warm
+// amber, rain/snow rich blue, overcast/fog a calm slate-blue (never flat gray),
+// storms amber. The tint drives the glyph + its soft halo.
 function describe(code: number): { label: string; Icon: typeof Sun; tint: string } {
+  const slate = "color-mix(in oklab, var(--action-blue) 42%, var(--text-subtle))";
   if (code === 0) return { label: "Clear", Icon: Sun, tint: "var(--amber)" };
   if (code <= 2) return { label: "Partly cloudy", Icon: CloudSun, tint: "var(--amber)" };
-  if (code === 3) return { label: "Overcast", Icon: Cloud, tint: "var(--text-muted)" };
-  if (code <= 48) return { label: "Fog", Icon: Cloud, tint: "var(--text-muted)" };
+  if (code === 3) return { label: "Overcast", Icon: Cloud, tint: slate };
+  if (code <= 48) return { label: "Fog", Icon: Cloud, tint: slate };
   if (code <= 67) return { label: "Rain", Icon: CloudRain, tint: "var(--action-blue)" };
   if (code <= 77) return { label: "Snow", Icon: CloudSnow, tint: "var(--action-blue)" };
   if (code <= 82) return { label: "Showers", Icon: CloudRain, tint: "var(--action-blue)" };
@@ -27,12 +40,12 @@ function describe(code: number): { label: string; Icon: typeof Sun; tint: string
   return { label: "Storm", Icon: Zap, tint: "var(--amber)" };
 }
 
-async function fetchWeather(lat: number, lon: number): Promise<Weather> {
+async function fetchWeather(lat: number, lon: number, unit: Unit): Promise<Weather> {
   try {
     const res = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(2)}&longitude=${lon.toFixed(
         2,
-      )}&current=temperature_2m,weather_code&temperature_unit=celsius`,
+      )}&current=temperature_2m,weather_code&temperature_unit=${unit}`,
     );
     if (!res.ok) return null;
     const json = (await res.json()) as {
@@ -41,58 +54,66 @@ async function fetchWeather(lat: number, lon: number): Promise<Weather> {
     const t = json.current?.temperature_2m;
     const c = json.current?.weather_code;
     if (typeof t !== "number" || typeof c !== "number") return null;
-    return { tempC: Math.round(t), code: c };
+    return { temp: Math.round(t), code: c };
   } catch {
     return null;
   }
 }
 
 export function DayWeather() {
-  const [now, setNow] = useState<Date | null>(null);
   const [weather, setWeather] = useState<Weather>(null);
+  const [place, setPlace] = useState<string | null>(null);
+  const [unit, setUnit] = useState<Unit>("celsius");
+  const unitRef = useRef<Unit>("celsius");
   const asked = useRef(false);
 
-  // Live clock — mounts client-side only (avoids an SSR/client hydration
-  // mismatch on the changing time), ticks each 30s.
-  useEffect(() => {
-    setNow(new Date());
-    const id = window.setInterval(() => setNow(new Date()), 30_000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const loadWeather = () => {
+  const loadPrecise = () => {
     if (asked.current || typeof navigator === "undefined" || !navigator.geolocation) return;
     asked.current = true;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        void fetchWeather(pos.coords.latitude, pos.coords.longitude).then(setWeather);
+        void fetchWeather(pos.coords.latitude, pos.coords.longitude, unitRef.current).then((w) => {
+          if (w) setWeather(w);
+        });
       },
       () => {},
       { maximumAge: 30 * 60_000, timeout: 8_000 },
     );
   };
 
-  // Weather with NO permission prompt: approximate the location from IP
-  // (keyless, CORS-friendly) so weather shows for everyone by default. If the
-  // browser has ALREADY granted precise geolocation, upgrade to it. Silent
-  // fallback: on any failure the widget just shows day/date/time.
+  // Location + country + weather with NO permission prompt: approximate from IP
+  // (keyless, CORS-friendly). Upgrade to precise geolocation only if granted.
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
       try {
         const r = await fetch("https://ipwho.is/");
-        const j = (await r.json()) as { success?: boolean; latitude?: number; longitude?: number };
-        if (!cancelled && j?.success && typeof j.latitude === "number" && typeof j.longitude === "number") {
-          const w = await fetchWeather(j.latitude, j.longitude);
-          if (!cancelled && w) setWeather(w);
+        const j = (await r.json()) as {
+          success?: boolean;
+          latitude?: number;
+          longitude?: number;
+          city?: string;
+          country_code?: string;
+        };
+        if (!cancelled && j?.success) {
+          const u: Unit = j.country_code && FAHRENHEIT.has(j.country_code) ? "fahrenheit" : "celsius";
+          unitRef.current = u;
+          setUnit(u);
+          if (j.city) setPlace(j.city);
+          if (typeof j.latitude === "number" && typeof j.longitude === "number") {
+            const w = await fetchWeather(j.latitude, j.longitude, u);
+            if (!cancelled && w) setWeather(w);
+          }
         }
       } catch {
-        /* ignore — day/date/time still shows */
+        /* silent — the widget stays hidden until weather resolves */
       }
       if (typeof navigator !== "undefined" && navigator.permissions?.query) {
         try {
-          const status = await navigator.permissions.query({ name: "geolocation" as PermissionName });
-          if (!cancelled && status.state === "granted") loadWeather();
+          const status = await navigator.permissions.query({
+            name: "geolocation" as PermissionName,
+          });
+          if (!cancelled && status.state === "granted") loadPrecise();
         } catch {
           /* ignore */
         }
@@ -102,22 +123,22 @@ export function DayWeather() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!now) return null;
-
-  const weekday = now.toLocaleDateString(undefined, { weekday: "short" });
-  const date = now.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-
-  const w = weather ? describe(weather.code) : null;
+  // Weather is the point; render nothing until it resolves (progressive).
+  if (!weather) return null;
+  const w = describe(weather.code);
+  const mono: React.CSSProperties = {
+    fontFamily: "var(--font-mono)",
+    fontSize: 11,
+    letterSpacing: "0.03em",
+  };
 
   return (
     <div
       className="hidden md:flex items-center"
       style={{
-        gap: 10,
+        gap: 8,
         padding: "5px 11px",
         borderRadius: 999,
         border: "1px solid var(--hairline)",
@@ -125,48 +146,28 @@ export function DayWeather() {
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
       }}
-      title={w ? `${w.label} · ${weather!.tempC}°C` : undefined}
+      title={`${w.label}${place ? ` in ${place}` : ""} · ${weather.temp}°${unit === "fahrenheit" ? "F" : "C"}`}
     >
-      <span
-        className="flex items-center"
-        style={{
-          gap: 6,
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.04em",
-          color: "var(--text-muted)",
-        }}
-      >
-        <span style={{ color: "var(--text-body)", fontWeight: 500 }}>{weekday}</span>
-        <span>{date}</span>
+      <span className="flex items-center" style={{ gap: 5 }}>
+        <w.Icon
+          className="weather-live"
+          size={14}
+          strokeWidth={1.9}
+          style={{
+            color: w.tint,
+            filter: `drop-shadow(0 0 6px color-mix(in oklab, ${w.tint} 60%, transparent))`,
+          }}
+        />
+        <span style={{ ...mono, color: "var(--text-muted)" }}>{w.label}</span>
+        <span className="tabular-nums" style={{ ...mono, color: "var(--text-body)", fontWeight: 500 }}>
+          {weather.temp}°
+        </span>
       </span>
-      <span aria-hidden="true" style={{ width: 1, height: 12, background: "var(--hairline)" }} />
-      <span
-        className="tabular-nums"
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.04em",
-          color: "var(--text-body)",
-        }}
-      >
-        {time}
-      </span>
-      {w ? (
+      {place ? (
         <>
           <span aria-hidden="true" style={{ width: 1, height: 12, background: "var(--hairline)" }} />
-          <span className="flex items-center" style={{ gap: 5 }}>
-            <w.Icon
-              size={14}
-              strokeWidth={1.9}
-              style={{ color: w.tint, filter: `drop-shadow(0 0 5px color-mix(in oklab, ${w.tint} 55%, transparent))` }}
-            />
-            <span
-              className="tabular-nums"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-body)" }}
-            >
-              {weather!.tempC}°
-            </span>
+          <span className="truncate" style={{ ...mono, maxWidth: 120, color: "var(--text-muted)" }}>
+            {place}
           </span>
         </>
       ) : null}
