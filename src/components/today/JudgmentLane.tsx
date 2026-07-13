@@ -178,7 +178,7 @@ export function JudgmentLane({
             cursor: "pointer",
           }}
         >
-          <PixelStat value={folded.length} tone="primary" size={12} /> more waiting →
+          <PixelStat value={folded.length} tone="blue" size={12} /> more waiting →
         </button>
       ) : null}
       {open ? (

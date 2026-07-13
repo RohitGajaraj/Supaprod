@@ -47,7 +47,7 @@ export function PixelStat({
         lineHeight: 1,
         letterSpacing: "0.01em",
         color,
-        textShadow: glow ? `0 0 15px color-mix(in oklab, ${color} 55%, transparent)` : undefined,
+        textShadow: glow ? `0 0 11px color-mix(in oklab, ${color} 48%, transparent)` : undefined,
         ...style,
       }}
     >

@@ -1212,7 +1212,7 @@ function Dashboard() {
         >
           <div className="flex flex-col" style={{ gap: 26, minWidth: 0 }}>
           <section aria-label="Needs your judgment" className="flex flex-col" style={{ gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
               <h2
                 style={{
                   fontFamily: "var(--font-mono)",
@@ -1228,8 +1228,8 @@ function Dashboard() {
               {needsYouLoaded ? (
                 <PixelStat
                   value={callCount}
-                  tone={callCount > 0 ? "ember" : "moss"}
-                  size={15}
+                  tone={callCount > 0 ? "blue" : "moss"}
+                  size={12}
                   glow={callCount > 0}
                 />
               ) : null}
@@ -1398,11 +1398,11 @@ function Dashboard() {
                   {/* LOOM W4 honesty: the old "N of M answered" denominator
                         shifted as new calls arrived mid-session. State the two
                         real numbers instead. */}
-                  <PixelStat value={clearedSession} tone="neutral" size={12} /> answered ·{" "}
+                  <PixelStat value={clearedSession} tone="neutral" size={11} /> answered ·{" "}
                   <PixelStat
                     value={callCount}
-                    tone={callCount > 0 ? "ember" : "moss"}
-                    size={12}
+                    tone={callCount > 0 ? "blue" : "moss"}
+                    size={11}
                     glow={callCount > 0}
                   />{" "}
                   open
