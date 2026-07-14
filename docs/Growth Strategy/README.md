@@ -13,7 +13,8 @@
 5. [`04-growth-engine-metrics-and-experiments.md`](./04-growth-engine-metrics-and-experiments.md) — growth loops, the experiment backlog, the metrics dashboard (vanity vs pull), the weekly review ritual.
 6. [`05-viral-and-guerrilla-playbook.md`](./05-viral-and-guerrilla-playbook.md) — 16 scored creative campaigns with top-5 execution briefs and the firing order.
 7. [`06-yc-and-fundraising-evidence.md`](./06-yc-and-fundraising-evidence.md) — the evidence engine feeding [`docs/pitch/yc/`](../pitch/yc/application-strategy.md): signal rankings, the quote vault, the gate-to-sentence map, the Friday evidence ritual.
-8. [`GTM-launch-strategy.md`](./GTM-launch-strategy.md) — the founder's original requirements brief (2026-07-12); the manual above answers it.
+8. [`07-gtm-ground-truth-2026-07-14.md`](./07-gtm-ground-truth-2026-07-14.md) — **the verified reality check (read before trusting the calendar):** the 11-item launch checklist audited against code and dashboard on Jul 14 (3 of 11 done; waitlist unbuilt; two clock-starter actions), plus the corrected firing order.
+9. [`GTM-launch-strategy.md`](./GTM-launch-strategy.md) — the founder's original requirements brief (2026-07-12); the manual above answers it.
 
 ## The one-paragraph summary
 
