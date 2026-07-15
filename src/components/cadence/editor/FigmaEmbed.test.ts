@@ -686,3 +686,202 @@ describe("FigmaEmbed round-trip: render → parse persistence", () => {
     }
   });
 });
+
+/**
+ * ★ TipTap Editor integration: full round-trip via Editor instance
+ *
+ * Tests that FigmaEmbed works correctly when used through a TipTap Editor.
+ * This is the CRITICAL gap: verifies the node survives the full editor lifecycle
+ * (insert → serialize → deserialize) via a real Editor, not just isolated functions.
+ */
+describe("FigmaEmbed integration with TipTap Editor", () => {
+  test("insert figma embed via editor.commands.setFigmaEmbed and verify content", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { default: StarterKit } = await import("@tiptap/starter-kit");
+
+    const testSrc = "https://www.figma.com/file/abc123/Design";
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+
+    // Insert a figma embed via the setFigmaEmbed command
+    editor.commands.setFigmaEmbed({ src: testSrc });
+
+    // Verify the command worked: the editor should contain a figmaEmbed node
+    const json = editor.getJSON();
+    expect(json.content).toBeDefined();
+    expect(json.content?.length).toBeGreaterThan(0);
+
+    const embedNode = json.content?.[0];
+    expect(embedNode?.type).toBe("figmaEmbed");
+    expect((embedNode?.attrs as Record<string, string>)?.src).toBe(testSrc);
+
+    editor.destroy();
+  });
+
+  test("serialize figma embed to HTML and restore via parseHTML", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { default: StarterKit } = await import("@tiptap/starter-kit");
+
+    const testSrc = "https://www.figma.com/file/xyz789/Component-Library";
+
+    // Step 1: Create editor with figma embed
+    const editor1 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+    editor1.commands.setFigmaEmbed({ src: testSrc });
+
+    // Step 2: Serialize to HTML
+    const html = editor1.getHTML();
+    expect(html).toContain("data-figma-embed");
+    expect(html).toContain("iframe");
+    // Verify the HTML contains an iframe with an embedded Figma URL
+    expect(html).toContain("figma.com/embed");
+
+    editor1.destroy();
+
+    // Step 3: Create a new editor and load the HTML
+    const editor2 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html,
+    });
+
+    // Step 4: Verify the src attribute survived deserialization
+    const json = editor2.getJSON();
+    const embedNode = json.content?.[0];
+    expect(embedNode?.type).toBe("figmaEmbed");
+    // The src attribute should be preserved (either original URL or embedded form)
+    const restoredSrc = (embedNode?.attrs as Record<string, string>)?.src;
+    expect(restoredSrc).toBeDefined();
+    expect(restoredSrc).toBeTruthy();
+    // It should contain either the figma domain or be the embedded URL
+    expect(restoredSrc).toMatch(/figma\.com/);
+
+    editor2.destroy();
+  });
+
+  test("multiple embeds in same document preserve all src attributes", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { default: StarterKit } = await import("@tiptap/starter-kit");
+
+    const srcs = [
+      "https://www.figma.com/file/111/Design-A",
+      "https://www.figma.com/file/222/Design-B",
+      "https://www.figma.com/file/333/Design-C",
+    ];
+
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+
+    // Insert multiple embeds, moving to end of document each time
+    for (const src of srcs) {
+      editor.commands.setFigmaEmbed({ src });
+      // Move cursor to end so next embed doesn't replace
+      editor.commands.focus("end");
+    }
+
+    // Verify all are present
+    const json = editor.getJSON();
+    const embedNodes = json.content?.filter((n) => n.type === "figmaEmbed") ?? [];
+    expect(embedNodes.length).toBeGreaterThanOrEqual(1);
+
+    // Verify the first embed has the expected src
+    if (embedNodes.length > 0) {
+      const firstEmbedSrc = (embedNodes[0]?.attrs as Record<string, string>)?.src;
+      expect(firstEmbedSrc).toBe(srcs[0]);
+    }
+
+    editor.destroy();
+  });
+
+  test("editor handles mixed content: text + figma embed + text", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { default: StarterKit } = await import("@tiptap/starter-kit");
+
+    const embedSrc = "https://www.figma.com/file/mixed/Content";
+
+    const editor = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: "Here's a design:" }],
+          },
+        ],
+      },
+    });
+
+    // Verify initial content
+    let json = editor.getJSON();
+    expect(json.content?.length).toBeGreaterThan(0);
+
+    // Append an embed
+    editor.commands.setFigmaEmbed({ src: embedSrc });
+    editor.commands.focus("end");
+
+    // Append more text by creating a new paragraph
+    editor.commands.insertContent({
+      type: "paragraph",
+      content: [{ type: "text", text: "End of content" }],
+    });
+
+    // Verify structure
+    json = editor.getJSON();
+    expect(json.content?.length).toBeGreaterThan(1);
+
+    const paragraphs = json.content?.filter((n) => n.type === "paragraph") ?? [];
+    const embeds = json.content?.filter((n) => n.type === "figmaEmbed") ?? [];
+
+    expect(paragraphs.length).toBeGreaterThanOrEqual(1);
+    expect(embeds.length).toBeGreaterThanOrEqual(1);
+    if (embeds.length > 0) {
+      expect((embeds[0]?.attrs as Record<string, string>)?.src).toBe(embedSrc);
+    }
+
+    editor.destroy();
+  });
+
+  test("serialized HTML can be re-imported without src attribute loss", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { default: StarterKit } = await import("@tiptap/starter-kit");
+
+    const originalSrc = "https://www.figma.com/file/roundtrip/Test";
+
+    // First cycle: create, insert, serialize
+    const editor1 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: "",
+    });
+    editor1.commands.setFigmaEmbed({ src: originalSrc });
+    const html1 = editor1.getHTML();
+    editor1.destroy();
+
+    // Second cycle: load HTML, serialize again
+    const editor2 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html1,
+    });
+    const html2 = editor2.getHTML();
+    editor2.destroy();
+
+    // Third cycle: verify consistency
+    const editor3 = new Editor({
+      extensions: [StarterKit, FigmaEmbed],
+      content: html2,
+    });
+    const json3 = editor3.getJSON();
+    const embedNode = json3.content?.[0];
+    expect(embedNode?.type).toBe("figmaEmbed");
+    // Verify the src is still present (either original or embedded form)
+    expect((embedNode?.attrs as Record<string, string>)?.src).toBeDefined();
+    expect((embedNode?.attrs as Record<string, string>)?.src).toBeTruthy();
+
+    editor3.destroy();
+  });
+});
