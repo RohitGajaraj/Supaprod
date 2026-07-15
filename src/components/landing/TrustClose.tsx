@@ -63,7 +63,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
   ];
 
   return (
-    <section id="join" className="relative overflow-hidden py-32 px-4 scroll-mt-16">
+    <section className="relative overflow-hidden py-32 px-4">
       {/* The mono watermark: the mark enormous, bleeding off the edge.
           Structural texture, grayscale-safe (plan section 4.2). */}
       <div
@@ -109,7 +109,10 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         {/* The close: beta status as a mono eyebrow, the heading cut in two
             for punch, and the sub at the page's standard text-lg, one promise
             per line (founder 2026-07-15: never three sub lines under a
-            one-line heading). */}
+            one-line heading). The #join anchor lives HERE, not on the section,
+            so every 'Join the beta' click lands with the eyebrow, heading,
+            and the email field all in view (founder 2026-07-15). */}
+        <div id="join" className="scroll-mt-24">
         <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
           the beta is open for sign-ups
         </p>
@@ -130,6 +133,7 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         </p>
 
         <WaitlistForm waitlistCount={waitlistCount} />
+        </div>
       </div>
     </section>
   );
