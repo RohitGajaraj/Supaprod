@@ -74,7 +74,7 @@ export function LoopWalkthrough() {
       {/* The orbit, drawn by scroll: silver line, bleeding off the right edge */}
       <svg
         className="absolute pointer-events-none hidden lg:block"
-        style={{ right: -200, top: 20, width: 740, height: 740, overflow: "visible" }}
+        style={{ right: -200, top: 300, width: 740, height: 740, overflow: "visible" }}
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden
@@ -108,21 +108,21 @@ export function LoopWalkthrough() {
               }`}
               style={{ transitionDelay: inView ? "100ms" : "0ms" }}
             >
-              One real mission, step by step: signals collected through the morning, flagged at
-              09:13, in production by 09:31. The last tab is the part nobody else shows you.
+              One real mission, step by step, replayed exactly as it ran. The last tab is the
+              part nobody else shows you.
             </p>
           </div>
           <div
-            className={`hidden md:flex flex-col gap-2 pb-1 transition-all duration-700 ${
+            className={`cap-scrim hidden md:flex flex-col gap-2.5 py-6 px-8 -mx-8 transition-all duration-700 ${
               inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
             style={{ transitionDelay: inView ? "200ms" : "0ms" }}
           >
-            <span className="font-mono text-[11px] text-zinc-600 mb-1">In the loop</span>
+            <span className="font-mono text-[11px] text-zinc-600 mb-1.5">In the loop</span>
             {["named agents", "human gates", "precedent memory", "outcome grading"].map((f) => (
               <span
                 key={f}
-                className="font-mono text-[12px] uppercase text-zinc-400"
+                className="cap-item font-mono text-[12px] uppercase text-zinc-400"
                 style={{ letterSpacing: "0.12em" }}
               >
                 {f}

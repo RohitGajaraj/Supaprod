@@ -33,13 +33,13 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
                 ? "Every number here is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."
                 : "Every artifact here is a live object in our workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."}
             </p>
-            <div className="hidden md:flex flex-col gap-2 mt-10">
-              <span className="font-mono text-[11px] text-zinc-600 mb-1">On the ledger</span>
+            <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
+              <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the ledger</span>
               {["live counters", "real decisions", "public teardowns", "dated shipping log"].map(
                 (f) => (
                   <span
                     key={f}
-                    className="font-mono text-[12px] uppercase text-zinc-400"
+                    className="cap-item font-mono text-[12px] uppercase text-zinc-400"
                     style={{ letterSpacing: "0.12em" }}
                   >
                     {f}

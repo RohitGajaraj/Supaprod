@@ -158,6 +158,18 @@ function LandingPage() {
             outline: none;
             box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
           }
+          .landing-root .cap-item {
+            transition: color 0.25s ease;
+            cursor: default;
+          }
+          .landing-root .cap-item:hover {
+            color: #FF6B2C;
+          }
+          /* Soft ink scrim: keeps the backdrop grid and the orbit from
+             crossing behind the mono capability lists. */
+          .landing-root .cap-scrim {
+            background: radial-gradient(ellipse 130% 110% at 50% 50%, #0a0a0a 55%, transparent 100%);
+          }
         `}</style>
         <LandingBackdrop />
         <div className="relative z-[1]">
