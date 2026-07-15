@@ -99,7 +99,7 @@ export function LoopWalkthrough() {
           deliberately tiny). Sits low enough to clear the replay mocks. */}
       <svg
         className="absolute pointer-events-none hidden lg:block"
-        style={{ right: -240, top: 660, width: 740, height: 740, overflow: "visible" }}
+        style={{ right: -240, top: 580, width: 740, height: 740, overflow: "visible" }}
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden

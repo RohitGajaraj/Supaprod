@@ -83,27 +83,168 @@ function ActorChip({
 }
 
 export const FULL_LOG: LogEntry[] = [
-  { ts: "08:02:19", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "analytics: activation down 4% week over week" },
-  { ts: "08:47:03", tag: "SOURCE", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
-  { ts: "09:13:26", tag: "SENSE", col: R.blue, actor: "agent", agentName: "Scout", station: 0, msg: "Flagged: the drop and the complaints are one story" },
-  { ts: "09:13:41", tag: "CLUSTER", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "3 signals linked: onboarding friction" },
-  { ts: "09:14:02", tag: "PROPOSE", col: R.blue, actor: "agent", agentName: "Strategist", station: 1, msg: "Decision proposed: simplify onboarding step 2" },
-  { ts: "09:14:05", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 1, msg: "Precedent found: a similar call was right 3 of 4 times, D+14 +9%. Confidence 84%." },
-  { ts: "09:15:22", tag: "GATE", col: R.ember, actor: "you", station: 1, msg: "Your call. Approved in 2 seconds.", gate: true },
-  { ts: "09:16:48", tag: "PLAN", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec locked: 4 criteria, 6 linked signals" },
-  { ts: "09:18:37", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 3, msg: "Screens, states, and copy drafted from the spec" },
-  { ts: "09:21:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Agents dispatched: 3 commits" },
-  { ts: "09:27:52", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "All 14 tests passing" },
-  { ts: "09:28:30", tag: "GATE", col: R.ember, actor: "you", station: 4, msg: "Merge held for you. Approved.", gate: true },
-  { ts: "09:31:14", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 5, msg: "Merged and deployed to production" },
-  { ts: "D+14", tag: "LEARN", col: R.green, actor: "agent", agentName: "Sentry", station: 6, msg: "Activation +8%. Call validated. Memory updated.", mark: true },
+  {
+    ts: "08:02:19",
+    tag: "SOURCE",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "analytics: activation down 4% week over week",
+  },
+  {
+    ts: "08:47:03",
+    tag: "SOURCE",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "support inbox: 3 new complaints tagged onboarding",
+  },
+  {
+    ts: "09:13:26",
+    tag: "SENSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "Flagged: the drop and the complaints are one story",
+  },
+  {
+    ts: "09:13:41",
+    tag: "CLUSTER",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "3 signals linked: onboarding friction",
+  },
+  {
+    ts: "09:14:02",
+    tag: "PROPOSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Strategist",
+    station: 1,
+    msg: "Decision proposed: simplify onboarding step 2",
+  },
+  {
+    ts: "09:14:05",
+    tag: "MEMORY",
+    col: "#E8B44C",
+    actor: "agent",
+    agentName: "Brain",
+    station: 1,
+    msg: "Precedent found: a similar call was right 3 of 4 times, D+14 +9%. Confidence 84%.",
+  },
+  {
+    ts: "09:15:22",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 1,
+    msg: "Your call. Approved in 2 seconds.",
+    gate: true,
+  },
+  {
+    ts: "09:16:48",
+    tag: "PLAN",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Architect",
+    station: 2,
+    msg: "Spec locked: 4 criteria, 6 linked signals",
+  },
+  {
+    ts: "09:18:37",
+    tag: "DESIGN",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Designer",
+    station: 3,
+    msg: "Screens, states, and copy drafted from the spec",
+  },
+  {
+    ts: "09:21:05",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Agents dispatched: 3 commits",
+  },
+  {
+    ts: "09:27:52",
+    tag: "CI",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "All 14 tests passing",
+  },
+  {
+    ts: "09:28:30",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 4,
+    msg: "Merge held for you. Approved.",
+    gate: true,
+  },
+  {
+    ts: "09:31:14",
+    tag: "SHIP",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 5,
+    msg: "Merged and deployed to production",
+  },
+  {
+    ts: "D+14",
+    tag: "LEARN",
+    col: R.green,
+    actor: "agent",
+    agentName: "Sentry",
+    station: 6,
+    msg: "Activation +8%. Call validated. Memory updated.",
+    mark: true,
+  },
 ];
 
 export const OTHERS_LOG: LogEntry[] = [
-  { ts: "08:02:19", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "analytics: activation down 4% week over week" },
-  { ts: "08:47:03", tag: "SOURCE", col: R.muted, actor: "tool", station: 0, msg: "support inbox: 3 new complaints tagged onboarding" },
-  { ts: "09:15:12", tag: "HANDOFF", col: R.muted, actor: "you", station: 1, msg: "You assemble the context by hand" },
-  { ts: "09:31:40", tag: "DRAFT", col: R.blue, actor: "tool", station: 1, msg: "A tidy document appears. Waiting for you." },
+  {
+    ts: "08:02:19",
+    tag: "SOURCE",
+    col: R.muted,
+    actor: "tool",
+    station: 0,
+    msg: "analytics: activation down 4% week over week",
+  },
+  {
+    ts: "08:47:03",
+    tag: "SOURCE",
+    col: R.muted,
+    actor: "tool",
+    station: 0,
+    msg: "support inbox: 3 new complaints tagged onboarding",
+  },
+  {
+    ts: "09:15:12",
+    tag: "HANDOFF",
+    col: R.muted,
+    actor: "you",
+    station: 1,
+    msg: "You assemble the context by hand",
+  },
+  {
+    ts: "09:31:40",
+    tag: "DRAFT",
+    col: R.blue,
+    actor: "tool",
+    station: 1,
+    msg: "A tidy document appears. Waiting for you.",
+  },
   { ts: "--", tag: "DESIGN", col: R.faint, msg: "The document never becomes screens", dead: true },
   { ts: "--", tag: "BUILD", col: R.faint, msg: "Never happens here", dead: true },
   { ts: "--", tag: "SHIP", col: R.faint, msg: "Someone else's job now", dead: true },
@@ -111,17 +252,106 @@ export const OTHERS_LOG: LogEntry[] = [
 ];
 
 export const FAIL_LOG: LogEntry[] = [
-  { ts: "11:41:05", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Agents dispatched" },
-  { ts: "11:47:32", tag: "CI", col: R.red, actor: "agent", agentName: "Builder", station: 4, msg: "Failed: 3 tests red, API contract mismatch" },
-  { ts: "11:47:40", tag: "DIAGNOSE", col: R.blue, actor: "agent", agentName: "Critic", station: 4, msg: "Reading the failure" },
-  { ts: "11:48:04", tag: "ROOT CAUSE", col: R.muted, actor: "agent", agentName: "Critic", station: 4, msg: "Response schema changed: user_id renamed to uid" },
-  { ts: "11:48:41", tag: "REVISE", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec revised, one clause corrected" },
-  { ts: "11:49:03", tag: "DESIGN", col: R.blue, actor: "agent", agentName: "Designer", station: 3, msg: "States rechecked against the revised spec, no screen change" },
-  { ts: "11:49:12", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 4, msg: "Rebuild: 1 corrected commit" },
-  { ts: "11:54:47", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "All 17 tests passing" },
-  { ts: "11:55:20", tag: "GATE", col: R.ember, actor: "you", station: 4, msg: "Your merge gate. Approved.", gate: true },
-  { ts: "11:56:02", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 5, msg: "Deployed. The loop never stopped." },
-  { ts: "11:56:04", tag: "MEMORY", col: "#E8B44C", actor: "agent", agentName: "Brain", station: 6, msg: "Failure pattern written back. The next build starts around it.", mark: true },
+  {
+    ts: "11:41:05",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Agents dispatched",
+  },
+  {
+    ts: "11:47:32",
+    tag: "CI",
+    col: R.red,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Failed: 3 tests red, API contract mismatch",
+  },
+  {
+    ts: "11:47:40",
+    tag: "DIAGNOSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Critic",
+    station: 4,
+    msg: "Reading the failure",
+  },
+  {
+    ts: "11:48:04",
+    tag: "ROOT CAUSE",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Critic",
+    station: 4,
+    msg: "Response schema changed: user_id renamed to uid",
+  },
+  {
+    ts: "11:48:41",
+    tag: "REVISE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Architect",
+    station: 2,
+    msg: "Spec revised, one clause corrected",
+  },
+  {
+    ts: "11:49:03",
+    tag: "DESIGN",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Designer",
+    station: 3,
+    msg: "States rechecked against the revised spec, no screen change",
+  },
+  {
+    ts: "11:49:12",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Rebuild: 1 corrected commit",
+  },
+  {
+    ts: "11:54:47",
+    tag: "CI",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "All 17 tests passing",
+  },
+  {
+    ts: "11:55:20",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 4,
+    msg: "Your merge gate. Approved.",
+    gate: true,
+  },
+  {
+    ts: "11:56:02",
+    tag: "SHIP",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 5,
+    msg: "Deployed. The loop never stopped.",
+  },
+  {
+    ts: "11:56:04",
+    tag: "MEMORY",
+    col: "#E8B44C",
+    actor: "agent",
+    agentName: "Brain",
+    station: 6,
+    msg: "Failure pattern written back. The next build starts around it.",
+    mark: true,
+  },
 ];
 
 const STATIONS = ["Discover", "Decide", "Plan", "Design", "Build", "Ship", "Learn"] as const;
@@ -161,11 +391,14 @@ function useReveal(threshold = 0.15) {
 }
 
 // Sequential flow: entries appear one at a time, each dot pulsing in turn.
-// Reduced motion renders the finished list immediately.
-function useSequentialFlow(total: number, revealed: boolean, stepMs = 900) {
+// The finished trace holds a few seconds, then fades out and replays from the
+// top (founder 2026-07-15) so the flow always reads as a flow, never a static
+// screen. Reduced motion renders the finished list immediately, no loop.
+function useSequentialFlow(total: number, revealed: boolean, stepMs = 900, holdMs = 5500) {
   const reduced = usePrefersReducedMotion();
   const [shown, setShown] = useState(0);
   const [active, setActive] = useState(-1);
+  const [cycle, setCycle] = useState(0);
 
   useEffect(() => {
     if (!revealed) {
@@ -178,12 +411,16 @@ function useSequentialFlow(total: number, revealed: boolean, stepMs = 900) {
       setActive(-1);
       return;
     }
-    const t = setTimeout(() => {
-      setShown(1);
-      setActive(0);
-    }, 350);
+    // First run starts fast; replays give the faded-out list a beat to clear.
+    const t = setTimeout(
+      () => {
+        setShown(1);
+        setActive(0);
+      },
+      cycle === 0 ? 350 : 650,
+    );
     return () => clearTimeout(t);
-  }, [revealed, reduced, total]);
+  }, [revealed, reduced, total, cycle]);
 
   useEffect(() => {
     if (reduced || active < 0 || active >= total) return;
@@ -197,6 +434,19 @@ function useSequentialFlow(total: number, revealed: boolean, stepMs = 900) {
     }, stepMs);
     return () => clearTimeout(t);
   }, [active, total, stepMs, reduced]);
+
+  // The replay: once the whole trace is on screen and settled, hold, then
+  // clear (rows fade via their own transitions) and bump the cycle.
+  useEffect(() => {
+    if (reduced || !revealed || total === 0) return;
+    if (active !== -1 || shown !== total) return;
+    const t = setTimeout(() => {
+      setShown(0);
+      setActive(-1);
+      setCycle((c) => c + 1);
+    }, holdMs);
+    return () => clearTimeout(t);
+  }, [active, shown, total, revealed, reduced, holdMs]);
 
   return { shown, active };
 }
@@ -833,7 +1083,8 @@ const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; capti
   full: {
     log: FULL_LOG,
     litThrough: 6,
-    caption: "Agents ran twelve steps in nineteen minutes. You made two calls. Every one is on the record.",
+    caption:
+      "Agents ran twelve steps in nineteen minutes. You made two calls. Every one is on the record.",
   },
   others: {
     log: OTHERS_LOG,

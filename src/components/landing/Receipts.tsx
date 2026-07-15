@@ -31,7 +31,8 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
               {stats
                 ? "Every number here is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."
-                : "Every artifact here is a live object in our workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."}
+                : "Every artifact here is a live object in our workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."}{" "}
+              The first outside cohort is opening. Early is the offer.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
               <span className="font-mono text-[11px] text-zinc-600 mb-1.5">On the ledger</span>
@@ -103,22 +104,13 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
           </div>
         </div>
 
-        {/* Where we are: proven in production, doors opening (founder ruling
-            2026-07-15: state the strength, not the zero) */}
-        <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-8 mb-16">
-          <h3 className="text-xs uppercase tracking-wide text-zinc-500 mb-4">
-            Where we actually are
-          </h3>
-          <p className="text-zinc-300 leading-relaxed" style={{ maxWidth: "65ch" }}>
-            The engine is built and has run our own product in production since June 2026; the
-            artifacts above come from that live workspace. This month the doors open to the first
-            outside cohort. <span className="text-white font-semibold">Early is the offer.</span>
-          </p>
-        </div>
+        {/* The boxed "where we actually are" card was cut (founder + panel
+            2026-07-15): it restated the sub-copy and framed the gap. Its one
+            working line (early is the offer) lives in the sub-copy now. */}
 
         {/* The thesis pull quote: the beat's brand moment, in the pixel face */}
         <p
-          className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto"
+          className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto mt-20"
           style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
         >
           Agents do the work. You answer for it. Cadence is how you answer.
