@@ -4138,6 +4138,30 @@ export type Database = {
           },
         ]
       }
+      landing_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          props: Json
+          session_key: string | null
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          props?: Json
+          session_key?: string | null
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          props?: Json
+          session_key?: string | null
+        }
+        Relationships: []
+      }
       launch_plans: {
         Row: {
           check_by: string | null
@@ -7853,6 +7877,39 @@ export type Database = {
           },
         ]
       }
+      waitlist_signups: {
+        Row: {
+          bet_text: string | null
+          created_at: string
+          email: string
+          id: string
+          referral_code: string
+          referral_count: number
+          referred_by: string | null
+          source: string | null
+        }
+        Insert: {
+          bet_text?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          referral_code: string
+          referral_count?: number
+          referred_by?: string | null
+          source?: string | null
+        }
+        Update: {
+          bet_text?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          referral_code?: string
+          referral_count?: number
+          referred_by?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       workspace_audit_log: {
         Row: {
           action: string
@@ -8754,6 +8811,7 @@ export type Database = {
         Args: { p_delta: number; p_memory_id: string }
         Returns: number
       }
+      bump_waitlist_referral: { Args: { _code: string }; Returns: undefined }
       can_manage_account: { Args: { account: string }; Returns: boolean }
       can_manage_workspace: { Args: { ws: string }; Returns: boolean }
       check_mission_caps: {
