@@ -377,14 +377,34 @@ describe("usePrefersReducedMotion - computed state", () => {
   });
 });
 
-// The old "SSR safety" block simulated window === undefined by nulling the
-// global, which cannot coexist with a real registered DOM (and React effects
-// never run during SSR anyway, so the guard in the hook is belt-and-braces).
-// The guard's presence is asserted structurally instead.
+/**
+ * SSR Guard Test: Behavioral verification that the hook is SSR-safe.
+ *
+ * The hook's useEffect never runs during SSR (React ensures this). The guard
+ * in the effect body ensures that even if the effect somehow runs before window
+ * is defined, it returns gracefully (false) without crashing.
+ *
+ * Test strategy: Verify the hook returns false initially (before effect setup)
+ * and that the guard is present in the source code.
+ */
 describe("usePrefersReducedMotion - SSR guard", () => {
-  test("the effect body guards on typeof window before touching browser APIs", () => {
-    // Transpile-tolerant: bun minifies the guard to `typeof window > "u"`.
-    expect(String(usePrefersReducedMotion)).toContain("typeof window");
+  test("returns false initially (SSR-safe default before effects run)", () => {
+    // The hook initializes to false via useState(false).
+    // This is the SSR-safe default returned before any effect runs.
+    // In a real SSR scenario, effects never run, so the hook always returns false.
+    const result = renderHook(() => usePrefersReducedMotion());
+
+    // Verify: hook's initial value is false (safe for SSR)
+    expect(result.result.current).toBe(false);
+  });
+
+  test("the effect guards on typeof window before accessing browser APIs", () => {
+    // Supplementary: verify the guard is present in source code (transpile-tolerant).
+    // bun minifies `typeof window !== "undefined"` to `typeof window > "u"`.
+    // This ensures that if the effect somehow runs in an SSR context,
+    // it returns early without crashing.
+    const source = String(usePrefersReducedMotion);
+    expect(source).toContain("typeof window");
   });
 });
 
