@@ -139,13 +139,33 @@ export function FieldStops() {
           The precedent chips are the shipped UI; the pair is an illustration.
         </p>
 
-        {/* Pull line */}
-        <p
-          className="text-center text-xl md:text-2xl text-zinc-300 font-medium"
-          style={{ letterSpacing: "-0.01em" }}
-        >
-          Alignment expires. The ledger compounds.
-        </p>
+        {/* Pull line: framed in the same fading hairlines as the Receipts
+            statement, so the page's two statement moments share one grammar
+            and the seam into the trust grid reads composed, not empty. */}
+        <div className="mt-24">
+          <div
+            aria-hidden
+            style={{
+              height: 1,
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+            }}
+          />
+          <p
+            className="text-center text-xl md:text-2xl text-zinc-300 font-medium py-14"
+            style={{ letterSpacing: "-0.01em" }}
+          >
+            Alignment expires. The ledger compounds.
+          </p>
+          <div
+            aria-hidden
+            style={{
+              height: 1,
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+            }}
+          />
+        </div>
       </div>
     </section>
   );
