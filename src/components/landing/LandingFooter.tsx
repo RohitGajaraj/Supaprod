@@ -7,8 +7,10 @@ import { MachineViewToggle } from "@/components/cadence/MachineViewToggle";
  * belongs at footer tier, aligned to the container, never loose in a corner.
  */
 export function LandingFooter() {
+  // pt tighter than pb (founder 2026-07-15): the footer sits close under the
+  // waitlist close; the section above keeps its own decent space.
   return (
-    <footer className="border-t border-white/[0.07] py-12 px-4">
+    <footer className="border-t border-white/[0.07] pt-6 pb-12 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 text-sm">
           {/* Product */}
