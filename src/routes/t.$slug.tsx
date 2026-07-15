@@ -7,6 +7,8 @@
 // project ids); RLS only lets anon read is_public rows. Not under _authenticated,
 // so it works with no session. Mirrors d.$slug.tsx (the shareable-decision page).
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
+import { PUBLIC_INK_THEME } from "@/components/landing/inkTheme";
 import { getPublicTeardown, type PublicTeardown } from "@/lib/opportunities-share.functions";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
@@ -83,8 +85,15 @@ function Shell({ children }: { children: React.ReactNode }) {
         flexDirection: "column",
         background: "var(--paper, #f6f2ea)",
         color: "var(--ink, #1f1b16)",
+        isolation: "isolate",
+        ...PUBLIC_INK_THEME,
       }}
     >
+      {/* The landing starfield/grid, painted above this root's background
+          but below all content (negative z inside the isolated root). */}
+      <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }} aria-hidden>
+        <LandingBackdrop />
+      </div>
       <header
         style={{
           borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
