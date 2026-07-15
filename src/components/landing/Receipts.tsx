@@ -20,7 +20,7 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
       <div className="max-w-5xl mx-auto">
         {/* Text on the right, evidence on the left: this beat alternates
             sides with the rest of the page (the reference register). */}
-        <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.85fr] gap-12 items-start mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.85fr] gap-12 items-start">
           <div className="md:order-2">
             <h2
               className="text-4xl md:text-5xl font-semibold mb-4 text-white"
@@ -51,70 +51,94 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
           </div>
 
           <div className="md:order-1">
-        {/* Live counters: rendered only when the live pull succeeded */}
-        {stats && (
-          <div className="mb-4">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: "missions run", value: stats.missionsRun },
-                { label: "decisions recorded", value: stats.decisionsRecorded },
-                { label: "outcomes graded", value: stats.outcomesGraded },
-                { label: "AI calls, one audited path", value: stats.aiCallsGoverned },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 transition-colors hover:border-white/20"
-                >
-                  <div
-                    className="text-3xl md:text-4xl mb-2"
-                    style={{
-                      fontFamily: "var(--font-pixel)",
-                      fontVariantNumeric: "tabular-nums",
-                      color: "#E8B44C",
-                    }}
-                  >
-                    {item.value.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-zinc-500 uppercase tracking-wide">{item.label}</div>
+            {/* Live counters: rendered only when the live pull succeeded */}
+            {stats && (
+              <div className="mb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "missions run", value: stats.missionsRun },
+                    { label: "decisions recorded", value: stats.decisionsRecorded },
+                    { label: "outcomes graded", value: stats.outcomesGraded },
+                    { label: "AI calls, one audited path", value: stats.aiCallsGoverned },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 transition-colors hover:border-white/20"
+                    >
+                      <div
+                        className="text-3xl md:text-4xl mb-2"
+                        style={{
+                          fontFamily: "var(--font-pixel)",
+                          fontVariantNumeric: "tabular-nums",
+                          // Blue data tone (the in-app PixelStat ruling); gold
+                          // is reserved for the trace's memory rows only.
+                          color: "#6cb0f5",
+                        }}
+                      >
+                        {item.value.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-zinc-500 uppercase tracking-wide">
+                        {item.label}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                <p className="text-[11px] text-zinc-600 font-mono mt-3">
+                  Pulled live from the database at{" "}
+                  {new Date(stats.pulledAt).toISOString().slice(0, 16).replace("T", " ")} UTC.
+                </p>
+              </div>
+            )}
+
+            {/* Artifact row: every link is a real, live object */}
+            <div className="mt-10 grid grid-cols-1 gap-y-1">
+              {artifacts.map((a) => (
+                <a
+                  key={a.href}
+                  href={a.href}
+                  className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors"
+                >
+                  <span>{a.label}</span>
+                  <span className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all">
+                    &rarr;
+                  </span>
+                </a>
               ))}
             </div>
-            <p className="text-[11px] text-zinc-600 font-mono mt-3">
-              Pulled live from the database at{" "}
-              {new Date(stats.pulledAt).toISOString().slice(0, 16).replace("T", " ")} UTC.
-            </p>
-          </div>
-        )}
-
-        {/* Artifact row: every link is a real, live object */}
-        <div className="mt-10 grid grid-cols-1 gap-y-1">
-          {artifacts.map((a) => (
-            <a
-              key={a.href}
-              href={a.href}
-              className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors"
-            >
-              <span>{a.label}</span>
-              <span className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all">
-                &rarr;
-              </span>
-            </a>
-          ))}
-        </div>
           </div>
         </div>
 
-        {/* The boxed "where we actually are" card was cut (founder + panel
-            2026-07-15): it restated the sub-copy and framed the gap. Its one
-            working line (early is the offer) lives in the sub-copy now. */}
-
-        {/* The thesis pull quote: the beat's brand moment, in the pixel face */}
-        <p
-          className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto mt-20"
-          style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
-        >
-          Agents do the work. You answer for it. Cadence is how you answer.
-        </p>
+        {/* The thesis statement: the beat's brand moment, in the pixel face,
+            framed so it reads as its own message between the receipts above
+            and the moat beat below (founder 2026-07-15). The dividers fade at
+            the edges (the mask-fade treatment) so the line floats instead of
+            sitting in a table row. Ember on the product name: the human voice,
+            because the statement is about you answering. */}
+        <div className="mt-24">
+          <div
+            aria-hidden
+            style={{
+              height: 1,
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+            }}
+          />
+          <p
+            className="text-2xl md:text-[34px] text-white text-center leading-snug mx-auto py-16"
+            style={{ maxWidth: "26ch", fontFamily: "var(--font-pixel)", fontWeight: 400 }}
+          >
+            Agents do the work. You answer for it.{" "}
+            <span style={{ color: "#FF6B2C" }}>Cadence</span> is how you answer.
+          </p>
+          <div
+            aria-hidden
+            style={{
+              height: 1,
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+            }}
+          />
+        </div>
       </div>
     </section>
   );
