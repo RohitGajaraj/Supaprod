@@ -68,3 +68,17 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - "Your agents will change. Your decision history shouldn't." (the deprecation-insurance line, now stated on the connect surface itself.)
 - "We feed the builders and judge the results, so we're the one seat that stays put when the models churn." Cadence drives a native build floor plus the Claude Agent SDK / OpenHands and BYO Devin/Codex/Cursor through one BuildDriver seam, and speaks MCP + Skills, so a model or vendor swap never resets the outcome ledger. This is the structural half of the absorption defense (moat point 3, the neutral seat) made market-legible.
 - "The labs shipped the hands. We're the seat above the fleet where a human answers for the work."
+
+---
+
+## Landing page canonical lines (locked on the live page, 2026-07-15)
+
+The public landing (`/`, landing v2, commit 81fefcfe) now carries these as the outward-facing wording. Reuse them verbatim in decks, applications, and outreach so the story never drifts from the site:
+
+- **Hero:** "Cadence tells you what to build. then builds it. ships it. grades it." (Geist Pixel, founder-ruled USP-first framing)
+- **Identity line (title/meta/llms.txt, verbatim in all three):** "Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates."
+- **Title tag:** "Cadence: agents that know what to build, and ship it"
+- **The gap:** "Engineers got agents. Product is still waiting for its own."
+- **USP beat:** "Everyone can build now. Knowing what to build is the moat."
+- **Close:** "A product team of agents, answerable to you."
+- **Vocabulary rulings baked into the page (binding):** never "chatbot" / "copilot" / "operating system"; no competitor names or borrowed-brand analogies anywhere on the site (the Cursor hook is retired from the landing); "second brain" is sanctioned; ember is a human-action signal only.

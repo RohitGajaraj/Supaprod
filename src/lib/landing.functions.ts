@@ -1,14 +1,14 @@
 /**
  * Landing page server functions (docs/planning/landing-page-v2-plan.md sections 3-7).
  *
- * getLandingStats — the receipts beat's live counters, pulled from the DB at
+ * getLandingStats: the receipts beat's live counters, pulled from the DB at
  * render time. Claims law: if a number cannot be pulled live it does not render,
  * so this returns null on ANY failure and the page degrades to the artifact row.
  *
- * joinWaitlist — the beta waitlist with the teardown hook (optional bet field)
+ * joinWaitlist: the beta waitlist with the teardown hook (optional bet field)
  * and the referral queue bump. Honeypot + a global rate brake instead of captcha.
  *
- * trackLandingEvent — funnel capture. Writes a first-party row (verifiable on
+ * trackLandingEvent: funnel capture. Writes a first-party row (verifiable on
  * launch day even with no vendor key) and forwards through the observability
  * facade, never a raw vendor SDK (the AFD rule).
  */
