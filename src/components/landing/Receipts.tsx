@@ -18,22 +18,42 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
   return (
     <section className="py-32 px-4">
       <div className="max-w-5xl mx-auto">
-        <h2
-          className="text-4xl md:text-5xl font-semibold mb-4 text-white"
-          style={{ letterSpacing: "-0.02em" }}
-        >
-          Receipts, not screenshots.
-        </h2>
-        <p className="text-lg text-zinc-400 mb-12" style={{ maxWidth: "65ch" }}>
-          {stats
-            ? "Every number below is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."
-            : "Every artifact below is a live object in our workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."}
-        </p>
+        {/* Text on the right, evidence on the left: this beat alternates
+            sides with the rest of the page (the reference register). */}
+        <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.85fr] gap-12 items-start mb-6">
+          <div className="md:order-2">
+            <h2
+              className="text-4xl md:text-5xl font-semibold mb-4 text-white"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              Receipts, not screenshots.
+            </h2>
+            <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
+              {stats
+                ? "Every number here is pulled live from our own workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."
+                : "Every artifact here is a live object in our workspace. Cadence has run our product since June 2026. We publish the misses on the same ledger as the wins."}
+            </p>
+            <div className="hidden md:flex flex-col gap-2 mt-10">
+              <span className="font-mono text-[11px] text-zinc-600 mb-1">On the ledger</span>
+              {["live counters", "real decisions", "public teardowns", "dated shipping log"].map(
+                (f) => (
+                  <span
+                    key={f}
+                    className="font-mono text-[12px] uppercase text-zinc-400"
+                    style={{ letterSpacing: "0.12em" }}
+                  >
+                    {f}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
 
+          <div className="md:order-1">
         {/* Live counters: rendered only when the live pull succeeded */}
         {stats && (
           <div className="mb-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { label: "missions run", value: stats.missionsRun },
                 { label: "decisions recorded", value: stats.decisionsRecorded },
@@ -66,7 +86,7 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
         )}
 
         {/* Artifact row: every link is a real, live object */}
-        <div className="mt-12 mb-12 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3">
+        <div className="mt-10 grid grid-cols-1 gap-y-1">
           {artifacts.map((a) => (
             <a
               key={a.href}
@@ -79,6 +99,8 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
               </span>
             </a>
           ))}
+        </div>
+          </div>
         </div>
 
         {/* Where we are: proven in production, doors opening (founder ruling

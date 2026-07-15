@@ -92,23 +92,44 @@ export function LoopWalkthrough() {
       </svg>
 
       <div className="relative max-w-5xl mx-auto">
-        <h2
-          className={`text-4xl md:text-6xl font-semibold mb-4 text-white transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ letterSpacing: "-0.02em" }}
-        >
-          Signal to shipped. Watch it happen.
-        </h2>
-        <p
-          className={`text-lg text-zinc-500 mb-12 transition-all duration-700 ${
-            inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-          style={{ transitionDelay: inView ? "100ms" : "0ms" }}
-        >
-          One real mission, step by step: signals collected through the morning, flagged at
-          09:13, in production by 09:31. The last tab is the part nobody else shows you.
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 items-end mb-12">
+          <div>
+            <h2
+              className={`text-4xl md:text-6xl font-semibold mb-4 text-white transition-all duration-700 ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              Signal to shipped. Watch it happen.
+            </h2>
+            <p
+              className={`text-lg text-zinc-500 transition-all duration-700 ${
+                inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{ transitionDelay: inView ? "100ms" : "0ms" }}
+            >
+              One real mission, step by step: signals collected through the morning, flagged at
+              09:13, in production by 09:31. The last tab is the part nobody else shows you.
+            </p>
+          </div>
+          <div
+            className={`hidden md:flex flex-col gap-2 pb-1 transition-all duration-700 ${
+              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+            style={{ transitionDelay: inView ? "200ms" : "0ms" }}
+          >
+            <span className="font-mono text-[11px] text-zinc-600 mb-1">In the loop</span>
+            {["named agents", "human gates", "precedent memory", "outcome grading"].map((f) => (
+              <span
+                key={f}
+                className="font-mono text-[12px] uppercase text-zinc-400"
+                style={{ letterSpacing: "0.12em" }}
+              >
+                {f}
+              </span>
+            ))}
+          </div>
+        </div>
 
         {/* Reader-paced tabs: clicked, never cycled on a timer */}
         <div className="flex gap-6 mb-10 border-b border-white/10" role="tablist">
