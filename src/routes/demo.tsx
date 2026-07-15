@@ -111,10 +111,7 @@ function OverviewSection({ overview }: { overview: DemoOverview | null }) {
     <section className="px-6 pb-14">
       <div className="max-w-5xl mx-auto">
         <Eyebrow>Today, in {overview.workspaceName}</Eyebrow>
-        <h2
-          className="text-2xl font-semibold text-white mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           What Cadence is watching right now.
         </h2>
         <div className="flex flex-wrap gap-x-10 gap-y-4">
@@ -152,10 +149,7 @@ function TeardownSection({ teardown }: { teardown: DemoTeardown | null }) {
     <section className="px-6 pb-14">
       <div className="max-w-5xl mx-auto">
         <Eyebrow>A real teardown</Eyebrow>
-        <h2
-          className="text-2xl font-semibold text-white mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           {stripAutoPrefix(teardown.title)}
         </h2>
         <Card>
@@ -214,10 +208,7 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
     <section className="px-6 pb-14">
       <div className="max-w-5xl mx-auto">
         <Eyebrow>The ledger</Eyebrow>
-        <h2
-          className="text-2xl font-semibold text-white mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           Every call, on the record.
         </h2>
         <div className="border border-white/[0.08] bg-[#0d0d0e] rounded-xl overflow-hidden">
@@ -246,7 +237,8 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
                 </p>
               ) : null}
               <p className="text-[11px] text-zinc-600 mt-1.5 m-0">
-                <span style={{ color: AGENT_BLUE }}>{agentDisplayName(row.agentSlug)}</span> &middot;{" "}
+                <span style={{ color: AGENT_BLUE }}>{agentDisplayName(row.agentSlug)}</span>{" "}
+                &middot;{" "}
                 {new Date(row.createdAt).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",
@@ -267,10 +259,7 @@ function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
     <section className="px-6 pb-16">
       <div className="max-w-5xl mx-auto">
         <Eyebrow>One mission, in motion</Eyebrow>
-        <h2
-          className="text-2xl font-semibold text-white mb-6"
-          style={{ letterSpacing: "-0.02em" }}
-        >
+        <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           {stripAutoPrefix(mission.title)}
         </h2>
         <Card>
@@ -361,7 +350,10 @@ function DemoPage() {
             >
               This is a real Cadence workspace.
             </h1>
-            <p className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0" style={{ maxWidth: "58ch" }}>
+            <p
+              className="text-lg text-zinc-400 leading-relaxed mt-5 mb-0"
+              style={{ maxWidth: "58ch" }}
+            >
               No login, nothing to set up. Everything below is live data from a seeded demo
               workspace: a real teardown, a real decision ledger, a real mission trace. You cannot
               break anything, so look around.
