@@ -98,21 +98,35 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
         </div>
         <p className="text-xs text-zinc-600 -mt-16 mb-20">
           The full answers, stated plainly:{" "}
-          <a href="/security" className="text-zinc-400 underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors">
+          <a
+            href="/security"
+            className="text-zinc-400 underline underline-offset-4 decoration-zinc-700 hover:text-zinc-200 transition-colors"
+          >
             /security
           </a>
         </p>
 
+        {/* The close: beta status as a mono eyebrow, the heading cut in two
+            for punch, and the sub at the page's standard text-lg, one promise
+            per line (founder 2026-07-15: never three sub lines under a
+            one-line heading). */}
+        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
+          the beta is open for sign-ups
+        </p>
         <h2
           className="text-4xl md:text-5xl font-semibold mb-4 text-white"
           style={{ letterSpacing: "-0.02em" }}
         >
-          A product team of agents, answerable to you.
+          A product team of agents. Answerable to you.
         </h2>
-        <p className="text-xl text-zinc-400 mb-12" style={{ maxWidth: "52ch" }}>
-          It starts learning your product from the first call you grade with it. Every graded
-          outcome sharpens its taste, until it tells you what to build before you ask. The beta is
-          open for sign-ups.
+        <p className="text-lg text-zinc-400 mb-12 leading-relaxed">
+          <span className="md:block">
+            It starts learning your product from the first call you grade with it.
+          </span>{" "}
+          <span className="md:block">
+            Every graded outcome sharpens its taste, until it tells you what to build before you
+            ask.
+          </span>
         </p>
 
         <WaitlistForm waitlistCount={waitlistCount} />
