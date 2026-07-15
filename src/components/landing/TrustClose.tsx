@@ -111,28 +111,31 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             per line (founder 2026-07-15: never three sub lines under a
             one-line heading). The #join anchor lives HERE, not on the section,
             so every 'Join the beta' click lands with the eyebrow, heading,
-            and the email field all in view (founder 2026-07-15). */}
-        <div id="join" className="scroll-mt-24">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
-          the beta is open for sign-ups
-        </p>
-        <h2
-          className="text-4xl md:text-5xl font-semibold mb-4 text-white"
-          style={{ letterSpacing: "-0.02em" }}
-        >
-          A product team of agents. Answerable to you.
-        </h2>
-        <p className="text-lg text-zinc-400 mb-12 leading-relaxed">
-          <span className="md:block">
-            It starts learning your product from the first call you grade with it.
-          </span>{" "}
-          <span className="md:block">
-            Every graded outcome sharpens its taste, until it tells you what to build before you
-            ask.
-          </span>
-        </p>
+            and the email field all in view. The 160px offset is deliberate
+            (founder 2026-07-15): the block lands a little down the viewport,
+            trust cards peeking above and the footer just reaching the bottom
+            edge, so no empty run below the form is exposed. */}
+        <div id="join" className="scroll-mt-40">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-4">
+            the beta is open for sign-ups
+          </p>
+          <h2
+            className="text-4xl md:text-5xl font-semibold mb-4 text-white"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            A product team of agents. Answerable to you.
+          </h2>
+          <p className="text-lg text-zinc-400 mb-12 leading-relaxed">
+            <span className="md:block">
+              It starts learning your product from the first call you grade with it.
+            </span>{" "}
+            <span className="md:block">
+              Every graded outcome sharpens its taste, until it tells you what to build before you
+              ask.
+            </span>
+          </p>
 
-        <WaitlistForm waitlistCount={waitlistCount} />
+          <WaitlistForm waitlistCount={waitlistCount} />
         </div>
       </div>
     </section>
