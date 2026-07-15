@@ -161,8 +161,8 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
       )}
 
       <p className="text-xs text-zinc-600 font-mono">
-        Only the first 100 get the Critic: our red-team agent tears your riskiest roadmap idea
-        apart before you spend a sprint on it. Your link moves you up the line.
+        Only the first 100 get the Critic: our red-team agent tears your riskiest roadmap idea apart
+        before you spend a sprint on it. Your link moves you up the line.
       </p>
 
       {waitlistCount != null && waitlistCount >= WAITLIST_NUDGE_FLOOR && (

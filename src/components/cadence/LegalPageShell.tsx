@@ -5,16 +5,17 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 
 const C = {
-  bg: "#07070f",
+  bg: "#0a0a0a",
   border: "rgba(255,255,255,0.07)",
   divider: "rgba(255,255,255,0.06)",
-  text: "#f8fafc",
-  muted: "#94a3b8",
-  faint: "#475569",
-  ember: "#fb7100",
-  emberBright: "#ff9542",
+  text: "#f4f4f5",
+  muted: "#a1a1aa",
+  faint: "#565c66",
+  ember: "#FF6B2C",
+  emberBright: "#FF6B2C",
 };
 
 export function LegalPageShell({
@@ -30,15 +31,19 @@ export function LegalPageShell({
 }) {
   return (
     <div
+      data-obsidian
       style={{
         minHeight: "100vh",
         background: C.bg,
         color: C.text,
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         fontFamily: 'var(--font-sans, "Geist", ui-sans-serif, system-ui, sans-serif)',
       }}
     >
+      <LandingBackdrop />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1 }}>
       <header
         style={{
           padding: "16px 24px",
@@ -91,9 +96,10 @@ export function LegalPageShell({
           </p>
           <h1
             style={{
-              fontSize: "clamp(26px,4vw,36px)",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(24px,3.6vw,34px)",
+              fontWeight: 400,
+              fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+              letterSpacing: "0",
               margin: "0 0 8px",
             }}
           >
@@ -147,6 +153,7 @@ export function LegalPageShell({
           ))}
         </div>
       </footer>
+      </div>
     </div>
   );
 }

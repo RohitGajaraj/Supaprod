@@ -2,10 +2,11 @@
 // Global monthly/annual toggle; Free / Pro / Business / Enterprise in a 4-column grid.
 // Credit dropdown stays per-card (users configure different tiers across plans).
 // Annual toggle lifts to page level so all prices update together.
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
+import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -578,16 +579,34 @@ function PricingPage() {
   // Global billing interval — one toggle changes all 4 cards simultaneously.
   const [annual, setAnnual] = useState(false);
 
+  // The landing's ink theme, mapped onto this page's variable vocabulary
+  // (founder ruling 2026-07-15: every public page matches the parent canvas).
+  const inkTheme = {
+    "--paper": "#0a0a0a",
+    "--canvas": "#0d0d0e",
+    "--soft-stone": "#18181b",
+    "--ink": "#f4f4f5",
+    "--ink-subtle": "#a1a1aa",
+    "--ink-muted": "#71717a",
+    "--hairline": "rgba(255,255,255,0.09)",
+    "--ember": "#FF6B2C",
+    "--moss-success": "#4ac26b",
+  } as CSSProperties;
+
   return (
     <div
       style={{
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         background: "var(--paper, #f6f2ea)",
         color: "var(--ink, #1f1b16)",
+        ...inkTheme,
       }}
     >
+      <LandingBackdrop />
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", flex: 1 }}>
       <header
         style={{
           borderBottom: "1px solid var(--hairline, rgba(0,0,0,0.08))",
@@ -707,6 +726,7 @@ function PricingPage() {
           Start free -&gt;
         </a>
       </footer>
+      </div>
     </div>
   );
 }

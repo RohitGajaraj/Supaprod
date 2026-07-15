@@ -69,10 +69,11 @@ export function FieldStops() {
           The result is a{" "}
           <span
             style={{
-              fontFamily: "var(--font-pixel)",
+              fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
               fontWeight: 400,
               letterSpacing: "0",
-              color: "#ffffff",
+              fontSize: "1.06em",
+              color: "#FF6B2C",
             }}
           >
             second brain
