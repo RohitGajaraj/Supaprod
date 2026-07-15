@@ -6,7 +6,9 @@
 > Editorial landing system (`DESIGN.md`); those files are retired history. When any other
 > file disagrees with this one on look, feel, tokens, type, or component anatomy, this
 > contract wins. Lineage: v1 tokens · v2 Ember Editorial · v3 Obsidian · v4 Loom ·
-> **v5 Tempo**._
+> **v5 Tempo**. Applied records (how surfaces implement this contract, with founder
+> rulings): the app port `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`;
+> the public landing + all public pages `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md` (2026-07-15, read before touching any public surface)._
 
 ## 0. What Tempo is
 

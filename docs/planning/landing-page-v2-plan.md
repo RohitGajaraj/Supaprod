@@ -1,6 +1,6 @@
 # Landing Page v2 — strategy + implementation plan
 
-> _Created: 2026-07-14 · Status: **PLAN — awaiting founder review, no implementation yet** (founder directive 2026-07-14)._
+> _Created: 2026-07-14 · Status: **SHIPPED 2026-07-15** (landing v2 live in code on main; the visual direction in sections 4-5 is SUPERSEDED by the applied record [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](../../design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md); this plan remains the record of strategy, claims law, and GTM wiring)._
 >
 > **What this is:** the full rethink of the public landing page (`src/routes/index.tsx`), grounded in a five-stream research pass run 2026-07-14: a section-by-section audit of the current page, the positioning canon extracted from the Pitch Room, live competitive intelligence on Samepage Signals and BriefHQ, a benchmark study of Linear / Cursor / Vercel / Raycast / Clay / Braintrust / Resend / Perplexity, and a brand-asset + design-system inventory. GTM ground truth (what actually exists vs the sprint calendar) is documented separately in [`../Growth Strategy/07-gtm-ground-truth-2026-07-14.md`](../Growth%20Strategy/07-gtm-ground-truth-2026-07-14.md).
 >

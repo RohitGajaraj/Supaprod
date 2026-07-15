@@ -75,10 +75,10 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 
 The public landing (`/`, landing v2, commit 81fefcfe) now carries these as the outward-facing wording. Reuse them verbatim in decks, applications, and outreach so the story never drifts from the site:
 
-- **Hero:** "Cadence tells you what to build. then builds it. ships it. grades it." (Geist Pixel, founder-ruled USP-first framing)
+- **Hero:** "Cadence tells you what to build. then builds it. ships it. grades it. gets sharper." (Geist Pixel, founder-ruled USP-first framing; verbs hover to ember)
 - **Identity line (title/meta/llms.txt, verbatim in all three):** "Cadence tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates."
 - **Title tag:** "Cadence: agents that know what to build, and ship it"
-- **The gap:** "Engineers got agents. Product is still waiting for its own."
-- **USP beat:** "Everyone can build now. Knowing what to build is the moat."
+- **The gap:** "> Devs got agents that ship real code. / Product is still waiting for its own." (the word Devs types terminal-style; Product in Pixel ember)
+- **USP beat:** "Everyone can build now. Knowing what to build is the moat." + Pixel line "Cadence builds that moat for you."
 - **Close:** "A product team of agents, answerable to you."
-- **Vocabulary rulings baked into the page (binding):** never "chatbot" / "copilot" / "operating system"; no competitor names or borrowed-brand analogies anywhere on the site (the Cursor hook is retired from the landing); "second brain" is sanctioned; ember is a human-action signal only.
+- **Vocabulary rulings baked into the page (binding):** never "chatbot" / "copilot" / "operating system"; no competitor names or borrowed-brand analogies anywhere on the site (the Cursor hook is retired from the landing); "second brain" is sanctioned; ember = human action + founder-sanctioned USP highlights. Full design record: `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`.
