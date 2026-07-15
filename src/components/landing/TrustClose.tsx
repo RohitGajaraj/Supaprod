@@ -62,8 +62,11 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
     },
   ];
 
+  // pb tighter than the beat rhythm on purpose (founder 2026-07-15): after
+  // the form there is nothing left to read, so the footer starts close; the
+  // watermark mark getting cropped harder is sanctioned.
   return (
-    <section className="relative overflow-hidden py-32 px-4">
+    <section className="relative overflow-hidden pt-32 pb-12 px-4">
       {/* The mono watermark: the mark enormous, bleeding off the edge.
           Structural texture, grayscale-safe (plan section 4.2). */}
       <div
