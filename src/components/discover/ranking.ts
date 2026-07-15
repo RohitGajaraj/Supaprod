@@ -208,11 +208,23 @@ function rationaleFor(
 }
 
 /** The recommended next action, derived from the bet's state. */
-function nextActionFor(opp: RankableOpportunity): string {
+export function nextActionFor(opp: RankableOpportunity): string {
   const verdict = verdictFor(opp);
   if (verdict === "PENDING") return "Challenge with the Critic first";
   if (opp.status === "shipped") return "Review the outcome";
-  return "Draft the spec";
+  // Verdict-specific actions for non-shipped bets
+  switch (verdict) {
+    case "SHIP":
+      return "Proceed with the spec";
+    case "WATCH":
+      return "Gather more signals";
+    case "REVISE":
+      return "Address the feedback";
+    case "KILL":
+      return "Understand the rejection";
+    default:
+      return "Draft the spec";
+  }
 }
 
 /**
