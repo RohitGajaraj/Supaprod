@@ -8,7 +8,9 @@
 > contract wins. Lineage: v1 tokens · v2 Ember Editorial · v3 Obsidian · v4 Loom ·
 > **v5 Tempo**. Applied records (how surfaces implement this contract, with founder
 > rulings): the app port `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`;
-> the public landing + all public pages `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md` (2026-07-15, read before touching any public surface)._
+> the public landing + all public pages `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`
+> with its companion reference study `design-reference/tempo-v5/research/vercel-composition-playbook.md`
+> (2026-07-15, read both before touching any public surface; the two cross-reference each other)._
 
 ## 0. What Tempo is
 
