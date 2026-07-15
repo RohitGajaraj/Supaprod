@@ -5,7 +5,7 @@
 // tokens (parchment) per the design contract; the authenticated app's
 // Obsidian tokens do not apply here.
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { ARD_SCHEMA_PATH, ARD_SCHEMA_VERSION } from "@/lib/ard-schema";
 
 const TITLE = "ARD · Agent Requirements Document · Cadence";

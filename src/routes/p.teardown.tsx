@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type CSSProperties } from "react";
 import { Loader2, ArrowRight, Clock } from "lucide-react";
 import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { TeardownReceipt } from "@/components/public/TeardownReceipt";
 import type { Teardown } from "@/lib/ai/public-teardown.server";
 
@@ -128,7 +128,7 @@ function TeardownPage() {
           pointerEvents: "none",
         }}
       >
-        <CadenceMark size={520} tile={false} />
+        <CadenceMark size={520} />
       </div>
 
       <div

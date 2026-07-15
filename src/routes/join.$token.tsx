@@ -5,7 +5,7 @@ import { Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { acceptInvitation } from "@/lib/workspaces.functions";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { useObsidianAuthSurface } from "@/components/cadence/AuthScaffold";
 
 // WM-F5 accept side: the join landing for a workspace invitation link. A standalone

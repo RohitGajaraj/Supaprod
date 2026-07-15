@@ -70,14 +70,14 @@ export function CadenceMark({
       >
         <defs>
           <linearGradient id={`pet-${id}`} x1="15%" y1="0%" x2="85%" y2="100%">
-            <stop offset="0%" stopColor="var(--text-primary)" />
-            <stop offset="52%" stopColor="var(--text-subtle)" />
-            <stop offset="100%" stopColor="var(--text-primary)" />
+            <stop offset="0%" stopColor="var(--text-primary, #f2f0ed)" />
+            <stop offset="52%" stopColor="var(--text-subtle, #7d786f)" />
+            <stop offset="100%" stopColor="var(--text-primary, #f2f0ed)" />
           </linearGradient>
           <radialGradient id={`core-${id}`} cx="42%" cy="36%" r="72%">
-            <stop offset="0%" stopColor="color-mix(in oklab, #fff 60%, var(--ember))" />
-            <stop offset="56%" stopColor="var(--ember)" />
-            <stop offset="100%" stopColor="color-mix(in oklab, var(--ember) 82%, #000)" />
+            <stop offset="0%" stopColor="color-mix(in oklab, #fff 60%, var(--ember, #ff6b2c))" />
+            <stop offset="56%" stopColor="var(--ember, #ff6b2c)" />
+            <stop offset="100%" stopColor="color-mix(in oklab, var(--ember, #ff6b2c) 82%, #000)" />
           </radialGradient>
         </defs>
         {/* Petals = the loop; rotates in loader mode. */}
@@ -94,7 +94,7 @@ export function CadenceMark({
           {animated ? (
             <path
               d={PATH}
-              stroke="var(--hairline-strong)"
+              stroke="var(--hairline-strong, rgba(255,255,255,0.09))"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -103,7 +103,7 @@ export function CadenceMark({
           ) : null}
           <path
             d={PATH}
-            stroke="var(--text-primary)"
+            stroke="var(--text-primary, #f2f0ed)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -114,14 +114,14 @@ export function CadenceMark({
         {/* Core = Brain + Pulse: an ember centre with a small GOLD bead (the
             tilak / diya). Mono renders it in the metallic instead (watermark). */}
         {mono ? (
-          <circle cx="50" cy="50" r="6.2" fill="var(--text-subtle)" />
+          <circle cx="50" cy="50" r="6.2" fill="var(--text-subtle, #7d786f)" />
         ) : (
           <g
             className={animated ? "cadence-core" : undefined}
             style={{
               transformBox: "fill-box",
               transformOrigin: "center",
-              filter: "drop-shadow(0 0 4px color-mix(in oklab, var(--ember) 55%, transparent))",
+              filter: "drop-shadow(0 0 4px color-mix(in oklab, var(--ember, #ff6b2c) 55%, transparent))",
             }}
           >
             <circle cx="50" cy="50" r="6.2" fill={`url(#core-${id})`} />
@@ -129,8 +129,11 @@ export function CadenceMark({
               cx="50"
               cy="50"
               r="2.15"
-              fill="var(--marigold)"
-              style={{ filter: "drop-shadow(0 0 2px color-mix(in oklab, var(--marigold) 70%, transparent))" }}
+              fill="var(--marigold, #e8b44c)"
+              style={{
+                filter:
+                  "drop-shadow(0 0 2px color-mix(in oklab, var(--marigold, #e8b44c) 70%, transparent))",
+              }}
             />
           </g>
         )}

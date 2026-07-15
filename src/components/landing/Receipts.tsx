@@ -81,16 +81,16 @@ export function Receipts({ stats }: { stats: LandingStats | null }) {
           ))}
         </div>
 
-        {/* The honesty card */}
+        {/* Where we are: proven in production, doors opening (founder ruling
+            2026-07-15: state the strength, not the zero) */}
         <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-8 mb-16">
           <h3 className="text-xs uppercase tracking-wide text-zinc-500 mb-4">
             Where we actually are
           </h3>
           <p className="text-zinc-300 leading-relaxed" style={{ maxWidth: "65ch" }}>
-            The engine is built and has run our own product in production since June 2026.
-            External users as of July 2026:{" "}
-            <span className="text-white font-semibold">zero.</span> We built the whole loop before
-            opening the doors, on purpose. This month the doors open. Early is the offer.
+            The engine is built and has run our own product in production since June 2026; the
+            artifacts above come from that live workspace. This month the doors open to the first
+            outside cohort. <span className="text-white font-semibold">Early is the offer.</span>
           </p>
         </div>
 

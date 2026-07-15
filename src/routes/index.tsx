@@ -148,12 +148,15 @@ function LandingPage() {
             state, separated from the control by the ink itself. */}
         <style>{`
           .landing-root a:focus-visible,
-          .landing-root button:focus-visible,
-          .landing-root input:focus-visible,
-          .landing-root textarea:focus-visible {
+          .landing-root button:focus-visible {
             outline: none;
             box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
             border-radius: 6px;
+          }
+          .landing-root input:focus-visible,
+          .landing-root textarea:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
           }
         `}</style>
         <LandingBackdrop />
@@ -164,7 +167,7 @@ function LandingPage() {
           <LoopWalkthrough />
           <Receipts stats={stats} />
           <FieldStops />
-          <TrustClose />
+          <TrustClose waitlistCount={stats?.waitlistCount ?? null} />
           <LandingFooter />
         </div>
         <MachineViewToggle />

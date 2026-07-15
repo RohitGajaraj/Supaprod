@@ -7,7 +7,19 @@ import { joinWaitlist, trackLandingEvent, type JoinWaitlistResult } from "@/lib/
  * The first 100 get their bet red-teamed by the Critic; sharing your link
  * moves you up the queue. Honeypot field for bots, no captcha.
  */
-export function WaitlistForm() {
+
+// The count only motivates once it reads as a crowd; below the floor the
+// "first 100" scarcity line does the work alone (founder ruling 2026-07-15).
+const WAITLIST_NUDGE_FLOOR = 2000;
+
+// Abstract brand orbs, never faces: fabricated people would break the claims
+// law. Silver, ember, and gold families over the ink ring.
+const AVATAR_ORBS = [
+  "radial-gradient(circle at 35% 30%, #d4d4d8, #52525b)",
+  "radial-gradient(circle at 35% 30%, #ffa477, #c2571f)",
+  "radial-gradient(circle at 35% 30%, #e8b44c, #8a6420)",
+];
+export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }) {
   const [email, setEmail] = useState("");
   const [bet, setBet] = useState("");
   const [showBet, setShowBet] = useState(false);
@@ -25,8 +37,12 @@ export function WaitlistForm() {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (input: { email: string; betText?: string; referredBy?: string; website?: string }) =>
-      joinWaitlist({ data: input }),
+    mutationFn: (input: {
+      email: string;
+      betText?: string;
+      referredBy?: string;
+      website?: string;
+    }) => joinWaitlist({ data: input }),
   });
 
   const result = mutation.data as JoinWaitlistResult | undefined;
@@ -95,7 +111,7 @@ export function WaitlistForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
           aria-label="Work email"
-          className="flex-1 h-12 px-4 rounded-full bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-[#FF6B2C]/60 transition-colors"
+          className="flex-1 h-12 px-4 rounded-full bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors"
         />
         <button
           type="submit"
@@ -126,7 +142,7 @@ export function WaitlistForm() {
           maxLength={2000}
           placeholder="The product bet you are least sure about"
           aria-label="The product bet you are least sure about (optional)"
-          className="w-full px-4 py-3 mb-3 rounded-xl bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-[#FF6B2C]/60 transition-colors resize-none"
+          className="w-full px-4 py-3 mb-3 rounded-xl bg-white/[0.03] border border-white/10 text-white text-sm placeholder:text-zinc-600 outline-none focus-visible:border-white/30 transition-colors resize-none"
         />
       ) : (
         <button
@@ -145,8 +161,27 @@ export function WaitlistForm() {
       )}
 
       <p className="text-xs text-zinc-600 font-mono">
-        First 100 get their riskiest roadmap bet torn down by our red-team agent, the Critic. Each signup through your link moves you up.
+        Only the first 100 get the Critic: our red-team agent tears your riskiest roadmap idea
+        apart before you spend a sprint on it. Your link moves you up the line.
       </p>
+
+      {waitlistCount != null && waitlistCount >= WAITLIST_NUDGE_FLOOR && (
+        <div className="mt-4 flex items-center gap-2.5 text-xs text-zinc-400">
+          <span className="flex -space-x-1.5" aria-hidden>
+            {AVATAR_ORBS.map((bg, i) => (
+              <span
+                key={i}
+                className="w-[18px] h-[18px] rounded-full ring-2 ring-[#0a0a0a]"
+                style={{ background: bg }}
+              />
+            ))}
+          </span>
+          <span>
+            <span className="text-zinc-200 font-medium">{waitlistCount.toLocaleString()}</span>{" "}
+            people are already in line.
+          </span>
+        </div>
+      )}
     </form>
   );
 }

@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { MachineViewProvider } from "@/hooks/use-machine-view";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 import appCss from "../styles.css?url";
 

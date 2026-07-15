@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { trackLandingEvent } from "@/lib/landing.functions";
 import { MarkGlint } from "./MarkGlint";
 
@@ -10,6 +11,30 @@ import { MarkGlint } from "./MarkGlint";
  * CTA. Entrances are pure CSS so SSR paints complete without JavaScript.
  */
 export function Hero() {
+  const floatRef = useRef<HTMLDivElement>(null);
+
+  // The mark drifts a few pixels toward the pointer: alive, never busy.
+  // Direct style writes on a non-React node; still for touch/reduced motion.
+  useEffect(() => {
+    const el = floatRef.current;
+    if (!el) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const dx = (e.clientX / window.innerWidth - 0.5) * 12;
+        const dy = (e.clientY / window.innerHeight - 0.5) * 12;
+        el.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <section className="relative min-h-[100dvh] flex items-center px-6 pt-24 pb-16">
       <style>{`
@@ -18,6 +43,8 @@ export function Hero() {
           to { opacity: 1; transform: translateY(0); }
         }
         .hero-rise { animation: heroRise 0.9s cubic-bezier(0.23, 1, 0.3, 1) both; }
+        .hero-verb { transition: color 0.25s ease; }
+        .hero-verb:hover { color: #f4f4f5; }
         @media (prefers-reduced-motion: reduce) {
           .hero-rise { animation: none; }
         }
@@ -51,17 +78,22 @@ export function Hero() {
           {/* Left: the claim */}
           <div className="text-center lg:text-left">
             <h1
-              className="hero-rise text-[30px] md:text-[42px] lg:text-[46px] leading-[1.14] mb-6 text-white"
+              className="hero-rise text-[30px] md:text-[40px] lg:text-[44px] leading-[1.18] mb-6 text-white"
               style={{
                 animationDelay: "150ms",
                 fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
                 fontWeight: 400,
                 letterSpacing: "0",
+                textWrap: "balance",
               }}
             >
               Cadence tells you what to build.
-              <br />
-              <span className="text-zinc-400">then builds it. ships it. grades it.</span>
+              <span className="block mt-3 text-zinc-400">
+                then <span className="hero-verb">builds it.</span>{" "}
+                <span className="hero-verb">ships it.</span>{" "}
+                <span className="hero-verb">grades it.</span>{" "}
+                <span className="hero-verb">gets sharper.</span>
+              </span>
             </h1>
 
             <p
@@ -101,11 +133,13 @@ export function Hero() {
             </div>
 
             <p
-              className="hero-rise text-xs text-zinc-600 font-mono text-center lg:text-left"
+              className="hero-rise flex flex-wrap justify-center lg:justify-start gap-x-3 gap-y-1 text-xs text-zinc-500 font-mono"
               style={{ animationDelay: "600ms" }}
             >
-              No credit card. The first 100 bring one product bet; Cadence red-teams it before you
-              build it.
+              <span>No credit card.</span>
+              <span className="whitespace-nowrap">
+                First 100 get their riskiest idea stress-tested, free.
+              </span>
             </p>
           </div>
 
@@ -119,7 +153,9 @@ export function Hero() {
               }}
               aria-hidden
             />
-            <MarkGlint size={190} />
+            <div ref={floatRef} style={{ willChange: "transform" }}>
+              <MarkGlint size={190} />
+            </div>
           </div>
 
           {/* Right: the mono descriptor, machine-voice register */}

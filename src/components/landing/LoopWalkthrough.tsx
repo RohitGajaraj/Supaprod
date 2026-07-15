@@ -1,7 +1,107 @@
 import { useEffect, useRef, useState } from "react";
-import { CADENCE_MARK_PATH } from "@/components/cadence/CadenceMark";
+import { CADENCE_MARK_PATH, CadenceMark } from "@/components/cadence/CadenceMark";
 import { trackLandingEvent } from "@/lib/landing.functions";
 import { LoopReplay, type ReplayTab } from "./replay/Replay";
+
+const SIGNAL_SOURCES = [
+  "analytics",
+  "support inbox",
+  "error tracker",
+  "repo + CI",
+  "market moves",
+];
+
+/**
+ * Signals in: the Discover story as a diagram in the replay design language.
+ * Five live sources converge into the mark (the loop), lines drawing when the
+ * section enters view. Mobile gets a compact stacked version.
+ */
+function SignalsIn({ inView }: { inView: boolean }) {
+  return (
+    <div
+      className={`mb-14 transition-all duration-700 ${
+        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+      style={{ transitionDelay: inView ? "180ms" : "0ms" }}
+    >
+      <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-4">
+        signals in, from the tools you already run
+      </p>
+
+      {/* Desktop: sources converge into the loop */}
+      <div className="hidden md:flex items-center gap-0 border border-white/[0.07] bg-[#0d0d0e] rounded-xl px-8 py-6 max-w-3xl">
+        <div className="flex flex-col gap-[18px] shrink-0">
+          {SIGNAL_SOURCES.map((src, i) => (
+            <div
+              key={src}
+              className="flex items-center gap-2.5 transition-opacity duration-500"
+              style={{
+                opacity: inView ? 1 : 0,
+                transitionDelay: inView ? `${200 + i * 90}ms` : "0ms",
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6cb0f5]" aria-hidden />
+              <span className="text-[11px] font-mono text-zinc-300">{src}</span>
+            </div>
+          ))}
+        </div>
+        <svg
+          className="flex-1 h-[150px] mx-2"
+          viewBox="0 0 100 150"
+          preserveAspectRatio="none"
+          fill="none"
+          aria-hidden
+        >
+          {SIGNAL_SOURCES.map((src, i) => {
+            const y = 14 + i * 30.5;
+            return (
+              <path
+                key={src}
+                d={`M 0 ${y} C 55 ${y}, 60 75, 100 75`}
+                stroke="rgba(255,255,255,0.13)"
+                strokeWidth={1}
+                pathLength={100}
+                strokeDasharray={100}
+                strokeDashoffset={inView ? 0 : 100}
+                style={{
+                  transition: "stroke-dashoffset 0.9s ease",
+                  transitionDelay: inView ? `${250 + i * 90}ms` : "0ms",
+                }}
+              />
+            );
+          })}
+        </svg>
+        <div className="flex flex-col items-center gap-2 shrink-0 pl-1">
+          <CadenceMark size={40} />
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+            one loop
+          </span>
+        </div>
+      </div>
+
+      {/* Mobile: the same story, stacked */}
+      <div className="md:hidden border border-white/[0.07] bg-[#0d0d0e] rounded-xl p-5">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
+          {SIGNAL_SOURCES.map((src) => (
+            <span key={src} className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6cb0f5]" aria-hidden />
+              <span className="text-[11px] font-mono text-zinc-300">{src}</span>
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center gap-2.5">
+          <span className="text-zinc-600" aria-hidden>
+            &darr;
+          </span>
+          <CadenceMark size={24} />
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+            one loop
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Beat 3 - The loop, running (the walkthrough).
@@ -109,6 +209,8 @@ export function LoopWalkthrough() {
           The mission from the top of the page, step by step. The last tab is the part nobody else
           shows you.
         </p>
+
+        <SignalsIn inView={inView} />
 
         {/* Reader-paced tabs: clicked, never cycled on a timer */}
         <div className="flex gap-6 mb-10 border-b border-white/10" role="tablist">

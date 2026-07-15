@@ -12,7 +12,7 @@ export function FieldStops() {
           className="text-4xl md:text-5xl font-semibold mb-14 text-white leading-[1.1]"
           style={{ letterSpacing: "-0.02em", maxWidth: "24ch" }}
         >
-          Everyone can build now. Knowing what to build is the moat.
+          Everyone can build now. Almost nobody knows what to build. That is the moat.
         </h2>
 
         {/* The ledger: what the field leaves on you, and what Cadence does
@@ -40,12 +40,12 @@ export function FieldStops() {
             {
               kicker: "docs and boards",
               them: "hold the plan. The taste behind it evaporates.",
-              ours: "It grades every ship at D+14 against the call that caused it. The next call starts sharper.",
+              ours: "Fourteen days after every ship, it grades the outcome against the call that caused it. The next call starts sharper.",
             },
           ].map((row) => (
             <div
               key={row.kicker}
-              className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-10 py-6 border-t border-white/[0.07]"
+              className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-10 py-6 border-t border-white/[0.07] -mx-3 px-3 rounded-lg hover:bg-white/[0.015] transition-colors"
             >
               <p className="text-base md:text-lg leading-snug">
                 <span className="block text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-2">
@@ -60,22 +60,33 @@ export function FieldStops() {
           ))}
         </div>
 
-        {/* The claim, stated as a display line, not an essay */}
+        {/* The claim, stated as a display line; the USP phrase carries the
+            brand face and the gold micro-detail (founder ruling 2026-07-15) */}
         <p
           className="text-2xl md:text-3xl text-white font-medium leading-snug mb-4"
-          style={{ letterSpacing: "-0.015em", maxWidth: "34ch" }}
+          style={{ letterSpacing: "-0.015em", maxWidth: "36ch" }}
         >
-          The result is a second brain for your product: every call, its evidence, and its outcome
-          on one record.
+          The result is a{" "}
+          <span
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontWeight: 400,
+              letterSpacing: "0",
+              color: "#ffffff",
+            }}
+          >
+            second brain
+          </span>{" "}
+          for your product: every call, its evidence, and its outcome on one record.
         </p>
         <p className="text-base text-zinc-500 mb-16" style={{ maxWidth: "58ch" }}>
-          A record like that cannot be bought or backfilled. It exists only if the system was in
-          the loop when the call was made.
+          A record like that cannot be bought or backfilled. It exists only if the system was in the
+          loop when the call was made.
         </p>
 
         {/* The compounding moment: the same bet, months apart, shown not told */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6">
+          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
                 June
@@ -87,7 +98,7 @@ export function FieldStops() {
               Arrives cold. Ranked on the evidence alone: 3 signals, no history to lean on yet.
             </p>
           </div>
-          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6">
+          <div className="border border-white/10 bg-[#0d0d0e] rounded-xl p-6 hover:border-white/20 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
                 July
@@ -102,7 +113,8 @@ export function FieldStops() {
           </div>
         </div>
         <p className="text-sm text-zinc-500 mb-20" style={{ maxWidth: "62ch" }}>
-          Every call it records is a call a replacement starts without. The precedent chips are the shipped UI; the pair above is an illustration.
+          Every call it records is a call a replacement starts without. The precedent chips are the
+          shipped UI; the pair above is an illustration.
         </p>
 
         {/* Pull line */}
@@ -110,7 +122,7 @@ export function FieldStops() {
           className="text-center text-xl md:text-2xl text-zinc-300 font-medium"
           style={{ letterSpacing: "-0.01em" }}
         >
-          Alignment is a screenshot. Outcomes are a ledger.
+          Alignment expires. The ledger compounds.
         </p>
       </div>
     </section>

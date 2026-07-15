@@ -7,7 +7,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
@@ -409,7 +409,7 @@ function DemoPage() {
             style={{ display: "inline-flex", alignItems: "center", gap: 9, textDecoration: "none" }}
           >
             <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
-              <CadenceMark size={20} tile={false} />
+              <CadenceMark size={20} />
             </span>
             <span style={{ fontSize: 13, fontWeight: 550, color: C.text }}>Cadence</span>
           </Link>

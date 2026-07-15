@@ -41,8 +41,8 @@ export function TheGap() {
           }`}
           style={{ transitionDelay: inView ? "120ms" : "0ms", maxWidth: "48ch" }}
         >
-          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning
-          behind every call still evaporates into Slack.
+          Shipping got cheap. Deciding what to ship is the bottleneck now, and the reasoning behind
+          every call still evaporates into Slack.
         </p>
 
         <p

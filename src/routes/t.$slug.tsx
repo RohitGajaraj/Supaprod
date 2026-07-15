@@ -8,7 +8,7 @@
 // so it works with no session. Mirrors d.$slug.tsx (the shareable-decision page).
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getPublicTeardown, type PublicTeardown } from "@/lib/opportunities-share.functions";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { VerdictChip, type VerdictTone } from "@/components/cadence/Primitives";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";

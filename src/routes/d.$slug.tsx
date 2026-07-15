@@ -7,7 +7,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getPublicDecision } from "@/lib/decisions-share.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 

@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { CadenceMark, CADENCE_MARK_PATH } from "@/components/cadence/CadenceMark";
 
 /**
- * MarkGlint: the seven-petal CadenceMark with a slow specular light pass.
- * A short bright dash travels the exact epitrochoid stroke once every 12s:
- * a light moving over a still object, never a rotation of the logo (the brand
- * README forbids that). This is the hero's ONE personality touch. The ember
- * and gold core stays the mark's own, the page's single chromatic point here.
- * Reduced motion renders the still mark alone.
+ * MarkGlint: the seven-petal CadenceMark revolving very slowly around its
+ * ember core (founder ruling 2026-07-15: the petals turn, barely), with a
+ * soft white light pass traveling the epitrochoid stroke and a satellite
+ * tracing the orbit. This is the hero's ONE personality touch. Reduced
+ * motion renders the still mark alone.
  */
 export function MarkGlint({ size = 136 }: { size?: number }) {
   const [reduced, setReduced] = useState(false);
@@ -21,7 +20,21 @@ export function MarkGlint({ size = 136 }: { size?: number }) {
   }, []);
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div
+      className="relative"
+      style={{
+        width: size,
+        height: size,
+        animation: reduced ? undefined : "markSlowRevolve 150s linear infinite",
+        willChange: reduced ? undefined : "transform",
+      }}
+    >
+      <style>{`
+        @keyframes markSlowRevolve {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       <CadenceMark size={size} />
 
       {!reduced && (

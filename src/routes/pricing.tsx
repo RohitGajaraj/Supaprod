@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,

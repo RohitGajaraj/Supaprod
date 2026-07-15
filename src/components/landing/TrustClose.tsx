@@ -1,13 +1,21 @@
+import { BookLock, KeyRound, ShieldOff, Undo2 } from "lucide-react";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { WaitlistForm } from "./WaitlistForm";
 
 /**
  * Beat 6 - Trust + close.
- * The trust strip (four promises, linked to /security), the close, and the
- * one conversion ask: the waitlist, inline. The CTA is this viewport's single
- * ember object (plan section 4.1b).
+ * The trust strip (four promises with the identity-law icons, linked to
+ * /security), the close, and the one conversion ask: the waitlist, inline.
+ * The CTA is this viewport's single ember object (plan section 4.1b).
  */
-export function TrustClose() {
+export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) {
+  const promises = [
+    { icon: BookLock, label: "Read-only by default" },
+    { icon: KeyRound, label: "Your keys stay yours" },
+    { icon: ShieldOff, label: "No training on your data" },
+    { icon: Undo2, label: "One-click revoke" },
+  ];
+
   return (
     <section id="join" className="relative overflow-hidden py-32 px-4 scroll-mt-16">
       {/* The mono watermark: the mark enormous, bleeding off the edge.
@@ -20,20 +28,21 @@ export function TrustClose() {
       </div>
 
       <div className="relative max-w-5xl mx-auto">
-        {/* Trust strip */}
+        {/* Trust strip: 16px lucide outline icons, one treatment, hover lift */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20 pb-12 border-b border-white/10">
-          {[
-            "Read-only by default",
-            "Your keys stay yours",
-            "No training on your data",
-            "One-click revoke",
-          ].map((promise) => (
+          {promises.map((p) => (
             <a
-              key={promise}
+              key={p.label}
               href="/security"
-              className="text-center text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="group flex flex-col items-center gap-2.5 text-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
             >
-              {promise}
+              <p.icon
+                size={16}
+                strokeWidth={1.5}
+                className="text-zinc-600 group-hover:text-zinc-300 group-hover:-translate-y-0.5 transition-all duration-200"
+                aria-hidden
+              />
+              {p.label}
             </a>
           ))}
         </div>
@@ -49,7 +58,7 @@ export function TrustClose() {
           this month. Early is the offer.
         </p>
 
-        <WaitlistForm />
+        <WaitlistForm waitlistCount={waitlistCount} />
       </div>
     </section>
   );

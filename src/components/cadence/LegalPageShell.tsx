@@ -4,7 +4,7 @@
 // site. Kept deliberately plain: these are reference pages, not marketing.
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { CadenceMark } from "@/components/cadence/Primitives";
+import { CadenceMark } from "@/components/cadence/CadenceMark";
 
 const C = {
   bg: "#07070f",
@@ -65,7 +65,7 @@ export function LegalPageShell({
             }}
           >
             <span style={{ color: "rgba(255,255,255,0.9)", display: "inline-flex" }}>
-              <CadenceMark size={20} tile={false} />
+              <CadenceMark size={20} />
             </span>
             <span style={{ fontSize: 13, fontWeight: 550, letterSpacing: "-0.01em" }}>Cadence</span>
           </Link>

@@ -80,38 +80,219 @@ function ActorChip({
 }
 
 export const FULL_LOG: LogEntry[] = [
-  { ts: "09:14:03", tag: "SENSE", col: R.blue, actor: "agent", agentName: "Scout", station: 0, msg: "Activation drop, 4% week over week, flagged" },
-  { ts: "09:14:03", tag: "CLUSTER", col: R.muted, actor: "agent", agentName: "Scout", station: 0, msg: "3 signals linked: onboarding friction" },
-  { ts: "09:14:04", tag: "PROPOSE", col: R.blue, actor: "agent", agentName: "Strategist", station: 1, msg: "Decision proposed: simplify onboarding step 2" },
-  { ts: "09:14:05", tag: "EVIDENCE", col: R.muted, actor: "agent", agentName: "Strategist", station: 1, msg: "Confidence 84%. Similar call: D+14 activation +9%" },
-  { ts: "09:15:22", tag: "GATE", col: R.ember, actor: "you", station: 1, msg: "Your call. Approved in 2 seconds.", gate: true },
-  { ts: "09:15:23", tag: "PLAN", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec locked: 4 criteria, 6 linked signals" },
-  { ts: "09:15:45", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched: 3 commits" },
-  { ts: "09:16:12", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 14 tests passing" },
-  { ts: "09:16:30", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Merge held for you. Approved.", gate: true },
-  { ts: "09:17:01", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Merged and deployed to production" },
-  { ts: "D+14", tag: "LEARN", col: R.green, actor: "agent", agentName: "Sentry", station: 5, msg: "Activation +8%. Call validated. Memory updated." },
+  {
+    ts: "09:14:03",
+    tag: "SENSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "Activation drop, 4% week over week, flagged",
+  },
+  {
+    ts: "09:14:03",
+    tag: "CLUSTER",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Scout",
+    station: 0,
+    msg: "3 signals linked: onboarding friction",
+  },
+  {
+    ts: "09:14:04",
+    tag: "PROPOSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Strategist",
+    station: 1,
+    msg: "Decision proposed: simplify onboarding step 2",
+  },
+  {
+    ts: "09:14:05",
+    tag: "EVIDENCE",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Strategist",
+    station: 1,
+    msg: "Confidence 84%. Similar call: D+14 activation +9%",
+  },
+  {
+    ts: "09:15:22",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 1,
+    msg: "Your call. Approved in 2 seconds.",
+    gate: true,
+  },
+  {
+    ts: "09:15:23",
+    tag: "PLAN",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Architect",
+    station: 2,
+    msg: "Spec locked: 4 criteria, 6 linked signals",
+  },
+  {
+    ts: "09:15:45",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "Agents dispatched: 3 commits",
+  },
+  {
+    ts: "09:16:12",
+    tag: "CI",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "All 14 tests passing",
+  },
+  {
+    ts: "09:16:30",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 3,
+    msg: "Merge held for you. Approved.",
+    gate: true,
+  },
+  {
+    ts: "09:17:01",
+    tag: "SHIP",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Merged and deployed to production",
+  },
+  {
+    ts: "D+14",
+    tag: "LEARN",
+    col: R.green,
+    actor: "agent",
+    agentName: "Sentry",
+    station: 5,
+    msg: "Activation +8%. Call validated. Memory updated.",
+  },
 ];
 
 export const OTHERS_LOG: LogEntry[] = [
-  { ts: "09:14:03", tag: "SENSE", col: R.blue, actor: "tool", station: 0, msg: "Activation drop, 4% week over week, flagged" },
-  { ts: "09:14:11", tag: "HANDOFF", col: R.muted, actor: "you", station: 1, msg: "You assemble the context by hand" },
-  { ts: "09:14:31", tag: "DRAFT", col: R.blue, actor: "tool", station: 1, msg: "A tidy document appears. Waiting for you." },
+  {
+    ts: "09:14:03",
+    tag: "SENSE",
+    col: R.blue,
+    actor: "tool",
+    station: 0,
+    msg: "Activation drop, 4% week over week, flagged",
+  },
+  {
+    ts: "09:14:11",
+    tag: "HANDOFF",
+    col: R.muted,
+    actor: "you",
+    station: 1,
+    msg: "You assemble the context by hand",
+  },
+  {
+    ts: "09:14:31",
+    tag: "DRAFT",
+    col: R.blue,
+    actor: "tool",
+    station: 1,
+    msg: "A tidy document appears. Waiting for you.",
+  },
   { ts: "--", tag: "BUILD", col: R.faint, msg: "Never happens here", dead: true },
   { ts: "--", tag: "SHIP", col: R.faint, msg: "Someone else's job now", dead: true },
   { ts: "--", tag: "LEARN", col: R.faint, msg: "Nobody checks how the story ended", dead: true },
 ];
 
 export const FAIL_LOG: LogEntry[] = [
-  { ts: "11:43:17", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Agents dispatched" },
-  { ts: "11:43:22", tag: "CI", col: R.red, actor: "agent", agentName: "Builder", station: 3, msg: "Failed: 3 tests red, API contract mismatch" },
-  { ts: "11:43:22", tag: "DIAGNOSE", col: R.blue, actor: "agent", agentName: "Critic", station: 3, msg: "Reading the failure" },
-  { ts: "11:43:23", tag: "ROOT CAUSE", col: R.muted, actor: "agent", agentName: "Critic", station: 3, msg: "Response schema changed: user_id renamed to uid" },
-  { ts: "11:43:24", tag: "REVISE", col: R.blue, actor: "agent", agentName: "Architect", station: 2, msg: "Spec revised, one clause corrected" },
-  { ts: "11:43:31", tag: "BUILD", col: R.amber, actor: "agent", agentName: "Builder", station: 3, msg: "Rebuild: 1 corrected commit" },
-  { ts: "11:43:44", tag: "CI", col: R.green, actor: "agent", agentName: "Builder", station: 3, msg: "All 17 tests passing" },
-  { ts: "11:43:45", tag: "GATE", col: R.ember, actor: "you", station: 3, msg: "Your merge gate. Approved.", gate: true },
-  { ts: "11:43:52", tag: "SHIP", col: R.green, actor: "agent", agentName: "Builder", station: 4, msg: "Deployed. The loop never stopped." },
+  {
+    ts: "11:43:17",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "Agents dispatched",
+  },
+  {
+    ts: "11:43:22",
+    tag: "CI",
+    col: R.red,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "Failed: 3 tests red, API contract mismatch",
+  },
+  {
+    ts: "11:43:22",
+    tag: "DIAGNOSE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Critic",
+    station: 3,
+    msg: "Reading the failure",
+  },
+  {
+    ts: "11:43:23",
+    tag: "ROOT CAUSE",
+    col: R.muted,
+    actor: "agent",
+    agentName: "Critic",
+    station: 3,
+    msg: "Response schema changed: user_id renamed to uid",
+  },
+  {
+    ts: "11:43:24",
+    tag: "REVISE",
+    col: R.blue,
+    actor: "agent",
+    agentName: "Architect",
+    station: 2,
+    msg: "Spec revised, one clause corrected",
+  },
+  {
+    ts: "11:43:31",
+    tag: "BUILD",
+    col: R.amber,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "Rebuild: 1 corrected commit",
+  },
+  {
+    ts: "11:43:44",
+    tag: "CI",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 3,
+    msg: "All 17 tests passing",
+  },
+  {
+    ts: "11:43:45",
+    tag: "GATE",
+    col: R.ember,
+    actor: "you",
+    station: 3,
+    msg: "Your merge gate. Approved.",
+    gate: true,
+  },
+  {
+    ts: "11:43:52",
+    tag: "SHIP",
+    col: R.green,
+    actor: "agent",
+    agentName: "Builder",
+    station: 4,
+    msg: "Deployed. The loop never stopped.",
+  },
 ];
 
 const STATIONS = ["Discover", "Decide", "Plan", "Build", "Ship", "Learn"] as const;
@@ -397,9 +578,7 @@ export function FlowList({
               )}
             </div>
             <div style={{ paddingBottom: i < entries.length - 1 ? 12 : 0, paddingTop: 8 }}>
-              <div
-                style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}
-              >
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 2 }}>
                 <span style={{ fontFamily: MONO, fontSize: 9, color: R.faint }}>{e.ts}</span>
                 <span
                   style={{
@@ -526,9 +705,7 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
               Approve
             </span>
           )}
-          {step >= 2 && (
-            <span style={{ fontSize: 12, color: R.green, flexShrink: 0 }}>✓</span>
-          )}
+          {step >= 2 && <span style={{ fontSize: 12, color: R.green, flexShrink: 0 }}>✓</span>}
         </div>
       </div>
       <div style={{ marginTop: 12 }}>
@@ -608,7 +785,9 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
             transition: "background 0.4s ease",
           }}
         />
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>live run / agent mesh</span>
+        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>
+          live run / agent mesh
+        </span>
         <span style={{ marginLeft: "auto", fontSize: 9, color: R.faint, fontFamily: MONO }}>
           {allDone ? "run complete" : `${working}/${AGENTS.length} working`}
         </span>
@@ -640,7 +819,9 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
                 transition: "background 0.4s ease",
               }}
             />
-            <span style={{ fontSize: 11, fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}>
+            <span
+              style={{ fontSize: 11, fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}
+            >
               {a.name}
             </span>
             <span style={{ fontSize: 11, color: R.muted, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
@@ -659,7 +840,9 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
         );
       })}
       <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ flex: 1, height: 2, background: R.divider, borderRadius: 1, overflow: "hidden" }}>
+        <div
+          style={{ flex: 1, height: 2, background: R.divider, borderRadius: 1, overflow: "hidden" }}
+        >
           <div
             style={{
               height: "100%",
@@ -716,7 +899,9 @@ function DeadRun() {
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: R.faint }} />
-        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>live run / agent mesh</span>
+        <span style={{ fontSize: 11, color: R.muted, fontFamily: MONO }}>
+          live run / agent mesh
+        </span>
         <span style={{ marginLeft: "auto", fontSize: 9, color: R.faint, fontFamily: MONO }}>
           0/4 working
         </span>
@@ -733,7 +918,9 @@ function DeadRun() {
             opacity: 0.5,
           }}
         >
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: R.faint, flexShrink: 0 }} />
+          <span
+            style={{ width: 7, height: 7, borderRadius: "50%", background: R.faint, flexShrink: 0 }}
+          />
           <span style={{ fontSize: 11, fontWeight: 600, color: R.muted, flexShrink: 0, width: 64 }}>
             {a.name}
           </span>
@@ -793,10 +980,7 @@ function TiltFrame({ children }: { children: React.ReactNode }) {
 
 export type ReplayTab = "full" | "others" | "failure";
 
-const TAB_CONFIG: Record<
-  ReplayTab,
-  { log: LogEntry[]; litThrough: number; caption: string }
-> = {
+const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; caption: string }> = {
   full: {
     log: FULL_LOG,
     litThrough: 5,
@@ -822,7 +1006,10 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
   // The spine follows the trace: lit through the furthest station the replay
   // has reached; the station being worked right now reads in machine blue.
   const played = cfg.log.slice(0, Math.max(shown, 0));
-  const litThrough = played.reduce((max, e) => (e.station != null && e.station > max ? e.station : max), -1);
+  const litThrough = played.reduce(
+    (max, e) => (e.station != null && e.station > max ? e.station : max),
+    -1,
+  );
   const activeStation = active >= 0 ? cfg.log[active]?.station : undefined;
 
   return (

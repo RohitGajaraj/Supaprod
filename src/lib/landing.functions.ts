@@ -26,13 +26,15 @@ export type LandingStats = {
   decisionsRecorded: number;
   outcomesGraded: number;
   aiCallsGoverned: number;
+  /** Signups in line; the close beat's social nudge (hidden under a floor). */
+  waitlistCount: number;
   pulledAt: string;
 };
 
 export const getLandingStats = createServerFn({ method: "GET" }).handler(
   async (): Promise<LandingStats | null> => {
     try {
-      const [missions, decisions, learnings, aiEvents] = await Promise.all([
+      const [missions, decisions, learnings, aiEvents, waitlist] = await Promise.all([
         db.from("missions").select("id", { count: "exact", head: true }),
         db.from("decisions").select("id", { count: "exact", head: true }),
         db
@@ -40,6 +42,7 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
           .select("id", { count: "exact", head: true })
           .not("verdict", "is", null),
         db.from("ai_events").select("id", { count: "exact", head: true }),
+        db.from("waitlist_signups").select("id", { count: "exact", head: true }),
       ]);
       if (missions.error || decisions.error || learnings.error || aiEvents.error) return null;
       if (
@@ -55,6 +58,7 @@ export const getLandingStats = createServerFn({ method: "GET" }).handler(
         decisionsRecorded: decisions.count,
         outcomesGraded: learnings.count,
         aiCallsGoverned: aiEvents.count,
+        waitlistCount: waitlist.error ? 0 : (waitlist.count ?? 0),
         pulledAt: new Date().toISOString(),
       };
     } catch {
