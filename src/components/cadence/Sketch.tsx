@@ -327,7 +327,9 @@ export function SketchBarChart({
   const [hover, setHover] = useState<number | null>(null);
   if (data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.value), baseline ?? 0, 1);
-  const activeIdx = hover ?? data.length - 1;
+  // Clamp activeIdx to valid bounds in case data shrinks while a bar is hovered.
+  // Without this, accessing data[activeIdx] could throw when activeIdx > data.length - 1.
+  const activeIdx = Math.min(hover ?? data.length - 1, data.length - 1);
   const active = data[activeIdx]!;
   const baselinePct =
     baseline != null && baseline > 0 ? Math.min(100, (baseline / max) * 100) : null;

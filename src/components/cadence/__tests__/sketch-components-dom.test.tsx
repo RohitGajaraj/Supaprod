@@ -556,4 +556,116 @@ describe("SketchBarChart — Edge Cases (DOM-mounted)", () => {
     const svg = container.querySelector("svg");
     expect(svg?.getAttribute("height")).toBe("1");
   });
+
+  /**
+   * GAP 3: Cross-modality race guard (mouse + keyboard combined).
+   *
+   * Tests a scenario where keyboard focus and mouse events interact:
+   * - Mouse hovers over bar 0, setting activeIdx = 0
+   * - Keyboard focus moves to bar 1, setting activeIdx = 1
+   * - Mouse blur event from bar 0 fires (stale, delayed mouseOut)
+   *
+   * The functional updater on blur should check h === i before clearing,
+   * so a stale mouseleave from bar 0 should NOT reset activeIdx when bar 1
+   * is keyboard-focused.
+   */
+  it("should maintain focus state when stale mouse events arrive during keyboard focus", async () => {
+    const data: SketchBarDatum[] = [
+      { label: "Mon", value: 10 },
+      { label: "Tue", value: 25 },
+      { label: "Wed", value: 15 },
+    ];
+    const { container } = render(
+      <SketchBarChart data={data} trackH={100} formatValue={(v) => String(v)} />,
+    );
+
+    const buttons = container.querySelectorAll("button");
+    const btn0 = buttons[0] as HTMLElement;
+    const btn1 = buttons[1] as HTMLElement;
+
+    // 1. Hover over btn0 → activeIdx = 0, readout shows "Mon"
+    fireEvent.mouseOver(btn0);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Mon");
+    });
+
+    // 2. Focus btn1 via keyboard → activeIdx = 1, readout shows "Tue"
+    btn1.focus();
+    fireEvent.focus(btn1);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Tue");
+    });
+
+    // 3. Stale mouseOut from btn0 fires (cross-modality race)
+    //    The functional updater checks h === i, and since btn1 is now focused
+    //    (h = 1), the leave event from btn0 (i = 0) should be ignored.
+    fireEvent.mouseOut(btn0);
+
+    // 4. Verify btn1 is STILL active (not reset by the stale mouseOut)
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Tue");
+    });
+
+    // 5. Now blur btn1 intentionally → activeIdx falls back to default (last bar)
+    btn1.blur();
+    fireEvent.blur(btn1);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("Wed");
+    });
+  });
+
+  /**
+   * GAP 4: Data shrinking without bounds check.
+   *
+   * Tests a crash scenario: if data prop shrinks while a bar is active,
+   * activeIdx could exceed the new data.length - 1, causing an out-of-bounds
+   * access. The component does NOT clamp activeIdx, so this would crash:
+   *
+   *   const active = data[activeIdx]!;
+   *   const on = i === activeIdx;  // on line 397 during render
+   *
+   * This test triggers the scenario by rerendering with fewer bars while
+   * one is hovered, then verifies the component doesn't crash.
+   */
+  it("should not crash when data shrinks while a bar is hovered", async () => {
+    const initialData: SketchBarDatum[] = [
+      { label: "A", value: 10 },
+      { label: "B", value: 25 },
+      { label: "C", value: 15 },
+      { label: "D", value: 30 },
+      { label: "E", value: 20 },
+    ];
+    const { container, rerender } = render(
+      <SketchBarChart data={initialData} trackH={100} formatValue={(v) => String(v)} />,
+    );
+
+    const buttons = container.querySelectorAll("button");
+    const btn3 = buttons[3] as HTMLElement;
+
+    // 1. Hover over the 4th bar (index 3) → activeIdx = 3
+    fireEvent.mouseOver(btn3);
+    await waitFor(() => {
+      expect(getReadout(container).textContent).toContain("D");
+    });
+
+    // 2. Shrink data to 2 bars (removing indices 2, 3, 4)
+    //    activeIdx is still 3, but data.length is now 2, so activeIdx > data.length - 1
+    const shrunkData: SketchBarDatum[] = [
+      { label: "A", value: 10 },
+      { label: "B", value: 25 },
+    ];
+
+    // 3. Rerender with smaller data array
+    //    If the component doesn't clamp activeIdx, this will try to access
+    //    data[3] which is undefined, and the ! assertion will hide the error.
+    //    If it crashes or throws, that's the bug we're detecting.
+    expect(() => {
+      rerender(<SketchBarChart data={shrunkData} trackH={100} formatValue={(v) => String(v)} />);
+    }).not.toThrow();
+
+    // 4. Verify the component still renders (fallback to last bar)
+    const newButtons = container.querySelectorAll("button");
+    expect(newButtons.length).toBe(2);
+    expect(getReadout(container).textContent).toBeDefined();
+  });
 });
