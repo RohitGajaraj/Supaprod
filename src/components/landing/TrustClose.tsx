@@ -1,4 +1,13 @@
-import { BookLock, KeyRound, ShieldOff, Undo2 } from "lucide-react";
+import {
+  BookLock,
+  Brain,
+  Fingerprint,
+  GitMerge,
+  KeyRound,
+  Lock,
+  ScrollText,
+  Undo2,
+} from "lucide-react";
 import { CadenceMark } from "@/components/cadence/CadenceMark";
 import { WaitlistForm } from "./WaitlistForm";
 
@@ -9,11 +18,48 @@ import { WaitlistForm } from "./WaitlistForm";
  * The CTA is this viewport's single ember object (plan section 4.1b).
  */
 export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) {
+  // Eight promises, each one verifiably true of the shipped architecture.
   const promises = [
-    { icon: BookLock, label: "Read-only by default" },
-    { icon: KeyRound, label: "Your keys stay yours" },
-    { icon: ShieldOff, label: "No training on your data" },
-    { icon: Undo2, label: "One-click revoke" },
+    {
+      icon: BookLock,
+      label: "Read-only by default",
+      detail: "Connect your sources without granting a single write.",
+    },
+    {
+      icon: Fingerprint,
+      label: "Writes pass your gate",
+      detail: "Write access is scoped per mission and approved by you.",
+    },
+    {
+      icon: Brain,
+      label: "Learns you, trains no one else",
+      detail: "Your precedent stays in your workspace. No shared model sees it.",
+    },
+    {
+      icon: KeyRound,
+      label: "Your model keys, or ours",
+      detail: "Bring your own keys or run on managed ones. Your choice.",
+    },
+    {
+      icon: ScrollText,
+      label: "Every act on the record",
+      detail: "Each agent action carries a traceable audit id.",
+    },
+    {
+      icon: GitMerge,
+      label: "Merge is always human",
+      detail: "Merge, revert, and delegate can never skip your approval.",
+    },
+    {
+      icon: Lock,
+      label: "Keys encrypted at rest",
+      detail: "Pasted credentials sit in an AES-256 vault.",
+    },
+    {
+      icon: Undo2,
+      label: "One-click revoke",
+      detail: "Pull any connection or permission instantly.",
+    },
   ];
 
   return (
@@ -28,21 +74,26 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
       </div>
 
       <div className="relative max-w-5xl mx-auto">
-        {/* Trust strip: 16px lucide outline icons, one treatment, hover lift */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20 pb-12 border-b border-white/10">
+        {/* The trust grid: eight true promises as interactive cards, all
+            routing into /security for the full answers */}
+        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 mb-4">
+          the rules the agents cannot break
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-20">
           {promises.map((p) => (
             <a
               key={p.label}
               href="/security"
-              className="group flex flex-col items-center gap-2.5 text-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+              className="group border border-white/[0.08] bg-[#0d0d0e] rounded-xl p-5 hover:border-white/25 hover:-translate-y-0.5 transition-all duration-200"
             >
               <p.icon
                 size={16}
                 strokeWidth={1.5}
-                className="text-zinc-600 group-hover:text-zinc-300 group-hover:-translate-y-0.5 transition-all duration-200"
+                className="text-zinc-600 group-hover:text-zinc-200 transition-colors duration-200 mb-3"
                 aria-hidden
               />
-              {p.label}
+              <p className="text-sm text-zinc-200 font-medium mb-1.5">{p.label}</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">{p.detail}</p>
             </a>
           ))}
         </div>
@@ -54,8 +105,8 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
           A product team of agents, answerable to you.
         </h2>
         <p className="text-xl text-zinc-400 mb-12" style={{ maxWidth: "52ch" }}>
-          It starts learning your product from the first call you grade with it. The doors open
-          this month. Early is the offer.
+          It starts learning your product from the first call you grade with it. The doors open this
+          month. Early is the offer.
         </p>
 
         <WaitlistForm waitlistCount={waitlistCount} />
