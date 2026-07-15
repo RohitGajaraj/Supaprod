@@ -32,6 +32,10 @@ function buildPath(steps = 420, pad = 10): string {
 
 const PATH = buildPath();
 
+/** The exact epitrochoid path (viewBox 0 0 100 100) for treatments that trace
+ * the stroke, e.g. the landing hero's specular glint. */
+export const CADENCE_MARK_PATH = PATH;
+
 export function CadenceMark({
   size = 26,
   animated = false,
